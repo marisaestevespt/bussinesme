@@ -241,7 +241,18 @@ export default function MuralPage() {
     setFormCategory('outro');
     setPendingImages([]);
     setPendingFiles([]);
+    setEditingPost(null);
     setDialogOpen(false);
+  }
+
+  function openEdit(post: MuralPost) {
+    setEditingPost(post);
+    setFormTitle(post.title);
+    setFormBody(post.body);
+    setFormCategory(post.category);
+    setPendingImages(post.images);
+    setPendingFiles(post.files);
+    setDialogOpen(true);
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
