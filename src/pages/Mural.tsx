@@ -520,7 +520,7 @@ function PostCard({
 
       {/* Body */}
       <div className="px-5 pb-4">
-        <p className="whitespace-pre-wrap text-sm leading-relaxed">{post.body}</p>
+        <RichText text={post.body} className="whitespace-pre-wrap text-sm leading-relaxed" />
       </div>
 
       {/* Images gallery */}
