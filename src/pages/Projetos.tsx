@@ -260,7 +260,7 @@ export default function ProjetosPage() {
 
         {/* Create dialog */}
         <Dialog open={dialogOpen} onOpenChange={v => { if (!v) resetForm(); }}>
-          <DialogContent className="sm:max-w-[550px] max-h-[85vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Novo Projeto</DialogTitle></DialogHeader>
             <div className="grid gap-4 py-2">
               <div className="space-y-1.5">
