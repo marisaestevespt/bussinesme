@@ -291,7 +291,14 @@ function MeetingFormDialog({
           </div>
           <div>
             <Label>Projeto associado</Label>
-            <Input value={projectName} onChange={e => setProjectName(e.target.value)} placeholder="Opcional" />
+            <Select value={projectId} onValueChange={setProjectId}>
+              <SelectTrigger><SelectValue placeholder="Selecionar projeto..." /></SelectTrigger>
+              <SelectContent>
+                {projects.map(p => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button className="w-full" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
             {saveMutation.isPending ? 'A criar...' : 'Criar reunião'}
