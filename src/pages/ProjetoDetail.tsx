@@ -15,7 +15,8 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, CheckSquare, Upload, Trash2, Download, File } from 'lucide-react';
+import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -34,7 +35,7 @@ interface ProjectFull {
   objetivo: string | null; diretrizes: string | null; cronograma: string | null; dependencias: string | null;
   entregaveis: string | null; recursos: string | null; project_notes: string | null;
   closure_good: string | null; closure_bad: string | null; closure_lessons: string | null;
-  created_by: string | null; created_at: string;
+  created_by: string | null; created_at: string; cover_url: string | null;
 }
 
 interface Profile { id: string; user_id: string; full_name: string | null; avatar_url: string | null; }
@@ -294,12 +295,36 @@ export default function ProjetoDetailPage() {
         objetivo: local.objetivo, diretrizes: local.diretrizes, cronograma: local.cronograma, dependencias: local.dependencias,
         entregaveis: local.entregaveis, recursos: local.recursos, project_notes: local.project_notes,
         closure_good: local.closure_good, closure_bad: local.closure_bad, closure_lessons: local.closure_lessons,
+        cover_url: local.cover_url,
       }).eq('id', local.id);
       if (error) throw error;
     },
     onSuccess: () => { setDirty(false); queryClient.invalidateQueries({ queryKey: ['project', id] }); toast.success('Guardado'); },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('projects').delete().eq('id', id!);
+      if (error) throw error;
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['projects'] }); toast.success('Projeto eliminado'); navigate('/hub/projetos'); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const path = `covers/${id}/${Date.now()}_${file.name}`;
+    const { error } = await supabase.storage.from('project-files').upload(path, file);
+    if (error) { toast.error(error.message); return; }
+    const { data } = supabase.storage.from('project-files').getPublicUrl(path);
+    updateField('cover_url', data.publicUrl);
+    // Auto-save cover
+    await supabase.from('projects').update({ cover_url: data.publicUrl }).eq('id', id!);
+    queryClient.invalidateQueries({ queryKey: ['project', id] });
+    toast.success('Capa atualizada');
+  };
 
   const createTaskMutation = useMutation({
     mutationFn: async () => {
@@ -474,6 +499,23 @@ export default function ProjetoDetailPage() {
       <AppLayout>
         <div className="space-y-6 max-w-3xl">
           <Button variant="ghost" size="sm" onClick={() => navigate('/hub/projetos')} className="gap-1"><ArrowLeft className="h-4 w-4" /> Projetos</Button>
+
+          {/* Cover image */}
+          {local.cover_url ? (
+            <div className="relative rounded-xl overflow-hidden h-48 group">
+              <img src={local.cover_url} alt="Capa" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                <label className="cursor-pointer"><input type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" /><Button variant="secondary" size="sm" className="gap-1.5"><ImageIcon className="h-3.5 w-3.5" /> Alterar</Button></label>
+                <Button variant="secondary" size="sm" className="gap-1.5 ml-2" onClick={() => { updateField('cover_url', null); supabase.from('projects').update({ cover_url: null }).eq('id', id!); }}><X className="h-3.5 w-3.5" /> Remover</Button>
+              </div>
+            </div>
+          ) : (
+            <label className="flex items-center justify-center h-32 border-2 border-dashed rounded-xl cursor-pointer hover:bg-muted/30 transition-colors">
+              <input type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" />
+              <div className="flex items-center gap-2 text-muted-foreground"><ImageIcon className="h-5 w-5" /><span className="text-sm">Adicionar capa</span></div>
+            </label>
+          )}
+
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
@@ -495,6 +537,11 @@ export default function ProjetoDetailPage() {
             <div><Label className="text-xs">Notas</Label><MentionTextarea value={local.notes || ''} onChange={v => updateField('notes', v)} rows={6} placeholder="Notas do projeto..." /></div>
           </div>
           {dirty && <div className="sticky bottom-4"><Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="gap-2 shadow-lg"><Save className="h-4 w-4" /> Guardar</Button></div>}
+          <Separator />
+          <AlertDialog>
+            <AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="text-destructive hover:text-destructive gap-1.5"><Trash2 className="h-4 w-4" /> Eliminar projeto</Button></AlertDialogTrigger>
+            <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar projeto?</AlertDialogTitle><AlertDialogDescription>Esta ação é irreversível. Todos os dados do projeto serão eliminados.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+          </AlertDialog>
         </div>
       </AppLayout>
     );
@@ -509,7 +556,22 @@ export default function ProjetoDetailPage() {
           {dirty && <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} size="sm" className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>}
         </div>
 
-        {/* Header */}
+        {/* Cover image */}
+        {local.cover_url ? (
+          <div className="relative rounded-xl overflow-hidden h-48 group">
+            <img src={local.cover_url} alt="Capa" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+              <label className="cursor-pointer"><input type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" /><Button variant="secondary" size="sm" className="gap-1.5"><ImageIcon className="h-3.5 w-3.5" /> Alterar</Button></label>
+              <Button variant="secondary" size="sm" className="gap-1.5 ml-2" onClick={() => { updateField('cover_url', null); supabase.from('projects').update({ cover_url: null }).eq('id', id!); }}><X className="h-3.5 w-3.5" /> Remover</Button>
+            </div>
+          </div>
+        ) : (
+          <label className="flex items-center justify-center h-24 border-2 border-dashed rounded-xl cursor-pointer hover:bg-muted/30 transition-colors">
+            <input type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" />
+            <div className="flex items-center gap-2 text-muted-foreground"><ImageIcon className="h-5 w-5" /><span className="text-sm">Adicionar capa</span></div>
+          </label>
+        )}
+
         <div className="space-y-3">
           <div className="flex items-center gap-3 flex-wrap">
             <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
@@ -637,6 +699,12 @@ export default function ProjetoDetailPage() {
             ))}
           </div>
         </div>
+
+        <Separator />
+        <AlertDialog>
+          <AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="text-destructive hover:text-destructive gap-1.5"><Trash2 className="h-4 w-4" /> Eliminar projeto</Button></AlertDialogTrigger>
+          <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar projeto?</AlertDialogTitle><AlertDialogDescription>Esta ação é irreversível. Todos os dados do projeto serão eliminados.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {/* Task dialog */}

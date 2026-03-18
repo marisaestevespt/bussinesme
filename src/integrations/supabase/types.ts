@@ -587,6 +587,7 @@ export type Database = {
           closure_bad: string | null
           closure_good: string | null
           closure_lessons: string | null
+          cover_url: string | null
           created_at: string
           created_by: string | null
           cronograma: string | null
@@ -612,6 +613,7 @@ export type Database = {
           closure_bad?: string | null
           closure_good?: string | null
           closure_lessons?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           cronograma?: string | null
@@ -637,6 +639,7 @@ export type Database = {
           closure_bad?: string | null
           closure_good?: string | null
           closure_lessons?: string | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           cronograma?: string | null
