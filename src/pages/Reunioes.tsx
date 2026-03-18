@@ -277,7 +277,6 @@ export default function ReunioesPage() {
   const filteredMeetings = view === 'proximas'
     ? meetings.filter(m => m.status === 'por_confirmar' || m.status === 'marcada')
     : meetings;
-    : meetings;
 
   return (
     <AppLayout>
