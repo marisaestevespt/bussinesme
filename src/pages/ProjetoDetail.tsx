@@ -35,7 +35,7 @@ interface ProjectFull {
   objetivo: string | null; diretrizes: string | null; cronograma: string | null; dependencias: string | null;
   entregaveis: string | null; recursos: string | null; project_notes: string | null;
   closure_good: string | null; closure_bad: string | null; closure_lessons: string | null;
-  created_by: string | null; created_at: string;
+  created_by: string | null; created_at: string; cover_url: string | null;
 }
 
 interface Profile { id: string; user_id: string; full_name: string | null; avatar_url: string | null; }
