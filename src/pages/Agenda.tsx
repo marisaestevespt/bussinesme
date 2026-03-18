@@ -443,6 +443,8 @@ function EventFormDialog({
   const [department, setDepartment] = useState(editEvent?.department ?? '');
   const [clientName, setClientName] = useState(editEvent?.client_name ?? '');
   const [notes, setNotes] = useState(editEvent?.notes ?? '');
+  const [recurrenceType, setRecurrenceType] = useState(editEvent?.recurrence_type ?? '');
+  const [recurrenceEnd, setRecurrenceEnd] = useState<Date | undefined>(editEvent?.recurrence_end ? parseISO(editEvent.recurrence_end) : undefined);
   const [selectedMembers, setSelectedMembers] = useState<string[]>(existingMembers.map(m => m.profile_id));
 
   // Sync when existingMembers loads
