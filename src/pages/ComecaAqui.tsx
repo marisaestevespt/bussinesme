@@ -212,6 +212,7 @@ export default function ComecaAquiPage() {
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [newMemberRole, setNewMemberRole] = useState('');
   const [newMemberPhone, setNewMemberPhone] = useState('');
+  const [newMemberSchedule, setNewMemberSchedule] = useState<WeekSchedule>(emptySchedule());
   const [creatingMember, setCreatingMember] = useState(false);
   const [generatingLink, setGeneratingLink] = useState(false);
 
