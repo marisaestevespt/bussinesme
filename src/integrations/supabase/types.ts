@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       business_settings: {
         Row: {
+          about_text: string | null
           background_color: string
           business_name: string
           created_at: string
@@ -27,8 +28,10 @@ export type Database = {
           secondary_color: string
           text_color: string
           updated_at: string
+          welcome_text: string | null
         }
         Insert: {
+          about_text?: string | null
           background_color?: string
           business_name: string
           created_at?: string
@@ -40,8 +43,10 @@ export type Database = {
           secondary_color?: string
           text_color?: string
           updated_at?: string
+          welcome_text?: string | null
         }
         Update: {
+          about_text?: string | null
           background_color?: string
           business_name?: string
           created_at?: string
@@ -53,6 +58,7 @@ export type Database = {
           secondary_color?: string
           text_color?: string
           updated_at?: string
+          welcome_text?: string | null
         }
         Relationships: []
       }
@@ -118,27 +124,39 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           full_name: string | null
           id: string
+          phone: string | null
+          role_title: string | null
           updated_at: string
           user_id: string
+          work_schedule: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
+          phone?: string | null
+          role_title?: string | null
           updated_at?: string
           user_id: string
+          work_schedule?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
+          phone?: string | null
+          role_title?: string | null
           updated_at?: string
           user_id?: string
+          work_schedule?: string | null
         }
         Relationships: []
       }
