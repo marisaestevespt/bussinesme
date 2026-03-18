@@ -40,6 +40,8 @@ function AppRoutes() {
       <Route path="/secretaria" element={<SecretariaPage />} />
       <Route path="/comeca-aqui" element={<ComecaAquiPage />} />
       <Route path="/hub/agenda" element={<AgendaPage />} />
+      <Route path="/hub/reunioes" element={<ReunioesPage />} />
+      <Route path="/hub/reunioes/:id" element={<ReuniaoDetailPage />} />
       <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
       <Route path="/definicoes" element={<DefinicoesPage />} />
