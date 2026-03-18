@@ -251,6 +251,7 @@ function MeetingFormDialog({
     },
     onSuccess: (id) => {
       qc.invalidateQueries({ queryKey: ['meetings'] });
+      qc.invalidateQueries({ queryKey: ['events'] });
       toast.success('Reunião criada');
       resetForm();
       onOpenChange(false);
