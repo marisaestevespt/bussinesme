@@ -560,6 +560,7 @@ function EventFormDialog({
               <DateTimePickerField date={recurrenceEnd} onSelect={setRecurrenceEnd} placeholder="Sem data final (opcional)" />
             </div>
           )}
+          <div>
             <Label>Produto associado</Label>
             <Input value={productName} onChange={e => setProductName(e.target.value)} placeholder="Opcional" />
           </div>
