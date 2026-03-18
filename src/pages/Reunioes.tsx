@@ -205,9 +205,10 @@ function MeetingFormDialog({
   const [status, setStatus] = useState<MeetingStatus>('por_confirmar');
   const [clientName, setClientName] = useState('');
   const [projectName, setProjectName] = useState('');
+  const [department, setDepartment] = useState('');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
-  const resetForm = () => { setTitle(''); setDateTime(undefined); setStatus('por_confirmar'); setClientName(''); setProjectName(''); setSelectedMembers([]); };
+  const resetForm = () => { setTitle(''); setDateTime(undefined); setStatus('por_confirmar'); setClientName(''); setProjectName(''); setDepartment(''); setSelectedMembers([]); };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
