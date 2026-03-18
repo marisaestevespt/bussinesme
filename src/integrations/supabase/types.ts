@@ -274,6 +274,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           date_time: string
+          department: string | null
           discussion_points: Json | null
           final_notes: Json | null
           id: string
@@ -291,6 +292,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date_time: string
+          department?: string | null
           discussion_points?: Json | null
           final_notes?: Json | null
           id?: string
@@ -308,6 +310,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date_time?: string
+          department?: string | null
           discussion_points?: Json | null
           final_notes?: Json | null
           id?: string
