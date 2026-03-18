@@ -22,11 +22,9 @@ const DEPARTMENTS = [
   { value: 'administrativo', label: 'Administrativo', gradient: 'from-slate-600 to-slate-800', icon: '🏢' },
   { value: 'marketing', label: 'Marketing', gradient: 'from-pink-500 to-rose-700', icon: '📣' },
   { value: 'comercial', label: 'Comercial', gradient: 'from-amber-500 to-orange-700', icon: '🤝' },
+  { value: 'clientes', label: 'Clientes', gradient: 'from-cyan-500 to-teal-700', icon: '⭐' },
   { value: 'financeiro', label: 'Financeiro', gradient: 'from-emerald-500 to-green-800', icon: '💰' },
-  { value: 'customer_success', label: 'Customer Success', gradient: 'from-cyan-500 to-teal-700', icon: '⭐' },
-  { value: 'operacoes', label: 'Operações', gradient: 'from-violet-500 to-purple-800', icon: '⚙️' },
-  { value: 'produto_servico', label: 'Produto/Serviço', gradient: 'from-blue-500 to-indigo-800', icon: '🚀' },
-  { value: 'recursos_humanos', label: 'Recursos Humanos', gradient: 'from-rose-400 to-pink-700', icon: '👥' },
+  { value: 'operacao', label: 'Operação', gradient: 'from-violet-500 to-purple-800', icon: '⚙️' },
 ];
 
 const SOP_STATUSES = [
