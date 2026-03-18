@@ -315,6 +315,7 @@ export default function ComecaAquiPage() {
           full_name: newMemberName,
           role_title: newMemberRole || null,
           phone: newMemberPhone || null,
+          work_schedule: serializeSchedule(newMemberSchedule),
         },
       });
       if (res.error || res.data?.error) {
