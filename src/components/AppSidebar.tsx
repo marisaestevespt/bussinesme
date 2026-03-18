@@ -148,8 +148,8 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <NavSection label="Pessoal" items={secretariaItems} collapsed={collapsed} canAccess={() => true} />
-        <NavSection label="Começa Aqui" items={comecaAquiItems} collapsed={collapsed} canAccess={canAccess} />
+        <NavSection label="Pessoal" items={pessoalItems} collapsed={collapsed} canAccess={() => true} />
+        <NavSection label="Hall" items={hallItems} collapsed={collapsed} canAccess={canAccess} />
         <NavSection label="Transversais" items={transversaisItems} collapsed={collapsed} canAccess={canAccess} />
         <NavSection label="Departamentos" items={departamentosItems} collapsed={collapsed} canAccess={canAccess} />
         {isOwner && (
