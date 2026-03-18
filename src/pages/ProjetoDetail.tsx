@@ -418,7 +418,7 @@ export default function ProjetoDetailPage() {
 
   // ─── Entregáveis sub-page (file upload + list) ────────────────
   if (subPage === 'entregaveis') {
-    return <EntregaveisSubPage projectId={id!} onBack={() => setSubPage(null)} />;
+    return <EntregaveisSubPage projectId={id!} entregaveisText={local.entregaveis || ''} onTextChange={v => updateField('entregaveis', v)} onSave={() => saveMutation.mutate()} saving={saveMutation.isPending} dirty={dirty} onBack={() => setSubPage(null)} />;
   }
 
     const field = fieldMap[subPage];
