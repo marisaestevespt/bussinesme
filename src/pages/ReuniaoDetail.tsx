@@ -353,10 +353,45 @@ export default function ReuniaoDetailPage() {
             onChange={e => update({ title: e.target.value })}
             className="text-2xl font-bold text-foreground bg-transparent border-none outline-none w-full"
           />
-          <div className="flex flex-wrap items-center gap-4 text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <CalendarIcon className="h-4 w-4" />
-              {format(parseISO(m.date_time), "dd MMM yyyy 'às' HH:mm", { locale: pt })}
+          <div className="flex flex-wrap items-start gap-4 text-sm">
+            {/* Editable date/time */}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Data e hora</Label>
+              <div className="flex items-center gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-7 text-xs">
+                      <CalendarIcon className="mr-1.5 h-3 w-3" />
+                      {format(parseISO(m.date_time), 'dd/MM/yyyy')}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={parseISO(m.date_time)}
+                      onSelect={day => {
+                        if (!day) return;
+                        const prev = parseISO(m.date_time);
+                        day.setHours(prev.getHours(), prev.getMinutes());
+                        update({ date_time: day.toISOString() });
+                      }}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+                <Input
+                  type="time"
+                  value={format(parseISO(m.date_time), 'HH:mm')}
+                  onChange={e => {
+                    const [h, min] = e.target.value.split(':').map(Number);
+                    const d = parseISO(m.date_time);
+                    d.setHours(h, min);
+                    update({ date_time: d.toISOString() });
+                  }}
+                  className="h-7 w-24 text-xs"
+                />
+              </div>
             </div>
             <Select value={m.status} onValueChange={v => update({ status: v as MeetingStatus })}>
               <SelectTrigger className="w-auto h-7 text-xs"><SelectValue /></SelectTrigger>
@@ -388,18 +423,24 @@ export default function ReuniaoDetailPage() {
                 </div>
               </div>
             )}
-            {m.client_name && (
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Cliente</Label>
-                <p className="text-foreground">{m.client_name}</p>
-              </div>
-            )}
-            {m.project_name && (
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Projeto</Label>
-                <p className="text-foreground">{m.project_name}</p>
-              </div>
-            )}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Cliente</Label>
+              <Input
+                value={m.client_name ?? ''}
+                onChange={e => update({ client_name: e.target.value || null })}
+                placeholder="Sem cliente"
+                className="h-7 text-xs w-40"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Projeto</Label>
+              <Input
+                value={m.project_name ?? ''}
+                onChange={e => update({ project_name: e.target.value || null })}
+                placeholder="Sem projeto"
+                className="h-7 text-xs w-40"
+              />
+            </div>
           </div>
 
           {/* Transcript */}
