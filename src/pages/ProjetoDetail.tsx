@@ -204,7 +204,13 @@ function EntregaveisSubPage({ projectId, entregaveisText, onTextChange, onSave, 
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+              {dragging && (
+                <div className="flex items-center justify-center py-4 text-sm text-primary font-medium border-2 border-dashed border-primary rounded-lg bg-primary/5">
+                  <Upload className="h-4 w-4 mr-2" /> Larga os ficheiros aqui
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
