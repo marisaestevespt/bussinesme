@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { MentionTextarea } from '@/components/MentionTextarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -461,7 +461,7 @@ function EventFormDialog({
           </div>
           <div>
             <Label>Notas</Label>
-            <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas adicionais..." rows={3} />
+            <MentionTextarea value={notes} onChange={setNotes} placeholder="Notas adicionais... usa @ para mencionar" rows={3} />
           </div>
 
           {/* Member picker */}
