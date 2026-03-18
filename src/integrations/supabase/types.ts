@@ -186,8 +186,10 @@ export type Database = {
       }
       events: {
         Row: {
+          client_name: string | null
           created_at: string
           created_by: string | null
+          department: string | null
           end_date: string | null
           event_type_id: string | null
           id: string
@@ -198,8 +200,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          client_name?: string | null
           created_at?: string
           created_by?: string | null
+          department?: string | null
           end_date?: string | null
           event_type_id?: string | null
           id?: string
@@ -210,8 +214,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          client_name?: string | null
           created_at?: string
           created_by?: string | null
+          department?: string | null
           end_date?: string | null
           event_type_id?: string | null
           id?: string
