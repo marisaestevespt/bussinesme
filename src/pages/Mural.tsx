@@ -340,7 +340,7 @@ export default function MuralPage() {
         <Dialog open={dialogOpen} onOpenChange={v => { if (!v) resetForm(); }}>
           <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Nova Publicação</DialogTitle>
+              <DialogTitle>{editingPost ? 'Editar Publicação' : 'Nova Publicação'}</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-2">
               <div className="space-y-1.5">
