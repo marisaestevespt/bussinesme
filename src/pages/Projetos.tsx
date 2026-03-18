@@ -402,27 +402,34 @@ function GalleryView({ projects, getMembersForProject, onOpen }: { projects: Pro
         const typeI = getTypeInfo(p.type);
         const members = getMembersForProject(p.id);
         return (
-          <div key={p.id} className="rounded-xl border bg-card shadow-sm p-5 cursor-pointer hover:shadow-md transition-shadow" onClick={() => onOpen(p.id)}>
-            <div className="flex items-center gap-2 mb-3">
-              <Badge className={`${typeI.color} border text-[10px] font-medium`}>{typeI.label}</Badge>
-              <StatusBadge status={p.status} className="text-[10px]" />
-            </div>
-            <h3 className="font-semibold mb-1">{p.name}</h3>
-            {p.department && <div className="mb-2"><DeptBadge dept={p.department} /></div>}
-            <div className="flex items-center gap-2 mb-3">
-              <Progress value={p.progress} className="h-2 flex-1" />
-              <span className="text-xs text-muted-foreground">{p.progress}%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="text-xs text-muted-foreground space-y-0.5">
-                {p.start_date && <div>Início: {format(new Date(p.start_date), 'd MMM', { locale: pt })}</div>}
-                {p.deadline && <div>Fim: {format(new Date(p.deadline), 'd MMM yyyy', { locale: pt })}</div>}
-                {!p.start_date && !p.deadline && <span>Sem datas</span>}
+          <div key={p.id} className="rounded-xl border bg-card shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => onOpen(p.id)}>
+            {p.cover_url && (
+              <div className="h-32 overflow-hidden">
+                <img src={p.cover_url} alt="" className="w-full h-full object-cover" />
               </div>
-              <div className="flex -space-x-1">
-                {members.slice(0, 4).map(m => (
-                  <Avatar key={m.id} className="h-6 w-6 border-2 border-background"><AvatarImage src={m.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(m.full_name)}</AvatarFallback></Avatar>
-                ))}
+            )}
+            <div className="p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Badge className={`${typeI.color} border text-[10px] font-medium`}>{typeI.label}</Badge>
+                <StatusBadge status={p.status} className="text-[10px]" />
+              </div>
+              <h3 className="font-semibold mb-1">{p.name}</h3>
+              {p.department && <div className="mb-2"><DeptBadge dept={p.department} /></div>}
+              <div className="flex items-center gap-2 mb-3">
+                <Progress value={p.progress} className="h-2 flex-1" />
+                <span className="text-xs text-muted-foreground">{p.progress}%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-muted-foreground space-y-0.5">
+                  {p.start_date && <div>Início: {format(new Date(p.start_date), 'd MMM', { locale: pt })}</div>}
+                  {p.deadline && <div>Fim: {format(new Date(p.deadline), 'd MMM yyyy', { locale: pt })}</div>}
+                  {!p.start_date && !p.deadline && <span>Sem datas</span>}
+                </div>
+                <div className="flex -space-x-1">
+                  {members.slice(0, 4).map(m => (
+                    <Avatar key={m.id} className="h-6 w-6 border-2 border-background"><AvatarImage src={m.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(m.full_name)}</AvatarFallback></Avatar>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
