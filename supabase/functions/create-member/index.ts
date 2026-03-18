@@ -90,6 +90,15 @@ Deno.serve(async (req) => {
         user_id: newUser.user.id,
         role: "member",
       });
+
+      // Create onboarding task to fill profile
+      await supabase.from("tasks").insert({
+        name: "Preencher a tua apresentação na página Começa Aqui",
+        assigned_to: newUser.user.id,
+        created_by: caller.id,
+        status: "pendente",
+        priority: "alta",
+      });
     }
 
     return new Response(
