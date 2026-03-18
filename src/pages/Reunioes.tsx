@@ -219,6 +219,7 @@ function MeetingFormDialog({
         status,
         client_name: clientName.trim() || null,
         project_name: projectName.trim() || null,
+        department: department || null,
         created_by: user?.id ?? null,
       }).select('id').single();
       if (error) throw error;
