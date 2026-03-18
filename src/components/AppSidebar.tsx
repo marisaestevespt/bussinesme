@@ -82,19 +82,17 @@ function NavSection({
   items,
   collapsed,
   canAccess,
-  defaultOpen = true,
 }: {
   label: string;
   items: NavItem[];
   collapsed: boolean;
   canAccess: (key: string) => boolean;
-  defaultOpen?: boolean;
 }) {
   const filtered = items.filter(item => canAccess(item.moduleKey));
   if (filtered.length === 0) return null;
 
   return (
-    <SidebarGroup defaultOpen={defaultOpen}>
+    <SidebarGroup>
       <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/70 font-medium">
         {label}
       </SidebarGroupLabel>
