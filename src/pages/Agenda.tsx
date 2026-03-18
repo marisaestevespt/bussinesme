@@ -542,7 +542,24 @@ function EventFormDialog({
               <DateTimePickerField date={endDate} onSelect={setEndDate} placeholder="Fim (opcional)" />
             </div>
           </div>
+          {/* Recurrence */}
           <div>
+            <Label className="flex items-center gap-1.5">🔁 Repetição</Label>
+            <Select value={recurrenceType} onValueChange={setRecurrenceType}>
+              <SelectTrigger><SelectValue placeholder="Não se repete" /></SelectTrigger>
+              <SelectContent>
+                {RECURRENCE_OPTIONS.map(o => (
+                  <SelectItem key={o.value || 'none'} value={o.value || 'none'}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {recurrenceType && recurrenceType !== 'none' && (
+            <div>
+              <Label>Repetir até</Label>
+              <DateTimePickerField date={recurrenceEnd} onSelect={setRecurrenceEnd} placeholder="Sem data final (opcional)" />
+            </div>
+          )}
             <Label>Produto associado</Label>
             <Input value={productName} onChange={e => setProductName(e.target.value)} placeholder="Opcional" />
           </div>
