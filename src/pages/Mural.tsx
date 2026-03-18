@@ -451,8 +451,11 @@ function PostCard({
   comments,
   profileMap,
   userId,
+  isOwner,
   onReact,
   onComment,
+  onEdit,
+  onDelete,
 }: {
   post: MuralPost;
   profile?: Profile;
@@ -460,8 +463,11 @@ function PostCard({
   comments: MuralComment[];
   profileMap: Map<string, Profile>;
   userId?: string;
+  isOwner: boolean;
   onReact: (emoji: string) => void;
   onComment: (body: string) => void;
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentText, setCommentText] = useState('');
