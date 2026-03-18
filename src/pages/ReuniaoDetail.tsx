@@ -176,7 +176,7 @@ function EditableChecklist({ items, onChange, label }: { items: CheckItem[]; onC
         ))}
       </div>
       <div className="flex gap-2">
-        <Input value={newText} onChange={e => setNewText(e.target.value)} placeholder="Adicionar ponto..." className="h-7 text-xs" onKeyDown={e => e.key === 'Enter' && addItem()} />
+        <MentionTextarea value={newText} onChange={setNewText} placeholder="Adicionar ponto... usa @ para mencionar" singleLine rows={1} className="h-7 text-xs" onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addItem(); }}} />
         <Button size="sm" variant="ghost" className="h-7 px-2" onClick={addItem}><Plus className="h-3 w-3" /></Button>
       </div>
     </div>
