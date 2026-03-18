@@ -194,9 +194,9 @@ function MemberPicker({ selectedIds, onChange, profiles }: { selectedIds: string
 // ─── New Meeting Dialog ─────────────────────────────────────────
 
 function MeetingFormDialog({
-  open, onOpenChange, profiles,
+  open, onOpenChange, profiles, projects,
 }: {
-  open: boolean; onOpenChange: (o: boolean) => void; profiles: Profile[];
+  open: boolean; onOpenChange: (o: boolean) => void; profiles: Profile[]; projects: ProjectOption[];
 }) {
   const qc = useQueryClient();
   const { user } = useAuth();
@@ -206,11 +206,11 @@ function MeetingFormDialog({
   const [dateTime, setDateTime] = useState<Date | undefined>();
   const [status, setStatus] = useState<MeetingStatus>('por_confirmar');
   const [clientName, setClientName] = useState('');
-  const [projectName, setProjectName] = useState('');
+  const [projectId, setProjectId] = useState('');
   const [department, setDepartment] = useState('');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
-  const resetForm = () => { setTitle(''); setDateTime(undefined); setStatus('por_confirmar'); setClientName(''); setProjectName(''); setDepartment(''); setSelectedMembers([]); };
+  const resetForm = () => { setTitle(''); setDateTime(undefined); setStatus('por_confirmar'); setClientName(''); setProjectId(''); setDepartment(''); setSelectedMembers([]); };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
