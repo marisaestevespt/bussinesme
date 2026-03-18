@@ -81,6 +81,7 @@ Deno.serve(async (req) => {
         .update({
           role_title: role_title || null,
           phone: phone || null,
+          work_schedule: work_schedule || null,
         })
         .eq("user_id", newUser.user.id);
 
