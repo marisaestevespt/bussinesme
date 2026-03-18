@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -15,12 +15,12 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, CheckSquare } from 'lucide-react';
+import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, CheckSquare, Upload, Trash2, Download, File } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { MentionTextarea } from '@/components/MentionTextarea';
@@ -60,6 +60,120 @@ const TASK_PRIORITIES = [
 
 function getPriorityInfo(v: string) { return TASK_PRIORITIES.find(p => p.value === v) || TASK_PRIORITIES[1]; }
 function getTaskStatusInfo(v: string) { return TASK_STATUSES.find(s => s.value === v) || TASK_STATUSES[0]; }
+
+// ─── Entregáveis Sub-Page Component ─────────────────────────────
+
+function EntregaveisSubPage({ projectId, onBack }: { projectId: string; onBack: () => void }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const { data: files = [], refetch } = useQuery({
+    queryKey: ['project-files', projectId],
+    queryFn: async () => {
+      const { data, error } = await supabase.storage.from('project-files').list(projectId, { sortBy: { column: 'created_at', order: 'desc' } });
+      if (error) throw error;
+      return (data || []).filter(f => f.name !== '.emptyFolderPlaceholder');
+    },
+  });
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files;
+    if (!selected || selected.length === 0) return;
+    setUploading(true);
+    try {
+      for (const file of Array.from(selected)) {
+        const path = `${projectId}/${Date.now()}_${file.name}`;
+        const { error } = await supabase.storage.from('project-files').upload(path, file);
+        if (error) throw error;
+      }
+      toast.success(`${selected.length} ficheiro(s) carregado(s)`);
+      refetch();
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao carregar ficheiro');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDelete = async (fileName: string) => {
+    const { error } = await supabase.storage.from('project-files').remove([`${projectId}/${fileName}`]);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Ficheiro eliminado');
+    refetch();
+  };
+
+  const getFileUrl = (fileName: string) => {
+    const { data } = supabase.storage.from('project-files').getPublicUrl(`${projectId}/${fileName}`);
+    return data.publicUrl;
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const getFileIcon = (name: string) => {
+    const ext = name.split('.').pop()?.toLowerCase() || '';
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) return '🖼️';
+    if (['pdf'].includes(ext)) return '📄';
+    if (['doc', 'docx'].includes(ext)) return '📝';
+    if (['xls', 'xlsx', 'csv'].includes(ext)) return '📊';
+    if (['ppt', 'pptx'].includes(ext)) return '📑';
+    if (['zip', 'rar', '7z'].includes(ext)) return '📦';
+    if (['mp4', 'mov', 'avi'].includes(ext)) return '🎬';
+    return '📎';
+  };
+
+  // Strip timestamp prefix for display
+  const displayName = (name: string) => name.replace(/^\d+_/, '');
+
+  return (
+    <AppLayout>
+      <div className="space-y-4 max-w-3xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={onBack} className="gap-1"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
+            <h2 className="text-xl font-bold">Entregáveis</h2>
+          </div>
+          <div>
+            <input ref={fileInputRef} type="file" multiple onChange={handleUpload} className="hidden" />
+            <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="gap-1.5">
+              <Upload className="h-3.5 w-3.5" /> {uploading ? 'A carregar...' : 'Carregar ficheiros'}
+            </Button>
+          </div>
+        </div>
+
+        {files.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed rounded-xl">
+            <File className="h-10 w-10 text-muted-foreground mb-3" />
+            <p className="text-sm text-muted-foreground">Nenhum ficheiro carregado</p>
+            <p className="text-xs text-muted-foreground mt-1">Carrega ficheiros para os entregáveis deste projeto</p>
+          </div>
+        ) : (
+          <div className="border rounded-lg divide-y divide-border">
+            {files.map(f => (
+              <div key={f.name} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors">
+                <span className="text-lg">{getFileIcon(f.name)}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{displayName(f.name)}</p>
+                  <p className="text-xs text-muted-foreground">{f.metadata?.size ? formatFileSize(f.metadata.size) : ''} {f.created_at ? `• ${format(new Date(f.created_at), 'd MMM yyyy', { locale: pt })}` : ''}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <a href={getFileUrl(f.name)} target="_blank" rel="noopener noreferrer">
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Download className="h-4 w-4" /></Button>
+                  </a>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(f.name)}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </AppLayout>
+  );
+}
 
 // ─── Main Component ─────────────────────────────────────────────
 
@@ -236,26 +350,64 @@ export default function ProjetoDetailPage() {
     );
   }
 
+  // ─── Reuniões sub-page (table view like Reunioes page) ────────
   if (subPage === 'reunioes') {
-      return (
-        <AppLayout>
-          <div className="space-y-4">
-            <Button variant="ghost" size="sm" onClick={() => setSubPage(null)} className="gap-1"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
-            <h2 className="text-xl font-bold">Reuniões do Projeto</h2>
-            {meetings.length === 0 ? <p className="text-muted-foreground">Nenhuma reunião ligada</p> : (
-              <div className="space-y-2">{meetings.map(m => (
-                <div key={m.id} className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/30" onClick={() => navigate(`/hub/reunioes/${m.id}`)}>
-                  <div><p className="font-medium text-sm">{m.title}</p><p className="text-xs text-muted-foreground">{format(new Date(m.date_time), "d MMM yyyy 'às' HH:mm", { locale: pt })}</p></div>
-                  <Badge className={`${m.status === 'terminada' ? 'bg-green-100 text-green-800' : m.status === 'marcada' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'} border-0`}>{m.status === 'terminada' ? 'Terminada' : m.status === 'marcada' ? 'Marcada' : 'Por confirmar'}</Badge>
-                </div>
-              ))}</div>
-            )}
+    const MEETING_STATUSES = [
+      { value: 'por_confirmar', label: 'Por confirmar', color: '#f59e0b' },
+      { value: 'marcada', label: 'Marcada', color: '#10b981' },
+      { value: 'terminada', label: 'Terminada', color: '#6b7280' },
+    ];
+    const getMeetingStatusInfo = (s: string) => MEETING_STATUSES.find(x => x.value === s) || MEETING_STATUSES[0];
+
+    return (
+      <AppLayout>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="sm" onClick={() => setSubPage(null)} className="gap-1"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
+              <h2 className="text-xl font-bold">Reuniões do Projeto</h2>
+            </div>
+            <Button size="sm" onClick={() => setMeetingDialogOpen(true)} className="gap-1.5"><Plus className="h-3.5 w-3.5" /> Nova Reunião</Button>
           </div>
-        </AppLayout>
-      );
-    }
+          {meetings.length === 0 ? (
+            <p className="text-center text-muted-foreground py-12">Nenhuma reunião ligada a este projeto.</p>
+          ) : (
+            <div className="border rounded-lg overflow-hidden divide-y divide-border">
+              <div className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-muted text-xs font-medium text-muted-foreground">
+                <div className="col-span-4">Reunião</div>
+                <div className="col-span-3">Data / Hora</div>
+                <div className="col-span-2">Status</div>
+                <div className="col-span-3">Participantes</div>
+              </div>
+              {meetings.map(m => {
+                const ms = getMeetingStatusInfo(m.status);
+                return (
+                  <button key={m.id} onClick={() => navigate(`/hub/reunioes/${m.id}`)} className="grid grid-cols-12 gap-2 px-4 py-3 w-full text-left hover:bg-muted/50 transition-colors text-sm">
+                    <div className="col-span-4 font-medium text-foreground truncate">{m.title}</div>
+                    <div className="col-span-3 text-muted-foreground">{format(new Date(m.date_time), "dd MMM yyyy 'às' HH:mm", { locale: pt })}</div>
+                    <div className="col-span-2">
+                      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: `${ms.color}20`, color: ms.color }}>{ms.label}</span>
+                    </div>
+                    <div className="col-span-3">
+                      <div className="flex -space-x-1">{projectMembers.slice(0, 5).map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-6 w-6 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}{projectMembers.length > 5 && <span className="text-xs text-muted-foreground ml-2">+{projectMembers.length - 5}</span>}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // ─── Entregáveis sub-page (file upload + list) ────────────────
+  if (subPage === 'entregaveis') {
+    return <EntregaveisSubPage projectId={id!} onBack={() => setSubPage(null)} />;
+  }
 
     const field = fieldMap[subPage];
+    if (!field) return null;
     return (
       <AppLayout>
         <div className="space-y-4 max-w-3xl">
