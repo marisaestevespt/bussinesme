@@ -344,8 +344,7 @@ export default function MuralPage() {
             <div className="grid gap-4 py-2">
               <div className="space-y-1.5">
                 <Label>Título *</Label>
-                <Input value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder="Título da publicação" />
-              </div>
+                <MentionTextarea value={formTitle} onChange={setFormTitle} placeholder="Título da publicação" singleLine rows={1} />
               <div className="space-y-1.5">
                 <Label>Categoria</Label>
                 <Select value={formCategory} onValueChange={setFormCategory}>
