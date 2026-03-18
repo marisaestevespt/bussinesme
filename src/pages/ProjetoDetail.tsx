@@ -66,6 +66,7 @@ function getTaskStatusInfo(v: string) { return TASK_STATUSES.find(s => s.value =
 function EntregaveisSubPage({ projectId, entregaveisText, onTextChange, onSave, saving, dirty, onBack }: { projectId: string; entregaveisText: string; onTextChange: (v: string) => void; onSave: () => void; saving: boolean; dirty: boolean; onBack: () => void }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [dragging, setDragging] = useState(false);
 
   const { data: files = [], refetch } = useQuery({
     queryKey: ['project-files', projectId],
@@ -76,17 +77,17 @@ function EntregaveisSubPage({ projectId, entregaveisText, onTextChange, onSave, 
     },
   });
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = e.target.files;
-    if (!selected || selected.length === 0) return;
+  const uploadFiles = async (fileList: FileList | File[]) => {
+    const arr = Array.from(fileList);
+    if (arr.length === 0) return;
     setUploading(true);
     try {
-      for (const file of Array.from(selected)) {
+      for (const file of arr) {
         const path = `${projectId}/${Date.now()}_${file.name}`;
         const { error } = await supabase.storage.from('project-files').upload(path, file);
         if (error) throw error;
       }
-      toast.success(`${selected.length} ficheiro(s) carregado(s)`);
+      toast.success(`${arr.length} ficheiro(s) carregado(s)`);
       refetch();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao carregar ficheiro');
@@ -95,6 +96,19 @@ function EntregaveisSubPage({ projectId, entregaveisText, onTextChange, onSave, 
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) uploadFiles(e.target.files);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragging(false);
+    if (e.dataTransfer.files) uploadFiles(e.dataTransfer.files);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setDragging(true); };
+  const handleDragLeave = (e: React.DragEvent) => { e.preventDefault(); setDragging(false); };
 
   const handleDelete = async (fileName: string) => {
     const { error } = await supabase.storage.from('project-files').remove([`${projectId}/${fileName}`]);
@@ -126,7 +140,6 @@ function EntregaveisSubPage({ projectId, entregaveisText, onTextChange, onSave, 
     return '📎';
   };
 
-  // Strip timestamp prefix for display
   const displayName = (name: string) => name.replace(/^\d+_/, '');
 
   return (
@@ -161,16 +174,21 @@ function EntregaveisSubPage({ projectId, entregaveisText, onTextChange, onSave, 
         <Separator />
 
         {/* Files section */}
-        <div>
+        <div
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+        >
           <Label className="text-xs text-muted-foreground mb-2 block">Ficheiros</Label>
           {files.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl">
-              <File className="h-10 w-10 text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground">Nenhum ficheiro carregado</p>
-              <p className="text-xs text-muted-foreground mt-1">Carrega ficheiros para os entregáveis deste projeto</p>
+            <div className={cn("flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl transition-colors cursor-pointer", dragging ? "border-primary bg-primary/5" : "border-border")} onClick={() => fileInputRef.current?.click()}>
+              <Upload className={cn("h-10 w-10 mb-3 transition-colors", dragging ? "text-primary" : "text-muted-foreground")} />
+              <p className="text-sm text-muted-foreground">{dragging ? 'Larga os ficheiros aqui' : 'Arrasta ficheiros ou clica para carregar'}</p>
+              <p className="text-xs text-muted-foreground mt-1">Suporta qualquer tipo de ficheiro</p>
             </div>
           ) : (
-            <div className="border rounded-lg divide-y divide-border">
+            <>
+              <div className={cn("border rounded-lg divide-y divide-border mb-3", dragging && "ring-2 ring-primary")}>
               {files.map(f => (
                 <div key={f.name} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors">
                   <span className="text-lg">{getFileIcon(f.name)}</span>
@@ -186,7 +204,13 @@ function EntregaveisSubPage({ projectId, entregaveisText, onTextChange, onSave, 
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+              {dragging && (
+                <div className="flex items-center justify-center py-4 text-sm text-primary font-medium border-2 border-dashed border-primary rounded-lg bg-primary/5">
+                  <Upload className="h-4 w-4 mr-2" /> Larga os ficheiros aqui
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
