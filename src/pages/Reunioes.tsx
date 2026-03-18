@@ -41,10 +41,16 @@ interface MeetingRow {
   date_time: string;
   status: MeetingStatus;
   client_name: string | null;
+  project_id: string | null;
   project_name: string | null;
   department: string | null;
   transcript_url: string | null;
   created_by: string | null;
+}
+
+interface ProjectOption {
+  id: string;
+  name: string;
 }
 
 interface Profile {
@@ -67,9 +73,20 @@ function useMeetings() {
   return useQuery({
     queryKey: ['meetings'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('meetings').select('id, title, date_time, status, client_name, project_name, transcript_url, created_by').order('date_time', { ascending: false });
+      const { data, error } = await supabase.from('meetings').select('id, title, date_time, status, client_name, project_id, project_name, transcript_url, created_by').order('date_time', { ascending: false });
       if (error) throw error;
       return data as MeetingRow[];
+    },
+  });
+}
+
+function useProjects() {
+  return useQuery({
+    queryKey: ['projects_list'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('projects').select('id, name').order('name');
+      if (error) throw error;
+      return data as ProjectOption[];
     },
   });
 }
@@ -177,9 +194,9 @@ function MemberPicker({ selectedIds, onChange, profiles }: { selectedIds: string
 // ─── New Meeting Dialog ─────────────────────────────────────────
 
 function MeetingFormDialog({
-  open, onOpenChange, profiles,
+  open, onOpenChange, profiles, projects,
 }: {
-  open: boolean; onOpenChange: (o: boolean) => void; profiles: Profile[];
+  open: boolean; onOpenChange: (o: boolean) => void; profiles: Profile[]; projects: ProjectOption[];
 }) {
   const qc = useQueryClient();
   const { user } = useAuth();
@@ -189,21 +206,23 @@ function MeetingFormDialog({
   const [dateTime, setDateTime] = useState<Date | undefined>();
   const [status, setStatus] = useState<MeetingStatus>('por_confirmar');
   const [clientName, setClientName] = useState('');
-  const [projectName, setProjectName] = useState('');
+  const [projectId, setProjectId] = useState('');
   const [department, setDepartment] = useState('');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
-  const resetForm = () => { setTitle(''); setDateTime(undefined); setStatus('por_confirmar'); setClientName(''); setProjectName(''); setDepartment(''); setSelectedMembers([]); };
+  const resetForm = () => { setTitle(''); setDateTime(undefined); setStatus('por_confirmar'); setClientName(''); setProjectId(''); setDepartment(''); setSelectedMembers([]); };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!title.trim() || !dateTime) throw new Error('Nome e data/hora são obrigatórios');
+      const selectedProject = projects.find(p => p.id === projectId);
       const { data, error } = await supabase.from('meetings').insert({
         title: title.trim(),
         date_time: dateTime.toISOString(),
         status,
         client_name: clientName.trim() || null,
-        project_name: projectName.trim() || null,
+        project_id: projectId || null,
+        project_name: selectedProject?.name || null,
         department: department || null,
         created_by: user?.id ?? null,
       }).select('id').single();
@@ -272,7 +291,14 @@ function MeetingFormDialog({
           </div>
           <div>
             <Label>Projeto associado</Label>
-            <Input value={projectName} onChange={e => setProjectName(e.target.value)} placeholder="Opcional" />
+            <Select value={projectId} onValueChange={setProjectId}>
+              <SelectTrigger><SelectValue placeholder="Selecionar projeto..." /></SelectTrigger>
+              <SelectContent>
+                {projects.map(p => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button className="w-full" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
             {saveMutation.isPending ? 'A criar...' : 'Criar reunião'}
@@ -292,6 +318,7 @@ export default function ReunioesPage() {
 
   const { data: meetings = [], isLoading } = useMeetings();
   const { data: profiles = [] } = useProfiles();
+  const { data: projects = [] } = useProjects();
 
   const filteredMeetings = view === 'proximas'
     ? meetings.filter(m => m.status === 'por_confirmar' || m.status === 'marcada')
@@ -353,7 +380,7 @@ export default function ReunioesPage() {
         )}
       </div>
 
-      <MeetingFormDialog open={formOpen} onOpenChange={setFormOpen} profiles={profiles} />
+      <MeetingFormDialog open={formOpen} onOpenChange={setFormOpen} profiles={profiles} projects={projects} />
     </AppLayout>
   );
 }

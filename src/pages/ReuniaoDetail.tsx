@@ -43,6 +43,7 @@ interface MeetingFull {
   date_time: string;
   status: MeetingStatus;
   client_name: string | null;
+  project_id: string | null;
   project_name: string | null;
   department: string | null;
   transcript_url: string | null;
@@ -53,6 +54,8 @@ interface MeetingFull {
   final_notes: string[];
   created_by: string | null;
 }
+
+interface ProjectOption { id: string; name: string; }
 
 interface Profile {
   id: string;
@@ -100,6 +103,17 @@ function useProfiles() {
       const { data, error } = await supabase.from('profiles').select('id, user_id, full_name, avatar_url');
       if (error) throw error;
       return data as Profile[];
+    },
+  });
+}
+
+function useProjectsList() {
+  return useQuery({
+    queryKey: ['projects_list'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('projects').select('id, name').order('name');
+      if (error) throw error;
+      return data as ProjectOption[];
     },
   });
 }
@@ -233,6 +247,7 @@ export default function ReuniaoDetailPage() {
   const { data: participants = [] } = useMeetingParticipants(id!);
   const { data: profiles = [] } = useProfiles();
   const { data: ownerName } = useOwnerProfile();
+  const { data: projectsList = [] } = useProjectsList();
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Local editable state
@@ -260,6 +275,7 @@ export default function ReuniaoDetailPage() {
         date_time: m.date_time,
         status: m.status,
         client_name: m.client_name,
+        project_id: m.project_id,
         project_name: m.project_name,
         department: m.department,
         transcript_url: m.transcript_url,
@@ -448,12 +464,17 @@ export default function ReuniaoDetailPage() {
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Projeto</Label>
-              <Input
-                value={m.project_name ?? ''}
-                onChange={e => update({ project_name: e.target.value || null })}
-                placeholder="Sem projeto"
-                className="h-7 text-xs w-40"
-              />
+              <Select value={m.project_id ?? ''} onValueChange={v => {
+                const proj = projectsList.find(p => p.id === v);
+                update({ project_id: v || null, project_name: proj?.name || null });
+              }}>
+                <SelectTrigger className="h-7 text-xs w-48"><SelectValue placeholder="Sem projeto" /></SelectTrigger>
+                <SelectContent>
+                  {projectsList.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
