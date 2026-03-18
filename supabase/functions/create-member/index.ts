@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email, full_name, role_title, phone } = await req.json();
+    const { email, full_name, role_title, phone, work_schedule } = await req.json();
 
     if (!email || !full_name) {
       return new Response(JSON.stringify({ error: "Email e nome são obrigatórios" }), {
@@ -81,6 +81,7 @@ Deno.serve(async (req) => {
         .update({
           role_title: role_title || null,
           phone: phone || null,
+          work_schedule: work_schedule || null,
         })
         .eq("user_id", newUser.user.id);
 

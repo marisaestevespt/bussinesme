@@ -212,6 +212,7 @@ export default function ComecaAquiPage() {
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [newMemberRole, setNewMemberRole] = useState('');
   const [newMemberPhone, setNewMemberPhone] = useState('');
+  const [newMemberSchedule, setNewMemberSchedule] = useState<WeekSchedule>(emptySchedule());
   const [creatingMember, setCreatingMember] = useState(false);
   const [generatingLink, setGeneratingLink] = useState(false);
 
@@ -314,6 +315,7 @@ export default function ComecaAquiPage() {
           full_name: newMemberName,
           role_title: newMemberRole || null,
           phone: newMemberPhone || null,
+          work_schedule: serializeSchedule(newMemberSchedule),
         },
       });
       if (res.error || res.data?.error) {
@@ -325,6 +327,7 @@ export default function ComecaAquiPage() {
         setNewMemberEmail('');
         setNewMemberRole('');
         setNewMemberPhone('');
+        setNewMemberSchedule(emptySchedule());
         fetchMembers();
       }
     } catch {
@@ -591,7 +594,7 @@ export default function ComecaAquiPage() {
 
       {/* Create member dialog */}
       <Dialog open={showCreateMember} onOpenChange={setShowCreateMember}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Adicionar Membro</DialogTitle>
           </DialogHeader>
@@ -611,6 +614,10 @@ export default function ComecaAquiPage() {
             <div>
               <Label>Telefone</Label>
               <Input value={newMemberPhone} onChange={e => setNewMemberPhone(e.target.value)} placeholder="Ex: +351 912 345 678" />
+            </div>
+            <div>
+              <Label>Horário de trabalho</Label>
+              <ScheduleEditor value={newMemberSchedule} onChange={setNewMemberSchedule} />
             </div>
             <Button
               className="w-full"
