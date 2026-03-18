@@ -404,7 +404,7 @@ function GalleryView({ projects, getMembersForProject, onOpen }: { projects: Pro
         return (
           <div key={p.id} className="rounded-xl border bg-card shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => onOpen(p.id)}>
             {p.cover_url && (
-              <div className="h-32 overflow-hidden">
+              <div className="h-44 overflow-hidden">
                 <img src={p.cover_url} alt="" className="w-full h-full object-cover" />
               </div>
             )}
