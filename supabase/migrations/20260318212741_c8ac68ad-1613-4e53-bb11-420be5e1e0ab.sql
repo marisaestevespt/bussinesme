@@ -1,0 +1,1 @@
+ALTER TABLE public.projects ADD COLUMN cover_url text;
