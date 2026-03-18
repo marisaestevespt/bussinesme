@@ -582,6 +582,10 @@ function EventFormDialog({
             <Input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Opcional" />
           </div>
           <div>
+            <Label className="flex items-center gap-1.5">🔗 Link da reunião</Label>
+            <Input value={meetingUrl} onChange={e => setMeetingUrl(e.target.value)} placeholder="https://zoom.us/j/... ou https://meet.google.com/..." />
+          </div>
+          <div>
             <Label>Notas</Label>
             <MentionTextarea value={notes} onChange={setNotes} placeholder="Notas adicionais... usa @ para mencionar" rows={3} />
           </div>
