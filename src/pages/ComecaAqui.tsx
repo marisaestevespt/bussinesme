@@ -303,6 +303,54 @@ export default function ComecaAquiPage() {
   const getInitials = (name: string | null) =>
     name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?';
 
+  const handleCreateMember = async () => {
+    if (!newMemberName.trim() || !newMemberEmail.trim()) return;
+    setCreatingMember(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke('create-member', {
+        body: {
+          email: newMemberEmail,
+          full_name: newMemberName,
+          role_title: newMemberRole || null,
+          phone: newMemberPhone || null,
+        },
+      });
+      if (res.error || res.data?.error) {
+        toast.error(res.data?.error || 'Erro ao criar membro');
+      } else {
+        toast.success('Membro criado com sucesso');
+        setShowCreateMember(false);
+        setNewMemberName('');
+        setNewMemberEmail('');
+        setNewMemberRole('');
+        setNewMemberPhone('');
+        fetchMembers();
+      }
+    } catch {
+      toast.error('Erro ao criar membro');
+    }
+    setCreatingMember(false);
+  };
+
+  const handleGenerateInviteLink = async (member: TeamMember) => {
+    setGeneratingLink(true);
+    try {
+      const res = await supabase.functions.invoke('generate-invite-link', {
+        body: { user_id: member.user_id },
+      });
+      if (res.error || res.data?.error) {
+        toast.error(res.data?.error || 'Erro ao gerar link');
+      } else {
+        await navigator.clipboard.writeText(res.data.invite_url);
+        toast.success(`Link de convite copiado para ${res.data.email}`);
+      }
+    } catch {
+      toast.error('Erro ao gerar link');
+    }
+    setGeneratingLink(false);
+  };
+
   const businessName = settings?.business_name || 'Negócio';
   const defaultWelcome = `Olá! Bem-vindo(a) ao HQ | ${businessName}. Este é o espaço onde organizamos, colaboramos e crescemos.`;
   const defaultAbout = 'Somos uma equipa dedicada a criar valor e impacto. Aqui encontras tudo o que precisas para colaborar, comunicar e acompanhar o nosso trabalho.';
