@@ -145,35 +145,50 @@ function EntregaveisSubPage({ projectId, entregaveisText, onTextChange, onSave, 
           </div>
         </div>
 
-        {files.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed rounded-xl">
-            <File className="h-10 w-10 text-muted-foreground mb-3" />
-            <p className="text-sm text-muted-foreground">Nenhum ficheiro carregado</p>
-            <p className="text-xs text-muted-foreground mt-1">Carrega ficheiros para os entregáveis deste projeto</p>
-          </div>
-        ) : (
-          <div className="border rounded-lg divide-y divide-border">
-            {files.map(f => (
-              <div key={f.name} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors">
-                <span className="text-lg">{getFileIcon(f.name)}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{displayName(f.name)}</p>
-                  <p className="text-xs text-muted-foreground">{f.metadata?.size ? formatFileSize(f.metadata.size) : ''} {f.created_at ? `• ${format(new Date(f.created_at), 'd MMM yyyy', { locale: pt })}` : ''}</p>
+        {/* Notes / links / text area */}
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1.5 block">Notas, links e descrição dos entregáveis</Label>
+          <MentionTextarea
+            value={entregaveisText}
+            onChange={onTextChange}
+            rows={6}
+            placeholder="Descreve os entregáveis, adiciona links, referências..."
+          />
+        </div>
+
+        {dirty && <Button onClick={onSave} disabled={saving} className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>}
+
+        <Separator />
+
+        {/* Files section */}
+        <div>
+          <Label className="text-xs text-muted-foreground mb-2 block">Ficheiros</Label>
+          {files.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl">
+              <File className="h-10 w-10 text-muted-foreground mb-3" />
+              <p className="text-sm text-muted-foreground">Nenhum ficheiro carregado</p>
+              <p className="text-xs text-muted-foreground mt-1">Carrega ficheiros para os entregáveis deste projeto</p>
+            </div>
+          ) : (
+            <div className="border rounded-lg divide-y divide-border">
+              {files.map(f => (
+                <div key={f.name} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors">
+                  <span className="text-lg">{getFileIcon(f.name)}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{displayName(f.name)}</p>
+                    <p className="text-xs text-muted-foreground">{f.metadata?.size ? formatFileSize(f.metadata.size) : ''} {f.created_at ? `• ${format(new Date(f.created_at), 'd MMM yyyy', { locale: pt })}` : ''}</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <a href={getFileUrl(f.name)} target="_blank" rel="noopener noreferrer">
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Download className="h-4 w-4" /></Button>
+                    </a>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(f.name)}><Trash2 className="h-4 w-4" /></Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <a href={getFileUrl(f.name)} target="_blank" rel="noopener noreferrer">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Download className="h-4 w-4" /></Button>
-                  </a>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(f.name)}><Trash2 className="h-4 w-4" /></Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </AppLayout>
-  );
-}
+              ))}
+            </div>
+          )}
+        </div>
 
 // ─── Main Component ─────────────────────────────────────────────
 
