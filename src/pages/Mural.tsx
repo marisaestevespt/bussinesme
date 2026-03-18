@@ -345,6 +345,7 @@ export default function MuralPage() {
               <div className="space-y-1.5">
                 <Label>Título *</Label>
                 <MentionTextarea value={formTitle} onChange={setFormTitle} placeholder="Título da publicação" singleLine rows={1} />
+              </div>
               <div className="space-y-1.5">
                 <Label>Categoria</Label>
                 <Select value={formCategory} onValueChange={setFormCategory}>
