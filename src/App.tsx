@@ -18,6 +18,8 @@ import ReunioesPage from "./pages/Reunioes";
 import ReuniaoDetailPage from "./pages/ReuniaoDetail";
 import AcessosPage from "./pages/Acessos";
 import MuralPage from "./pages/Mural";
+import ProjetosPage from "./pages/Projetos";
+import ProjetoDetailPage from "./pages/ProjetoDetail";
 
 const queryClient = new QueryClient();
 
