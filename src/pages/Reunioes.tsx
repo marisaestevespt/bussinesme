@@ -226,9 +226,6 @@ function MeetingFormDialog({
         department: department || null,
         created_by: user?.id ?? null,
       }).select('id').single();
-        department: department || null,
-        created_by: user?.id ?? null,
-      }).select('id').single();
       if (error) throw error;
       // Insert participants
       if (selectedMembers.length > 0) {
