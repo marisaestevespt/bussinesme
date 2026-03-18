@@ -73,9 +73,20 @@ function useMeetings() {
   return useQuery({
     queryKey: ['meetings'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('meetings').select('id, title, date_time, status, client_name, project_name, transcript_url, created_by').order('date_time', { ascending: false });
+      const { data, error } = await supabase.from('meetings').select('id, title, date_time, status, client_name, project_id, project_name, transcript_url, created_by').order('date_time', { ascending: false });
       if (error) throw error;
       return data as MeetingRow[];
+    },
+  });
+}
+
+function useProjects() {
+  return useQuery({
+    queryKey: ['projects_list'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('projects').select('id, name').order('name');
+      if (error) throw error;
+      return data as ProjectOption[];
     },
   });
 }
