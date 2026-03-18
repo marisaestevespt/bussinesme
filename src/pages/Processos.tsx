@@ -165,10 +165,11 @@ export default function ProcessosPage() {
   }));
 
   const deptSops = selectedDept ? sops.filter(s => s.department === selectedDept) : [];
+  const deptRoutines = selectedDept ? routines.filter(r => r.department === selectedDept) : [];
 
   const filteredRoutines = routineFilter === 'all' ? routines : routines.filter(r => r.department === routineFilter);
 
-  // Group routines by department
+  // Group routines by department (only used in gallery view)
   const routinesByDept: Record<string, typeof routines> = {};
   filteredRoutines.forEach(r => {
     if (!routinesByDept[r.department]) routinesByDept[r.department] = [];
