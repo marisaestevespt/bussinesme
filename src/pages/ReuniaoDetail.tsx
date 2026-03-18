@@ -261,6 +261,7 @@ export default function ReuniaoDetailPage() {
         status: m.status,
         client_name: m.client_name,
         project_name: m.project_name,
+        department: m.department,
         transcript_url: m.transcript_url,
         discussion_points: m.discussion_points as any,
         priorities: m.priorities as any,
