@@ -359,11 +359,11 @@ export default function MuralPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Corpo *</Label>
-                <Textarea
+                <MentionTextarea
                   value={formBody}
-                  onChange={e => setFormBody(e.target.value)}
+                  onChange={setFormBody}
                   rows={6}
-                  placeholder="Escreve aqui a tua publicação..."
+                  placeholder="Escreve aqui a tua publicação... usa @nome para mencionar alguém"
                 />
               </div>
 
