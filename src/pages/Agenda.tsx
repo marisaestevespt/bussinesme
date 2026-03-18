@@ -634,8 +634,14 @@ function EventDetailDialog({
             {format(parseISO(event.start_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}
             {event.end_date && ` — ${format(parseISO(event.end_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}`}
           </div>
+          {event.department && (
+            <div><span className="font-medium text-foreground">Departamento:</span> {DEPARTMENTS.find(d => d.value === event.department)?.label || event.department}</div>
+          )}
           {event.product_name && (
             <div><span className="font-medium text-foreground">Produto:</span> {event.product_name}</div>
+          )}
+          {event.client_name && (
+            <div><span className="font-medium text-foreground">Cliente:</span> {event.client_name}</div>
           )}
           {event.notes && (
             <div><span className="font-medium text-foreground">Notas:</span> <span className="text-muted-foreground">{event.notes}</span></div>
