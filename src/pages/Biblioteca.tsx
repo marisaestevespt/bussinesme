@@ -195,7 +195,7 @@ export default function BibliotecaPage() {
             </div>
             <div>
               <Label>Conteúdo</Label>
-              <Textarea value={content} onChange={e => setContent(e.target.value)} rows={10} placeholder="Escreve aqui o conteúdo do documento..." />
+              <RichTextEditor content={content} onChange={setContent} />
             </div>
             <Button className="w-full" disabled={!title.trim()} onClick={() => createDoc.mutate()}>
               Criar Documento
