@@ -89,12 +89,36 @@ export type Database = {
         }
         Relationships: []
       }
+      event_types: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           created_at: string
           created_by: string | null
           end_date: string | null
-          event_type: Database["public"]["Enums"]["event_type"]
+          event_type_id: string | null
           id: string
           notes: string | null
           product_name: string | null
@@ -106,7 +130,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           end_date?: string | null
-          event_type: Database["public"]["Enums"]["event_type"]
+          event_type_id?: string | null
           id?: string
           notes?: string | null
           product_name?: string | null
@@ -118,7 +142,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           end_date?: string | null
-          event_type?: Database["public"]["Enums"]["event_type"]
+          event_type_id?: string | null
           id?: string
           notes?: string | null
           product_name?: string | null
@@ -126,7 +150,15 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "events_event_type_id_fkey"
+            columns: ["event_type_id"]
+            isOneToOne: false
+            referencedRelation: "event_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       members: {
         Row: {
@@ -261,16 +293,6 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "member"
-      event_type:
-        | "lancamento"
-        | "ferias"
-        | "campanha_vendas"
-        | "data_especial"
-        | "abertura_vagas"
-        | "formacao_evento"
-        | "reuniao_importante"
-        | "deadline"
-        | "parceria_colaboracao"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -399,17 +421,6 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "member"],
-      event_type: [
-        "lancamento",
-        "ferias",
-        "campanha_vendas",
-        "data_especial",
-        "abertura_vagas",
-        "formacao_evento",
-        "reuniao_importante",
-        "deadline",
-        "parceria_colaboracao",
-      ],
     },
   },
 } as const
