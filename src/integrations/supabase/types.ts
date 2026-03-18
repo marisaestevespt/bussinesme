@@ -356,6 +356,45 @@ export type Database = {
           },
         ]
       }
+      platform_accesses: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          direct_link: string | null
+          encrypted_password: string
+          id: string
+          notes: string | null
+          platform_name: string
+          platform_type: string
+          updated_at: string
+          username_email: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          direct_link?: string | null
+          encrypted_password: string
+          id?: string
+          notes?: string | null
+          platform_name: string
+          platform_type?: string
+          updated_at?: string
+          username_email: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          direct_link?: string | null
+          encrypted_password?: string
+          id?: string
+          notes?: string | null
+          platform_name?: string
+          platform_type?: string
+          updated_at?: string
+          username_email?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
