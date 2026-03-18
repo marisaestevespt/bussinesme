@@ -327,6 +327,7 @@ export default function ComecaAquiPage() {
         setNewMemberEmail('');
         setNewMemberRole('');
         setNewMemberPhone('');
+        setNewMemberSchedule(emptySchedule());
         fetchMembers();
       }
     } catch {
