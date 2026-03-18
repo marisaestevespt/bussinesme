@@ -489,7 +489,7 @@ export default function ComecaAquiPage() {
 
       {/* Member detail dialog */}
       <Dialog open={!!selectedMember} onOpenChange={open => { if (!open) setSelectedMember(null); }}>
-        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Ficha de Membro</DialogTitle>
           </DialogHeader>
@@ -594,7 +594,7 @@ export default function ComecaAquiPage() {
 
       {/* Create member dialog */}
       <Dialog open={showCreateMember} onOpenChange={setShowCreateMember}>
-        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Adicionar Membro</DialogTitle>
           </DialogHeader>
