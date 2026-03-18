@@ -224,7 +224,7 @@ export default function BibliotecaPage() {
             </div>
             <div>
               <Label>Conteúdo</Label>
-              <Textarea value={content} onChange={e => setContent(e.target.value)} rows={10} />
+              <RichTextEditor content={content} onChange={setContent} editable={isOwner} />
             </div>
             {isOwner && (
               <Button className="w-full" disabled={!title.trim()} onClick={() => updateDoc.mutate()}>
