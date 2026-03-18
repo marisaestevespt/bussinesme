@@ -306,7 +306,7 @@ export default function AcessosPage() {
 
         {/* Dialog for create/edit */}
         <Dialog open={dialogOpen} onOpenChange={v => { if (!v) resetForm(); }}>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingId ? 'Editar Acesso' : 'Novo Acesso'}</DialogTitle>
             </DialogHeader>
