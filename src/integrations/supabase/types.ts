@@ -89,6 +89,45 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          end_date: string | null
+          event_type: Database["public"]["Enums"]["event_type"]
+          id: string
+          notes: string | null
+          product_name: string | null
+          start_date: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          event_type: Database["public"]["Enums"]["event_type"]
+          id?: string
+          notes?: string | null
+          product_name?: string | null
+          start_date: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          event_type?: Database["public"]["Enums"]["event_type"]
+          id?: string
+          notes?: string | null
+          product_name?: string | null
+          start_date?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       members: {
         Row: {
           created_at: string
@@ -222,6 +261,16 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "member"
+      event_type:
+        | "lancamento"
+        | "ferias"
+        | "campanha_vendas"
+        | "data_especial"
+        | "abertura_vagas"
+        | "formacao_evento"
+        | "reuniao_importante"
+        | "deadline"
+        | "parceria_colaboracao"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -350,6 +399,17 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "member"],
+      event_type: [
+        "lancamento",
+        "ferias",
+        "campanha_vendas",
+        "data_especial",
+        "abertura_vagas",
+        "formacao_evento",
+        "reuniao_importante",
+        "deadline",
+        "parceria_colaboracao",
+      ],
     },
   },
 } as const
