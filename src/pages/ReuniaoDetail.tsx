@@ -43,6 +43,7 @@ interface MeetingFull {
   date_time: string;
   status: MeetingStatus;
   client_name: string | null;
+  project_id: string | null;
   project_name: string | null;
   department: string | null;
   transcript_url: string | null;
@@ -53,6 +54,8 @@ interface MeetingFull {
   final_notes: string[];
   created_by: string | null;
 }
+
+interface ProjectOption { id: string; name: string; }
 
 interface Profile {
   id: string;
