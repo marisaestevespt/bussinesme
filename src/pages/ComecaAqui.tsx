@@ -615,6 +615,12 @@ export default function ComecaAquiPage() {
               <Label>Telefone</Label>
               <Input value={newMemberPhone} onChange={e => setNewMemberPhone(e.target.value)} placeholder="Ex: +351 912 345 678" />
             </div>
+            <div>
+              <Label>Horário de trabalho</Label>
+              <ScheduleEditor value={newMemberSchedule} onChange={setNewMemberSchedule} />
+            </div>
+              <Input value={newMemberPhone} onChange={e => setNewMemberPhone(e.target.value)} placeholder="Ex: +351 912 345 678" />
+            </div>
             <Button
               className="w-full"
               disabled={!newMemberName.trim() || !newMemberEmail.trim() || creatingMember}
