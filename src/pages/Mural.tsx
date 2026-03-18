@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, MessageCircle, Paperclip, ImageIcon, ChevronDown, ChevronUp, Send, Download } from 'lucide-react';
+import { Plus, MessageCircle, Paperclip, ImageIcon, ChevronDown, ChevronUp, Send, Download, Pencil, Trash2, MoreHorizontal } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -81,6 +82,7 @@ export default function MuralPage() {
   const [pendingFiles, setPendingFiles] = useState<{ name: string; url: string }[]>([]);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editingPost, setEditingPost] = useState<MuralPost | null>(null);
 
   // Check publish permission
   const { data: canPublish = false } = useQuery({
@@ -173,6 +175,40 @@ export default function MuralPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Update post
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      if (!editingPost) return;
+      const { error } = await supabase.from('mural_posts').update({
+        title: formTitle,
+        body: formBody,
+        category: formCategory,
+        images: pendingImages as any,
+        files: pendingFiles as any,
+      }).eq('id', editingPost.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mural-posts'] });
+      toast.success('Publicação atualizada');
+      resetForm();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // Delete post
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('mural_posts').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mural-posts'] });
+      toast.success('Publicação eliminada');
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   // Toggle reaction
   const reactionMutation = useMutation({
     mutationFn: async ({ postId, emoji }: { postId: string; emoji: string }) => {
@@ -205,7 +241,18 @@ export default function MuralPage() {
     setFormCategory('outro');
     setPendingImages([]);
     setPendingFiles([]);
+    setEditingPost(null);
     setDialogOpen(false);
+  }
+
+  function openEdit(post: MuralPost) {
+    setEditingPost(post);
+    setFormTitle(post.title);
+    setFormBody(post.body);
+    setFormCategory(post.category);
+    setPendingImages(post.images);
+    setPendingFiles(post.files);
+    setDialogOpen(true);
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -279,8 +326,11 @@ export default function MuralPage() {
                 comments={comments.filter(c => c.post_id === post.id)}
                 profileMap={profileMap}
                 userId={user?.id}
+                isOwner={isOwner}
                 onReact={(emoji) => reactionMutation.mutate({ postId: post.id, emoji })}
                 onComment={(body) => commentMutation.mutate({ postId: post.id, body })}
+                onEdit={() => openEdit(post)}
+                onDelete={() => { if (confirm('Eliminar esta publicação?')) deleteMutation.mutate(post.id); }}
               />
             ))}
           </div>
@@ -290,7 +340,7 @@ export default function MuralPage() {
         <Dialog open={dialogOpen} onOpenChange={v => { if (!v) resetForm(); }}>
           <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Nova Publicação</DialogTitle>
+              <DialogTitle>{editingPost ? 'Editar Publicação' : 'Nova Publicação'}</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-2">
               <div className="space-y-1.5">
@@ -377,11 +427,13 @@ export default function MuralPage() {
               <Button
                 onClick={() => {
                   if (!formTitle.trim() || !formBody.trim()) { toast.error('Título e corpo são obrigatórios'); return; }
-                  createMutation.mutate();
+                  if (editingPost) { updateMutation.mutate(); } else { createMutation.mutate(); }
                 }}
-                disabled={createMutation.isPending}
+                disabled={createMutation.isPending || updateMutation.isPending}
               >
-                {createMutation.isPending ? 'A publicar...' : 'Publicar'}
+                {(createMutation.isPending || updateMutation.isPending)
+                  ? 'A guardar...'
+                  : editingPost ? 'Guardar Alterações' : 'Publicar'}
               </Button>
             </div>
           </DialogContent>
@@ -399,8 +451,11 @@ function PostCard({
   comments,
   profileMap,
   userId,
+  isOwner,
   onReact,
   onComment,
+  onEdit,
+  onDelete,
 }: {
   post: MuralPost;
   profile?: Profile;
@@ -408,8 +463,11 @@ function PostCard({
   comments: MuralComment[];
   profileMap: Map<string, Profile>;
   userId?: string;
+  isOwner: boolean;
   onReact: (emoji: string) => void;
   onComment: (body: string) => void;
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentText, setCommentText] = useState('');
@@ -428,9 +486,28 @@ function PostCard({
       <div className="p-5 pb-0">
         <div className="flex items-start justify-between mb-3">
           <Badge className={`${cat.color} border-0`}>{cat.label}</Badge>
-          <span className="text-xs text-muted-foreground">
-            {format(new Date(post.created_at), "d MMM yyyy 'às' HH:mm", { locale: pt })}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              {format(new Date(post.created_at), "d MMM yyyy 'às' HH:mm", { locale: pt })}
+            </span>
+            {(isOwner || post.author_id === userId) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={onEdit}>
+                    <Pencil className="mr-2 h-3.5 w-3.5" /> Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onDelete} className="text-destructive">
+                    <Trash2 className="mr-2 h-3.5 w-3.5" /> Eliminar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
         <h2 className="text-lg font-semibold mb-2">{post.title}</h2>
         <div className="flex items-center gap-2 mb-4">
