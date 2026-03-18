@@ -174,16 +174,21 @@ function EntregaveisSubPage({ projectId, entregaveisText, onTextChange, onSave, 
         <Separator />
 
         {/* Files section */}
-        <div>
+        <div
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+        >
           <Label className="text-xs text-muted-foreground mb-2 block">Ficheiros</Label>
           {files.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl">
-              <File className="h-10 w-10 text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground">Nenhum ficheiro carregado</p>
-              <p className="text-xs text-muted-foreground mt-1">Carrega ficheiros para os entregáveis deste projeto</p>
+            <div className={cn("flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl transition-colors cursor-pointer", dragging ? "border-primary bg-primary/5" : "border-border")} onClick={() => fileInputRef.current?.click()}>
+              <Upload className={cn("h-10 w-10 mb-3 transition-colors", dragging ? "text-primary" : "text-muted-foreground")} />
+              <p className="text-sm text-muted-foreground">{dragging ? 'Larga os ficheiros aqui' : 'Arrasta ficheiros ou clica para carregar'}</p>
+              <p className="text-xs text-muted-foreground mt-1">Suporta qualquer tipo de ficheiro</p>
             </div>
           ) : (
-            <div className="border rounded-lg divide-y divide-border">
+            <>
+              <div className={cn("border rounded-lg divide-y divide-border mb-3", dragging && "ring-2 ring-primary")}>
               {files.map(f => (
                 <div key={f.name} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors">
                   <span className="text-lg">{getFileIcon(f.name)}</span>
