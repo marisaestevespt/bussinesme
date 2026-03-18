@@ -709,7 +709,7 @@ export default function ProjetoDetailPage() {
 
       {/* Task dialog */}
       <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader><DialogTitle>Nova Tarefa</DialogTitle></DialogHeader>
           <div className="grid gap-3 py-2">
             <div className="space-y-1.5"><Label>Nome da tarefa *</Label><Input value={taskName} onChange={e => setTaskName(e.target.value)} /></div>
