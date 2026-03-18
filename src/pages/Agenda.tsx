@@ -113,21 +113,49 @@ function initials(name: string | null) {
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 }
 
-// ─── Date Picker ────────────────────────────────────────────────
+// ─── Date Time Picker ───────────────────────────────────────────
 
-function DatePickerField({ date, onSelect, placeholder }: { date?: Date; onSelect: (d: Date | undefined) => void; placeholder: string }) {
+function DateTimePickerField({ date, onSelect, placeholder }: { date?: Date; onSelect: (d: Date | undefined) => void; placeholder: string }) {
+  const handleDateSelect = (day: Date | undefined) => {
+    if (!day) { onSelect(undefined); return; }
+    // Preserve existing time if date already set
+    if (date) {
+      day.setHours(date.getHours(), date.getMinutes());
+    }
+    onSelect(new Date(day));
+  };
+
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const [h, m] = e.target.value.split(':').map(Number);
+    const d = date ? new Date(date) : new Date();
+    d.setHours(h, m, 0, 0);
+    onSelect(d);
+  };
+
+  const timeValue = date ? `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}` : '';
+
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !date && 'text-muted-foreground')}>
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, 'dd/MM/yyyy') : placeholder}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <Calendar mode="single" selected={date} onSelect={onSelect} initialFocus className="p-3 pointer-events-auto" />
-      </PopoverContent>
-    </Popover>
+    <div className="space-y-1.5">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !date && 'text-muted-foreground')}>
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {date ? format(date, 'dd/MM/yyyy') : placeholder}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar mode="single" selected={date} onSelect={handleDateSelect} initialFocus className="p-3 pointer-events-auto" />
+        </PopoverContent>
+      </Popover>
+      {date && (
+        <Input
+          type="time"
+          value={timeValue}
+          onChange={handleTimeChange}
+          className="h-8 text-sm"
+        />
+      )}
+    </div>
   );
 }
 
