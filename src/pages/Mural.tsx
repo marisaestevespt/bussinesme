@@ -82,6 +82,7 @@ export default function MuralPage() {
   const [pendingFiles, setPendingFiles] = useState<{ name: string; url: string }[]>([]);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editingPost, setEditingPost] = useState<MuralPost | null>(null);
 
   // Check publish permission
   const { data: canPublish = false } = useQuery({
