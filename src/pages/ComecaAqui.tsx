@@ -12,7 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { Pencil, Check, X, Phone, Clock, FileText, Upload, UserPlus, Copy } from 'lucide-react';
+import { Pencil, Check, X, Phone, Clock, FileText, Upload, UserPlus, Copy, Link } from 'lucide-react';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
 // --- Schedule types & helpers ---
@@ -206,6 +207,13 @@ export default function ComecaAquiPage() {
   const [profileForm, setProfileForm] = useState<Partial<TeamMember>>({});
   const [scheduleForm, setScheduleForm] = useState<WeekSchedule>(emptySchedule());
   const [uploading, setUploading] = useState(false);
+  const [showCreateMember, setShowCreateMember] = useState(false);
+  const [newMemberName, setNewMemberName] = useState('');
+  const [newMemberEmail, setNewMemberEmail] = useState('');
+  const [newMemberRole, setNewMemberRole] = useState('');
+  const [newMemberPhone, setNewMemberPhone] = useState('');
+  const [creatingMember, setCreatingMember] = useState(false);
+  const [generatingLink, setGeneratingLink] = useState(false);
 
   useEffect(() => {
     if (settings) {
@@ -295,6 +303,54 @@ export default function ComecaAquiPage() {
   const getInitials = (name: string | null) =>
     name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?';
 
+  const handleCreateMember = async () => {
+    if (!newMemberName.trim() || !newMemberEmail.trim()) return;
+    setCreatingMember(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke('create-member', {
+        body: {
+          email: newMemberEmail,
+          full_name: newMemberName,
+          role_title: newMemberRole || null,
+          phone: newMemberPhone || null,
+        },
+      });
+      if (res.error || res.data?.error) {
+        toast.error(res.data?.error || 'Erro ao criar membro');
+      } else {
+        toast.success('Membro criado com sucesso');
+        setShowCreateMember(false);
+        setNewMemberName('');
+        setNewMemberEmail('');
+        setNewMemberRole('');
+        setNewMemberPhone('');
+        fetchMembers();
+      }
+    } catch {
+      toast.error('Erro ao criar membro');
+    }
+    setCreatingMember(false);
+  };
+
+  const handleGenerateInviteLink = async (member: TeamMember) => {
+    setGeneratingLink(true);
+    try {
+      const res = await supabase.functions.invoke('generate-invite-link', {
+        body: { user_id: member.user_id },
+      });
+      if (res.error || res.data?.error) {
+        toast.error(res.data?.error || 'Erro ao gerar link');
+      } else {
+        await navigator.clipboard.writeText(res.data.invite_url);
+        toast.success(`Link de convite copiado para ${res.data.email}`);
+      }
+    } catch {
+      toast.error('Erro ao gerar link');
+    }
+    setGeneratingLink(false);
+  };
+
   const businessName = settings?.business_name || 'Negócio';
   const defaultWelcome = `Olá! Bem-vindo(a) ao HQ | ${businessName}. Este é o espaço onde organizamos, colaboramos e crescemos.`;
   const defaultAbout = 'Somos uma equipa dedicada a criar valor e impacto. Aqui encontras tudo o que precisas para colaborar, comunicar e acompanhar o nosso trabalho.';
@@ -367,12 +423,7 @@ export default function ComecaAquiPage() {
               {isOwner && (
                 <Button
                   size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    const signupUrl = window.location.origin;
-                    navigator.clipboard.writeText(signupUrl);
-                    toast.success('Link de registo copiado! Partilha com o novo membro.');
-                  }}
+                  onClick={() => setShowCreateMember(true)}
                 >
                   <UserPlus className="h-4 w-4 mr-1" /> Adicionar membro
                 </Button>
@@ -519,10 +570,59 @@ export default function ComecaAquiPage() {
                       <Pencil className="h-3.5 w-3.5 mr-1" />Editar
                     </Button>
                   )}
+                  {isOwner && selectedMember.user_id !== user?.id && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full mt-2"
+                      disabled={generatingLink}
+                      onClick={() => handleGenerateInviteLink(selectedMember)}
+                    >
+                      <Link className="h-3.5 w-3.5 mr-1" />
+                      {generatingLink ? 'A gerar...' : 'Copiar link de convite'}
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create member dialog */}
+      <Dialog open={showCreateMember} onOpenChange={setShowCreateMember}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Membro</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Nome completo *</Label>
+              <Input value={newMemberName} onChange={e => setNewMemberName(e.target.value)} placeholder="Ex: João Silva" />
+            </div>
+            <div>
+              <Label>Email *</Label>
+              <Input type="email" value={newMemberEmail} onChange={e => setNewMemberEmail(e.target.value)} placeholder="joao@empresa.pt" />
+            </div>
+            <div>
+              <Label>Função</Label>
+              <Input value={newMemberRole} onChange={e => setNewMemberRole(e.target.value)} placeholder="Ex: Designer" />
+            </div>
+            <div>
+              <Label>Telefone</Label>
+              <Input value={newMemberPhone} onChange={e => setNewMemberPhone(e.target.value)} placeholder="Ex: +351 912 345 678" />
+            </div>
+            <Button
+              className="w-full"
+              disabled={!newMemberName.trim() || !newMemberEmail.trim() || creatingMember}
+              onClick={handleCreateMember}
+            >
+              {creatingMember ? 'A criar...' : 'Criar Membro'}
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">
+              Depois de criar, podes gerar um link de convite dentro da ficha do membro.
+            </p>
+          </div>
         </DialogContent>
       </Dialog>
     </AppLayout>
