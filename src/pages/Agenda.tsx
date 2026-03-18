@@ -372,6 +372,8 @@ function EventFormDialog({
   const [startDate, setStartDate] = useState<Date | undefined>(editEvent?.start_date ? parseISO(editEvent.start_date) : undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(editEvent?.end_date ? parseISO(editEvent.end_date) : undefined);
   const [productName, setProductName] = useState(editEvent?.product_name ?? '');
+  const [department, setDepartment] = useState(editEvent?.department ?? '');
+  const [clientName, setClientName] = useState(editEvent?.client_name ?? '');
   const [notes, setNotes] = useState(editEvent?.notes ?? '');
   const [selectedMembers, setSelectedMembers] = useState<string[]>(existingMembers.map(m => m.profile_id));
 
