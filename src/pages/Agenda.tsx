@@ -26,7 +26,18 @@ import { toast } from 'sonner';
 // ─── Types ──────────────────────────────────────────────────────
 
 interface EventType { id: string; name: string; color: string; slug: string; }
-interface EventRow { id: string; title: string; event_type_id: string | null; start_date: string; end_date: string | null; product_name: string | null; notes: string | null; created_by: string | null; }
+interface EventRow { id: string; title: string; event_type_id: string | null; start_date: string; end_date: string | null; product_name: string | null; department: string | null; client_name: string | null; notes: string | null; created_by: string | null; }
+
+const DEPARTMENTS = [
+  { value: 'administrativo', label: 'Administrativo' },
+  { value: 'marketing', label: 'Marketing' },
+  { value: 'comercial', label: 'Comercial' },
+  { value: 'financeiro', label: 'Financeiro' },
+  { value: 'customer_success', label: 'Customer Success' },
+  { value: 'operacoes', label: 'Operações' },
+  { value: 'produto_servico', label: 'Produto/Serviço' },
+  { value: 'recursos_humanos', label: 'Recursos Humanos' },
+];
 interface Attachment { id: string; event_id: string; type: string; name: string; url: string; }
 interface Profile { id: string; user_id: string; full_name: string | null; avatar_url: string | null; role_title: string | null; }
 interface EventMember { id: string; event_id: string; profile_id: string; }
