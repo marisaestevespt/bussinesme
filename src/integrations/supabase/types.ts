@@ -231,6 +231,96 @@ export type Database = {
           },
         ]
       }
+      meeting_participants: {
+        Row: {
+          created_at: string
+          id: string
+          meeting_id: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meeting_id: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meeting_id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_participants_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_participants_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meetings: {
+        Row: {
+          client_actions: Json | null
+          client_name: string | null
+          created_at: string
+          created_by: string | null
+          date_time: string
+          discussion_points: Json | null
+          final_notes: Json | null
+          id: string
+          owner_actions: Json | null
+          priorities: Json | null
+          project_name: string | null
+          status: Database["public"]["Enums"]["meeting_status"]
+          title: string
+          transcript_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_actions?: Json | null
+          client_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          date_time: string
+          discussion_points?: Json | null
+          final_notes?: Json | null
+          id?: string
+          owner_actions?: Json | null
+          priorities?: Json | null
+          project_name?: string | null
+          status?: Database["public"]["Enums"]["meeting_status"]
+          title: string
+          transcript_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_actions?: Json | null
+          client_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          date_time?: string
+          discussion_points?: Json | null
+          final_notes?: Json | null
+          id?: string
+          owner_actions?: Json | null
+          priorities?: Json | null
+          project_name?: string | null
+          status?: Database["public"]["Enums"]["meeting_status"]
+          title?: string
+          transcript_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       members: {
         Row: {
           created_at: string
@@ -364,6 +454,7 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "member"
+      meeting_status: "por_confirmar" | "marcada" | "terminada"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -492,6 +583,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "member"],
+      meeting_status: ["por_confirmar", "marcada", "terminada"],
     },
   },
 } as const
