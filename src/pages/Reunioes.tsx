@@ -215,12 +215,17 @@ function MeetingFormDialog({
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!title.trim() || !dateTime) throw new Error('Nome e data/hora são obrigatórios');
+      const selectedProject = projects.find(p => p.id === projectId);
       const { data, error } = await supabase.from('meetings').insert({
         title: title.trim(),
         date_time: dateTime.toISOString(),
         status,
         client_name: clientName.trim() || null,
-        project_name: projectName.trim() || null,
+        project_id: projectId || null,
+        project_name: selectedProject?.name || null,
+        department: department || null,
+        created_by: user?.id ?? null,
+      }).select('id').single();
         department: department || null,
         created_by: user?.id ?? null,
       }).select('id').single();
