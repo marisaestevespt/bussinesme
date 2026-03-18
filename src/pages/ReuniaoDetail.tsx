@@ -67,13 +67,14 @@ function useMeeting(id: string) {
     queryFn: async () => {
       const { data, error } = await supabase.from('meetings').select('*').eq('id', id).single();
       if (error) throw error;
+      const raw = data as any;
       return {
-        ...data,
-        discussion_points: Array.isArray(data.discussion_points) ? data.discussion_points : [],
-        priorities: Array.isArray(data.priorities) ? data.priorities : ['', '', '', '', ''],
-        owner_actions: Array.isArray(data.owner_actions) ? data.owner_actions : [],
-        client_actions: Array.isArray(data.client_actions) ? data.client_actions : [],
-        final_notes: Array.isArray(data.final_notes) ? data.final_notes : [],
+        ...raw,
+        discussion_points: Array.isArray(raw.discussion_points) ? raw.discussion_points as CheckItem[] : [],
+        priorities: Array.isArray(raw.priorities) ? raw.priorities as string[] : ['', '', '', '', ''],
+        owner_actions: Array.isArray(raw.owner_actions) ? raw.owner_actions as CheckItem[] : [],
+        client_actions: Array.isArray(raw.client_actions) ? raw.client_actions as CheckItem[] : [],
+        final_notes: Array.isArray(raw.final_notes) ? raw.final_notes as string[] : [],
       } as MeetingFull;
     },
   });
