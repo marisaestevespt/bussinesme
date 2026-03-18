@@ -16,7 +16,7 @@ import {
   Trash2, Settings2, X, Paperclip, Link2, FileText, Upload, Users, ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isSameDay, isWithinInterval, parseISO } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isSameDay, isWithinInterval, parseISO, addDays, addWeeks, setDate as setDateFns, getDate as getDateFns } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -26,7 +26,17 @@ import { toast } from 'sonner';
 // ─── Types ──────────────────────────────────────────────────────
 
 interface EventType { id: string; name: string; color: string; slug: string; }
-interface EventRow { id: string; title: string; event_type_id: string | null; start_date: string; end_date: string | null; product_name: string | null; department: string | null; client_name: string | null; notes: string | null; created_by: string | null; }
+interface EventRow { id: string; title: string; event_type_id: string | null; start_date: string; end_date: string | null; product_name: string | null; department: string | null; client_name: string | null; notes: string | null; created_by: string | null; recurrence_type: string | null; recurrence_end: string | null; }
+
+type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'diario';
+const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
+  { value: '', label: 'Não se repete' },
+  { value: 'diario', label: 'Todos os dias' },
+  { value: 'semanal', label: 'Todas as semanas' },
+  { value: 'quinzenal', label: 'A cada 2 semanas' },
+  { value: 'mensal', label: 'Todos os meses (mesmo dia)' },
+  { value: 'mensal_primeiro', label: '1º dia de cada mês' },
+];
 
 const DEPARTMENTS = [
   { value: 'administrativo', label: 'Administrativo' },
@@ -124,7 +134,65 @@ function initials(name: string | null) {
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 }
 
-// ─── Date Time Picker ───────────────────────────────────────────
+// ─── Recurrence Expansion ───────────────────────────────────────
+
+function expandRecurringEvents(events: EventRow[], rangeStart: Date, rangeEnd: Date): EventRow[] {
+  const result: EventRow[] = [];
+  const recEndFallback = rangeEnd;
+
+  for (const ev of events) {
+    const start = parseISO(ev.start_date);
+    if (!ev.recurrence_type) {
+      result.push(ev);
+      continue;
+    }
+
+    const recEnd = ev.recurrence_end ? parseISO(ev.recurrence_end) : recEndFallback;
+    const hours = start.getHours();
+    const minutes = start.getMinutes();
+    let cursor = new Date(start);
+
+    const maxOccurrences = 366; // safety limit
+    let count = 0;
+
+    while (cursor <= recEnd && cursor <= rangeEnd && count < maxOccurrences) {
+      if (cursor >= rangeStart || isSameDay(cursor, rangeStart)) {
+        const occurrenceDate = new Date(cursor);
+        occurrenceDate.setHours(hours, minutes, 0, 0);
+        result.push({
+          ...ev,
+          id: `${ev.id}_${format(cursor, 'yyyy-MM-dd')}`,
+          start_date: occurrenceDate.toISOString(),
+          end_date: null,
+        });
+      }
+
+      count++;
+      switch (ev.recurrence_type) {
+        case 'diario':
+          cursor = addDays(cursor, 1);
+          break;
+        case 'semanal':
+          cursor = addWeeks(cursor, 1);
+          break;
+        case 'quinzenal':
+          cursor = addWeeks(cursor, 2);
+          break;
+        case 'mensal':
+          cursor = addMonths(cursor, 1);
+          break;
+        case 'mensal_primeiro':
+          cursor = addMonths(cursor, 1);
+          cursor = setDateFns(cursor, 1);
+          break;
+        default:
+          count = maxOccurrences; // unknown type, stop
+      }
+    }
+  }
+  return result;
+}
+
 
 function DateTimePickerField({ date, onSelect, placeholder }: { date?: Date; onSelect: (d: Date | undefined) => void; placeholder: string }) {
   const handleDateSelect = (day: Date | undefined) => {
@@ -375,6 +443,8 @@ function EventFormDialog({
   const [department, setDepartment] = useState(editEvent?.department ?? '');
   const [clientName, setClientName] = useState(editEvent?.client_name ?? '');
   const [notes, setNotes] = useState(editEvent?.notes ?? '');
+  const [recurrenceType, setRecurrenceType] = useState(editEvent?.recurrence_type ?? '');
+  const [recurrenceEnd, setRecurrenceEnd] = useState<Date | undefined>(editEvent?.recurrence_end ? parseISO(editEvent.recurrence_end) : undefined);
   const [selectedMembers, setSelectedMembers] = useState<string[]>(existingMembers.map(m => m.profile_id));
 
   // Sync when existingMembers loads
@@ -399,6 +469,8 @@ function EventFormDialog({
         client_name: clientName.trim() || null,
         notes: notes.trim() || null,
         created_by: user?.id ?? null,
+        recurrence_type: recurrenceType || null,
+        recurrence_end: recurrenceEnd ? format(recurrenceEnd, 'yyyy-MM-dd') : null,
       };
 
       let eventId = editEvent?.id;
@@ -470,6 +542,24 @@ function EventFormDialog({
               <DateTimePickerField date={endDate} onSelect={setEndDate} placeholder="Fim (opcional)" />
             </div>
           </div>
+          {/* Recurrence */}
+          <div>
+            <Label className="flex items-center gap-1.5">🔁 Repetição</Label>
+            <Select value={recurrenceType || 'none'} onValueChange={v => setRecurrenceType(v === 'none' ? '' : v)}>
+              <SelectTrigger><SelectValue placeholder="Não se repete" /></SelectTrigger>
+              <SelectContent>
+                {RECURRENCE_OPTIONS.map(o => (
+                  <SelectItem key={o.value || 'none'} value={o.value || 'none'}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {recurrenceType && recurrenceType !== 'none' && (
+            <div>
+              <Label>Repetir até</Label>
+              <DateTimePickerField date={recurrenceEnd} onSelect={setRecurrenceEnd} placeholder="Sem data final (opcional)" />
+            </div>
+          )}
           <div>
             <Label>Produto associado</Label>
             <Input value={productName} onChange={e => setProductName(e.target.value)} placeholder="Opcional" />
@@ -518,8 +608,10 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
   const startDayIdx = (getDay(monthStart) + 6) % 7;
   const paddedDays: (Date | null)[] = [...Array(startDayIdx).fill(null), ...days];
 
+  const expandedEvents = expandRecurringEvents(events, monthStart, monthEnd);
+
   const eventsForDay = (day: Date) =>
-    events.filter(ev => {
+    expandedEvents.filter(ev => {
       const start = parseISO(ev.start_date);
       const end = ev.end_date ? parseISO(ev.end_date) : start;
       return isSameDay(day, start) || isSameDay(day, end) || isWithinInterval(day, { start, end });
@@ -547,7 +639,7 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
                     const color = t?.color ?? '#888';
                     return (
                       <button key={ev.id} onClick={() => onEventClick(ev)} className="w-full text-left rounded px-1 py-0.5 text-[10px] leading-tight truncate transition-opacity hover:opacity-80" style={{ backgroundColor: `${color}20`, color }}>
-                        {ev.title}
+                        {ev.recurrence_type && '🔁 '}{ev.title}
                       </button>
                     );
                   })}
@@ -634,6 +726,15 @@ function EventDetailDialog({
             {format(parseISO(event.start_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}
             {event.end_date && ` — ${format(parseISO(event.end_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}`}
           </div>
+          {event.recurrence_type && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm">🔁</span>
+              <span className="text-muted-foreground">
+                {RECURRENCE_OPTIONS.find(o => o.value === event.recurrence_type)?.label || event.recurrence_type}
+                {event.recurrence_end && ` (até ${format(parseISO(event.recurrence_end), 'dd MMM yyyy', { locale: pt })})`}
+              </span>
+            </div>
+          )}
           {event.department && (
             <div><span className="font-medium text-foreground">Departamento:</span> {DEPARTMENTS.find(d => d.value === event.department)?.label || event.department}</div>
           )}
