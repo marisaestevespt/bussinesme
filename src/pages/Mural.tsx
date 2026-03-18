@@ -175,6 +175,40 @@ export default function MuralPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Update post
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      if (!editingPost) return;
+      const { error } = await supabase.from('mural_posts').update({
+        title: formTitle,
+        body: formBody,
+        category: formCategory,
+        images: pendingImages as any,
+        files: pendingFiles as any,
+      }).eq('id', editingPost.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mural-posts'] });
+      toast.success('Publicação atualizada');
+      resetForm();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // Delete post
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('mural_posts').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mural-posts'] });
+      toast.success('Publicação eliminada');
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   // Toggle reaction
   const reactionMutation = useMutation({
     mutationFn: async ({ postId, emoji }: { postId: string; emoji: string }) => {
