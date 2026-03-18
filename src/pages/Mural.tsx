@@ -1,10 +1,9 @@
 import { useState, useRef } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { MentionTextarea, RichText } from '@/components/MentionTextarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -345,7 +344,7 @@ export default function MuralPage() {
             <div className="grid gap-4 py-2">
               <div className="space-y-1.5">
                 <Label>Título *</Label>
-                <Input value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder="Título da publicação" />
+                <MentionTextarea value={formTitle} onChange={setFormTitle} placeholder="Título da publicação" singleLine rows={1} />
               </div>
               <div className="space-y-1.5">
                 <Label>Categoria</Label>
@@ -360,11 +359,11 @@ export default function MuralPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Corpo *</Label>
-                <Textarea
+                <MentionTextarea
                   value={formBody}
-                  onChange={e => setFormBody(e.target.value)}
+                  onChange={setFormBody}
                   rows={6}
-                  placeholder="Escreve aqui a tua publicação..."
+                  placeholder="Escreve aqui a tua publicação... usa @nome para mencionar alguém"
                 />
               </div>
 
@@ -521,7 +520,7 @@ function PostCard({
 
       {/* Body */}
       <div className="px-5 pb-4">
-        <p className="whitespace-pre-wrap text-sm leading-relaxed">{post.body}</p>
+        <RichText text={post.body} className="whitespace-pre-wrap text-sm leading-relaxed" />
       </div>
 
       {/* Images gallery */}
@@ -605,7 +604,7 @@ function PostCard({
                         {format(new Date(comment.created_at), "d MMM 'às' HH:mm", { locale: pt })}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">{comment.body}</p>
+                    <RichText text={comment.body} className="text-sm text-muted-foreground" />
                   </div>
                 </div>
               );
@@ -613,17 +612,20 @@ function PostCard({
 
             {/* Add comment */}
             <div className="flex gap-2 pt-1">
-              <Input
-                placeholder="Escreve um comentário..."
+              <MentionTextarea
+                placeholder="Escreve um comentário... usa @ para mencionar"
                 value={commentText}
-                onChange={e => setCommentText(e.target.value)}
+                onChange={setCommentText}
+                singleLine
+                rows={1}
+                className="text-sm h-9"
                 onKeyDown={e => {
-                  if (e.key === 'Enter' && commentText.trim()) {
+                  if (e.key === 'Enter' && !e.shiftKey && commentText.trim()) {
+                    e.preventDefault();
                     onComment(commentText.trim());
                     setCommentText('');
                   }
                 }}
-                className="text-sm h-9"
               />
               <Button
                 size="sm"
