@@ -549,8 +549,8 @@ function ListView({ events, types, onEventClick }: { events: EventRow[]; types: 
           <div className="col-span-4 font-medium text-foreground truncate">{ev.title}</div>
           <div className="col-span-3"><TypeBadge types={types} typeId={ev.event_type_id} /></div>
           <div className="col-span-3 text-muted-foreground">
-            {format(parseISO(ev.start_date), 'dd MMM yyyy', { locale: pt })}
-            {ev.end_date && ` — ${format(parseISO(ev.end_date), 'dd MMM yyyy', { locale: pt })}`}
+            {format(parseISO(ev.start_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}
+            {ev.end_date && ` — ${format(parseISO(ev.end_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}`}
           </div>
           <div className="col-span-2 text-muted-foreground truncate">{ev.product_name || '—'}</div>
         </button>
