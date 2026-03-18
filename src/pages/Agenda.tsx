@@ -569,20 +569,23 @@ function ListView({ events, types, onEventClick }: { events: EventRow[]; types: 
   return (
     <div className="border rounded-lg overflow-hidden divide-y divide-border">
       <div className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-muted text-xs font-medium text-muted-foreground">
-        <div className="col-span-4">Evento</div>
-        <div className="col-span-3">Tipo</div>
-        <div className="col-span-3">Data</div>
-        <div className="col-span-2">Produto</div>
+        <div className="col-span-3">Evento</div>
+        <div className="col-span-2">Tipo</div>
+        <div className="col-span-2">Data</div>
+        <div className="col-span-2">Departamento</div>
+        <div className="col-span-1">Produto</div>
+        <div className="col-span-2">Cliente</div>
       </div>
       {events.map(ev => (
         <button key={ev.id} onClick={() => onEventClick(ev)} className="grid grid-cols-12 gap-2 px-4 py-3 w-full text-left hover:bg-muted/50 transition-colors text-sm">
-          <div className="col-span-4 font-medium text-foreground truncate">{ev.title}</div>
-          <div className="col-span-3"><TypeBadge types={types} typeId={ev.event_type_id} /></div>
-          <div className="col-span-3 text-muted-foreground">
-            {format(parseISO(ev.start_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}
-            {ev.end_date && ` — ${format(parseISO(ev.end_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}`}
+          <div className="col-span-3 font-medium text-foreground truncate">{ev.title}</div>
+          <div className="col-span-2"><TypeBadge types={types} typeId={ev.event_type_id} /></div>
+          <div className="col-span-2 text-muted-foreground text-xs">
+            {format(parseISO(ev.start_date), "dd MMM yyyy", { locale: pt })}
           </div>
-          <div className="col-span-2 text-muted-foreground truncate">{ev.product_name || '—'}</div>
+          <div className="col-span-2 text-muted-foreground truncate">{ev.department ? DEPARTMENTS.find(d => d.value === ev.department)?.label || ev.department : '—'}</div>
+          <div className="col-span-1 text-muted-foreground truncate">{ev.product_name || '—'}</div>
+          <div className="col-span-2 text-muted-foreground truncate">{ev.client_name || '—'}</div>
         </button>
       ))}
     </div>
