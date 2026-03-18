@@ -395,6 +395,8 @@ function EventFormDialog({
         start_date: startDate.toISOString(),
         end_date: endDate ? endDate.toISOString() : null,
         product_name: productName.trim() || null,
+        department: department || null,
+        client_name: clientName.trim() || null,
         notes: notes.trim() || null,
         created_by: user?.id ?? null,
       };
