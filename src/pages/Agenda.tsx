@@ -448,7 +448,7 @@ function EventFormDialog({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Data de início *</Label>
-              <DatePickerField date={startDate} onSelect={setStartDate} placeholder="Início" />
+              <DateTimePickerField date={startDate} onSelect={setStartDate} placeholder="Início" />
             </div>
             <div>
               <Label>Data de fim</Label>
