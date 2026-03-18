@@ -699,6 +699,12 @@ export default function ProjetoDetailPage() {
             ))}
           </div>
         </div>
+
+        <Separator />
+        <AlertDialog>
+          <AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="text-destructive hover:text-destructive gap-1.5"><Trash2 className="h-4 w-4" /> Eliminar projeto</Button></AlertDialogTrigger>
+          <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar projeto?</AlertDialogTitle><AlertDialogDescription>Esta ação é irreversível. Todos os dados do projeto serão eliminados.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {/* Task dialog */}
