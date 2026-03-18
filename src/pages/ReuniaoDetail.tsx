@@ -436,6 +436,17 @@ export default function ReuniaoDetailPage() {
               />
             </div>
             <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Departamento</Label>
+              <Select value={m.department ?? ''} onValueChange={v => update({ department: v || null })}>
+                <SelectTrigger className="h-7 text-xs w-44"><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(MODULES).filter(([, v]) => v.section === 'departamentos').map(([key, v]) => (
+                    <SelectItem key={key} value={key}>{v.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Projeto</Label>
               <Input
                 value={m.project_name ?? ''}
