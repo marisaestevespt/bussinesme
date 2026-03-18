@@ -13,6 +13,7 @@ import ComecaAquiPage from "./pages/ComecaAqui";
 import HubPage from "./pages/Hub";
 import ExecutivePage from "./pages/Executive";
 import DefinicoesPage from "./pages/Definicoes";
+import AgendaPage from "./pages/Agenda";
 
 const queryClient = new QueryClient();
 
