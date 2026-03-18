@@ -12,7 +12,6 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { NavLink } from '@/components/NavLink';
-import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -20,14 +19,14 @@ import {
   Rocket, Calendar, Users, GitBranch, FolderKanban, CheckSquare,
   Key, MessageSquare, Building2, Megaphone, DollarSign, ShoppingCart,
   UserCheck, UsersRound, Headphones, Target, CalendarCheck, Crown,
-  LayoutDashboard, Settings, LogOut,
+  LayoutDashboard, Settings, LogOut, Package, Heart, BookOpen,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 const ICON_MAP: Record<string, any> = {
   Rocket, Calendar, Users, GitBranch, FolderKanban, CheckSquare,
   Key, MessageSquare, Building2, Megaphone, DollarSign, ShoppingCart,
   UserCheck, UsersRound, Headphones, Target, CalendarCheck, Crown,
+  Package, Heart, BookOpen,
 };
 
 interface NavItem {
@@ -53,6 +52,7 @@ const transversaisItems: NavItem[] = [
   { title: 'Projetos', url: '/hub/projetos', icon: 'FolderKanban', moduleKey: 'projetos' },
   { title: 'Processos', url: '/hub/processos', icon: 'GitBranch', moduleKey: 'processos' },
   { title: 'Tarefas', url: '/hub/tarefas', icon: 'CheckSquare', moduleKey: 'tarefas' },
+  { title: 'Biblioteca', url: '/hub/biblioteca', icon: 'BookOpen', moduleKey: 'biblioteca' },
 ];
 
 const departamentosItems: NavItem[] = [
@@ -62,6 +62,9 @@ const departamentosItems: NavItem[] = [
   { title: 'Clientes', url: '/hub/clientes', icon: 'UserCheck', moduleKey: 'clientes' },
   { title: 'Financeiro', url: '/hub/financeiro', icon: 'DollarSign', moduleKey: 'financeiro' },
   { title: 'Operação', url: '/hub/operacao', icon: 'Headphones', moduleKey: 'operacao' },
+  { title: 'Produtos', url: '/hub/produtos', icon: 'Package', moduleKey: 'produtos' },
+  { title: 'Customer Success', url: '/hub/customer-success', icon: 'Heart', moduleKey: 'customer-success' },
+  { title: 'Recursos Humanos', url: '/hub/recursos-humanos', icon: 'UsersRound', moduleKey: 'recursos-humanos' },
 ];
 
 const executiveItems: NavItem[] = [
@@ -124,7 +127,7 @@ function NavSection({
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
-  const { isOwner, signOut, user } = useAuth();
+  const { isOwner, signOut } = useAuth();
   const { settings } = useBusinessSettings();
   const { canAccess } = usePermissions();
 
@@ -133,11 +136,7 @@ export function AppSidebar() {
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-3">
           {settings?.logo_url && (
-            <img
-              src={settings.logo_url}
-              alt="Logo"
-              className="h-8 w-8 rounded-md object-contain"
-            />
+            <img src={settings.logo_url} alt="Logo" className="h-8 w-8 rounded-md object-contain" />
           )}
           {!collapsed && (
             <span className="text-sm font-semibold tracking-tight truncate">
@@ -162,12 +161,7 @@ export function AppSidebar() {
           {isOwner && (
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <NavLink
-                  to="/definicoes"
-                  end
-                  className="hq-transition hover:bg-accent/50"
-                  activeClassName="bg-accent text-accent-foreground font-medium"
-                >
+                <NavLink to="/definicoes" end className="hq-transition hover:bg-accent/50" activeClassName="bg-accent text-accent-foreground font-medium">
                   <Settings className="mr-2 h-4 w-4" strokeWidth={1.5} />
                   {!collapsed && <span className="text-sm">Definições</span>}
                 </NavLink>
@@ -175,10 +169,7 @@ export function AppSidebar() {
             </SidebarMenuItem>
           )}
           <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={signOut}
-              className="hq-transition hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
-            >
+            <SidebarMenuButton onClick={signOut} className="hq-transition hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
               <LogOut className="mr-2 h-4 w-4" strokeWidth={1.5} />
               {!collapsed && <span className="text-sm">Sair</span>}
             </SidebarMenuButton>

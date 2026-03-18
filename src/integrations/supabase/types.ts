@@ -246,6 +246,39 @@ export type Database = {
           },
         ]
       }
+      internal_documents: {
+        Row: {
+          category: string
+          content: string | null
+          created_at: string
+          created_by: string | null
+          file_url: string | null
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_url?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_url?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       meeting_participants: {
         Row: {
           created_at: string
@@ -715,6 +748,7 @@ export type Database = {
           frequency: string
           id: string
           name: string
+          sop_id: string | null
           updated_at: string
         }
         Insert: {
@@ -725,6 +759,7 @@ export type Database = {
           frequency?: string
           id?: string
           name: string
+          sop_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -735,6 +770,7 @@ export type Database = {
           frequency?: string
           id?: string
           name?: string
+          sop_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -743,6 +779,13 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routines_sop_id_fkey"
+            columns: ["sop_id"]
+            isOneToOne: false
+            referencedRelation: "sops"
             referencedColumns: ["id"]
           },
         ]
