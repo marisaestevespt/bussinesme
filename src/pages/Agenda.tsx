@@ -545,7 +545,7 @@ function EventFormDialog({
           {/* Recurrence */}
           <div>
             <Label className="flex items-center gap-1.5">🔁 Repetição</Label>
-            <Select value={recurrenceType} onValueChange={setRecurrenceType}>
+            <Select value={recurrenceType || 'none'} onValueChange={v => setRecurrenceType(v === 'none' ? '' : v)}>
               <SelectTrigger><SelectValue placeholder="Não se repete" /></SelectTrigger>
               <SelectContent>
                 {RECURRENCE_OPTIONS.map(o => (
