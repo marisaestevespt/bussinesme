@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { MODULES } from '@/lib/modules';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -43,6 +44,7 @@ interface MeetingFull {
   status: MeetingStatus;
   client_name: string | null;
   project_name: string | null;
+  department: string | null;
   transcript_url: string | null;
   discussion_points: CheckItem[];
   priorities: string[];
@@ -259,6 +261,7 @@ export default function ReuniaoDetailPage() {
         status: m.status,
         client_name: m.client_name,
         project_name: m.project_name,
+        department: m.department,
         transcript_url: m.transcript_url,
         discussion_points: m.discussion_points as any,
         priorities: m.priorities as any,
@@ -431,6 +434,17 @@ export default function ReuniaoDetailPage() {
                 placeholder="Sem cliente"
                 className="h-7 text-xs w-40"
               />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Departamento</Label>
+              <Select value={m.department ?? ''} onValueChange={v => update({ department: v || null })}>
+                <SelectTrigger className="h-7 text-xs w-44"><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(MODULES).filter(([, v]) => v.section === 'departamentos').map(([key, v]) => (
+                    <SelectItem key={key} value={key}>{v.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Projeto</Label>

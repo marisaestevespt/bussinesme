@@ -13,12 +13,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CalendarIcon, Plus, Users, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { format, parseISO, isFuture } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { MODULES } from '@/lib/modules';
+
+const DEPARTMENTS = Object.entries(MODULES)
+  .filter(([, v]) => v.section === 'departamentos')
+  .map(([key, v]) => ({ value: key, label: v.label }));
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -37,6 +42,7 @@ interface MeetingRow {
   status: MeetingStatus;
   client_name: string | null;
   project_name: string | null;
+  department: string | null;
   transcript_url: string | null;
   created_by: string | null;
 }
@@ -184,9 +190,10 @@ function MeetingFormDialog({
   const [status, setStatus] = useState<MeetingStatus>('por_confirmar');
   const [clientName, setClientName] = useState('');
   const [projectName, setProjectName] = useState('');
+  const [department, setDepartment] = useState('');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
-  const resetForm = () => { setTitle(''); setDateTime(undefined); setStatus('por_confirmar'); setClientName(''); setProjectName(''); setSelectedMembers([]); };
+  const resetForm = () => { setTitle(''); setDateTime(undefined); setStatus('por_confirmar'); setClientName(''); setProjectName(''); setDepartment(''); setSelectedMembers([]); };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -197,6 +204,7 @@ function MeetingFormDialog({
         status,
         client_name: clientName.trim() || null,
         project_name: projectName.trim() || null,
+        department: department || null,
         created_by: user?.id ?? null,
       }).select('id').single();
       if (error) throw error;
@@ -250,6 +258,17 @@ function MeetingFormDialog({
           <div>
             <Label>Cliente associado</Label>
             <Input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Opcional" />
+          </div>
+          <div>
+            <Label>Departamento</Label>
+            <Select value={department} onValueChange={setDepartment}>
+              <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
+              <SelectContent>
+                {DEPARTMENTS.map(d => (
+                  <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Projeto associado</Label>
@@ -326,7 +345,7 @@ export default function ReunioesPage() {
                 </div>
                 <div className="col-span-2"><StatusBadge status={m.status} /></div>
                 <div className="col-span-3 text-muted-foreground truncate">
-                  {[m.client_name, m.project_name].filter(Boolean).join(' · ') || '—'}
+                  {[m.department ? DEPARTMENTS.find(d => d.value === m.department)?.label : null, m.client_name, m.project_name].filter(Boolean).join(' · ') || '—'}
                 </div>
               </button>
             ))}
