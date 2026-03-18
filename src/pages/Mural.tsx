@@ -486,9 +486,28 @@ function PostCard({
       <div className="p-5 pb-0">
         <div className="flex items-start justify-between mb-3">
           <Badge className={`${cat.color} border-0`}>{cat.label}</Badge>
-          <span className="text-xs text-muted-foreground">
-            {format(new Date(post.created_at), "d MMM yyyy 'às' HH:mm", { locale: pt })}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              {format(new Date(post.created_at), "d MMM yyyy 'às' HH:mm", { locale: pt })}
+            </span>
+            {(isOwner || post.author_id === userId) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={onEdit}>
+                    <Pencil className="mr-2 h-3.5 w-3.5" /> Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onDelete} className="text-destructive">
+                    <Trash2 className="mr-2 h-3.5 w-3.5" /> Eliminar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
         <h2 className="text-lg font-semibold mb-2">{post.title}</h2>
         <div className="flex items-center gap-2 mb-4">
