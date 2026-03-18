@@ -604,7 +604,7 @@ function PostCard({
                         {format(new Date(comment.created_at), "d MMM 'às' HH:mm", { locale: pt })}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">{comment.body}</p>
+                    <RichText text={comment.body} className="text-sm text-muted-foreground" />
                   </div>
                 </div>
               );
