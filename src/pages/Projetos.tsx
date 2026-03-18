@@ -17,7 +17,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, isWithinInterval, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { MentionTextarea } from '@/components/MentionTextarea';
@@ -27,32 +27,33 @@ import { Checkbox } from '@/components/ui/checkbox';
 // ─── Constants ──────────────────────────────────────────────────
 
 const PROJECT_TYPES = [
-  { value: 'interno', label: 'Interno', color: 'bg-indigo-100 text-indigo-800' },
-  { value: 'servico', label: 'Serviço', color: 'bg-emerald-100 text-emerald-800' },
+  { value: 'interno', label: 'Interno', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
+  { value: 'servico', label: 'Serviço', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
 ];
 
 const PROJECT_STATUSES = [
-  { value: 'em_ideia', label: 'Em ideia', color: 'bg-gray-100 text-gray-700' },
-  { value: 'em_curso', label: 'Em curso', color: 'bg-blue-100 text-blue-800' },
-  { value: 'em_pausa', label: 'Em pausa', color: 'bg-yellow-100 text-yellow-800' },
-  { value: 'em_revisao', label: 'Em revisão', color: 'bg-purple-100 text-purple-800' },
-  { value: 'concluido', label: 'Concluído', color: 'bg-green-100 text-green-800' },
-  { value: 'cancelado', label: 'Cancelado', color: 'bg-red-100 text-red-800' },
-  { value: 'arquivo', label: 'Arquivo', color: 'bg-slate-100 text-slate-600' },
+  { value: 'em_ideia', label: 'Em ideia', color: 'bg-gray-100 text-gray-700 border-gray-300', dot: 'bg-gray-400' },
+  { value: 'em_curso', label: 'Em curso', color: 'bg-blue-100 text-blue-800 border-blue-300', dot: 'bg-blue-500' },
+  { value: 'em_pausa', label: 'Em pausa', color: 'bg-yellow-100 text-yellow-800 border-yellow-300', dot: 'bg-yellow-500' },
+  { value: 'em_revisao', label: 'Em revisão', color: 'bg-purple-100 text-purple-800 border-purple-300', dot: 'bg-purple-500' },
+  { value: 'concluido', label: 'Concluído', color: 'bg-green-100 text-green-800 border-green-300', dot: 'bg-green-500' },
+  { value: 'cancelado', label: 'Cancelado', color: 'bg-red-100 text-red-800 border-red-300', dot: 'bg-red-500' },
+  { value: 'arquivo', label: 'Arquivo', color: 'bg-slate-100 text-slate-600 border-slate-300', dot: 'bg-slate-400' },
 ];
 
 const DEPARTMENTS = [
-  { value: 'administrativo', label: 'Administrativo' },
-  { value: 'marketing', label: 'Marketing e Branding' },
-  { value: 'financeiro', label: 'Financeiro' },
-  { value: 'comercial', label: 'Comercial e Vendas' },
-  { value: 'clientes', label: 'Clientes' },
-  { value: 'equipa', label: 'Equipa' },
-  { value: 'operacao', label: 'Operação' },
+  { value: 'administrativo', label: 'Administrativo', color: 'bg-stone-100 text-stone-700 border-stone-300' },
+  { value: 'marketing', label: 'Marketing e Branding', color: 'bg-pink-100 text-pink-700 border-pink-300' },
+  { value: 'financeiro', label: 'Financeiro', color: 'bg-amber-100 text-amber-700 border-amber-300' },
+  { value: 'comercial', label: 'Comercial e Vendas', color: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
+  { value: 'clientes', label: 'Clientes', color: 'bg-violet-100 text-violet-700 border-violet-300' },
+  { value: 'equipa', label: 'Equipa', color: 'bg-teal-100 text-teal-700 border-teal-300' },
+  { value: 'operacao', label: 'Operação', color: 'bg-orange-100 text-orange-700 border-orange-300' },
 ];
 
 function getTypeInfo(v: string) { return PROJECT_TYPES.find(t => t.value === v) || PROJECT_TYPES[0]; }
 function getStatusInfo(v: string) { return PROJECT_STATUSES.find(s => s.value === v) || PROJECT_STATUSES[0]; }
+function getDeptInfo(v: string) { return DEPARTMENTS.find(d => d.value === v); }
 function getDeptLabel(v: string) { return DEPARTMENTS.find(d => d.value === v)?.label || v; }
 function getInitials(n: string | null) { return n ? n.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?'; }
 
@@ -63,6 +64,7 @@ interface Project {
   status: string;
   department: string | null;
   client_name: string | null;
+  start_date: string | null;
   deadline: string | null;
   progress: number;
   notes: string | null;
@@ -103,6 +105,24 @@ function MemberPicker({ selected, onChange, profiles }: { selected: string[]; on
   );
 }
 
+// ─── Status Badge with dot ──────────────────────────────────────
+
+function StatusBadge({ status, className }: { status: string; className?: string }) {
+  const info = getStatusInfo(status);
+  return (
+    <Badge className={cn(`${info.color} border font-medium gap-1.5`, className)}>
+      <span className={cn('h-2 w-2 rounded-full', info.dot)} />
+      {info.label}
+    </Badge>
+  );
+}
+
+function DeptBadge({ dept }: { dept: string }) {
+  const info = getDeptInfo(dept);
+  if (!info) return <span className="text-sm text-muted-foreground">—</span>;
+  return <Badge className={cn(`${info.color} border font-medium text-xs`)}>{info.label}</Badge>;
+}
+
 // ─── Main Page ──────────────────────────────────────────────────
 
 type ViewMode = 'table' | 'gallery' | 'calendar';
@@ -121,6 +141,7 @@ export default function ProjetosPage() {
   const [fStatus, setFStatus] = useState('em_ideia');
   const [fDept, setFDept] = useState('');
   const [fClient, setFClient] = useState('');
+  const [fStartDate, setFStartDate] = useState<Date | undefined>();
   const [fDeadline, setFDeadline] = useState<Date | undefined>();
   const [fMembers, setFMembers] = useState<string[]>([]);
   const [fNotes, setFNotes] = useState('');
@@ -130,7 +151,7 @@ export default function ProjetosPage() {
     queryFn: async () => {
       const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
       if (error) throw error;
-      return data as Project[];
+      return (data || []) as Project[];
     },
   });
 
@@ -161,6 +182,7 @@ export default function ProjetosPage() {
         status: fStatus,
         department: fDept || null,
         client_name: fClient || null,
+        start_date: fStartDate ? format(fStartDate, 'yyyy-MM-dd') : null,
         deadline: fDeadline ? format(fDeadline, 'yyyy-MM-dd') : null,
         notes: fNotes || null,
         created_by: user.id,
@@ -183,8 +205,18 @@ export default function ProjetosPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ projectId, status }: { projectId: string; status: string }) => {
+      const { error } = await supabase.from('projects').update({ status }).eq('id', projectId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    },
+  });
+
   function resetForm() {
-    setFName(''); setFType('interno'); setFStatus('em_ideia'); setFDept(''); setFClient(''); setFDeadline(undefined); setFMembers([]); setFNotes('');
+    setFName(''); setFType('interno'); setFStatus('em_ideia'); setFDept(''); setFClient(''); setFStartDate(undefined); setFDeadline(undefined); setFMembers([]); setFNotes('');
     setDialogOpen(false);
   }
 
@@ -219,7 +251,7 @@ export default function ProjetosPage() {
           </div>
         ) : (
           <>
-            {view === 'table' && <TableView projects={projects} getMembersForProject={getMembersForProject} onOpen={id => navigate(`/hub/projetos/${id}`)} />}
+            {view === 'table' && <TableView projects={projects} getMembersForProject={getMembersForProject} onOpen={id => navigate(`/hub/projetos/${id}`)} onStatusChange={(id, s) => updateStatusMutation.mutate({ projectId: id, status: s })} />}
             {view === 'gallery' && <GalleryView projects={projects} getMembersForProject={getMembersForProject} onOpen={id => navigate(`/hub/projetos/${id}`)} />}
             {view === 'calendar' && <CalendarView projects={projects} month={calMonth} onMonthChange={setCalMonth} onOpen={id => navigate(`/hub/projetos/${id}`)} />}
           </>
@@ -241,25 +273,52 @@ export default function ProjetosPage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label>Status</Label>
-                  <Select value={fStatus} onValueChange={setFStatus}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{PROJECT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent></Select>
+                  <Select value={fStatus} onValueChange={setFStatus}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {PROJECT_STATUSES.map(s => (
+                        <SelectItem key={s.value} value={s.value}>
+                          <span className="flex items-center gap-2">
+                            <span className={cn('h-2 w-2 rounded-full', s.dot)} />
+                            {s.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label>Departamento</Label>
-                  <Select value={fDept} onValueChange={setFDept}><SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger><SelectContent>{DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent></Select>
+                  <Select value={fDept} onValueChange={setFDept}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                    <SelectContent>
+                      {DEPARTMENTS.map(d => (
+                        <SelectItem key={d.value} value={d.value}>
+                          <Badge className={cn(`${d.color} border text-xs`)}>{d.label}</Badge>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Prazo</Label>
-                  <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !fDeadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{fDeadline ? format(fDeadline, 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={fDeadline} onSelect={setFDeadline} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+                  <Label>Data de Início</Label>
+                  <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !fStartDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{fStartDate ? format(fStartDate, 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={fStartDate} onSelect={setFStartDate} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
                 </div>
               </div>
-              {fType === 'servico' && (
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>Cliente associado</Label>
-                  <Input value={fClient} onChange={e => setFClient(e.target.value)} placeholder="Nome do cliente" />
+                  <Label>Data de Fim</Label>
+                  <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !fDeadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{fDeadline ? format(fDeadline, 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={fDeadline} onSelect={setFDeadline} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
                 </div>
-              )}
+                {fType === 'servico' && (
+                  <div className="space-y-1.5">
+                    <Label>Cliente associado</Label>
+                    <Input value={fClient} onChange={e => setFClient(e.target.value)} placeholder="Nome do cliente" />
+                  </div>
+                )}
+              </div>
               <MemberPicker selected={fMembers} onChange={setFMembers} profiles={profiles} />
               <div className="space-y-1.5">
                 <Label>Notas</Label>
@@ -278,7 +337,7 @@ export default function ProjetosPage() {
 
 // ─── Table View ─────────────────────────────────────────────────
 
-function TableView({ projects, getMembersForProject, onOpen }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void }) {
+function TableView({ projects, getMembersForProject, onOpen, onStatusChange }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; onStatusChange: (id: string, status: string) => void }) {
   return (
     <div className="rounded-lg border">
       <Table>
@@ -288,7 +347,8 @@ function TableView({ projects, getMembersForProject, onOpen }: { projects: Proje
             <TableHead>Tipo</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Departamento</TableHead>
-            <TableHead>Prazo</TableHead>
+            <TableHead>Data Início</TableHead>
+            <TableHead>Data Fim</TableHead>
             <TableHead>Progresso</TableHead>
             <TableHead>Equipa</TableHead>
           </TableRow>
@@ -296,14 +356,30 @@ function TableView({ projects, getMembersForProject, onOpen }: { projects: Proje
         <TableBody>
           {projects.map(p => {
             const typeI = getTypeInfo(p.type);
-            const statusI = getStatusInfo(p.status);
             const members = getMembersForProject(p.id);
             return (
               <TableRow key={p.id} className="cursor-pointer" onClick={() => onOpen(p.id)}>
                 <TableCell className="font-medium">{p.name}</TableCell>
-                <TableCell><Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge></TableCell>
-                <TableCell><Badge className={`${statusI.color} border-0`}>{statusI.label}</Badge></TableCell>
-                <TableCell className="text-muted-foreground text-sm">{p.department ? getDeptLabel(p.department) : '—'}</TableCell>
+                <TableCell><Badge className={`${typeI.color} border font-medium`}>{typeI.label}</Badge></TableCell>
+                <TableCell onClick={e => e.stopPropagation()}>
+                  <Select value={p.status} onValueChange={s => onStatusChange(p.id, s)}>
+                    <SelectTrigger className="h-auto border-0 bg-transparent p-0 shadow-none w-auto">
+                      <StatusBadge status={p.status} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PROJECT_STATUSES.map(s => (
+                        <SelectItem key={s.value} value={s.value}>
+                          <span className="flex items-center gap-2">
+                            <span className={cn('h-2 w-2 rounded-full', s.dot)} />
+                            {s.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell>{p.department ? <DeptBadge dept={p.department} /> : <span className="text-muted-foreground">—</span>}</TableCell>
+                <TableCell className="text-sm">{p.start_date ? format(new Date(p.start_date), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
                 <TableCell className="text-sm">{p.deadline ? format(new Date(p.deadline), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
                 <TableCell><div className="flex items-center gap-2 min-w-[100px]"><Progress value={p.progress} className="h-2 flex-1" /><span className="text-xs text-muted-foreground w-8">{p.progress}%</span></div></TableCell>
                 <TableCell><div className="flex -space-x-1">{members.slice(0, 3).map(m => <Avatar key={m.id} className="h-6 w-6 border-2 border-background"><AvatarImage src={m.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(m.full_name)}</AvatarFallback></Avatar>)}{members.length > 3 && <span className="text-xs text-muted-foreground ml-1">+{members.length - 3}</span>}</div></TableCell>
@@ -323,21 +399,25 @@ function GalleryView({ projects, getMembersForProject, onOpen }: { projects: Pro
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {projects.map(p => {
         const typeI = getTypeInfo(p.type);
-        const statusI = getStatusInfo(p.status);
         const members = getMembersForProject(p.id);
         return (
           <div key={p.id} className="rounded-xl border bg-card shadow-sm p-5 cursor-pointer hover:shadow-md transition-shadow" onClick={() => onOpen(p.id)}>
             <div className="flex items-center gap-2 mb-3">
-              <Badge className={`${typeI.color} border-0 text-[10px]`}>{typeI.label}</Badge>
-              <Badge className={`${statusI.color} border-0 text-[10px]`}>{statusI.label}</Badge>
+              <Badge className={`${typeI.color} border text-[10px] font-medium`}>{typeI.label}</Badge>
+              <StatusBadge status={p.status} className="text-[10px]" />
             </div>
-            <h3 className="font-semibold mb-2">{p.name}</h3>
+            <h3 className="font-semibold mb-1">{p.name}</h3>
+            {p.department && <div className="mb-2"><DeptBadge dept={p.department} /></div>}
             <div className="flex items-center gap-2 mb-3">
               <Progress value={p.progress} className="h-2 flex-1" />
               <span className="text-xs text-muted-foreground">{p.progress}%</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">{p.deadline ? format(new Date(p.deadline), 'd MMM yyyy', { locale: pt }) : 'Sem prazo'}</span>
+              <div className="text-xs text-muted-foreground space-y-0.5">
+                {p.start_date && <div>Início: {format(new Date(p.start_date), 'd MMM', { locale: pt })}</div>}
+                {p.deadline && <div>Fim: {format(new Date(p.deadline), 'd MMM yyyy', { locale: pt })}</div>}
+                {!p.start_date && !p.deadline && <span>Sem datas</span>}
+              </div>
               <div className="flex -space-x-1">
                 {members.slice(0, 4).map(m => (
                   <Avatar key={m.id} className="h-6 w-6 border-2 border-background"><AvatarImage src={m.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(m.full_name)}</AvatarFallback></Avatar>
@@ -358,32 +438,66 @@ function CalendarView({ projects, month, onMonthChange, onOpen }: { projects: Pr
   const end = endOfWeek(endOfMonth(month), { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start, end });
   const weekDays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+  const today = new Date();
+
+  function getProjectsForDay(day: Date) {
+    return projects.filter(p => {
+      if (p.start_date && p.deadline) {
+        return isWithinInterval(day, { start: parseISO(p.start_date), end: parseISO(p.deadline) });
+      }
+      if (p.deadline && isSameDay(parseISO(p.deadline), day)) return true;
+      if (p.start_date && isSameDay(parseISO(p.start_date), day)) return true;
+      return false;
+    });
+  }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
+    <div className="rounded-lg border bg-card">
+      <div className="flex items-center justify-between p-4 border-b">
         <Button variant="ghost" size="icon" onClick={() => onMonthChange(subMonths(month, 1))}><ChevronLeft className="h-4 w-4" /></Button>
-        <h2 className="font-semibold capitalize">{format(month, 'MMMM yyyy', { locale: pt })}</h2>
+        <h2 className="font-semibold capitalize text-lg">{format(month, 'MMMM yyyy', { locale: pt })}</h2>
         <Button variant="ghost" size="icon" onClick={() => onMonthChange(addMonths(month, 1))}><ChevronRight className="h-4 w-4" /></Button>
       </div>
-      <div className="grid grid-cols-7 border rounded-lg overflow-hidden">
-        {weekDays.map(d => <div key={d} className="p-2 text-center text-xs font-medium text-muted-foreground border-b bg-muted/30">{d}</div>)}
+      <div className="grid grid-cols-7">
+        {weekDays.map(d => (
+          <div key={d} className="p-2 text-center text-xs font-medium text-muted-foreground border-b bg-muted/30">{d}</div>
+        ))}
         {days.map(day => {
-          const dayProjects = projects.filter(p => p.deadline && isSameDay(new Date(p.deadline), day));
+          const dayProjects = getProjectsForDay(day);
+          const isToday = isSameDay(day, today);
           return (
-            <div key={day.toISOString()} className={cn("min-h-[80px] p-1 border-b border-r", !isSameMonth(day, month) && "bg-muted/20")}>
-              <span className={cn("text-xs", !isSameMonth(day, month) && "text-muted-foreground/50")}>{format(day, 'd')}</span>
-              <div className="space-y-0.5 mt-0.5">
-                {dayProjects.slice(0, 2).map(p => {
+            <div
+              key={day.toISOString()}
+              className={cn(
+                "min-h-[100px] p-1.5 border-b border-r relative",
+                !isSameMonth(day, month) && "bg-muted/20",
+              )}
+            >
+              <span className={cn(
+                "text-xs font-medium inline-flex items-center justify-center h-6 w-6 rounded-full",
+                isToday && "bg-primary text-primary-foreground",
+                !isSameMonth(day, month) && !isToday && "text-muted-foreground/40"
+              )}>
+                {format(day, 'd')}
+              </span>
+              <div className="space-y-0.5 mt-1">
+                {dayProjects.slice(0, 3).map(p => {
                   const statusI = getStatusInfo(p.status);
                   return (
-                    <button key={p.id} onClick={() => onOpen(p.id)} className="w-full text-left rounded px-1 py-0.5 text-[10px] truncate hover:opacity-80 transition-opacity" style={{ background: 'hsl(var(--accent))' }}>
-                      <Badge className={`${statusI.color} border-0 text-[8px] mr-1 px-1 py-0`}>{statusI.label}</Badge>
-                      <span className="text-[10px]">{p.name}</span>
+                    <button
+                      key={p.id}
+                      onClick={() => onOpen(p.id)}
+                      className="w-full text-left rounded px-1.5 py-0.5 text-[10px] truncate hover:opacity-80 transition-opacity flex items-center gap-1"
+                      style={{ background: 'hsl(var(--accent))' }}
+                    >
+                      <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', statusI.dot)} />
+                      <span className="truncate">{p.name}</span>
                     </button>
                   );
                 })}
-                {dayProjects.length > 2 && <span className="text-[9px] text-muted-foreground pl-1">+{dayProjects.length - 2}</span>}
+                {dayProjects.length > 3 && (
+                  <span className="text-[9px] text-muted-foreground pl-1">+{dayProjects.length - 3} mais</span>
+                )}
               </div>
             </div>
           );
@@ -393,4 +507,4 @@ function CalendarView({ projects, month, onMonthChange, onOpen }: { projects: Pr
   );
 }
 
-export { PROJECT_TYPES, PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel, getInitials };
+export { PROJECT_TYPES, PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel, getDeptInfo, getInitials };

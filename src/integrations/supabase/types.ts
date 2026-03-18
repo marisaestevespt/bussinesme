@@ -602,6 +602,7 @@ export type Database = {
           progress: number
           project_notes: string | null
           recursos: string | null
+          start_date: string | null
           status: string
           type: string
           updated_at: string
@@ -626,6 +627,7 @@ export type Database = {
           progress?: number
           project_notes?: string | null
           recursos?: string | null
+          start_date?: string | null
           status?: string
           type?: string
           updated_at?: string
@@ -650,6 +652,7 @@ export type Database = {
           progress?: number
           project_notes?: string | null
           recursos?: string | null
+          start_date?: string | null
           status?: string
           type?: string
           updated_at?: string
