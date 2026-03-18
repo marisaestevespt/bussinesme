@@ -216,6 +216,7 @@ function MeetingFormDialog({
     mutationFn: async () => {
       if (!title.trim() || !dateTime) throw new Error('Nome e data/hora são obrigatórios');
       const selectedProject = projects.find(p => p.id === projectId);
+      const isClientMeeting = !!clientName.trim();
       const { data, error } = await supabase.from('meetings').insert({
         title: title.trim(),
         date_time: dateTime.toISOString(),
@@ -232,10 +233,25 @@ function MeetingFormDialog({
         const rows = selectedMembers.map(pid => ({ meeting_id: data.id, profile_id: pid }));
         await supabase.from('meeting_participants').insert(rows);
       }
+      // Create calendar event with appropriate type
+      const { data: eventTypes } = await supabase.from('event_types')
+        .select('id, slug')
+        .in('slug', ['reuniao_interna', 'reuniao_cliente']);
+      const typeSlug = isClientMeeting ? 'reuniao_cliente' : 'reuniao_interna';
+      const eventTypeId = eventTypes?.find(t => t.slug === typeSlug)?.id ?? null;
+      await supabase.from('events').insert({
+        title: title.trim(),
+        start_date: dateTime.toISOString(),
+        event_type_id: eventTypeId,
+        client_name: clientName.trim() || null,
+        department: department || null,
+        created_by: user?.id ?? null,
+      });
       return data.id;
     },
     onSuccess: (id) => {
       qc.invalidateQueries({ queryKey: ['meetings'] });
+      qc.invalidateQueries({ queryKey: ['events'] });
       toast.success('Reunião criada');
       resetForm();
       onOpenChange(false);
