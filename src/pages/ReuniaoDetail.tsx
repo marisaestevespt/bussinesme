@@ -464,12 +464,17 @@ export default function ReuniaoDetailPage() {
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Projeto</Label>
-              <Input
-                value={m.project_name ?? ''}
-                onChange={e => update({ project_name: e.target.value || null })}
-                placeholder="Sem projeto"
-                className="h-7 text-xs w-40"
-              />
+              <Select value={m.project_id ?? ''} onValueChange={v => {
+                const proj = projectsList.find(p => p.id === v);
+                update({ project_id: v || null, project_name: proj?.name || null });
+              }}>
+                <SelectTrigger className="h-7 text-xs w-48"><SelectValue placeholder="Sem projeto" /></SelectTrigger>
+                <SelectContent>
+                  {projectsList.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
