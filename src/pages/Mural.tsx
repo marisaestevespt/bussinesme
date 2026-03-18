@@ -427,11 +427,13 @@ export default function MuralPage() {
               <Button
                 onClick={() => {
                   if (!formTitle.trim() || !formBody.trim()) { toast.error('Título e corpo são obrigatórios'); return; }
-                  createMutation.mutate();
+                  if (editingPost) { updateMutation.mutate(); } else { createMutation.mutate(); }
                 }}
-                disabled={createMutation.isPending}
+                disabled={createMutation.isPending || updateMutation.isPending}
               >
-                {createMutation.isPending ? 'A publicar...' : 'Publicar'}
+                {(createMutation.isPending || updateMutation.isPending)
+                  ? 'A guardar...'
+                  : editingPost ? 'Guardar Alterações' : 'Publicar'}
               </Button>
             </div>
           </DialogContent>
