@@ -275,6 +275,17 @@ function MeetingFormDialog({
             <Input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Opcional" />
           </div>
           <div>
+            <Label>Departamento</Label>
+            <Select value={department} onValueChange={setDepartment}>
+              <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
+              <SelectContent>
+                {DEPARTMENTS.map(d => (
+                  <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
             <Label>Projeto associado</Label>
             <Input value={projectName} onChange={e => setProjectName(e.target.value)} placeholder="Opcional" />
           </div>
