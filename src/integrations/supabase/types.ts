@@ -691,6 +691,118 @@ export type Database = {
           },
         ]
       }
+      routines: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          created_by: string | null
+          department: string
+          frequency: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          department?: string
+          frequency?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          department?: string
+          frequency?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routines_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sops: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          custom_role_id: string | null
+          decisoes: Json | null
+          department: string
+          id: string
+          inputs: Json | null
+          name: string
+          notas: Json | null
+          objetivo: string | null
+          outputs: Json | null
+          passos: Json | null
+          product_name: string | null
+          sop_id: string
+          status: string
+          updated_at: string
+          utilizacao_nao_usado: Json | null
+          utilizacao_usado: Json | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          custom_role_id?: string | null
+          decisoes?: Json | null
+          department?: string
+          id?: string
+          inputs?: Json | null
+          name: string
+          notas?: Json | null
+          objetivo?: string | null
+          outputs?: Json | null
+          passos?: Json | null
+          product_name?: string | null
+          sop_id?: string
+          status?: string
+          updated_at?: string
+          utilizacao_nao_usado?: Json | null
+          utilizacao_usado?: Json | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          custom_role_id?: string | null
+          decisoes?: Json | null
+          department?: string
+          id?: string
+          inputs?: Json | null
+          name?: string
+          notas?: Json | null
+          objetivo?: string | null
+          outputs?: Json | null
+          passos?: Json | null
+          product_name?: string | null
+          sop_id?: string
+          status?: string
+          updated_at?: string
+          utilizacao_nao_usado?: Json | null
+          utilizacao_usado?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sops_custom_role_id_fkey"
+            columns: ["custom_role_id"]
+            isOneToOne: false
+            referencedRelation: "custom_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           assigned_to: string | null
