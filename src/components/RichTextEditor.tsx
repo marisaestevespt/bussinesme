@@ -1,0 +1,186 @@
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import TextAlign from '@tiptap/extension-text-align';
+import { TextStyle } from '@tiptap/extension-text-style';
+import Color from '@tiptap/extension-color';
+import Highlight from '@tiptap/extension-highlight';
+import { Button } from '@/components/ui/button';
+import {
+  Bold, Italic, Underline as UnderlineIcon, Strikethrough,
+  List, ListOrdered, AlignLeft, AlignCenter, AlignRight,
+  Heading1, Heading2, Heading3, Palette, Highlighter, Undo, Redo,
+} from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+
+const COLORS = [
+  '#000000', '#374151', '#6b7280', '#ef4444', '#f97316', '#eab308',
+  '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#ffffff',
+];
+
+interface RichTextEditorProps {
+  content: string;
+  onChange: (html: string) => void;
+  editable?: boolean;
+}
+
+export function RichTextEditor({ content, onChange, editable = true }: RichTextEditorProps) {
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: { levels: [1, 2, 3] },
+      }),
+      Underline,
+      TextStyle,
+      Color,
+      Highlight.configure({ multicolor: true }),
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+    ],
+    content,
+    editable,
+    onUpdate: ({ editor }) => {
+      onChange(editor.getHTML());
+    },
+  });
+
+  if (!editor) return null;
+
+  const ToolBtn = ({ active, onClick, children, title }: any) => (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className={cn('h-7 w-7', active && 'bg-muted')}
+      onClick={onClick}
+      title={title}
+    >
+      {children}
+    </Button>
+  );
+
+  return (
+    <div className="border rounded-md overflow-hidden">
+      {editable && (
+        <div className="flex flex-wrap items-center gap-0.5 border-b bg-muted/30 p-1">
+          <ToolBtn active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()} title="Negrito">
+            <Bold className="h-3.5 w-3.5" />
+          </ToolBtn>
+          <ToolBtn active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()} title="Itálico">
+            <Italic className="h-3.5 w-3.5" />
+          </ToolBtn>
+          <ToolBtn active={editor.isActive('underline')} onClick={() => editor.chain().focus().toggleUnderline().run()} title="Sublinhado">
+            <UnderlineIcon className="h-3.5 w-3.5" />
+          </ToolBtn>
+          <ToolBtn active={editor.isActive('strike')} onClick={() => editor.chain().focus().toggleStrike().run()} title="Riscado">
+            <Strikethrough className="h-3.5 w-3.5" />
+          </ToolBtn>
+
+          <div className="w-px h-5 bg-border mx-1" />
+
+          <ToolBtn active={editor.isActive('heading', { level: 1 })} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} title="Título 1">
+            <Heading1 className="h-3.5 w-3.5" />
+          </ToolBtn>
+          <ToolBtn active={editor.isActive('heading', { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} title="Título 2">
+            <Heading2 className="h-3.5 w-3.5" />
+          </ToolBtn>
+          <ToolBtn active={editor.isActive('heading', { level: 3 })} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} title="Título 3">
+            <Heading3 className="h-3.5 w-3.5" />
+          </ToolBtn>
+
+          <div className="w-px h-5 bg-border mx-1" />
+
+          <ToolBtn active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Lista">
+            <List className="h-3.5 w-3.5" />
+          </ToolBtn>
+          <ToolBtn active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Lista Numerada">
+            <ListOrdered className="h-3.5 w-3.5" />
+          </ToolBtn>
+
+          <div className="w-px h-5 bg-border mx-1" />
+
+          <ToolBtn active={editor.isActive({ textAlign: 'left' })} onClick={() => editor.chain().focus().setTextAlign('left').run()} title="Alinhar à esquerda">
+            <AlignLeft className="h-3.5 w-3.5" />
+          </ToolBtn>
+          <ToolBtn active={editor.isActive({ textAlign: 'center' })} onClick={() => editor.chain().focus().setTextAlign('center').run()} title="Centrar">
+            <AlignCenter className="h-3.5 w-3.5" />
+          </ToolBtn>
+          <ToolBtn active={editor.isActive({ textAlign: 'right' })} onClick={() => editor.chain().focus().setTextAlign('right').run()} title="Alinhar à direita">
+            <AlignRight className="h-3.5 w-3.5" />
+          </ToolBtn>
+
+          <div className="w-px h-5 bg-border mx-1" />
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button type="button" variant="ghost" size="icon" className="h-7 w-7" title="Cor do texto">
+                <Palette className="h-3.5 w-3.5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-2" align="start">
+              <div className="flex gap-1 flex-wrap max-w-[180px]">
+                {COLORS.map(color => (
+                  <button
+                    key={color}
+                    type="button"
+                    className="h-6 w-6 rounded border border-border"
+                    style={{ backgroundColor: color }}
+                    onClick={() => editor.chain().focus().setColor(color).run()}
+                  />
+                ))}
+                <button
+                  type="button"
+                  className="h-6 w-6 rounded border border-border text-[10px]"
+                  onClick={() => editor.chain().focus().unsetColor().run()}
+                >
+                  ✕
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button type="button" variant="ghost" size="icon" className="h-7 w-7" title="Destaque">
+                <Highlighter className="h-3.5 w-3.5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-2" align="start">
+              <div className="flex gap-1 flex-wrap max-w-[180px]">
+                {['#fef08a', '#bbf7d0', '#bfdbfe', '#fecaca', '#e9d5ff', '#fed7aa'].map(color => (
+                  <button
+                    key={color}
+                    type="button"
+                    className="h-6 w-6 rounded border border-border"
+                    style={{ backgroundColor: color }}
+                    onClick={() => editor.chain().focus().toggleHighlight({ color }).run()}
+                  />
+                ))}
+                <button
+                  type="button"
+                  className="h-6 w-6 rounded border border-border text-[10px]"
+                  onClick={() => editor.chain().focus().unsetHighlight().run()}
+                >
+                  ✕
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          <div className="w-px h-5 bg-border mx-1" />
+
+          <ToolBtn onClick={() => editor.chain().focus().undo().run()} title="Desfazer">
+            <Undo className="h-3.5 w-3.5" />
+          </ToolBtn>
+          <ToolBtn onClick={() => editor.chain().focus().redo().run()} title="Refazer">
+            <Redo className="h-3.5 w-3.5" />
+          </ToolBtn>
+        </div>
+      )}
+      <EditorContent
+        editor={editor}
+        className="prose prose-sm max-w-none p-3 min-h-[200px] focus-within:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[180px]"
+      />
+    </div>
+  );
+}

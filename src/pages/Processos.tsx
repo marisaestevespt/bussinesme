@@ -303,7 +303,7 @@ export default function ProcessosPage() {
           <TabsList>
             <TabsTrigger value="galeria">Processos</TabsTrigger>
             <TabsTrigger value="lista">
-              <List className="h-4 w-4 mr-1" /> Lista Total ({totalSopCount})
+              <List className="h-4 w-4 mr-1" /> Lista Total
             </TabsTrigger>
           </TabsList>
           <Button onClick={() => { if (selectedDept) setNewSopDept(selectedDept); setShowNewSop(true); }} size="sm">
