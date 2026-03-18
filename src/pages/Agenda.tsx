@@ -379,8 +379,8 @@ function EventFormDialog({
       const payload = {
         title: title.trim(),
         event_type_id: eventTypeId || null,
-        start_date: format(startDate, 'yyyy-MM-dd'),
-        end_date: endDate ? format(endDate, 'yyyy-MM-dd') : null,
+        start_date: startDate.toISOString(),
+        end_date: endDate ? endDate.toISOString() : null,
         product_name: productName.trim() || null,
         notes: notes.trim() || null,
         created_by: user?.id ?? null,
