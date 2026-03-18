@@ -475,6 +475,21 @@ function EventFormDialog({
             <Input value={productName} onChange={e => setProductName(e.target.value)} placeholder="Opcional" />
           </div>
           <div>
+            <Label>Departamento</Label>
+            <Select value={department} onValueChange={setDepartment}>
+              <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+              <SelectContent>
+                {DEPARTMENTS.map(d => (
+                  <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Cliente</Label>
+            <Input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Opcional" />
+          </div>
+          <div>
             <Label>Notas</Label>
             <MentionTextarea value={notes} onChange={setNotes} placeholder="Notas adicionais... usa @ para mencionar" rows={3} />
           </div>
