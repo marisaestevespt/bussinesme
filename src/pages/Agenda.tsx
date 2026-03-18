@@ -598,8 +598,8 @@ function EventDetailDialog({
           <div><TypeBadge types={types} typeId={event.event_type_id} /></div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <CalendarIcon className="h-4 w-4" />
-            {format(parseISO(event.start_date), 'dd MMM yyyy', { locale: pt })}
-            {event.end_date && ` — ${format(parseISO(event.end_date), 'dd MMM yyyy', { locale: pt })}`}
+            {format(parseISO(event.start_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}
+            {event.end_date && ` — ${format(parseISO(event.end_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}`}
           </div>
           {event.product_name && (
             <div><span className="font-medium text-foreground">Produto:</span> {event.product_name}</div>
