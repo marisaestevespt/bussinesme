@@ -345,7 +345,7 @@ export default function ReunioesPage() {
                 </div>
                 <div className="col-span-2"><StatusBadge status={m.status} /></div>
                 <div className="col-span-3 text-muted-foreground truncate">
-                  {[m.client_name, m.project_name].filter(Boolean).join(' · ') || '—'}
+                  {[m.department ? DEPARTMENTS.find(d => d.value === m.department)?.label : null, m.client_name, m.project_name].filter(Boolean).join(' · ') || '—'}
                 </div>
               </button>
             ))}
