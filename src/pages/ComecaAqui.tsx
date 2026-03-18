@@ -423,12 +423,7 @@ export default function ComecaAquiPage() {
               {isOwner && (
                 <Button
                   size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    const signupUrl = window.location.origin;
-                    navigator.clipboard.writeText(signupUrl);
-                    toast.success('Link de registo copiado! Partilha com o novo membro.');
-                  }}
+                  onClick={() => setShowCreateMember(true)}
                 >
                   <UserPlus className="h-4 w-4 mr-1" /> Adicionar membro
                 </Button>
