@@ -326,8 +326,11 @@ export default function MuralPage() {
                 comments={comments.filter(c => c.post_id === post.id)}
                 profileMap={profileMap}
                 userId={user?.id}
+                isOwner={isOwner}
                 onReact={(emoji) => reactionMutation.mutate({ postId: post.id, emoji })}
                 onComment={(body) => commentMutation.mutate({ postId: post.id, body })}
+                onEdit={() => openEdit(post)}
+                onDelete={() => { if (confirm('Eliminar esta publicação?')) deleteMutation.mutate(post.id); }}
               />
             ))}
           </div>
