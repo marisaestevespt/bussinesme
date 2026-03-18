@@ -639,7 +639,7 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
                     const color = t?.color ?? '#888';
                     return (
                       <button key={ev.id} onClick={() => onEventClick(ev)} className="w-full text-left rounded px-1 py-0.5 text-[10px] leading-tight truncate transition-opacity hover:opacity-80" style={{ backgroundColor: `${color}20`, color }}>
-                        {ev.title}
+                        {ev.recurrence_type && '🔁 '}{ev.title}
                       </button>
                     );
                   })}
