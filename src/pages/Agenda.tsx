@@ -750,6 +750,15 @@ function EventDetailDialog({
           {event.client_name && (
             <div><span className="font-medium text-foreground">Cliente:</span> {event.client_name}</div>
           )}
+          {event.meeting_url && (
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-foreground">Link:</span>
+              <a href={event.meeting_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate flex items-center gap-1">
+                {event.meeting_url.includes('zoom') ? '📹 Zoom' : event.meeting_url.includes('meet.google') ? '📹 Google Meet' : '🔗 Abrir link'}
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          )}
           {event.notes && (
             <div><span className="font-medium text-foreground">Notas:</span> <span className="text-muted-foreground">{event.notes}</span></div>
           )}
