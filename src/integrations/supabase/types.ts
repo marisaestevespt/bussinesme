@@ -193,6 +193,7 @@ export type Database = {
           end_date: string | null
           event_type_id: string | null
           id: string
+          meeting_url: string | null
           notes: string | null
           product_name: string | null
           recurrence_end: string | null
@@ -209,6 +210,7 @@ export type Database = {
           end_date?: string | null
           event_type_id?: string | null
           id?: string
+          meeting_url?: string | null
           notes?: string | null
           product_name?: string | null
           recurrence_end?: string | null
@@ -225,6 +227,7 @@ export type Database = {
           end_date?: string | null
           event_type_id?: string | null
           id?: string
+          meeting_url?: string | null
           notes?: string | null
           product_name?: string | null
           recurrence_end?: string | null
