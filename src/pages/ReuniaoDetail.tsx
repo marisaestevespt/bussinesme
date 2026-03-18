@@ -107,6 +107,17 @@ function useProfiles() {
   });
 }
 
+function useProjectsList() {
+  return useQuery({
+    queryKey: ['projects_list'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('projects').select('id, name').order('name');
+      if (error) throw error;
+      return data as ProjectOption[];
+    },
+  });
+}
+
 function useOwnerProfile() {
   return useQuery({
     queryKey: ['owner_profile'],
