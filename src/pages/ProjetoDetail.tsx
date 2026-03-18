@@ -189,6 +189,10 @@ function EntregaveisSubPage({ projectId, entregaveisText, onTextChange, onSave, 
             </div>
           )}
         </div>
+      </div>
+    </AppLayout>
+  );
+}
 
 // ─── Main Component ─────────────────────────────────────────────
 
