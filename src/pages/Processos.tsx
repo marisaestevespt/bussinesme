@@ -227,118 +227,153 @@ export default function ProcessosPage() {
               ))}
             </div>
           ) : (
-            /* ── SOPs within department ── */
-            deptSops.length === 0 ? (
-              <p className="text-muted-foreground text-sm py-8 text-center">
-                Nenhum processo neste departamento.
-              </p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {deptSops.map(sop => {
-                  const statusInfo = getStatusInfo(sop.status);
-                  return (
-                    <Card
-                      key={sop.id}
-                      className="cursor-pointer hover:shadow-md hq-transition"
-                      onClick={() => navigate(`/hub/processos/${sop.id}`)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-mono text-muted-foreground">{sop.sop_id}</span>
-                          <Badge className={cn('text-xs', statusInfo.color)}>{statusInfo.label}</Badge>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <FileText className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                          <p className="font-medium text-sm line-clamp-2">{sop.name}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )
-          )}
-        </section>
-
-        {/* ═══ SECÇÃO 2: Rotinas ═══ */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold tracking-tight">Rotinas</h2>
-            <Button onClick={() => setShowNewRoutine(true)} size="sm">
-              <Plus className="h-4 w-4 mr-1" /> Nova Rotina
-            </Button>
-          </div>
-
-          {/* Filters */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            <Button variant={routineFilter === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setRoutineFilter('all')}>
-              Todos
-            </Button>
-            {DEPARTMENTS.map(d => (
-              <Button
-                key={d.value}
-                variant={routineFilter === d.value ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setRoutineFilter(d.value)}
-              >
-                {d.label}
-              </Button>
-            ))}
-          </div>
-
-          {/* Routines by department */}
-          {Object.keys(routinesByDept).length === 0 && (
-            <p className="text-muted-foreground text-sm">Nenhuma rotina encontrada.</p>
-          )}
-          {Object.entries(routinesByDept).map(([dept, items]) => {
-            const deptInfo = getDept(dept);
-            const freqLabel = (val: string) => FREQUENCIES.find(f => f.value === val)?.label || val;
-            return (
-              <div key={dept} className="mb-6">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                  {deptInfo?.icon && <span>{deptInfo.icon}</span>}
-                  {getDeptLabel(dept)}
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                  {items.map(routine => {
-                    const assignee = routine.assigned_to ? profileMap[routine.assigned_to] : null;
+            /* ── SOPs + Rotinas within department ── */
+            <>
+              {deptSops.length === 0 ? (
+                <p className="text-muted-foreground text-sm py-4 text-center">
+                  Nenhum processo neste departamento.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {deptSops.map(sop => {
+                    const statusInfo = getStatusInfo(sop.status);
                     return (
-                      <Card key={routine.id} className="p-3">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium line-clamp-2">{routine.name}</p>
-                            <p className="text-xs text-muted-foreground mt-1">{freqLabel(routine.frequency)}</p>
+                      <Card
+                        key={sop.id}
+                        className="cursor-pointer hover:shadow-md hq-transition"
+                        onClick={() => navigate(`/hub/processos/${sop.id}`)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-mono text-muted-foreground">{sop.sop_id}</span>
+                            <Badge className={cn('text-xs', statusInfo.color)}>{statusInfo.label}</Badge>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 shrink-0"
-                            onClick={() => deleteRoutine.mutate(routine.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        {assignee && (
-                          <div className="flex items-center gap-1.5 mt-2">
-                            <Avatar className="h-5 w-5">
-                              <AvatarImage src={assignee.avatar_url || ''} />
-                              <AvatarFallback className="text-[10px]">
-                                {(assignee.full_name || '?')[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-xs text-muted-foreground truncate">
-                              {assignee.full_name}
-                            </span>
+                          <div className="flex items-start gap-2">
+                            <FileText className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                            <p className="font-medium text-sm line-clamp-2">{sop.name}</p>
                           </div>
-                        )}
+                        </CardContent>
                       </Card>
                     );
                   })}
                 </div>
+              )}
+
+              {/* ── Rotinas deste departamento ── */}
+              <div className="mt-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold tracking-tight">Rotinas</h2>
+                  <Button onClick={() => { setNewRoutineDept(selectedDept!); setShowNewRoutine(true); }} size="sm">
+                    <Plus className="h-4 w-4 mr-1" /> Nova Rotina
+                  </Button>
+                </div>
+                {deptRoutines.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">Nenhuma rotina neste departamento.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {deptRoutines.map(routine => {
+                      const assignee = routine.assigned_to ? profileMap[routine.assigned_to] : null;
+                      const freqLabel = FREQUENCIES.find(f => f.value === routine.frequency)?.label || routine.frequency;
+                      return (
+                        <Card key={routine.id} className="p-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium line-clamp-2">{routine.name}</p>
+                              <p className="text-xs text-muted-foreground mt-1">{freqLabel}</p>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => deleteRoutine.mutate(routine.id)}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          {assignee && (
+                            <div className="flex items-center gap-1.5 mt-2">
+                              <Avatar className="h-5 w-5">
+                                <AvatarImage src={assignee.avatar_url || ''} />
+                                <AvatarFallback className="text-[10px]">{(assignee.full_name || '?')[0]}</AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs text-muted-foreground truncate">{assignee.full_name}</span>
+                            </div>
+                          )}
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            );
-          })}
+            </>
+          )}
         </section>
+
+        {/* ═══ SECÇÃO 2: Rotinas (apenas na vista galeria) ═══ */}
+        {!selectedDept && (
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold tracking-tight">Rotinas</h2>
+              <Button onClick={() => setShowNewRoutine(true)} size="sm">
+                <Plus className="h-4 w-4 mr-1" /> Nova Rotina
+              </Button>
+            </div>
+
+            <div className="flex flex-wrap gap-2 mb-6">
+              <Button variant={routineFilter === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setRoutineFilter('all')}>
+                Todos
+              </Button>
+              {DEPARTMENTS.map(d => (
+                <Button
+                  key={d.value}
+                  variant={routineFilter === d.value ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setRoutineFilter(d.value)}
+                >
+                  {d.label}
+                </Button>
+              ))}
+            </div>
+
+            {Object.keys(routinesByDept).length === 0 && (
+              <p className="text-muted-foreground text-sm">Nenhuma rotina encontrada.</p>
+            )}
+            {Object.entries(routinesByDept).map(([dept, items]) => {
+              const deptInfo = getDept(dept);
+              const freqLabel = (val: string) => FREQUENCIES.find(f => f.value === val)?.label || val;
+              return (
+                <div key={dept} className="mb-6">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                    {deptInfo?.icon && <span>{deptInfo.icon}</span>}
+                    {getDeptLabel(dept)}
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {items.map(routine => {
+                      const assignee = routine.assigned_to ? profileMap[routine.assigned_to] : null;
+                      return (
+                        <Card key={routine.id} className="p-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium line-clamp-2">{routine.name}</p>
+                              <p className="text-xs text-muted-foreground mt-1">{freqLabel(routine.frequency)}</p>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => deleteRoutine.mutate(routine.id)}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          {assignee && (
+                            <div className="flex items-center gap-1.5 mt-2">
+                              <Avatar className="h-5 w-5">
+                                <AvatarImage src={assignee.avatar_url || ''} />
+                                <AvatarFallback className="text-[10px]">{(assignee.full_name || '?')[0]}</AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs text-muted-foreground truncate">{assignee.full_name}</span>
+                            </div>
+                          )}
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </section>
+        )}
       </div>
 
       {/* ═══ Dialog: Novo Processo ═══ */}
