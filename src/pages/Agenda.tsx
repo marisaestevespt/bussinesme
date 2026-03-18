@@ -461,7 +461,7 @@ function EventFormDialog({
           </div>
           <div>
             <Label>Notas</Label>
-            <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas adicionais..." rows={3} />
+            <MentionTextarea value={notes} onChange={setNotes} placeholder="Notas adicionais... usa @ para mencionar" rows={3} />
           </div>
 
           {/* Member picker */}

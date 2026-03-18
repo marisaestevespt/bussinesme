@@ -340,7 +340,7 @@ export default function AcessosPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Notas / Observações</Label>
-                <Textarea value={formNotes} onChange={e => setFormNotes(e.target.value)} rows={3} />
+                <MentionTextarea value={formNotes} onChange={setFormNotes} rows={3} placeholder="Notas... usa @ para mencionar" />
               </div>
               <Button
                 onClick={handleSubmit}
