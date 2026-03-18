@@ -726,6 +726,15 @@ function EventDetailDialog({
             {format(parseISO(event.start_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}
             {event.end_date && ` — ${format(parseISO(event.end_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}`}
           </div>
+          {event.recurrence_type && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm">🔁</span>
+              <span className="text-muted-foreground">
+                {RECURRENCE_OPTIONS.find(o => o.value === event.recurrence_type)?.label || event.recurrence_type}
+                {event.recurrence_end && ` (até ${format(parseISO(event.recurrence_end), 'dd MMM yyyy', { locale: pt })})`}
+              </span>
+            </div>
+          )}
           {event.department && (
             <div><span className="font-medium text-foreground">Departamento:</span> {DEPARTMENTS.find(d => d.value === event.department)?.label || event.department}</div>
           )}
