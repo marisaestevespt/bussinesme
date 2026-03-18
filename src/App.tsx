@@ -14,6 +14,8 @@ import HubPage from "./pages/Hub";
 import ExecutivePage from "./pages/Executive";
 import DefinicoesPage from "./pages/Definicoes";
 import AgendaPage from "./pages/Agenda";
+import ReunioesPage from "./pages/Reunioes";
+import ReuniaoDetailPage from "./pages/ReuniaoDetail";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +40,8 @@ function AppRoutes() {
       <Route path="/secretaria" element={<SecretariaPage />} />
       <Route path="/comeca-aqui" element={<ComecaAquiPage />} />
       <Route path="/hub/agenda" element={<AgendaPage />} />
+      <Route path="/hub/reunioes" element={<ReunioesPage />} />
+      <Route path="/hub/reunioes/:id" element={<ReuniaoDetailPage />} />
       <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
       <Route path="/definicoes" element={<DefinicoesPage />} />
