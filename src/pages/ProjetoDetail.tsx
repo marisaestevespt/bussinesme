@@ -405,9 +405,10 @@ export default function ProjetoDetailPage() {
               { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos' },
               { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
             ].map(({ key, icon: Icon, label }) => (
-              <button key={key} onClick={() => setSubPage(key)} className="flex items-center gap-3 p-4 rounded-xl border bg-card hover:bg-muted/50 transition-colors text-left">
-                <Icon className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm font-medium">{label}</span>
+              <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border overflow-hidden h-32 transition-all hover:shadow-md text-center">
+                <div className="absolute inset-0 bg-primary opacity-[0.07] group-hover:opacity-[0.12] transition-opacity" />
+                <Icon className="h-7 w-7 text-primary relative z-10" />
+                <span className="text-sm font-semibold text-primary relative z-10 px-3">{label}</span>
               </button>
             ))}
           </div>
