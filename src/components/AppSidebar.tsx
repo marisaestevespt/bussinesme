@@ -37,36 +37,35 @@ interface NavItem {
   moduleKey: string;
 }
 
-const secretariaItems: NavItem[] = [
+const pessoalItems: NavItem[] = [
   { title: 'Secretária', url: '/secretaria', icon: 'LayoutDashboard', moduleKey: 'secretaria' },
 ];
 
-const comecaAquiItems: NavItem[] = [
+const hallItems: NavItem[] = [
   { title: 'Começa Aqui', url: '/comeca-aqui', icon: 'Rocket', moduleKey: 'comeca-aqui' },
+  { title: 'Mural', url: '/hub/mural', icon: 'MessageSquare', moduleKey: 'mural' },
 ];
 
 const transversaisItems: NavItem[] = [
-  { title: 'Agenda do Negócio', url: '/hub/agenda', icon: 'Calendar', moduleKey: 'agenda' },
+  { title: 'Agenda de Negócio', url: '/hub/agenda', icon: 'Calendar', moduleKey: 'agenda' },
   { title: 'Reuniões', url: '/hub/reunioes', icon: 'Users', moduleKey: 'reunioes' },
-  { title: 'Processos', url: '/hub/processos', icon: 'GitBranch', moduleKey: 'processos' },
-  { title: 'Projetos', url: '/hub/projetos', icon: 'FolderKanban', moduleKey: 'projetos' },
-  { title: 'Tarefas', url: '/hub/tarefas', icon: 'CheckSquare', moduleKey: 'tarefas' },
   { title: 'Acessos', url: '/hub/acessos', icon: 'Key', moduleKey: 'acessos' },
-  { title: 'Mural', url: '/hub/mural', icon: 'MessageSquare', moduleKey: 'mural' },
+  { title: 'Projetos', url: '/hub/projetos', icon: 'FolderKanban', moduleKey: 'projetos' },
+  { title: 'Processos', url: '/hub/processos', icon: 'GitBranch', moduleKey: 'processos' },
+  { title: 'Tarefas', url: '/hub/tarefas', icon: 'CheckSquare', moduleKey: 'tarefas' },
 ];
 
 const departamentosItems: NavItem[] = [
   { title: 'Administrativo', url: '/hub/administrativo', icon: 'Building2', moduleKey: 'administrativo' },
   { title: 'Marketing', url: '/hub/marketing', icon: 'Megaphone', moduleKey: 'marketing' },
-  { title: 'Financeiro', url: '/hub/financeiro', icon: 'DollarSign', moduleKey: 'financeiro' },
   { title: 'Comercial', url: '/hub/comercial', icon: 'ShoppingCart', moduleKey: 'comercial' },
   { title: 'Clientes', url: '/hub/clientes', icon: 'UserCheck', moduleKey: 'clientes' },
-  { title: 'Equipa', url: '/hub/equipa', icon: 'UsersRound', moduleKey: 'equipa' },
+  { title: 'Financeiro', url: '/hub/financeiro', icon: 'DollarSign', moduleKey: 'financeiro' },
   { title: 'Operação', url: '/hub/operacao', icon: 'Headphones', moduleKey: 'operacao' },
 ];
 
 const executiveItems: NavItem[] = [
-  { title: 'Planeamento', url: '/executive/planeamento', icon: 'Target', moduleKey: 'planeamento' },
+  { title: 'Planeamento de Negócio', url: '/executive/planeamento', icon: 'Target', moduleKey: 'planeamento' },
   { title: 'Weekly Align', url: '/executive/weekly-align', icon: 'CalendarCheck', moduleKey: 'weekly-align' },
   { title: 'Gestão de Equipa', url: '/executive/gestao-equipa', icon: 'Crown', moduleKey: 'gestao-equipa-ceo' },
 ];
@@ -149,8 +148,8 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <NavSection label="Pessoal" items={secretariaItems} collapsed={collapsed} canAccess={() => true} />
-        <NavSection label="Começa Aqui" items={comecaAquiItems} collapsed={collapsed} canAccess={canAccess} />
+        <NavSection label="Pessoal" items={pessoalItems} collapsed={collapsed} canAccess={() => true} />
+        <NavSection label="Hall" items={hallItems} collapsed={collapsed} canAccess={canAccess} />
         <NavSection label="Transversais" items={transversaisItems} collapsed={collapsed} canAccess={canAccess} />
         <NavSection label="Departamentos" items={departamentosItems} collapsed={collapsed} canAccess={canAccess} />
         {isOwner && (
