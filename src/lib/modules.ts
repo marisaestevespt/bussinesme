@@ -30,15 +30,21 @@ export type ModuleKey = keyof typeof MODULES;
 
 export const MODULE_KEYS = Object.keys(MODULES) as ModuleKey[];
 
-export const GOOGLE_FONTS = [
-  'Inter',
-  'DM Sans',
+export const DISPLAY_FONTS = [
+  'Cormorant Garamond',
   'Playfair Display',
-  'Montserrat',
-  'Roboto',
+  'Merriweather',
   'Lora',
-  'Poppins',
-  'Raleway',
-  'Source Sans 3',
-  'Nunito',
+  'DM Serif Display',
 ] as const;
+
+export const BODY_FONTS = [
+  'DM Sans',
+  'Inter',
+  'Plus Jakarta Sans',
+  'Nunito',
+  'Raleway',
+] as const;
+
+// Keep GOOGLE_FONTS for backward compat
+export const GOOGLE_FONTS = [...DISPLAY_FONTS, ...BODY_FONTS] as const;

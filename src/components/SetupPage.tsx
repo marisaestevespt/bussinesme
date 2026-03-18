@@ -6,15 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
-import { GOOGLE_FONTS } from '@/lib/modules';
+import { DISPLAY_FONTS, BODY_FONTS } from '@/lib/modules';
 import { toast } from 'sonner';
+import { Upload, Palette, Type, Building2 } from 'lucide-react';
 
-const DEFAULT_COLORS = {
-  primary: '222 47% 11%',
-  secondary: '210 40% 96%',
-  background: '0 0% 100%',
-  text: '222 84% 5%',
-};
+/* ── colour helpers ── */
 
 function hslToHex(hsl: string): string {
   const parts = hsl.split(' ').map(p => parseFloat(p));
@@ -49,6 +45,91 @@ function hexToHsl(hex: string): string {
   return `${Math.round(h)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
 
+const DEFAULT_COLORS = {
+  primary: '222 47% 11%',
+  secondary: '210 40% 96%',
+  background: '0 0% 100%',
+  text: '222 84% 5%',
+};
+
+/* ── section wrapper ── */
+
+function Section({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 text-foreground">
+        <Icon className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+        <h2 className="text-sm font-semibold tracking-tight uppercase">{title}</h2>
+      </div>
+      <div className="rounded-lg border bg-card p-5 space-y-4">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ── colour picker ── */
+
+function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="space-y-1.5">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-2">
+        <label className="relative h-10 w-10 cursor-pointer overflow-hidden rounded-lg border shadow-sm hq-transition hover:shadow-md">
+          <input
+            type="color"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+          />
+          <div className="h-full w-full rounded-lg" style={{ backgroundColor: value }} />
+        </label>
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-10 font-mono text-xs w-28"
+          maxLength={7}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ── font selector ── */
+
+function FontSelector({ label, value, onChange, fonts }: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  fonts: readonly string[];
+}) {
+  return (
+    <div className="space-y-2">
+      <Label className="text-xs font-medium text-muted-foreground">{label}</Label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="h-11">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {fonts.map(font => (
+            <SelectItem key={font} value={font}>
+              <span style={{ fontFamily: `'${font}', sans-serif` }}>{font}</span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <p
+        className="text-sm text-muted-foreground leading-relaxed"
+        style={{ fontFamily: `'${value}', sans-serif` }}
+      >
+        O teu negócio merece uma identidade única.
+      </p>
+    </div>
+  );
+}
+
+/* ── main page ── */
+
 export function SetupPage() {
   const { user } = useAuth();
   const { refetch } = useBusinessSettings();
@@ -62,8 +143,8 @@ export function SetupPage() {
     background: hslToHex(DEFAULT_COLORS.background),
     text: hslToHex(DEFAULT_COLORS.text),
   });
-  const [fontDisplay, setFontDisplay] = useState('Inter');
-  const [fontBody, setFontBody] = useState('Inter');
+  const [fontDisplay, setFontDisplay] = useState('Cormorant Garamond');
+  const [fontBody, setFontBody] = useState('DM Sans');
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -73,16 +154,19 @@ export function SetupPage() {
     }
   };
 
+  const updateColor = (key: keyof typeof colors) => (value: string) =>
+    setColors(c => ({ ...c, [key]: value }));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !businessName.trim()) return;
 
     setLoading(true);
     try {
-      // First, assign owner role to this user
+      // Assign owner role
       await supabase.from('user_roles').insert({ user_id: user.id, role: 'owner' });
 
-      // Upload logo if provided
+      // Upload logo
       let logoUrl: string | null = null;
       if (logoFile) {
         const ext = logoFile.name.split('.').pop();
@@ -96,7 +180,7 @@ export function SetupPage() {
         }
       }
 
-      // Also link user to the Owner custom_role
+      // Link to Owner custom_role
       const { data: ownerRole } = await supabase
         .from('custom_roles')
         .select('id')
@@ -110,7 +194,7 @@ export function SetupPage() {
         });
       }
 
-      // Save business settings
+      // Save settings
       const { error } = await supabase.from('business_settings').insert({
         business_name: businessName.trim(),
         logo_url: logoUrl,
@@ -126,7 +210,6 @@ export function SetupPage() {
 
       toast.success('HQ configurado com sucesso!');
       await refetch();
-      // Force reload to apply CSS variables
       window.location.reload();
     } catch (err: any) {
       toast.error(err.message || 'Erro ao guardar configurações.');
@@ -137,136 +220,127 @@ export function SetupPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center hq-surface-sunken p-4">
-      <div className="hq-card w-full max-w-2xl p-8 md:p-12">
-        <div className="mb-10 text-center">
+      <div className="w-full max-w-2xl space-y-8 py-12">
+        {/* Header */}
+        <div className="text-center space-y-3">
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
             Configura o teu HQ
           </h1>
-          <p className="mt-3 text-muted-foreground">
+          <p className="text-muted-foreground max-w-md mx-auto">
             Define a identidade visual do teu negócio. Podes alterar tudo mais tarde nas Definições.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Business Name */}
-          <div className="space-y-2">
-            <Label htmlFor="businessName" className="text-sm font-medium">
-              Nome do negócio
-            </Label>
-            <Input
-              id="businessName"
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
-              placeholder="O nome do teu negócio"
-              required
-              className="h-11"
-            />
-          </div>
-
-          {/* Logo upload */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Logo</Label>
-            <div className="flex items-center gap-4">
-              {logoPreview && (
-                <div className="h-16 w-16 overflow-hidden rounded-lg border bg-muted">
-                  <img src={logoPreview} alt="Logo preview" className="h-full w-full object-contain" />
-                </div>
-              )}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* ── Identidade ── */}
+          <Section icon={Building2} title="Identidade">
+            <div className="space-y-2">
+              <Label htmlFor="businessName" className="text-sm font-medium">
+                Nome do negócio
+              </Label>
               <Input
-                type="file"
-                accept="image/*"
-                onChange={handleLogoChange}
+                id="businessName"
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+                placeholder="O nome do teu negócio"
+                required
                 className="h-11"
               />
             </div>
-          </div>
 
-          {/* Colors */}
-          <div className="space-y-4">
-            <Label className="text-sm font-medium">Cores</Label>
-            <div className="grid grid-cols-2 gap-4">
-              {([
-                ['primary', 'Cor primária'],
-                ['secondary', 'Cor secundária'],
-                ['background', 'Fundo'],
-                ['text', 'Texto'],
-              ] as const).map(([key, label]) => (
-                <div key={key} className="space-y-1.5">
-                  <span className="text-xs text-muted-foreground">{label}</span>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={colors[key]}
-                      onChange={(e) => setColors(c => ({ ...c, [key]: e.target.value }))}
-                      className="h-10 w-10 cursor-pointer rounded-md border-0 p-0"
-                    />
-                    <Input
-                      value={colors[key]}
-                      onChange={(e) => setColors(c => ({ ...c, [key]: e.target.value }))}
-                      className="h-10 font-mono text-xs"
-                    />
-                  </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Logo</Label>
+              <div className="flex items-center gap-4">
+                <label className="flex h-20 w-20 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 hq-transition hover:border-muted-foreground/50 hover:bg-muted/50 overflow-hidden">
+                  {logoPreview ? (
+                    <img src={logoPreview} alt="Logo preview" className="h-full w-full object-contain p-1" />
+                  ) : (
+                    <Upload className="h-5 w-5 text-muted-foreground/50" />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoChange}
+                    className="hidden"
+                  />
+                </label>
+                <div className="text-xs text-muted-foreground">
+                  <p>Arrasta ou clica para carregar</p>
+                  <p className="mt-0.5">PNG, JPG ou SVG</p>
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
+          </Section>
 
-          {/* Fonts */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Fonte para títulos</Label>
-              <Select value={fontDisplay} onValueChange={setFontDisplay}>
-                <SelectTrigger className="h-11">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {GOOGLE_FONTS.map(font => (
-                    <SelectItem key={font} value={font} style={{ fontFamily: font }}>
-                      {font}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* ── Cores da Marca ── */}
+          <Section icon={Palette} title="Cores da Marca">
+            <div className="grid grid-cols-2 gap-4">
+              <ColorField label="Cor primária" value={colors.primary} onChange={updateColor('primary')} />
+              <ColorField label="Cor secundária" value={colors.secondary} onChange={updateColor('secondary')} />
+              <ColorField label="Fundo" value={colors.background} onChange={updateColor('background')} />
+              <ColorField label="Texto" value={colors.text} onChange={updateColor('text')} />
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Fonte para corpo</Label>
-              <Select value={fontBody} onValueChange={setFontBody}>
-                <SelectTrigger className="h-11">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {GOOGLE_FONTS.map(font => (
-                    <SelectItem key={font} value={font} style={{ fontFamily: font }}>
-                      {font}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          </Section>
 
-          {/* Preview strip */}
-          <div className="rounded-lg border p-4">
-            <p className="mb-2 text-xs text-muted-foreground">Pré-visualização</p>
+          {/* ── Tipografia ── */}
+          <Section icon={Type} title="Tipografia">
+            <div className="grid grid-cols-2 gap-6">
+              <FontSelector
+                label="Fonte para títulos"
+                value={fontDisplay}
+                onChange={setFontDisplay}
+                fonts={DISPLAY_FONTS}
+              />
+              <FontSelector
+                label="Fonte para corpo"
+                value={fontBody}
+                onChange={setFontBody}
+                fonts={BODY_FONTS}
+              />
+            </div>
+          </Section>
+
+          {/* ── Preview ── */}
+          <div className="rounded-lg border overflow-hidden">
+            <div className="px-4 py-2 border-b bg-muted/30">
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">Pré-visualização</span>
+            </div>
             <div
-              className="flex items-center gap-3 rounded-md p-4"
+              className="p-6"
               style={{ backgroundColor: colors.background }}
             >
-              <div
-                className="h-8 w-8 rounded-md"
-                style={{ backgroundColor: colors.primary }}
-              />
-              <span
-                style={{ color: colors.text, fontFamily: fontDisplay }}
-                className="font-semibold"
+              <div className="flex items-center gap-3">
+                {logoPreview ? (
+                  <img src={logoPreview} alt="" className="h-8 w-8 rounded-md object-contain" />
+                ) : (
+                  <div className="h-8 w-8 rounded-md" style={{ backgroundColor: colors.primary }} />
+                )}
+                <span
+                  style={{ color: colors.text, fontFamily: `'${fontDisplay}', serif` }}
+                  className="text-lg font-semibold"
+                >
+                  HQ | {businessName || 'O Teu Negócio'}
+                </span>
+              </div>
+              <p
+                className="mt-3 text-sm"
+                style={{ color: colors.text, fontFamily: `'${fontBody}', sans-serif`, opacity: 0.7 }}
               >
-                HQ | {businessName || 'O Teu Negócio'}
-              </span>
+                Esta é uma amostra do texto do corpo com a fonte selecionada.
+              </p>
+              <div className="flex gap-2 mt-4">
+                <div className="h-8 px-4 rounded-md flex items-center text-xs font-medium text-white" style={{ backgroundColor: colors.primary }}>
+                  Botão primário
+                </div>
+                <div className="h-8 px-4 rounded-md flex items-center text-xs font-medium border" style={{ backgroundColor: colors.secondary, color: colors.text }}>
+                  Botão secundário
+                </div>
+              </div>
             </div>
           </div>
 
-          <Button type="submit" className="w-full h-11" disabled={loading || !businessName.trim()}>
-            {loading ? 'A configurar...' : 'Começar'}
+          <Button type="submit" className="w-full h-12 text-base" disabled={loading || !businessName.trim()}>
+            {loading ? 'A configurar...' : 'Criar o meu HQ'}
           </Button>
         </form>
       </div>
