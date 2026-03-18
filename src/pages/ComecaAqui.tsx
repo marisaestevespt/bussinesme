@@ -8,10 +8,175 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { Pencil, Check, X, Phone, Mail, Clock, FileText, Upload, User } from 'lucide-react';
+import { Pencil, Check, X, Phone, Clock, FileText, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+
+// --- Schedule types & helpers ---
+
+const DAYS = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'] as const;
+const DAY_ABBR: Record<string, string> = {
+  Segunda: 'Seg', Terça: 'Ter', Quarta: 'Qua', Quinta: 'Qui', Sexta: 'Sex', Sábado: 'Sáb', Domingo: 'Dom',
+};
+
+interface DaySchedule {
+  active: boolean;
+  start: string;
+  end: string;
+}
+type WeekSchedule = Record<string, DaySchedule>;
+
+const emptySchedule = (): WeekSchedule =>
+  Object.fromEntries(DAYS.map(d => [d, { active: false, start: '09:00', end: '18:00' }]));
+
+function parseSchedule(raw: string | null): WeekSchedule {
+  if (!raw) return emptySchedule();
+  try {
+    const parsed = JSON.parse(raw);
+    if (typeof parsed === 'object' && !Array.isArray(parsed)) {
+      const schedule = emptySchedule();
+      for (const day of DAYS) {
+        if (parsed[day]) {
+          schedule[day] = { ...schedule[day], ...parsed[day] };
+        }
+      }
+      return schedule;
+    }
+  } catch { /* not JSON, legacy text */ }
+  return emptySchedule();
+}
+
+function serializeSchedule(schedule: WeekSchedule): string {
+  return JSON.stringify(schedule);
+}
+
+function summarizeSchedule(raw: string | null): string | null {
+  const schedule = parseSchedule(raw);
+  const activeDays = DAYS.filter(d => schedule[d].active);
+  if (activeDays.length === 0) return null;
+
+  // Check if all active days share same hours
+  const firstStart = schedule[activeDays[0]].start;
+  const firstEnd = schedule[activeDays[0]].end;
+  const sameHours = activeDays.every(d => schedule[d].start === firstStart && schedule[d].end === firstEnd);
+
+  const formatTime = (t: string) => t.replace(':00', 'h').replace(':', 'h');
+
+  // Try to find consecutive ranges
+  const dayIndices = activeDays.map(d => DAYS.indexOf(d));
+  const ranges: string[] = [];
+  let i = 0;
+  while (i < dayIndices.length) {
+    let j = i;
+    while (j + 1 < dayIndices.length && dayIndices[j + 1] === dayIndices[j] + 1) j++;
+    if (j > i) {
+      ranges.push(`${DAY_ABBR[DAYS[dayIndices[i]]]}-${DAY_ABBR[DAYS[dayIndices[j]]]}`);
+    } else {
+      ranges.push(DAY_ABBR[DAYS[dayIndices[i]]]);
+    }
+    i = j + 1;
+  }
+
+  const daysStr = ranges.join(', ');
+  if (sameHours) {
+    return `${daysStr}, ${formatTime(firstStart)}-${formatTime(firstEnd)}`;
+  }
+  return daysStr;
+}
+
+// --- Schedule editor component ---
+
+function ScheduleEditor({
+  value,
+  onChange,
+}: {
+  value: WeekSchedule;
+  onChange: (s: WeekSchedule) => void;
+}) {
+  const toggle = (day: string) =>
+    onChange({ ...value, [day]: { ...value[day], active: !value[day].active } });
+
+  const setTime = (day: string, field: 'start' | 'end', t: string) =>
+    onChange({ ...value, [day]: { ...value[day], [field]: t } });
+
+  return (
+    <div className="space-y-2">
+      {DAYS.map(day => (
+        <div key={day} className={`flex items-center gap-3 rounded-md px-3 py-2 ${value[day].active ? 'bg-accent/30' : 'bg-muted/30'}`}>
+          <Switch checked={value[day].active} onCheckedChange={() => toggle(day)} />
+          <span className={`text-sm w-16 ${value[day].active ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+            {day}
+          </span>
+          {value[day].active ? (
+            <div className="flex items-center gap-2 ml-auto">
+              <Input
+                type="time"
+                value={value[day].start}
+                onChange={e => setTime(day, 'start', e.target.value)}
+                className="h-8 w-28 text-xs"
+              />
+              <span className="text-xs text-muted-foreground">—</span>
+              <Input
+                type="time"
+                value={value[day].end}
+                onChange={e => setTime(day, 'end', e.target.value)}
+                className="h-8 w-28 text-xs"
+              />
+            </div>
+          ) : (
+            <span className="ml-auto text-xs text-muted-foreground">Inativo</span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// --- Schedule detail view ---
+
+function ScheduleDetail({ raw }: { raw: string | null }) {
+  const schedule = parseSchedule(raw);
+  const hasAny = DAYS.some(d => schedule[d].active);
+  if (!hasAny) return null;
+
+  const formatTime = (t: string) => t.replace(':00', 'h').replace(':', 'h');
+
+  return (
+    <div className="space-y-1">
+      {DAYS.map(day => (
+        <div key={day} className={`flex items-center gap-2 text-sm ${schedule[day].active ? '' : 'opacity-40'}`}>
+          <span className={`w-16 ${schedule[day].active ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+            {DAY_ABBR[day]}
+          </span>
+          {schedule[day].active ? (
+            <span className="text-foreground">{formatTime(schedule[day].start)} — {formatTime(schedule[day].end)}</span>
+          ) : (
+            <span className="text-muted-foreground text-xs">—</span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// --- Role badge ---
+
+function RoleBadge({ title }: { title: string | null }) {
+  if (!title) return null;
+  return (
+    <Badge
+      variant="secondary"
+      className="bg-primary/10 text-primary border-0 hover:bg-primary/15 font-medium text-xs"
+    >
+      {title}
+    </Badge>
+  );
+}
+
+// --- Main page ---
 
 interface TeamMember {
   id: string;
@@ -22,7 +187,6 @@ interface TeamMember {
   work_schedule: string | null;
   bio: string | null;
   role_title: string | null;
-  email?: string;
 }
 
 export default function ComecaAquiPage() {
@@ -40,6 +204,7 @@ export default function ComecaAquiPage() {
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState<Partial<TeamMember>>({});
+  const [scheduleForm, setScheduleForm] = useState<WeekSchedule>(emptySchedule());
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -50,10 +215,7 @@ export default function ComecaAquiPage() {
   }, [settings]);
 
   const fetchMembers = useCallback(async () => {
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('*');
-
+    const { data: profiles } = await supabase.from('profiles').select('*');
     if (profiles) {
       setMembers(profiles.map(p => ({
         id: p.id,
@@ -68,9 +230,7 @@ export default function ComecaAquiPage() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchMembers();
-  }, [fetchMembers]);
+  useEffect(() => { fetchMembers(); }, [fetchMembers]);
 
   const saveText = async (field: 'welcome_text' | 'about_text', value: string) => {
     if (!settings) return;
@@ -78,32 +238,19 @@ export default function ComecaAquiPage() {
       .from('business_settings')
       .update({ [field]: value } as any)
       .eq('id', settings.id);
-    if (error) {
-      toast.error('Erro ao guardar');
-    } else {
-      toast.success('Guardado');
-      refetchSettings();
-    }
+    if (error) toast.error('Erro ao guardar');
+    else { toast.success('Guardado'); refetchSettings(); }
   };
 
-  const handleSaveWelcome = () => {
-    saveText('welcome_text', tempWelcome);
-    setWelcomeText(tempWelcome);
-    setEditingWelcome(false);
-  };
+  const handleSaveWelcome = () => { saveText('welcome_text', tempWelcome); setWelcomeText(tempWelcome); setEditingWelcome(false); };
+  const handleSaveAbout = () => { saveText('about_text', tempAbout); setAboutText(tempAbout); setEditingAbout(false); };
 
-  const handleSaveAbout = () => {
-    saveText('about_text', tempAbout);
-    setAboutText(tempAbout);
-    setEditingAbout(false);
-  };
-
-  const canEditMember = (member: TeamMember) =>
-    isOwner || member.user_id === user?.id;
+  const canEditMember = (member: TeamMember) => isOwner || member.user_id === user?.id;
 
   const openMemberDetail = (member: TeamMember) => {
     setSelectedMember(member);
     setProfileForm({ ...member });
+    setScheduleForm(parseSchedule(member.work_schedule));
     setEditingProfile(false);
   };
 
@@ -113,34 +260,23 @@ export default function ComecaAquiPage() {
     const file = e.target.files[0];
     const ext = file.name.split('.').pop();
     const path = `avatars/${selectedMember.user_id}.${ext}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('logos')
-      .upload(path, file, { upsert: true });
-
-    if (uploadError) {
-      toast.error('Erro ao carregar imagem');
-      setUploading(false);
-      return;
-    }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('logos')
-      .getPublicUrl(path);
-
+    const { error: uploadError } = await supabase.storage.from('logos').upload(path, file, { upsert: true });
+    if (uploadError) { toast.error('Erro ao carregar imagem'); setUploading(false); return; }
+    const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path);
     setProfileForm(prev => ({ ...prev, avatar_url: publicUrl }));
     setUploading(false);
   };
 
   const saveProfile = async () => {
     if (!selectedMember) return;
+    const serialized = serializeSchedule(scheduleForm);
     const { error } = await supabase
       .from('profiles')
       .update({
         full_name: profileForm.full_name,
         avatar_url: profileForm.avatar_url,
         phone: profileForm.phone,
-        work_schedule: profileForm.work_schedule,
+        work_schedule: serialized,
         bio: profileForm.bio,
         role_title: profileForm.role_title,
       } as any)
@@ -152,7 +288,7 @@ export default function ComecaAquiPage() {
       toast.success('Perfil atualizado');
       setEditingProfile(false);
       fetchMembers();
-      setSelectedMember(prev => prev ? { ...prev, ...profileForm } : null);
+      setSelectedMember(prev => prev ? { ...prev, ...profileForm, work_schedule: serialized } : null);
     }
   };
 
@@ -160,10 +296,8 @@ export default function ComecaAquiPage() {
     name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?';
 
   const businessName = settings?.business_name || 'Negócio';
-
   const defaultWelcome = `Olá! Bem-vindo(a) ao HQ | ${businessName}. Este é o espaço onde organizamos, colaboramos e crescemos.`;
   const defaultAbout = 'Somos uma equipa dedicada a criar valor e impacto. Aqui encontras tudo o que precisas para colaborar, comunicar e acompanhar o nosso trabalho.';
-
   const displayWelcome = welcomeText || defaultWelcome;
   const displayAbout = aboutText || defaultAbout;
 
@@ -171,14 +305,8 @@ export default function ComecaAquiPage() {
     <AppLayout>
       <div className="flex flex-col min-h-screen">
         {/* Cover */}
-        <div
-          className="w-full py-16 px-6 flex items-center justify-center"
-          style={{ background: `hsl(var(--primary))` }}
-        >
-          <h1
-            className="text-3xl md:text-4xl font-bold tracking-tight"
-            style={{ color: `hsl(var(--primary-foreground))` }}
-          >
+        <div className="w-full py-16 px-6 flex items-center justify-center" style={{ background: `hsl(var(--primary))` }}>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: `hsl(var(--primary-foreground))` }}>
             Começa Aqui
           </h1>
         </div>
@@ -189,12 +317,7 @@ export default function ComecaAquiPage() {
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-semibold text-foreground">Bem-vindo(a)</h2>
               {isOwner && !editingWelcome && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => { setTempWelcome(displayWelcome); setEditingWelcome(true); }}
-                >
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setTempWelcome(displayWelcome); setEditingWelcome(true); }}>
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
               )}
@@ -217,12 +340,7 @@ export default function ComecaAquiPage() {
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-semibold text-foreground">O que fazemos e como trabalhamos</h2>
               {isOwner && !editingAbout && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => { setTempAbout(displayAbout); setEditingAbout(true); }}
-                >
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setTempAbout(displayAbout); setEditingAbout(true); }}>
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
               )}
@@ -249,32 +367,34 @@ export default function ComecaAquiPage() {
               <p className="text-sm text-muted-foreground">Nenhum membro registado ainda.</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {members.map(member => (
-                  <Card
-                    key={member.id}
-                    className="cursor-pointer hq-transition hover:shadow-md hover:-translate-y-0.5"
-                    onClick={() => openMemberDetail(member)}
-                  >
-                    <CardContent className="flex flex-col items-center p-5 text-center space-y-3">
-                      <Avatar className="h-16 w-16">
-                        {member.avatar_url ? (
-                          <AvatarImage src={member.avatar_url} alt={member.full_name || ''} />
-                        ) : null}
-                        <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                          {getInitials(member.full_name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium text-foreground truncate">
-                          {member.full_name || 'Sem nome'}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {member.role_title || '—'}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {members.map(member => {
+                  const scheduleSummary = summarizeSchedule(member.work_schedule);
+                  return (
+                    <Card
+                      key={member.id}
+                      className="cursor-pointer hq-transition hover:shadow-md hover:-translate-y-0.5"
+                      onClick={() => openMemberDetail(member)}
+                    >
+                      <CardContent className="flex flex-col items-center p-5 text-center space-y-3">
+                        <Avatar className="h-16 w-16">
+                          {member.avatar_url ? <AvatarImage src={member.avatar_url} alt={member.full_name || ''} /> : null}
+                          <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+                            {getInitials(member.full_name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-1.5">
+                          <p className="text-sm font-medium text-foreground truncate">{member.full_name || 'Sem nome'}</p>
+                          <RoleBadge title={member.role_title} />
+                          {scheduleSummary && (
+                            <p className="text-[11px] text-muted-foreground flex items-center justify-center gap-1">
+                              <Clock className="h-3 w-3" />{scheduleSummary}
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </section>
@@ -300,7 +420,7 @@ export default function ComecaAquiPage() {
 
       {/* Member detail dialog */}
       <Dialog open={!!selectedMember} onOpenChange={open => { if (!open) setSelectedMember(null); }}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Ficha de Membro</DialogTitle>
           </DialogHeader>
@@ -343,7 +463,7 @@ export default function ComecaAquiPage() {
                   </div>
                   <div>
                     <label className="text-xs text-muted-foreground">Horário de trabalho</label>
-                    <Input value={profileForm.work_schedule || ''} onChange={e => setProfileForm(p => ({ ...p, work_schedule: e.target.value }))} placeholder="ex: 10h-19h, segunda a sexta" />
+                    <ScheduleEditor value={scheduleForm} onChange={setScheduleForm} />
                   </div>
                   <div>
                     <label className="text-xs text-muted-foreground">Apresentação</label>
@@ -356,9 +476,9 @@ export default function ComecaAquiPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <div className="text-center">
+                  <div className="text-center space-y-2">
                     <p className="font-semibold text-foreground">{selectedMember.full_name || 'Sem nome'}</p>
-                    <p className="text-sm text-muted-foreground">{selectedMember.role_title || '—'}</p>
+                    <RoleBadge title={selectedMember.role_title} />
                   </div>
                   <Separator />
                   {selectedMember.phone && (
@@ -367,12 +487,7 @@ export default function ComecaAquiPage() {
                       <span className="text-foreground">{selectedMember.phone}</span>
                     </div>
                   )}
-                  {selectedMember.work_schedule && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="text-foreground">{selectedMember.work_schedule}</span>
-                    </div>
-                  )}
+                  <ScheduleDetail raw={selectedMember.work_schedule} />
                   {selectedMember.bio && (
                     <div className="pt-2">
                       <p className="text-xs text-muted-foreground mb-1">Apresentação</p>
@@ -384,7 +499,7 @@ export default function ComecaAquiPage() {
                       size="sm"
                       variant="outline"
                       className="w-full mt-2"
-                      onClick={() => { setProfileForm({ ...selectedMember }); setEditingProfile(true); }}
+                      onClick={() => { setProfileForm({ ...selectedMember }); setScheduleForm(parseSchedule(selectedMember.work_schedule)); setEditingProfile(true); }}
                     >
                       <Pencil className="h-3.5 w-3.5 mr-1" />Editar
                     </Button>
