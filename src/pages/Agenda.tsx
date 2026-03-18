@@ -469,6 +469,8 @@ function EventFormDialog({
         client_name: clientName.trim() || null,
         notes: notes.trim() || null,
         created_by: user?.id ?? null,
+        recurrence_type: recurrenceType || null,
+        recurrence_end: recurrenceEnd ? format(recurrenceEnd, 'yyyy-MM-dd') : null,
       };
 
       let eventId = editEvent?.id;
