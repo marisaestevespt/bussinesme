@@ -612,17 +612,20 @@ function PostCard({
 
             {/* Add comment */}
             <div className="flex gap-2 pt-1">
-              <Input
-                placeholder="Escreve um comentário..."
+              <MentionTextarea
+                placeholder="Escreve um comentário... usa @ para mencionar"
                 value={commentText}
-                onChange={e => setCommentText(e.target.value)}
+                onChange={setCommentText}
+                singleLine
+                rows={1}
+                className="text-sm h-9"
                 onKeyDown={e => {
-                  if (e.key === 'Enter' && commentText.trim()) {
+                  if (e.key === 'Enter' && !e.shiftKey && commentText.trim()) {
+                    e.preventDefault();
                     onComment(commentText.trim());
                     setCommentText('');
                   }
                 }}
-                className="text-sm h-9"
               />
               <Button
                 size="sm"
