@@ -195,6 +195,8 @@ export type Database = {
           id: string
           notes: string | null
           product_name: string | null
+          recurrence_end: string | null
+          recurrence_type: string | null
           start_date: string
           title: string
           updated_at: string
@@ -209,6 +211,8 @@ export type Database = {
           id?: string
           notes?: string | null
           product_name?: string | null
+          recurrence_end?: string | null
+          recurrence_type?: string | null
           start_date: string
           title: string
           updated_at?: string
@@ -223,6 +227,8 @@ export type Database = {
           id?: string
           notes?: string | null
           product_name?: string | null
+          recurrence_end?: string | null
+          recurrence_type?: string | null
           start_date?: string
           title?: string
           updated_at?: string
