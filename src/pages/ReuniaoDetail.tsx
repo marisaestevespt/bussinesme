@@ -247,6 +247,7 @@ export default function ReuniaoDetailPage() {
   const { data: participants = [] } = useMeetingParticipants(id!);
   const { data: profiles = [] } = useProfiles();
   const { data: ownerName } = useOwnerProfile();
+  const { data: projectsList = [] } = useProjectsList();
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Local editable state
