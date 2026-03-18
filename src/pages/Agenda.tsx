@@ -26,7 +26,7 @@ import { toast } from 'sonner';
 // ─── Types ──────────────────────────────────────────────────────
 
 interface EventType { id: string; name: string; color: string; slug: string; }
-interface EventRow { id: string; title: string; event_type_id: string | null; start_date: string; end_date: string | null; product_name: string | null; department: string | null; client_name: string | null; notes: string | null; created_by: string | null; recurrence_type: string | null; recurrence_end: string | null; }
+interface EventRow { id: string; title: string; event_type_id: string | null; start_date: string; end_date: string | null; product_name: string | null; department: string | null; client_name: string | null; notes: string | null; created_by: string | null; recurrence_type: string | null; recurrence_end: string | null; meeting_url: string | null; }
 
 type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'diario';
 const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
@@ -445,6 +445,7 @@ function EventFormDialog({
   const [notes, setNotes] = useState(editEvent?.notes ?? '');
   const [recurrenceType, setRecurrenceType] = useState(editEvent?.recurrence_type ?? '');
   const [recurrenceEnd, setRecurrenceEnd] = useState<Date | undefined>(editEvent?.recurrence_end ? parseISO(editEvent.recurrence_end) : undefined);
+  const [meetingUrl, setMeetingUrl] = useState(editEvent?.meeting_url ?? '');
   const [selectedMembers, setSelectedMembers] = useState<string[]>(existingMembers.map(m => m.profile_id));
 
   // Sync when existingMembers loads
@@ -471,6 +472,7 @@ function EventFormDialog({
         created_by: user?.id ?? null,
         recurrence_type: recurrenceType || null,
         recurrence_end: recurrenceEnd ? format(recurrenceEnd, 'yyyy-MM-dd') : null,
+        meeting_url: meetingUrl.trim() || null,
       };
 
       let eventId = editEvent?.id;
@@ -578,6 +580,10 @@ function EventFormDialog({
           <div>
             <Label>Cliente</Label>
             <Input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Opcional" />
+          </div>
+          <div>
+            <Label className="flex items-center gap-1.5">🔗 Link da reunião</Label>
+            <Input value={meetingUrl} onChange={e => setMeetingUrl(e.target.value)} placeholder="https://zoom.us/j/... ou https://meet.google.com/..." />
           </div>
           <div>
             <Label>Notas</Label>
@@ -743,6 +749,15 @@ function EventDetailDialog({
           )}
           {event.client_name && (
             <div><span className="font-medium text-foreground">Cliente:</span> {event.client_name}</div>
+          )}
+          {event.meeting_url && (
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-foreground">Link:</span>
+              <a href={event.meeting_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate flex items-center gap-1">
+                {event.meeting_url.includes('zoom') ? '📹 Zoom' : event.meeting_url.includes('meet.google') ? '📹 Google Meet' : '🔗 Abrir link'}
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
           )}
           {event.notes && (
             <div><span className="font-medium text-foreground">Notas:</span> <span className="text-muted-foreground">{event.notes}</span></div>
