@@ -14,6 +14,8 @@ import HubPage from "./pages/Hub";
 import ExecutivePage from "./pages/Executive";
 import DefinicoesPage from "./pages/Definicoes";
 import AgendaPage from "./pages/Agenda";
+import ReunioesPage from "./pages/Reunioes";
+import ReuniaoDetailPage from "./pages/ReuniaoDetail";
 
 const queryClient = new QueryClient();
 
