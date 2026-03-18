@@ -113,21 +113,49 @@ function initials(name: string | null) {
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 }
 
-// ─── Date Picker ────────────────────────────────────────────────
+// ─── Date Time Picker ───────────────────────────────────────────
 
-function DatePickerField({ date, onSelect, placeholder }: { date?: Date; onSelect: (d: Date | undefined) => void; placeholder: string }) {
+function DateTimePickerField({ date, onSelect, placeholder }: { date?: Date; onSelect: (d: Date | undefined) => void; placeholder: string }) {
+  const handleDateSelect = (day: Date | undefined) => {
+    if (!day) { onSelect(undefined); return; }
+    // Preserve existing time if date already set
+    if (date) {
+      day.setHours(date.getHours(), date.getMinutes());
+    }
+    onSelect(new Date(day));
+  };
+
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const [h, m] = e.target.value.split(':').map(Number);
+    const d = date ? new Date(date) : new Date();
+    d.setHours(h, m, 0, 0);
+    onSelect(d);
+  };
+
+  const timeValue = date ? `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}` : '';
+
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !date && 'text-muted-foreground')}>
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, 'dd/MM/yyyy') : placeholder}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <Calendar mode="single" selected={date} onSelect={onSelect} initialFocus className="p-3 pointer-events-auto" />
-      </PopoverContent>
-    </Popover>
+    <div className="space-y-1.5">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !date && 'text-muted-foreground')}>
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {date ? format(date, 'dd/MM/yyyy') : placeholder}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar mode="single" selected={date} onSelect={handleDateSelect} initialFocus className="p-3 pointer-events-auto" />
+        </PopoverContent>
+      </Popover>
+      {date && (
+        <Input
+          type="time"
+          value={timeValue}
+          onChange={handleTimeChange}
+          className="h-8 text-sm"
+        />
+      )}
+    </div>
   );
 }
 
@@ -351,8 +379,8 @@ function EventFormDialog({
       const payload = {
         title: title.trim(),
         event_type_id: eventTypeId || null,
-        start_date: format(startDate, 'yyyy-MM-dd'),
-        end_date: endDate ? format(endDate, 'yyyy-MM-dd') : null,
+        start_date: startDate.toISOString(),
+        end_date: endDate ? endDate.toISOString() : null,
         product_name: productName.trim() || null,
         notes: notes.trim() || null,
         created_by: user?.id ?? null,
@@ -420,11 +448,11 @@ function EventFormDialog({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Data de início *</Label>
-              <DatePickerField date={startDate} onSelect={setStartDate} placeholder="Início" />
+              <DateTimePickerField date={startDate} onSelect={setStartDate} placeholder="Início" />
             </div>
             <div>
               <Label>Data de fim</Label>
-              <DatePickerField date={endDate} onSelect={setEndDate} placeholder="Fim (opcional)" />
+              <DateTimePickerField date={endDate} onSelect={setEndDate} placeholder="Fim (opcional)" />
             </div>
           </div>
           <div>
@@ -521,8 +549,8 @@ function ListView({ events, types, onEventClick }: { events: EventRow[]; types: 
           <div className="col-span-4 font-medium text-foreground truncate">{ev.title}</div>
           <div className="col-span-3"><TypeBadge types={types} typeId={ev.event_type_id} /></div>
           <div className="col-span-3 text-muted-foreground">
-            {format(parseISO(ev.start_date), 'dd MMM yyyy', { locale: pt })}
-            {ev.end_date && ` — ${format(parseISO(ev.end_date), 'dd MMM yyyy', { locale: pt })}`}
+            {format(parseISO(ev.start_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}
+            {ev.end_date && ` — ${format(parseISO(ev.end_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}`}
           </div>
           <div className="col-span-2 text-muted-foreground truncate">{ev.product_name || '—'}</div>
         </button>
@@ -570,8 +598,8 @@ function EventDetailDialog({
           <div><TypeBadge types={types} typeId={event.event_type_id} /></div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <CalendarIcon className="h-4 w-4" />
-            {format(parseISO(event.start_date), 'dd MMM yyyy', { locale: pt })}
-            {event.end_date && ` — ${format(parseISO(event.end_date), 'dd MMM yyyy', { locale: pt })}`}
+            {format(parseISO(event.start_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}
+            {event.end_date && ` — ${format(parseISO(event.end_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}`}
           </div>
           {event.product_name && (
             <div><span className="font-medium text-foreground">Produto:</span> {event.product_name}</div>
