@@ -200,9 +200,9 @@ export default function ProjetosPage() {
           <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>Projetos</h1>
           <div className="flex items-center gap-2">
             <div className="flex rounded-lg border p-0.5">
-              {([['table', LayoutList], ['gallery', LayoutGrid], ['calendar', CalendarIcon]] as const).map(([v, Icon]) => (
-                <Button key={v} variant={view === v ? 'default' : 'ghost'} size="sm" className="h-8 px-3" onClick={() => setView(v as ViewMode)}>
-                  <Icon className="h-4 w-4" />
+              {([['table', LayoutList, 'Tabela'], ['gallery', LayoutGrid, 'Galeria'], ['calendar', CalendarIcon, 'Calendário']] as const).map(([v, Icon, label]) => (
+                <Button key={v} variant={view === v ? 'default' : 'ghost'} size="sm" className="h-8 px-3 gap-1.5" onClick={() => setView(v as ViewMode)}>
+                  <Icon className="h-4 w-4" /><span className="text-xs">{label}</span>
                 </Button>
               ))}
             </div>
