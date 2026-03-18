@@ -362,7 +362,22 @@ export default function ComecaAquiPage() {
 
           {/* Team gallery */}
           <section className="space-y-4">
-            <h2 className="text-xl font-semibold text-foreground">Equipa</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-foreground">Equipa</h2>
+              {isOwner && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const signupUrl = window.location.origin;
+                    navigator.clipboard.writeText(signupUrl);
+                    toast.success('Link de registo copiado! Partilha com o novo membro.');
+                  }}
+                >
+                  <UserPlus className="h-4 w-4 mr-1" /> Adicionar membro
+                </Button>
+              )}
+            </div>
             {members.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhum membro registado ainda.</p>
             ) : (
