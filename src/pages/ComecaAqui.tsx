@@ -207,6 +207,13 @@ export default function ComecaAquiPage() {
   const [profileForm, setProfileForm] = useState<Partial<TeamMember>>({});
   const [scheduleForm, setScheduleForm] = useState<WeekSchedule>(emptySchedule());
   const [uploading, setUploading] = useState(false);
+  const [showCreateMember, setShowCreateMember] = useState(false);
+  const [newMemberName, setNewMemberName] = useState('');
+  const [newMemberEmail, setNewMemberEmail] = useState('');
+  const [newMemberRole, setNewMemberRole] = useState('');
+  const [newMemberPhone, setNewMemberPhone] = useState('');
+  const [creatingMember, setCreatingMember] = useState(false);
+  const [generatingLink, setGeneratingLink] = useState(false);
 
   useEffect(() => {
     if (settings) {
