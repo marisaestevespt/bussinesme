@@ -570,12 +570,64 @@ export default function ComecaAquiPage() {
                       <Pencil className="h-3.5 w-3.5 mr-1" />Editar
                     </Button>
                   )}
+                  {isOwner && selectedMember.user_id !== user?.id && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full mt-2"
+                      disabled={generatingLink}
+                      onClick={() => handleGenerateInviteLink(selectedMember)}
+                    >
+                      <Link className="h-3.5 w-3.5 mr-1" />
+                      {generatingLink ? 'A gerar...' : 'Copiar link de convite'}
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Create member dialog */}
+      <Dialog open={showCreateMember} onOpenChange={setShowCreateMember}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Membro</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Nome completo *</Label>
+              <Input value={newMemberName} onChange={e => setNewMemberName(e.target.value)} placeholder="Ex: João Silva" />
+            </div>
+            <div>
+              <Label>Email *</Label>
+              <Input type="email" value={newMemberEmail} onChange={e => setNewMemberEmail(e.target.value)} placeholder="joao@empresa.pt" />
+            </div>
+            <div>
+              <Label>Função</Label>
+              <Input value={newMemberRole} onChange={e => setNewMemberRole(e.target.value)} placeholder="Ex: Designer" />
+            </div>
+            <div>
+              <Label>Telefone</Label>
+              <Input value={newMemberPhone} onChange={e => setNewMemberPhone(e.target.value)} placeholder="Ex: +351 912 345 678" />
+            </div>
+            <Button
+              className="w-full"
+              disabled={!newMemberName.trim() || !newMemberEmail.trim() || creatingMember}
+              onClick={handleCreateMember}
+            >
+              {creatingMember ? 'A criar...' : 'Criar Membro'}
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">
+              Depois de criar, podes gerar um link de convite dentro da ficha do membro.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </AppLayout>
+  );
+}
     </AppLayout>
   );
 }
