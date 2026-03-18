@@ -275,7 +275,7 @@ export default function ReunioesPage() {
   const { data: profiles = [] } = useProfiles();
 
   const filteredMeetings = view === 'proximas'
-    ? meetings.filter(m => (m.status === 'por_confirmar' || m.status === 'marcada') && isFuture(parseISO(m.date_time)))
+    ? meetings.filter(m => m.status === 'por_confirmar' || m.status === 'marcada')
     : meetings;
 
   return (
