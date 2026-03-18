@@ -608,8 +608,10 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
   const startDayIdx = (getDay(monthStart) + 6) % 7;
   const paddedDays: (Date | null)[] = [...Array(startDayIdx).fill(null), ...days];
 
+  const expandedEvents = expandRecurringEvents(events, monthStart, monthEnd);
+
   const eventsForDay = (day: Date) =>
-    events.filter(ev => {
+    expandedEvents.filter(ev => {
       const start = parseISO(ev.start_date);
       const end = ev.end_date ? parseISO(ev.end_date) : start;
       return isSameDay(day, start) || isSameDay(day, end) || isWithinInterval(day, { start, end });
