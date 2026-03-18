@@ -30,7 +30,7 @@ import { PROJECT_TYPES, PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInf
 
 interface ProjectFull {
   id: string; name: string; type: string; status: string; department: string | null;
-  client_name: string | null; deadline: string | null; progress: number; notes: string | null;
+  client_name: string | null; start_date: string | null; deadline: string | null; progress: number; notes: string | null;
   objetivo: string | null; diretrizes: string | null; cronograma: string | null; dependencias: string | null;
   entregaveis: string | null; recursos: string | null; project_notes: string | null;
   closure_good: string | null; closure_bad: string | null; closure_lessons: string | null;
