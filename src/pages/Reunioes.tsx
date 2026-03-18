@@ -24,22 +24,6 @@ import { MODULES } from '@/lib/modules';
 const DEPARTMENTS = Object.entries(MODULES)
   .filter(([, v]) => v.section === 'departamentos')
   .map(([key, v]) => ({ value: key, label: v.label }));
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { CalendarIcon, Plus, Users, Clock } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { format, parseISO, isFuture } from 'date-fns';
-import { pt } from 'date-fns/locale';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
 
 // ─── Types ──────────────────────────────────────────────────────
 
