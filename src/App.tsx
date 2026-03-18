@@ -37,6 +37,7 @@ function AppRoutes() {
       <Route path="/" element={<Navigate to="/secretaria" replace />} />
       <Route path="/secretaria" element={<SecretariaPage />} />
       <Route path="/comeca-aqui" element={<ComecaAquiPage />} />
+      <Route path="/hub/agenda" element={<AgendaPage />} />
       <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
       <Route path="/definicoes" element={<DefinicoesPage />} />
