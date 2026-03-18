@@ -69,6 +69,7 @@ interface Project {
   progress: number;
   notes: string | null;
   created_at: string;
+  cover_url: string | null;
 }
 
 interface Profile {
