@@ -445,6 +445,7 @@ function EventFormDialog({
   const [notes, setNotes] = useState(editEvent?.notes ?? '');
   const [recurrenceType, setRecurrenceType] = useState(editEvent?.recurrence_type ?? '');
   const [recurrenceEnd, setRecurrenceEnd] = useState<Date | undefined>(editEvent?.recurrence_end ? parseISO(editEvent.recurrence_end) : undefined);
+  const [meetingUrl, setMeetingUrl] = useState(editEvent?.meeting_url ?? '');
   const [selectedMembers, setSelectedMembers] = useState<string[]>(existingMembers.map(m => m.profile_id));
 
   // Sync when existingMembers loads
