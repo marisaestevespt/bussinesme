@@ -280,6 +280,7 @@ export type Database = {
           id: string
           owner_actions: Json | null
           priorities: Json | null
+          project_id: string | null
           project_name: string | null
           status: Database["public"]["Enums"]["meeting_status"]
           title: string
@@ -298,6 +299,7 @@ export type Database = {
           id?: string
           owner_actions?: Json | null
           priorities?: Json | null
+          project_id?: string | null
           project_name?: string | null
           status?: Database["public"]["Enums"]["meeting_status"]
           title: string
@@ -316,13 +318,22 @@ export type Database = {
           id?: string
           owner_actions?: Json | null
           priorities?: Json | null
+          project_id?: string | null
           project_name?: string | null
           status?: Database["public"]["Enums"]["meeting_status"]
           title?: string
           transcript_url?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "meetings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       members: {
         Row: {
@@ -534,6 +545,117 @@ export type Database = {
         }
         Relationships: []
       }
+      project_members: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string
+          project_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_id: string
+          project_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_members_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          client_name: string | null
+          closure_bad: string | null
+          closure_good: string | null
+          closure_lessons: string | null
+          created_at: string
+          created_by: string | null
+          cronograma: string | null
+          deadline: string | null
+          department: string | null
+          dependencias: string | null
+          diretrizes: string | null
+          entregaveis: string | null
+          id: string
+          name: string
+          notes: string | null
+          objetivo: string | null
+          progress: number
+          project_notes: string | null
+          recursos: string | null
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          client_name?: string | null
+          closure_bad?: string | null
+          closure_good?: string | null
+          closure_lessons?: string | null
+          created_at?: string
+          created_by?: string | null
+          cronograma?: string | null
+          deadline?: string | null
+          department?: string | null
+          dependencias?: string | null
+          diretrizes?: string | null
+          entregaveis?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          objetivo?: string | null
+          progress?: number
+          project_notes?: string | null
+          recursos?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          client_name?: string | null
+          closure_bad?: string | null
+          closure_good?: string | null
+          closure_lessons?: string | null
+          created_at?: string
+          created_by?: string | null
+          cronograma?: string | null
+          deadline?: string | null
+          department?: string | null
+          dependencias?: string | null
+          diretrizes?: string | null
+          entregaveis?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          objetivo?: string | null
+          progress?: number
+          project_notes?: string | null
+          recursos?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       role_permissions: {
         Row: {
           can_view: boolean
@@ -559,6 +681,56 @@ export type Database = {
             columns: ["custom_role_id"]
             isOneToOne: false
             referencedRelation: "custom_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          created_by: string | null
+          deadline: string | null
+          department: string | null
+          id: string
+          name: string
+          priority: string
+          project_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          department?: string | null
+          id?: string
+          name: string
+          priority?: string
+          project_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          department?: string | null
+          id?: string
+          name?: string
+          priority?: string
+          project_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
