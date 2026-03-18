@@ -48,6 +48,8 @@ function AppRoutes() {
       <Route path="/hub/reunioes/:id" element={<ReuniaoDetailPage />} />
       <Route path="/hub/acessos" element={<AcessosPage />} />
       <Route path="/hub/mural" element={<MuralPage />} />
+      <Route path="/hub/projetos" element={<ProjetosPage />} />
+      <Route path="/hub/projetos/:id" element={<ProjetoDetailPage />} />
       <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
       <Route path="/definicoes" element={<DefinicoesPage />} />
