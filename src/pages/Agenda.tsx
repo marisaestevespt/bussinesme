@@ -134,7 +134,65 @@ function initials(name: string | null) {
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 }
 
-// ─── Date Time Picker ───────────────────────────────────────────
+// ─── Recurrence Expansion ───────────────────────────────────────
+
+function expandRecurringEvents(events: EventRow[], rangeStart: Date, rangeEnd: Date): EventRow[] {
+  const result: EventRow[] = [];
+  const recEndFallback = rangeEnd;
+
+  for (const ev of events) {
+    const start = parseISO(ev.start_date);
+    if (!ev.recurrence_type) {
+      result.push(ev);
+      continue;
+    }
+
+    const recEnd = ev.recurrence_end ? parseISO(ev.recurrence_end) : recEndFallback;
+    const hours = start.getHours();
+    const minutes = start.getMinutes();
+    let cursor = new Date(start);
+
+    const maxOccurrences = 366; // safety limit
+    let count = 0;
+
+    while (cursor <= recEnd && cursor <= rangeEnd && count < maxOccurrences) {
+      if (cursor >= rangeStart || isSameDay(cursor, rangeStart)) {
+        const occurrenceDate = new Date(cursor);
+        occurrenceDate.setHours(hours, minutes, 0, 0);
+        result.push({
+          ...ev,
+          id: `${ev.id}_${format(cursor, 'yyyy-MM-dd')}`,
+          start_date: occurrenceDate.toISOString(),
+          end_date: null,
+        });
+      }
+
+      count++;
+      switch (ev.recurrence_type) {
+        case 'diario':
+          cursor = addDays(cursor, 1);
+          break;
+        case 'semanal':
+          cursor = addWeeks(cursor, 1);
+          break;
+        case 'quinzenal':
+          cursor = addWeeks(cursor, 2);
+          break;
+        case 'mensal':
+          cursor = addMonths(cursor, 1);
+          break;
+        case 'mensal_primeiro':
+          cursor = addMonths(cursor, 1);
+          cursor = setDateFns(cursor, 1);
+          break;
+        default:
+          count = maxOccurrences; // unknown type, stop
+      }
+    }
+  }
+  return result;
+}
+
 
 function DateTimePickerField({ date, onSelect, placeholder }: { date?: Date; onSelect: (d: Date | undefined) => void; placeholder: string }) {
   const handleDateSelect = (day: Date | undefined) => {
