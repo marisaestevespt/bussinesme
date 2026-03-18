@@ -26,7 +26,18 @@ import { toast } from 'sonner';
 // ─── Types ──────────────────────────────────────────────────────
 
 interface EventType { id: string; name: string; color: string; slug: string; }
-interface EventRow { id: string; title: string; event_type_id: string | null; start_date: string; end_date: string | null; product_name: string | null; notes: string | null; created_by: string | null; }
+interface EventRow { id: string; title: string; event_type_id: string | null; start_date: string; end_date: string | null; product_name: string | null; department: string | null; client_name: string | null; notes: string | null; created_by: string | null; }
+
+const DEPARTMENTS = [
+  { value: 'administrativo', label: 'Administrativo' },
+  { value: 'marketing', label: 'Marketing' },
+  { value: 'comercial', label: 'Comercial' },
+  { value: 'financeiro', label: 'Financeiro' },
+  { value: 'customer_success', label: 'Customer Success' },
+  { value: 'operacoes', label: 'Operações' },
+  { value: 'produto_servico', label: 'Produto/Serviço' },
+  { value: 'recursos_humanos', label: 'Recursos Humanos' },
+];
 interface Attachment { id: string; event_id: string; type: string; name: string; url: string; }
 interface Profile { id: string; user_id: string; full_name: string | null; avatar_url: string | null; role_title: string | null; }
 interface EventMember { id: string; event_id: string; profile_id: string; }
@@ -361,6 +372,8 @@ function EventFormDialog({
   const [startDate, setStartDate] = useState<Date | undefined>(editEvent?.start_date ? parseISO(editEvent.start_date) : undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(editEvent?.end_date ? parseISO(editEvent.end_date) : undefined);
   const [productName, setProductName] = useState(editEvent?.product_name ?? '');
+  const [department, setDepartment] = useState(editEvent?.department ?? '');
+  const [clientName, setClientName] = useState(editEvent?.client_name ?? '');
   const [notes, setNotes] = useState(editEvent?.notes ?? '');
   const [selectedMembers, setSelectedMembers] = useState<string[]>(existingMembers.map(m => m.profile_id));
 
@@ -382,6 +395,8 @@ function EventFormDialog({
         start_date: startDate.toISOString(),
         end_date: endDate ? endDate.toISOString() : null,
         product_name: productName.trim() || null,
+        department: department || null,
+        client_name: clientName.trim() || null,
         notes: notes.trim() || null,
         created_by: user?.id ?? null,
       };
@@ -458,6 +473,21 @@ function EventFormDialog({
           <div>
             <Label>Produto associado</Label>
             <Input value={productName} onChange={e => setProductName(e.target.value)} placeholder="Opcional" />
+          </div>
+          <div>
+            <Label>Departamento</Label>
+            <Select value={department} onValueChange={setDepartment}>
+              <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+              <SelectContent>
+                {DEPARTMENTS.map(d => (
+                  <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Cliente</Label>
+            <Input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Opcional" />
           </div>
           <div>
             <Label>Notas</Label>
@@ -539,20 +569,23 @@ function ListView({ events, types, onEventClick }: { events: EventRow[]; types: 
   return (
     <div className="border rounded-lg overflow-hidden divide-y divide-border">
       <div className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-muted text-xs font-medium text-muted-foreground">
-        <div className="col-span-4">Evento</div>
-        <div className="col-span-3">Tipo</div>
-        <div className="col-span-3">Data</div>
-        <div className="col-span-2">Produto</div>
+        <div className="col-span-3">Evento</div>
+        <div className="col-span-2">Tipo</div>
+        <div className="col-span-2">Data</div>
+        <div className="col-span-2">Departamento</div>
+        <div className="col-span-1">Produto</div>
+        <div className="col-span-2">Cliente</div>
       </div>
       {events.map(ev => (
         <button key={ev.id} onClick={() => onEventClick(ev)} className="grid grid-cols-12 gap-2 px-4 py-3 w-full text-left hover:bg-muted/50 transition-colors text-sm">
-          <div className="col-span-4 font-medium text-foreground truncate">{ev.title}</div>
-          <div className="col-span-3"><TypeBadge types={types} typeId={ev.event_type_id} /></div>
-          <div className="col-span-3 text-muted-foreground">
-            {format(parseISO(ev.start_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}
-            {ev.end_date && ` — ${format(parseISO(ev.end_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}`}
+          <div className="col-span-3 font-medium text-foreground truncate">{ev.title}</div>
+          <div className="col-span-2"><TypeBadge types={types} typeId={ev.event_type_id} /></div>
+          <div className="col-span-2 text-muted-foreground text-xs">
+            {format(parseISO(ev.start_date), "dd MMM yyyy", { locale: pt })}
           </div>
-          <div className="col-span-2 text-muted-foreground truncate">{ev.product_name || '—'}</div>
+          <div className="col-span-2 text-muted-foreground truncate">{ev.department ? DEPARTMENTS.find(d => d.value === ev.department)?.label || ev.department : '—'}</div>
+          <div className="col-span-1 text-muted-foreground truncate">{ev.product_name || '—'}</div>
+          <div className="col-span-2 text-muted-foreground truncate">{ev.client_name || '—'}</div>
         </button>
       ))}
     </div>
@@ -601,8 +634,14 @@ function EventDetailDialog({
             {format(parseISO(event.start_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}
             {event.end_date && ` — ${format(parseISO(event.end_date), "dd MMM yyyy 'às' HH:mm", { locale: pt })}`}
           </div>
+          {event.department && (
+            <div><span className="font-medium text-foreground">Departamento:</span> {DEPARTMENTS.find(d => d.value === event.department)?.label || event.department}</div>
+          )}
           {event.product_name && (
             <div><span className="font-medium text-foreground">Produto:</span> {event.product_name}</div>
+          )}
+          {event.client_name && (
+            <div><span className="font-medium text-foreground">Cliente:</span> {event.client_name}</div>
           )}
           {event.notes && (
             <div><span className="font-medium text-foreground">Notas:</span> <span className="text-muted-foreground">{event.notes}</span></div>
