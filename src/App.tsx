@@ -20,6 +20,8 @@ import AcessosPage from "./pages/Acessos";
 import MuralPage from "./pages/Mural";
 import ProjetosPage from "./pages/Projetos";
 import ProjetoDetailPage from "./pages/ProjetoDetail";
+import ProcessosPage from "./pages/Processos";
+import SopDetailPage from "./pages/SopDetail";
 
 const queryClient = new QueryClient();
 
