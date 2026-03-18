@@ -236,26 +236,64 @@ export default function ProjetoDetailPage() {
     );
   }
 
+  // ─── Reuniões sub-page (table view like Reunioes page) ────────
   if (subPage === 'reunioes') {
-      return (
-        <AppLayout>
-          <div className="space-y-4">
-            <Button variant="ghost" size="sm" onClick={() => setSubPage(null)} className="gap-1"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
-            <h2 className="text-xl font-bold">Reuniões do Projeto</h2>
-            {meetings.length === 0 ? <p className="text-muted-foreground">Nenhuma reunião ligada</p> : (
-              <div className="space-y-2">{meetings.map(m => (
-                <div key={m.id} className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/30" onClick={() => navigate(`/hub/reunioes/${m.id}`)}>
-                  <div><p className="font-medium text-sm">{m.title}</p><p className="text-xs text-muted-foreground">{format(new Date(m.date_time), "d MMM yyyy 'às' HH:mm", { locale: pt })}</p></div>
-                  <Badge className={`${m.status === 'terminada' ? 'bg-green-100 text-green-800' : m.status === 'marcada' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'} border-0`}>{m.status === 'terminada' ? 'Terminada' : m.status === 'marcada' ? 'Marcada' : 'Por confirmar'}</Badge>
-                </div>
-              ))}</div>
-            )}
+    const MEETING_STATUSES = [
+      { value: 'por_confirmar', label: 'Por confirmar', color: '#f59e0b' },
+      { value: 'marcada', label: 'Marcada', color: '#10b981' },
+      { value: 'terminada', label: 'Terminada', color: '#6b7280' },
+    ];
+    const getMeetingStatusInfo = (s: string) => MEETING_STATUSES.find(x => x.value === s) || MEETING_STATUSES[0];
+
+    return (
+      <AppLayout>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="sm" onClick={() => setSubPage(null)} className="gap-1"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
+              <h2 className="text-xl font-bold">Reuniões do Projeto</h2>
+            </div>
+            <Button size="sm" onClick={() => setMeetingDialogOpen(true)} className="gap-1.5"><Plus className="h-3.5 w-3.5" /> Nova Reunião</Button>
           </div>
-        </AppLayout>
-      );
-    }
+          {meetings.length === 0 ? (
+            <p className="text-center text-muted-foreground py-12">Nenhuma reunião ligada a este projeto.</p>
+          ) : (
+            <div className="border rounded-lg overflow-hidden divide-y divide-border">
+              <div className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-muted text-xs font-medium text-muted-foreground">
+                <div className="col-span-4">Reunião</div>
+                <div className="col-span-3">Data / Hora</div>
+                <div className="col-span-2">Status</div>
+                <div className="col-span-3">Participantes</div>
+              </div>
+              {meetings.map(m => {
+                const ms = getMeetingStatusInfo(m.status);
+                return (
+                  <button key={m.id} onClick={() => navigate(`/hub/reunioes/${m.id}`)} className="grid grid-cols-12 gap-2 px-4 py-3 w-full text-left hover:bg-muted/50 transition-colors text-sm">
+                    <div className="col-span-4 font-medium text-foreground truncate">{m.title}</div>
+                    <div className="col-span-3 text-muted-foreground">{format(new Date(m.date_time), "dd MMM yyyy 'às' HH:mm", { locale: pt })}</div>
+                    <div className="col-span-2">
+                      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: `${ms.color}20`, color: ms.color }}>{ms.label}</span>
+                    </div>
+                    <div className="col-span-3">
+                      <div className="flex -space-x-1">{projectMembers.slice(0, 5).map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-6 w-6 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}{projectMembers.length > 5 && <span className="text-xs text-muted-foreground ml-2">+{projectMembers.length - 5}</span>}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // ─── Entregáveis sub-page (file upload + list) ────────────────
+  if (subPage === 'entregaveis') {
+    return <EntregaveisSubPage projectId={id!} onBack={() => setSubPage(null)} />;
+  }
 
     const field = fieldMap[subPage];
+    if (!field) return null;
     return (
       <AppLayout>
         <div className="space-y-4 max-w-3xl">
