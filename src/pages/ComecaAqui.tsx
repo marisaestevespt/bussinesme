@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { Pencil, Check, X, Phone, Clock, FileText, Upload } from 'lucide-react';
+import { Pencil, Check, X, Phone, Clock, FileText, Upload, UserPlus, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 
 // --- Schedule types & helpers ---
