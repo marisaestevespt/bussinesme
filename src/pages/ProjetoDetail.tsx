@@ -295,12 +295,36 @@ export default function ProjetoDetailPage() {
         objetivo: local.objetivo, diretrizes: local.diretrizes, cronograma: local.cronograma, dependencias: local.dependencias,
         entregaveis: local.entregaveis, recursos: local.recursos, project_notes: local.project_notes,
         closure_good: local.closure_good, closure_bad: local.closure_bad, closure_lessons: local.closure_lessons,
+        cover_url: local.cover_url,
       }).eq('id', local.id);
       if (error) throw error;
     },
     onSuccess: () => { setDirty(false); queryClient.invalidateQueries({ queryKey: ['project', id] }); toast.success('Guardado'); },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('projects').delete().eq('id', id!);
+      if (error) throw error;
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['projects'] }); toast.success('Projeto eliminado'); navigate('/hub/projetos'); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const path = `covers/${id}/${Date.now()}_${file.name}`;
+    const { error } = await supabase.storage.from('project-files').upload(path, file);
+    if (error) { toast.error(error.message); return; }
+    const { data } = supabase.storage.from('project-files').getPublicUrl(path);
+    updateField('cover_url', data.publicUrl);
+    // Auto-save cover
+    await supabase.from('projects').update({ cover_url: data.publicUrl }).eq('id', id!);
+    queryClient.invalidateQueries({ queryKey: ['project', id] });
+    toast.success('Capa atualizada');
+  };
 
   const createTaskMutation = useMutation({
     mutationFn: async () => {
