@@ -1,0 +1,156 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+// Simple AES-GCM encryption using Web Crypto API
+const ENCRYPTION_KEY_ENV = "ACCESS_ENCRYPTION_KEY";
+
+async function getKey(): Promise<CryptoKey> {
+  const raw = Deno.env.get(ENCRYPTION_KEY_ENV);
+  if (!raw) throw new Error("Encryption key not configured");
+  const keyBytes = new TextEncoder().encode(raw.padEnd(32, "0").slice(0, 32));
+  return crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, [
+    "encrypt",
+    "decrypt",
+  ]);
+}
+
+async function encrypt(plaintext: string): Promise<string> {
+  const key = await getKey();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encoded = new TextEncoder().encode(plaintext);
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    encoded
+  );
+  // Store as base64: iv:ciphertext
+  const ivB64 = btoa(String.fromCharCode(...iv));
+  const ctB64 = btoa(
+    String.fromCharCode(...new Uint8Array(ciphertext))
+  );
+  return `${ivB64}:${ctB64}`;
+}
+
+async function decrypt(stored: string): Promise<string> {
+  const key = await getKey();
+  const [ivB64, ctB64] = stored.split(":");
+  const iv = Uint8Array.from(atob(ivB64), (c) => c.charCodeAt(0));
+  const ciphertext = Uint8Array.from(atob(ctB64), (c) => c.charCodeAt(0));
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    key,
+    ciphertext
+  );
+  return new TextDecoder().decode(decrypted);
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: claimsData, error: claimsError } =
+      await supabase.auth.getClaims(authHeader.replace("Bearer ", ""));
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const userId = claimsData.claims.sub;
+    const { action, ...body } = await req.json();
+
+    if (action === "encrypt") {
+      // Encrypt password and save record
+      const encrypted = await encrypt(body.password);
+
+      const { data, error } = await supabase
+        .from("platform_accesses")
+        .insert({
+          platform_name: body.platform_name,
+          username_email: body.username_email,
+          encrypted_password: encrypted,
+          platform_type: body.platform_type || "outros",
+          direct_link: body.direct_link || null,
+          notes: body.notes || null,
+          created_by: userId,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return new Response(JSON.stringify({ data }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "update") {
+      const updateData: Record<string, unknown> = {
+        platform_name: body.platform_name,
+        username_email: body.username_email,
+        platform_type: body.platform_type,
+        direct_link: body.direct_link || null,
+        notes: body.notes || null,
+      };
+      if (body.password) {
+        updateData.encrypted_password = await encrypt(body.password);
+      }
+      const { data, error } = await supabase
+        .from("platform_accesses")
+        .update(updateData)
+        .eq("id", body.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return new Response(JSON.stringify({ data }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "decrypt") {
+      // Fetch record and decrypt
+      const { data: record, error } = await supabase
+        .from("platform_accesses")
+        .select("encrypted_password")
+        .eq("id", body.id)
+        .single();
+
+      if (error) throw error;
+      const password = await decrypt(record.encrypted_password);
+      return new Response(JSON.stringify({ password }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify({ error: "Invalid action" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});
