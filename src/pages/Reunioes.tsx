@@ -42,6 +42,7 @@ interface MeetingRow {
   status: MeetingStatus;
   client_name: string | null;
   project_name: string | null;
+  department: string | null;
   transcript_url: string | null;
   created_by: string | null;
 }
