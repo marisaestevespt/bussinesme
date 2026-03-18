@@ -452,7 +452,7 @@ function EventFormDialog({
             </div>
             <div>
               <Label>Data de fim</Label>
-              <DatePickerField date={endDate} onSelect={setEndDate} placeholder="Fim (opcional)" />
+              <DateTimePickerField date={endDate} onSelect={setEndDate} placeholder="Fim (opcional)" />
             </div>
           </div>
           <div>
