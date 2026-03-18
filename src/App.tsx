@@ -22,6 +22,7 @@ import ProjetosPage from "./pages/Projetos";
 import ProjetoDetailPage from "./pages/ProjetoDetail";
 import ProcessosPage from "./pages/Processos";
 import SopDetailPage from "./pages/SopDetail";
+import BibliotecaPage from "./pages/Biblioteca";
 
 const queryClient = new QueryClient();
 
