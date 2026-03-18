@@ -17,6 +17,7 @@ import AgendaPage from "./pages/Agenda";
 import ReunioesPage from "./pages/Reunioes";
 import ReuniaoDetailPage from "./pages/ReuniaoDetail";
 import AcessosPage from "./pages/Acessos";
+import MuralPage from "./pages/Mural";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ function AppRoutes() {
       <Route path="/hub/reunioes" element={<ReunioesPage />} />
       <Route path="/hub/reunioes/:id" element={<ReuniaoDetailPage />} />
       <Route path="/hub/acessos" element={<AcessosPage />} />
+      <Route path="/hub/mural" element={<MuralPage />} />
       <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
       <Route path="/definicoes" element={<DefinicoesPage />} />
