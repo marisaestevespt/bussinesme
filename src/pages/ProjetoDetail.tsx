@@ -63,7 +63,7 @@ function getTaskStatusInfo(v: string) { return TASK_STATUSES.find(s => s.value =
 
 // ─── Entregáveis Sub-Page Component ─────────────────────────────
 
-function EntregaveisSubPage({ projectId, onBack }: { projectId: string; onBack: () => void }) {
+function EntregaveisSubPage({ projectId, entregaveisText, onTextChange, onSave, saving, dirty, onBack }: { projectId: string; entregaveisText: string; onTextChange: (v: string) => void; onSave: () => void; saving: boolean; dirty: boolean; onBack: () => void }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
