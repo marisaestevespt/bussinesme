@@ -472,6 +472,7 @@ function EventFormDialog({
         created_by: user?.id ?? null,
         recurrence_type: recurrenceType || null,
         recurrence_end: recurrenceEnd ? format(recurrenceEnd, 'yyyy-MM-dd') : null,
+        meeting_url: meetingUrl.trim() || null,
       };
 
       let eventId = editEvent?.id;
