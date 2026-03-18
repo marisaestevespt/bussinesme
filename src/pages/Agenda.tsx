@@ -26,7 +26,17 @@ import { toast } from 'sonner';
 // ─── Types ──────────────────────────────────────────────────────
 
 interface EventType { id: string; name: string; color: string; slug: string; }
-interface EventRow { id: string; title: string; event_type_id: string | null; start_date: string; end_date: string | null; product_name: string | null; department: string | null; client_name: string | null; notes: string | null; created_by: string | null; }
+interface EventRow { id: string; title: string; event_type_id: string | null; start_date: string; end_date: string | null; product_name: string | null; department: string | null; client_name: string | null; notes: string | null; created_by: string | null; recurrence_type: string | null; recurrence_end: string | null; }
+
+type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'diario';
+const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
+  { value: '', label: 'Não se repete' },
+  { value: 'diario', label: 'Todos os dias' },
+  { value: 'semanal', label: 'Todas as semanas' },
+  { value: 'quinzenal', label: 'A cada 2 semanas' },
+  { value: 'mensal', label: 'Todos os meses (mesmo dia)' },
+  { value: 'mensal_primeiro', label: '1º dia de cada mês' },
+];
 
 const DEPARTMENTS = [
   { value: 'administrativo', label: 'Administrativo' },
