@@ -16,6 +16,7 @@ import DefinicoesPage from "./pages/Definicoes";
 import AgendaPage from "./pages/Agenda";
 import ReunioesPage from "./pages/Reunioes";
 import ReuniaoDetailPage from "./pages/ReuniaoDetail";
+import AcessosPage from "./pages/Acessos";
 
 const queryClient = new QueryClient();
 
