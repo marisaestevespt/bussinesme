@@ -36,6 +36,8 @@ export type Subscription = {
   notes: string | null;
   documents: any;
   created_at: string;
+  vat_rate: number;
+  includes_vat: boolean;
 };
 
 export type FinancialDocument = {
