@@ -541,6 +541,17 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
                 <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            {(editForm.source === 'bd_vendas' || editForm.source === 'bd_crm') && (
+              <div><Label>Produto associado</Label>
+                <Select value={editForm.product_id || 'none'} onValueChange={v => setEditForm((p: any) => ({ ...p, product_id: v === 'none' ? '' : v }))}>
+                  <SelectTrigger><SelectValue placeholder="Todos os produtos" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Todos os produtos</SelectItem>
+                    {productsList.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <Button className="w-full" onClick={handleSaveEdit}>Guardar</Button>
           </div>
         </DialogContent>
