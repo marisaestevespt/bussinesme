@@ -948,20 +948,34 @@ function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
 function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> }) {
   const allMembers = team.members.data || [];
   const [filterMember, setFilterMember] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [weeklyDialog, setWeeklyDialog] = useState<any>(null);
   const [monthlyDialog, setMonthlyDialog] = useState<any>(null);
 
   const weeklyData = useMemo(() => {
     let d = team.perfWeekly.data || [];
     if (filterMember) d = d.filter(r => r.member_id === filterMember);
+    if (dateFrom) d = d.filter(r => (r.week_end || r.week_start) >= dateFrom);
+    if (dateTo) d = d.filter(r => r.week_start <= dateTo);
     return d;
-  }, [team.perfWeekly.data, filterMember]);
+  }, [team.perfWeekly.data, filterMember, dateFrom, dateTo]);
 
   const monthlyData = useMemo(() => {
     let d = team.perfMonthly.data || [];
     if (filterMember) d = d.filter(r => r.member_id === filterMember);
+    if (dateFrom) {
+      const fromY = parseInt(dateFrom.slice(0, 4));
+      const fromM = parseInt(dateFrom.slice(5, 7));
+      d = d.filter(r => r.year > fromY || (r.year === fromY && (r.month || 1) >= fromM));
+    }
+    if (dateTo) {
+      const toY = parseInt(dateTo.slice(0, 4));
+      const toM = parseInt(dateTo.slice(5, 7));
+      d = d.filter(r => r.year < toY || (r.year === toY && (r.month || 12) <= toM));
+    }
     return d;
-  }, [team.perfMonthly.data, filterMember]);
+  }, [team.perfMonthly.data, filterMember, dateFrom, dateTo]);
 
   const memberName = (id: string) => allMembers.find(m => m.id === id)?.full_name || '—';
 
@@ -994,7 +1008,20 @@ function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> }) {
     <div className="space-y-4">
       <div className="flex justify-between items-center gap-3 flex-wrap">
         <h2 className="text-base font-semibold">Performance</h2>
-        <div className="w-48"><MemberSelect value={filterMember} onChange={setFilterMember} members={allMembers} /></div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <label className="text-xs text-muted-foreground whitespace-nowrap">De</label>
+            <Input type="date" className="h-8 w-36 text-xs" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+          </div>
+          <div className="flex items-center gap-1.5">
+            <label className="text-xs text-muted-foreground whitespace-nowrap">Até</label>
+            <Input type="date" className="h-8 w-36 text-xs" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+          </div>
+          {(dateFrom || dateTo) && (
+            <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => { setDateFrom(''); setDateTo(''); }}>Limpar</Button>
+          )}
+          <div className="w-44"><MemberSelect value={filterMember} onChange={setFilterMember} members={allMembers} /></div>
+        </div>
       </div>
       <Tabs defaultValue="semanal">
         <TabsList><TabsTrigger value="semanal">Semanal</TabsTrigger><TabsTrigger value="mensal">Mensal</TabsTrigger></TabsList>
