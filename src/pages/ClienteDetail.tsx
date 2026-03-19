@@ -98,6 +98,7 @@ export default function ClienteDetailPage() {
   const [saleOpen, setSaleOpen] = useState(false);
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [meetingForm, setMeetingForm] = useState({ title: '', date_time: '', meeting_url: '' });
+  const [totalValue, setTotalValue] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -175,13 +176,16 @@ export default function ClienteDetailPage() {
         const nextNum = ((countData?.length || 0) + 1).toString().padStart(2, '0');
         const saleId = `V${payYear}-${nextNum}`;
 
+          const installmentValue = totalValue ? parseFloat(totalValue) / numPayments : 0;
+          const installmentRounded = Math.round(installmentValue * 100) / 100;
+
         await supabase.from('commercial_sales').insert({
           sale_id: saleId,
           status: 'na',
           payment_date: payDateStr,
           description: `${product} - Pagamento ${i + 1}/${numPayments}`,
-          base_value: 0,
-          invoice_total: 0,
+          base_value: installmentRounded,
+          invoice_total: installmentRounded,
           product,
           client,
           source: null,
@@ -269,6 +273,15 @@ export default function ClienteDetailPage() {
                   {['1x', '2x', '3x', '4x', '5x', '6x'].map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Valor Total (€)</Label>
+              <Input type="number" step="0.01" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="Ex: 900" />
+              {totalValue && form.payment_method && parseInt(form.payment_method) > 1 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  = {(parseFloat(totalValue) / parseInt(form.payment_method)).toFixed(2)}€ × {form.payment_method}
+                </p>
+              )}
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Nome Completo</Label>
