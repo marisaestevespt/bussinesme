@@ -70,9 +70,16 @@ export function FinSaidas({ fin }: Props) {
   };
 
   const saveExpense = async () => {
-    const base = parseFloat(expForm.base_value) || 0;
+    const inputValue = parseFloat(expForm.base_value) || 0;
     const vat = parseFloat(expForm.vat_rate) || 0;
-    const total = Math.round(base * (1 + vat / 100) * 100) / 100;
+    let base: number, total: number;
+    if (expForm.includes_vat) {
+      total = inputValue;
+      base = Math.round(inputValue / (1 + vat / 100) * 100) / 100;
+    } else {
+      base = inputValue;
+      total = Math.round(base * (1 + vat / 100) * 100) / 100;
+    }
     const d = expForm.expense_date;
     const date = d ? (typeof d === 'string' ? d : format(d, 'yyyy-MM-dd')) : null;
     const month = date ? parseInt(date.slice(5, 7)) : null;
