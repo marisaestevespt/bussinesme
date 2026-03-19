@@ -563,7 +563,27 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/clientes/${c.id}`)}>
                     <TableCell className="text-xs">{c.client_id}</TableCell>
                     <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
-                    <TableCell><Badge variant="default" className="text-xs">{c.status}</Badge></TableCell>
+                    <TableCell><Badge variant="default" className="text-xs">{c.status === 'em_onboarding' ? 'Em onboarding' : 'Ativo'}</Badge></TableCell>
+                    <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
+                    <TableCell className="text-xs">{c.email || '—'}</TableCell>
+                    <TableCell className="text-xs">{c.whatsapp || '—'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : clientTab === 'pausados' ? (
+            <Table>
+              <TableHeader><TableRow>
+                <TableHead>ID</TableHead><TableHead>Data Início</TableHead><TableHead>Status</TableHead><TableHead>Nome</TableHead><TableHead>Email</TableHead><TableHead>Whatsapp</TableHead>
+              </TableRow></TableHeader>
+              <TableBody>
+                {pausedClients.length === 0 ? (
+                  <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem clientes em pausa.</TableCell></TableRow>
+                ) : pausedClients.map((c: any) => (
+                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/clientes/${c.id}`)}>
+                    <TableCell className="text-xs">{c.client_id}</TableCell>
+                    <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
+                    <TableCell><Badge variant="secondary" className="bg-amber-100 text-amber-800 text-xs">Pausado</Badge></TableCell>
                     <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
                     <TableCell className="text-xs">{c.email || '—'}</TableCell>
                     <TableCell className="text-xs">{c.whatsapp || '—'}</TableCell>
