@@ -77,6 +77,33 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
     enabled: !!clientName && open,
   });
 
+  // Fetch product VAT rate
+  const productName = form.product;
+  const productInfo = useQuery({
+    queryKey: ['product-vat', productName],
+    queryFn: async () => {
+      if (!productName) return null;
+      const { data } = await supabase.from('products').select('vat_rate').eq('name', productName).maybeSingle();
+      return data;
+    },
+    enabled: !!productName && open,
+  });
+
+  const getVatMultiplier = () => {
+    const rate = productInfo.data?.vat_rate;
+    if (!rate || rate === 'isento') return 1;
+    return 1 + parseFloat(rate) / 100;
+  };
+
+  // Auto-calculate invoice_total when base_value or product VAT changes
+  useEffect(() => {
+    if (form.base_value) {
+      const base = parseFloat(form.base_value) || 0;
+      const total = Math.round(base * getVatMultiplier() * 100) / 100;
+      setForm(f => ({ ...f, invoice_total: total.toString() }));
+    }
+  }, [form.base_value, productInfo.data?.vat_rate]);
+
   const handleSave = () => {
     onSave({
       ...(form.id ? { id: form.id } : {}),
@@ -146,7 +173,10 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div><Label>Valor Base (€)</Label><Input type="number" step="0.01" value={form.base_value} onChange={e => setForm(f => ({ ...f, base_value: e.target.value }))} /></div>
-            <div><Label>Fatura Total (€)</Label><Input type="number" step="0.01" value={form.invoice_total} onChange={e => setForm(f => ({ ...f, invoice_total: e.target.value }))} /></div>
+            <div>
+              <Label>Fatura Total (€) {productInfo.data?.vat_rate && productInfo.data.vat_rate !== 'isento' ? <span className="text-muted-foreground font-normal">({productInfo.data.vat_rate}% IVA)</span> : productInfo.data?.vat_rate === 'isento' ? <span className="text-muted-foreground font-normal">(Isento)</span> : null}</Label>
+              <Input type="number" step="0.01" value={form.invoice_total} onChange={e => setForm(f => ({ ...f, invoice_total: e.target.value }))} />
+            </div>
           </div>
           <div>
             <Label>Produto</Label>
