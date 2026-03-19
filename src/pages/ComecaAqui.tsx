@@ -38,21 +38,45 @@ const formatScheduleSummary = (raw: string | null): string => {
       { key: 'seg', label: 'Seg' }, { key: 'ter', label: 'Ter' }, { key: 'qua', label: 'Qua' },
       { key: 'qui', label: 'Qui' }, { key: 'sex', label: 'Sex' }, { key: 'sab', label: 'Sáb' }, { key: 'dom', label: 'Dom' },
     ];
-    return DAYS.filter(d => {
-      const val = s[d.key];
-      if (!val) return false;
-      if (Array.isArray(val)) return val.length > 0;
-      return val.manha || val.tarde;
-    }).map(d => {
-      const val = s[d.key];
+
+    // Build list of active days with their hours signature
+    const getHours = (val: any): string => {
+      if (!val) return '';
       if (Array.isArray(val)) {
-        const suffix = val.length === 2 ? '' : val.includes('manha') ? ' (M)' : ' (T)';
-        return `${d.label}${suffix}`;
+        if (val.length === 0) return '';
+        return val.length === 2 ? 'full' : val.includes('manha') ? 'M' : 'T';
       }
       const parts: string[] = [];
       if (val.manha) parts.push(val.manha);
       if (val.tarde) parts.push(val.tarde);
-      return `${d.label} ${parts.join(' / ')}`;
+      return parts.join(' ') || '';
+    };
+
+    const active = DAYS.map(d => ({ label: d.label, hours: getHours(s[d.key]) })).filter(d => d.hours);
+    if (!active.length) return '';
+
+    // Group consecutive days with same hours
+    const groups: { start: string; end: string; hours: string }[] = [];
+    for (const day of active) {
+      const last = groups[groups.length - 1];
+      if (last && last.hours === day.hours) {
+        last.end = day.label;
+      } else {
+        groups.push({ start: day.label, end: day.label, hours: day.hours });
+      }
+    }
+
+    const formatHours = (h: string) => {
+      if (h === 'full') return '';
+      if (h === 'M') return '(manhã)';
+      if (h === 'T') return '(tarde)';
+      return h;
+    };
+
+    return groups.map(g => {
+      const range = g.start === g.end ? g.start : `${g.start}-${g.end}`;
+      const h = formatHours(g.hours);
+      return h ? `${range} ${h}` : range;
     }).join(' · ');
   } catch { return raw; }
 };
