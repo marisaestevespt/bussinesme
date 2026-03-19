@@ -1,6 +1,7 @@
 // Shared department constants used across sidebar, processos, and other pages
 
 export const DEPARTMENTS = [
+  { value: 'admin', label: 'Admin', gradient: 'from-yellow-500 to-amber-700', icon: '👑', lucideIcon: 'Crown' },
   { value: 'administrativo', label: 'Administrativo', gradient: 'from-slate-600 to-slate-800', icon: '🏢', lucideIcon: 'Building2' },
   { value: 'marketing', label: 'Marketing', gradient: 'from-pink-500 to-rose-700', icon: '📣', lucideIcon: 'Megaphone' },
   { value: 'comercial', label: 'Comercial', gradient: 'from-amber-500 to-orange-700', icon: '🤝', lucideIcon: 'ShoppingCart' },
