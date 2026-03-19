@@ -131,34 +131,9 @@ export default function FinanceiroPage() {
       <div className="p-6 space-y-4">
         <h1 className="text-2xl font-bold tracking-tight">Financeiro</h1>
 
-        {/* Top area: cards + margin chart */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Entradas ({currentYear})</p><p className="text-xl font-bold text-green-600">{fmt(totalEntradas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Saídas ({currentYear})</p><p className="text-xl font-bold text-red-600">{fmt(totalSaidas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Balanço ({currentYear})</p><p className={`text-xl font-bold ${resultado >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(resultado)}</p></CardContent></Card>
-        </div>
-
-        {/* Margin chart */}
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground mb-2">Margem de Lucro ao longo do ano — {currentYear}</p>
-            <div className="h-32">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={marginData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                  <YAxis tick={{ fontSize: 10 }} unit="%" stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip formatter={(v: number) => `${v}%`} />
-                  <Line type="monotone" dataKey="margem" name="Margem" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
         <Tabs defaultValue={defaultTab} className="w-full">
           <div className="flex items-center gap-2">
-            <TabsList className="flex-1 justify-start flex-wrap h-auto gap-1">
+            <TabsList className="flex-1 justify-start flex-wrap h-auto gap-2 bg-transparent p-0">
               {visibleTabs.map((tab, idx) => (
                 <TabsTrigger
                   key={tab.key}
@@ -167,7 +142,7 @@ export default function FinanceiroPage() {
                   onDragStart={() => handleDragStart(idx)}
                   onDragOver={e => e.preventDefault()}
                   onDrop={() => handleDrop(idx)}
-                  className="cursor-grab active:cursor-grabbing"
+                  className="cursor-grab active:cursor-grabbing px-6 py-3 text-sm font-medium rounded-lg border border-border bg-card data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary shadow-sm"
                 >
                   {tab.label}
                 </TabsTrigger>
@@ -194,6 +169,29 @@ export default function FinanceiroPage() {
               </PopoverContent>
             </Popover>
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Entradas ({currentYear})</p><p className="text-xl font-bold text-green-600">{fmt(totalEntradas)}</p></CardContent></Card>
+            <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Saídas ({currentYear})</p><p className="text-xl font-bold text-red-600">{fmt(totalSaidas)}</p></CardContent></Card>
+            <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Balanço ({currentYear})</p><p className={`text-xl font-bold ${resultado >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(resultado)}</p></CardContent></Card>
+          </div>
+
+          <Card className="mt-4">
+            <CardContent className="pt-4">
+              <p className="text-xs text-muted-foreground mb-2">Margem de Lucro ao longo do ano — {currentYear}</p>
+              <div className="h-32">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={marginData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                    <YAxis tick={{ fontSize: 10 }} unit="%" stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip formatter={(v: number) => `${v}%`} />
+                    <Line type="monotone" dataKey="margem" name="Margem" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
 
           <TabsContent value="mensal">
             <FinMensal sales={sales} expenses={expenses} subscriptions={subscriptions} payrollData={payrollData} contractorsData={contractorsData} documents={documents} currentYear={currentYear} />
