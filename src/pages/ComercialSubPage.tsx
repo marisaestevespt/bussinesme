@@ -29,6 +29,7 @@ export default function ComercialSubPage() {
       case 'metas': return <CommercialMetas />;
       case 'vendas': return <CommercialVendas />;
       case 'acoes': return <CommercialAcoes />;
+      case 'crm': return <CommercialCRM />;
       case 'processos': return <CommercialProcessos />;
       default: return <EmptyModulePage title={title} description="Conteúdo será construído em breve." />;
     }
