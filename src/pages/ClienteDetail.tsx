@@ -183,7 +183,7 @@ export default function ClienteDetailPage() {
           sale_id: saleId,
           status: 'na',
           payment_date: payDateStr,
-          description: `${product} - Pagamento ${i + 1}/${numPayments}`,
+          description: `${form.client_id}_Pagamento_${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][payMonth - 1]}`,
           base_value: installmentRounded,
           invoice_total: Math.round(installmentRounded * 1.23 * 100) / 100,
           product,
