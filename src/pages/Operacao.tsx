@@ -41,6 +41,25 @@ type ProjectMember = {
 const ACTIVE_STATUSES = ['em_curso', 'em_ideia', 'em_pausa', 'em_revisao'];
 type TaskFilter = 'todas' | 'hoje' | 'semana' | 'atrasadas';
 
+const DEPT_LABELS: Record<string, string> = {
+  administrativo: 'Administrativo',
+  marketing: 'Marketing',
+  financeiro: 'Financeiro',
+  comercial: 'Comercial',
+  clientes: 'Clientes',
+  equipa: 'Equipa',
+  operacao: 'Operação',
+};
+const DEPT_COLORS: Record<string, string> = {
+  administrativo: 'hsl(33, 30%, 55%)',
+  marketing: 'hsl(330, 60%, 55%)',
+  financeiro: 'hsl(45, 80%, 50%)',
+  comercial: 'hsl(190, 70%, 45%)',
+  clientes: 'hsl(265, 55%, 55%)',
+  equipa: 'hsl(165, 55%, 45%)',
+  operacao: 'hsl(25, 75%, 55%)',
+};
+
 function getInitials(name: string | null) {
   if (!name) return '?';
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
