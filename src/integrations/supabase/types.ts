@@ -805,6 +805,7 @@ export type Database = {
           next_followup: string | null
           phone: string | null
           potential_product: string | null
+          responsible_id: string | null
           source: string | null
           status: string
           updated_at: string
@@ -825,6 +826,7 @@ export type Database = {
           next_followup?: string | null
           phone?: string | null
           potential_product?: string | null
+          responsible_id?: string | null
           source?: string | null
           status?: string
           updated_at?: string
@@ -845,11 +847,20 @@ export type Database = {
           next_followup?: string | null
           phone?: string | null
           potential_product?: string | null
+          responsible_id?: string | null
           source?: string | null
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "crm_leads_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       custom_roles: {
         Row: {
