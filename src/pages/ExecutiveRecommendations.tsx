@@ -55,11 +55,23 @@ export default function ExecutiveRecommendations() {
   });
 
   const updateStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status, userId }: { id: string; status: string; userId?: string }) => {
       const { error } = await supabase.from('recommendations').update({ status }).eq('id', id);
       if (error) throw error;
+      return { status, userId };
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['recommendations-all'] }),
+    onSuccess: (result) => {
+      qc.invalidateQueries({ queryKey: ['recommendations-all'] });
+      if (result?.userId && result.status !== 'pending') {
+        sendNotification({
+          userId: result.userId,
+          type: 'recommendation',
+          title: `Recomendação ${statusLabel(result.status).toLowerCase()}`,
+          message: 'O status da tua recomendação foi atualizado.',
+          link: '/executive/recommendations',
+        });
+      }
+    },
   });
 
   const filtered = recommendations
