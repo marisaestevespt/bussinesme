@@ -54,14 +54,26 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
 
   const sortByPeriod = (a: any, b: any) => monthOrder.indexOf(a.period) - monthOrder.indexOf(b.period);
 
+  const getObjectiveArea = (id: string) => {
+    const obj = objectives.find((o: any) => o.id === id);
+    if (!obj) return null;
+    const areas: Record<string, string> = { financeiro: 'Financeiro', comercial: 'Comercial', marketing: 'Marketing', operacao: 'Operação', equipa: 'Equipa', inovacao: 'Inovação', outro: 'Outro' };
+    return areas[obj.area] || obj.area;
+  };
+
+  const getObjectiveDeadline = (id: string) => objectives.find((o: any) => o.id === id)?.deadline || null;
+
   const renderGoalRow = (g: any, showObjective: boolean) => {
     const dev = g.actual_value && g.target_value ? (Number(g.actual_value) - Number(g.target_value)) : null;
     const hasDeviation = dev !== null && dev < 0;
+    const area = getObjectiveArea(g.objective_id);
+    const deadline = getObjectiveDeadline(g.objective_id);
     return (
       <TableRow key={g.id} className={hasDeviation ? 'bg-red-50/50' : ''}>
         {showObjective && <TableCell className="text-xs">{getObjectiveName(g.objective_id)}</TableCell>}
         <TableCell className="text-sm">{g.period}</TableCell>
-        <TableCell className="text-xs">{g.period_type === 'trimestral' ? 'Trimestral' : 'Mensal'}</TableCell>
+        <TableCell className="text-xs">{area ? <Badge variant="outline" className="text-[10px]">{area}</Badge> : '—'}</TableCell>
+        <TableCell className="text-xs">{deadline || '—'}</TableCell>
         <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
         <TableCell className="text-xs">{g.actual_value || '—'}</TableCell>
         <TableCell className={`text-xs ${hasDeviation ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
