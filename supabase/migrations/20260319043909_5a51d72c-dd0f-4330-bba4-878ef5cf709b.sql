@@ -1,0 +1,1 @@
+UPDATE commercial_sales SET invoice_total = ROUND(base_value * 1.23, 2) WHERE id IN ('bf886116-effc-418f-bd75-6540deed8267', '1d59b7ac-c4b1-422e-bdc9-a61b230fd864', '9f0669f5-d40f-429d-a8b7-e84876108c4c');
