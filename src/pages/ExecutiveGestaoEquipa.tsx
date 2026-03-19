@@ -1385,33 +1385,49 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
   );
 }
 
+// ─── Navigation Sections ──────
+const HR_SECTIONS = [
+  { path: '/hub/recursos-humanos/equipa', label: 'Equipa', icon: Users, iconColor: 'text-blue-600', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
+  { path: '/hub/recursos-humanos/performance', label: 'Performance', icon: BarChart3, iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10' },
+  { path: '/hub/recursos-humanos/feedback', label: 'Feedback', icon: MessageSquare, iconColor: 'text-amber-600', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10' },
+  { path: '/hub/recursos-humanos/contratos-pagamentos', label: 'Contratos & Pagamentos', icon: FileText, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
+];
+
 // ─── Main Page ──────
 export default function ExecutiveGestaoEquipa() {
   const team = useTeamData();
+  const navigate = useNavigate();
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="p-6 space-y-8">
         <div>
-          <h1 className="text-2xl font-bold">Recursos Humanos</h1>
-          <p className="text-sm text-muted-foreground mt-1">Central de gestão de todos os membros do negócio</p>
+          <h1 className="text-2xl font-bold tracking-tight">Recursos Humanos</h1>
+          <p className="text-muted-foreground mt-1">Central de gestão de todos os membros do negócio</p>
         </div>
 
-        <Tabs defaultValue="dashboard">
-          <TabsList>
-            <TabsTrigger value="dashboard" className="gap-1"><LayoutDashboard className="h-4 w-4" /> Dashboard</TabsTrigger>
-            <TabsTrigger value="equipa" className="gap-1"><Users className="h-4 w-4" /> Equipa</TabsTrigger>
-            <TabsTrigger value="performance" className="gap-1"><BarChart3 className="h-4 w-4" /> Performance</TabsTrigger>
-            <TabsTrigger value="feedback" className="gap-1"><MessageSquare className="h-4 w-4" /> Feedback</TabsTrigger>
-            <TabsTrigger value="contratos" className="gap-1"><FileText className="h-4 w-4" /> Contratos & Pagamentos</TabsTrigger>
-          </TabsList>
+        {/* Navigation cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {HR_SECTIONS.map(s => (
+            <Card
+              key={s.path}
+              className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
+              onClick={() => navigate(s.path)}
+            >
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
+                  <s.icon className="h-4.5 w-4.5" />
+                </div>
+                <span className="font-medium text-sm text-foreground">{s.label}</span>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-          <TabsContent value="dashboard"><TabDashboard team={team} /></TabsContent>
-          <TabsContent value="equipa"><TabEquipa team={team} /></TabsContent>
-          <TabsContent value="performance"><TabPerformance team={team} /></TabsContent>
-          <TabsContent value="feedback"><TabFeedback team={team} /></TabsContent>
-          <TabsContent value="contratos"><TabContracts team={team} /></TabsContent>
-        </Tabs>
+        <Separator />
+
+        {/* Dashboard inline */}
+        <TabDashboard team={team} />
       </div>
     </AppLayout>
   );
