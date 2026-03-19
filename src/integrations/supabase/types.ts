@@ -4599,6 +4599,7 @@ export type Database = {
           created_by: string | null
           deadline: string | null
           department: string | null
+          estimated_time: number | null
           id: string
           name: string
           notes: string | null
@@ -4616,6 +4617,7 @@ export type Database = {
           created_by?: string | null
           deadline?: string | null
           department?: string | null
+          estimated_time?: number | null
           id?: string
           name: string
           notes?: string | null
@@ -4633,6 +4635,7 @@ export type Database = {
           created_by?: string | null
           deadline?: string | null
           department?: string | null
+          estimated_time?: number | null
           id?: string
           name?: string
           notes?: string | null
