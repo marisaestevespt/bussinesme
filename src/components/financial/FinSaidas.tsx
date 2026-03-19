@@ -348,6 +348,10 @@ export function FinSaidas({ fin }: Props) {
                 <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            <InvoiceUpload
+              documents={Array.isArray(expForm.documents) ? expForm.documents : []}
+              onChange={docs => setExpForm((f: any) => ({ ...f, documents: docs }))}
+            />
             <div className="flex gap-2">
               <Button className="flex-1" onClick={saveExpense}>Guardar</Button>
               {expForm.id && <Button variant="destructive" size="icon" onClick={async () => { await fin.deleteExpense.mutateAsync(expForm.id); setExpOpen(false); toast.success('Eliminada'); }}><Trash2 className="h-4 w-4" /></Button>}
