@@ -23,7 +23,7 @@ export function OfferCalculator({ vatRate }: Props) {
     { id: '1', label: '', value: '' },
   ]);
   const [taxRate, setTaxRate] = useState('25'); // IRS / IRC estimate
-  const [desiredMargin, setDesiredMargin] = useState('30');
+  const [desiredMargin, setDesiredMargin] = useState('80');
   const [testPrice, setTestPrice] = useState('');
 
   const addCost = () => setCosts(prev => [...prev, { id: String(Date.now()), label: '', value: '' }]);
