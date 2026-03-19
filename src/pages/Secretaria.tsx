@@ -248,63 +248,33 @@ export default function SecretariaPage() {
           ))}
         </div>
 
-        {/* Summary cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas para hoje</p><p className="text-2xl font-bold">{todayTasks.length}</p></CardContent></Card>
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas em atraso</p><p className="text-2xl font-bold text-destructive">{overdueTasks.length}</p></CardContent></Card>
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Reuniões hoje</p><p className="text-2xl font-bold">{todayMeetings.length}</p></CardContent></Card>
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Projetos ativos</p><p className="text-2xl font-bold">{activeProjects.length}</p></CardContent></Card>
-        </div>
-
-        {/* Personal space widgets on dashboard */}
-        <DashboardPersonalWidgets userId={user?.id} teamMember={teamMember.data} />
-
-        {/* Tab content */}
-        {activeTab === 'dia' && (
-          <MeuDiaTab
-            todayTasks={todayTasks}
-            todayMeetings={todayMeetings}
-            timeEntries={timeEntries.data || []}
-            getProjectName={getProjectName}
-            qc={qc}
-          />
+        {/* Summary cards + personal widgets only on dashboard */}
+        {!activeTab && (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas para hoje</p><p className="text-2xl font-bold">{todayTasks.length}</p></CardContent></Card>
+              <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas em atraso</p><p className="text-2xl font-bold text-destructive">{overdueTasks.length}</p></CardContent></Card>
+              <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Reuniões hoje</p><p className="text-2xl font-bold">{todayMeetings.length}</p></CardContent></Card>
+              <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Projetos ativos</p><p className="text-2xl font-bold">{activeProjects.length}</p></CardContent></Card>
+            </div>
+            <DashboardPersonalWidgets userId={user?.id} teamMember={teamMember.data} />
+          </>
         )}
 
-        {activeTab === 'semana' && (
-          <MinhaSemanaTab
-            allTasks={tasks.data || []}
-            allMeetings={meetings.data || []}
-            timeEntries={timeEntries.data || []}
-            getProjectName={getProjectName}
-            qc={qc}
-          />
-        )}
-
-        {activeTab === 'tarefas' && (
-          <MinhasTarefasTab tasks={tasks.data || []} getProjectName={getProjectName} qc={qc} userId={user?.id} />
-        )}
-
-        {activeTab === 'projetos' && (
-          <MeusProjetosTab projects={projects.data || []} />
-        )}
-
-        {activeTab === 'reunioes' && (
-          <MinhasReunioesTab meetings={meetings.data || []} profiles={allProfiles.data || []} />
-        )}
-
-        {activeTab === 'produtividade' && (
-          <MinhaProdutividadeTab
-            tasks={tasks.data || []}
-            timeEntries={timeEntries.data || []}
-            teamMember={teamMember.data}
-            allProjects={allProjects.data || []}
-            qc={qc}
-            userId={user?.id}
-          />
-        )}
-
-        {activeTab === 'contrato' && (
-          <MeuContratoTab teamMember={teamMember.data} />
+        {/* Back button + tab content */}
+        {activeTab && (
+          <>
+            <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => setActiveTab(null)}>
+              <ArrowLeft className="h-4 w-4" /> Voltar à Secretária
+            </Button>
+            {activeTab === 'dia' && <MeuDiaTab todayTasks={todayTasks} todayMeetings={todayMeetings} timeEntries={timeEntries.data || []} getProjectName={getProjectName} qc={qc} />}
+            {activeTab === 'semana' && <MinhaSemanaTab allTasks={tasks.data || []} allMeetings={meetings.data || []} timeEntries={timeEntries.data || []} getProjectName={getProjectName} qc={qc} />}
+            {activeTab === 'tarefas' && <MinhasTarefasTab tasks={tasks.data || []} getProjectName={getProjectName} qc={qc} userId={user?.id} />}
+            {activeTab === 'projetos' && <MeusProjetosTab projects={projects.data || []} />}
+            {activeTab === 'reunioes' && <MinhasReunioesTab meetings={meetings.data || []} profiles={allProfiles.data || []} />}
+            {activeTab === 'produtividade' && <MinhaProdutividadeTab tasks={tasks.data || []} timeEntries={timeEntries.data || []} teamMember={teamMember.data} allProjects={allProjects.data || []} qc={qc} userId={user?.id} />}
+            {activeTab === 'contrato' && <MeuContratoTab teamMember={teamMember.data} />}
+          </>
         )}
       </div>
     </AppLayout>
