@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Plus, CalendarIcon } from 'lucide-react';
+import { Plus, CalendarIcon, Check, FileText } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -41,13 +42,32 @@ interface Props {
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
+export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: Props) {
   const currentMonth = new Date().getMonth() + 1;
   const [month, setMonth] = useState(currentMonth.toString());
   const m = parseInt(month);
 
   const monthSales = useMemo(() => sales.filter(s => s.sale_year === currentYear && s.sale_month === m), [sales, currentYear, m]);
   const monthExpenses = useMemo(() => expenses.filter(e => e.expense_year === currentYear && e.expense_month === m), [expenses, currentYear, m]);
+
+  // Active subscriptions that apply to this month
+  const activeSubs = useMemo(() => {
+    return (subscriptions || []).filter(s => s.status === 'ativo');
+  }, [subscriptions]);
+
+  // Check which subs already have a confirmed expense for this month
+  const subExpenseMap = useMemo(() => {
+    const map = new Map<string, Expense>();
+    monthExpenses.forEach(e => {
+      if (e.source_type === 'subscription' && e.source_id) {
+        map.set(e.source_id, e);
+      }
+    });
+    return map;
+  }, [monthExpenses]);
+
+  // Include subscription costs in totals
+  const subsTotalThisMonth = activeSubs.reduce((s, sub) => s + sub.monthly_equivalent, 0);
 
   const totalEntradas = monthSales.reduce((s, v) => s + v.invoice_total, 0);
   const totalBaseEntradas = monthSales.reduce((s, v) => s + v.base_value, 0);
@@ -187,6 +207,50 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
         </CardContent>
       </Card>
 
+      {/* Subscrições Recorrentes */}
+      {activeSubs.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Subscrições Recorrentes — {MONTHS[m - 1]}</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Plataforma</TableHead>
+                  <TableHead className="text-right">Valor Mensal</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Fatura</TableHead>
+                  <TableHead />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activeSubs.map(sub => {
+                  const linkedExpense = subExpenseMap.get(sub.id);
+                  const isPaid = !!linkedExpense && linkedExpense.status === 'pago';
+                  return (
+                    <SubRow
+                      key={sub.id}
+                      sub={sub}
+                      linkedExpense={linkedExpense}
+                      isPaid={isPaid}
+                      month={m}
+                      currentYear={currentYear}
+                      fin={fin}
+                    />
+                  );
+                })}
+                <TableRow className="border-t-2 font-semibold">
+                  <TableCell>Total Subscrições</TableCell>
+                  <TableCell className="text-right">{fmt(subsTotalThisMonth)}</TableCell>
+                  <TableCell colSpan={3} />
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
       {/* IVA Balance */}
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-sm">Balanço IVA — {MONTHS[m - 1]}</CardTitle></CardHeader>
@@ -299,5 +363,97 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin }: {
+  sub: Subscription;
+  linkedExpense: Expense | undefined;
+  isPaid: boolean;
+  month: number;
+  currentYear: number;
+  fin: ReturnType<typeof useFinancialData>;
+}) {
+  const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const [confirming, setConfirming] = useState(false);
+
+  const handleConfirm = async () => {
+    setConfirming(true);
+    const dateStr = `${currentYear}-${String(month).padStart(2, '0')}-15`;
+    if (linkedExpense) {
+      // Toggle status
+      await fin.upsertExpense.mutateAsync({
+        id: linkedExpense.id,
+        status: isPaid ? 'por_pagar' : 'pago',
+      } as any);
+    } else {
+      // Create expense linked to this subscription
+      await fin.upsertExpense.mutateAsync({
+        description: `${sub.platform_name} — ${MONTHS[month - 1]} ${currentYear}`,
+        category: 'ferramenta',
+        base_value: sub.monthly_equivalent,
+        vat_rate: 0,
+        total_with_vat: sub.monthly_equivalent,
+        location: sub.location,
+        expense_date: dateStr,
+        expense_month: month,
+        expense_quarter: Math.ceil(month / 3),
+        expense_year: currentYear,
+        status: 'pago',
+        source_type: 'subscription',
+        source_id: sub.id,
+      } as any);
+    }
+    setConfirming(false);
+    toast.success(isPaid ? 'Marcado como pendente' : 'Confirmado como pago');
+  };
+
+  // Invoice upload for this subscription expense
+  const handleDocsChange = async (docs: any[]) => {
+    if (linkedExpense) {
+      await fin.upsertExpense.mutateAsync({
+        id: linkedExpense.id,
+        documents: docs,
+      } as any);
+      toast.success('Fatura atualizada');
+    }
+  };
+
+  const docs = linkedExpense?.documents;
+  const docCount = Array.isArray(docs) ? docs.length : 0;
+
+  return (
+    <TableRow>
+      <TableCell className="font-medium">{sub.platform_name}</TableCell>
+      <TableCell className="text-right">{fmt(sub.monthly_equivalent)}</TableCell>
+      <TableCell>
+        {isPaid
+          ? <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Pago</Badge>
+          : <Badge variant="outline" className="text-muted-foreground">Pendente</Badge>
+        }
+      </TableCell>
+      <TableCell>
+        {linkedExpense && (
+          <InvoiceUpload
+            documents={Array.isArray(docs) ? docs : []}
+            onChange={handleDocsChange}
+            label=""
+          />
+        )}
+        {!linkedExpense && <span className="text-xs text-muted-foreground">Confirmar primeiro</span>}
+      </TableCell>
+      <TableCell>
+        <Button
+          size="sm"
+          variant={isPaid ? 'ghost' : 'default'}
+          disabled={confirming}
+          onClick={handleConfirm}
+          className="text-xs"
+        >
+          <Check className="h-3.5 w-3.5 mr-1" />
+          {isPaid ? 'Desfazer' : 'Confirmar'}
+        </Button>
+      </TableCell>
+    </TableRow>
   );
 }
