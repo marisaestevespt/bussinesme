@@ -513,7 +513,7 @@ export default function GestaoMarcaPage() {
                 return (
                   <div key={group.key} className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"><span className="mr-1">{group.emoji}</span>{group.label}</h3>
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</h3>
                       <span className="text-[10px] text-muted-foreground/60 bg-muted rounded-full px-1.5">{items.length}</span>
                     </div>
                     <div className="space-y-1.5 min-h-[60px]">
