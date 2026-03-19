@@ -321,6 +321,7 @@ export default function ProjetoDetailPage() {
     return Math.round(((tasksDone + boardingDone) / total) * 100);
   }
 
+  const { data: meetings = [] } = useQuery({
     queryKey: ['project-meetings', id],
     queryFn: async () => { const { data } = await supabase.from('meetings').select('id, title, date_time, status, project_id').eq('project_id', id!).order('date_time'); return (data || []) as Meeting[]; },
     enabled: !!id,
