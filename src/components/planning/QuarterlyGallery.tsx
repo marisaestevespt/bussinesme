@@ -10,6 +10,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, Plus } from 'lucide-rea
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { BackNavigation } from '@/components/BackNavigation';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { planStatusLabel, planAreaLabel } from '@/hooks/usePlanningData';
