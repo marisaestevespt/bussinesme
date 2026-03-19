@@ -634,7 +634,7 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
       </div>
       <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden">
         {WEEKDAYS.map(d => (
-          <div key={d} className="bg-muted px-2 py-2 text-xs font-medium text-muted-foreground text-center">{d}</div>
+          <div key={d} className="bg-primary px-2 py-2 text-xs font-medium text-primary-foreground text-center">{d}</div>
         ))}
         {paddedDays.map((day, i) => (
           <div key={i} className={cn('bg-card min-h-[90px] p-1.5 text-sm', day && isSameDay(day, new Date()) && 'ring-1 ring-inset ring-primary/30', !day && 'bg-muted/30')}>
