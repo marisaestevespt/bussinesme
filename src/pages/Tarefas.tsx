@@ -182,7 +182,7 @@ export default function TarefasPage() {
       deadline: format(deadline, 'yyyy-MM-dd'),
       assigned_to: assignedTo || null,
       department: department || null,
-      project_id: projectId || null,
+      project_id: projectId && projectId !== 'none' ? projectId : null,
       notes: notes || null,
     };
     // When changing to done, store completion time in updated_at
