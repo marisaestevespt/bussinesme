@@ -1,0 +1,3 @@
+CREATE POLICY "Authenticated can view commercial files" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'commercial-files');
+CREATE POLICY "Authenticated can upload commercial files" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'commercial-files');
+CREATE POLICY "Owners can delete commercial files" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'commercial-files' AND public.has_role(auth.uid(), 'owner'));
