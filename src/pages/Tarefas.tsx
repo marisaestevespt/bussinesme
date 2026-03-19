@@ -239,9 +239,13 @@ export default function TarefasPage() {
     setParentTaskId(task.parent_task_id || '');
     setRecurrenceType(task.recurrence_type || '');
     setRecurrenceEnd(task.recurrence_end ? parseISO(task.recurrence_end) : undefined);
+    setEstimatedTime(task.estimated_time != null ? String(task.estimated_time) : '');
+    setSuggestion(null); setSuggestionDismissed(false);
     // Load dependencies for this task
     const deps = taskDependencies.filter(d => d.task_id === task.id).map(d => d.depends_on_task_id);
     setDependsOnIds(deps);
+    setDialogOpen(true);
+  }
     setDialogOpen(true);
   }
 
