@@ -272,6 +272,30 @@ export function BrandSettings() {
             </div>
           </div>
         </div>
+
+        {/* Login background */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Fundo da página de login</Label>
+          <div className="flex items-center gap-4">
+            <label className="flex h-20 w-32 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 hq-transition hover:border-muted-foreground/50 hover:bg-muted/50 overflow-hidden">
+              {bgPreview ? (
+                <img src={bgPreview} alt="Login bg preview" className="h-full w-full object-cover" />
+              ) : (
+                <ImageIcon className="h-5 w-5 text-muted-foreground/50" />
+              )}
+              <input type="file" accept="image/*" onChange={handleBgChange} className="hidden" />
+            </label>
+            <div className="text-xs text-muted-foreground">
+              <p>Imagem de fundo para a página de login</p>
+              <p className="mt-0.5">Recomendado: 1920×1080 ou superior</p>
+              {bgPreview && (
+                <button type="button" className="mt-1 text-destructive hover:underline" onClick={() => { setBgFile(null); setBgPreview(null); }}>
+                  Remover fundo
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </Section>
 
       {/* ── Cores da Marca ── */}
