@@ -168,7 +168,6 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
         onClick={() => opts.clickable && openEdit(g)}
       >
         <TableCell className="text-sm">
-          {g.isAggregated && <Badge variant="outline" className="text-[10px] mr-1">Auto</Badge>}
           {g.period}
         </TableCell>
         <TableCell className="text-xs">{area ? <Badge variant="outline" className="text-[10px]">{area}</Badge> : '—'}</TableCell>
