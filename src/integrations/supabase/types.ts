@@ -1663,6 +1663,368 @@ export type Database = {
         }
         Relationships: []
       }
+      product_automations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          objective: string | null
+          offer: string | null
+          platform: string | null
+          product_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          objective?: string | null
+          offer?: string | null
+          platform?: string | null
+          product_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          objective?: string | null
+          offer?: string | null
+          platform?: string | null
+          product_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_automations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_costs: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          product_id: string
+          sort_order: number
+          usage_desc: string | null
+          value: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          product_id: string
+          sort_order?: number
+          usage_desc?: string | null
+          value?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          product_id?: string
+          sort_order?: number
+          usage_desc?: string | null
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_costs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_feedbacks: {
+        Row: {
+          client_name: string | null
+          created_at: string
+          feedback: string | null
+          id: string
+          product_id: string
+        }
+        Insert: {
+          client_name?: string | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          product_id: string
+        }
+        Update: {
+          client_name?: string | null
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_feedbacks_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_funnels: {
+        Row: {
+          created_at: string
+          entry_points: Json | null
+          funnel_type: string | null
+          id: string
+          name: string
+          notes: string | null
+          objective: string | null
+          offer: string | null
+          platforms: Json | null
+          product_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          entry_points?: Json | null
+          funnel_type?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          objective?: string | null
+          offer?: string | null
+          platforms?: Json | null
+          product_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          entry_points?: Json | null
+          funnel_type?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          objective?: string | null
+          offer?: string | null
+          platforms?: Json | null
+          product_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_funnels_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_kpi_reports: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          month: number
+          product_id: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          month: number
+          product_id: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          month?: number
+          product_id?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_kpi_reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_traffic_ads: {
+        Row: {
+          created_at: string
+          creative_url: string | null
+          format: string | null
+          id: string
+          link: string | null
+          objective: string | null
+          offer_goal: string | null
+          product_id: string
+          start_date: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          creative_url?: string | null
+          format?: string | null
+          id?: string
+          link?: string | null
+          objective?: string | null
+          offer_goal?: string | null
+          product_id: string
+          start_date?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          creative_url?: string | null
+          format?: string | null
+          id?: string
+          link?: string | null
+          objective?: string | null
+          offer_goal?: string | null
+          product_id?: string
+          start_date?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_traffic_ads_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_useful_links: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          product_id: string
+          sort_order: number
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          product_id: string
+          sort_order?: number
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          product_id?: string
+          sort_order?: number
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_useful_links_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          about_content: string | null
+          brainstorming_content: string | null
+          client_profile: Json | null
+          competitors: Json | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          drive_url: string | null
+          escada: string | null
+          faqs: Json | null
+          id: string
+          important_dates: Json | null
+          improvements_content: string | null
+          included_items: Json | null
+          name: string
+          product_type: string | null
+          sales_page_url: string | null
+          sales_type: string | null
+          status: string
+          ticket: string | null
+          updated_at: string
+        }
+        Insert: {
+          about_content?: string | null
+          brainstorming_content?: string | null
+          client_profile?: Json | null
+          competitors?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          drive_url?: string | null
+          escada?: string | null
+          faqs?: Json | null
+          id?: string
+          important_dates?: Json | null
+          improvements_content?: string | null
+          included_items?: Json | null
+          name: string
+          product_type?: string | null
+          sales_page_url?: string | null
+          sales_type?: string | null
+          status?: string
+          ticket?: string | null
+          updated_at?: string
+        }
+        Update: {
+          about_content?: string | null
+          brainstorming_content?: string | null
+          client_profile?: Json | null
+          competitors?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          drive_url?: string | null
+          escada?: string | null
+          faqs?: Json | null
+          id?: string
+          important_dates?: Json | null
+          improvements_content?: string | null
+          included_items?: Json | null
+          name?: string
+          product_type?: string | null
+          sales_page_url?: string | null
+          sales_type?: string | null
+          status?: string
+          ticket?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
