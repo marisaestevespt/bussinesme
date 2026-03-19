@@ -5,10 +5,8 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTeamData } from '@/hooks/useTeamData';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
-import { lazy, Suspense } from 'react';
+import { TabEscala } from '@/components/hr/TabEscala';
 
-// We import the tab components from the main page - they're defined there
-// We'll need to refactor them out, but for now import the whole page's internals
 import {
   TabEquipa,
   TabPerformance,
@@ -18,6 +16,7 @@ import {
 
 const TITLES: Record<string, string> = {
   equipa: 'Equipa',
+  escala: 'Escala',
   performance: 'Performance',
   feedback: 'Feedback',
   'contratos-pagamentos': 'Contratos & Pagamentos',
@@ -32,6 +31,7 @@ export default function RecursosHumanosSubPage() {
   const renderContent = () => {
     switch (section) {
       case 'equipa': return <TabEquipa team={team} />;
+      case 'escala': return <TabEscala />;
       case 'performance': return <TabPerformance team={team} />;
       case 'feedback': return <TabFeedback team={team} />;
       case 'contratos-pagamentos': return <TabContracts team={team} />;
