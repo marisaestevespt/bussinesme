@@ -591,7 +591,7 @@ export default function ExecutiveGestaoEquipa() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Gestão de Equipa</h1>
+          <h1 className="text-2xl font-bold">Recursos Humanos</h1>
           <p className="text-sm text-muted-foreground mt-1">Central de gestão de todos os membros do negócio</p>
         </div>
 
