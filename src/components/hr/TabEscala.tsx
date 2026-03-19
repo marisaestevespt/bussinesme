@@ -120,15 +120,23 @@ function getAvailability(
     }
   }
 
+  // Check custom_holidays (date ranges "start|end" or single dates used as off/vacation)
+  const customDates: string[] = Array.isArray(member.custom_holidays) ? member.custom_holidays : [];
+  for (const d of customDates) {
+    try {
+      if (d.includes('|')) {
+        const [s, e] = d.split('|');
+        if (isWithinInterval(day, { start: parseISO(s), end: parseISO(e) })) return 'vacation';
+      } else {
+        if (isSameDay(parseISO(d), day)) return 'vacation';
+      }
+    } catch { /* skip invalid */ }
+  }
+
   // Check if it's a national holiday
   const isNational = nationalHolidays.some(h => isSameDay(h, day));
-  // Check custom holidays
-  const customDates: string[] = Array.isArray(member.custom_holidays) ? member.custom_holidays : [];
-  const isCustomHoliday = customDates.some(d => {
-    try { return isSameDay(parseISO(d), day); } catch { return false; }
-  });
 
-  if (isNational || isCustomHoliday) {
+  if (isNational) {
     return member.works_holidays ? 'available' : 'holiday';
   }
 
