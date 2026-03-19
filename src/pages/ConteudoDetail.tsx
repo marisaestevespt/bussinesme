@@ -395,7 +395,7 @@ export default function ConteudoDetailPage() {
                     </Select>
                   </Field>
 
-                  <Field label="Responsável">
+                  <Field label="Responsável de Fase">
                     <Select value={form.assigned_to} onValueChange={v => setForm(f => ({ ...f, assigned_to: v }))}>
                       <SelectTrigger className="h-9"><SelectValue placeholder="Ninguém" /></SelectTrigger>
                       <SelectContent>
