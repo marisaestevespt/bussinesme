@@ -24,6 +24,7 @@ import ProcessosPage from "./pages/Processos";
 import SopDetailPage from "./pages/SopDetail";
 import BibliotecaPage from "./pages/Biblioteca";
 import TarefasPage from "./pages/Tarefas";
+import HubEquipaPage from "./pages/HubEquipa";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Navigate to="/secretaria" replace />} />
       <Route path="/secretaria" element={<SecretariaPage />} />
+      <Route path="/hub-equipa" element={<HubEquipaPage />} />
       <Route path="/comeca-aqui" element={<ComecaAquiPage />} />
       <Route path="/hub/agenda" element={<AgendaPage />} />
       <Route path="/hub/reunioes" element={<ReunioesPage />} />
