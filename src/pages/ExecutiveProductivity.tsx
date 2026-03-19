@@ -268,7 +268,7 @@ function OverviewTab({ entries, members, clients, products, tasks }: { entries: 
 }
 
 /* ─── CAPACIDADE DA EQUIPA ─── */
-function TeamCapacitySection({ members, clients, products }: { members: any[]; clients: any[]; products: any[] }) {
+function TeamCapacitySection({ members, clients, products, tasks }: { members: any[]; clients: any[]; products: any[]; tasks: any[] }) {
   const activeMembers = members.filter(m => m.status === 'ativo');
   const activeClients = clients.filter(c => c.status === 'ativo');
 
