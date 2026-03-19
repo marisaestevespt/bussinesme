@@ -200,6 +200,7 @@ export default function ProdutoDetailPage() {
     qc.invalidateQueries({ queryKey: ['product-traffic-ads', id] });
     qc.invalidateQueries({ queryKey: ['product-useful-links', id] });
     qc.invalidateQueries({ queryKey: ['product-costs', id] });
+    qc.invalidateQueries({ queryKey: ['product-onboarding-template', id] });
   };
 
   const addRow = useMutation({
