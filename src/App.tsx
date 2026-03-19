@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { BusinessSettingsProvider, useBusinessSettings } from "@/hooks/useBusinessSettings";
+import { ActiveTimerProvider } from "@/hooks/useActiveTimer";
+import { FloatingTimer } from "@/components/FloatingTimer";
 import { AuthPage } from "@/components/AuthPage";
 import { SetupPage } from "@/components/SetupPage";
 import NotFound from "./pages/NotFound";
@@ -76,7 +78,10 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <BusinessSettingsProvider>
-            <AppRoutes />
+            <ActiveTimerProvider>
+              <FloatingTimer />
+              <AppRoutes />
+            </ActiveTimerProvider>
           </BusinessSettingsProvider>
         </AuthProvider>
       </BrowserRouter>

@@ -13,6 +13,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Plus, CalendarIcon, ListTodo, AlertTriangle, Clock, CalendarDays, List, Users, Link2, GitBranch, ChevronRight, Play } from 'lucide-react';
 import { TaskTimeTracker } from '@/components/TaskTimeTracker';
+import { useActiveTimer } from '@/hooks/useActiveTimer';
 import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -75,6 +76,7 @@ function getDeptInfo(val: string) {
 export default function TarefasPage() {
   const { user, isOwner } = useAuth();
   const queryClient = useQueryClient();
+  const { startTimer: globalStartTimer } = useActiveTimer();
   const { allViews, addView, renameView, deleteView } = useUserViews('tarefas', DEFAULT_VIEWS);
   const [view, setView] = useState<string>('todo');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -635,15 +637,9 @@ export default function TarefasPage() {
             </Button>
             <Button
               onClick={async () => {
-                if (timerPromptTaskId && user) {
-                  await supabase.from('task_time_entries').insert({
-                    task_id: timerPromptTaskId,
-                    user_id: user.id,
-                    started_at: new Date().toISOString(),
-                    duration_minutes: 0,
-                    is_manual: false,
-                  });
-                  queryClient.invalidateQueries({ queryKey: ['task-time-entries', timerPromptTaskId] });
+                if (timerPromptTaskId) {
+                  const taskName = tasks.find(t => t.id === timerPromptTaskId)?.name || 'Tarefa';
+                  await globalStartTimer(timerPromptTaskId, taskName);
                   toast.success('Timer iniciado! ▶️');
                 }
                 setTimerPromptTaskId(null);
