@@ -511,7 +511,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           {renderCalendarGrid(
             contentTab === 'calendario' ? allContent : allContent.filter((c: any) => c.content_channels?.some((cc: any) => cc.channel_id === contentTab)),
             (c: any) => c.scheduled_at ? parseISO(c.scheduled_at) : null,
-            (c: any) => <div key={c.id} className="text-[9px] bg-accent/50 rounded px-1 py-0.5 truncate">{c.title}</div>
+            (c: any) => <div key={c.id} className="text-[9px] bg-accent/50 rounded px-1 py-0.5 truncate cursor-pointer hover:bg-accent" onClick={() => navigate(`/hub/marketing/conteudos/${c.id}`)}>{c.title}</div>
           )}
         </CardContent>
       </Card>
