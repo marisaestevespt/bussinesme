@@ -47,6 +47,8 @@ import ComercialPage from "./pages/Comercial";
 import ComercialSubPage from "./pages/ComercialSubPage";
 import ProdutosPage from "./pages/Produtos";
 import ProdutoDetailPage from "./pages/ProdutoDetail";
+import ClientesPage from "./pages/Clientes";
+import ClienteDetailPage from "./pages/ClienteDetail";
 
 const queryClient = new QueryClient();
 
@@ -102,6 +104,8 @@ function AppRoutes() {
       <Route path="/hub/comercial/:section" element={<ComercialSubPage />} />
       <Route path="/hub/produtos" element={<ProdutosPage />} />
       <Route path="/hub/produtos/:id" element={<ProdutoDetailPage />} />
+      <Route path="/hub/clientes" element={<ClientesPage />} />
+      <Route path="/hub/clientes/:id" element={<ClienteDetailPage />} />
         <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
       <Route path="/definicoes" element={<DefinicoesPage />} />

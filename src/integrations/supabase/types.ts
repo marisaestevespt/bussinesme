@@ -356,6 +356,192 @@ export type Database = {
           },
         ]
       }
+      client_activities: {
+        Row: {
+          activity: string
+          client_id: string
+          created_at: string
+          id: string
+          phase: string | null
+          responsible: string | null
+          rule: string | null
+          sort_order: number
+        }
+        Insert: {
+          activity?: string
+          client_id: string
+          created_at?: string
+          id?: string
+          phase?: string | null
+          responsible?: string | null
+          rule?: string | null
+          sort_order?: number
+        }
+        Update: {
+          activity?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          phase?: string | null
+          responsible?: string | null
+          rule?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_activities_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_history: {
+        Row: {
+          client_id: string
+          created_at: string
+          entry_date: string
+          id: string
+          milestone: string
+          observations: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          entry_date?: string
+          id?: string
+          milestone?: string
+          observations?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          entry_date?: string
+          id?: string
+          milestone?: string
+          observations?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_history_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_onboarding: {
+        Row: {
+          activity: string
+          client_id: string
+          created_at: string
+          id: string
+          phase: string | null
+          responsible: string | null
+          rule: string | null
+          sort_order: number
+        }
+        Insert: {
+          activity?: string
+          client_id: string
+          created_at?: string
+          id?: string
+          phase?: string | null
+          responsible?: string | null
+          rule?: string | null
+          sort_order?: number
+        }
+        Update: {
+          activity?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          phase?: string | null
+          responsible?: string | null
+          rule?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_onboarding_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          birthday: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          current_product: string | null
+          documents: string | null
+          dp: string | null
+          drive_folder_url: string | null
+          email: string | null
+          end_of_cycle: string | null
+          fiscal_address: string | null
+          full_name: string
+          id: string
+          nif: string | null
+          observations: string | null
+          payment_method: string | null
+          start_date: string | null
+          status: string
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          birthday?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          current_product?: string | null
+          documents?: string | null
+          dp?: string | null
+          drive_folder_url?: string | null
+          email?: string | null
+          end_of_cycle?: string | null
+          fiscal_address?: string | null
+          full_name: string
+          id?: string
+          nif?: string | null
+          observations?: string | null
+          payment_method?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          birthday?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          current_product?: string | null
+          documents?: string | null
+          dp?: string | null
+          drive_folder_url?: string | null
+          email?: string | null
+          end_of_cycle?: string | null
+          fiscal_address?: string | null
+          full_name?: string
+          id?: string
+          nif?: string | null
+          observations?: string | null
+          payment_method?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       commercial_annual_goals: {
         Row: {
           created_at: string
