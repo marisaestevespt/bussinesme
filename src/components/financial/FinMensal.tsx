@@ -334,10 +334,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
           <div className="space-y-3">
             <div><Label>Descrição</Label><Input value={expForm.description} onChange={e => setExpForm((f: any) => ({ ...f, description: e.target.value }))} /></div>
             <div><Label>Categoria</Label>
-              <Select value={expForm.category} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{CATEGORIES.map(c => <SelectItem key={c} value={c}>{CAT_LABELS[c]}</SelectItem>)}</SelectContent>
-              </Select>
+              <CategorySelect type="expense" value={expForm.category} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Valor Base (€)</Label><Input type="number" value={expForm.base_value} onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))} /></div>
