@@ -74,13 +74,16 @@ export default function HubEquipaPage() {
     <AppLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {greetingText()}, {firstName}.
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: pt })}
-          </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              {greetingText()}, {firstName}.
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Olá! Bem-vindo(a) ao nosso espaço. Este é o lugar onde organizamos, colaboramos e crescemos juntos.
+            </p>
+          </div>
+          <AnalogClock />
         </div>
 
         {/* Quick links */}
