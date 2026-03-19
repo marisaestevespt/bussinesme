@@ -217,7 +217,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
     return Object.entries(groups).filter(([, g]) => g.items.length > 0);
   }, [checklist]);
 
-  const hasHabitsSeeded = checklist.some((c: any) => c.task.includes('::'));
+  
 
   // New checklist item state
   const [newCat, setNewCat] = useState('');
