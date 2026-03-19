@@ -267,19 +267,14 @@ export default function TarefasPage() {
         </div>
 
         {/* View switcher */}
-        <div className="flex flex-wrap gap-2">
-          {VIEWS.map(v => (
-            <Button
-              key={v.key}
-              variant={view === v.key ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setView(v.key)}
-              className="gap-1.5"
-            >
-              {v.icon} {v.label}
-            </Button>
-          ))}
-        </div>
+        <ViewTabs
+          views={allViews}
+          activeKey={view}
+          onSelect={setView}
+          onAdd={(label) => addView(label)}
+          onRename={(id, label) => renameView({ id, label })}
+          onDelete={(id) => { if (view.startsWith('custom_')) setView('todo'); deleteView(id); }}
+        />
 
         {/* Content */}
         {view === 'calendario' ? (
