@@ -74,111 +74,52 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
 
   const locLabel = (l: string) => l === 'portugal' ? 'Portugal' : l === 'ue' ? 'União Europeia' : 'Fora da UE';
 
+  const totalCobrado = balanco.reduce((s, d) => s + d.cobrado, 0);
+  const totalPago = balanco.reduce((s, d) => s + d.pago, 0);
+  const totalBalanco = balanco.reduce((s, d) => s + d.balanco, 0);
+
   return (
-    <div className="space-y-8 mt-4">
-      {/* IVA Cobrado */}
-      <div>
-        <h3 className="text-lg font-semibold mb-3">IVA Cobrado (Vendas)</h3>
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Mês</TableHead>
-                  <TableHead className="text-right">Total Fatura</TableHead>
-                  <TableHead className="text-right">Total Base</TableHead>
-                  <TableHead className="text-right">IVA Cobrado</TableHead>
+    <div className="space-y-6 mt-4">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">IVA — {currentYear}</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Mês</TableHead>
+                <TableHead className="text-right">IVA Cobrado</TableHead>
+                <TableHead className="text-right">IVA Pago</TableHead>
+                <TableHead className="text-right">Balanço</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {balanco.map((d, i) => (
+                <TableRow key={i}>
+                  <TableCell className="font-medium">{d.mes}</TableCell>
+                  <TableCell className="text-right">{fmt(d.cobrado)}</TableCell>
+                  <TableCell className="text-right">{fmt(d.pago)}</TableCell>
+                  <TableCell className={`text-right font-medium ${d.balanco > 0 ? 'text-amber-600' : d.balanco < 0 ? 'text-green-600' : ''}`}>{fmt(d.balanco)}</TableCell>
+                  <TableCell>
+                    {d.balanco > 0 && <Badge variant="outline" className="bg-amber-100 text-amber-800 text-xs">A entregar</Badge>}
+                    {d.balanco < 0 && <Badge variant="outline" className="bg-green-100 text-green-800 text-xs">A recuperar</Badge>}
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ivaCobrado.map((d, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="font-medium">{d.mes}</TableCell>
-                    <TableCell className="text-right">{fmt(d.totalFatura)}</TableCell>
-                    <TableCell className="text-right">{fmt(d.totalBase)}</TableCell>
-                    <TableCell className="text-right font-medium">{fmt(d.iva)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </div>
+              ))}
+              <TableRow className="border-t-2 font-semibold">
+                <TableCell>Total</TableCell>
+                <TableCell className="text-right">{fmt(totalCobrado)}</TableCell>
+                <TableCell className="text-right">{fmt(totalPago)}</TableCell>
+                <TableCell className={`text-right ${totalBalanco > 0 ? 'text-amber-600' : totalBalanco < 0 ? 'text-green-600' : ''}`}>{fmt(totalBalanco)}</TableCell>
+                <TableCell />
+              </TableRow>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-      {/* IVA Pago */}
-      <div>
-        <h3 className="text-lg font-semibold mb-3">IVA Pago (Despesas)</h3>
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Mês</TableHead>
-                  <TableHead>Localização</TableHead>
-                  <TableHead className="text-right">Total c/ IVA</TableHead>
-                  <TableHead className="text-right">Total s/ IVA</TableHead>
-                  <TableHead className="text-right">IVA Pago</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ivaPago.map((d, i) => (
-                  d.byLoc.filter(l => l.totalComIva > 0).map((l, j) => (
-                    <TableRow key={`${i}-${j}`}>
-                      {j === 0 && <TableCell rowSpan={d.byLoc.filter(x => x.totalComIva > 0).length || 1} className="font-medium align-top">{d.mes}</TableCell>}
-                      <TableCell>{locLabel(l.loc)}</TableCell>
-                      <TableCell className="text-right">{fmt(l.totalComIva)}</TableCell>
-                      <TableCell className="text-right">{fmt(l.totalSemIva)}</TableCell>
-                      <TableCell className="text-right font-medium">{fmt(l.iva)}</TableCell>
-                      <TableCell>
-                        {(l.loc === 'ue' || l.loc === 'fora_ue') && <Badge variant="outline" className="bg-blue-100 text-blue-800 text-xs">Reverse Charge</Badge>}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ))}
-                {ivaPago.every(d => d.byLoc.every(l => l.totalComIva === 0)) && (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Sem dados</TableCell></TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Balanço IVA */}
-      <div>
-        <h3 className="text-lg font-semibold mb-3">Balanço de IVA</h3>
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Mês</TableHead>
-                  <TableHead className="text-right">IVA Cobrado</TableHead>
-                  <TableHead className="text-right">IVA Pago</TableHead>
-                  <TableHead className="text-right">Balanço</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {balanco.map((d, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="font-medium">{d.mes}</TableCell>
-                    <TableCell className="text-right">{fmt(d.cobrado)}</TableCell>
-                    <TableCell className="text-right">{fmt(d.pago)}</TableCell>
-                    <TableCell className={`text-right font-medium ${d.balanco >= 0 ? 'text-amber-600' : 'text-green-600'}`}>{fmt(d.balanco)}</TableCell>
-                    <TableCell>
-                      {d.balanco > 0 && <Badge variant="outline" className="bg-amber-100 text-amber-800 text-xs">A entregar</Badge>}
-                      {d.balanco < 0 && <Badge variant="outline" className="bg-green-100 text-green-800 text-xs">A recuperar</Badge>}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </div>
-      {/* Documentos */}
       <FinDocumentsUpload
         title={`Declarações de IVA — ${currentYear}`}
         documents={ivaDocuments}
