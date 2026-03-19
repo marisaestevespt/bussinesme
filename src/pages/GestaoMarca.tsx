@@ -70,11 +70,11 @@ interface VisualFile {
 // ── Constants ──
 
 const KANBAN_GROUPS = [
-  { key: 'marca_pessoal', label: 'Marca Pessoal', emoji: '🧬' },
-  { key: 'mercado', label: 'Mercado', emoji: '🌍' },
-  { key: 'posicionamento', label: 'Posicionamento', emoji: '🎯' },
-  { key: 'identidade', label: 'Identidade', emoji: '🪞' },
-  { key: 'impacto', label: 'Impacto', emoji: '⚡' },
+  { key: 'marca_pessoal', label: 'Marca Pessoal' },
+  { key: 'mercado', label: 'Mercado' },
+  { key: 'posicionamento', label: 'Posicionamento' },
+  { key: 'identidade', label: 'Identidade' },
+  { key: 'impacto', label: 'Impacto' },
 ];
 
 // ── Page ──
