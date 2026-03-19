@@ -105,6 +105,11 @@ export default function GestaoMarcaPage() {
   const [editingVisualDesc, setEditingVisualDesc] = useState(false);
   const [uploadingVisual, setUploadingVisual] = useState(false);
 
+  // Competitors
+  const [editingCompetitor, setEditingCompetitor] = useState<BrandCompetitor | null>(null);
+  const [showAddCompetitor, setShowAddCompetitor] = useState(false);
+  const [compForm, setCompForm] = useState({ name: '', type: 'direta', instagram: '', website: '', produtos: '', precos: '', plataformas: '', posicionamento: '', comunicacao: '' });
+
   // ── Queries ──
 
   const { data: brandLinks = [] } = useQuery({
