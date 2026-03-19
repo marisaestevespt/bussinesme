@@ -375,7 +375,12 @@ export default function TarefasPage() {
             firstDayOffset={firstDayOffset}
             tasksByDate={tasksByDate}
             isOverdue={isOverdue}
-            onTaskClick={openEdit}
+            onTaskClick={(t) => {
+              // For recurring occurrences, open the original task
+              const originalId = t._originalId || t.id;
+              const original = tasks.find(tk => tk.id === originalId) || t;
+              openEdit(original);
+            }}
           />
         ) : view === 'responsavel' ? (
           <ResponsavelView
