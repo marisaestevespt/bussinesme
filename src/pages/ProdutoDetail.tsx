@@ -182,12 +182,22 @@ export default function ProdutoDetailPage() {
   });
 
   // Mutations for sub-tables
+  const invalidateSub = () => {
+    qc.invalidateQueries({ queryKey: ['product-feedbacks', id] });
+    qc.invalidateQueries({ queryKey: ['product-funnels', id] });
+    qc.invalidateQueries({ queryKey: ['product-automations', id] });
+    qc.invalidateQueries({ queryKey: ['product-traffic-ads', id] });
+    qc.invalidateQueries({ queryKey: ['product-useful-links', id] });
+    qc.invalidateQueries({ queryKey: ['product-costs', id] });
+  };
+
   const addRow = useMutation({
     mutationFn: async ({ table, data }: { table: string; data: any }) => {
       const { error } = await supabase.from(table as any).insert(data);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['product-'] }),
+    onSuccess: invalidateSub,
+    onError: (err) => toast.error('Erro ao adicionar registo'),
   });
 
   const updateRow = useMutation({
