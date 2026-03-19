@@ -530,6 +530,45 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
           )}
 
           <Separator />
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Feriados & Férias</h3>
+          <div className="flex items-center justify-between">
+            <label className="text-sm">Trabalha em feriados?</label>
+            <Switch checked={!!f.works_holidays} onCheckedChange={v => set('works_holidays', v)} />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs text-muted-foreground">Feriados específicos (municipais, etc.)</label>
+            <div className="flex gap-2">
+              <Input
+                type="date"
+                id="custom-holiday-input"
+                className="flex-1"
+              />
+              <Button type="button" variant="outline" size="sm" onClick={() => {
+                const input = document.getElementById('custom-holiday-input') as HTMLInputElement;
+                if (input?.value) {
+                  const current: string[] = Array.isArray(f.custom_holidays) ? f.custom_holidays : [];
+                  if (!current.includes(input.value)) {
+                    set('custom_holidays', [...current, input.value]);
+                  }
+                  input.value = '';
+                }
+              }}>
+                <Plus className="h-3 w-3" />
+              </Button>
+            </div>
+            {Array.isArray(f.custom_holidays) && f.custom_holidays.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1">
+                {f.custom_holidays.map((d: string) => (
+                  <Badge key={d} variant="secondary" className="text-xs gap-1">
+                    {(() => { try { return format(parseISO(d), 'dd/MM/yyyy'); } catch { return d; } })()}
+                    <button type="button" onClick={() => set('custom_holidays', f.custom_holidays.filter((x: string) => x !== d))} className="ml-0.5 hover:text-destructive">×</button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <Separator />
           <Textarea placeholder="Apresentação" value={f.presentation || ''} onChange={e => set('presentation', e.target.value)} rows={2} />
           <Textarea placeholder="Responsabilidades" value={f.responsibilities || ''} onChange={e => set('responsibilities', e.target.value)} rows={2} />
           <Button className="w-full" onClick={() => { onSave({ member: { ...initial, ...f }, contract: isEdit ? null : contract }); onClose(false); }} disabled={!f.full_name.trim()}>Guardar</Button>
