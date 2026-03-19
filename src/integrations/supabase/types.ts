@@ -1695,6 +1695,7 @@ export type Database = {
           description: string | null
           id: string
           objective_type: string
+          product_id: string | null
           progress: number
           status: string
           target_unit: string | null
@@ -1712,6 +1713,7 @@ export type Database = {
           description?: string | null
           id?: string
           objective_type?: string
+          product_id?: string | null
           progress?: number
           status?: string
           target_unit?: string | null
@@ -1729,6 +1731,7 @@ export type Database = {
           description?: string | null
           id?: string
           objective_type?: string
+          product_id?: string | null
           progress?: number
           status?: string
           target_unit?: string | null
@@ -1738,7 +1741,15 @@ export type Database = {
           value_source?: string | null
           year?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "executive_objectives_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       executive_quarterly_analysis: {
         Row: {
@@ -3090,6 +3101,7 @@ export type Database = {
           last_updated_at: string | null
           name: string
           objective_id: string
+          product_id: string | null
           source: string
           target_unit: string | null
           target_value: number | null
@@ -3104,6 +3116,7 @@ export type Database = {
           last_updated_at?: string | null
           name?: string
           objective_id: string
+          product_id?: string | null
           source?: string
           target_unit?: string | null
           target_value?: number | null
@@ -3118,6 +3131,7 @@ export type Database = {
           last_updated_at?: string | null
           name?: string
           objective_id?: string
+          product_id?: string | null
           source?: string
           target_unit?: string | null
           target_value?: number | null
@@ -3129,6 +3143,13 @@ export type Database = {
             columns: ["objective_id"]
             isOneToOne: false
             referencedRelation: "executive_objectives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "objective_metrics_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
