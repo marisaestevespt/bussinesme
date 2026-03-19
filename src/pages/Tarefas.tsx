@@ -247,7 +247,84 @@ export default function TarefasPage() {
     setDialogOpen(true);
   }
 
-  function closeDialog() {
+  // ─── Similarity search ────────────────────────────────────────
+  function normalize(s: string) {
+    return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  }
+
+  function findSimilarTasks(input: string) {
+    if (!input || input.length < 3 || editingTask) return;
+    const norm = normalize(input);
+    // Find tasks with similar names that have time entries
+    const taskTimeMap: Record<string, number[]> = {};
+    allTimeEntries.forEach(e => {
+      if (!e.task_id || !e.duration_minutes) return;
+      if (!taskTimeMap[e.task_id]) taskTimeMap[e.task_id] = [];
+      taskTimeMap[e.task_id].push(e.duration_minutes);
+    });
+
+    for (const t of tasks) {
+      if (!taskTimeMap[t.id]) continue;
+      const tn = normalize(t.name);
+      // Check if names are similar (one contains the other, or levenshtein-like)
+      if (tn === norm || tn.includes(norm) || norm.includes(tn)) {
+        const times = taskTimeMap[t.id];
+        const avgMinutes = times.reduce((s, v) => s + v, 0) / times.length;
+        const avgHours = Math.round((avgMinutes / 60) * 10) / 10;
+        if (avgHours > 0) {
+          setSuggestion({ taskName: t.name, avgHours });
+          return;
+        }
+      }
+    }
+    setSuggestion(null);
+  }
+
+  function handleNameChange(val: string) {
+    setName(val);
+    setSuggestionDismissed(false);
+    // Debounce-like: only search when typing pauses (simple approach)
+    findSimilarTasks(val);
+  }
+
+  // ─── Capacity warning ─────────────────────────────────────────
+  const capacityWarning = useMemo(() => {
+    if (!assignedTo || !estimatedTime || !deadline) return null;
+    const estHours = parseFloat(estimatedTime);
+    if (isNaN(estHours) || estHours <= 0) return null;
+
+    const member = teamMembers.find(m => m.profile_id === assignedTo && m.status === 'ativo');
+    if (!member) return null;
+
+    const weeklyHours = Number(member.expected_weekly_hours || 40);
+    // Calculate existing committed hours for the deadline week
+    const dlDate = deadline;
+    const weekStart = startOfDay(dlDate);
+    // Get tasks assigned to same member in same week (simple: same week)
+    const wStart = startOfWeek(dlDate, { weekStartsOn: 1 });
+    const wEnd = endOfWeek(dlDate, { weekStartsOn: 1 });
+
+    let committedHours = 0;
+    tasks.forEach(t => {
+      if (t.assigned_to !== assignedTo || t.status === 'done') return;
+      if (editingTask && t.id === editingTask.id) return;
+      if (!t.deadline) return;
+      const td = parseISO(t.deadline);
+      if (td >= wStart && td <= wEnd && t.estimated_time) {
+        committedHours += Number(t.estimated_time);
+      }
+    });
+
+    const totalAfter = committedHours + estHours;
+    const occupancy = Math.round((totalAfter / weeklyHours) * 100);
+    const memberName = member.full_name || profiles.find(p => p.id === assignedTo)?.full_name || 'Membro';
+
+    if (occupancy >= 80) {
+      return { memberName, occupancy };
+    }
+    return null;
+  }, [assignedTo, estimatedTime, deadline, tasks, teamMembers, profiles, editingTask]);
+
     setDialogOpen(false);
     setEditingTask(null);
   }
