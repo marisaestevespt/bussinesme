@@ -127,6 +127,17 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                   {form.value_source === 'manual' && (
                     <div><Label>Valor atual</Label><Input type="number" value={form.current_value} onChange={e => set('current_value', e.target.value)} /></div>
                   )}
+                  {(form.value_source === 'bd_vendas' || form.value_source === 'bd_crm') && (
+                    <div><Label>Produto associado</Label>
+                      <Select value={form.product_id || 'none'} onValueChange={v => set('product_id', v === 'none' ? '' : v)}>
+                        <SelectTrigger><SelectValue placeholder="Todos os produtos" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Todos os produtos</SelectItem>
+                          {productsList.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
