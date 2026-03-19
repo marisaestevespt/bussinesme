@@ -21,8 +21,15 @@ import { format } from 'date-fns';
 export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<any>({});
+  const { products } = useProducts();
+  const productsList = products.data || [];
 
   const obj = objective ? (planning.allObjectives.find((o: any) => o.id === objective.id) || objective) : null;
+
+  const getProductName = (productId: string | null) => {
+    if (!productId) return null;
+    return productsList.find((p: any) => p.id === productId)?.name || null;
+  };
 
   useEffect(() => {
     if (obj) {
@@ -31,7 +38,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
         status: obj.status || 'por_iniciar', deadline: obj.deadline || '',
         objective_type: obj.objective_type || 'quantitativo', target_value: obj.target_value || '',
         target_unit: obj.target_unit || '€', current_value: obj.current_value || '',
-        value_source: obj.value_source || 'manual',
+        value_source: obj.value_source || 'manual', product_id: obj.product_id || '',
       });
       setEditing(false);
     }
@@ -39,8 +46,9 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
 
   if (!obj) return null;
 
-  const prog = planning.objectiveProgress(obj);
-  const currentVal = planning.objectiveCurrentValue(obj);
+  const objProductName = getProductName(obj.product_id);
+  const prog = planning.objectiveProgress({ ...obj, product_name: objProductName });
+  const currentVal = planning.objectiveCurrentValue({ ...obj, product_name: objProductName });
   const objCriteria = (planning.criteria.data || []).filter((c: any) => c.objective_id === obj.id);
   const objGoals = planning.allGoals.filter((g: any) => g.objective_id === obj.id);
   const objMetrics = planning.allMetrics.filter((m: any) => m.objective_id === obj.id);
