@@ -154,8 +154,13 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   };
 
   const allClients = clientsQ.data || [];
-  const activeClients = allClients.filter((c: any) => c.status === 'ativo');
-  const endingClients = allClients.filter((c: any) => { if (!c.end_of_cycle) return false; const d = parseISO(c.end_of_cycle); return d >= range.start && d <= range.end; });
+  const activeClients = allClients.filter((c: any) => c.status === 'ativo' || c.status === 'em_onboarding');
+  const pausedClients = allClients.filter((c: any) => c.status === 'pausado');
+  const endingClients = allClients.filter((c: any) => {
+    const isTerminado = c.status === 'terminado';
+    const endsCycle = c.end_of_cycle ? (() => { const d = parseISO(c.end_of_cycle); return d >= range.start && d <= range.end; })() : false;
+    return isTerminado || endsCycle;
+  });
 
   const allEvents = (eventsQ.data || []).filter((e: any) => { if (!e.start_date) return false; const d = parseISO(e.start_date); return d.getMonth() === calMonth.getMonth() && d.getFullYear() === calMonth.getFullYear(); });
 
