@@ -83,7 +83,7 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
           const dayItems = datedItems.filter(i => isSameDay(new Date(i.scheduled_at!), day));
           const isCurrentMonth = isSameMonth(day, currentMonth);
           return (
-            <div key={day.toISOString()} className={cn("min-h-[80px] p-1 bg-card", !isCurrentMonth && "opacity-40")}>
+            <div key={day.toISOString()} className={cn("min-h-[120px] p-1.5 bg-card", !isCurrentMonth && "opacity-40")}>
               <p className={cn("text-[11px] font-medium mb-0.5", isSameDay(day, new Date()) && "text-primary font-bold")}>{format(day, 'd')}</p>
               {dayItems.slice(0, 3).map(item => {
                 const status = STATUS_OPTIONS.find(s => s.value === item.status);
