@@ -272,6 +272,54 @@ export default function GestaoMarcaPage() {
     toast.success('Ficheiro removido');
   };
 
+  // ── Competitor mutations ──
+
+  const resetCompForm = () => setCompForm({ name: '', type: 'direta', instagram: '', website: '', produtos: '', precos: '', plataformas: '', posicionamento: '', comunicacao: '' });
+
+  const saveCompetitor = async () => {
+    if (!compForm.name.trim()) return;
+    if (editingCompetitor) {
+      await supabase.from('brand_competitors').update({
+        name: compForm.name, type: compForm.type,
+        instagram: compForm.instagram || null, website: compForm.website || null,
+        produtos: compForm.produtos || null, precos: compForm.precos || null,
+        plataformas: compForm.plataformas || null, posicionamento: compForm.posicionamento || null,
+        comunicacao: compForm.comunicacao || null,
+      } as any).eq('id', editingCompetitor.id);
+    } else {
+      await supabase.from('brand_competitors').insert({
+        ...compForm, sort_order: competitors.length,
+        instagram: compForm.instagram || null, website: compForm.website || null,
+        produtos: compForm.produtos || null, precos: compForm.precos || null,
+        plataformas: compForm.plataformas || null, posicionamento: compForm.posicionamento || null,
+        comunicacao: compForm.comunicacao || null,
+      } as any);
+    }
+    queryClient.invalidateQueries({ queryKey: ['brand-competitors'] });
+    toast.success(editingCompetitor ? 'Atualizado' : 'Adicionado');
+    setEditingCompetitor(null);
+    setShowAddCompetitor(false);
+    resetCompForm();
+  };
+
+  const deleteCompetitor = async (id: string) => {
+    await supabase.from('brand_competitors').delete().eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['brand-competitors'] });
+    toast.success('Concorrente removido');
+  };
+
+  const openEditCompetitor = (c: BrandCompetitor) => {
+    setCompForm({
+      name: c.name, type: c.type,
+      instagram: c.instagram || '', website: c.website || '',
+      produtos: c.produtos || '', precos: c.precos || '',
+      plataformas: c.plataformas || '', posicionamento: c.posicionamento || '',
+      comunicacao: c.comunicacao || '',
+    });
+    setEditingCompetitor(c);
+    setShowAddCompetitor(true);
+  };
+
   // ── Render ──
 
   return (
