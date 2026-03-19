@@ -26,7 +26,7 @@ type Task = {
   assigned_to: string | null; project_id: string | null;
 };
 type Client = {
-  id: string; full_name: string; status: string; current_product: string | null;
+  id: string; client_id: string; full_name: string; status: string; current_product: string | null;
   start_date: string | null;
 };
 type Profile = {
