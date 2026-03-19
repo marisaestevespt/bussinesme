@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Target, CalendarCheck, Lightbulb, Rocket, Clock, Trash2, Plus, Users } from 'lucide-react';
+import { Target, CalendarCheck, Lightbulb, Rocket, Clock, Trash2, Plus, Users, Briefcase } from 'lucide-react';
 import { useExecutiveData, getMonthName, areaLabel, statusLabel } from '@/hooks/useExecutiveData';
 
 const currentMonth = new Date().getMonth() + 1;
@@ -44,7 +44,7 @@ export default function ExecutiveDashboard() {
           {/* Coluna Esquerda — Gestão */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2"><Target className="h-4 w-4" /> Gestão</CardTitle>
+              <CardTitle className="text-base flex items-center gap-2"><Briefcase className="h-4 w-4" /> Gestão</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <Link to="/executive/planeamento" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
