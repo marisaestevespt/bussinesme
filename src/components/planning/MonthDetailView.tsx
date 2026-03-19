@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle, ArrowLeft, Calendar, ChevronLeft, ChevronRight, ExternalLink, Plus, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -675,6 +676,57 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           </Table>
         </CardContent>
       </Card>
+
+      {/* ═══ SECTION 7B: Visão de Tarefas ═══ */}
+      {(() => {
+        const allTasks = (tasksQ.data || []) as any[];
+        const monthStart = `${year}-${String(monthNum).padStart(2,'0')}-01`;
+        const nextM = monthNum === 12 ? 1 : monthNum + 1;
+        const nextY = monthNum === 12 ? year + 1 : year;
+        const monthEnd = `${nextY}-${String(nextM).padStart(2,'0')}-01`;
+
+        const noDate = allTasks.filter(t => !t.deadline && t.status !== 'done');
+        const thisMonth = allTasks.filter(t => t.deadline && t.deadline >= monthStart && t.deadline < monthEnd);
+        const pendingPrev = allTasks.filter(t => t.deadline && t.deadline < monthStart && t.status !== 'done');
+
+        const renderList = (items: any[], emptyMsg: string) => items.length === 0
+          ? <p className="text-xs text-muted-foreground py-2">{emptyMsg}</p>
+          : (
+            <Table>
+              <TableHeader><TableRow>
+                <TableHead>Tarefa</TableHead><TableHead>Prioridade</TableHead><TableHead>Status</TableHead><TableHead>Deadline</TableHead>
+              </TableRow></TableHeader>
+              <TableBody>
+                {items.map((t: any) => (
+                  <TableRow key={t.id}>
+                    <TableCell className="text-xs font-medium">{t.name}</TableCell>
+                    <TableCell><Badge variant={t.priority === 'alta' ? 'destructive' : 'secondary'} className="text-[10px]">{t.priority}</Badge></TableCell>
+                    <TableCell><Badge variant={t.status === 'done' ? 'default' : 'outline'} className="text-[10px]">{t.status}</Badge></TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{t.deadline || '—'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          );
+
+        return (
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm">Tarefas</CardTitle></CardHeader>
+            <CardContent>
+              <Tabs defaultValue="month" className="w-full">
+                <TabsList className="mb-2">
+                  <TabsTrigger value="no-date">Sem Data ({noDate.length})</TabsTrigger>
+                  <TabsTrigger value="month">Do Mês ({thisMonth.length})</TabsTrigger>
+                  <TabsTrigger value="pending">Pendentes Anterior ({pendingPrev.length})</TabsTrigger>
+                </TabsList>
+                <TabsContent value="no-date">{renderList(noDate, 'Nenhuma tarefa sem data.')}</TabsContent>
+                <TabsContent value="month">{renderList(thisMonth, 'Nenhuma tarefa para este mês.')}</TabsContent>
+                <TabsContent value="pending">{renderList(pendingPrev, 'Sem tarefas pendentes de meses anteriores.')}</TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* ═══ SECTION 8: Revisão Operacional ═══ */}
       <Card>
