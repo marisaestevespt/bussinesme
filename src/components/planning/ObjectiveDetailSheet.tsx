@@ -395,9 +395,9 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
   };
 
   const handleSaveNew = () => {
-    planning.upsertMetric.mutate({ ...form, product_id: form.product_id || null, target_value: form.target_value ? Number(form.target_value) : null, green_threshold: Number(form.green_threshold), yellow_threshold: Number(form.yellow_threshold), objective_id: objectiveId });
+    planning.upsertMetric.mutate({ ...form, product_id: form.product_id || null, measurement_type: form.measurement_type || 'acumulativo', target_value: form.target_value ? Number(form.target_value) : null, green_threshold: Number(form.green_threshold), yellow_threshold: Number(form.yellow_threshold), objective_id: objectiveId });
     setDialogOpen(false);
-    setForm({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60', product_id: '' });
+    setForm({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60', product_id: '', measurement_type: 'acumulativo' });
   };
 
   const handleSaveEdit = () => {
