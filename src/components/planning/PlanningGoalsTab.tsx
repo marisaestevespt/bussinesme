@@ -31,17 +31,9 @@ function isPeriodEnded(period: string): boolean {
   return idx < new Date().getMonth();
 }
 
-type ViewMode = 'mensal' | 'trimestral' | 'semestral' | 'detalhe';
+export type GoalsViewMode = 'mensal' | 'trimestral' | 'semestral' | 'metas';
 
-const VIEW_BUTTONS: { key: ViewMode; label: string }[] = [
-  { key: 'mensal', label: 'Mensal' },
-  { key: 'trimestral', label: 'Trimestral' },
-  { key: 'semestral', label: 'Semestral' },
-  { key: 'detalhe', label: 'Metas em Detalhe' },
-];
-
-export function PlanningGoalsTab({ planning }: { planning: any }) {
-  const [viewMode, setViewMode] = useState<ViewMode>('mensal');
+export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: any; viewMode?: GoalsViewMode }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editGoal, setEditGoal] = useState<any>(null);
   const [filter, setFilter] = useState('todos');
