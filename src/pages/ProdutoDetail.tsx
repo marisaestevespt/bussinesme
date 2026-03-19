@@ -253,22 +253,87 @@ export default function ProdutoDetailPage() {
           )}
         </div>
 
-        {/* Name & Description */}
-        <div className="space-y-3">
-          <Input
-            value={form.name || ''}
-            onChange={e => update('name', e.target.value)}
-            placeholder="Nome do produto"
-            className="text-2xl font-bold border-none shadow-none px-0 focus-visible:ring-0 h-auto"
-            readOnly={!isOwner}
-          />
-          <Textarea
-            value={form.description || ''}
-            onChange={e => update('description', e.target.value)}
-            placeholder="Descrição do produto..."
-            className="border-none shadow-none px-0 focus-visible:ring-0 resize-none min-h-[60px]"
-            readOnly={!isOwner}
-          />
+        {/* Cover image */}
+        <div
+          className="relative w-full h-48 rounded-lg overflow-hidden bg-muted/30 border border-dashed border-border group"
+        >
+          {form.cover_url ? (
+            <img src={form.cover_url} alt="Capa" className="w-full h-full object-cover" />
+          ) : (
+            <div className="flex items-center justify-center h-full text-muted-foreground">
+              <ImageIcon className="h-8 w-8 mr-2 opacity-40" />
+              <span className="text-sm">Adicionar capa do produto</span>
+            </div>
+          )}
+          {isOwner && (
+            <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+              <Upload className="h-6 w-6 text-white" />
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const path = `covers/${id || 'new'}-${Date.now()}.${file.name.split('.').pop()}`;
+                  const { error } = await supabase.storage.from('product-files').upload(path, file, { upsert: true });
+                  if (error) { toast.error('Erro ao enviar imagem'); return; }
+                  const { data: urlData } = supabase.storage.from('product-files').getPublicUrl(path);
+                  update('cover_url', urlData.publicUrl);
+                }}
+              />
+            </label>
+          )}
+        </div>
+
+        {/* Logo + Name & Description */}
+        <div className="flex gap-4 items-start">
+          {/* Logo */}
+          <div className="relative shrink-0 group">
+            <div className="h-20 w-20 rounded-xl border bg-background overflow-hidden flex items-center justify-center">
+              {form.logo_url ? (
+                <img src={form.logo_url} alt="Logo" className="h-full w-full object-contain p-1" />
+              ) : (
+                <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
+              )}
+            </div>
+            {isOwner && (
+              <label className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                <Upload className="h-4 w-4 text-white" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const path = `logos/${id || 'new'}-${Date.now()}.${file.name.split('.').pop()}`;
+                    const { error } = await supabase.storage.from('product-files').upload(path, file, { upsert: true });
+                    if (error) { toast.error('Erro ao enviar logo'); return; }
+                    const { data: urlData } = supabase.storage.from('product-files').getPublicUrl(path);
+                    update('logo_url', urlData.publicUrl);
+                  }}
+                />
+              </label>
+            )}
+          </div>
+
+          <div className="flex-1 space-y-2">
+            <Input
+              value={form.name || ''}
+              onChange={e => update('name', e.target.value)}
+              placeholder="Nome do produto"
+              className="text-2xl font-bold border-none shadow-none px-0 focus-visible:ring-0 h-auto"
+              readOnly={!isOwner}
+            />
+            <Textarea
+              value={form.description || ''}
+              onChange={e => update('description', e.target.value)}
+              placeholder="Descrição do produto..."
+              className="border-none shadow-none px-0 focus-visible:ring-0 resize-none min-h-[60px]"
+              readOnly={!isOwner}
+            />
+          </div>
         </div>
 
         {/* Properties */}
