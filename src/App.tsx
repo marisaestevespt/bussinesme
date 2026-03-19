@@ -78,6 +78,7 @@ function AppRoutes() {
         <Route path="/hub/marketing/estrategia" element={<MarketingEstrategia />} />
         <Route path="/hub/marketing/estrategia/canal/:channelId" element={<MarketingChannelStrategy />} />
         <Route path="/hub/marketing/processos-mkt" element={<MarketingProcessos />} />
+        <Route path="/hub/marketing/recursos-mkt" element={<MarketingRecursos />} />
         <Route path="/hub/marketing/:pageKey" element={<MarketingSubPage />} />
         <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
