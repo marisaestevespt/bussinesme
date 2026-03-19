@@ -205,7 +205,7 @@ export default function ProdutoDetailPage() {
       const { error } = await supabase.from(table as any).update(data).eq('id', rowId);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries(),
+    onSuccess: invalidateSub,
   });
 
   const deleteRow = useMutation({
@@ -213,7 +213,7 @@ export default function ProdutoDetailPage() {
       const { error } = await supabase.from(table as any).delete().eq('id', rowId);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries(),
+    onSuccess: invalidateSub,
   });
 
   if (!isNew && isLoading) {
