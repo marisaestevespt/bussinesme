@@ -93,6 +93,7 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
         id: existing.id,
         total_with_vat: value,
         base_value: value,
+        status: 'pago',
         description: `Segurança Social — ${MONTHS[month - 1]} ${currentYear}`,
       } as any);
     } else if (value > 0) {
@@ -111,6 +112,18 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
       } as any);
     }
     toast.success(`SS de ${MONTHS[month - 1]} guardada`);
+  };
+
+  const handleTogglePayment = async (month: number) => {
+    const existing = ssExpenses.find(e => e.expense_month === month);
+    if (existing) {
+      const newStatus = existing.status === 'pago' ? 'por_pagar' : 'pago';
+      await fin.upsertExpense.mutateAsync({
+        id: existing.id,
+        status: newStatus,
+      } as any);
+      toast.success(newStatus === 'pago' ? `SS de ${MONTHS[month - 1]} marcada como paga` : `SS de ${MONTHS[month - 1]} marcada como pendente`);
+    }
   };
 
   // SS documents
