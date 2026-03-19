@@ -608,7 +608,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm">CRM</CardTitle>
-            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/comercial/crm')}><Plus className="h-3 w-3" /> Nova Lead</Button>
+            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/hub/comercial/crm')}><Plus className="h-3 w-3" /> Nova Lead</Button>
           </div>
         </CardHeader>
         <CardContent>
