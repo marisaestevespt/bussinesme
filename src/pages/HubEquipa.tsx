@@ -235,31 +235,137 @@ function DepartamentosColumn() {
   const { canAccess } = usePermissions();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Departamentos</h2>
-      <div className="grid grid-cols-2 gap-3">
-        {DEPARTMENT_CARDS.map(d => {
-          const hasAccess = canAccess(d.key);
-          return (
-            <Card
-              key={d.key}
-              className={`transition-all ${hasAccess ? 'cursor-pointer hover:shadow-md hover:border-primary/20' : 'opacity-50 cursor-not-allowed'}`}
-              onClick={hasAccess ? () => navigate(d.path) : undefined}
-            >
-              <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-                <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${hasAccess ? 'bg-primary/10' : 'bg-muted'}`}>
-                  {hasAccess ? (
-                    <d.icon className="h-5 w-5 text-primary" />
-                  ) : (
-                    <Lock className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </div>
-                <span className={`text-xs font-medium ${hasAccess ? '' : 'text-muted-foreground'}`}>{d.label}</span>
-              </CardContent>
-            </Card>
-          );
-        })}
+      <div className="grid grid-cols-4 gap-2">
+        {DEPARTMENT_CARDS.slice(0, 4).map(d => <DeptCard key={d.key} d={d} canAccess={canAccess(d.key)} navigate={navigate} />)}
       </div>
+      <div className="grid grid-cols-3 gap-2">
+        {DEPARTMENT_CARDS.slice(4).map(d => <DeptCard key={d.key} d={d} canAccess={canAccess(d.key)} navigate={navigate} />)}
+      </div>
+    </div>
+  );
+}
+
+function DeptCard({ d, canAccess, navigate }: { d: typeof DEPARTMENT_CARDS[number]; canAccess: boolean; navigate: any }) {
+  return (
+    <Card
+      className={`transition-all ${canAccess ? 'cursor-pointer hover:shadow-md hover:border-primary/20' : 'opacity-50 cursor-not-allowed'}`}
+      onClick={canAccess ? () => navigate(d.path) : undefined}
+    >
+      <CardContent className="p-3 flex items-center gap-2">
+        <div className={`h-7 w-7 rounded-md flex items-center justify-center shrink-0 ${canAccess ? 'bg-primary/10' : 'bg-muted'}`}>
+          {canAccess ? <d.icon className="h-3.5 w-3.5 text-primary" /> : <Lock className="h-3 w-3 text-muted-foreground" />}
+        </div>
+        <span className={`text-xs font-medium truncate ${canAccess ? '' : 'text-muted-foreground'}`}>{d.label}</span>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Weekly Summary ──────────────────────────────────────────────────
+
+function WeeklySummary() {
+  const navigate = useNavigate();
+  const now = new Date();
+  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+
+  const { data: tasks = [] } = useQuery({
+    queryKey: ['hub-week-tasks', weekStart.toISOString()],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tasks')
+        .select('id, name, status, deadline')
+        .gte('deadline', weekStart.toISOString().split('T')[0])
+        .lte('deadline', weekEnd.toISOString().split('T')[0])
+        .order('deadline');
+      return data || [];
+    },
+  });
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ['hub-active-projects'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('projects')
+        .select('id, name, status')
+        .eq('status', 'em_curso')
+        .order('name')
+        .limit(10);
+      return data || [];
+    },
+  });
+
+  const { data: events = [] } = useQuery({
+    queryKey: ['hub-week-events', weekStart.toISOString()],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('events')
+        .select('id, title, start_date')
+        .gte('start_date', weekStart.toISOString())
+        .lte('start_date', weekEnd.toISOString())
+        .order('start_date');
+      return data || [];
+    },
+  });
+
+  const pendingTasks = tasks.filter((t: any) => t.status !== 'concluida');
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {/* Tarefas esta semana */}
+      <Card className="cursor-pointer hover:shadow-md transition-all" onClick={() => navigate('/hub/tarefas')}>
+        <CardContent className="p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <ListTodo className="h-4 w-4 text-rose-500" />
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tarefas esta semana</span>
+          </div>
+          <p className="text-2xl font-bold">{pendingTasks.length}</p>
+          <div className="space-y-1 max-h-24 overflow-y-auto">
+            {pendingTasks.slice(0, 3).map((t: any) => (
+              <p key={t.id} className="text-[11px] text-muted-foreground truncate">• {t.name}</p>
+            ))}
+            {pendingTasks.length > 3 && <p className="text-[10px] text-muted-foreground">+{pendingTasks.length - 3} mais</p>}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Projetos ativos */}
+      <Card className="cursor-pointer hover:shadow-md transition-all" onClick={() => navigate('/hub/projetos')}>
+        <CardContent className="p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <FolderKanban className="h-4 w-4 text-emerald-500" />
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Projetos ativos</span>
+          </div>
+          <p className="text-2xl font-bold">{projects.length}</p>
+          <div className="space-y-1 max-h-24 overflow-y-auto">
+            {projects.slice(0, 3).map((p: any) => (
+              <p key={p.id} className="text-[11px] text-muted-foreground truncate">• {p.name}</p>
+            ))}
+            {projects.length > 3 && <p className="text-[10px] text-muted-foreground">+{projects.length - 3} mais</p>}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Eventos esta semana */}
+      <Card className="cursor-pointer hover:shadow-md transition-all" onClick={() => navigate('/hub/agenda')}>
+        <CardContent className="p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <CalendarDays className="h-4 w-4 text-blue-500" />
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Eventos esta semana</span>
+          </div>
+          <p className="text-2xl font-bold">{events.length}</p>
+          <div className="space-y-1 max-h-24 overflow-y-auto">
+            {events.slice(0, 3).map((e: any) => (
+              <p key={e.id} className="text-[11px] text-muted-foreground truncate">
+                • {e.title} <span className="text-muted-foreground/60">({format(new Date(e.start_date), "EEE HH:mm", { locale: pt })})</span>
+              </p>
+            ))}
+            {events.length > 3 && <p className="text-[10px] text-muted-foreground">+{events.length - 3} mais</p>}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
