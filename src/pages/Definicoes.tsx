@@ -1,5 +1,6 @@
 import { AppLayout } from '@/components/AppLayout';
 import { BrandSettings } from '@/components/settings/BrandSettings';
+import { ChannelSettings } from '@/components/settings/ChannelSettings';
 
 export default function DefinicoesPage() {
   return (
@@ -12,6 +13,7 @@ export default function DefinicoesPage() {
           </p>
         </div>
         <BrandSettings />
+        <ChannelSettings />
       </div>
     </AppLayout>
   );
