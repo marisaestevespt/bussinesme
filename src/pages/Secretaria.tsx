@@ -374,25 +374,6 @@ function MeuDiaTab({ firstName, todayTasks, overdueTasks, todayMeetings, activeP
         </CardContent>
       </Card>
 
-      {/* Quick links */}
-      <div className="flex flex-wrap gap-2">
-        {['tarefas', 'projetos', 'reunioes', 'produtividade', 'contrato', 'espaco'].map(tab => (
-          <Button key={tab} variant="outline" size="sm" className="text-xs" onClick={() => {
-            const el = document.querySelector(`[data-state="inactive"][value="${tab}"], [data-state="active"][value="${tab}"]`) as HTMLElement;
-            el?.click();
-          }}>
-            {{
-              tarefas: 'As Minhas Tarefas',
-              projetos: 'Os Meus Projetos',
-              reunioes: 'As Minhas Reuniões',
-              produtividade: 'A Minha Produtividade',
-              contrato: 'O Meu Contrato',
-              espaco: 'O Meu Espaço',
-            }[tab]}
-            <ChevronRight className="h-3 w-3 ml-1" />
-          </Button>
-        ))}
-      </div>
     </div>
   );
 }
