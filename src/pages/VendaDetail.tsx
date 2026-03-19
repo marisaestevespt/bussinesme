@@ -113,7 +113,7 @@ export default function VendaDetailPage() {
       product: form.product || null,
       client: form.client || null,
       source: form.source || null,
-      documents: form.documents || null,
+      documents: Array.isArray(form.documents) ? form.documents : [],
       sale_month: saleMonth,
       sale_quarter: saleQuarter,
       sale_year: saleYear,
