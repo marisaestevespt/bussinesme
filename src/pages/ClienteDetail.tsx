@@ -429,6 +429,43 @@ export default function ClienteDetailPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Sale dialog */}
+      <SaleFormDialog
+        open={saleOpen}
+        onOpenChange={setSaleOpen}
+        products={productList.map(p => p.name)}
+        initialData={{ client: form.full_name || '' }}
+        onSave={(sale) => {
+          commercialData.upsertSale.mutate(sale);
+          setSaleOpen(false);
+        }}
+      />
+
+      {/* Meeting dialog */}
+      <Dialog open={meetingOpen} onOpenChange={setMeetingOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Nova Reunião</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Título</Label>
+              <Input value={meetingForm.title} onChange={e => setMeetingForm(p => ({ ...p, title: e.target.value }))} />
+            </div>
+            <div>
+              <Label>Data & Hora</Label>
+              <Input type="datetime-local" value={meetingForm.date_time} onChange={e => setMeetingForm(p => ({ ...p, date_time: e.target.value }))} />
+            </div>
+            <div>
+              <Label>Link de Acesso</Label>
+              <Input value={meetingForm.meeting_url} onChange={e => setMeetingForm(p => ({ ...p, meeting_url: e.target.value }))} placeholder="https://..." />
+            </div>
+            <Button className="w-full" onClick={() => {
+              if (!meetingForm.title || !meetingForm.date_time) { toast.error('Título e data são obrigatórios'); return; }
+              createMeeting.mutate(meetingForm);
+            }}>Criar Reunião</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
