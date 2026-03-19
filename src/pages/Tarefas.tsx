@@ -18,6 +18,7 @@ import { useActiveTimer } from '@/hooks/useActiveTimer';
 import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { sendNotification } from '@/hooks/useNotifications';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
