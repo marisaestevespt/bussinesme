@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { notifyMentions } from '@/hooks/useNotifications';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { ViewTabs } from '@/components/ViewTabs';
