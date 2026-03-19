@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, CalendarIcon, ListTodo, AlertTriangle, Clock, CalendarDays, List, Users } from 'lucide-react';
+import { Plus, CalendarIcon, ListTodo, AlertTriangle, Clock, CalendarDays, List, Users, Link2, GitBranch, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -89,6 +89,8 @@ export default function TarefasPage() {
   const [department, setDepartment] = useState('');
   const [projectId, setProjectId] = useState('');
   const [notes, setNotes] = useState('');
+  const [parentTaskId, setParentTaskId] = useState('');
+  const [dependsOnIds, setDependsOnIds] = useState<string[]>([]);
 
   // Queries
   const { data: tasks = [] } = useQuery({
@@ -116,24 +118,42 @@ export default function TarefasPage() {
     },
   });
 
+  const { data: taskDependencies = [] } = useQuery({
+    queryKey: ['task-dependencies'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('task_dependencies').select('*');
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   // Mutations
   const upsertTask = useMutation({
     mutationFn: async (payload: any) => {
+      const { _dependsOnIds, ...taskPayload } = payload;
+      let taskId: string;
       if (editingTask) {
-        const updateData: any = { ...payload };
-        // Auto-fill completed_at when status changes to done
-        if (payload.status === 'done' && editingTask.status !== 'done') {
-          updateData.updated_at = new Date().toISOString();
-        }
-        const { error } = await supabase.from('tasks').update(updateData).eq('id', editingTask.id);
+        const { error } = await supabase.from('tasks').update(taskPayload).eq('id', editingTask.id);
         if (error) throw error;
+        taskId = editingTask.id;
       } else {
-        const { error } = await supabase.from('tasks').insert({ ...payload, created_by: user?.id });
+        const { data, error } = await supabase.from('tasks').insert({ ...taskPayload, created_by: user?.id }).select('id').single();
         if (error) throw error;
+        taskId = data.id;
+      }
+      // Sync dependencies
+      if (_dependsOnIds !== undefined) {
+        await supabase.from('task_dependencies').delete().eq('task_id', taskId);
+        if (_dependsOnIds.length > 0) {
+          const rows = _dependsOnIds.map((depId: string) => ({ task_id: taskId, depends_on_task_id: depId }));
+          const { error: depErr } = await supabase.from('task_dependencies').insert(rows);
+          if (depErr) throw depErr;
+        }
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['task-dependencies'] });
       toast.success(editingTask ? 'Tarefa atualizada' : 'Tarefa criada');
       closeDialog();
     },
@@ -147,6 +167,7 @@ export default function TarefasPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['task-dependencies'] });
       toast.success('Tarefa eliminada');
       closeDialog();
     },
@@ -156,6 +177,7 @@ export default function TarefasPage() {
     setEditingTask(null);
     setName(''); setStatus('por_comecar'); setPriority('alta');
     setDeadline(undefined); setAssignedTo(''); setDepartment(''); setProjectId(''); setNotes('');
+    setParentTaskId(''); setDependsOnIds([]);
     setDialogOpen(true);
   }
 
@@ -165,6 +187,10 @@ export default function TarefasPage() {
     setDeadline(task.deadline ? parseISO(task.deadline) : undefined);
     setAssignedTo(task.assigned_to || ''); setDepartment(task.department || '');
     setProjectId(task.project_id || ''); setNotes(task.notes || '');
+    setParentTaskId(task.parent_task_id || '');
+    // Load dependencies for this task
+    const deps = taskDependencies.filter(d => d.task_id === task.id).map(d => d.depends_on_task_id);
+    setDependsOnIds(deps);
     setDialogOpen(true);
   }
 
@@ -194,7 +220,9 @@ export default function TarefasPage() {
       assigned_to: assignedTo || null,
       department: department || null,
       project_id: projectId && projectId !== 'none' ? projectId : null,
+      parent_task_id: parentTaskId && parentTaskId !== 'none' ? parentTaskId : null,
       notes: notes || null,
+      _dependsOnIds: dependsOnIds,
     };
     if (isChangingToDone) {
       payload.updated_at = new Date().toISOString();
@@ -305,6 +333,8 @@ export default function TarefasPage() {
             getProfileName={getProfileName}
             getProjectName={getProjectName}
             onTaskClick={openEdit}
+            taskDependencies={taskDependencies}
+            allTasks={tasks}
           />
         )}
       </div>
@@ -400,7 +430,116 @@ export default function TarefasPage() {
               </Select>
             </div>
 
-            {/* Done after deadline warning */}
+            {/* Sub-tarefa (parent) */}
+            <div>
+              <Label className="flex items-center gap-1.5"><GitBranch className="h-3.5 w-3.5" /> Sub-tarefa de</Label>
+              <Select value={parentTaskId} onValueChange={setParentTaskId}>
+                <SelectTrigger><SelectValue placeholder="Nenhuma (tarefa principal)" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma (tarefa principal)</SelectItem>
+                  {tasks.filter(t => t.id !== editingTask?.id && !t.parent_task_id).map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Dependencies */}
+            <div>
+              <Label className="flex items-center gap-1.5"><Link2 className="h-3.5 w-3.5" /> Depende de</Label>
+              <Select
+                value=""
+                onValueChange={(val) => {
+                  if (val && !dependsOnIds.includes(val)) {
+                    setDependsOnIds(prev => [...prev, val]);
+                  }
+                }}
+              >
+                <SelectTrigger><SelectValue placeholder="Adicionar dependência..." /></SelectTrigger>
+                <SelectContent>
+                  {tasks.filter(t => t.id !== editingTask?.id && !dependsOnIds.includes(t.id)).map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {dependsOnIds.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  {dependsOnIds.map(depId => {
+                    const depTask = tasks.find(t => t.id === depId);
+                    if (!depTask) return null;
+                    const depStatus = getStatusInfo(depTask.status);
+                    const depAssignee = getProfileName(depTask.assigned_to);
+                    return (
+                      <div key={depId} className="flex items-center gap-2 p-2 rounded-md bg-muted/30 border border-border/50 text-sm">
+                        <span className="truncate flex-1">{depTask.name}</span>
+                        <Badge variant="outline" className={cn('text-[10px] shrink-0', depStatus.color)}>{depStatus.label}</Badge>
+                        <span className="text-[10px] text-muted-foreground shrink-0">{depAssignee}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 shrink-0"
+                          onClick={() => setDependsOnIds(prev => prev.filter(id => id !== depId))}
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Dependency warnings */}
+            {editingTask && dependsOnIds.length > 0 && (() => {
+              const blockers = dependsOnIds
+                .map(depId => tasks.find(t => t.id === depId))
+                .filter(t => t && t.status !== 'done');
+              if (blockers.length === 0) return null;
+              return (
+                <div className="rounded-md border border-amber-300 bg-amber-50 p-3 space-y-1.5">
+                  <p className="text-sm font-medium text-amber-800 flex items-center gap-1.5">
+                    <Link2 className="h-4 w-4" /> Esta tarefa tem dependências pendentes
+                  </p>
+                  {blockers.map(dep => {
+                    if (!dep) return null;
+                    const depStatus = getStatusInfo(dep.status);
+                    const depAssignee = getProfileName(dep.assigned_to);
+                    return (
+                      <p key={dep.id} className="text-xs text-amber-700">
+                        Pendente da tarefa <strong>"{dep.name}"</strong> de <strong>{depAssignee}</strong>, que está neste momento <Badge variant="outline" className={cn('text-[9px] px-1 py-0 ml-1', depStatus.color)}>{depStatus.label}</Badge>
+                      </p>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
+            {/* Show subtasks of this task */}
+            {editingTask && (() => {
+              const subtasks = tasks.filter(t => t.parent_task_id === editingTask.id);
+              if (subtasks.length === 0) return null;
+              return (
+                <div>
+                  <Label className="flex items-center gap-1.5 mb-2"><GitBranch className="h-3.5 w-3.5" /> Sub-tarefas ({subtasks.length})</Label>
+                  <div className="space-y-1">
+                    {subtasks.map(st => {
+                      const stStatus = getStatusInfo(st.status);
+                      return (
+                        <button
+                          key={st.id}
+                          onClick={() => openEdit(st)}
+                          className="w-full flex items-center gap-2 p-2 rounded-md bg-muted/20 border border-border/40 hover:bg-muted/50 transition-colors text-left text-sm"
+                        >
+                          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="truncate flex-1">{st.name}</span>
+                          <Badge variant="outline" className={cn('text-[10px] shrink-0', stStatus.color)}>{stStatus.label}</Badge>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
             {editingTask && isDoneAfterDeadline(editingTask) && (
               <div className="rounded-md border border-destructive/50 bg-destructive/5 p-3 space-y-1">
                 <p className="text-sm font-medium text-destructive flex items-center gap-1.5">
@@ -466,7 +605,7 @@ export default function TarefasPage() {
 // ─── Task Table ─────────────────────────────────────────────────
 
 function TaskTable({
-  tasks, isOverdue, isDoneAfterDeadline, getProfileName, getProjectName, onTaskClick,
+  tasks, isOverdue, isDoneAfterDeadline, getProfileName, getProjectName, onTaskClick, taskDependencies = [], allTasks = [],
 }: {
   tasks: any[];
   isOverdue: (t: any) => boolean;
@@ -474,6 +613,8 @@ function TaskTable({
   getProfileName: (id: string | null) => string;
   getProjectName: (id: string | null) => string;
   onTaskClick: (t: any) => void;
+  taskDependencies?: any[];
+  allTasks?: any[];
 }) {
   if (!tasks.length) {
     return <div className="text-center py-12 text-muted-foreground">Sem tarefas nesta vista.</div>;
@@ -500,6 +641,14 @@ function TaskTable({
             const statusInfo = getStatusInfo(task.status);
             const priorityInfo = getPriorityInfo(task.priority);
             const deptInfo = getDeptInfo(task.department);
+            const hasDeps = taskDependencies.some(d => d.task_id === task.id);
+            const hasBlockingDeps = taskDependencies
+              .filter(d => d.task_id === task.id)
+              .some(d => {
+                const dep = allTasks.find((t: any) => t.id === d.depends_on_task_id);
+                return dep && dep.status !== 'done';
+              });
+            const subtaskCount = allTasks.filter((t: any) => t.parent_task_id === task.id).length;
 
             return (
               <TableRow
@@ -509,7 +658,14 @@ function TaskTable({
               >
                 <TableCell>
                   <div className="flex items-center gap-2">
+                    {task.parent_task_id && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
                     <span className="font-medium">{task.name}</span>
+                    {subtaskCount > 0 && (
+                      <Badge variant="secondary" className="text-[9px] px-1 py-0 gap-0.5">
+                        <GitBranch className="h-2.5 w-2.5" />{subtaskCount}
+                      </Badge>
+                    )}
+                    {hasBlockingDeps && <Link2 className="h-3.5 w-3.5 text-amber-500" />}
                     {overdue && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
                     {lateComplete && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
                   </div>
