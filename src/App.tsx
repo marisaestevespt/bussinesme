@@ -23,6 +23,7 @@ import ProjetoDetailPage from "./pages/ProjetoDetail";
 import ProcessosPage from "./pages/Processos";
 import SopDetailPage from "./pages/SopDetail";
 import BibliotecaPage from "./pages/Biblioteca";
+import TarefasPage from "./pages/Tarefas";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ function AppRoutes() {
       <Route path="/hub/processos" element={<ProcessosPage />} />
       <Route path="/hub/processos/:id" element={<SopDetailPage />} />
       <Route path="/hub/biblioteca" element={<BibliotecaPage />} />
+      <Route path="/hub/tarefas" element={<TarefasPage />} />
       <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
       <Route path="/definicoes" element={<DefinicoesPage />} />
