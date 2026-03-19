@@ -314,14 +314,13 @@ export default function SecretariaPage() {
 
 
 // ═══════════════════════════════════════════════════════════════
-// TAB 1 — O MEU DIA
+// O MEU DIA — Simple: today's tasks, meetings, time worked
 // ═══════════════════════════════════════════════════════════════
 
-function MeuDiaTab({ firstName, todayTasks, overdueTasks, todayMeetings, activeProjects, allTasks, allMeetings, getProjectName, qc }: any) {
-  const weekTasks = useMemo(() => allTasks.filter((t: any) => t.deadline && isWithinInterval(parseISO(t.deadline), { start: weekStart, end: weekEnd })), [allTasks]);
-  const weekMeetings = useMemo(() => allMeetings.filter((m: any) => isWithinInterval(parseISO(m.date_time), { start: weekStart, end: weekEnd })), [allMeetings]);
-
-  const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+function MeuDiaTab({ todayTasks, todayMeetings, timeEntries, getProjectName, qc }: any) {
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+  const todayTime = useMemo(() => (timeEntries || []).filter((e: any) => e.entry_date === todayStr), [timeEntries, todayStr]);
+  const todayHours = useMemo(() => todayTime.reduce((sum: number, e: any) => sum + (e.duration || 0), 0), [todayTime]);
 
   const markDone = async (taskId: string) => {
     await supabase.from('tasks').update({ status: 'done', updated_at: new Date().toISOString() }).eq('id', taskId);
@@ -330,23 +329,16 @@ function MeuDiaTab({ firstName, todayTasks, overdueTasks, todayMeetings, activeP
   };
 
   return (
-    <div className="space-y-6 mt-4">
-      {/* Greeting */}
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">{greetingText()}, {firstName}.</h2>
-        <p className="text-sm text-muted-foreground">{format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: pt })}</p>
-      </div>
-
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas para hoje</p><p className="text-2xl font-bold">{todayTasks.length}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas em atraso</p><p className="text-2xl font-bold text-destructive">{overdueTasks.length}</p></CardContent></Card>
+    <div className="space-y-6">
+      {/* Summary */}
+      <div className="grid grid-cols-3 gap-4">
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas hoje</p><p className="text-2xl font-bold">{todayTasks.length}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Reuniões hoje</p><p className="text-2xl font-bold">{todayMeetings.length}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Projetos ativos</p><p className="text-2xl font-bold">{activeProjects.length}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tempo registado</p><p className="text-2xl font-bold">{todayHours.toFixed(1)}h</p></CardContent></Card>
       </div>
 
-      {/* Today section */}
       <div className="grid md:grid-cols-2 gap-6">
+        {/* Today tasks */}
         <Card>
           <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Tarefas de Hoje</CardTitle></CardHeader>
           <CardContent className="space-y-2">
@@ -367,6 +359,7 @@ function MeuDiaTab({ firstName, todayTasks, overdueTasks, todayMeetings, activeP
           </CardContent>
         </Card>
 
+        {/* Today meetings */}
         <Card>
           <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Reuniões de Hoje</CardTitle></CardHeader>
           <CardContent className="space-y-2">
@@ -386,9 +379,61 @@ function MeuDiaTab({ firstName, todayTasks, overdueTasks, todayMeetings, activeP
         </Card>
       </div>
 
+      {/* Today time entries */}
+      {todayTime.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Tempo Registado Hoje</CardTitle></CardHeader>
+          <CardContent className="space-y-2">
+            {todayTime.map((e: any) => (
+              <div key={e.id} className="flex items-center justify-between p-2 rounded-lg border">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm">{e.description || 'Sem descrição'}</p>
+                  {e.category && <Badge variant="outline" className="text-[10px] mt-0.5">{e.category}</Badge>}
+                </div>
+                <span className="text-sm font-medium">{(e.duration || 0).toFixed(1)}h</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// A MINHA SEMANA — Week tasks, meetings, time, calendar
+// ═══════════════════════════════════════════════════════════════
+
+function MinhaSemanaTab({ allTasks, allMeetings, timeEntries, getProjectName, qc }: any) {
+  const weekTasks = useMemo(() => allTasks.filter((t: any) => t.deadline && isWithinInterval(parseISO(t.deadline), { start: weekStart, end: weekEnd })), [allTasks]);
+  const weekMeetings = useMemo(() => allMeetings.filter((m: any) => isWithinInterval(parseISO(m.date_time), { start: weekStart, end: weekEnd })), [allMeetings]);
+  const weekTime = useMemo(() => (timeEntries || []).filter((e: any) => {
+    if (!e.entry_date) return false;
+    const d = parseISO(e.entry_date);
+    return isWithinInterval(d, { start: weekStart, end: weekEnd });
+  }), [timeEntries]);
+  const weekHours = useMemo(() => weekTime.reduce((sum: number, e: any) => sum + (e.duration || 0), 0), [weekTime]);
+
+  const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+
+  const markDone = async (taskId: string) => {
+    await supabase.from('tasks').update({ status: 'done', updated_at: new Date().toISOString() }).eq('id', taskId);
+    qc.invalidateQueries({ queryKey: ['my-tasks'] });
+    toast.success('Tarefa concluída');
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Summary */}
+      <div className="grid grid-cols-3 gap-4">
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas esta semana</p><p className="text-2xl font-bold">{weekTasks.length}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Reuniões esta semana</p><p className="text-2xl font-bold">{weekMeetings.length}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Horas registadas</p><p className="text-2xl font-bold">{weekHours.toFixed(1)}h</p></CardContent></Card>
+      </div>
+
       {/* Week calendar */}
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Esta Semana</CardTitle></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Calendário Semanal</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-7 gap-2">
             {weekDays.map(day => {
@@ -407,6 +452,46 @@ function MeuDiaTab({ firstName, todayTasks, overdueTasks, todayMeetings, activeP
         </CardContent>
       </Card>
 
+      {/* Week tasks list */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Tarefas da Semana</CardTitle></CardHeader>
+          <CardContent className="space-y-2">
+            {weekTasks.length === 0 && <p className="text-sm text-muted-foreground">Sem tarefas esta semana.</p>}
+            {weekTasks.map((t: any) => (
+              <div key={t.id} className="flex items-center gap-3 p-2 rounded-lg border">
+                <Checkbox checked={t.status === 'done'} onCheckedChange={() => t.status !== 'done' && markDone(t.id)} />
+                <div className="flex-1 min-w-0">
+                  <p className={cn('text-sm font-medium truncate', t.status === 'done' && 'line-through text-muted-foreground')}>{t.name}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {t.deadline && <span className="text-[10px] text-muted-foreground">{format(parseISO(t.deadline), 'EEE d', { locale: pt })}</span>}
+                    {t.project_id && <span className="text-[10px] text-muted-foreground">· {getProjectName(t.project_id)}</span>}
+                  </div>
+                </div>
+                <Badge className={cn('text-[10px]', STATUS_COLORS[t.status])}>{STATUS_LABELS[t.status] || t.status}</Badge>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Reuniões da Semana</CardTitle></CardHeader>
+          <CardContent className="space-y-2">
+            {weekMeetings.length === 0 && <p className="text-sm text-muted-foreground">Sem reuniões esta semana.</p>}
+            {weekMeetings.map((m: any) => (
+              <div key={m.id} className="flex items-center justify-between p-2 rounded-lg border">
+                <div>
+                  <p className="text-sm font-medium">{m.title}</p>
+                  <p className="text-xs text-muted-foreground">{format(parseISO(m.date_time), "EEE d, HH:mm", { locale: pt })}</p>
+                </div>
+                {m.transcript_url && (
+                  <Button variant="ghost" size="sm" asChild><a href={m.transcript_url} target="_blank" rel="noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a></Button>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
