@@ -1,14 +1,16 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import type { Expense } from '@/hooks/useFinancialData';
+import type { useFinancialData } from '@/hooks/useFinancialData';
+import { FinDocumentsUpload, type FinDocItem } from './FinDocumentsUpload';
 
 const FULL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
 type Sale = { invoice_total: number; base_value: number; sale_month: number | null; sale_year: number | null };
-interface Props { sales: Sale[]; expenses: Expense[]; currentYear: number; }
+interface Props { sales: Sale[]; expenses: Expense[]; currentYear: number; fin: ReturnType<typeof useFinancialData>; }
 
 export function FinIVA({ sales, expenses, currentYear }: Props) {
   // IVA Cobrado (vendas)
