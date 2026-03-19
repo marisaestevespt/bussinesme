@@ -20,7 +20,7 @@ import { pt } from 'date-fns/locale';
 type Project = {
   id: string; name: string; type: string; status: string; department: string | null;
   client_name: string | null; deadline: string | null; progress: number;
-  start_date: string | null; created_at: string;
+  start_date: string | null; created_at: string; cover_url: string | null;
 };
 type Task = {
   id: string; name: string; status: string; priority: string; deadline: string | null;
