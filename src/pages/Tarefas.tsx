@@ -105,6 +105,8 @@ export default function TarefasPage() {
   const [notes, setNotes] = useState('');
   const [parentTaskId, setParentTaskId] = useState('');
   const [dependsOnIds, setDependsOnIds] = useState<string[]>([]);
+  const [recurrenceType, setRecurrenceType] = useState('');
+  const [recurrenceEnd, setRecurrenceEnd] = useState<Date | undefined>();
 
   // Queries
   const { data: tasks = [] } = useQuery({
