@@ -18,7 +18,8 @@ import { supabase } from '@/integrations/supabase/client';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import type { Expense, Subscription, PayrollEntry, ContractorEntry, FinancialDocument } from '@/hooks/useFinancialData';
 import { InvoiceUpload } from './InvoiceUpload';
-
+import { CategorySelect } from './CategorySelect';
+import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 const CATEGORIES = ['pessoal', 'freelancer', 'campanha', 'ferramenta', 'formacao', 'servico_contratado', 'seguranca_social', 'outro'];
