@@ -178,6 +178,12 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
           </CardContent>
         </Card>
       </div>
+      {/* Documentos */}
+      <FinDocumentsUpload
+        title={`Declarações de IVA — ${currentYear}`}
+        documents={ivaDocuments}
+        onUpdate={handleDocsUpdate}
+      />
     </div>
   );
 }
