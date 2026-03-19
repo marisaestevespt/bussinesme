@@ -117,6 +117,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
       vat_rate: vat,
       total_with_vat: total,
       location: expForm.location,
+      documents: expForm.documents || [],
       expense_date: dateStr,
       expense_month: m,
       expense_quarter: Math.ceil(m / 3),
@@ -125,7 +126,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
     } as any);
     toast.success('Saída adicionada');
     setExpOpen(false);
-    setExpForm({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal' });
+    setExpForm({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [] });
   };
 
   return (
