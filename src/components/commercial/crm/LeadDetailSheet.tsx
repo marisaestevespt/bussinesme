@@ -66,7 +66,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
     } else {
       setForm({
         name: '', added_at: new Date().toISOString().split('T')[0], source: '', status: 'lead',
-        email: '', phone: '', potential_product: '', closed_product: '',
+        email: '', phone: '', potential_product: '', closed_product: '', responsible_id: '',
         next_followup: undefined, followup_notes: '', estimated_value: '', documents: '', context: '', lost_reason: '',
       });
     }
