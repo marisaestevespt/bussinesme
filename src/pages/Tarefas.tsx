@@ -107,6 +107,9 @@ export default function TarefasPage() {
   const [dependsOnIds, setDependsOnIds] = useState<string[]>([]);
   const [recurrenceType, setRecurrenceType] = useState('');
   const [recurrenceEnd, setRecurrenceEnd] = useState<Date | undefined>();
+  const [estimatedTime, setEstimatedTime] = useState('');
+  const [suggestion, setSuggestion] = useState<{ taskName: string; avgHours: number } | null>(null);
+  const [suggestionDismissed, setSuggestionDismissed] = useState(false);
 
   // Dynamic filters
   const [filterDept, setFilterDept] = useState('');
