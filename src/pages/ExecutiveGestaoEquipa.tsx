@@ -173,67 +173,140 @@ const PERIODS = [
   { key: 'tarde', label: 'Tarde' },
 ];
 
-function parseSchedule(raw: string | null): Record<string, string[]> {
+type DaySchedule = { manha?: string; tarde?: string };
+type ScheduleData = Record<string, DaySchedule>;
+
+function parseSchedule(raw: string | null): ScheduleData {
   if (!raw) return {};
-  try { return JSON.parse(raw); } catch { return {}; }
+  try {
+    const parsed = JSON.parse(raw);
+    // Migrate old format (arrays) to new format (objects with times)
+    const result: ScheduleData = {};
+    for (const [day, val] of Object.entries(parsed)) {
+      if (Array.isArray(val)) {
+        const d: DaySchedule = {};
+        if ((val as string[]).includes('manha')) d.manha = '09:00-13:00';
+        if ((val as string[]).includes('tarde')) d.tarde = '14:00-18:00';
+        result[day] = d;
+      } else {
+        result[day] = val as DaySchedule;
+      }
+    }
+    return result;
+  } catch { return {}; }
 }
 
-function formatSchedule(schedule: Record<string, string[]>): string {
+function formatSchedule(schedule: ScheduleData): string {
   return JSON.stringify(schedule);
 }
 
 function scheduleToDisplay(raw: string | null): string {
   const s = parseSchedule(raw);
   return WEEK_DAYS
-    .filter(d => (s[d.key] || []).length > 0)
+    .filter(d => s[d.key] && (s[d.key].manha || s[d.key].tarde))
     .map(d => {
-      const periods = s[d.key];
-      const p = periods.length === 2 ? '' : periods.includes('manha') ? ' (M)' : ' (T)';
-      return `${d.label}${p}`;
+      const ds = s[d.key];
+      const parts: string[] = [];
+      if (ds.manha) parts.push(ds.manha);
+      if (ds.tarde) parts.push(ds.tarde);
+      return `${d.label} ${parts.join(' / ')}`;
     })
-    .join(', ') || '';
+    .join(' · ') || '';
 }
+
+const TIME_OPTIONS = [
+  '07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+  '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
+  '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30',
+  '19:00', '19:30', '20:00', '20:30', '21:00',
+];
 
 function ScheduleSelector({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const schedule = parseSchedule(value);
-  const toggle = (day: string, period: string) => {
-    const current = schedule[day] || [];
-    const next = current.includes(period) ? current.filter(p => p !== period) : [...current, period];
-    const updated = { ...schedule, [day]: next };
-    if (next.length === 0) delete updated[day];
-    onChange(formatSchedule(updated));
+
+  const togglePeriod = (day: string, period: 'manha' | 'tarde') => {
+    const current = { ...schedule };
+    if (!current[day]) current[day] = {};
+    if (current[day][period]) {
+      delete current[day][period];
+      if (!current[day].manha && !current[day].tarde) delete current[day];
+    } else {
+      current[day][period] = period === 'manha' ? '09:00-13:00' : '14:00-18:00';
+    }
+    onChange(formatSchedule(current));
+  };
+
+  const setTime = (day: string, period: 'manha' | 'tarde', pos: 'start' | 'end', time: string) => {
+    const current = { ...schedule };
+    if (!current[day]) current[day] = {};
+    const existing = current[day][period] || (period === 'manha' ? '09:00-13:00' : '14:00-18:00');
+    const [start, end] = existing.split('-');
+    current[day][period] = pos === 'start' ? `${time}-${end}` : `${start}-${time}`;
+    onChange(formatSchedule(current));
   };
 
   return (
-    <div className="space-y-1.5">
+    <div className="col-span-2 space-y-2">
       <span className="text-xs text-muted-foreground font-medium">Horário de trabalho</span>
-      <div className="grid grid-cols-7 gap-1 text-center">
-        <div />
-        {WEEK_DAYS.map(d => (
-          <span key={d.key} className="text-[10px] font-medium text-muted-foreground">{d.label}</span>
-        ))}
-        {PERIODS.map(p => (
-          <>
-            <span key={`label-${p.key}`} className="text-[10px] text-muted-foreground flex items-center">{p.label}</span>
+      <div className="border rounded-lg overflow-hidden">
+        <table className="w-full text-[11px]">
+          <thead>
+            <tr className="bg-muted/50">
+              <th className="p-1.5 text-left font-medium text-muted-foreground">Dia</th>
+              <th className="p-1.5 text-center font-medium text-muted-foreground">Manhã</th>
+              <th className="p-1.5 text-center font-medium text-muted-foreground">Tarde</th>
+            </tr>
+          </thead>
+          <tbody>
             {WEEK_DAYS.map(d => {
-              const active = (schedule[d.key] || []).includes(p.key);
+              const ds = schedule[d.key] || {};
               return (
-                <button
-                  key={`${d.key}-${p.key}`}
-                  type="button"
-                  onClick={() => toggle(d.key, p.key)}
-                  className={`h-7 w-full rounded text-[10px] font-medium transition-colors ${
-                    active
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-                  }`}
-                >
-                  {active ? '✓' : ''}
-                </button>
+                <tr key={d.key} className="border-t border-muted/30">
+                  <td className="p-1.5 font-medium">{d.label}</td>
+                  {PERIODS.map(p => {
+                    const periodKey = p.key as 'manha' | 'tarde';
+                    const active = !!ds[periodKey];
+                    const [start, end] = active ? (ds[periodKey] || '').split('-') : ['', ''];
+                    return (
+                      <td key={p.key} className="p-1">
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => togglePeriod(d.key, periodKey)}
+                            className={`h-5 w-5 rounded shrink-0 flex items-center justify-center text-[9px] font-bold transition-colors ${
+                              active ? 'bg-primary text-primary-foreground' : 'bg-muted/60 text-muted-foreground hover:bg-muted'
+                            }`}
+                          >
+                            {active ? '✓' : ''}
+                          </button>
+                          {active && (
+                            <div className="flex items-center gap-0.5 text-[10px]">
+                              <select
+                                value={start}
+                                onChange={e => setTime(d.key, periodKey, 'start', e.target.value)}
+                                className="bg-transparent border border-muted rounded px-0.5 py-0 text-[10px] w-[52px]"
+                              >
+                                {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                              </select>
+                              <span className="text-muted-foreground">-</span>
+                              <select
+                                value={end}
+                                onChange={e => setTime(d.key, periodKey, 'end', e.target.value)}
+                                className="bg-transparent border border-muted rounded px-0.5 py-0 text-[10px] w-[52px]"
+                              >
+                                {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                              </select>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
               );
             })}
-          </>
-        ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

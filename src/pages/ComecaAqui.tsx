@@ -201,18 +201,24 @@ export default function ComecaAquiPage() {
                             try {
                               const s = JSON.parse(raw);
                               const DAYS = [{key:'seg',label:'Seg'},{key:'ter',label:'Ter'},{key:'qua',label:'Qua'},{key:'qui',label:'Qui'},{key:'sex',label:'Sex'},{key:'sab',label:'Sáb'}];
-                              return DAYS.filter(d => (s[d.key]||[]).length > 0).map(d => {
-                                const p = s[d.key];
-                                const suffix = p.length === 2 ? '' : p.includes('manha') ? ' (M)' : ' (T)';
-                                return `${d.label}${suffix}`;
-                              }).join(', ');
+                              return DAYS.filter(d => s[d.key] && (typeof s[d.key] === 'object' ? (s[d.key].manha || s[d.key].tarde) : (s[d.key]||[]).length > 0)).map(d => {
+                                const val = s[d.key];
+                                if (Array.isArray(val)) {
+                                  const suffix = val.length === 2 ? '' : val.includes('manha') ? ' (M)' : ' (T)';
+                                  return `${d.label}${suffix}`;
+                                }
+                                const parts: string[] = [];
+                                if (val.manha) parts.push(val.manha);
+                                if (val.tarde) parts.push(val.tarde);
+                                return `${d.label} ${parts.join(' / ')}`;
+                              }).join(' · ');
                             } catch { return raw; }
                           };
                           const display = scheduleToDisplay(m.work_schedule);
                           return display ? (
                             <div className="flex items-center gap-2 text-muted-foreground">
                               <Clock className="h-3 w-3 shrink-0" />
-                              <span>{display}</span>
+                              <span className="text-[10px] leading-tight">{display}</span>
                             </div>
                           ) : null;
                         })()}
