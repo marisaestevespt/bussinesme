@@ -158,6 +158,9 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
               <div className="flex gap-2 flex-wrap">
                 <Badge variant="outline">{planAreaLabel(obj.area)}</Badge>
                 <Badge variant="outline">{obj.objective_type === 'quantitativo' ? 'Quantitativo' : 'Qualitativo'}</Badge>
+                {obj.objective_type === 'quantitativo' && (
+                  <Badge variant="outline">{MEASUREMENT_TYPES.find(t => t.value === obj.measurement_type)?.label || 'Acumulativo'}</Badge>
+                )}
                 <Badge variant={obj.status === 'atingido' ? 'default' : 'secondary'}>{planStatusLabel(obj.status)}</Badge>
               </div>
             </>
