@@ -6,6 +6,7 @@ import { CommercialMetas } from '@/components/commercial/CommercialMetas';
 import { CommercialVendas } from '@/components/commercial/CommercialVendas';
 import { CommercialProcessos } from '@/components/commercial/CommercialProcessos';
 import { CommercialAcoes } from '@/components/commercial/CommercialAcoes';
+import { CommercialCRM } from '@/components/commercial/CommercialCRM';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 
 const TITLES: Record<string, string> = {
