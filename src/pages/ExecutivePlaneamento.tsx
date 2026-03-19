@@ -4,6 +4,7 @@ import { usePlanningData } from '@/hooks/usePlanningData';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
 import { PlanningGoalsTab, type GoalsViewMode } from '@/components/planning/PlanningGoalsTab';
 import { PlanningTrackingTab } from '@/components/planning/PlanningTrackingTab';
+import { MonthlyGallery } from '@/components/planning/MonthlyGallery';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, BarChart3, PieChart, Target } from 'lucide-react';
@@ -46,6 +47,13 @@ export default function ExecutivePlaneamento() {
             </Card>
           ))}
         </div>
+
+        {/* Monthly Gallery — only when Mensal is selected */}
+        {viewMode === 'mensal' && (
+          <section className="space-y-3">
+            <MonthlyGallery planning={planning} year={currentYear} />
+          </section>
+        )}
 
         {/* Objetivos */}
         <section className="space-y-3">
