@@ -23,6 +23,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { OfferCalculator } from '@/components/product/OfferCalculator';
 import { ProductCustomerSuccess } from '@/components/product/ProductCustomerSuccess';
 import { format } from 'date-fns';
+import { BackNavigation } from '@/components/BackNavigation';
 
 const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--muted))'];
@@ -275,9 +276,7 @@ export default function ProdutoDetailPage() {
       <div className="p-6 space-y-6 max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 flex-wrap">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/produtos')}>
-            <ArrowLeft className="h-4 w-4 mr-1" /> Produtos
-          </Button>
+          <BackNavigation parentRoute="/hub/produtos" parentLabel="Produtos" />
           <div className="flex-1" />
           {!isNew && isOwner && (
             <>

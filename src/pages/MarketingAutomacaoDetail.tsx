@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, Plus, Trash2, Check } from 'lucide-react';
+import { BackNavigation } from '@/components/BackNavigation';
 
 const STATUSES = [
   { value: 'em_desenho', label: 'Em desenho', color: 'bg-amber-100 text-amber-800' },
@@ -156,9 +157,7 @@ export default function MarketingAutomacaoDetail() {
 
         <div className="max-w-4xl mx-auto w-full px-4 py-8 space-y-8">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/hub/marketing/automacoes')}>
-              <ChevronLeft className="h-4 w-4 mr-1" />Voltar
-            </Button>
+            <BackNavigation parentRoute="/hub/marketing/automacoes" parentLabel="Automações" />
           </div>
 
           {/* Meta fields */}

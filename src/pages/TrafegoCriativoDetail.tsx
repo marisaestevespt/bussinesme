@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import { ChevronLeft, Check, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { BackNavigation } from '@/components/BackNavigation';
 
 const STATUSES = [
   { value: 'em_desenho', label: 'Em desenho', color: 'bg-violet-100 text-violet-800' },
@@ -113,9 +114,7 @@ export default function TrafegoCriativoDetail() {
         </div>
 
         <div className="max-w-4xl mx-auto w-full px-4 py-8 space-y-8">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/marketing/trafego-pago')}>
-            <ChevronLeft className="h-4 w-4 mr-1" />Voltar
-          </Button>
+          <BackNavigation parentRoute="/hub/marketing/trafego-pago" parentLabel="Tráfego Pago" />
 
           {/* Meta fields */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

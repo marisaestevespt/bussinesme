@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
+import { BackNavigation } from '@/components/BackNavigation';
   Pencil, Check, X, Plus, ExternalLink, FolderOpen, Zap,
   Trash2, Upload, FileText, Image as ImageIcon, ChevronLeft,
 } from 'lucide-react';
@@ -391,9 +392,7 @@ export default function GestaoMarcaPage() {
         </div>
 
         <div className="max-w-6xl mx-auto w-full px-4 py-10 space-y-12">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/marketing')}>
-            <ChevronLeft className="h-4 w-4 mr-1" />Voltar ao Marketing
-          </Button>
+          <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
 
           {/* ── Brand Card ── */}
           <Card className="overflow-hidden">

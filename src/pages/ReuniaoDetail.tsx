@@ -24,6 +24,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { toast } from 'sonner';
+import { BackNavigation } from '@/components/BackNavigation';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -348,9 +349,7 @@ export default function ReuniaoDetailPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
         {/* Top bar */}
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/reunioes')}>
-            <ArrowLeft className="h-4 w-4 mr-1.5" /> Reuniões
-          </Button>
+          <BackNavigation parentRoute="/hub/reunioes" parentLabel="Reuniões" />
           <div className="flex items-center gap-2">
             {dirty && (
               <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>

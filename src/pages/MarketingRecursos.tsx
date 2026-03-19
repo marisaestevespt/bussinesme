@@ -21,6 +21,7 @@ import {
   Image as ImageIcon, Palette, Link2, Lightbulb,
 } from 'lucide-react';
 import { CONTENT_TYPE_OPTIONS, FORMAT_OPTIONS, type MarketingChannel } from '@/lib/marketing-constants';
+import { BackNavigation } from '@/components/BackNavigation';
 
 const IDEA_CATEGORIES = [
   { value: 'todas', label: 'Todas' },
@@ -192,9 +193,7 @@ export default function MarketingRecursos() {
         </div>
 
         <div className="max-w-6xl mx-auto w-full px-4 py-8 space-y-10">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/marketing')}>
-            <ChevronLeft className="h-4 w-4 mr-1" />Voltar ao Marketing
-          </Button>
+          <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
 
           {/* TOP: 3 blocks */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

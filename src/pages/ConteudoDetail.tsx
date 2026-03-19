@@ -24,6 +24,7 @@ import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle } from 'lucide-react';
+import { BackNavigation } from '@/components/BackNavigation';
 
 export default function ConteudoDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -209,9 +210,7 @@ export default function ConteudoDetailPage() {
         </div>
 
         <div className="max-w-6xl mx-auto w-full px-4 py-6">
-          <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate('/hub/marketing')}>
-            <ChevronLeft className="h-4 w-4 mr-1" />Marketing
-          </Button>
+          <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
 
           {/* Title */}
           <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}

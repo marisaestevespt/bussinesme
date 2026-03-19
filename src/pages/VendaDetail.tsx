@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useCommercialData } from '@/hooks/useCommercialData';
+import { BackNavigation } from '@/components/BackNavigation';
 
 const STATUS_OPTIONS = [
   { value: 'na', label: 'N.A.', className: 'bg-muted text-muted-foreground' },
@@ -156,9 +157,7 @@ export default function VendaDetailPage() {
       <div className="p-6 space-y-6 max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 flex-wrap">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/comercial/vendas')}>
-            <ArrowLeft className="h-4 w-4 mr-1" /> Vendas
-          </Button>
+          <BackNavigation parentRoute="/hub/comercial/vendas" parentLabel="Vendas" />
           <div className="flex items-center gap-2">
             <span className="font-mono text-lg font-bold">{form.sale_id}</span>
             <Badge variant="outline" className={statusInfo.className}>{statusInfo.label}</Badge>
