@@ -41,6 +41,7 @@ const pessoalItems: NavItem[] = [
 ];
 
 const hallItems: NavItem[] = [
+  { title: 'Hub de Equipa', url: '/hub-equipa', icon: 'UsersRound', moduleKey: 'hub-equipa' },
   { title: 'Começa Aqui', url: '/comeca-aqui', icon: 'Rocket', moduleKey: 'comeca-aqui' },
   { title: 'Mural', url: '/hub/mural', icon: 'MessageSquare', moduleKey: 'mural' },
 ];
