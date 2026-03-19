@@ -135,6 +135,7 @@ export function FinSaidas({ fin }: Props) {
       renewal_date: subForm.renewal_date ? (typeof subForm.renewal_date === 'string' ? subForm.renewal_date : format(subForm.renewal_date, 'yyyy-MM-dd')) : null,
       status: subForm.status,
       notes: subForm.notes || null,
+      documents: subForm.documents || [],
     });
     setSubOpen(false);
     toast.success('Subscrição guardada');
