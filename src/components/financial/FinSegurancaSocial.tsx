@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Save } from 'lucide-react';
 import { toast } from 'sonner';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import type { Expense } from '@/hooks/useFinancialData';
+import { FinDocumentsUpload, type FinDocItem } from './FinDocumentsUpload';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const QUARTERS = [
