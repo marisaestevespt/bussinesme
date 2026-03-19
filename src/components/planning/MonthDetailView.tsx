@@ -15,6 +15,9 @@ import { cn } from '@/lib/utils';
 import { planStatusLabel, planAreaLabel } from '@/hooks/usePlanningData';
 import { format, parseISO, endOfMonth, startOfMonth, getDay, getDaysInMonth, addMonths, subMonths } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
+import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
+import { ObjectiveDialog } from './ObjectiveDialog';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
@@ -65,6 +68,9 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const [clientTab, setClientTab] = useState<'ativos'|'terminar'>('ativos');
   const [contentTab, setContentTab] = useState('calendario');
   const [calMonth, setCalMonth] = useState(new Date(year, monthIdx, 1));
+  const [selectedObjective, setSelectedObjective] = useState<any>(null);
+  const [objDialogOpen, setObjDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   // ── Data queries ──
   const salesQ = useQuery({ queryKey: ['md-sales', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales').select('*').eq('sale_year', year).eq('sale_month', monthNum); return data || []; }});
@@ -282,6 +288,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             <div className="flex gap-1 ml-auto">
               <Button size="sm" variant={objTab === 'metas' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setObjTab('metas')}>Metas do mês</Button>
               <Button size="sm" variant={objTab === 'objetivos' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setObjTab('objetivos')}>Objetivos anuais</Button>
+              <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => setObjDialogOpen(true)}><Plus className="h-3 w-3" /> Novo objetivo</Button>
             </div>
           </div>
         </CardHeader>
@@ -296,7 +303,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   {monthGoals.map((g: any) => {
                     const obj = objectives.find((o: any) => o.id === g.objective_id);
                     return (
-                      <TableRow key={g.id}>
+                      <TableRow key={g.id} className="cursor-pointer hover:bg-muted/60" onClick={() => obj && setSelectedObjective(obj)}>
                         <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">{planStatusLabel(g.status)}</Badge></TableCell>
                         <TableCell className="text-xs">{obj ? planAreaLabel(obj.area) : '—'}</TableCell>
                         <TableCell className="text-sm">{obj?.title || '—'}</TableCell>
@@ -316,7 +323,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 </TableRow></TableHeader>
                 <TableBody>
                   {linkedObjectives.map((o: any) => (
-                    <TableRow key={o.id}>
+                    <TableRow key={o.id} className="cursor-pointer hover:bg-muted/60" onClick={() => setSelectedObjective(o)}>
                       <TableCell><Badge variant={o.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">{planStatusLabel(o.status)}</Badge></TableCell>
                       <TableCell className="text-xs">{planAreaLabel(o.area)}</TableCell>
                       <TableCell className="text-sm font-medium">{o.title}</TableCell>
@@ -339,7 +346,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           {renderCalendarGrid(
             allEvents,
             (e: any) => e.start_date ? parseISO(e.start_date) : null,
-            (e: any) => <div key={e.id} className="text-[9px] bg-primary/10 text-primary rounded px-1 py-0.5 truncate">{e.title}</div>
+            (e: any) => <div key={e.id} className="text-[9px] bg-primary/10 text-primary rounded px-1 py-0.5 truncate cursor-pointer hover:bg-primary/20" onClick={() => navigate(`/reunioes/${e.id}`)}>{e.title}</div>
           )}
         </CardContent>
       </Card>
@@ -414,7 +421,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   {sales.length === 0 ? (
                     <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-4">Sem vendas registadas.</TableCell></TableRow>
                   ) : sales.map((sl: any) => (
-                    <TableRow key={sl.id}>
+                    <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/comercial/vendas/${sl.id}`)}>
                       <TableCell className="text-xs">{sl.sale_id}</TableCell>
                       <TableCell className="text-sm">{sl.client || '—'}</TableCell>
                       <TableCell className="text-sm">{sl.product || '—'}</TableCell>
@@ -530,7 +537,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 {activeClients.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem clientes ativos.</TableCell></TableRow>
                 ) : activeClients.map((c: any) => (
-                  <TableRow key={c.id}>
+                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/clientes/${c.id}`)}>
                     <TableCell className="text-xs">{c.client_id}</TableCell>
                     <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
                     <TableCell><Badge variant="default" className="text-xs">{c.status}</Badge></TableCell>
@@ -550,7 +557,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 {endingClients.length === 0 ? (
                   <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-4">Sem clientes a terminar este mês.</TableCell></TableRow>
                 ) : endingClients.map((c: any) => (
-                  <TableRow key={c.id}>
+                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/clientes/${c.id}`)}>
                     <TableCell className="text-xs">{c.client_id}</TableCell>
                     <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
                     <TableCell><Badge variant="secondary" className="text-xs">{c.status}</Badge></TableCell>
@@ -579,7 +586,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
               {sales.length === 0 ? (
                 <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-4">Sem recebimentos registados.</TableCell></TableRow>
               ) : sales.map((sl: any) => (
-                <TableRow key={sl.id}>
+                <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/comercial/vendas/${sl.id}`)}>
                   <TableCell className="text-xs">{sl.sale_id}</TableCell>
                   <TableCell><Badge variant="secondary" className="text-xs">{sl.status}</Badge></TableCell>
                   <TableCell className="text-xs">{sl.payment_date ? format(parseISO(sl.payment_date), 'dd/MM/yyyy') : '—'}</TableCell>
@@ -688,6 +695,20 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           ))}
         </CardContent>
       </Card>
+
+      {/* ═══ DETAIL SHEETS ═══ */}
+      <ObjectiveDetailSheet
+        open={!!selectedObjective}
+        onClose={() => setSelectedObjective(null)}
+        objective={selectedObjective}
+        planning={planning}
+      />
+      <ObjectiveDialog
+        open={objDialogOpen}
+        onClose={() => setObjDialogOpen(false)}
+        initial={null}
+        onSave={(data: any) => { planning.upsertObjective.mutate(data); setObjDialogOpen(false); }}
+      />
     </div>
   );
 }

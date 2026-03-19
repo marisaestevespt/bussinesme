@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, Plus } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -14,6 +14,8 @@ import { cn } from '@/lib/utils';
 import { planStatusLabel, planAreaLabel } from '@/hooks/usePlanningData';
 import { format, parseISO, endOfMonth, startOfMonth, getDay, getDaysInMonth } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
+import { ObjectiveDialog } from './ObjectiveDialog';
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -124,6 +126,8 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
   const [metasView, setMetasView] = useState<'metas' | 'objetivos'>('metas');
   const [calendarMonthOffset, setCalendarMonthOffset] = useState(0);
   const [selectedQuarterIdx, setSelectedQuarterIdx] = useState<number | null>(null);
+  const [selectedObjective, setSelectedObjective] = useState<any>(null);
+  const [objDialogOpen, setObjDialogOpen] = useState(false);
 
   // Goals & Objectives
   const goals = planning.allGoals || [];
@@ -459,6 +463,9 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
               <Button variant={metasView === 'objetivos' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setMetasView('objetivos')}>
                 Objetivos anuais
               </Button>
+              <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setObjDialogOpen(true)}>
+                <Plus className="h-3 w-3" /> Novo objetivo
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -499,7 +506,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
                             const dev = target > 0 ? actual - target : null;
                             const obj = objectives.find((o: any) => o.id === g.objective_id);
                             return (
-                              <TableRow key={g.id}>
+                              <TableRow key={g.id} className="cursor-pointer hover:bg-muted/60" onClick={() => { const obj = objectives.find((o: any) => o.id === g.objective_id); if (obj) setSelectedObjective(obj); }}>
                                 <TableCell>
                                   <Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">{planStatusLabel(g.status)}</Badge>
                                 </TableCell>
@@ -541,7 +548,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
                 </TableHeader>
                 <TableBody>
                   {linkedObjectives.map((o: any) => (
-                    <TableRow key={o.id}>
+                    <TableRow key={o.id} className="cursor-pointer hover:bg-muted/60" onClick={() => setSelectedObjective(o)}>
                       <TableCell><Badge variant={o.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">{planStatusLabel(o.status)}</Badge></TableCell>
                       <TableCell className="text-sm">{planAreaLabel(o.area)}</TableCell>
                       <TableCell className="text-sm font-medium">{o.title}</TableCell>
@@ -621,7 +628,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
           {calendarEvents.length > 0 ? (
             <div className="mt-3 space-y-1">
               {calendarEvents.slice(0, 8).map((e: any) => (
-                <div key={e.id} className="flex items-center gap-2 text-xs py-1 px-2 rounded bg-muted/30">
+                <div key={e.id} className="flex items-center gap-2 text-xs py-1 px-2 rounded bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors">
                   <Calendar className="h-3 w-3 text-muted-foreground shrink-0" />
                   <span className="text-muted-foreground">{format(parseISO(e.start_date), 'dd/MM')}</span>
                   <span className="truncate">{e.title}</span>
@@ -881,6 +888,20 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
           </div>
         </CardContent>
       </Card>
+
+      {/* ═══ DETAIL SHEETS ═══ */}
+      <ObjectiveDetailSheet
+        open={!!selectedObjective}
+        onClose={() => setSelectedObjective(null)}
+        objective={selectedObjective}
+        planning={planning}
+      />
+      <ObjectiveDialog
+        open={objDialogOpen}
+        onClose={() => setObjDialogOpen(false)}
+        initial={null}
+        onSave={(data: any) => { planning.upsertObjective.mutate(data); setObjDialogOpen(false); }}
+      />
     </div>
   );
 }
