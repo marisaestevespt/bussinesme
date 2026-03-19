@@ -152,20 +152,17 @@ function HallColumn() {
   return (
     <div className="space-y-4">
       <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Hall</h2>
-      <Card>
-        <CardContent className="p-3 space-y-1">
-          {HALL_LINKS.map(l => (
-            <button
-              key={l.path}
-              onClick={() => navigate(l.path)}
-              className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md hover:bg-accent transition-colors text-left"
-            >
-              <l.icon className="h-4 w-4 text-muted-foreground shrink-0" />
-              <span className="text-sm font-medium">{l.label}</span>
-            </button>
-          ))}
-        </CardContent>
-      </Card>
+      <div className="space-y-1">
+        {HALL_LINKS.map(l => (
+          <button
+            key={l.path}
+            onClick={() => navigate(l.path)}
+            className="block text-sm font-semibold hover:text-primary transition-colors text-left py-1"
+          >
+            {l.label}
+          </button>
+        ))}
+      </div>
 
       <RecommendationsBox isAdmin={isOwner} />
     </div>
