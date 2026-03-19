@@ -603,7 +603,7 @@ export default function TarefasPage() {
 // ─── Task Table ─────────────────────────────────────────────────
 
 function TaskTable({
-  tasks, isOverdue, isDoneAfterDeadline, getProfileName, getProjectName, onTaskClick,
+  tasks, isOverdue, isDoneAfterDeadline, getProfileName, getProjectName, onTaskClick, taskDependencies = [], allTasks = [],
 }: {
   tasks: any[];
   isOverdue: (t: any) => boolean;
@@ -611,6 +611,8 @@ function TaskTable({
   getProfileName: (id: string | null) => string;
   getProjectName: (id: string | null) => string;
   onTaskClick: (t: any) => void;
+  taskDependencies?: any[];
+  allTasks?: any[];
 }) {
   if (!tasks.length) {
     return <div className="text-center py-12 text-muted-foreground">Sem tarefas nesta vista.</div>;
