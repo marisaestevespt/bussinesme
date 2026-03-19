@@ -266,19 +266,25 @@ export default function TarefasPage() {
   const today = startOfDay(new Date());
 
   const filteredTasks = useMemo(() => {
+    let result: typeof tasks;
     switch (view) {
       case 'todo':
-        return tasks.filter(t => t.status !== 'done');
+        result = tasks.filter(t => t.status !== 'done'); break;
       case 'atrasadas':
-        return tasks.filter(t => t.status !== 'done' && t.deadline && isBefore(parseISO(t.deadline), today));
+        result = tasks.filter(t => t.status !== 'done' && t.deadline && isBefore(parseISO(t.deadline), today)); break;
       case 'proximas':
-        return tasks.filter(t => t.status !== 'done' && t.deadline && !isBefore(parseISO(t.deadline), today));
+        result = tasks.filter(t => t.status !== 'done' && t.deadline && !isBefore(parseISO(t.deadline), today)); break;
       case 'todas':
       case 'calendario':
       default:
-        return tasks;
+        result = tasks;
     }
-  }, [tasks, view, today]);
+    if (filterDept) result = result.filter(t => t.department === filterDept);
+    if (filterResponsible) result = result.filter(t => t.assigned_to === filterResponsible);
+    if (filterPriority) result = result.filter(t => t.priority === filterPriority);
+    if (filterProject) result = result.filter(t => t.project_id === filterProject);
+    return result;
+  }, [tasks, view, today, filterDept, filterResponsible, filterPriority, filterProject]);
 
   // Helpers
   const isOverdue = (task: any) => task.status !== 'done' && task.deadline && isBefore(parseISO(task.deadline), today);
