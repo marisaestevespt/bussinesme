@@ -24,7 +24,6 @@ const ML = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out'
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
 const ALL_TABS = [
-  { key: 'overview', label: 'Visão Geral' },
   { key: 'mensal', label: 'Mensal' },
   { key: 'entradas', label: 'Entradas' },
   { key: 'saidas', label: 'Saídas' },
@@ -196,9 +195,6 @@ export default function FinanceiroPage() {
             </Popover>
           </div>
 
-          <TabsContent value="overview">
-            <FinOverview sales={sales} expenses={expenses} subscriptions={subscriptions} payrollData={payrollData} contractorsData={contractorsData} currentYear={currentYear} />
-          </TabsContent>
           <TabsContent value="mensal">
             <FinMensal sales={sales} expenses={expenses} subscriptions={subscriptions} payrollData={payrollData} contractorsData={contractorsData} documents={documents} currentYear={currentYear} />
           </TabsContent>
