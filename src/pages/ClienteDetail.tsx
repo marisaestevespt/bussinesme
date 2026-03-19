@@ -316,7 +316,14 @@ export default function ClienteDetailPage() {
             <Card>
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm">Gestão de Pagamentos</CardTitle>
-                <Button size="sm" variant="outline" onClick={() => setSaleOpen(true)}><Plus className="h-3 w-3 mr-1" />Novo Pagamento</Button>
+                <div className="flex items-center gap-2">
+                  {form.payment_method && parseInt(form.payment_method) > 1 && (
+                    <Button size="sm" variant="secondary" onClick={generateInstallments}>
+                      Gerar {form.payment_method} Pagamentos
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" onClick={() => setSaleOpen(true)}><Plus className="h-3 w-3 mr-1" />Novo Pagamento</Button>
+                </div>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-9 gap-2">
