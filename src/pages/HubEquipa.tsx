@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Rocket, MessageSquare, Users, Calendar, Video, Key, FolderKanban, GitBranch, CheckSquare,
   Megaphone, ShoppingCart, UserCheck, DollarSign, Headphones, Package, UsersRound, Lock,
-  Plus, ClipboardList, AlertTriangle,
+  Plus, ClipboardList, AlertTriangle, ListTodo, FolderOpen, CalendarDays,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
