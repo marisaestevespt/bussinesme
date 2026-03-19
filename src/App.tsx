@@ -73,6 +73,8 @@ function AppRoutes() {
         <Route path="/hub/marketing/gestao-marca" element={<GestaoMarcaPage />} />
         <Route path="/hub/marketing/conteudos/:id" element={<ConteudoDetailPage />} />
         <Route path="/hub/marketing/canal/:channelId" element={<ChannelPage />} />
+        <Route path="/hub/marketing/estrategia" element={<MarketingEstrategia />} />
+        <Route path="/hub/marketing/estrategia/canal/:channelId" element={<MarketingChannelStrategy />} />
         <Route path="/hub/marketing/:pageKey" element={<MarketingSubPage />} />
         <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
