@@ -497,10 +497,11 @@ function ActionsSection({ objectiveId, actions, planning }: any) {
               <TableCell className="text-xs">{a.deadline || '—'}</TableCell>
               <TableCell className="flex gap-1">
                 {a.action_type !== 'tarefa' && !a.task_id && (
-                  <Button size="sm" variant="ghost" className="h-6 text-[10px]" onClick={() => planning.convertActionToTask.mutate(a)}>
-                    <ArrowRightLeft className="h-3 w-3 mr-1" /> Converter
+                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => planning.convertActionToTask.mutate(a)}>
+                    <ListTodo className="h-3 w-3 mr-1" /> Converter em Tarefa
                   </Button>
                 )}
+                {a.task_id && <Badge variant="outline" className="text-[10px]">Tarefa criada</Badge>}
                 <button onClick={() => planning.deleteAction.mutate(a.id)}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
               </TableCell>
             </TableRow>
