@@ -4,17 +4,59 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { Pencil, Check, X, FileText } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Pencil, Check, X, FileText, Mail, Phone, Clock, Users } from 'lucide-react';
 import { toast } from 'sonner';
+
+function useTeamMembers() {
+  return useQuery({
+    queryKey: ['team-members-gallery'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('team_members')
+        .select('id, full_name, role_title, email, whatsapp, work_schedule, member_type, profile_id, status')
+        .eq('status', 'active')
+        .order('full_name');
+      
+      if (!data?.length) return [];
+
+      // Fetch avatar URLs from profiles
+      const profileIds = data.filter(m => m.profile_id).map(m => m.profile_id!);
+      let avatarMap: Record<string, string | null> = {};
+      if (profileIds.length) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, avatar_url')
+          .in('id', profileIds);
+        if (profiles) {
+          avatarMap = Object.fromEntries(profiles.map(p => [p.id, p.avatar_url]));
+        }
+      }
+
+      return data.map(m => ({
+        ...m,
+        avatar_url: m.profile_id ? avatarMap[m.profile_id] || null : null,
+      }));
+    },
+  });
+}
+
+const MEMBER_TYPE_LABELS: Record<string, string> = {
+  colaborador: 'Colaborador',
+  prestador: 'Prestador',
+  estagiario: 'Estagiário',
+};
 
 export default function ComecaAquiPage() {
   const { settings, refetch: refetchSettings } = useBusinessSettings();
   const { isOwner } = useAuth();
   const navigate = useNavigate();
+  const teamMembers = useTeamMembers();
 
   const [welcomeText, setWelcomeText] = useState('');
   const [aboutText, setAboutText] = useState('');
@@ -48,6 +90,8 @@ export default function ComecaAquiPage() {
   const defaultAbout = 'Somos uma equipa dedicada a criar valor e impacto. Aqui encontras tudo o que precisas para colaborar, comunicar e acompanhar o nosso trabalho.';
   const displayWelcome = welcomeText || defaultWelcome;
   const displayAbout = aboutText || defaultAbout;
+
+  const getInitials = (name: string) => name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 
   return (
     <AppLayout>
@@ -103,6 +147,67 @@ export default function ComecaAquiPage() {
               </div>
             ) : (
               <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{displayAbout}</p>
+            )}
+          </section>
+
+          <Separator />
+
+          {/* Team gallery */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-semibold text-foreground">Conhece a tua equipa</h2>
+            </div>
+            {(teamMembers.data || []).length === 0 ? (
+              <p className="text-sm text-muted-foreground">Ainda não há membros na equipa.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {(teamMembers.data || []).map((m: any) => (
+                  <Card key={m.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                    <CardContent className="p-5 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={m.avatar_url || ''} />
+                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                            {getInitials(m.full_name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-foreground truncate">{m.full_name}</p>
+                          {m.role_title && <p className="text-xs text-muted-foreground truncate">{m.role_title}</p>}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5 text-xs">
+                        {m.member_type && (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Users className="h-3 w-3 shrink-0" />
+                            <span>{MEMBER_TYPE_LABELS[m.member_type] || m.member_type}</span>
+                          </div>
+                        )}
+                        {m.email && (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Mail className="h-3 w-3 shrink-0" />
+                            <a href={`mailto:${m.email}`} className="hover:text-primary truncate">{m.email}</a>
+                          </div>
+                        )}
+                        {m.whatsapp && (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Phone className="h-3 w-3 shrink-0" />
+                            <span>{m.whatsapp}</span>
+                          </div>
+                        )}
+                        {m.work_schedule && (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Clock className="h-3 w-3 shrink-0" />
+                            <span>{m.work_schedule}</span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             )}
           </section>
 
