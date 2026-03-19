@@ -526,6 +526,52 @@ export default function ClienteDetailPage() {
               </CardContent>
             </Card>
 
+            {/* Offboarding checklist */}
+            <Card>
+              <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm">Checklist de Offboarding</CardTitle>
+                <div className="flex gap-2">
+                  {!isNew && form.current_product && (offboarding.data || []).length === 0 && (
+                    <Button size="sm" variant="outline" onClick={async () => {
+                      const prod = productList.find(p => p.name === form.current_product);
+                      if (!prod) { toast.error('Produto não encontrado'); return; }
+                      const { data: template } = await supabase.from('product_offboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
+                      if (!template || template.length === 0) { toast.error('Sem template de offboarding neste produto'); return; }
+                      for (const t of template as any[]) {
+                        await addOffboarding.mutateAsync({ client_id: id!, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
+                      }
+                      toast.success('Checklist de offboarding copiada do produto');
+                    }}>
+                      <Copy className="h-3 w-3 mr-1" />Copiar do Produto
+                    </Button>
+                  )}
+                  {!isNew && (
+                    <Button size="sm" variant="outline" onClick={() => addOffboarding.mutateAsync({ client_id: id!, activity: '' })}>
+                      <Plus className="h-3 w-3 mr-1" />Nova Entrada
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[32px_1fr_1fr_1fr_1fr_1fr_32px] gap-2">
+                  <span>✓</span><span>Fase</span><span>Atividade</span><span>Responsável</span><span>Regra</span><span>Docs/Links</span><span></span>
+                </div>
+                {(offboarding.data || []).length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8 text-sm">Sem entradas</p>
+                ) : (offboarding.data || []).map(o => (
+                  <div key={o.id} className={cn("px-4 py-2 text-xs grid grid-cols-[32px_1fr_1fr_1fr_1fr_1fr_32px] gap-2 border-b items-center", o.completed && "opacity-60")}>
+                    <Checkbox checked={o.completed} onCheckedChange={(v) => updateOffboarding.mutate({ id: o.id, completed: !!v })} />
+                    <Input className="h-7 text-xs" defaultValue={o.phase || ''} placeholder="Fase" onBlur={e => updateOffboarding.mutate({ id: o.id, phase: e.target.value })} />
+                    <Input className={cn("h-7 text-xs", o.completed && "line-through")} defaultValue={o.activity} placeholder="Atividade" onBlur={e => updateOffboarding.mutate({ id: o.id, activity: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={o.responsible || ''} placeholder="Responsável" onBlur={e => updateOffboarding.mutate({ id: o.id, responsible: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={o.rule || ''} placeholder="Regra" onBlur={e => updateOffboarding.mutate({ id: o.id, rule: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={(o as any).documents_links || ''} placeholder="URL/notas" onBlur={e => updateOffboarding.mutate({ id: o.id, documents_links: e.target.value } as any)} />
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteOffboarding.mutate(o.id)}><X className="h-3 w-3" /></Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
             {/* Drive folder */}
             <Card>
               <CardHeader className="pb-2"><CardTitle className="text-sm">Pasta Drive</CardTitle></CardHeader>
