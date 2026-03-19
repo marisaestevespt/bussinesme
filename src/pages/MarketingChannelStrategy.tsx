@@ -1,0 +1,295 @@
+import { useState, useEffect } from 'react';
+import { AppLayout } from '@/components/AppLayout';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
+import { ChevronLeft, Plus, Trash2 } from 'lucide-react';
+import type { MarketingChannel } from '@/lib/marketing-constants';
+
+export default function MarketingChannelStrategy() {
+  const { channelId } = useParams<{ channelId: string }>();
+  const navigate = useNavigate();
+  const { isOwner } = useAuth();
+  const qc = useQueryClient();
+
+  const { data: channel } = useQuery({
+    queryKey: ['marketing-channel', channelId],
+    queryFn: async () => {
+      const { data } = await supabase.from('marketing_channels').select('*').eq('id', channelId!).single() as { data: MarketingChannel | null };
+      return data;
+    },
+    enabled: !!channelId,
+  });
+
+  const { data: detail } = useQuery({
+    queryKey: ['strategy-channel-detail', channelId],
+    queryFn: async () => {
+      const { data } = await supabase.from('strategy_channel_details').select('*').eq('channel_id', channelId!).maybeSingle() as any;
+      return data as { id: string; positioning: string | null; periodicity: string | null } | null;
+    },
+    enabled: !!channelId,
+  });
+
+  const { data: formats = [] } = useQuery({
+    queryKey: ['strategy-channel-formats', channelId],
+    queryFn: async () => {
+      const { data } = await supabase.from('strategy_channel_formats').select('*').eq('channel_id', channelId!).order('sort_order') as any;
+      return (data || []) as { id: string; formato: string; objetivo: string; exemplos: string; sort_order: number }[];
+    },
+    enabled: !!channelId,
+  });
+
+  const { data: frames = [] } = useQuery({
+    queryKey: ['strategy-channel-frames', channelId],
+    queryFn: async () => {
+      const { data } = await supabase.from('strategy_channel_frames').select('*').eq('channel_id', channelId!).order('sort_order') as any;
+      return (data || []) as { id: string; nome: string; formato: string; frequencia: string; notas: string; sort_order: number }[];
+    },
+    enabled: !!channelId,
+  });
+
+  // Local state
+  const [positioning, setPositioning] = useState('');
+  const [periodicity, setPeriodicity] = useState('');
+
+  useEffect(() => {
+    if (detail) {
+      setPositioning(detail.positioning || '');
+      setPeriodicity(detail.periodicity || '');
+    }
+  }, [detail]);
+
+  const saveDetail = async (field: string, value: string) => {
+    if (detail) {
+      await supabase.from('strategy_channel_details').update({ [field]: value } as any).eq('id', detail.id);
+    } else {
+      await supabase.from('strategy_channel_details').insert({ channel_id: channelId, [field]: value } as any);
+    }
+    qc.invalidateQueries({ queryKey: ['strategy-channel-detail', channelId] });
+  };
+
+  // Formats CRUD
+  const addFormat = async () => {
+    await supabase.from('strategy_channel_formats').insert({
+      channel_id: channelId, formato: '', objetivo: '', exemplos: '', sort_order: formats.length,
+    } as any);
+    qc.invalidateQueries({ queryKey: ['strategy-channel-formats', channelId] });
+  };
+
+  const updateFormat = async (id: string, field: string, value: string) => {
+    await supabase.from('strategy_channel_formats').update({ [field]: value } as any).eq('id', id);
+    qc.invalidateQueries({ queryKey: ['strategy-channel-formats', channelId] });
+  };
+
+  const deleteFormat = async (id: string) => {
+    await supabase.from('strategy_channel_formats').delete().eq('id', id);
+    qc.invalidateQueries({ queryKey: ['strategy-channel-formats', channelId] });
+  };
+
+  // Frames CRUD
+  const addFrame = async () => {
+    await supabase.from('strategy_channel_frames').insert({
+      channel_id: channelId, nome: '', formato: '', frequencia: '', notas: '', sort_order: frames.length,
+    } as any);
+    qc.invalidateQueries({ queryKey: ['strategy-channel-frames', channelId] });
+  };
+
+  const updateFrame = async (id: string, field: string, value: string) => {
+    await supabase.from('strategy_channel_frames').update({ [field]: value } as any).eq('id', id);
+    qc.invalidateQueries({ queryKey: ['strategy-channel-frames', channelId] });
+  };
+
+  const deleteFrame = async (id: string) => {
+    await supabase.from('strategy_channel_frames').delete().eq('id', id);
+    qc.invalidateQueries({ queryKey: ['strategy-channel-frames', channelId] });
+  };
+
+  if (!channel) return (
+    <AppLayout>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    </AppLayout>
+  );
+
+  return (
+    <AppLayout>
+      <div className="flex flex-col min-h-screen">
+        <div className="w-full py-10 px-6 flex flex-col items-center gap-2" style={{ background: 'hsl(var(--primary))' }}>
+          <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>
+            Estratégia por Canal
+          </p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight" style={{ color: 'hsl(var(--primary-foreground))' }}>
+            {channel.name}
+          </h1>
+        </div>
+
+        <div className="max-w-5xl mx-auto w-full px-4 py-8 space-y-10">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/marketing/estrategia')}>
+            <ChevronLeft className="h-4 w-4 mr-1" />Voltar à Estratégia
+          </Button>
+
+          {/* Callout - Posicionamento do Canal */}
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="p-5">
+              <Textarea
+                value={positioning}
+                onChange={e => setPositioning(e.target.value)}
+                onBlur={() => saveDetail('positioning', positioning)}
+                placeholder="Define o papel deste canal no teu negócio"
+                className="min-h-[60px] resize-none bg-transparent border-none text-base"
+                readOnly={!isOwner}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Periodicidade */}
+          <section>
+            <h2 className="text-lg font-semibold text-foreground mb-3">Periodicidade</h2>
+            <Textarea
+              value={periodicity}
+              onChange={e => setPeriodicity(e.target.value)}
+              onBlur={() => saveDetail('periodicity', periodicity)}
+              placeholder="Define a frequência de publicação neste canal"
+              className="min-h-[60px] resize-none"
+              readOnly={!isOwner}
+            />
+          </section>
+
+          <Separator />
+
+          {/* Formatos e Funções Validados */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-foreground">Formatos e Funções Validados</h2>
+              {isOwner && (
+                <Button variant="outline" size="sm" onClick={addFormat}>
+                  <Plus className="h-3.5 w-3.5 mr-1" />Adicionar
+                </Button>
+              )}
+            </div>
+            <Card>
+              <CardContent className="p-0">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/30">
+                      <th className="text-left p-3 font-medium text-muted-foreground">Formato</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground">Objetivo Principal</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground">Exemplos</th>
+                      {isOwner && <th className="w-10" />}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {formats.length === 0 && (
+                      <tr><td colSpan={4} className="p-6 text-center text-muted-foreground italic">Nenhum formato definido.</td></tr>
+                    )}
+                    {formats.map(f => (
+                      <tr key={f.id} className="border-b last:border-0 group">
+                        <td className="p-2">
+                          <Input value={f.formato} className="h-8 text-sm border-transparent hover:border-input focus:border-input"
+                            onChange={e => updateFormat(f.id, 'formato', e.target.value)}
+                            placeholder="Ex: Reels" readOnly={!isOwner} />
+                        </td>
+                        <td className="p-2">
+                          <Input value={f.objetivo} className="h-8 text-sm border-transparent hover:border-input focus:border-input"
+                            onChange={e => updateFormat(f.id, 'objetivo', e.target.value)}
+                            placeholder="Objetivo" readOnly={!isOwner} />
+                        </td>
+                        <td className="p-2">
+                          <Input value={f.exemplos} className="h-8 text-sm border-transparent hover:border-input focus:border-input"
+                            onChange={e => updateFormat(f.id, 'exemplos', e.target.value)}
+                            placeholder="Exemplos" readOnly={!isOwner} />
+                        </td>
+                        {isOwner && (
+                          <td className="p-2">
+                            <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                              onClick={() => deleteFormat(f.id)}>
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          </section>
+
+          <Separator />
+
+          {/* Quadros Fixos de Conteúdo */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-foreground">Quadros Fixos de Conteúdo</h2>
+              {isOwner && (
+                <Button variant="outline" size="sm" onClick={addFrame}>
+                  <Plus className="h-3.5 w-3.5 mr-1" />Adicionar
+                </Button>
+              )}
+            </div>
+            <Card>
+              <CardContent className="p-0">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/30">
+                      <th className="text-left p-3 font-medium text-muted-foreground">Nome do Quadro</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground">Formato</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground">Frequência</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground">Notas</th>
+                      {isOwner && <th className="w-10" />}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {frames.length === 0 && (
+                      <tr><td colSpan={5} className="p-6 text-center text-muted-foreground italic">Nenhum quadro definido.</td></tr>
+                    )}
+                    {frames.map(f => (
+                      <tr key={f.id} className="border-b last:border-0 group">
+                        <td className="p-2">
+                          <Input value={f.nome} className="h-8 text-sm border-transparent hover:border-input focus:border-input"
+                            onChange={e => updateFrame(f.id, 'nome', e.target.value)}
+                            placeholder="Nome" readOnly={!isOwner} />
+                        </td>
+                        <td className="p-2">
+                          <Input value={f.formato} className="h-8 text-sm border-transparent hover:border-input focus:border-input"
+                            onChange={e => updateFrame(f.id, 'formato', e.target.value)}
+                            placeholder="Formato" readOnly={!isOwner} />
+                        </td>
+                        <td className="p-2">
+                          <Input value={f.frequencia} className="h-8 text-sm border-transparent hover:border-input focus:border-input"
+                            onChange={e => updateFrame(f.id, 'frequencia', e.target.value)}
+                            placeholder="Frequência" readOnly={!isOwner} />
+                        </td>
+                        <td className="p-2">
+                          <Input value={f.notas} className="h-8 text-sm border-transparent hover:border-input focus:border-input"
+                            onChange={e => updateFrame(f.id, 'notas', e.target.value)}
+                            placeholder="Notas" readOnly={!isOwner} />
+                        </td>
+                        {isOwner && (
+                          <td className="p-2">
+                            <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                              onClick={() => deleteFrame(f.id)}>
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          </section>
+        </div>
+      </div>
+    </AppLayout>
+  );
+}

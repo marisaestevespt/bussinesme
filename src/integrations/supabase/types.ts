@@ -1355,6 +1355,201 @@ export type Database = {
           },
         ]
       }
+      strategy_channel_details: {
+        Row: {
+          channel_id: string
+          created_at: string
+          id: string
+          periodicity: string | null
+          positioning: string | null
+          updated_at: string
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          id?: string
+          periodicity?: string | null
+          positioning?: string | null
+          updated_at?: string
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          id?: string
+          periodicity?: string | null
+          positioning?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategy_channel_details_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: true
+            referencedRelation: "marketing_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      strategy_channel_formats: {
+        Row: {
+          channel_id: string
+          created_at: string
+          exemplos: string
+          formato: string
+          id: string
+          objetivo: string
+          sort_order: number
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          exemplos?: string
+          formato?: string
+          id?: string
+          objetivo?: string
+          sort_order?: number
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          exemplos?: string
+          formato?: string
+          id?: string
+          objetivo?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategy_channel_formats_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      strategy_channel_frames: {
+        Row: {
+          channel_id: string
+          created_at: string
+          formato: string
+          frequencia: string
+          id: string
+          nome: string
+          notas: string
+          sort_order: number
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          formato?: string
+          frequencia?: string
+          id?: string
+          nome?: string
+          notas?: string
+          sort_order?: number
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          formato?: string
+          frequencia?: string
+          id?: string
+          nome?: string
+          notas?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategy_channel_frames_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      strategy_distribution_cards: {
+        Row: {
+          channel: string | null
+          column_key: string
+          created_at: string
+          description: string | null
+          id: string
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          channel?: string | null
+          column_key: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          title?: string
+        }
+        Update: {
+          channel?: string | null
+          column_key?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      strategy_editorial_lines: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          pilar: string
+          sort_order: number
+          tipos_conteudo: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          pilar?: string
+          sort_order?: number
+          tipos_conteudo?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          pilar?: string
+          sort_order?: number
+          tipos_conteudo?: string
+        }
+        Relationships: []
+      }
+      strategy_settings: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
       task_dependencies: {
         Row: {
           created_at: string
