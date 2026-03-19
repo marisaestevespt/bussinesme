@@ -901,7 +901,7 @@ function CalendarView({
                           : 'bg-primary/10 text-primary'
                     )}
                   >
-                    {t.name}
+                    {t.recurrence_type && '🔁 '}{t.name}
                   </div>
                 ))}
                 {dayTasks.length > 3 && (
