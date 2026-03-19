@@ -527,6 +527,51 @@ export type Database = {
         }
         Relationships: []
       }
+      commercial_sales_actions: {
+        Row: {
+          action_name: string
+          action_type: string
+          created_at: string
+          created_by: string | null
+          end_date: string | null
+          id: string
+          objective: string | null
+          product: string | null
+          result: string | null
+          start_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          action_name: string
+          action_type?: string
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          objective?: string | null
+          product?: string | null
+          result?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          action_name?: string
+          action_type?: string
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          objective?: string | null
+          product?: string | null
+          result?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       content_attachments: {
         Row: {
           content_id: string
