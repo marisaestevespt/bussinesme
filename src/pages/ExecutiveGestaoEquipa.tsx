@@ -873,6 +873,68 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
                 </div>
               ))}
             </TabsContent>
+
+            {/* Férias tab */}
+            <TabsContent value="ferias" className="space-y-3 mt-3">
+              {/* Holiday settings */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Trabalha em feriados</span>
+                  <Badge variant={member.works_holidays ? 'default' : 'secondary'} className="text-[10px]">{member.works_holidays ? 'Sim' : 'Não'}</Badge>
+                </div>
+                {Array.isArray(member.custom_holidays) && member.custom_holidays.length > 0 && (
+                  <div>
+                    <span className="text-xs text-muted-foreground">Feriados municipais</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {member.custom_holidays.map((d: string) => (
+                        <Badge key={d} variant="outline" className="text-[10px]">
+                          {(() => { try { return format(parseISO(d), 'dd/MM/yyyy'); } catch { return d; } })()}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Existing vacations */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Períodos de férias</p>
+                {(memberVacations.data || []).length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Sem férias registadas.</p>
+                ) : (memberVacations.data || []).map((v: any) => (
+                  <div key={v.id} className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2">
+                    <div>
+                      <span className="text-sm">{format(parseISO(v.start_date), 'dd/MM/yyyy')} → {format(parseISO(v.end_date), 'dd/MM/yyyy')}</span>
+                      {v.notes && <p className="text-xs text-muted-foreground">{v.notes}</p>}
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteVacation(v.id)}>
+                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              <Separator />
+
+              {/* Add new vacation */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Adicionar férias</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-muted-foreground">Início</label>
+                    <Input type="date" value={vacStart} onChange={e => setVacStart(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">Fim</label>
+                    <Input type="date" value={vacEnd} onChange={e => setVacEnd(e.target.value)} />
+                  </div>
+                </div>
+                <Input placeholder="Notas (opcional)" value={vacNotes} onChange={e => setVacNotes(e.target.value)} />
+                <Button size="sm" onClick={handleAddVacation} className="w-full"><Plus className="h-4 w-4 mr-1" /> Adicionar Férias</Button>
+              </div>
+            </TabsContent>
           </Tabs>
         </div>
       </SheetContent>
