@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { BackNavigation } from '@/components/BackNavigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MessageSquareHeart } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -15,11 +15,31 @@ import { DEPARTMENTS } from '@/lib/departments';
 const AREA_OPTIONS = [
   { value: 'all', label: 'Todas as áreas' },
   ...DEPARTMENTS.map(d => ({ value: d.value, label: d.label })),
+  { value: 'processos', label: 'Processos' },
+  { value: 'comunicacao', label: 'Comunicação' },
+  { value: 'equipa', label: 'Equipa' },
   { value: 'geral', label: 'Geral / Empresa' },
 ];
 
+const STATUS_OPTIONS = [
+  { value: 'pending', label: 'Por tratar' },
+  { value: 'tratada', label: 'Tratada' },
+  { value: 'recusada', label: 'Recusada' },
+  { value: 'standby', label: 'Em standby' },
+];
+
+const statusLabel = (val: string) => STATUS_OPTIONS.find(s => s.value === val)?.label || val;
+const statusVariant = (val: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
+  if (val === 'tratada') return 'default';
+  if (val === 'recusada') return 'destructive';
+  if (val === 'standby') return 'outline';
+  return 'secondary';
+};
+
 export default function ExecutiveRecommendations() {
   const [filterArea, setFilterArea] = useState('all');
+  const [tab, setTab] = useState('pending');
+  const qc = useQueryClient();
 
   const { data: recommendations = [] } = useQuery({
     queryKey: ['recommendations-all'],
@@ -33,19 +53,38 @@ export default function ExecutiveRecommendations() {
     },
   });
 
-  const filtered = filterArea === 'all'
-    ? recommendations
-    : recommendations.filter(r => r.impacted_area === filterArea);
+  const updateStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { error } = await supabase.from('recommendations').update({ status }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['recommendations-all'] }),
+  });
+
+  const filtered = recommendations
+    .filter(r => tab === 'pending' ? (r.status === 'pending' || !r.status) : r.status === tab)
+    .filter(r => filterArea === 'all' || r.impacted_area === filterArea);
 
   const areaLabel = (val: string) => AREA_OPTIONS.find(a => a.value === val)?.label || val;
+
+  const countForTab = (tabVal: string) =>
+    recommendations.filter(r => tabVal === 'pending' ? (r.status === 'pending' || !r.status) : r.status === tabVal).length;
 
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
         <BackNavigation parentRoute="/executive" parentLabel="Executive Room" />
+        <PageHeader title="Caixa das Recomendações" subtitle="Todas as recomendações da equipa" />
 
         <div className="flex items-center justify-between flex-wrap gap-4">
-        <PageHeader title="Caixa das Recomendações" subtitle="Todas as recomendações da equipa" />
+          <Tabs value={tab} onValueChange={setTab}>
+            <TabsList>
+              <TabsTrigger value="pending">Por tratar ({countForTab('pending')})</TabsTrigger>
+              <TabsTrigger value="tratada">Tratadas ({countForTab('tratada')})</TabsTrigger>
+              <TabsTrigger value="recusada">Recusadas ({countForTab('recusada')})</TabsTrigger>
+              <TabsTrigger value="standby">Em standby ({countForTab('standby')})</TabsTrigger>
+            </TabsList>
+          </Tabs>
           <Select value={filterArea} onValueChange={setFilterArea}>
             <SelectTrigger className="w-52">
               <SelectValue />
@@ -61,7 +100,7 @@ export default function ExecutiveRecommendations() {
         {filtered.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
-              Ainda não existem recomendações.
+              Sem recomendações nesta categoria.
             </CardContent>
           </Card>
         ) : (
@@ -79,6 +118,24 @@ export default function ExecutiveRecommendations() {
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">{r.recommendation}</p>
+                  <div className="flex items-center gap-2 pt-1">
+                    <span className="text-xs text-muted-foreground">Status:</span>
+                    <Select
+                      value={r.status || 'pending'}
+                      onValueChange={(val) => updateStatus.mutate({ id: r.id, status: val })}
+                    >
+                      <SelectTrigger className="h-7 w-36 text-xs">
+                        <Badge variant={statusVariant(r.status || 'pending')} className="text-[10px]">
+                          {statusLabel(r.status || 'pending')}
+                        </Badge>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {STATUS_OPTIONS.map(s => (
+                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </CardContent>
               </Card>
             ))}

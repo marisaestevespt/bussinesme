@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquareHeart, Send, Trash2 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { MessageSquareHeart, Send, Trash2, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +16,9 @@ import { DEPARTMENTS } from '@/lib/departments';
 
 const AREA_OPTIONS = [
   ...DEPARTMENTS.map(d => ({ value: d.value, label: d.label })),
+  { value: 'processos', label: 'Processos' },
+  { value: 'comunicacao', label: 'Comunicação' },
+  { value: 'equipa', label: 'Equipa' },
   { value: 'geral', label: 'Geral / Empresa' },
 ];
 
@@ -27,6 +31,7 @@ export function RecommendationWidget({ memberName }: Props) {
   const qc = useQueryClient();
   const [text, setText] = useState('');
   const [area, setArea] = useState('');
+  const [showHistory, setShowHistory] = useState(false);
 
   const { data: myRecs = [] } = useQuery({
     queryKey: ['my-recommendations', user?.id],
@@ -112,30 +117,37 @@ export function RecommendationWidget({ memberName }: Props) {
           </div>
         </div>
 
-        {/* My past recommendations */}
+        {/* My past recommendations — collapsible */}
         {myRecs.length > 0 && (
-          <div className="space-y-2 pt-2 border-t">
-            <p className="text-xs font-medium text-muted-foreground">As minhas recomendações</p>
-            {myRecs.map(r => (
-              <div key={r.id} className="flex items-start gap-2 group">
-                <div className="flex-1 space-y-0.5">
-                  <p className="text-sm">{r.recommendation}</p>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-[10px] px-1.5">{areaLabel(r.impacted_area)}</Badge>
-                    <span className="text-[10px] text-muted-foreground">
-                      {format(new Date(r.created_at), "d MMM yyyy", { locale: pt })}
-                    </span>
+          <Collapsible open={showHistory} onOpenChange={setShowHistory}>
+            <CollapsibleTrigger asChild>
+              <button className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors pt-2 border-t w-full">
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showHistory ? 'rotate-180' : ''}`} />
+                As minhas recomendações ({myRecs.length})
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-2 pt-2">
+              {myRecs.map(r => (
+                <div key={r.id} className="flex items-start gap-2 group">
+                  <div className="flex-1 space-y-0.5">
+                    <p className="text-sm">{r.recommendation}</p>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-[10px] px-1.5">{areaLabel(r.impacted_area)}</Badge>
+                      <span className="text-[10px] text-muted-foreground">
+                        {format(new Date(r.created_at), "d MMM yyyy", { locale: pt })}
+                      </span>
+                    </div>
                   </div>
+                  <button
+                    onClick={() => remove.mutate(r.id)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity mt-1"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => remove.mutate(r.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity mt-1"
-                >
-                  <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
-                </button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
         )}
       </CardContent>
     </Card>
