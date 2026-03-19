@@ -25,11 +25,6 @@ export default function ComercialPage() {
           <p className="text-muted-foreground mt-1">Gestão comercial, vendas e metas do negócio.</p>
         </div>
 
-        {/* Visão Geral inline */}
-        <CommercialOverview />
-
-        <Separator />
-
         {/* Navigation cards */}
         <div>
           <h2 className="text-lg font-semibold mb-4">Áreas</h2>
@@ -53,7 +48,13 @@ export default function ComercialPage() {
             ))}
           </div>
         </div>
+
+        <Separator />
+
+        {/* Visão Geral inline */}
+        <CommercialOverview />
       </div>
     </AppLayout>
   );
 }
+
