@@ -299,16 +299,52 @@ export default function TarefasPage() {
   const calDays = eachDayOfInterval({ start: calStart, end: calEnd });
   const firstDayOffset = (getDay(calStart) + 6) % 7; // Monday-first
 
+  const expandedCalendarTasks = useMemo(() => {
+    const result: any[] = [];
+    for (const t of tasks) {
+      if (!t.deadline) continue;
+      const start = parseISO(t.deadline);
+      if (!t.recurrence_type) {
+        result.push(t);
+        continue;
+      }
+      const recEnd = t.recurrence_end ? parseISO(t.recurrence_end) : calEnd;
+      let cursor = new Date(start);
+      let count = 0;
+      while (cursor <= recEnd && cursor <= calEnd && count < 366) {
+        if (cursor >= calStart || isSameDay(cursor, calStart)) {
+          result.push({
+            ...t,
+            id: `${t.id}_${format(cursor, 'yyyy-MM-dd')}`,
+            deadline: format(cursor, 'yyyy-MM-dd'),
+            _isOccurrence: true,
+            _originalId: t.id,
+          });
+        }
+        count++;
+        switch (t.recurrence_type) {
+          case 'diario': cursor = addDays(cursor, 1); break;
+          case 'semanal': cursor = addWeeks(cursor, 1); break;
+          case 'quinzenal': cursor = addWeeks(cursor, 2); break;
+          case 'mensal': cursor = addMonths(cursor, 1); break;
+          case 'mensal_primeiro': cursor = addMonths(cursor, 1); cursor = setDateFns(cursor, 1); break;
+          default: count = 366;
+        }
+      }
+    }
+    return result;
+  }, [tasks, calStart, calEnd]);
+
   const tasksByDate = useMemo(() => {
     const map: Record<string, any[]> = {};
-    tasks.forEach(t => {
+    expandedCalendarTasks.forEach(t => {
       if (!t.deadline) return;
       const key = t.deadline;
       if (!map[key]) map[key] = [];
       map[key].push(t);
     });
     return map;
-  }, [tasks]);
+  }, [expandedCalendarTasks]);
 
   // ─── Render ───────────────────────────────────────────────────
   return (
