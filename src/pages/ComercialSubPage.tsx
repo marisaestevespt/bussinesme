@@ -1,4 +1,5 @@
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -46,8 +47,8 @@ export default function ComercialSubPage() {
           <Button variant="ghost" size="sm" onClick={() => navigate('/hub/comercial')}>
             <ArrowLeft className="h-4 w-4 mr-1" /> Comercial
           </Button>
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
         </div>
+        <PageHeader title={title} />
         {renderContent()}
       </div>
     </AppLayout>

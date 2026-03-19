@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { Button } from '@/components/ui/button';
@@ -303,10 +304,9 @@ export default function MuralPage() {
   return (
     <AppLayout>
       <div className="max-w-3xl mx-auto space-y-6">
+        <PageHeader title="Mural" />
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
-            Mural
-          </h1>
+          <div />
           <div className="flex items-center gap-3">
             <ViewTabs
               views={allViews}

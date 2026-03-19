@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -58,8 +59,9 @@ export default function ClientesPage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
+        <PageHeader title="Clientes" />
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Clientes</h1>
+          <div />
           <Button size="sm" onClick={() => navigate('/hub/clientes/novo')}>
             <Plus className="h-4 w-4 mr-1" /> Novo Cliente
           </Button>

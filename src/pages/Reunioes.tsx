@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -352,8 +353,9 @@ export default function ReunioesPage() {
     <AppLayout>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         {/* Header */}
+        <PageHeader title="Reuniões" />
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Reuniões</h1>
+          <div />
           <div className="flex items-center gap-3">
             <ViewTabs
               views={allViews}

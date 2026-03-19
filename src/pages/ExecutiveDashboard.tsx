@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -35,13 +36,7 @@ export default function ExecutiveDashboard() {
     <AppLayout>
       <div className="space-y-8">
         {/* Cover Header */}
-        <div className="relative h-40 rounded-xl bg-gradient-to-br from-primary/90 to-primary/60 flex items-end p-6 overflow-hidden">
-          <div className="absolute inset-0 bg-[url('/placeholder.svg')] bg-cover bg-center opacity-10" />
-          <div className="relative z-10">
-            <h1 className="text-2xl font-bold text-primary-foreground">Executive Room</h1>
-            <p className="text-primary-foreground/70 text-sm mt-1">Planeamento estratégico & visão do negócio</p>
-          </div>
-        </div>
+        <PageHeader title="Executive Room" subtitle="Planeamento estratégico & visão do negócio" />
 
         {/* 3-Column Layout */}
         <div className="grid gap-6 md:grid-cols-3">

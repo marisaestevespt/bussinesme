@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -108,10 +109,7 @@ export default function ExecutiveProductivity() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Gestão de Produtividade & Tempo</h1>
-          <p className="text-sm text-muted-foreground mt-1">Controlo de tempo, ocupação e análise de produtividade</p>
-        </div>
+        <PageHeader title="Gestão de Produtividade & Tempo" subtitle="Controlo de tempo, ocupação e análise de produtividade" />
 
         <Tabs defaultValue="overview">
           <TabsList className="flex-wrap">

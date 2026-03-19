@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -382,14 +383,7 @@ export default function GestaoMarcaPage() {
     <AppLayout>
       <div className="flex flex-col min-h-screen">
         {/* Header */}
-        <div className="w-full py-12 px-6 flex flex-col items-center justify-center gap-2" style={{ background: `hsl(var(--primary))` }}>
-          <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>
-            Marketing e Branding
-          </p>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: 'hsl(var(--primary-foreground))' }}>
-            Gestão de Marca
-          </h1>
-        </div>
+        <PageHeader title="Gestão de Marca" subtitle="Marketing e Branding" />
 
         <div className="max-w-6xl mx-auto w-full px-4 py-10 space-y-12">
           <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />

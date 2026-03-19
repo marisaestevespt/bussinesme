@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -62,8 +63,9 @@ export default function ProdutosPage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
+        <PageHeader title="Produtos" />
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Produtos</h1>
+          <div />
           <Button size="sm" onClick={() => navigate('/hub/produtos/novo')}>
             <Plus className="h-4 w-4 mr-1" /> Novo Produto
           </Button>

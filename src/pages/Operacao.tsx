@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -432,10 +433,7 @@ export default function OperacaoPage() {
   return (
     <AppLayout>
       <div className="p-4 md:p-6 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Operação</h1>
-          <p className="text-sm text-muted-foreground">Vista operacional de projetos de clientes e internos</p>
-        </div>
+        <PageHeader title="Operação" subtitle="Vista operacional de projetos de clientes e internos" />
 
         <div className="space-y-10">
 

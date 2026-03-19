@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { cn } from '@/lib/utils';
 import { SettingsIdentity } from '@/components/settings/SettingsIdentity';
 import { ChannelSettings } from '@/components/settings/ChannelSettings';
@@ -19,12 +20,7 @@ export default function DefinicoesPage() {
   return (
     <AppLayout>
       <div className="space-y-6 py-2">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Definições</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Gere a identidade visual e configurações do teu negócio.
-          </p>
-        </div>
+        <PageHeader title="Definições" subtitle="Gere a identidade visual e configurações do teu negócio." />
 
         {/* Tab navigation */}
         <div className="flex gap-2 flex-wrap">

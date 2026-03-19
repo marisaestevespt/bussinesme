@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -207,10 +208,9 @@ export default function AcessosPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <PageHeader title="Acessos" />
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
-            Acessos
-          </h1>
+          <div />
           <Button onClick={() => { resetForm(); setDialogOpen(true); }} className="gap-2">
             <Plus className="h-4 w-4" /> Novo Acesso
           </Button>

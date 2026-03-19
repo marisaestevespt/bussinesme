@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { usePlanningData } from '@/hooks/usePlanningData';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
 import { Button } from '@/components/ui/button';
@@ -35,10 +36,7 @@ export default function ExecutivePlaneamento() {
   return (
     <AppLayout>
       <div className="space-y-10">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Planeamento Anual</h1>
-          <p className="text-sm text-muted-foreground mt-1">{currentYear}</p>
-        </div>
+        <PageHeader title="Planeamento Anual" subtitle={String(currentYear)} />
 
         {/* View mode cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

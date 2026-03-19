@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -1494,10 +1495,7 @@ export default function ExecutiveGestaoEquipa() {
   return (
     <AppLayout>
       <div className="p-6 space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Recursos Humanos</h1>
-          <p className="text-muted-foreground mt-1">Central de gestão de todos os membros do negócio</p>
-        </div>
+        <PageHeader title="Recursos Humanos" subtitle="Central de gestão de todos os membros do negócio" />
 
         {/* Navigation cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">

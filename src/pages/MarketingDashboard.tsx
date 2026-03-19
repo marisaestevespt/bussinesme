@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -119,11 +120,7 @@ export default function MarketingDashboard() {
   return (
     <AppLayout>
       <div className="flex flex-col min-h-screen">
-        <div className="w-full py-12 px-6 flex flex-col items-center gap-2" style={{ background: 'hsl(var(--primary))' }}>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: 'hsl(var(--primary-foreground))' }}>
-            Marketing e Branding
-          </h1>
-        </div>
+        <PageHeader title="Marketing e Branding" />
 
         <div className="max-w-6xl mx-auto w-full px-4 py-10 space-y-12">
 

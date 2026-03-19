@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -105,10 +106,7 @@ export default function MarketingTrafegoPago() {
   return (
     <AppLayout>
       <div className="flex flex-col min-h-screen">
-        <div className="w-full py-10 px-6 flex flex-col items-center gap-2" style={{ background: 'hsl(var(--primary))' }}>
-          <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>Marketing 360</p>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight" style={{ color: 'hsl(var(--primary-foreground))' }}>Tráfego Pago</h1>
-        </div>
+        <PageHeader title="Tráfego Pago" subtitle="Marketing 360" />
 
         <div className="max-w-6xl mx-auto w-full px-4 py-8 space-y-8">
           <div className="flex items-center justify-between">

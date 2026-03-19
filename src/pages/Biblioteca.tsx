@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { PageHeader } from '@/components/PageHeader';
 import { AppLayout } from '@/components/AppLayout';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
@@ -115,8 +116,9 @@ export default function BibliotecaPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <PageHeader title="Biblioteca de Documentos Internos" />
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Biblioteca de Documentos Internos</h1>
+          <div />
           <div className="flex items-center gap-3">
             <ViewTabs
               views={allViews}
