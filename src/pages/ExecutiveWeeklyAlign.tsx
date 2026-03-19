@@ -6,7 +6,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useExecutiveData, SALES_ROUTINES, getMonthName, areaLabel, statusLabel } from '@/hooks/useExecutiveData';
+import { useExecutiveData, SALES_ROUTINES, getMonthName } from '@/hooks/useExecutiveData';
+import { usePlanningData, planStatusLabel, CADENCES } from '@/hooks/usePlanningData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfWeek, endOfWeek, format, subDays, addDays, parseISO, differenceInDays } from 'date-fns';
@@ -24,10 +25,11 @@ const weekEndStr = format(weekEnd, 'yyyy-MM-dd');
 const monthStart = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
 const monthEnd = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${new Date(currentYear, currentMonth, 0).getDate()}`;
 
+const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
 export default function ExecutiveWeeklyAlign() {
   const exec = useExecutiveData(currentYear);
-  const monthGoals = exec.goalsForMonth(currentMonth);
-  const monthProg = exec.monthProgress(currentMonth);
+  const planning = usePlanningData(currentYear);
 
   // Detail sheet state
   const [detailOpen, setDetailOpen] = useState(false);
@@ -207,15 +209,17 @@ export default function ExecutiveWeeklyAlign() {
   const routineMap = Object.fromEntries((exec.weeklyRoutines.data || []).map(r => [r.routine_key, r.completed]));
 
   // --- Detail openers for each section ---
-  const openGoalDetail = (g: any) => openDetail(g.meta, 'Meta', [
-    { label: 'Status', value: statusLabel(g.status), badge: true, badgeVariant: g.status === 'atingido' ? 'default' : 'secondary' },
-    { label: 'Área', value: areaLabel(g.area) },
-    { label: 'Data meta', value: g.target_date },
-    { label: 'Data atingida', value: g.achieved_date },
-    { label: 'Mês', value: g.month ? getMonthName(g.month) : null },
-    { label: 'Trimestre', value: g.quarter ? `T${g.quarter}` : null },
-    { label: 'Objetivo', value: exec.allObjectives.find(o => o.id === g.objective_id)?.title },
-  ]);
+  const openGoalDetail = (g: any) => {
+    const obj = planning.allObjectives.find((o: any) => o.id === g.objective_id);
+    openDetail(g.period || 'Meta', 'Meta', [
+      { label: 'Objetivo Anual', value: obj?.title },
+      { label: 'Período', value: g.period },
+      { label: 'Status', value: planStatusLabel(g.status), badge: true, badgeVariant: g.status === 'atingido' ? 'default' : 'secondary' },
+      { label: 'Valor alvo', value: g.target_value },
+      { label: 'Valor real', value: g.actual_value },
+      { label: 'Desvio', value: g.actual_value && g.target_value ? String(Number(g.actual_value) - Number(g.target_value)) : null },
+    ]);
+  };
 
   const openEventDetail = (e: any) => openDetail(e.title, 'Evento', [
     { label: 'Data início', value: e.start_date?.slice(0, 10) },
@@ -354,31 +358,72 @@ export default function ExecutiveWeeklyAlign() {
         <section className="space-y-4">
           <h2 className="text-base font-semibold">1 // Metas</h2>
           <Tabs defaultValue="metas">
-            <TabsList><TabsTrigger value="metas">Metas do mês</TabsTrigger><TabsTrigger value="agenda">Agenda do mês</TabsTrigger></TabsList>
+            <TabsList><TabsTrigger value="metas">Metas do mês</TabsTrigger><TabsTrigger value="metricas_atraso">Métricas em atraso</TabsTrigger><TabsTrigger value="agenda">Agenda do mês</TabsTrigger></TabsList>
             <TabsContent value="metas">
-              <Card><div className="overflow-x-auto">
-                <Table>
-                  <TableHeader><TableRow>
-                    <TableHead>Status</TableHead><TableHead>Meta</TableHead><TableHead>Área</TableHead><TableHead>Data meta</TableHead><TableHead>Atingida</TableHead><TableHead>Mês</TableHead><TableHead>Trim.</TableHead><TableHead>Objetivo</TableHead>
-                  </TableRow></TableHeader>
-                  <TableBody>
-                    {monthGoals.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Sem metas este mês</TableCell></TableRow> :
-                      monthGoals.map(g => (
-                        <TableRow key={g.id} className={clickableRow} onClick={() => openGoalDetail(g)}>
-                          <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{statusLabel(g.status)}</Badge></TableCell>
-                          <TableCell className="text-sm">{g.meta}</TableCell>
-                          <TableCell className="text-xs">{areaLabel(g.area)}</TableCell>
-                          <TableCell className="text-xs">{g.target_date || '—'}</TableCell>
-                          <TableCell className="text-xs">{g.achieved_date || '—'}</TableCell>
-                          <TableCell className="text-xs">{g.month ? getMonthName(g.month) : '—'}</TableCell>
-                          <TableCell className="text-xs">{g.quarter ? `T${g.quarter}` : '—'}</TableCell>
-                          <TableCell className="text-xs">{exec.allObjectives.find(o => o.id === g.objective_id)?.title || '—'}</TableCell>
-                        </TableRow>
-                      ))
-                    }
-                  </TableBody>
-                </Table>
-              </div></Card>
+              {(() => {
+                const currentMonthName = MONTH_NAMES[currentMonth - 1];
+                const monthPlanGoals = planning.allGoals.filter((g: any) => g.period === currentMonthName);
+                return (
+                  <Card><div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader><TableRow>
+                        <TableHead>Objetivo Anual</TableHead><TableHead>Período</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead>
+                      </TableRow></TableHeader>
+                      <TableBody>
+                        {monthPlanGoals.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground text-sm py-6">Sem metas este mês</TableCell></TableRow> :
+                          monthPlanGoals.map((g: any) => {
+                            const obj = planning.allObjectives.find((o: any) => o.id === g.objective_id);
+                            const dev = g.actual_value && g.target_value ? (Number(g.actual_value) - Number(g.target_value)) : null;
+                            return (
+                              <TableRow key={g.id} className={clickableRow} onClick={() => openGoalDetail(g)}>
+                                <TableCell className="text-xs">{obj?.title || '—'}</TableCell>
+                                <TableCell className="text-sm">{g.period}</TableCell>
+                                <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
+                                <TableCell className="text-xs">{g.actual_value || '—'}</TableCell>
+                                <TableCell className={`text-xs ${dev !== null && dev < 0 ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
+                                <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(g.status)}</Badge></TableCell>
+                              </TableRow>
+                            );
+                          })
+                        }
+                      </TableBody>
+                    </Table>
+                  </div></Card>
+                );
+              })()}
+            </TabsContent>
+            <TabsContent value="metricas_atraso">
+              {(() => {
+                const overdueMetrics = planning.allMetrics.filter((m: any) => planning.isMetricOverdue(m));
+                const getDaysOverdue = (m: any) => {
+                  if (!m.last_updated_at) return '—';
+                  return Math.floor((new Date().getTime() - new Date(m.last_updated_at).getTime()) / (1000 * 60 * 60 * 24));
+                };
+                return (
+                  <Card><div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader><TableRow>
+                        <TableHead>Objetivo</TableHead><TableHead>Métrica</TableHead><TableHead>Última atualização</TableHead><TableHead>Dias em atraso</TableHead>
+                      </TableRow></TableHeader>
+                      <TableBody>
+                        {overdueMetrics.length === 0 ? <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground text-sm py-6">Sem métricas em atraso</TableCell></TableRow> :
+                          overdueMetrics.map((m: any) => {
+                            const obj = planning.allObjectives.find((o: any) => o.id === m.objective_id);
+                            return (
+                              <TableRow key={m.id} className="bg-red-50">
+                                <TableCell className="text-xs">{obj?.title || '—'}</TableCell>
+                                <TableCell className="text-sm font-medium">{m.name}</TableCell>
+                                <TableCell className="text-xs">{m.last_updated_at ? new Date(m.last_updated_at).toLocaleDateString('pt-PT') : 'Nunca'}</TableCell>
+                                <TableCell className="text-xs text-destructive font-medium">{getDaysOverdue(m)} dias</TableCell>
+                              </TableRow>
+                            );
+                          })
+                        }
+                      </TableBody>
+                    </Table>
+                  </div></Card>
+                );
+              })()}
             </TabsContent>
             <TabsContent value="agenda">
               <Card><div className="overflow-x-auto">

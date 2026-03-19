@@ -1690,37 +1690,52 @@ export type Database = {
         Row: {
           area: string
           created_at: string
+          current_value: number | null
           deadline: string | null
           description: string | null
           id: string
+          objective_type: string
           progress: number
           status: string
+          target_unit: string | null
+          target_value: number | null
           title: string
           updated_at: string
+          value_source: string | null
           year: number
         }
         Insert: {
           area?: string
           created_at?: string
+          current_value?: number | null
           deadline?: string | null
           description?: string | null
           id?: string
+          objective_type?: string
           progress?: number
           status?: string
+          target_unit?: string | null
+          target_value?: number | null
           title: string
           updated_at?: string
+          value_source?: string | null
           year?: number
         }
         Update: {
           area?: string
           created_at?: string
+          current_value?: number | null
           deadline?: string | null
           description?: string | null
           id?: string
+          objective_type?: string
           progress?: number
           status?: string
+          target_unit?: string | null
+          target_value?: number | null
           title?: string
           updated_at?: string
+          value_source?: string | null
           year?: number
         }
         Relationships: []
@@ -2841,6 +2856,41 @@ export type Database = {
           },
         ]
       }
+      metric_history: {
+        Row: {
+          created_at: string
+          id: string
+          metric_id: string
+          notes: string | null
+          recorded_at: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_id: string
+          notes?: string | null
+          recorded_at?: string
+          value?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_id?: string
+          notes?: string | null
+          recorded_at?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metric_history_metric_id_fkey"
+            columns: ["metric_id"]
+            isOneToOne: false
+            referencedRelation: "objective_metrics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mural_comments: {
         Row: {
           author_id: string
@@ -2937,6 +2987,136 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "mural_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      objective_actions: {
+        Row: {
+          action_type: string
+          created_at: string
+          deadline: string | null
+          description: string
+          id: string
+          objective_id: string
+          responsible_id: string | null
+          status: string
+          task_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          action_type?: string
+          created_at?: string
+          deadline?: string | null
+          description?: string
+          id?: string
+          objective_id: string
+          responsible_id?: string | null
+          status?: string
+          task_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          deadline?: string | null
+          description?: string
+          id?: string
+          objective_id?: string
+          responsible_id?: string | null
+          status?: string
+          task_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "objective_actions_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "executive_objectives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "objective_actions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      objective_criteria: {
+        Row: {
+          completed: boolean
+          created_at: string
+          description: string
+          id: string
+          objective_id: string
+          sort_order: number
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          description?: string
+          id?: string
+          objective_id: string
+          sort_order?: number
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          description?: string
+          id?: string
+          objective_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "objective_criteria_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "executive_objectives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      objective_metrics: {
+        Row: {
+          cadence: string
+          created_at: string
+          current_value: number | null
+          id: string
+          last_updated_at: string | null
+          name: string
+          objective_id: string
+          source: string
+        }
+        Insert: {
+          cadence?: string
+          created_at?: string
+          current_value?: number | null
+          id?: string
+          last_updated_at?: string | null
+          name?: string
+          objective_id: string
+          source?: string
+        }
+        Update: {
+          cadence?: string
+          created_at?: string
+          current_value?: number | null
+          id?: string
+          last_updated_at?: string | null
+          name?: string
+          objective_id?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "objective_metrics_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "executive_objectives"
             referencedColumns: ["id"]
           },
         ]
@@ -3046,6 +3226,59 @@ export type Database = {
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planning_goals: {
+        Row: {
+          actual_value: string | null
+          created_at: string
+          deviation: string | null
+          deviation_decision: string | null
+          id: string
+          objective_id: string
+          period: string
+          period_type: string
+          status: string
+          target_value: string | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          actual_value?: string | null
+          created_at?: string
+          deviation?: string | null
+          deviation_decision?: string | null
+          id?: string
+          objective_id: string
+          period: string
+          period_type?: string
+          status?: string
+          target_value?: string | null
+          updated_at?: string
+          year?: number
+        }
+        Update: {
+          actual_value?: string | null
+          created_at?: string
+          deviation?: string | null
+          deviation_decision?: string | null
+          id?: string
+          objective_id?: string
+          period?: string
+          period_type?: string
+          status?: string
+          target_value?: string | null
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planning_goals_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "executive_objectives"
             referencedColumns: ["id"]
           },
         ]

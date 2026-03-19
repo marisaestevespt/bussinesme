@@ -1,0 +1,404 @@
+import { useState } from 'react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Plus, Trash2, Pencil, ArrowRightLeft, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { planAreaLabel, planStatusLabel, VALUE_SOURCES, CADENCES, PERIODS, ACTION_STATUSES } from '@/hooks/usePlanningData';
+import { useTeamData } from '@/hooks/useTeamData';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { format } from 'date-fns';
+
+export function ObjectiveDetailSheet({ open, onClose, objective, planning, onEdit }: any) {
+  if (!objective) return null;
+  const obj = planning.allObjectives.find((o: any) => o.id === objective.id) || objective;
+  const prog = planning.objectiveProgress(obj);
+  const currentVal = planning.objectiveCurrentValue(obj);
+  const objCriteria = (planning.criteria.data || []).filter((c: any) => c.objective_id === obj.id);
+  const objGoals = planning.allGoals.filter((g: any) => g.objective_id === obj.id);
+  const objMetrics = planning.allMetrics.filter((m: any) => m.objective_id === obj.id);
+  const objActions = planning.allActions.filter((a: any) => a.objective_id === obj.id);
+
+  return (
+    <Sheet open={open} onOpenChange={v => !v && onClose()}>
+      <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+        <SheetHeader>
+          <div className="flex items-start justify-between gap-2">
+            <SheetTitle className="text-lg">{obj.title}</SheetTitle>
+            <Button size="sm" variant="outline" onClick={() => onEdit(obj)}><Pencil className="h-3 w-3 mr-1" /> Editar</Button>
+          </div>
+        </SheetHeader>
+
+        <div className="space-y-6 mt-4">
+          {/* Header info */}
+          {obj.description && <p className="text-sm text-muted-foreground">{obj.description}</p>}
+          <div className="flex gap-2 flex-wrap">
+            <Badge variant="outline">{planAreaLabel(obj.area)}</Badge>
+            <Badge variant="outline">{obj.objective_type === 'quantitativo' ? 'Quantitativo' : 'Qualitativo'}</Badge>
+            <Badge variant={obj.status === 'atingido' ? 'default' : 'secondary'}>{planStatusLabel(obj.status)}</Badge>
+            {obj.deadline && <Badge variant="outline">Até {obj.deadline}</Badge>}
+          </div>
+
+          {/* Progress */}
+          <div>
+            <div className="flex justify-between text-sm mb-1"><span>Progresso</span><span>{prog}%</span></div>
+            <Progress value={prog} className="h-2.5" />
+          </div>
+
+          {/* Quantitative details */}
+          {obj.objective_type === 'quantitativo' && (
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="rounded-lg border p-3">
+                <p className="text-xs text-muted-foreground">Valor alvo</p>
+                <p className="text-lg font-bold">{obj.target_value ? `${Number(obj.target_value).toLocaleString()} ${obj.target_unit || ''}` : '—'}</p>
+              </div>
+              <div className="rounded-lg border p-3">
+                <p className="text-xs text-muted-foreground">Valor atual</p>
+                <p className="text-lg font-bold">{currentVal != null ? `${Number(currentVal).toLocaleString()} ${obj.target_unit || ''}` : '—'}</p>
+              </div>
+              <div className="rounded-lg border p-3">
+                <p className="text-xs text-muted-foreground">Fonte</p>
+                <p className="text-sm font-medium">{VALUE_SOURCES.find(s => s.value === obj.value_source)?.label || 'Manual'}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Qualitative criteria */}
+          {obj.objective_type === 'qualitativo' && (
+            <CriteriaSection objectiveId={obj.id} criteria={objCriteria} planning={planning} />
+          )}
+
+          <Separator />
+
+          {/* Goals section */}
+          <GoalsSection objectiveId={obj.id} goals={objGoals} planning={planning} />
+
+          <Separator />
+
+          {/* Metrics section */}
+          <MetricsSection objectiveId={obj.id} metrics={objMetrics} planning={planning} />
+
+          <Separator />
+
+          {/* Actions section */}
+          <ActionsSection objectiveId={obj.id} actions={objActions} planning={planning} />
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// ─── Criteria (Qualitative) ─────────────
+function CriteriaSection({ objectiveId, criteria, planning }: any) {
+  const [newCrit, setNewCrit] = useState('');
+  return (
+    <div>
+      <h3 className="text-sm font-semibold mb-2">Critérios de Sucesso</h3>
+      <div className="flex gap-2 mb-2">
+        <Input className="h-8 text-sm" placeholder="Novo critério..." value={newCrit} onChange={e => setNewCrit(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && newCrit.trim()) { planning.upsertCriterion.mutate({ objective_id: objectiveId, description: newCrit.trim() }); setNewCrit(''); }}} />
+        <Button size="sm" variant="ghost" className="h-8" onClick={() => { if (newCrit.trim()) { planning.upsertCriterion.mutate({ objective_id: objectiveId, description: newCrit.trim() }); setNewCrit(''); }}}><Plus className="h-4 w-4" /></Button>
+      </div>
+      {criteria.map((c: any) => (
+        <div key={c.id} className="flex items-center gap-2 py-1 group">
+          <Checkbox checked={c.completed} onCheckedChange={v => planning.upsertCriterion.mutate({ id: c.id, completed: !!v })} />
+          <span className={`text-sm flex-1 ${c.completed ? 'line-through text-muted-foreground' : ''}`}>{c.description}</span>
+          <button onClick={() => planning.deleteCriterion.mutate(c.id)} className="opacity-0 group-hover:opacity-100"><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
+        </div>
+      ))}
+      {criteria.length === 0 && <p className="text-xs text-muted-foreground">Sem critérios definidos</p>}
+    </div>
+  );
+}
+
+// ─── Goals ─────────────
+function GoalsSection({ objectiveId, goals, planning }: any) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [form, setForm] = useState({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
+
+  const handleSave = () => {
+    planning.upsertGoal.mutate({ ...form, objective_id: objectiveId });
+    setDialogOpen(false);
+    setForm({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold">Desdobramento em Metas</h3>
+        <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}><Plus className="h-3 w-3 mr-1" /> Nova Meta</Button>
+      </div>
+      {goals.length === 0 ? <p className="text-xs text-muted-foreground">Sem metas associadas</p> : (
+        <Table>
+          <TableHeader><TableRow>
+            <TableHead>Período</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead>
+          </TableRow></TableHeader>
+          <TableBody>{goals.map((g: any) => {
+            const dev = g.actual_value && g.target_value ? (Number(g.actual_value) - Number(g.target_value)) : null;
+            return (
+              <TableRow key={g.id}>
+                <TableCell className="text-sm">{g.period}</TableCell>
+                <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
+                <TableCell className="text-xs">{g.actual_value || '—'}</TableCell>
+                <TableCell className="text-xs">{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
+                <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(g.status)}</Badge></TableCell>
+              </TableRow>
+            );
+          })}</TableBody>
+        </Table>
+      )}
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Nova Meta</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div><Label>Período</Label>
+              <Select value={form.period} onValueChange={v => setForm(p => ({ ...p, period: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{PERIODS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Valor alvo</Label><Input value={form.target_value} onChange={e => setForm(p => ({ ...p, target_value: e.target.value }))} /></div>
+            <div><Label>Valor real</Label><Input value={form.actual_value} onChange={e => setForm(p => ({ ...p, actual_value: e.target.value }))} /></div>
+            <Button className="w-full" onClick={handleSave}>Guardar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// ─── Metrics ─────────────
+function MetricsSection({ objectiveId, metrics, planning }: any) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [historyMetric, setHistoryMetric] = useState<any>(null);
+  const [recordDialog, setRecordDialog] = useState(false);
+  const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual' });
+  const [recordForm, setRecordForm] = useState({ value: '', notes: '', recorded_at: format(new Date(), 'yyyy-MM-dd') });
+
+  const handleSave = () => {
+    planning.upsertMetric.mutate({ ...form, objective_id: objectiveId });
+    setDialogOpen(false);
+    setForm({ name: '', cadence: 'mensal', source: 'manual' });
+  };
+
+  const handleRecord = () => {
+    if (!historyMetric) return;
+    planning.addMetricRecord.mutate({ metric_id: historyMetric.id, value: Number(recordForm.value), notes: recordForm.notes, recorded_at: recordForm.recorded_at });
+    setRecordDialog(false);
+    setRecordForm({ value: '', notes: '', recorded_at: format(new Date(), 'yyyy-MM-dd') });
+  };
+
+  const allHistory = planning.metricHistory.data || [];
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold">Métricas de Acompanhamento</h3>
+        <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}><Plus className="h-3 w-3 mr-1" /> Nova Métrica</Button>
+      </div>
+      {metrics.length === 0 ? <p className="text-xs text-muted-foreground">Sem métricas definidas</p> : (
+        <Table>
+          <TableHeader><TableRow>
+            <TableHead>Métrica</TableHead><TableHead>Cadência</TableHead><TableHead>Fonte</TableHead><TableHead>Valor atual</TableHead><TableHead>Última atualiz.</TableHead><TableHead></TableHead>
+          </TableRow></TableHeader>
+          <TableBody>{metrics.map((m: any) => {
+            const overdue = planning.isMetricOverdue(m);
+            const dueToday = planning.isMetricDueToday(m);
+            const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source) : null;
+            const displayVal = m.source === 'manual' ? m.current_value : autoVal;
+            return (
+              <TableRow key={m.id} className={overdue ? 'bg-red-50' : dueToday ? 'bg-amber-50' : ''}>
+                <TableCell className="text-sm font-medium cursor-pointer hover:underline" onClick={() => setHistoryMetric(m)}>{m.name}</TableCell>
+                <TableCell className="text-xs">{CADENCES.find(c => c.value === m.cadence)?.label || m.cadence}</TableCell>
+                <TableCell className="text-xs">{VALUE_SOURCES.find(s => s.value === m.source)?.label || m.source}</TableCell>
+                <TableCell className="text-xs">{displayVal != null ? Number(displayVal).toLocaleString() : '—'}</TableCell>
+                <TableCell className="text-xs">{m.last_updated_at ? new Date(m.last_updated_at).toLocaleDateString('pt-PT') : '—'}</TableCell>
+                <TableCell>
+                  <button onClick={() => planning.deleteMetric.mutate(m.id)}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
+                </TableCell>
+              </TableRow>
+            );
+          })}</TableBody>
+        </Table>
+      )}
+
+      {/* Trend charts */}
+      {metrics.length > 0 && metrics.map((m: any) => {
+        const records = allHistory.filter((r: any) => r.metric_id === m.id);
+        if (records.length < 2) return null;
+        return (
+          <div key={m.id} className="mt-4">
+            <p className="text-xs font-medium mb-1">{m.name} — Tendência</p>
+            <ResponsiveContainer width="100%" height={120}>
+              <LineChart data={records.map((r: any) => ({ date: r.recorded_at, value: Number(r.value) }))}>
+                <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} width={40} />
+                <Tooltip />
+                <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        );
+      })}
+
+      {/* New metric dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Nova Métrica</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div><Label>Nome</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} /></div>
+            <div><Label>Cadência</Label>
+              <Select value={form.cadence} onValueChange={v => setForm(p => ({ ...p, cadence: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{CADENCES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Fonte</Label>
+              <Select value={form.source} onValueChange={v => setForm(p => ({ ...p, source: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <Button className="w-full" onClick={handleSave} disabled={!form.name.trim()}>Guardar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* History sheet */}
+      {historyMetric && (
+        <Dialog open={!!historyMetric} onOpenChange={v => { if (!v) setHistoryMetric(null); }}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Histórico — {historyMetric.name}</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              {historyMetric.source === 'manual' && (
+                <Button size="sm" variant="outline" onClick={() => setRecordDialog(true)}><Plus className="h-3 w-3 mr-1" /> Registar Valor</Button>
+              )}
+              <Table>
+                <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Valor</TableHead><TableHead>Notas</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  {allHistory.filter((r: any) => r.metric_id === historyMetric.id).map((r: any) => (
+                    <TableRow key={r.id}>
+                      <TableCell className="text-xs">{r.recorded_at}</TableCell>
+                      <TableCell className="text-xs">{Number(r.value).toLocaleString()}</TableCell>
+                      <TableCell className="text-xs">{r.notes || '—'}</TableCell>
+                    </TableRow>
+                  ))}
+                  {allHistory.filter((r: any) => r.metric_id === historyMetric.id).length === 0 && (
+                    <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground text-xs py-4">Sem registos</TableCell></TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Record value dialog */}
+      <Dialog open={recordDialog} onOpenChange={setRecordDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Registar Valor</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div><Label>Data</Label><Input type="date" value={recordForm.recorded_at} onChange={e => setRecordForm(p => ({ ...p, recorded_at: e.target.value }))} /></div>
+            <div><Label>Valor</Label><Input type="number" value={recordForm.value} onChange={e => setRecordForm(p => ({ ...p, value: e.target.value }))} /></div>
+            <div><Label>Notas</Label><Input value={recordForm.notes} onChange={e => setRecordForm(p => ({ ...p, notes: e.target.value }))} /></div>
+            <Button className="w-full" onClick={handleRecord} disabled={!recordForm.value}>Guardar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// ─── Actions ─────────────
+function ActionsSection({ objectiveId, actions, planning }: any) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [form, setForm] = useState({ description: '', action_type: 'simples', status: 'por_fazer', deadline: '', responsible_id: '' });
+  const { members } = useTeamData();
+  const teamMembers = members.data || [];
+
+  const handleSave = () => {
+    planning.upsertAction.mutate({ ...form, objective_id: objectiveId });
+    setDialogOpen(false);
+    setForm({ description: '', action_type: 'simples', status: 'por_fazer', deadline: '', responsible_id: '' });
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold">Ações</h3>
+        <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}><Plus className="h-3 w-3 mr-1" /> Nova Ação</Button>
+      </div>
+      {actions.length === 0 ? <p className="text-xs text-muted-foreground">Sem ações definidas</p> : (
+        <Table>
+          <TableHeader><TableRow>
+            <TableHead>Descrição</TableHead><TableHead>Tipo</TableHead><TableHead>Status</TableHead><TableHead>Deadline</TableHead><TableHead></TableHead>
+          </TableRow></TableHeader>
+          <TableBody>{actions.map((a: any) => (
+            <TableRow key={a.id}>
+              <TableCell className="text-sm">{a.description}</TableCell>
+              <TableCell className="text-xs">{a.action_type === 'tarefa' ? 'Tarefa' : 'Ação Simples'}</TableCell>
+              <TableCell><Badge variant={a.status === 'feito' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(a.status)}</Badge></TableCell>
+              <TableCell className="text-xs">{a.deadline || '—'}</TableCell>
+              <TableCell className="flex gap-1">
+                {a.action_type !== 'tarefa' && !a.task_id && (
+                  <Button size="sm" variant="ghost" className="h-6 text-[10px]" onClick={() => planning.convertActionToTask.mutate(a)}>
+                    <ArrowRightLeft className="h-3 w-3 mr-1" /> Converter
+                  </Button>
+                )}
+                <button onClick={() => planning.deleteAction.mutate(a.id)}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
+              </TableCell>
+            </TableRow>
+          ))}</TableBody>
+        </Table>
+      )}
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Nova Ação</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div><Label>Descrição</Label><Textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} rows={2} /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Tipo</Label>
+                <Select value={form.action_type} onValueChange={v => setForm(p => ({ ...p, action_type: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="simples">Ação Simples</SelectItem>
+                    <SelectItem value="tarefa">Tarefa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div><Label>Status</Label>
+                <Select value={form.status} onValueChange={v => setForm(p => ({ ...p, status: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{ACTION_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Data limite</Label><Input type="date" value={form.deadline} onChange={e => setForm(p => ({ ...p, deadline: e.target.value }))} /></div>
+              <div><Label>Responsável</Label>
+                <Select value={form.responsible_id || '_none'} onValueChange={v => setForm(p => ({ ...p, responsible_id: v === '_none' ? '' : v }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">Sem responsável</SelectItem>
+                    {teamMembers.map((m: any) => <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <Button className="w-full" onClick={handleSave} disabled={!form.description.trim()}>Guardar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
