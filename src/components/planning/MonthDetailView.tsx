@@ -55,7 +55,7 @@ interface Props {
 
 export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const qc = useQueryClient();
-  const navigate = useNavigate();
+  const monthName = MONTHS[monthIdx];
   const monthName = MONTHS[monthIdx];
   const monthNum = monthIdx + 1;
   const range = monthRange(monthIdx, year);
