@@ -50,6 +50,7 @@ export function usePermissions() {
   }, [user, isOwner]);
 
   const canAccess = (moduleKey: ModuleKey | string): boolean => {
+    if (moduleKey === 'hub-equipa') return true; // Always accessible
     if (isOwner) return true;
     return allowedModules.has(moduleKey);
   };
