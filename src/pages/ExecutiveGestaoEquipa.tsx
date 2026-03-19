@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText, LayoutDashboard, AlertTriangle, Clock, CreditCard } from 'lucide-react';
+import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText, LayoutDashboard, AlertTriangle, Clock, CreditCard, Upload, ExternalLink, CheckSquare, ListTodo, CalendarIcon } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
