@@ -3085,31 +3085,43 @@ export type Database = {
           cadence: string
           created_at: string
           current_value: number | null
+          green_threshold: number | null
           id: string
           last_updated_at: string | null
           name: string
           objective_id: string
           source: string
+          target_unit: string | null
+          target_value: number | null
+          yellow_threshold: number | null
         }
         Insert: {
           cadence?: string
           created_at?: string
           current_value?: number | null
+          green_threshold?: number | null
           id?: string
           last_updated_at?: string | null
           name?: string
           objective_id: string
           source?: string
+          target_unit?: string | null
+          target_value?: number | null
+          yellow_threshold?: number | null
         }
         Update: {
           cadence?: string
           created_at?: string
           current_value?: number | null
+          green_threshold?: number | null
           id?: string
           last_updated_at?: string | null
           name?: string
           objective_id?: string
           source?: string
+          target_unit?: string | null
+          target_value?: number | null
+          yellow_threshold?: number | null
         }
         Relationships: [
           {
