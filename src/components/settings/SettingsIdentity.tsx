@@ -8,7 +8,7 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { DISPLAY_FONTS, BODY_FONTS } from '@/lib/modules';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Upload, Palette, Type, Building2, Save, Trash2 } from 'lucide-react';
+import { Upload, Palette, Type, Building2, Save, Trash2, ImageIcon } from 'lucide-react';
 
 /* ── colour helpers ── */
 
