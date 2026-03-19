@@ -184,7 +184,7 @@ export function FinSaidas({ fin }: Props) {
                     <TableCell><Badge variant="outline" className={e.status === 'pago' ? 'bg-green-100 text-green-800' : e.status === 'cancelado' ? 'bg-muted text-muted-foreground' : 'bg-amber-100 text-amber-800'}>{EXP_STATUS.find(s => s.value === e.status)?.label || e.status}</Badge></TableCell>
                     <TableCell>{e.expense_date || '—'}</TableCell>
                     <TableCell className="truncate max-w-[200px]">{e.description || '—'}</TableCell>
-                    <TableCell>{EXP_CATEGORIES.find(c => c.value === e.category)?.label || e.category}</TableCell>
+                    <TableCell>{getCategoryLabel('expense', e.category)}</TableCell>
                     <TableCell className="text-right">{fmt(e.base_value)}</TableCell>
                     <TableCell>{e.vat_rate}%</TableCell>
                     <TableCell className="text-right font-medium">{fmt(e.total_with_vat)}</TableCell>
