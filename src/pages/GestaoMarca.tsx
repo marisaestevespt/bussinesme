@@ -16,10 +16,10 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-import { BackNavigation } from '@/components/BackNavigation';
   Pencil, Check, X, Plus, ExternalLink, FolderOpen, Zap,
   Trash2, Upload, FileText, Image as ImageIcon, ChevronLeft,
 } from 'lucide-react';
+import { BackNavigation } from '@/components/BackNavigation';
 
 // ── Types ──
 
