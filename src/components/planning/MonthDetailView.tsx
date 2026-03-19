@@ -65,7 +65,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   // ── Active tab states ──
   const [objTab, setObjTab] = useState<'metas'|'objetivos'>('metas');
   const [vendasTab, setVendasTab] = useState<'goal'|'real'>('goal');
-  const [clientTab, setClientTab] = useState<'ativos'|'terminar'>('ativos');
+  const [clientTab, setClientTab] = useState<'ativos'|'pausados'|'terminar'>('ativos');
   const [contentTab, setContentTab] = useState('calendario');
   const [calMonth, setCalMonth] = useState(new Date(year, monthIdx, 1));
   const [selectedObjective, setSelectedObjective] = useState<any>(null);
