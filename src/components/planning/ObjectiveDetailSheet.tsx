@@ -544,6 +544,17 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
           <DialogHeader><DialogTitle>Editar Métrica</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div><Label>Nome</Label><Input value={editForm.name || ''} onChange={e => setEditForm((p: any) => ({ ...p, name: e.target.value }))} /></div>
+            <div><Label>Tipo de medição</Label>
+              <Select value={editForm.measurement_type || 'acumulativo'} onValueChange={v => setEditForm((p: any) => ({ ...p, measurement_type: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{MEASUREMENT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                {editForm.measurement_type === 'progressivo'
+                  ? 'Valor absoluto atual (ex: seguidores, clientes ativos)'
+                  : 'Soma de registos no período (ex: faturação, vendas)'}
+              </p>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Valor objetivo</Label><Input type="number" value={editForm.target_value || ''} onChange={e => setEditForm((p: any) => ({ ...p, target_value: e.target.value }))} /></div>
               <div><Label>Unidade</Label><Input value={editForm.target_unit || ''} onChange={e => setEditForm((p: any) => ({ ...p, target_unit: e.target.value }))} /></div>
