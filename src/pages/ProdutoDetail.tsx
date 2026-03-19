@@ -412,7 +412,7 @@ export default function ProdutoDetailPage() {
             <TabsList className="grid grid-cols-5 w-full">
               <TabsTrigger value="produto">Produto</TabsTrigger>
               <TabsTrigger value="comercial">Comercial & Marketing</TabsTrigger>
-              <TabsTrigger value="contabilidade">Contabilidade</TabsTrigger>
+              <TabsTrigger value="contabilidade">Contabilidade & Precificação</TabsTrigger>
               <TabsTrigger value="backoffice">Backoffice</TabsTrigger>
               <TabsTrigger value="arquivo">Arquivo</TabsTrigger>
             </TabsList>
