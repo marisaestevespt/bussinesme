@@ -24,6 +24,7 @@ import ProcessosPage from "./pages/Processos";
 import SopDetailPage from "./pages/SopDetail";
 import BibliotecaPage from "./pages/Biblioteca";
 import TarefasPage from "./pages/Tarefas";
+import HubEquipaPage from "./pages/HubEquipa";
 
 const queryClient = new QueryClient();
 
