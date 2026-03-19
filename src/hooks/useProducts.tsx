@@ -21,6 +21,8 @@ export type Product = {
   competitors: any;
   improvements_content: string | null;
   brainstorming_content: string | null;
+  logo_url: string | null;
+  cover_url: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;

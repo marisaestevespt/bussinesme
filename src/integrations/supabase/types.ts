@@ -1959,6 +1959,7 @@ export type Database = {
           brainstorming_content: string | null
           client_profile: Json | null
           competitors: Json | null
+          cover_url: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -1969,6 +1970,7 @@ export type Database = {
           important_dates: Json | null
           improvements_content: string | null
           included_items: Json | null
+          logo_url: string | null
           name: string
           product_type: string | null
           sales_page_url: string | null
@@ -1982,6 +1984,7 @@ export type Database = {
           brainstorming_content?: string | null
           client_profile?: Json | null
           competitors?: Json | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -1992,6 +1995,7 @@ export type Database = {
           important_dates?: Json | null
           improvements_content?: string | null
           included_items?: Json | null
+          logo_url?: string | null
           name: string
           product_type?: string | null
           sales_page_url?: string | null
@@ -2005,6 +2009,7 @@ export type Database = {
           brainstorming_content?: string | null
           client_profile?: Json | null
           competitors?: Json | null
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -2015,6 +2020,7 @@ export type Database = {
           important_dates?: Json | null
           improvements_content?: string | null
           included_items?: Json | null
+          logo_url?: string | null
           name?: string
           product_type?: string | null
           sales_page_url?: string | null
