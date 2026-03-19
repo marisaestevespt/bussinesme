@@ -252,7 +252,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
 
       {/* Segurança Social */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Segurança Social — {MONTHS[m - 1]}</CardTitle></CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Segurança Social</CardTitle></CardHeader>
         <CardContent>
           <div className="flex items-end gap-3">
             <div className="flex-1">
