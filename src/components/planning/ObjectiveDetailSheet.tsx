@@ -172,6 +172,9 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
               <div className="rounded-lg border p-3">
                 <p className="text-xs text-muted-foreground">Fonte</p>
                 <p className="text-sm font-medium">{VALUE_SOURCES.find(s => s.value === obj.value_source)?.label || 'Manual'}</p>
+                {obj.product_id && objProductName && (
+                  <p className="text-xs text-muted-foreground mt-1">Produto: {objProductName}</p>
+                )}
               </div>
             </div>
           )}
