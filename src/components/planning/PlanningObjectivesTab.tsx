@@ -9,20 +9,18 @@ import { ObjectiveDialog } from './ObjectiveDialog';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
 
 export function PlanningObjectivesTab({ planning }: { planning: any }) {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editObj, setEditObj] = useState<any>(null);
+  const [newDialogOpen, setNewDialogOpen] = useState(false);
   const [detailObj, setDetailObj] = useState<any>(null);
 
-  const handleSave = (obj: any) => {
+  const handleNewSave = (obj: any) => {
     planning.upsertObjective.mutate(obj);
-    setDialogOpen(false);
-    setEditObj(null);
+    setNewDialogOpen(false);
   };
 
   return (
     <div className="space-y-4 mt-4">
       <div className="flex justify-end">
-        <Button size="sm" onClick={() => { setEditObj(null); setDialogOpen(true); }}>
+        <Button size="sm" onClick={() => setNewDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-1" /> Novo Objetivo
         </Button>
       </div>
@@ -62,19 +60,20 @@ export function PlanningObjectivesTab({ planning }: { planning: any }) {
         </div>
       )}
 
+      {/* Dialog only for creating NEW objectives */}
       <ObjectiveDialog
-        open={dialogOpen}
-        onClose={() => { setDialogOpen(false); setEditObj(null); }}
-        initial={editObj}
-        onSave={handleSave}
+        open={newDialogOpen}
+        onClose={() => setNewDialogOpen(false)}
+        initial={null}
+        onSave={handleNewSave}
       />
 
+      {/* Full detail view (with inline editing) for existing objectives */}
       <ObjectiveDetailSheet
         open={!!detailObj}
         onClose={() => setDetailObj(null)}
         objective={detailObj}
         planning={planning}
-        onEdit={(obj: any) => { setDetailObj(null); setEditObj(obj); setDialogOpen(true); }}
       />
     </div>
   );
