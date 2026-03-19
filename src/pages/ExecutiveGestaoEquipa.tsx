@@ -687,14 +687,19 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
       const isNew = !member.id;
       let memberId = member.id;
       if (isNew) {
-        const payload = { ...member };
+        const payload = cleanPayload({ ...member });
         delete payload.id;
         const { data, error } = await supabase.from('team_members').insert(payload).select('id').single();
         if (error) throw error;
         memberId = data.id;
       } else {
-        const { error } = await supabase.from('team_members').update(member).eq('id', member.id);
+        const payload = cleanPayload(member);
+        const { error } = await supabase.from('team_members').update(payload).eq('id', member.id);
         if (error) throw error;
+      }
+      // Auto-assign permissions based on department
+      if (member.department) {
+        await autoAssignPermissions(memberId, member.department);
       }
       if (isNew && contractData && memberId) {
         const monthlyVal = parseFloat(contractData.monthly_value) || 0;
