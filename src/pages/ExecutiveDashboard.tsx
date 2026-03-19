@@ -44,7 +44,7 @@ export default function ExecutiveDashboard() {
           {/* Coluna Esquerda — Gestão */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2"><Target className="h-4 w-4" /> Gestão</CardTitle>
+              <CardTitle className="text-base flex items-center gap-2"><Briefcase className="h-4 w-4" /> Gestão</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <Link to="/executive/planeamento" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
