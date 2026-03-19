@@ -245,6 +245,8 @@ export default function TarefasPage() {
       project_id: projectId && projectId !== 'none' ? projectId : null,
       parent_task_id: parentTaskId && parentTaskId !== 'none' ? parentTaskId : null,
       notes: notes || null,
+      recurrence_type: recurrenceType || null,
+      recurrence_end: recurrenceEnd ? format(recurrenceEnd, 'yyyy-MM-dd') : null,
       _dependsOnIds: dependsOnIds,
       _prevStatus: editingTask?.status || null,
     };
