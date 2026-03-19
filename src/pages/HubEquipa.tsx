@@ -199,37 +199,6 @@ function QuickLinks() {
   );
 }
 
-// ─── Column 1: Hall ──────────────────────────────────────────────────
-
-function HallColumn() {
-  const navigate = useNavigate();
-  const { isOwner } = useAuth();
-
-  return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm uppercase tracking-wide text-muted-foreground">Hall</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-1">
-          {HALL_LINKS.map(l => (
-            <button
-              key={l.path}
-              onClick={() => navigate(l.path)}
-              className="block text-sm font-semibold hover:text-primary transition-colors text-left py-1"
-            >
-              {l.label}
-            </button>
-          ))}
-        </CardContent>
-      </Card>
-
-      
-    </div>
-  );
-}
-
-
 // ─── Column 2: Transversais ──────────────────────────────────────────
 
 function TransversaisColumn() {
