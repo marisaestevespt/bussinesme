@@ -249,13 +249,8 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
     return { id: '', status: 'por_comecar', action_name: '', action_type: 'outro', start_date: undefined as Date | undefined, end_date: undefined as Date | undefined, product: '', objective: '', result: '' };
   }
 
-  // sync on open
-  useState(() => {}); // placeholder
-  // Use effect-like pattern via key
-  const key = open ? (initialData?.id || 'new') : 'closed';
-
-  // Reset form when dialog opens
-  if (open && form.id !== (initialData?.id || '')) {
+  useEffect(() => {
+    if (!open) return;
     if (initialData) {
       setForm({
         id: initialData.id,
@@ -268,10 +263,10 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
         objective: initialData.objective || '',
         result: initialData.result || '',
       });
-    } else if (form.id !== '') {
+    } else {
       setForm(empty());
     }
-  }
+  }, [open, initialData]);
 
   const handleSave = () => {
     if (!form.action_name.trim()) { toast.error('Nome da ação é obrigatório'); return; }
