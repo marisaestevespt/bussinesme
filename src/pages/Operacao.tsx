@@ -548,37 +548,51 @@ export default function OperacaoPage() {
               <h2 className="text-lg font-semibold">Interno</h2>
             </div>
 
-            {/* Resumo */}
-            <Card>
-              <CardContent className="pt-4 pb-3 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <FolderOpen className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Projetos internos ativos</span>
-                  </div>
-                  <span className="text-xl font-bold">{activeInternoProjects.length}</span>
-                </div>
-                <div className="flex gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-500 inline-block" /> Em curso: {internoByStatus.em_curso}</span>
-                  <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-gray-400 inline-block" /> Por iniciar: {internoByStatus.em_ideia}</span>
-                  <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-yellow-500 inline-block" /> Pausados: {internoByStatus.em_pausa}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Projetos internos */}
+            {/* Projetos internos ativos — Pie chart by department */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <FolderOpen className="h-4 w-4" /> Projetos Internos
+                  <FolderOpen className="h-4 w-4" /> Projetos Internos Ativos
                   <Badge variant="outline" className="ml-auto text-[10px]">{activeInternoProjects.length}</Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-0 space-y-0.5 max-h-[300px] overflow-y-auto">
+              <CardContent className="pt-0">
                 {activeInternoProjects.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-3">Nenhum projeto interno ativo</p>
                 ) : (
-                  activeInternoProjects.map(p => renderProjectRow(p, false, true))
+                  <div className="flex items-center gap-4">
+                    <div className="w-[180px] h-[180px] shrink-0">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={internoByDept}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={40}
+                            outerRadius={75}
+                            paddingAngle={2}
+                            strokeWidth={0}
+                          >
+                            {internoByDept.map((entry, i) => (
+                              <Cell key={i} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value: number, name: string) => [`${value} projeto${value !== 1 ? 's' : ''}`, name]} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex-1 space-y-1.5">
+                      {internoByDept.map((d, i) => (
+                        <div key={i} className="flex items-center gap-2 text-sm">
+                          <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
+                          <span className="flex-1 truncate">{d.name}</span>
+                          <span className="font-semibold">{d.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </CardContent>
             </Card>
