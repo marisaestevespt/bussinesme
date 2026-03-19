@@ -119,7 +119,7 @@ export default function MarketingTrafegoPago() {
           {/* Centro de Tráfego Pago */}
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-foreground">Centro de Tráfego Pago</h2>
+              <h2 className="text-lg font-semibold text-foreground">Reports & Análises</h2>
               {isOwner && (
                 <Button variant="outline" size="sm" onClick={() => setShowNewCard(true)}>
                   <Plus className="h-3.5 w-3.5 mr-1" />Novo Card
