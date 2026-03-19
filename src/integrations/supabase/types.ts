@@ -1322,6 +1322,33 @@ export type Database = {
           },
         ]
       }
+      financial_categories: {
+        Row: {
+          category_type: string
+          created_at: string
+          id: string
+          label: string
+          sort_order: number
+          value: string
+        }
+        Insert: {
+          category_type?: string
+          created_at?: string
+          id?: string
+          label: string
+          sort_order?: number
+          value: string
+        }
+        Update: {
+          category_type?: string
+          created_at?: string
+          id?: string
+          label?: string
+          sort_order?: number
+          value?: string
+        }
+        Relationships: []
+      }
       financial_contractors: {
         Row: {
           contractor_name: string
