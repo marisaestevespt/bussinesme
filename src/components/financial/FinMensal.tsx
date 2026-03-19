@@ -42,7 +42,7 @@ interface Props {
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
+export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: Props) {
   const currentMonth = new Date().getMonth() + 1;
   const [month, setMonth] = useState(currentMonth.toString());
   const m = parseInt(month);
