@@ -1065,10 +1065,10 @@ function MeuContratoTab({ teamMember }: { teamMember: any }) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// TAB 7 — O MEU ESPAÇO
+// DASHBOARD PERSONAL WIDGETS (image, notes, links)
 // ═══════════════════════════════════════════════════════════════
 
-function MeuEspacoTab({ userId, teamMember }: { userId?: string; teamMember: any }) {
+function DashboardPersonalWidgets({ userId, teamMember }: { userId?: string; teamMember: any }) {
   const qc = useQueryClient();
 
   // Personal image
@@ -1108,7 +1108,6 @@ function MeuEspacoTab({ userId, teamMember }: { userId?: string; teamMember: any
     await supabase.from('member_personal_notes').upsert({ user_id: userId, content, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
   }, [userId]);
 
-  // Debounced save for notes
   const notesTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleNotesChange = (content: string) => {
     if (notesTimeoutRef.current) clearTimeout(notesTimeoutRef.current);
@@ -1141,41 +1140,29 @@ function MeuEspacoTab({ userId, teamMember }: { userId?: string; teamMember: any
     qc.invalidateQueries({ queryKey: ['personal-links'] });
   };
 
-  // Onboarding
-  const onboarding = useQuery({
-    queryKey: ['my-onboarding', teamMember?.id],
-    enabled: !!teamMember?.id,
-    queryFn: async () => {
-      const { data } = await supabase.from('member_onboarding').select('*').eq('member_id', teamMember.id).order('sort_order');
-      return data || [];
-    },
-  });
-
-  const pendingOnboarding = (onboarding.data || []).filter(i => !i.completed);
-  const toggleOnboarding = async (id: string, completed: boolean) => {
-    await supabase.from('member_onboarding').update({ completed }).eq('id', id);
-    qc.invalidateQueries({ queryKey: ['my-onboarding'] });
-  };
-
   return (
-    <div className="space-y-6 mt-4">
+    <div className="grid md:grid-cols-3 gap-4">
       {/* Personal image */}
       <Card>
         <CardHeader className="pb-3"><CardTitle className="text-sm font-medium flex items-center gap-2"><ImageIcon className="h-4 w-4" /> Imagem Pessoal</CardTitle></CardHeader>
         <CardContent>
-          {personalImage.data?.image_url && (
-            <img src={personalImage.data.image_url} alt="Imagem pessoal" className="w-full max-w-md h-48 object-cover rounded-lg mb-3" />
+          {personalImage.data?.image_url ? (
+            <img src={personalImage.data.image_url} alt="Imagem pessoal" className="w-full h-36 object-cover rounded-lg mb-3" />
+          ) : (
+            <div className="w-full h-36 rounded-lg bg-muted flex items-center justify-center mb-3">
+              <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
+            </div>
           )}
           <label className="cursor-pointer">
             <Input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-            <Button variant="outline" size="sm" asChild><span><ImageIcon className="h-4 w-4 mr-1" /> {personalImage.data ? 'Alterar imagem' : 'Upload de imagem'}</span></Button>
+            <Button variant="outline" size="sm" asChild><span><ImageIcon className="h-4 w-4 mr-1" /> {personalImage.data ? 'Alterar' : 'Upload'}</span></Button>
           </label>
         </CardContent>
       </Card>
 
-      {/* Personal notes */}
-      <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium flex items-center gap-2"><FileText className="h-4 w-4" /> Notas Pessoais</CardTitle></CardHeader>
+      {/* Personal notes (post-it style) */}
+      <Card className="bg-amber-50/50 dark:bg-amber-950/10 border-amber-200/50">
+        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium flex items-center gap-2"><FileText className="h-4 w-4" /> Notas</CardTitle></CardHeader>
         <CardContent>
           <RichTextEditor
             content={personalNotes.data?.content || ''}
@@ -1187,38 +1174,23 @@ function MeuEspacoTab({ userId, teamMember }: { userId?: string; teamMember: any
       {/* Personal links */}
       <Card>
         <CardHeader className="pb-3"><CardTitle className="text-sm font-medium flex items-center gap-2"><Link2 className="h-4 w-4" /> Os Meus Links</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2">
           {(personalLinks.data || []).map((link: any) => (
             <div key={link.id} className="flex items-center justify-between gap-2 p-2 rounded border">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="text-sm font-medium truncate">{link.label}</span>
-                <a href={link.url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline truncate">{link.url}</a>
-              </div>
+              <a href={link.url} target="_blank" rel="noreferrer" className="text-sm font-medium text-primary hover:underline truncate flex items-center gap-1.5">
+                <ExternalLink className="h-3 w-3 shrink-0" />
+                {link.label}
+              </a>
               <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0" onClick={() => deleteLink(link.id)}><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></Button>
             </div>
           ))}
           <div className="flex gap-2">
-            <Input placeholder="Nome" value={newLinkLabel} onChange={e => setNewLinkLabel(e.target.value)} className="flex-1" />
-            <Input placeholder="URL" value={newLinkUrl} onChange={e => setNewLinkUrl(e.target.value)} className="flex-1" />
-            <Button size="sm" onClick={addLink} disabled={!newLinkLabel.trim() || !newLinkUrl.trim()}><Plus className="h-4 w-4" /></Button>
+            <Input placeholder="Nome" value={newLinkLabel} onChange={e => setNewLinkLabel(e.target.value)} className="flex-1 h-8 text-xs" />
+            <Input placeholder="URL" value={newLinkUrl} onChange={e => setNewLinkUrl(e.target.value)} className="flex-1 h-8 text-xs" />
+            <Button size="sm" className="h-8" onClick={addLink} disabled={!newLinkLabel.trim() || !newLinkUrl.trim()}><Plus className="h-4 w-4" /></Button>
           </div>
         </CardContent>
       </Card>
-
-      {/* Onboarding */}
-      {pendingOnboarding.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">O Meu Onboarding</CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            {(onboarding.data || []).map((item: any) => (
-              <div key={item.id} className="flex items-center gap-3">
-                <Checkbox checked={item.completed} onCheckedChange={(checked) => toggleOnboarding(item.id, !!checked)} />
-                <span className={cn('text-sm', item.completed && 'line-through text-muted-foreground')}>{item.task}</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
