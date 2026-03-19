@@ -53,24 +53,8 @@ export default function ComercialPage() {
 
         {/* Visão Geral inline */}
         <CommercialOverview />
-                key={s.key}
-                className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
-                onClick={() => navigate(`/hub/comercial/${s.key}`)}
-              >
-                <CardContent className="p-5 flex flex-col gap-3">
-                  <div className={`h-10 w-10 rounded-lg bg-background/80 flex items-center justify-center shadow-sm ${s.iconColor}`}>
-                    <s.icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">{s.label}</h3>
-                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{s.description}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
       </div>
     </AppLayout>
   );
 }
+
