@@ -716,6 +716,60 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_automations: {
+        Row: {
+          condicoes: Json | null
+          created_at: string
+          created_by: string | null
+          fluxo: Json | null
+          gatilho: string | null
+          id: string
+          links: Json | null
+          name: string
+          notas: string | null
+          objetivo: string | null
+          oferta_final: string | null
+          plataforma: string | null
+          plataformas_envolvidas: Json | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          condicoes?: Json | null
+          created_at?: string
+          created_by?: string | null
+          fluxo?: Json | null
+          gatilho?: string | null
+          id?: string
+          links?: Json | null
+          name: string
+          notas?: string | null
+          objetivo?: string | null
+          oferta_final?: string | null
+          plataforma?: string | null
+          plataformas_envolvidas?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          condicoes?: Json | null
+          created_at?: string
+          created_by?: string | null
+          fluxo?: Json | null
+          gatilho?: string | null
+          id?: string
+          links?: Json | null
+          name?: string
+          notas?: string | null
+          objetivo?: string | null
+          oferta_final?: string | null
+          plataforma?: string | null
+          plataformas_envolvidas?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       marketing_channels: {
         Row: {
           created_at: string

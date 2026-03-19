@@ -32,6 +32,8 @@ import MarketingDashboard from "./pages/MarketingDashboard";
 import MarketingSubPage from "./pages/MarketingSubPage";
 import MarketingProcessos from "./pages/MarketingProcessos";
 import MarketingRecursos from "./pages/MarketingRecursos";
+import MarketingAutomacoes from "./pages/MarketingAutomacoes";
+import MarketingAutomacaoDetail from "./pages/MarketingAutomacaoDetail";
 import ConteudoDetailPage from "./pages/ConteudoDetail";
 import ChannelPage from "./pages/ChannelPage";
 import MarketingEstrategia from "./pages/MarketingEstrategia";
@@ -79,6 +81,8 @@ function AppRoutes() {
         <Route path="/hub/marketing/estrategia/canal/:channelId" element={<MarketingChannelStrategy />} />
         <Route path="/hub/marketing/processos-mkt" element={<MarketingProcessos />} />
         <Route path="/hub/marketing/recursos-mkt" element={<MarketingRecursos />} />
+        <Route path="/hub/marketing/automacoes" element={<MarketingAutomacoes />} />
+        <Route path="/hub/marketing/automacoes/:id" element={<MarketingAutomacaoDetail />} />
         <Route path="/hub/marketing/:pageKey" element={<MarketingSubPage />} />
         <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
