@@ -306,26 +306,29 @@ export default function OperacaoPage() {
 
             {/* Resumo */}
             <Card>
-              <CardContent className="pt-4 pb-3 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Clientes ativos</span>
-                  </div>
-                  <span className="text-xl font-bold">{activeClients.length}</span>
-                </div>
+              <CardContent className="pt-4 pb-3 space-y-2">
+                {[
+                  { value: 'em_onboarding', label: 'Em onboarding' },
+                  { value: 'ativo', label: 'Ativos' },
+                  { value: 'pausado', label: 'Pausados' },
+                  { value: 'altura_renovacao', label: 'Altura de renovação' },
+                ].map(s => {
+                  const count = clients.filter(c => c.status === s.value).length;
+                  return (
+                    <div key={s.value} className="flex items-center justify-between">
+                      <span className="text-sm">{s.label}</span>
+                      <span className="text-sm font-semibold">{count}</span>
+                    </div>
+                  );
+                })}
                 {productBreakdown.length > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    {productBreakdown.map(([prod, count]) => `${count} ${prod}`).join(' · ')}
-                  </p>
+                  <>
+                    <Separator />
+                    <p className="text-xs text-muted-foreground">
+                      {productBreakdown.map(([prod, count]) => `${count} ${prod}`).join(' · ')}
+                    </p>
+                  </>
                 )}
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Em onboarding</span>
-                  <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-200">
-                    {onboardingClients.length}
-                  </Badge>
-                </div>
               </CardContent>
             </Card>
 
