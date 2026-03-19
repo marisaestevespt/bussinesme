@@ -220,7 +220,9 @@ export default function TarefasPage() {
       assigned_to: assignedTo || null,
       department: department || null,
       project_id: projectId && projectId !== 'none' ? projectId : null,
+      parent_task_id: parentTaskId && parentTaskId !== 'none' ? parentTaskId : null,
       notes: notes || null,
+      _dependsOnIds: dependsOnIds,
     };
     if (isChangingToDone) {
       payload.updated_at = new Date().toISOString();
