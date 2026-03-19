@@ -13,6 +13,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import {
   useTeamData, MEMBER_STATUSES, MEMBER_TYPES, CONTRACT_TYPES, CONTRACT_STATUSES,
   PAYMENT_TYPES, PAYMENT_STATUSES, FEEDBACK_TYPES, PERFORMANCE_STATUSES, labelFor,
@@ -35,42 +38,152 @@ function MemberSelect({ value, onChange, members }: { value: string; onChange: (
   );
 }
 
+const CONTRACT_DURATIONS = [
+  { value: '1', label: '1 mês' },
+  { value: '3', label: '3 meses' },
+  { value: '6', label: '6 meses' },
+  { value: '12', label: '12 meses' },
+  { value: '24', label: '24 meses' },
+  { value: 'unica', label: 'Vez única' },
+  { value: 'indefinido', label: 'Indefinido' },
+];
+
 // ─── Member Form Dialog ──────
 function MemberDialog({ open, onClose, initial, onSave }: any) {
+  const isEdit = !!initial?.id;
   const [f, setF] = useState(initial || {
     full_name: '', role_title: '', email: '', whatsapp: '', work_schedule: '',
     identification: '', status: 'ativo', member_type: 'colaborador_fixo',
     start_date: '', presentation: '', responsibilities: '',
   });
+  const [contract, setContract] = useState({
+    contract_type: 'contrato_trabalho',
+    duration: '12',
+    monthly_value: '',
+    contracted_hours: '',
+    payment_day: '1',
+    start_date: '',
+    end_date: '',
+    status: 'ativo',
+  });
   const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
+  const setC = (k: string, v: any) => setContract((p: any) => ({ ...p, [k]: v }));
+
+  // Auto-calculate end_date from start_date + duration
+  const calcEndDate = (start: string, dur: string) => {
+    if (!start || dur === 'indefinido' || dur === 'unica') return '';
+    const d = new Date(start);
+    d.setMonth(d.getMonth() + parseInt(dur));
+    return d.toISOString().split('T')[0];
+  };
+
+  const handleStartDateChange = (v: string) => {
+    setC('start_date', v);
+    set('start_date', v);
+    setC('end_date', calcEndDate(v, contract.duration));
+  };
+
+  const handleDurationChange = (v: string) => {
+    setC('duration', v);
+    setC('end_date', calcEndDate(contract.start_date, v));
+  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>{initial?.id ? 'Editar Membro' : 'Novo Membro'}</DialogTitle></DialogHeader>
-        <div className="space-y-3">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader><DialogTitle>{isEdit ? 'Editar Membro' : 'Novo Membro'}</DialogTitle></DialogHeader>
+        <div className="space-y-4">
+          {/* Basic Info */}
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Informação Pessoal</h3>
           <Input placeholder="Nome completo *" value={f.full_name} onChange={e => set('full_name', e.target.value)} />
           <Input placeholder="Função" value={f.role_title || ''} onChange={e => set('role_title', e.target.value)} />
           <div className="grid grid-cols-2 gap-2">
             <Input placeholder="Email" value={f.email || ''} onChange={e => set('email', e.target.value)} />
-            <Input placeholder="Whatsapp" value={f.whatsapp || ''} onChange={e => set('whatsapp', e.target.value)} />
+            <Input placeholder="Telefone" value={f.whatsapp || ''} onChange={e => set('whatsapp', e.target.value)} />
           </div>
-          <Input placeholder="Horário de trabalho" value={f.work_schedule || ''} onChange={e => set('work_schedule', e.target.value)} />
-          <Input placeholder="Identificação (BI/NIF)" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
           <div className="grid grid-cols-2 gap-2">
-            <Select value={f.status} onValueChange={v => set('status', v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{MEMBER_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-            </Select>
-            <Select value={f.member_type} onValueChange={v => set('member_type', v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{MEMBER_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-            </Select>
+            <Input placeholder="Horário de trabalho" value={f.work_schedule || ''} onChange={e => set('work_schedule', e.target.value)} />
+            <Input placeholder="Identificação (BI/NIF)" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
           </div>
-          <div><label className="text-xs text-muted-foreground">Data de início</label><Input type="date" value={f.start_date || ''} onChange={e => set('start_date', e.target.value)} /></div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs text-muted-foreground">Tipo</label>
+              <Select value={f.member_type} onValueChange={v => set('member_type', v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="colaborador_fixo">Equipa Interna</SelectItem>
+                  <SelectItem value="prestador_servicos">Freelancer</SelectItem>
+                  <SelectItem value="socio">Sócio</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Status</label>
+              <Select value={f.status} onValueChange={v => set('status', v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{MEMBER_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {!isEdit && (
+            <>
+              <Separator />
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Contrato & Pagamento</h3>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-muted-foreground">Tipo de contrato</label>
+                  <Select value={contract.contract_type} onValueChange={v => setC('contract_type', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{CONTRACT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Duração do contrato</label>
+                  <Select value={contract.duration} onValueChange={handleDurationChange}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{CONTRACT_DURATIONS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-muted-foreground">Valor mensal (€)</label>
+                  <Input type="number" placeholder="0" value={contract.monthly_value} onChange={e => setC('monthly_value', e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Tempo contratado mensal (horas)</label>
+                  <Input placeholder="Ex: 40h" value={contract.contracted_hours} onChange={e => setC('contracted_hours', e.target.value)} />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-xs text-muted-foreground">Data de início</label>
+                  <Input type="date" value={contract.start_date} onChange={e => handleStartDateChange(e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Data de fim</label>
+                  <Input type="date" value={contract.end_date} onChange={e => setC('end_date', e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Dia do mês de pagamento</label>
+                  <Input type="number" min={1} max={31} placeholder="1" value={contract.payment_day} onChange={e => setC('payment_day', e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Status do contrato</label>
+                <Select value={contract.status} onValueChange={v => setC('status', v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{CONTRACT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
+
+          <Separator />
           <Textarea placeholder="Apresentação" value={f.presentation || ''} onChange={e => set('presentation', e.target.value)} rows={2} />
           <Textarea placeholder="Responsabilidades" value={f.responsibilities || ''} onChange={e => set('responsibilities', e.target.value)} rows={2} />
-          <Button className="w-full" onClick={() => { onSave({ ...initial, ...f }); onClose(false); }} disabled={!f.full_name.trim()}>Guardar</Button>
+          <Button className="w-full" onClick={() => { onSave({ member: { ...initial, ...f }, contract: isEdit ? null : contract }); onClose(false); }} disabled={!f.full_name.trim()}>Guardar</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -210,6 +323,78 @@ function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
   const [dialog, setDialog] = useState<any>(null);
   const [selected, setSelected] = useState<any>(null);
   const allMembers = team.members.data || [];
+  const qc = useQueryClient();
+
+  const handleSave = async ({ member, contract: contractData }: any) => {
+    try {
+      const isNew = !member.id;
+      let memberId = member.id;
+
+      if (isNew) {
+        const memberPayload = { ...member };
+        delete memberPayload.id;
+        const { data, error } = await supabase.from('team_members').insert(memberPayload).select('id').single();
+        if (error) throw error;
+        memberId = data.id;
+      } else {
+        const { error } = await supabase.from('team_members').update(member).eq('id', member.id);
+        if (error) throw error;
+      }
+
+      // Auto-create contract + payments for new members
+      if (isNew && contractData && memberId) {
+        const monthlyVal = parseFloat(contractData.monthly_value) || 0;
+        const paymentDay = parseInt(contractData.payment_day) || 1;
+
+        // Create contract
+        await supabase.from('member_contracts').insert({
+          member_id: memberId,
+          contract_type: contractData.contract_type,
+          start_date: contractData.start_date || null,
+          end_date: contractData.end_date || null,
+          status: contractData.status,
+          monthly_value: monthlyVal,
+          contracted_hours: contractData.contracted_hours || null,
+          payment_day: paymentDay,
+        });
+
+        // Calculate number of payments
+        let numPayments = 0;
+        if (contractData.duration === 'unica') {
+          numPayments = 1;
+        } else if (contractData.duration === 'indefinido') {
+          numPayments = 12;
+        } else {
+          numPayments = parseInt(contractData.duration) || 0;
+        }
+
+        // Create payment entries
+        if (numPayments > 0 && contractData.start_date) {
+          const startDate = new Date(contractData.start_date);
+          const payments = [];
+          for (let i = 0; i < numPayments; i++) {
+            const payMonth = ((startDate.getMonth() + i) % 12) + 1;
+            const payYear = startDate.getFullYear() + Math.floor((startDate.getMonth() + i) / 12);
+            payments.push({
+              member_id: memberId,
+              month: payMonth,
+              year: payYear,
+              gross_value: monthlyVal,
+              net_value: monthlyVal,
+              payment_type: contractData.contract_type === 'contrato_prestacao' ? 'prestacao' : 'salario',
+              status: 'por_pagar',
+            });
+          }
+          await supabase.from('member_payments').insert(payments);
+        }
+      }
+
+      qc.invalidateQueries({ queryKey: ['team'] });
+      toast.success(isNew ? 'Membro criado com contrato e pagamentos!' : 'Membro atualizado');
+    } catch (err: any) {
+      toast.error('Erro ao guardar: ' + (err.message || err));
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -244,7 +429,7 @@ function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
           ))}
         </div>
       )}
-      {dialog !== null && <MemberDialog open onClose={() => setDialog(null)} initial={dialog} onSave={(m: any) => team.upsertMember.mutate(m)} />}
+      {dialog !== null && <MemberDialog open onClose={() => setDialog(null)} initial={dialog} onSave={handleSave} />}
       {selected && <MemberDetailSheet open onClose={() => setSelected(null)} member={selected} team={team} />}
     </div>
   );

@@ -2442,36 +2442,45 @@ export type Database = {
       member_contracts: {
         Row: {
           contract_type: string
+          contracted_hours: string | null
           created_at: string
           document_url: string | null
           end_date: string | null
           id: string
           member_id: string
+          monthly_value: number | null
           notes: string | null
+          payment_day: number | null
           start_date: string | null
           status: string
           updated_at: string
         }
         Insert: {
           contract_type?: string
+          contracted_hours?: string | null
           created_at?: string
           document_url?: string | null
           end_date?: string | null
           id?: string
           member_id: string
+          monthly_value?: number | null
           notes?: string | null
+          payment_day?: number | null
           start_date?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
           contract_type?: string
+          contracted_hours?: string | null
           created_at?: string
           document_url?: string | null
           end_date?: string | null
           id?: string
           member_id?: string
+          monthly_value?: number | null
           notes?: string | null
+          payment_day?: number | null
           start_date?: string | null
           status?: string
           updated_at?: string
