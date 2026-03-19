@@ -250,9 +250,7 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
       {/* ─── HEADER ─── */}
       <div className="space-y-4">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={onBack} className="gap-1.5">
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </Button>
+          <BackNavigation parentRoute="/executive/planeamento" parentLabel="Planeamento" onBack={onBack} />
           <div>
             <h2 className="text-xl font-bold">{q.short} — {year}</h2>
             <p className="text-xs text-muted-foreground">{q.range}/{year}</p>
