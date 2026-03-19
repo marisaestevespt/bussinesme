@@ -888,6 +888,20 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
           </div>
         </CardContent>
       </Card>
+
+      {/* ═══ DETAIL SHEETS ═══ */}
+      <ObjectiveDetailSheet
+        open={!!selectedObjective}
+        onClose={() => setSelectedObjective(null)}
+        objective={selectedObjective}
+        planning={planning}
+      />
+      <ObjectiveDialog
+        open={objDialogOpen}
+        onClose={() => setObjDialogOpen(false)}
+        initial={null}
+        onSave={(data: any) => { planning.upsertObjective.mutate(data); setObjDialogOpen(false); }}
+      />
     </div>
   );
 }
