@@ -329,15 +329,14 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [historyMetric, setHistoryMetric] = useState<any>(null);
   const [recordDialog, setRecordDialog] = useState(false);
-  const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60' });
-  const [recordForm, setRecordForm] = useState({ value: '', notes: '', recorded_at: format(new Date(), 'yyyy-MM-dd') });
-
   const [editMetric, setEditMetric] = useState<any>(null);
-  const [editMetricForm, setEditMetricForm] = useState<any>({});
+  const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60' });
+  const [editForm, setEditForm] = useState<any>({});
+  const [recordForm, setRecordForm] = useState({ value: '', notes: '', recorded_at: format(new Date(), 'yyyy-MM-dd') });
 
   useEffect(() => {
     if (editMetric) {
-      setEditMetricForm({
+      setEditForm({
         name: editMetric.name || '', cadence: editMetric.cadence || 'mensal', source: editMetric.source || 'manual',
         current_value: editMetric.current_value || '', target_value: editMetric.target_value || '',
         target_unit: editMetric.target_unit || '', green_threshold: editMetric.green_threshold ?? 90,
@@ -345,6 +344,8 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
       });
     }
   }, [editMetric]);
+
+  const getMetricStatus = (m: any) => {
     const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source) : null;
     const current = m.source === 'manual' ? Number(m.current_value || 0) : Number(autoVal || 0);
     const target = Number(m.target_value || 0);
@@ -355,6 +356,22 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
     return 'red';
   };
 
+  const handleSaveNew = () => {
+    planning.upsertMetric.mutate({ ...form, target_value: form.target_value ? Number(form.target_value) : null, green_threshold: Number(form.green_threshold), yellow_threshold: Number(form.yellow_threshold), objective_id: objectiveId });
+    setDialogOpen(false);
+    setForm({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60' });
+  };
+
+  const handleSaveEdit = () => {
+    if (!editMetric) return;
+    planning.upsertMetric.mutate({
+      id: editMetric.id, objective_id: objectiveId, ...editForm,
+      target_value: editForm.target_value ? Number(editForm.target_value) : null,
+      green_threshold: Number(editForm.green_threshold), yellow_threshold: Number(editForm.yellow_threshold),
+    });
+    setEditMetric(null);
+  };
+
   const handleRecord = () => {
     if (!historyMetric) return;
     planning.addMetricRecord.mutate({ metric_id: historyMetric.id, value: Number(recordForm.value), notes: recordForm.notes, recorded_at: recordForm.recorded_at });
@@ -363,6 +380,8 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
   };
 
   const allHistory = planning.metricHistory.data || [];
+  const statusColors: Record<string, string> = { green: 'bg-emerald-500', yellow: 'bg-amber-400', red: 'bg-red-500', neutral: 'bg-muted' };
+  const statusLabels: Record<string, string> = { green: 'No caminho', yellow: 'Atenção', red: 'Em risco', neutral: 'Sem objetivo' };
 
   return (
     <div>
@@ -381,30 +400,12 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
             const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source) : null;
             const displayVal = m.source === 'manual' ? m.current_value : autoVal;
             const status = getMetricStatus(m);
-            const statusColors: Record<string, string> = { green: 'bg-emerald-500', yellow: 'bg-amber-400', red: 'bg-red-500', neutral: 'bg-muted' };
-            const statusLabels: Record<string, string> = { green: 'No caminho', yellow: 'Atenção', red: 'Em risco', neutral: 'Sem objetivo' };
-            const updateMetric = (field: string, value: any) => planning.upsertMetric.mutate({ id: m.id, objective_id: objectiveId, [field]: value });
             return (
-              <TableRow key={m.id} className={overdue ? 'bg-red-50' : dueToday ? 'bg-amber-50' : ''}>
-                <TableCell>
-                  <Input className="h-7 w-32 text-xs font-medium" defaultValue={m.name} onBlur={e => { if (e.target.value !== m.name) updateMetric('name', e.target.value); }} />
-                </TableCell>
-                <TableCell>
-                  <Select defaultValue={m.cadence} onValueChange={v => updateMetric('cadence', v)}>
-                    <SelectTrigger className="h-7 w-[90px] text-[10px]"><SelectValue /></SelectTrigger>
-                    <SelectContent>{CADENCES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  {m.source === 'manual' ? (
-                    <Input className="h-7 w-24 text-xs" defaultValue={m.current_value || ''} onBlur={e => { if (e.target.value !== (m.current_value || '')) updateMetric('current_value', e.target.value); }} />
-                  ) : (
-                    <span className="text-xs">{displayVal != null ? `${Number(displayVal).toLocaleString()} ${m.target_unit || ''}` : '—'}</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Input className="h-7 w-24 text-xs" defaultValue={m.target_value || ''} onBlur={e => { if (e.target.value !== String(m.target_value || '')) updateMetric('target_value', e.target.value ? Number(e.target.value) : null); }} />
-                </TableCell>
+              <TableRow key={m.id} className={`cursor-pointer hover:bg-muted/60 ${overdue ? 'bg-red-50' : dueToday ? 'bg-amber-50' : ''}`} onClick={() => setEditMetric(m)}>
+                <TableCell className="text-sm font-medium">{m.name}</TableCell>
+                <TableCell className="text-xs">{CADENCES.find(c => c.value === m.cadence)?.label || m.cadence}</TableCell>
+                <TableCell className="text-xs">{displayVal != null ? `${Number(displayVal).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
+                <TableCell className="text-xs">{m.target_value ? `${Number(m.target_value).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1.5">
                     <span className={`inline-block h-2.5 w-2.5 rounded-full ${statusColors[status]}`} />
@@ -413,8 +414,8 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
                 </TableCell>
                 <TableCell className="text-xs">{m.last_updated_at ? new Date(m.last_updated_at).toLocaleDateString('pt-PT') : '—'}</TableCell>
                 <TableCell className="flex gap-1">
-                  <button className="text-muted-foreground hover:text-foreground" onClick={() => setHistoryMetric(m)} title="Histórico"><TrendingUp className="h-3 w-3" /></button>
-                  <button onClick={() => planning.deleteMetric.mutate(m.id)}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
+                  <button className="text-muted-foreground hover:text-foreground" onClick={e => { e.stopPropagation(); setHistoryMetric(m); }} title="Histórico"><TrendingUp className="h-3 w-3" /></button>
+                  <button onClick={e => { e.stopPropagation(); planning.deleteMetric.mutate(m.id); }}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
                 </TableCell>
               </TableRow>
             );
@@ -450,12 +451,12 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
           <div className="space-y-3">
             <div><Label>Nome</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Valor objetivo</Label><Input type="number" placeholder="Ex: 10000" value={form.target_value} onChange={e => setForm(p => ({ ...p, target_value: e.target.value }))} /></div>
-              <div><Label>Unidade</Label><Input placeholder="Ex: €, leads, %" value={form.target_unit} onChange={e => setForm(p => ({ ...p, target_unit: e.target.value }))} /></div>
+              <div><Label>Valor objetivo</Label><Input type="number" value={form.target_value} onChange={e => setForm(p => ({ ...p, target_value: e.target.value }))} /></div>
+              <div><Label>Unidade</Label><Input value={form.target_unit} onChange={e => setForm(p => ({ ...p, target_unit: e.target.value }))} /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>% para "No caminho"</Label><Input type="number" value={form.green_threshold} onChange={e => setForm(p => ({ ...p, green_threshold: e.target.value }))} /></div>
-              <div><Label>% para "Atenção"</Label><Input type="number" value={form.yellow_threshold} onChange={e => setForm(p => ({ ...p, yellow_threshold: e.target.value }))} /></div>
+              <div><Label>% "No caminho"</Label><Input type="number" value={form.green_threshold} onChange={e => setForm(p => ({ ...p, green_threshold: e.target.value }))} /></div>
+              <div><Label>% "Atenção"</Label><Input type="number" value={form.yellow_threshold} onChange={e => setForm(p => ({ ...p, yellow_threshold: e.target.value }))} /></div>
             </div>
             <div><Label>Cadência</Label>
               <Select value={form.cadence} onValueChange={v => setForm(p => ({ ...p, cadence: v }))}>
@@ -469,7 +470,41 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
                 <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <Button className="w-full" onClick={handleSave} disabled={!form.name.trim()}>Guardar</Button>
+            <Button className="w-full" onClick={handleSaveNew} disabled={!form.name.trim()}>Guardar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit metric dialog */}
+      <Dialog open={!!editMetric} onOpenChange={v => { if (!v) setEditMetric(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Editar Métrica</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div><Label>Nome</Label><Input value={editForm.name || ''} onChange={e => setEditForm((p: any) => ({ ...p, name: e.target.value }))} /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Valor objetivo</Label><Input type="number" value={editForm.target_value || ''} onChange={e => setEditForm((p: any) => ({ ...p, target_value: e.target.value }))} /></div>
+              <div><Label>Unidade</Label><Input value={editForm.target_unit || ''} onChange={e => setEditForm((p: any) => ({ ...p, target_unit: e.target.value }))} /></div>
+            </div>
+            {editForm.source === 'manual' && (
+              <div><Label>Valor atual</Label><Input type="number" value={editForm.current_value || ''} onChange={e => setEditForm((p: any) => ({ ...p, current_value: e.target.value }))} /></div>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>% "No caminho"</Label><Input type="number" value={editForm.green_threshold ?? ''} onChange={e => setEditForm((p: any) => ({ ...p, green_threshold: e.target.value }))} /></div>
+              <div><Label>% "Atenção"</Label><Input type="number" value={editForm.yellow_threshold ?? ''} onChange={e => setEditForm((p: any) => ({ ...p, yellow_threshold: e.target.value }))} /></div>
+            </div>
+            <div><Label>Cadência</Label>
+              <Select value={editForm.cadence || 'mensal'} onValueChange={v => setEditForm((p: any) => ({ ...p, cadence: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{CADENCES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Fonte</Label>
+              <Select value={editForm.source || 'manual'} onValueChange={v => setEditForm((p: any) => ({ ...p, source: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <Button className="w-full" onClick={handleSaveEdit}>Guardar</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -522,67 +557,69 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
 // ─── Actions ─────────────
 function ActionsSection({ objectiveId, actions, planning }: any) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editAction, setEditAction] = useState<any>(null);
   const [form, setForm] = useState({ description: '', action_type: 'simples', status: 'por_fazer', deadline: '', responsible_id: '' });
+  const [editForm, setEditForm] = useState<any>({});
   const { members } = useTeamData();
   const teamMembers = members.data || [];
 
-  const handleSave = () => {
+  useEffect(() => {
+    if (editAction) {
+      setEditForm({
+        description: editAction.description || '', action_type: editAction.action_type || 'simples',
+        status: editAction.status || 'por_fazer', deadline: editAction.deadline || '',
+        responsible_id: editAction.responsible_id || '',
+      });
+    }
+  }, [editAction]);
+
+  const handleSaveNew = () => {
     planning.upsertAction.mutate({ ...form, objective_id: objectiveId });
     setDialogOpen(false);
     setForm({ description: '', action_type: 'simples', status: 'por_fazer', deadline: '', responsible_id: '' });
   };
 
+  const handleSaveEdit = () => {
+    if (!editAction) return;
+    planning.upsertAction.mutate({ id: editAction.id, objective_id: objectiveId, ...editForm });
+    setEditAction(null);
+  };
+
+  const openNew = () => { setEditAction(null); setForm({ description: '', action_type: 'simples', status: 'por_fazer', deadline: '', responsible_id: '' }); setDialogOpen(true); };
+  const openEdit = (a: any) => { setEditAction(a); };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-semibold">Ações</h3>
-        <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}><Plus className="h-3 w-3 mr-1" /> Nova Ação</Button>
+        <Button size="sm" variant="outline" onClick={openNew}><Plus className="h-3 w-3 mr-1" /> Nova Ação</Button>
       </div>
       {actions.length === 0 ? <p className="text-xs text-muted-foreground">Sem ações definidas</p> : (
         <Table>
           <TableHeader><TableRow>
             <TableHead>Descrição</TableHead><TableHead>Tipo</TableHead><TableHead>Status</TableHead><TableHead>Deadline</TableHead><TableHead></TableHead>
           </TableRow></TableHeader>
-          <TableBody>{actions.map((a: any) => {
-            const updateAction = (field: string, value: any) => planning.upsertAction.mutate({ id: a.id, objective_id: objectiveId, [field]: value });
-            return (
-              <TableRow key={a.id}>
-                <TableCell>
-                  <Input className="h-7 w-full text-xs" defaultValue={a.description} onBlur={e => { if (e.target.value !== a.description) updateAction('description', e.target.value); }} />
-                </TableCell>
-                <TableCell>
-                  <Select defaultValue={a.action_type} onValueChange={v => updateAction('action_type', v)}>
-                    <SelectTrigger className="h-7 w-[110px] text-[10px]"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="simples">Ação Simples</SelectItem>
-                      <SelectItem value="tarefa">Tarefa</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  <Select defaultValue={a.status} onValueChange={v => updateAction('status', v)}>
-                    <SelectTrigger className="h-7 w-[100px] text-[10px]"><SelectValue /></SelectTrigger>
-                    <SelectContent>{ACTION_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  <Input type="date" className="h-7 w-[130px] text-xs" defaultValue={a.deadline || ''} onBlur={e => { if (e.target.value !== (a.deadline || '')) updateAction('deadline', e.target.value); }} />
-                </TableCell>
-                <TableCell className="flex gap-1">
-                  {a.action_type !== 'tarefa' && !a.task_id && (
-                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => planning.convertActionToTask.mutate(a)}>
-                      <ListTodo className="h-3 w-3 mr-1" /> Tarefa
-                    </Button>
-                  )}
-                  {a.task_id && <Badge variant="outline" className="text-[10px]">Tarefa criada</Badge>}
-                  <button onClick={() => planning.deleteAction.mutate(a.id)}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
-                </TableCell>
-              </TableRow>
-            );
-          })}</TableBody>
+          <TableBody>{actions.map((a: any) => (
+            <TableRow key={a.id} className="cursor-pointer hover:bg-muted/60" onClick={() => openEdit(a)}>
+              <TableCell className="text-sm">{a.description}</TableCell>
+              <TableCell className="text-xs">{a.action_type === 'tarefa' ? 'Tarefa' : 'Ação Simples'}</TableCell>
+              <TableCell><Badge variant={a.status === 'feito' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(a.status)}</Badge></TableCell>
+              <TableCell className="text-xs">{a.deadline || '—'}</TableCell>
+              <TableCell className="flex gap-1">
+                {a.action_type !== 'tarefa' && !a.task_id && (
+                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={e => { e.stopPropagation(); planning.convertActionToTask.mutate(a); }}>
+                    <ListTodo className="h-3 w-3 mr-1" /> Tarefa
+                  </Button>
+                )}
+                {a.task_id && <Badge variant="outline" className="text-[10px]">Tarefa criada</Badge>}
+                <button onClick={e => { e.stopPropagation(); planning.deleteAction.mutate(a.id); }}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
+              </TableCell>
+            </TableRow>
+          ))}</TableBody>
         </Table>
       )}
 
+      {/* New Action dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Nova Ação</DialogTitle></DialogHeader>
@@ -617,7 +654,47 @@ function ActionsSection({ objectiveId, actions, planning }: any) {
                 </Select>
               </div>
             </div>
-            <Button className="w-full" onClick={handleSave} disabled={!form.description.trim()}>Guardar</Button>
+            <Button className="w-full" onClick={handleSaveNew} disabled={!form.description.trim()}>Guardar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Action dialog */}
+      <Dialog open={!!editAction} onOpenChange={v => { if (!v) setEditAction(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Editar Ação</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div><Label>Descrição</Label><Textarea value={editForm.description || ''} onChange={e => setEditForm((p: any) => ({ ...p, description: e.target.value }))} rows={2} /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Tipo</Label>
+                <Select value={editForm.action_type || 'simples'} onValueChange={v => setEditForm((p: any) => ({ ...p, action_type: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="simples">Ação Simples</SelectItem>
+                    <SelectItem value="tarefa">Tarefa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div><Label>Status</Label>
+                <Select value={editForm.status || 'por_fazer'} onValueChange={v => setEditForm((p: any) => ({ ...p, status: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{ACTION_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Data limite</Label><Input type="date" value={editForm.deadline || ''} onChange={e => setEditForm((p: any) => ({ ...p, deadline: e.target.value }))} /></div>
+              <div><Label>Responsável</Label>
+                <Select value={editForm.responsible_id || '_none'} onValueChange={v => setEditForm((p: any) => ({ ...p, responsible_id: v === '_none' ? '' : v }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">Sem responsável</SelectItem>
+                    {teamMembers.map((m: any) => <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <Button className="w-full" onClick={handleSaveEdit}>Guardar</Button>
           </div>
         </DialogContent>
       </Dialog>
