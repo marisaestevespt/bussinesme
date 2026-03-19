@@ -28,6 +28,7 @@ import { useCommercialData } from '@/hooks/useCommercialData';
 import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { ClientCustomerSuccess } from '@/components/client/ClientCustomerSuccess';
 
 // ─── Meetings query for filtered view ───────────────────────────
 function useFilteredMeetings(clientName: string | undefined) {
@@ -338,6 +339,39 @@ export default function ClienteDetailPage() {
                       }
                       toast.success('Projeto criado automaticamente');
                     }
+
+                    // Auto-generate Customer Success records (NPS + Milestones)
+                    if (form.start_date) {
+                      // Generate NPS records
+                      const { data: npsConf } = await supabase.from('product_nps_config' as any).select('*').eq('product_id', prod.id).maybeSingle();
+                      if (npsConf) {
+                        await supabase.from('client_nps_records' as any).delete().eq('client_id', id).eq('is_manual', false);
+                        const startD = parseISO(form.start_date);
+                        const cadence = (npsConf as any).cadence_days || 30;
+                        const npsRows = [];
+                        for (let i = 1; i <= Math.floor(730 / cadence); i++) {
+                          const d = new Date(startD);
+                          d.setDate(d.getDate() + cadence * i);
+                          npsRows.push({ client_id: id, product_id: prod.id, expected_date: format(d, 'yyyy-MM-dd'), status: 'por_fazer', is_manual: false });
+                        }
+                        if (npsRows.length) await supabase.from('client_nps_records' as any).insert(npsRows);
+                      }
+
+                      // Generate milestones
+                      await supabase.from('client_milestones' as any).delete().eq('client_id', id).eq('product_id', prod.id);
+                      const { data: prodMs } = await supabase.from('product_milestones' as any).select('*').eq('product_id', prod.id).order('days_after_start');
+                      if (prodMs?.length) {
+                        const startD = parseISO(form.start_date);
+                        const msRows = (prodMs as any[]).map(m => ({
+                          client_id: id, product_id: prod.id, milestone: m.milestone,
+                          expected_date: format(new Date(startD.getTime() + m.days_after_start * 86400000), 'yyyy-MM-dd'),
+                          milestone_type: m.milestone_type, responsible_id: m.responsible_id, status: 'por_fazer',
+                        }));
+                        await supabase.from('client_milestones' as any).insert(msRows);
+                      }
+                      queryClient.invalidateQueries({ queryKey: ['client-nps-records', id] });
+                      queryClient.invalidateQueries({ queryKey: ['client-milestones', id] });
+                    }
                   }
                 }
               }}>
@@ -647,6 +681,16 @@ export default function ClienteDetailPage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Customer Success */}
+        {!isNew && (
+          <ClientCustomerSuccess
+            clientId={id!}
+            clientName={form.full_name || ''}
+            productName={form.current_product || null}
+            startDate={form.start_date || null}
+          />
+        )}
       </div>
 
       {/* Sale dialog */}

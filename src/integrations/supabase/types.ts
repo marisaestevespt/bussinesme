@@ -504,6 +504,120 @@ export type Database = {
           },
         ]
       }
+      client_milestones: {
+        Row: {
+          client_id: string
+          created_at: string
+          expected_date: string
+          id: string
+          milestone: string
+          milestone_type: string
+          notes: string | null
+          product_id: string | null
+          responsible_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          expected_date: string
+          id?: string
+          milestone?: string
+          milestone_type?: string
+          notes?: string | null
+          product_id?: string | null
+          responsible_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          expected_date?: string
+          id?: string
+          milestone?: string
+          milestone_type?: string
+          notes?: string | null
+          product_id?: string | null
+          responsible_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_milestones_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_milestones_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_nps_records: {
+        Row: {
+          actual_date: string | null
+          client_id: string
+          created_at: string
+          expected_date: string
+          id: string
+          is_manual: boolean
+          notes: string | null
+          nps_score: number | null
+          product_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          actual_date?: string | null
+          client_id: string
+          created_at?: string
+          expected_date: string
+          id?: string
+          is_manual?: boolean
+          notes?: string | null
+          nps_score?: number | null
+          product_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          actual_date?: string | null
+          client_id?: string
+          created_at?: string
+          expected_date?: string
+          id?: string
+          is_manual?: boolean
+          notes?: string | null
+          nps_score?: number | null
+          product_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_nps_records_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_nps_records_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_offboarding: {
         Row: {
           activity: string

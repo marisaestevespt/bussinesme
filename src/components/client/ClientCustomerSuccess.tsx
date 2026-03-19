@@ -1,0 +1,432 @@
+import { useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus } from 'lucide-react';
+import { toast } from 'sonner';
+import { format, parseISO, addDays, differenceInDays } from 'date-fns';
+import { useTeamData } from '@/hooks/useTeamData';
+
+const STATUS_OPTIONS = [
+  { value: 'por_fazer', label: 'Por fazer' },
+  { value: 'feito', label: 'Feito' },
+  { value: 'em_atraso', label: 'Em atraso' },
+];
+
+const MILESTONE_TYPE_LABELS: Record<string, string> = {
+  check_in: 'Check-in',
+  feedback: 'Recolha de Feedback',
+  reuniao: 'Reunião',
+  email: 'Email',
+  outro: 'Outro',
+};
+
+interface Props {
+  clientId: string;
+  clientName: string;
+  productName: string | null;
+  startDate: string | null;
+}
+
+export function ClientCustomerSuccess({ clientId, clientName, productName, startDate }: Props) {
+  const qc = useQueryClient();
+  const { members } = useTeamData();
+  const teamMembers = members.data || [];
+
+  // Fetch the product to get its id
+  const { data: product } = useQuery({
+    queryKey: ['product-by-name', productName],
+    queryFn: async () => {
+      if (!productName) return null;
+      const { data } = await supabase.from('products').select('id').eq('name', productName).maybeSingle();
+      return data;
+    },
+    enabled: !!productName,
+  });
+
+  const productId = product?.id;
+
+  // Fetch NPS config from the product
+  const { data: npsConfig } = useQuery({
+    queryKey: ['product-nps-config', productId],
+    queryFn: async () => {
+      if (!productId) return null;
+      const { data } = await supabase.from('product_nps_config' as any).select('*').eq('product_id', productId).maybeSingle();
+      return data as any;
+    },
+    enabled: !!productId,
+  });
+
+  // Fetch client NPS records
+  const { data: npsRecords = [] } = useQuery({
+    queryKey: ['client-nps-records', clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('client_nps_records' as any)
+        .select('*')
+        .eq('client_id', clientId)
+        .order('expected_date');
+      return (data || []) as any[];
+    },
+  });
+
+  // Fetch client milestones
+  const { data: clientMilestones = [] } = useQuery({
+    queryKey: ['client-milestones', clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('client_milestones' as any)
+        .select('*')
+        .eq('client_id', clientId)
+        .order('expected_date');
+      return (data || []) as any[];
+    },
+  });
+
+  // Generate NPS dates (auto-generate if missing)
+  const generateNpsRecords = useMutation({
+    mutationFn: async () => {
+      if (!startDate || !npsConfig?.cadence_days || !productId) return;
+
+      // Delete existing non-manual records
+      await supabase.from('client_nps_records' as any).delete().eq('client_id', clientId).eq('is_manual', false);
+
+      const start = parseISO(startDate);
+      const cadence = npsConfig.cadence_days;
+      const records = [];
+      // Generate for 2 years
+      for (let i = 1; i <= Math.floor(730 / cadence); i++) {
+        const expectedDate = addDays(start, cadence * i);
+        records.push({
+          client_id: clientId,
+          product_id: productId,
+          expected_date: format(expectedDate, 'yyyy-MM-dd'),
+          status: 'por_fazer',
+          is_manual: false,
+        });
+      }
+      if (records.length > 0) {
+        const { error } = await supabase.from('client_nps_records' as any).insert(records);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['client-nps-records', clientId] });
+      toast.success('Datas de NPS geradas');
+    },
+  });
+
+  // Generate milestones from product
+  const generateMilestones = useMutation({
+    mutationFn: async () => {
+      if (!startDate || !productId) return;
+
+      // Delete existing milestones for this product
+      await supabase.from('client_milestones' as any).delete().eq('client_id', clientId).eq('product_id', productId);
+
+      const { data: prodMilestones } = await supabase
+        .from('product_milestones' as any)
+        .select('*')
+        .eq('product_id', productId)
+        .order('days_after_start');
+
+      if (!prodMilestones?.length) return;
+
+      const start = parseISO(startDate);
+      const records = (prodMilestones as any[]).map(m => ({
+        client_id: clientId,
+        product_id: productId,
+        milestone: m.milestone,
+        expected_date: format(addDays(start, m.days_after_start), 'yyyy-MM-dd'),
+        milestone_type: m.milestone_type,
+        responsible_id: m.responsible_id,
+        status: 'por_fazer',
+      }));
+
+      const { error } = await supabase.from('client_milestones' as any).insert(records);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['client-milestones', clientId] });
+      toast.success('Marcos gerados');
+    },
+  });
+
+  // Auto-generate on first load if records are empty
+  const shouldAutoGenerate = productId && startDate && npsConfig;
+  useMemo(() => {
+    if (shouldAutoGenerate && npsRecords.length === 0 && !generateNpsRecords.isPending) {
+      generateNpsRecords.mutate();
+    }
+  }, [shouldAutoGenerate, npsRecords.length]);
+
+  useMemo(() => {
+    if (productId && startDate && clientMilestones.length === 0 && !generateMilestones.isPending) {
+      generateMilestones.mutate();
+    }
+  }, [productId, startDate, clientMilestones.length]);
+
+  // Add manual NPS record
+  const addManualNps = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('client_nps_records' as any).insert({
+        client_id: clientId,
+        product_id: productId || null,
+        expected_date: format(new Date(), 'yyyy-MM-dd'),
+        status: 'por_fazer',
+        is_manual: true,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['client-nps-records', clientId] }),
+  });
+
+  // Update NPS record
+  const updateNps = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const { error } = await supabase.from('client_nps_records' as any).update(data).eq('id', id);
+      if (error) throw error;
+      // Also sync to product_nps_records if we have a score
+      if (data.nps_score !== undefined && data.status === 'feito' && productId) {
+        await supabase.from('product_nps_records' as any).insert({
+          product_id: productId,
+          client_name: clientName,
+          collection_date: data.actual_date || format(new Date(), 'yyyy-MM-dd'),
+          nps_score: data.nps_score,
+          notes: data.notes || '',
+          status: 'feito',
+        });
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['client-nps-records', clientId] });
+      qc.invalidateQueries({ queryKey: ['product-nps-records'] });
+    },
+  });
+
+  // Update milestone
+  const updateMilestone = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const { error } = await supabase.from('client_milestones' as any).update(data).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['client-milestones', clientId] }),
+  });
+
+  const getMemberName = (id: string | null) => {
+    if (!id) return '—';
+    return teamMembers.find((t: any) => t.id === id)?.full_name || '—';
+  };
+
+  const today = new Date();
+
+  const getRowColor = (expectedDate: string, status: string) => {
+    if (status === 'feito') return 'bg-emerald-50 border-l-4 border-l-emerald-500';
+    const d = parseISO(expectedDate);
+    const diff = differenceInDays(d, today);
+    if (diff < 0) return 'bg-red-50 border-l-4 border-l-red-500';
+    if (diff <= 7) return 'bg-amber-50 border-l-4 border-l-amber-500';
+    return '';
+  };
+
+  const autoStatus = (expectedDate: string, currentStatus: string) => {
+    if (currentStatus === 'feito') return 'feito';
+    const diff = differenceInDays(parseISO(expectedDate), today);
+    if (diff < 0) return 'em_atraso';
+    return 'por_fazer';
+  };
+
+  // Compute average NPS from "feito" records
+  const doneRecords = npsRecords.filter((r: any) => r.status === 'feito' && r.nps_score != null);
+  const avgNps = doneRecords.length > 0
+    ? (doneRecords.reduce((s: number, r: any) => s + Number(r.nps_score), 0) / doneRecords.length).toFixed(1)
+    : '—';
+
+  if (!productName) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center text-sm text-muted-foreground">
+          Associa um Produto Atual para ativar o Customer Success.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Customer Success</h3>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => { generateNpsRecords.mutate(); generateMilestones.mutate(); }}
+          disabled={!startDate}
+        >
+          Recalcular datas
+        </Button>
+      </div>
+
+      {/* NPS Records */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Recolha de NPS</CardTitle>
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium">
+                Média NPS: <span className="text-lg font-bold text-primary">{avgNps}</span>
+              </span>
+              <Button variant="outline" size="sm" onClick={() => addManualNps.mutate()}>
+                <Plus className="h-4 w-4 mr-1" /> Recolha Manual
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {npsRecords.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">
+              {!startDate ? 'Define a Data de Início para gerar as datas de recolha.' : 'Sem registos de NPS.'}
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data prevista</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-[80px]">NPS (0-10)</TableHead>
+                  <TableHead>Notas</TableHead>
+                  <TableHead>Data real</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {npsRecords.map((r: any) => {
+                  const computedStatus = autoStatus(r.expected_date, r.status);
+                  return (
+                    <TableRow key={r.id} className={getRowColor(r.expected_date, computedStatus)}>
+                      <TableCell className="text-sm font-medium">
+                        {format(parseISO(r.expected_date), 'dd/MM/yyyy')}
+                        {r.is_manual && <Badge variant="outline" className="ml-2 text-xs">Manual</Badge>}
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={computedStatus}
+                          onValueChange={v => updateNps.mutate({ id: r.id, data: { status: v } })}
+                        >
+                          <SelectTrigger className="h-8 w-[120px] text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={10}
+                          value={r.nps_score ?? ''}
+                          onChange={e => updateNps.mutate({
+                            id: r.id,
+                            data: {
+                              nps_score: e.target.value ? Number(e.target.value) : null,
+                              status: e.target.value ? 'feito' : r.status,
+                              actual_date: e.target.value ? (r.actual_date || format(new Date(), 'yyyy-MM-dd')) : r.actual_date,
+                            }
+                          })}
+                          className="h-8 w-16 text-sm"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={r.notes || ''}
+                          onChange={e => updateNps.mutate({ id: r.id, data: { notes: e.target.value } })}
+                          className="h-8 text-sm"
+                          placeholder="Notas..."
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="date"
+                          value={r.actual_date || ''}
+                          onChange={e => updateNps.mutate({ id: r.id, data: { actual_date: e.target.value || null } })}
+                          className="h-8 text-sm w-[130px]"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Milestones */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Marcos de Acompanhamento</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {clientMilestones.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">
+              {!startDate ? 'Define a Data de Início para gerar os marcos.' : 'Sem marcos definidos para este produto.'}
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Marco</TableHead>
+                  <TableHead>Data prevista</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Responsável</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Notas</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {clientMilestones.map((m: any) => {
+                  const computedStatus = autoStatus(m.expected_date, m.status);
+                  return (
+                    <TableRow key={m.id} className={getRowColor(m.expected_date, computedStatus)}>
+                      <TableCell className="font-medium text-sm">{m.milestone || '—'}</TableCell>
+                      <TableCell className="text-sm">{format(parseISO(m.expected_date), 'dd/MM/yyyy')}</TableCell>
+                      <TableCell className="text-sm">{MILESTONE_TYPE_LABELS[m.milestone_type] || m.milestone_type}</TableCell>
+                      <TableCell className="text-sm">{getMemberName(m.responsible_id)}</TableCell>
+                      <TableCell>
+                        <Select
+                          value={computedStatus}
+                          onValueChange={v => updateMilestone.mutate({ id: m.id, data: { status: v } })}
+                        >
+                          <SelectTrigger className="h-8 w-[120px] text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={m.notes || ''}
+                          onChange={e => updateMilestone.mutate({ id: m.id, data: { notes: e.target.value } })}
+                          className="h-8 text-sm"
+                          placeholder="Notas..."
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
