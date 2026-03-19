@@ -227,34 +227,19 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
 
   return (
     <div className="space-y-4 mt-4">
-      {/* View mode buttons + Nova Meta */}
+      {/* Nova Meta + filters for 'metas' view */}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex gap-2">
-          {VIEW_BUTTONS.map(v => (
-            <Button
-              key={v.key}
-              size="sm"
-              variant={viewMode === v.key ? 'default' : 'outline'}
-              onClick={() => setViewMode(v.key)}
-              className="text-xs h-7"
-            >
-              {v.label}
-            </Button>
-          ))}
-        </div>
+        {viewMode === 'metas' ? (
+          <div className="flex gap-2">
+            {['todos', 'com_desvio', 'atingidas', 'por_iniciar'].map(f => (
+              <Button key={f} size="sm" variant={filter === f ? 'default' : 'outline'} onClick={() => setFilter(f)} className="text-xs h-7">
+                {f === 'todos' ? 'Todos' : f === 'com_desvio' ? 'Com desvio' : f === 'atingidas' ? 'Atingidas' : 'Por iniciar'}
+              </Button>
+            ))}
+          </div>
+        ) : <div />}
         <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Meta</Button>
       </div>
-
-      {/* Detalhe view: show filters */}
-      {viewMode === 'detalhe' && (
-        <div className="flex gap-2">
-          {['todos', 'com_desvio', 'atingidas', 'por_iniciar'].map(f => (
-            <Button key={f} size="sm" variant={filter === f ? 'default' : 'outline'} onClick={() => setFilter(f)} className="text-xs h-7">
-              {f === 'todos' ? 'Todos' : f === 'com_desvio' ? 'Com desvio' : f === 'atingidas' ? 'Atingidas' : 'Por iniciar'}
-            </Button>
-          ))}
-        </div>
-      )}
 
       {/* Render view */}
       {viewMode === 'mensal' && renderGroupedTable(monthlyByObj, { clickable: true, showDelete: true })}
