@@ -418,6 +418,37 @@ export default function TarefasPage() {
               </Popover>
             </div>
 
+            {/* Recurrence */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="flex items-center gap-1.5"><Repeat className="h-3.5 w-3.5" /> Recorrência</Label>
+                <Select value={recurrenceType || 'none'} onValueChange={(v) => setRecurrenceType(v === 'none' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="Não se repete" /></SelectTrigger>
+                  <SelectContent>
+                    {RECURRENCE_OPTIONS.map(o => (
+                      <SelectItem key={o.value || 'none'} value={o.value || 'none'}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {recurrenceType && (
+                <div>
+                  <Label>Repetir até</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !recurrenceEnd && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {recurrenceEnd ? format(recurrenceEnd, 'PPP', { locale: pt }) : 'Sem limite'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={recurrenceEnd} onSelect={setRecurrenceEnd} initialFocus className="p-3 pointer-events-auto" />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Responsável</Label>
