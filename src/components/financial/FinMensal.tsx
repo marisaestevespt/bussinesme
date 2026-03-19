@@ -233,7 +233,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
 
       {/* IVA Balance */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Balanço IVA — {MONTHS[m - 1]}</CardTitle></CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Balanço IVA</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div><p className="text-muted-foreground">IVA Cobrado (vendas)</p><p className="font-semibold">{fmt(ivaCobrado)}</p></div>
