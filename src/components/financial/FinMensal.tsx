@@ -200,7 +200,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
               {monthExpenses.length === 0 ? (
                 <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Sem saídas</TableCell></TableRow>
               ) : monthExpenses.map(e => (
-                <TableRow key={e.id}><TableCell className="font-mono text-xs">{e.expense_id}</TableCell><TableCell>{e.description || '—'}</TableCell><TableCell>{CAT_LABELS[e.category] || e.category}</TableCell><TableCell className="text-right">{fmt(e.total_with_vat)}</TableCell><TableCell><Badge variant="outline">{e.status}</Badge></TableCell></TableRow>
+                <TableRow key={e.id}><TableCell className="font-mono text-xs">{e.expense_id}</TableCell><TableCell>{e.description || '—'}</TableCell><TableCell>{getCategoryLabel('expense', e.category)}</TableCell><TableCell className="text-right">{fmt(e.total_with_vat)}</TableCell><TableCell><Badge variant="outline">{e.status}</Badge></TableCell></TableRow>
               ))}
             </TableBody>
           </Table>
