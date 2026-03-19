@@ -13,10 +13,11 @@ import { format, parseISO, differenceInDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
+  em_onboarding: { label: 'Em onboarding', className: 'bg-blue-100 text-blue-800' },
   ativo: { label: 'Ativo', className: 'bg-green-100 text-green-800' },
-  terminado: { label: 'Terminado', className: 'bg-muted text-muted-foreground' },
   pausado: { label: 'Pausado', className: 'bg-amber-100 text-amber-800' },
-  trial: { label: 'Trial', className: 'bg-blue-100 text-blue-800' },
+  altura_renovacao: { label: 'Altura de renovação', className: 'bg-purple-100 text-purple-800' },
+  terminado: { label: 'Terminado', className: 'bg-muted text-muted-foreground' },
 };
 
 function EndOfCycleBadge({ date }: { date: string | null }) {
