@@ -53,7 +53,9 @@ const SECRETARIA_MODULES = ['secretaria'];
 
 function cleanPayload(obj: Record<string, any>): Record<string, any> {
   const cleaned: Record<string, any> = {};
+  const STRIP_KEYS = ['created_at', 'updated_at'];
   for (const [k, v] of Object.entries(obj)) {
+    if (STRIP_KEYS.includes(k)) continue;
     cleaned[k] = v === '' ? null : v;
   }
   return cleaned;
