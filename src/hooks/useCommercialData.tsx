@@ -216,7 +216,7 @@ export function useCommercialData(year = currentYear) {
 
   // Computed values — all sales count for commercial goals/charts
   const annualGoalAmount = Number(annualGoal.data?.goal_amount || 0);
-  const yearSales = sales.data || [];
+  const yearSales = excludeCancelled(sales.data || []);
   const totalInvoiced = yearSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
   const progressPct = annualGoalAmount > 0 ? (totalInvoiced / annualGoalAmount) * 100 : 0;
   const currentMonthSales = yearSales.filter(v => v.sale_month === currentMonth);
