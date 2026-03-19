@@ -1071,28 +1071,6 @@ function MeuContratoTab({ teamMember }: { teamMember: any }) {
 function DashboardPersonalWidgets({ userId, teamMember }: { userId?: string; teamMember: any }) {
   const qc = useQueryClient();
 
-  // Personal image
-  const personalImage = useQuery({
-    queryKey: ['personal-image', userId],
-    enabled: !!userId,
-    queryFn: async () => {
-      const { data } = await supabase.from('member_personal_images').select('*').eq('user_id', userId!).maybeSingle();
-      return data;
-    },
-  });
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !userId) return;
-    const path = `${userId}/${Date.now()}_${file.name}`;
-    const { error: upErr } = await supabase.storage.from('personal-images').upload(path, file);
-    if (upErr) { toast.error('Erro no upload'); return; }
-    const { data: { publicUrl } } = supabase.storage.from('personal-images').getPublicUrl(path);
-    await supabase.from('member_personal_images').upsert({ user_id: userId, image_url: publicUrl, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
-    qc.invalidateQueries({ queryKey: ['personal-image'] });
-    toast.success('Imagem atualizada');
-  };
-
   // Personal notes
   const personalNotes = useQuery({
     queryKey: ['personal-notes', userId],
@@ -1141,25 +1119,7 @@ function DashboardPersonalWidgets({ userId, teamMember }: { userId?: string; tea
   };
 
   return (
-    <div className="grid md:grid-cols-3 gap-4">
-      {/* Personal image */}
-      <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium flex items-center gap-2"><ImageIcon className="h-4 w-4" /> Imagem Pessoal</CardTitle></CardHeader>
-        <CardContent>
-          {personalImage.data?.image_url ? (
-            <img src={personalImage.data.image_url} alt="Imagem pessoal" className="w-full h-36 object-cover rounded-lg mb-3" />
-          ) : (
-            <div className="w-full h-36 rounded-lg bg-muted flex items-center justify-center mb-3">
-              <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
-            </div>
-          )}
-          <label className="cursor-pointer">
-            <Input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-            <Button variant="outline" size="sm" asChild><span><ImageIcon className="h-4 w-4 mr-1" /> {personalImage.data ? 'Alterar' : 'Upload'}</span></Button>
-          </label>
-        </CardContent>
-      </Card>
-
+    <div className="grid md:grid-cols-2 gap-4">
       {/* Personal notes (post-it style) */}
       <Card className="bg-amber-50/50 dark:bg-amber-950/10 border-amber-200/50">
         <CardHeader className="pb-3"><CardTitle className="text-sm font-medium flex items-center gap-2"><FileText className="h-4 w-4" /> Notas</CardTitle></CardHeader>
