@@ -198,7 +198,7 @@ export default function ClienteDetailPage() {
           product,
           client,
           source: null,
-          documents: null,
+          documents: [],
           sale_month: payMonth,
           sale_quarter: payQuarter,
           sale_year: payYear,
@@ -359,7 +359,7 @@ export default function ClienteDetailPage() {
                     <span className="truncate">{s.product || '—'}</span>
                     <span>{s.sale_month || '—'}</span>
                     <span>{s.sale_year || '—'}</span>
-                    <span className="truncate">{s.documents || '—'}</span>
+                    <span className="truncate">{Array.isArray(s.documents) && s.documents.length > 0 ? `${s.documents.length} doc(s)` : '—'}</span>
                   </div>
                 ))}
               </CardContent>

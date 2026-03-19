@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, CalendarIcon, User, Trash2, FileText } from 'lucide-react';
+import { ArrowLeft, CalendarIcon, User, Trash2, FileText, Plus, ExternalLink, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -113,7 +113,7 @@ export default function VendaDetailPage() {
       product: form.product || null,
       client: form.client || null,
       source: form.source || null,
-      documents: form.documents || null,
+      documents: Array.isArray(form.documents) ? form.documents : [],
       sale_month: saleMonth,
       sale_quarter: saleQuarter,
       sale_year: saleYear,
@@ -250,9 +250,58 @@ export default function VendaDetailPage() {
                   <Input value={form.client || ''} onChange={e => setForm((f: any) => ({ ...f, client: e.target.value }))} readOnly={!isOwner} />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Documentos (link)</Label>
-                  <Input value={form.documents || ''} onChange={e => setForm((f: any) => ({ ...f, documents: e.target.value }))} placeholder="https://..." readOnly={!isOwner} />
+                <div className="space-y-3">
+                  <Label className="text-xs text-muted-foreground">Documentos</Label>
+                  {(() => {
+                    const docs: { type: string; url: string; name: string }[] = Array.isArray(form.documents) ? form.documents : [];
+                    return (
+                      <div className="space-y-2">
+                        {docs.map((doc, i) => (
+                          <div key={i} className="flex items-center gap-2 rounded-md border border-border p-2 text-sm">
+                            {doc.type === 'link' ? <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0" /> : <FileText className="h-4 w-4 text-muted-foreground shrink-0" />}
+                            <a href={doc.url} target="_blank" rel="noopener noreferrer" className="truncate flex-1 text-primary hover:underline">
+                              {doc.name || doc.url}
+                            </a>
+                            {isOwner && (
+                              <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => {
+                                const next = docs.filter((_, j) => j !== i);
+                                setForm((f: any) => ({ ...f, documents: next }));
+                              }}>
+                                <X className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                        {isOwner && (
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={() => {
+                              const url = prompt('Cole o link do documento:');
+                              if (!url) return;
+                              const name = prompt('Nome do documento (opcional):') || url;
+                              setForm((f: any) => ({ ...f, documents: [...(Array.isArray(f.documents) ? f.documents : []), { type: 'link', url, name }] }));
+                            }}>
+                              <Plus className="h-3 w-3 mr-1" /> Link
+                            </Button>
+                            <label>
+                              <Button variant="outline" size="sm" asChild>
+                                <span><Upload className="h-3 w-3 mr-1" /> Ficheiro</span>
+                              </Button>
+                              <input type="file" className="hidden" onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                const path = `sales/${id}/${Date.now()}-${file.name}`;
+                                const { error } = await supabase.storage.from('commercial-files').upload(path, file);
+                                if (error) { toast.error('Erro ao enviar ficheiro'); return; }
+                                const { data: urlData } = supabase.storage.from('commercial-files').getPublicUrl(path);
+                                setForm((f: any) => ({ ...f, documents: [...(Array.isArray(f.documents) ? f.documents : []), { type: 'file', url: urlData.publicUrl, name: file.name }] }));
+                                toast.success('Ficheiro enviado');
+                              }} />
+                            </label>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </CardContent>
             </Card>

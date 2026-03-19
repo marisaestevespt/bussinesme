@@ -221,7 +221,7 @@ export function CommercialVendas() {
                   <TableCell>{s.product || '—'}</TableCell>
                   <TableCell>{s.client || '—'}</TableCell>
                   <TableCell>{s.source || '—'}</TableCell>
-                  <TableCell onClick={e => e.stopPropagation()}>{s.documents ? <a href={s.documents} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a> : '—'}</TableCell>
+                  <TableCell onClick={e => e.stopPropagation()}>{Array.isArray(s.documents) && s.documents.length > 0 ? <a href={(s.documents[0] as any)?.url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a> : '—'}</TableCell>
                   <TableCell>{s.sale_month ? MONTH_NAMES_SHORT[s.sale_month - 1] : '—'}</TableCell>
                   <TableCell>{QUARTER_LABEL(s.sale_quarter)}</TableCell>
                   <TableCell>{s.sale_year || '—'}</TableCell>
