@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -72,7 +73,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const [selectedObjective, setSelectedObjective] = useState<any>(null);
   const [objDialogOpen, setObjDialogOpen] = useState(false);
   const navigate = useNavigate();
-  const [expandedClient, setExpandedClient] = useState<string | null>(null);
+  const [expandedClient, setExpandedClient] = useState<{ clientId: string; clientName: string; clientCode: string; estimated: number; realHours: number; deviation: number; productName: string } | null>(null);
 
   // ── Data queries ──
   const salesQ = useQuery({ queryKey: ['md-sales', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales').select('*').eq('sale_year', year).eq('sale_month', monthNum); return data || []; }});
@@ -764,57 +765,18 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                         {p.clientBreakdown.map((cb: any) => {
                           const isOver = cb.deviation > 2;
                           const isUnder = cb.deviation < -2;
-                          const isExpanded = expandedClient === `${p.id}-${cb.clientId}`;
-                          const clientEntries = timeEntries.filter((te: any) => te.client_id === cb.clientId);
                           return (
-                            <React.Fragment key={cb.clientId}>
-                              <TableRow className={cn('cursor-pointer hover:bg-muted/60', isOver && 'bg-destructive/5')} onClick={() => setExpandedClient(isExpanded ? null : `${p.id}-${cb.clientId}`)}>
-                                <TableCell className="text-xs">{cb.clientName} <span className="text-muted-foreground">({cb.clientCode})</span> {isExpanded ? <ChevronDown className="inline h-3 w-3" /> : <ChevronRight className="inline h-3 w-3" />}</TableCell>
-                                <TableCell className="text-xs text-right">{cb.estimated}h</TableCell>
-                                <TableCell className="text-xs text-right">{cb.realHours}h</TableCell>
-                                <TableCell className="text-xs text-right">
-                                  {isOver ? <span className="text-destructive font-medium">+{cb.deviation}h</span> : isUnder ? <span className="text-blue-600 font-medium">{cb.deviation}h</span> : <span>{cb.deviation > 0 ? '+' : ''}{cb.deviation}h</span>}
-                                </TableCell>
-                                <TableCell>
-                                  {isOver ? <Badge variant="destructive" className="text-[9px]">Acima</Badge> : isUnder ? <Badge className="text-[9px] bg-blue-100 text-blue-700">Abaixo</Badge> : <Badge variant="secondary" className="text-[9px]">OK</Badge>}
-                                </TableCell>
-                              </TableRow>
-                              {isExpanded && (
-                                <TableRow>
-                                  <TableCell colSpan={5} className="p-0">
-                                    <div className="bg-muted/30 p-3 ml-4 border-l-2 border-primary/30">
-                                      {clientEntries.length === 0 ? (
-                                        <p className="text-xs text-muted-foreground">Sem registos de tempo para este cliente neste mês.</p>
-                                      ) : (
-                                        <Table>
-                                          <TableHeader><TableRow>
-                                            <TableHead className="text-[10px]">Data</TableHead>
-                                            <TableHead className="text-[10px]">Descrição</TableHead>
-                                            <TableHead className="text-[10px]">Categoria</TableHead>
-                                            <TableHead className="text-[10px]">Responsável</TableHead>
-                                            <TableHead className="text-[10px] text-right">Tempo</TableHead>
-                                          </TableRow></TableHeader>
-                                          <TableBody>
-                                            {clientEntries.sort((a: any, b: any) => (a.entry_date || '').localeCompare(b.entry_date || '')).map((te: any) => {
-                                              const memberName = team.find((m: any) => m.id === te.member_id)?.full_name || '—';
-                                              return (
-                                                <TableRow key={te.id}>
-                                                  <TableCell className="text-[11px]">{te.entry_date}</TableCell>
-                                                  <TableCell className="text-[11px]">{te.description || '—'}</TableCell>
-                                                  <TableCell><Badge variant="outline" className="text-[9px]">{te.category || '—'}</Badge></TableCell>
-                                                  <TableCell className="text-[11px]">{memberName}</TableCell>
-                                                  <TableCell className="text-[11px] text-right font-medium">{te.duration}h</TableCell>
-                                                </TableRow>
-                                              );
-                                            })}
-                                          </TableBody>
-                                        </Table>
-                                      )}
-                                    </div>
-                                  </TableCell>
-                                </TableRow>
-                              )}
-                            </React.Fragment>
+                            <TableRow key={cb.clientId} className={cn('cursor-pointer hover:bg-muted/60', isOver && 'bg-destructive/5')} onClick={() => setExpandedClient({ ...cb, productName: p.name })}>
+                              <TableCell className="text-xs">{cb.clientName} <span className="text-muted-foreground">({cb.clientCode})</span></TableCell>
+                              <TableCell className="text-xs text-right">{cb.estimated}h</TableCell>
+                              <TableCell className="text-xs text-right">{cb.realHours}h</TableCell>
+                              <TableCell className="text-xs text-right">
+                                {isOver ? <span className="text-destructive font-medium">+{cb.deviation}h</span> : isUnder ? <span className="text-blue-600 font-medium">{cb.deviation}h</span> : <span>{cb.deviation > 0 ? '+' : ''}{cb.deviation}h</span>}
+                              </TableCell>
+                              <TableCell>
+                                {isOver ? <Badge variant="destructive" className="text-[9px]">Acima</Badge> : isUnder ? <Badge className="text-[9px] bg-blue-100 text-blue-700">Abaixo</Badge> : <Badge variant="secondary" className="text-[9px]">OK</Badge>}
+                              </TableCell>
+                            </TableRow>
                           );
                         })}
                       </TableBody>
@@ -902,6 +864,59 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         initial={null}
         onSave={(data: any) => { planning.upsertObjective.mutate(data); setObjDialogOpen(false); }}
       />
+
+      {/* Client time entries dialog */}
+      <Dialog open={!!expandedClient} onOpenChange={(open) => { if (!open) setExpandedClient(null); }}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          {expandedClient && (() => {
+            const clientEntries = timeEntries.filter((te: any) => te.client_id === expandedClient.clientId);
+            const totalHours = Math.round(clientEntries.reduce((s: number, te: any) => s + Number(te.duration || 0), 0) * 10) / 10;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="text-base">{expandedClient.clientName} <span className="text-muted-foreground font-normal text-sm">({expandedClient.clientCode})</span> — {expandedClient.productName}</DialogTitle>
+                  <div className="flex gap-4 text-xs text-muted-foreground pt-1">
+                    <span>Estimado: <strong className="text-foreground">{expandedClient.estimated}h</strong></span>
+                    <span>Real: <strong className="text-foreground">{expandedClient.realHours}h</strong></span>
+                    <span>Desvio: <strong className={cn(expandedClient.deviation > 2 ? 'text-destructive' : expandedClient.deviation < -2 ? 'text-blue-600' : 'text-foreground')}>{expandedClient.deviation > 0 ? '+' : ''}{expandedClient.deviation}h</strong></span>
+                  </div>
+                </DialogHeader>
+                {clientEntries.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">Sem registos de tempo para este cliente neste mês.</p>
+                ) : (
+                  <Table>
+                    <TableHeader><TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Descrição</TableHead>
+                      <TableHead>Categoria</TableHead>
+                      <TableHead>Responsável</TableHead>
+                      <TableHead className="text-right">Tempo</TableHead>
+                    </TableRow></TableHeader>
+                    <TableBody>
+                      {clientEntries.sort((a: any, b: any) => (a.entry_date || '').localeCompare(b.entry_date || '')).map((te: any) => {
+                        const memberName = team.find((m: any) => m.id === te.member_id)?.full_name || '—';
+                        return (
+                          <TableRow key={te.id}>
+                            <TableCell className="text-xs">{te.entry_date}</TableCell>
+                            <TableCell className="text-xs">{te.description || '—'}</TableCell>
+                            <TableCell><Badge variant="outline" className="text-[10px]">{te.category || '—'}</Badge></TableCell>
+                            <TableCell className="text-xs">{memberName}</TableCell>
+                            <TableCell className="text-xs text-right font-medium">{te.duration}h</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                      <TableRow className="bg-muted/30 font-medium">
+                        <TableCell colSpan={4} className="text-xs text-right">Total</TableCell>
+                        <TableCell className="text-xs text-right font-bold">{totalHours}h</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                )}
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
