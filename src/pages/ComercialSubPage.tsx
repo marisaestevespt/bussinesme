@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { CommercialMetas } from '@/components/commercial/CommercialMetas';
 import { CommercialVendas } from '@/components/commercial/CommercialVendas';
 import { CommercialProcessos } from '@/components/commercial/CommercialProcessos';
+import { CommercialAcoes } from '@/components/commercial/CommercialAcoes';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 
 const TITLES: Record<string, string> = {
@@ -26,6 +27,7 @@ export default function ComercialSubPage() {
     switch (section) {
       case 'metas': return <CommercialMetas />;
       case 'vendas': return <CommercialVendas />;
+      case 'acoes': return <CommercialAcoes />;
       case 'processos': return <CommercialProcessos />;
       default: return <EmptyModulePage title={title} description="Conteúdo será construído em breve." />;
     }

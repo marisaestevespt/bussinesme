@@ -1,0 +1,371 @@
+import { useState, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon, Plus, Pencil, Trash2, Clock, PlayCircle, CalendarDays } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { useCommercialData } from '@/hooks/useCommercialData';
+
+const STATUS_OPTIONS = [
+  { value: 'por_comecar', label: 'Por Começar', color: 'bg-muted text-muted-foreground' },
+  { value: 'em_curso', label: 'Em Curso', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
+  { value: 'concluida', label: 'Concluída', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  { value: 'pausada', label: 'Pausada', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
+  { value: 'cancelada', label: 'Cancelada', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
+];
+
+const TYPE_OPTIONS = [
+  { value: 'lancamento', label: 'Lançamento' },
+  { value: 'relancamento', label: 'Relançamento' },
+  { value: 'campanha', label: 'Campanha' },
+  { value: 'promocao', label: 'Promoção' },
+  { value: 'sequencia_email', label: 'Sequência de Email' },
+  { value: 'outro', label: 'Outro' },
+];
+
+const ACTIVE_STATUSES = ['por_comecar', 'em_curso'];
+const HISTORY_STATUSES = ['concluida', 'pausada', 'cancelada'];
+
+function statusLabel(val: string) {
+  return STATUS_OPTIONS.find(o => o.value === val)?.label || val;
+}
+function statusColor(val: string) {
+  return STATUS_OPTIONS.find(o => o.value === val)?.color || '';
+}
+function typeLabel(val: string) {
+  return TYPE_OPTIONS.find(o => o.value === val)?.label || val;
+}
+
+export function CommercialAcoes() {
+  const qc = useQueryClient();
+  const { productGoals } = useCommercialData();
+  const products = (productGoals.data || []).map(p => p.product_name);
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
+
+  const { data: actions = [], isLoading } = useQuery({
+    queryKey: ['commercial', 'sales-actions'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('commercial_sales_actions')
+        .select('*')
+        .order('start_date', { ascending: true });
+      return data || [];
+    },
+  });
+
+  const upsert = useMutation({
+    mutationFn: async (record: any) => {
+      if (record.id) {
+        const { error } = await supabase.from('commercial_sales_actions').update(record).eq('id', record.id);
+        if (error) throw error;
+      } else {
+        delete record.id;
+        const { error } = await supabase.from('commercial_sales_actions').insert(record);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['commercial', 'sales-actions'] });
+      toast.success('Ação guardada');
+      setDialogOpen(false);
+      setEditing(null);
+    },
+    onError: () => toast.error('Erro ao guardar ação'),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('commercial_sales_actions').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['commercial', 'sales-actions'] });
+      toast.success('Ação eliminada');
+    },
+  });
+
+  const activeActions = useMemo(
+    () => actions.filter((a: any) => ACTIVE_STATUSES.includes(a.status)).sort((a: any, b: any) => (a.start_date || '').localeCompare(b.start_date || '')),
+    [actions]
+  );
+  const historyActions = useMemo(
+    () => actions.filter((a: any) => HISTORY_STATUSES.includes(a.status)).sort((a: any, b: any) => (b.end_date || '').localeCompare(a.end_date || '')),
+    [actions]
+  );
+
+  const countPorComecar = activeActions.filter((a: any) => a.status === 'por_comecar').length;
+  const countEmCurso = activeActions.filter((a: any) => a.status === 'em_curso').length;
+  const nextStartDate = activeActions.find((a: any) => a.start_date && new Date(a.start_date) >= new Date())?.start_date;
+
+  const openNew = () => { setEditing(null); setDialogOpen(true); };
+  const openEdit = (a: any) => { setEditing(a); setDialogOpen(true); };
+
+  return (
+    <div className="space-y-8">
+      {/* Summary + New button */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-4 text-sm flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <Clock className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">Por Começar:</span>
+            <span className="font-semibold">{countPorComecar}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <PlayCircle className="h-4 w-4 text-blue-500" />
+            <span className="text-muted-foreground">Em Curso:</span>
+            <span className="font-semibold">{countEmCurso}</span>
+          </div>
+          {nextStartDate && (
+            <div className="flex items-center gap-1.5">
+              <CalendarDays className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Próximo início:</span>
+              <span className="font-semibold">{format(new Date(nextStartDate), 'dd/MM/yyyy')}</span>
+            </div>
+          )}
+        </div>
+        <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Ação</Button>
+      </div>
+
+      {/* Ações Ativas */}
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Ações Ativas</h2>
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[120px]">Status</TableHead>
+                  <TableHead>Ação</TableHead>
+                  <TableHead className="w-[140px]">Tipo</TableHead>
+                  <TableHead className="w-[110px]">Início</TableHead>
+                  <TableHead className="w-[110px]">Fim</TableHead>
+                  <TableHead className="w-[130px]">Produto</TableHead>
+                  <TableHead className="w-[80px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activeActions.length === 0 && (
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Sem ações ativas</TableCell></TableRow>
+                )}
+                {activeActions.map((a: any) => (
+                  <TableRow key={a.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openEdit(a)}>
+                    <TableCell><Badge variant="secondary" className={cn('text-xs', statusColor(a.status))}>{statusLabel(a.status)}</Badge></TableCell>
+                    <TableCell className="font-medium">{a.action_name}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{typeLabel(a.action_type)}</TableCell>
+                    <TableCell className="text-sm">{a.start_date ? format(new Date(a.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                    <TableCell className="text-sm">{a.end_date ? format(new Date(a.end_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                    <TableCell className="text-sm">{a.product || '—'}</TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); remove.mutate(a.id); }}>
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Histórico */}
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-muted-foreground">Histórico</h2>
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[120px]">Status</TableHead>
+                  <TableHead>Ação</TableHead>
+                  <TableHead className="w-[140px]">Tipo</TableHead>
+                  <TableHead className="w-[110px]">Fim</TableHead>
+                  <TableHead className="w-[130px]">Produto</TableHead>
+                  <TableHead>Resultado</TableHead>
+                  <TableHead className="w-[80px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {historyActions.length === 0 && (
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Sem histórico</TableCell></TableRow>
+                )}
+                {historyActions.map((a: any) => (
+                  <TableRow key={a.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openEdit(a)}>
+                    <TableCell><Badge variant="secondary" className={cn('text-xs', statusColor(a.status))}>{statusLabel(a.status)}</Badge></TableCell>
+                    <TableCell className="font-medium">{a.action_name}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{typeLabel(a.action_type)}</TableCell>
+                    <TableCell className="text-sm">{a.end_date ? format(new Date(a.end_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                    <TableCell className="text-sm">{a.product || '—'}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground truncate max-w-[200px]">{a.result || '—'}</TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); remove.mutate(a.id); }}>
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Form Dialog */}
+      <ActionFormDialog
+        open={dialogOpen}
+        onOpenChange={v => { setDialogOpen(v); if (!v) setEditing(null); }}
+        products={products}
+        initialData={editing}
+        onSave={record => upsert.mutate(record)}
+      />
+    </div>
+  );
+}
+
+/* ─── Form Dialog ─── */
+function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  products: string[];
+  initialData?: any;
+  onSave: (r: any) => void;
+}) {
+  const [form, setForm] = useState(empty());
+
+  function empty() {
+    return { id: '', status: 'por_comecar', action_name: '', action_type: 'outro', start_date: undefined as Date | undefined, end_date: undefined as Date | undefined, product: '', objective: '', result: '' };
+  }
+
+  // sync on open
+  useState(() => {}); // placeholder
+  // Use effect-like pattern via key
+  const key = open ? (initialData?.id || 'new') : 'closed';
+
+  // Reset form when dialog opens
+  if (open && form.id !== (initialData?.id || '')) {
+    if (initialData) {
+      setForm({
+        id: initialData.id,
+        status: initialData.status || 'por_comecar',
+        action_name: initialData.action_name || '',
+        action_type: initialData.action_type || 'outro',
+        start_date: initialData.start_date ? new Date(initialData.start_date) : undefined,
+        end_date: initialData.end_date ? new Date(initialData.end_date) : undefined,
+        product: initialData.product || '',
+        objective: initialData.objective || '',
+        result: initialData.result || '',
+      });
+    } else if (form.id !== '') {
+      setForm(empty());
+    }
+  }
+
+  const handleSave = () => {
+    if (!form.action_name.trim()) { toast.error('Nome da ação é obrigatório'); return; }
+    onSave({
+      ...(form.id ? { id: form.id } : {}),
+      status: form.status,
+      action_name: form.action_name,
+      action_type: form.action_type,
+      start_date: form.start_date ? format(form.start_date, 'yyyy-MM-dd') : null,
+      end_date: form.end_date ? format(form.end_date, 'yyyy-MM-dd') : null,
+      product: form.product || null,
+      objective: form.objective || null,
+      result: form.result || null,
+    });
+  };
+
+  const set = (patch: Partial<typeof form>) => setForm(f => ({ ...f, ...patch }));
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader><DialogTitle>{form.id ? 'Editar Ação' : 'Nova Ação'}</DialogTitle></DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label>Ação *</Label>
+            <Input value={form.action_name} onChange={e => set({ action_name: e.target.value })} placeholder="Ex: Relançamento Produto A" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Status</Label>
+              <Select value={form.status} onValueChange={v => set({ status: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Tipo</Label>
+              <Select value={form.action_type} onValueChange={v => set({ action_type: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Data Início</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.start_date && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {form.start_date ? format(form.start_date, 'dd/MM/yyyy') : 'Selecionar'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={form.start_date} onSelect={d => set({ start_date: d })} className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <Label>Data Fim</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.end_date && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {form.end_date ? format(form.end_date, 'dd/MM/yyyy') : 'Selecionar'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={form.end_date} onSelect={d => set({ end_date: d })} className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+          <div>
+            <Label>Produto</Label>
+            <Select value={form.product} onValueChange={v => set({ product: v })}>
+              <SelectTrigger><SelectValue placeholder="Selecionar produto" /></SelectTrigger>
+              <SelectContent>
+                {products.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                {products.length === 0 && <SelectItem value="_none" disabled>Sem produtos definidos</SelectItem>}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Objetivo</Label>
+            <Input value={form.objective} onChange={e => set({ objective: e.target.value })} placeholder="O que se pretende atingir" />
+          </div>
+          <div>
+            <Label>Resultado</Label>
+            <Input value={form.result} onChange={e => set({ result: e.target.value })} placeholder="Resultado após conclusão" />
+          </div>
+          <Button className="w-full" onClick={handleSave}>Guardar</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
