@@ -160,6 +160,16 @@ export default function ProdutoDetailPage() {
     enabled: !isNew,
   });
 
+  const { data: onboardingTemplate = [] } = useQuery({
+    queryKey: ['product-onboarding-template', id],
+    queryFn: async () => {
+      if (!id || isNew) return [];
+      const { data } = await supabase.from('product_onboarding_templates' as any).select('*').eq('product_id', id).order('sort_order');
+      return data || [];
+    },
+    enabled: !isNew,
+  });
+
   // Actions from commercial_sales_actions filtered by product
   const { data: salesActions = [] } = useQuery({
     queryKey: ['product-sales-actions', form.name],
