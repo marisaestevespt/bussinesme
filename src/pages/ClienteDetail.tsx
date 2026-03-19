@@ -215,7 +215,12 @@ export default function ClienteDetailPage() {
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">F. de Pagamento</Label>
-              <Input value={form.payment_method || ''} onChange={e => update('payment_method', e.target.value)} placeholder="Ex: mensal, trimestral" />
+              <Select value={form.payment_method || ''} onValueChange={v => update('payment_method', v)}>
+                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                <SelectContent>
+                  {['1x', '2x', '3x', '4x', '5x', '6x'].map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Nome Completo</Label>
