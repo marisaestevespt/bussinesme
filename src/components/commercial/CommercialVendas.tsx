@@ -223,7 +223,7 @@ export function CommercialVendas() {
                   <TableCell>{s.sale_month ? MONTH_NAMES_SHORT[s.sale_month - 1] : '—'}</TableCell>
                   <TableCell>{QUARTER_LABEL(s.sale_quarter)}</TableCell>
                   <TableCell>{s.sale_year || '—'}</TableCell>
-                  <TableCell>
+                  <TableCell onClick={e => e.stopPropagation()}>
                     <div className="flex gap-1">
                       <Button variant="ghost" size="sm" onClick={() => { setEditing(s); setFormOpen(true); }}><Pencil className="h-3.5 w-3.5" /></Button>
                       {isOwner && <Button variant="ghost" size="sm" onClick={() => data.deleteSale.mutate(s.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>}
