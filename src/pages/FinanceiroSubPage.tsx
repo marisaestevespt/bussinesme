@@ -63,6 +63,8 @@ export default function FinanceiroSubPage() {
         return <FinIVA sales={sales} expenses={expenses} currentYear={currentYear} fin={fin} />;
       case 'seguranca-social':
         return <FinSegurancaSocial fin={fin} expenses={expenses} currentYear={currentYear} sales={sales} />;
+      case 'documentos':
+        return <FinAllDocuments />;
       default:
         return <EmptyModulePage title={title} />;
     }
