@@ -307,16 +307,21 @@ export default function MuralPage() {
           <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
             Mural
           </h1>
-          {canPublish && (
-            <Button onClick={() => setDialogOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" /> Nova Publicação
-            </Button>
-          )}
-        </div>
-
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <div className="flex items-center gap-3">
+            <ViewTabs
+              views={allViews}
+              activeKey={activeView}
+              onSelect={setActiveView}
+              onAdd={(label) => addView(label)}
+              onRename={(id, label) => renameView({ id, label })}
+              onDelete={(id) => { if (activeView.startsWith('custom_')) setActiveView('todas'); deleteView(id); }}
+            />
+            {canPublish && (
+              <Button onClick={() => setDialogOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" /> Nova Publicação
+              </Button>
+            )}
+          </div>
           </div>
         ) : posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
