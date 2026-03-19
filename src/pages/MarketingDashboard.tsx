@@ -153,51 +153,45 @@ export default function MarketingDashboard() {
 
           {/* Section 2b: Canais e Links */}
           <section className="space-y-4">
-            <h2 className="text-xl font-semibold text-foreground">Links</h2>
-            <Card>
-              <CardContent className="p-5 space-y-3">
-                <div className="space-y-2">
-                  {channels.filter(ch => ch.is_active).map(ch => {
-                    const emoji = CHANNEL_EMOJI[ch.name] || '📢';
-                    return (
-                      <div key={ch.id} className="flex items-center gap-3 text-sm group p-2 rounded-lg hover:bg-muted/40 hq-transition">
-                        <span className="text-base">{emoji}</span>
-                        <Link to={`/hub/marketing/canal/${ch.id}`} className="font-medium text-foreground hover:text-primary shrink-0">
-                          {ch.name}
-                        </Link>
-                        <div className="flex-1 min-w-0">
-                          {editingChannelId === ch.id ? (
-                            <div className="flex items-center gap-1">
-                              <Input value={editChannelLink} onChange={e => setEditChannelLink(e.target.value)}
-                                className="h-7 text-xs flex-1" placeholder="https://..."
-                                onKeyDown={e => e.key === 'Enter' && saveChannelLink()} autoFocus />
-                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={saveChannelLink}><Check className="h-3 w-3" /></Button>
-                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setEditingChannelId(null)}><X className="h-3 w-3" /></Button>
-                            </div>
-                          ) : (
-                            <>
-                              {ch.link ? (
-                                <a href={ch.link} target="_blank" rel="noopener noreferrer" className="text-primary text-xs hover:underline truncate flex items-center gap-1">
-                                  <ExternalLink className="h-3 w-3 shrink-0" />{ch.link}
-                                </a>
-                              ) : (
-                                <span className="text-xs text-muted-foreground italic">Sem link</span>
-                              )}
-                            </>
-                          )}
-                        </div>
-                        {isOwner && editingChannelId !== ch.id && (
-                          <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 shrink-0"
-                            onClick={() => { setEditingChannelId(ch.id); setEditChannelLink(ch.link || ''); }}>
-                            <Pencil className="h-3 w-3" />
-                          </Button>
-                        )}
+            <h2 className="text-xl font-semibold text-foreground">Canais</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              {channels.filter(ch => ch.is_active).map(ch => {
+                const emoji = CHANNEL_EMOJI[ch.name] || '📢';
+                return (
+                  <div key={ch.id} className="group relative">
+                    <Link to={`/hub/marketing/canal/${ch.id}`}
+                      className="flex flex-col items-center gap-2 p-4 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 hover:shadow-sm hq-transition text-center">
+                      <span className="text-2xl">{emoji}</span>
+                      <span className="text-sm font-medium text-foreground">{ch.name}</span>
+                      {ch.link && (
+                        <a href={ch.link} target="_blank" rel="noopener noreferrer"
+                          className="text-[10px] text-muted-foreground hover:text-primary flex items-center gap-0.5 truncate max-w-full"
+                          onClick={e => e.stopPropagation()}>
+                          <ExternalLink className="h-2.5 w-2.5 shrink-0" />
+                          <span className="truncate">{new URL(ch.link).hostname}</span>
+                        </a>
+                      )}
+                    </Link>
+                    {isOwner && (
+                      <Button variant="ghost" size="icon"
+                        className="absolute top-1.5 right-1.5 h-6 w-6 opacity-0 group-hover:opacity-100 hq-transition"
+                        onClick={() => { setEditingChannelId(ch.id); setEditChannelLink(ch.link || ''); }}>
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                    )}
+                    {editingChannelId === ch.id && (
+                      <div className="absolute inset-x-0 top-full mt-1 z-10 bg-card border rounded-lg shadow-lg p-2 flex items-center gap-1">
+                        <Input value={editChannelLink} onChange={e => setEditChannelLink(e.target.value)}
+                          className="h-7 text-xs flex-1" placeholder="https://..."
+                          onKeyDown={e => e.key === 'Enter' && saveChannelLink()} autoFocus />
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={saveChannelLink}><Check className="h-3 w-3" /></Button>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setEditingChannelId(null)}><X className="h-3 w-3" /></Button>
                       </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </section>
 
           <Separator />
