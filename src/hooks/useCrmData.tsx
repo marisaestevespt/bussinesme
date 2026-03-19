@@ -3,6 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useMemo } from 'react';
 
+function cleanPayload(obj: Record<string, any>): Record<string, any> {
+  const cleaned: Record<string, any> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    cleaned[k] = v === '' ? null : v;
+  }
+  return cleaned;
+}
+
 export const CRM_STATUSES = [
   { value: 'lead', label: 'Lead' },
   { value: 'primeiro_contacto', label: 'Primeiro Contacto' },
