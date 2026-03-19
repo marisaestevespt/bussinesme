@@ -1,33 +1,48 @@
 import { AppLayout } from '@/components/AppLayout';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CommercialOverview } from '@/components/commercial/CommercialOverview';
-import { CommercialMetas } from '@/components/commercial/CommercialMetas';
-import { CommercialVendas } from '@/components/commercial/CommercialVendas';
-import { EmptyModulePage } from '@/components/EmptyModulePage';
+import { Card, CardContent } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
+import { BarChart3, Target, ShoppingCart, Zap, Users, Lightbulb, BookOpen } from 'lucide-react';
+
+const SECTIONS = [
+  { key: 'visao-geral', label: 'Visão Geral', description: 'Resumo do desempenho comercial, gráficos e vendas do mês.', icon: BarChart3, color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10', iconColor: 'text-blue-600' },
+  { key: 'metas', label: 'Metas Comerciais', description: 'Meta anual, por produto, trimestre e mês com validações.', icon: Target, color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10', iconColor: 'text-emerald-600' },
+  { key: 'vendas', label: 'Vendas', description: 'Registo e gestão de todas as vendas com ID automático.', icon: ShoppingCart, color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10', iconColor: 'text-violet-600' },
+  { key: 'acoes', label: 'Ações de Vendas', description: 'Planeamento de ações comerciais e follow-ups.', icon: Zap, color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10', iconColor: 'text-amber-600' },
+  { key: 'crm', label: 'CRM', description: 'Gestão de contactos, leads e pipeline comercial.', icon: Users, color: 'from-rose-500/10 to-rose-600/5 hover:from-rose-500/20 hover:to-rose-600/10', iconColor: 'text-rose-600' },
+  { key: 'estrategia', label: 'Estratégia', description: 'Estratégia comercial, posicionamento e planos de ação.', icon: Lightbulb, color: 'from-cyan-500/10 to-cyan-600/5 hover:from-cyan-500/20 hover:to-cyan-600/10', iconColor: 'text-cyan-600' },
+  { key: 'biblioteca', label: 'Biblioteca', description: 'Recursos, templates e documentos do departamento.', icon: BookOpen, color: 'from-orange-500/10 to-orange-600/5 hover:from-orange-500/20 hover:to-orange-600/10', iconColor: 'text-orange-600' },
+];
 
 export default function ComercialPage() {
+  const navigate = useNavigate();
+
   return (
     <AppLayout>
-      <div className="p-6 space-y-6">
-        <h1 className="text-2xl font-bold tracking-tight">Comercial</h1>
-        <Tabs defaultValue="overview">
-          <TabsList className="flex-wrap">
-            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="metas">Metas Comerciais</TabsTrigger>
-            <TabsTrigger value="vendas">Vendas</TabsTrigger>
-            <TabsTrigger value="acoes">Ações de Vendas</TabsTrigger>
-            <TabsTrigger value="crm">CRM</TabsTrigger>
-            <TabsTrigger value="estrategia">Estratégia</TabsTrigger>
-            <TabsTrigger value="biblioteca">Biblioteca</TabsTrigger>
-          </TabsList>
-          <TabsContent value="overview"><CommercialOverview /></TabsContent>
-          <TabsContent value="metas"><CommercialMetas /></TabsContent>
-          <TabsContent value="vendas"><CommercialVendas /></TabsContent>
-          <TabsContent value="acoes"><EmptyModulePage title="Ações de Vendas" description="Conteúdo será construído em breve." /></TabsContent>
-          <TabsContent value="crm"><EmptyModulePage title="CRM" description="Conteúdo será construído em breve." /></TabsContent>
-          <TabsContent value="estrategia"><EmptyModulePage title="Estratégia" description="Conteúdo será construído em breve." /></TabsContent>
-          <TabsContent value="biblioteca"><EmptyModulePage title="Biblioteca" description="Conteúdo será construído em breve." /></TabsContent>
-        </Tabs>
+      <div className="p-6 space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Comercial</h1>
+          <p className="text-muted-foreground mt-1">Gestão comercial, vendas e metas do negócio.</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {SECTIONS.map(s => (
+            <Card
+              key={s.key}
+              className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
+              onClick={() => navigate(`/hub/comercial/${s.key}`)}
+            >
+              <CardContent className="p-5 flex flex-col gap-3">
+                <div className={`h-10 w-10 rounded-lg bg-background/80 flex items-center justify-center shadow-sm ${s.iconColor}`}>
+                  <s.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">{s.label}</h3>
+                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{s.description}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </AppLayout>
   );
