@@ -10,17 +10,46 @@ import { Label } from '@/components/ui/label';
 import { Plus, Trash2 } from 'lucide-react';
 import { planStatusLabel, PERIODS, GOAL_STATUSES } from '@/hooks/usePlanningData';
 
+const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+const QUARTER_MAP: Record<string, string[]> = {
+  T1: ['Janeiro', 'Fevereiro', 'Março'],
+  T2: ['Abril', 'Maio', 'Junho'],
+  T3: ['Julho', 'Agosto', 'Setembro'],
+  T4: ['Outubro', 'Novembro', 'Dezembro'],
+};
+
+const SEMESTER_MAP: Record<string, string[]> = {
+  S1: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho'],
+  S2: ['Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+};
+
+// Check if a month period has already ended (approximate: month index < current month)
+function isPeriodEnded(period: string): boolean {
+  const idx = MONTHS.indexOf(period);
+  if (idx === -1) return false;
+  return idx < new Date().getMonth();
+}
+
+type ViewMode = 'mensal' | 'trimestral' | 'semestral' | 'detalhe';
+
+const VIEW_BUTTONS: { key: ViewMode; label: string }[] = [
+  { key: 'mensal', label: 'Mensal' },
+  { key: 'trimestral', label: 'Trimestral' },
+  { key: 'semestral', label: 'Semestral' },
+  { key: 'detalhe', label: 'Metas em Detalhe' },
+];
+
 export function PlanningGoalsTab({ planning }: { planning: any }) {
+  const [viewMode, setViewMode] = useState<ViewMode>('mensal');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editGoal, setEditGoal] = useState<any>(null);
   const [filter, setFilter] = useState('todos');
-  const [view, setView] = useState('por_objetivo');
   const [form, setForm] = useState({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
 
   const allGoals = planning.allGoals;
   const objectives = planning.allObjectives;
 
-  // When editGoal changes, populate form
   useEffect(() => {
     if (editGoal) {
       setForm({
@@ -32,14 +61,6 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
       });
     }
   }, [editGoal]);
-
-  const filteredGoals = useMemo(() => {
-    let g = allGoals;
-    if (filter === 'com_desvio') g = g.filter((x: any) => x.actual_value && x.target_value && Number(x.actual_value) < Number(x.target_value));
-    if (filter === 'atingidas') g = g.filter((x: any) => x.status === 'atingido');
-    if (filter === 'por_iniciar') g = g.filter((x: any) => x.status === 'por_iniciar');
-    return g;
-  }, [allGoals, filter]);
 
   const handleSave = () => {
     planning.upsertGoal.mutate(editGoal ? { id: editGoal.id, ...form } : form);
@@ -61,22 +82,6 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
 
   const getObjectiveName = (id: string) => objectives.find((o: any) => o.id === id)?.title || '—';
 
-  const grouped = useMemo(() => {
-    if (view === 'por_objetivo') {
-      const map: Record<string, any[]> = {};
-      filteredGoals.forEach((g: any) => {
-        const key = g.objective_id || 'sem_objetivo';
-        if (!map[key]) map[key] = [];
-        map[key].push(g);
-      });
-      return map;
-    }
-    return { all: filteredGoals };
-  }, [filteredGoals, view]);
-
-  const monthOrder = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro', 'T1', 'T2', 'T3', 'T4'];
-  const sortByPeriod = (a: any, b: any) => monthOrder.indexOf(a.period) - monthOrder.indexOf(b.period);
-
   const getObjectiveArea = (id: string) => {
     const obj = objectives.find((o: any) => o.id === id);
     if (!obj) return null;
@@ -86,36 +91,170 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
 
   const getObjectiveDeadline = (id: string) => objectives.find((o: any) => o.id === id)?.deadline || null;
 
-  const renderGoalRow = (g: any, showObjective: boolean) => {
+  // Monthly goals only
+  const monthlyGoals = useMemo(() => allGoals.filter((g: any) => MONTHS.includes(g.period)), [allGoals]);
+
+  // Build aggregated rows for a period map (quarters or semesters)
+  const buildAggregatedRows = (periodMap: Record<string, string[]>) => {
+    const byObj: Record<string, any[]> = {};
+    monthlyGoals.forEach((g: any) => {
+      const key = g.objective_id || 'sem_objetivo';
+      if (!byObj[key]) byObj[key] = [];
+      byObj[key].push(g);
+    });
+
+    const result: Record<string, any[]> = {};
+    for (const [objId, goals] of Object.entries(byObj)) {
+      result[objId] = Object.entries(periodMap).map(([periodLabel, months]) => {
+        const matching = goals.filter((g: any) => months.includes(g.period));
+        const targetSum = matching.reduce((s: number, g: any) => s + Number(g.target_value || 0), 0);
+        const actualSum = matching.reduce((s: number, g: any) => s + Number(g.actual_value || 0), 0);
+        const allDone = matching.length > 0 && matching.every((g: any) => g.status === 'atingido');
+        const anyStarted = matching.some((g: any) => g.status === 'em_curso' || g.status === 'atingido');
+        const allMonthsEnded = months.every(isPeriodEnded);
+        return {
+          period: periodLabel,
+          objective_id: objId,
+          target_value: targetSum || null,
+          actual_value: actualSum || null,
+          status: allDone ? 'atingido' : anyStarted ? 'em_curso' : 'por_iniciar',
+          isAggregated: true,
+          periodEnded: allMonthsEnded,
+        };
+      }).filter(r => r.target_value || r.actual_value); // only show rows with data
+    }
+    return result;
+  };
+
+  // Group monthly goals by objective
+  const monthlyByObj = useMemo(() => {
+    const map: Record<string, any[]> = {};
+    monthlyGoals.forEach((g: any) => {
+      const key = g.objective_id || 'sem_objetivo';
+      if (!map[key]) map[key] = [];
+      map[key].push(g);
+    });
+    return map;
+  }, [monthlyGoals]);
+
+  const quarterlyByObj = useMemo(() => buildAggregatedRows(QUARTER_MAP), [monthlyGoals]);
+  const semesterByObj = useMemo(() => buildAggregatedRows(SEMESTER_MAP), [monthlyGoals]);
+
+  // "Detalhe" view uses filters
+  const filteredGoals = useMemo(() => {
+    let g = allGoals;
+    if (filter === 'com_desvio') g = g.filter((x: any) => x.actual_value && x.target_value && Number(x.actual_value) < Number(x.target_value));
+    if (filter === 'atingidas') g = g.filter((x: any) => x.status === 'atingido');
+    if (filter === 'por_iniciar') g = g.filter((x: any) => x.status === 'por_iniciar');
+    return g;
+  }, [allGoals, filter]);
+
+  const detailGrouped = useMemo(() => {
+    const map: Record<string, any[]> = {};
+    filteredGoals.forEach((g: any) => {
+      const key = g.objective_id || 'sem_objetivo';
+      if (!map[key]) map[key] = [];
+      map[key].push(g);
+    });
+    return map;
+  }, [filteredGoals]);
+
+  const sortByPeriod = (a: any, b: any) => {
+    const order = [...MONTHS, 'T1', 'T2', 'T3', 'T4', 'S1', 'S2'];
+    return order.indexOf(a.period) - order.indexOf(b.period);
+  };
+
+  const renderRow = (g: any, opts: { clickable: boolean; showDelete: boolean }) => {
     const dev = g.actual_value && g.target_value ? (Number(g.actual_value) - Number(g.target_value)) : null;
-    const hasDeviation = dev !== null && dev < 0;
+    const hasDeviation = dev !== null && dev < 0 && (g.isAggregated ? g.periodEnded : isPeriodEnded(g.period));
     const area = getObjectiveArea(g.objective_id);
     const deadline = getObjectiveDeadline(g.objective_id);
     return (
-      <TableRow key={g.id} className={`cursor-pointer hover:bg-muted/60 ${hasDeviation ? 'bg-red-50/50' : ''}`} onClick={() => openEdit(g)}>
-        {showObjective && <TableCell className="text-xs">{getObjectiveName(g.objective_id)}</TableCell>}
-        <TableCell className="text-sm">{g.period}</TableCell>
+      <TableRow
+        key={g.id || g.period}
+        className={`${opts.clickable ? 'cursor-pointer hover:bg-muted/60' : ''} ${g.isAggregated ? 'bg-muted/30' : ''} ${hasDeviation ? 'bg-destructive/5' : ''}`}
+        onClick={() => opts.clickable && openEdit(g)}
+      >
+        <TableCell className="text-sm">
+          {g.isAggregated && <Badge variant="outline" className="text-[10px] mr-1">Auto</Badge>}
+          {g.period}
+        </TableCell>
         <TableCell className="text-xs">{area ? <Badge variant="outline" className="text-[10px]">{area}</Badge> : '—'}</TableCell>
         <TableCell className="text-xs">{deadline || '—'}</TableCell>
         <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
         <TableCell className="text-xs">{g.actual_value || '—'}</TableCell>
-        <TableCell className={`text-xs ${hasDeviation ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
+        <TableCell className={`text-xs ${hasDeviation ? 'text-destructive font-medium' : ''}`}>
+          {dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}
+        </TableCell>
         <TableCell>
           <Badge variant={g.status === 'atingido' ? 'default' : g.status === 'nao_atingido' ? 'destructive' : 'secondary'} className="text-[10px]">
             {planStatusLabel(g.status)}
           </Badge>
           {hasDeviation && g.status !== 'atingido' && <Badge variant="destructive" className="text-[9px] ml-1">Desvio</Badge>}
         </TableCell>
-        <TableCell>
-          <button onClick={e => { e.stopPropagation(); planning.deleteGoal.mutate(g.id); }}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
-        </TableCell>
+        {opts.showDelete && (
+          <TableCell>
+            {!g.isAggregated && (
+              <button onClick={e => { e.stopPropagation(); planning.deleteGoal.mutate(g.id); }}>
+                <Trash2 className="h-3 w-3 text-muted-foreground" />
+              </button>
+            )}
+          </TableCell>
+        )}
       </TableRow>
     );
   };
 
+  const renderGroupedTable = (grouped: Record<string, any[]>, opts: { clickable: boolean; showDelete: boolean }) => {
+    const entries = Object.entries(grouped).filter(([, goals]) => goals.length > 0);
+    if (entries.length === 0) {
+      return (
+        <Card><CardContent className="py-12 text-center text-sm text-muted-foreground">
+          Sem metas registadas para esta vista.
+        </CardContent></Card>
+      );
+    }
+    return entries.map(([objId, goals]) => (
+      <Card key={objId}>
+        <CardContent className="p-4">
+          <h3 className="text-sm font-semibold mb-2">{objId === 'sem_objetivo' ? 'Sem objetivo' : getObjectiveName(objId)}</h3>
+          <Table>
+            <TableHeader><TableRow>
+              <TableHead>Período</TableHead><TableHead>Área</TableHead><TableHead>Prazo</TableHead>
+              <TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead>
+              <TableHead>Status</TableHead>{opts.showDelete && <TableHead></TableHead>}
+            </TableRow></TableHeader>
+            <TableBody>
+              {(goals as any[]).sort(sortByPeriod).map(g => renderRow(g, opts))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    ));
+  };
+
   return (
     <div className="space-y-4 mt-4">
+      {/* View mode buttons + Nova Meta */}
       <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex gap-2">
+          {VIEW_BUTTONS.map(v => (
+            <Button
+              key={v.key}
+              size="sm"
+              variant={viewMode === v.key ? 'default' : 'outline'}
+              onClick={() => setViewMode(v.key)}
+              className="text-xs h-7"
+            >
+              {v.label}
+            </Button>
+          ))}
+        </div>
+        <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Meta</Button>
+      </div>
+
+      {/* Detalhe view: show filters */}
+      {viewMode === 'detalhe' && (
         <div className="flex gap-2">
           {['todos', 'com_desvio', 'atingidas', 'por_iniciar'].map(f => (
             <Button key={f} size="sm" variant={filter === f ? 'default' : 'outline'} onClick={() => setFilter(f)} className="text-xs h-7">
@@ -123,54 +262,13 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
             </Button>
           ))}
         </div>
-        <div className="flex gap-2 items-center">
-          <Select value={view} onValueChange={setView}>
-            <SelectTrigger className="h-7 w-[140px] text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="por_objetivo">Por objetivo</SelectItem>
-              <SelectItem value="por_mes">Por mês</SelectItem>
-              <SelectItem value="por_trimestre">Por trimestre</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Meta</Button>
-        </div>
-      </div>
-
-      {filteredGoals.length === 0 ? (
-        <Card><CardContent className="py-12 text-center text-sm text-muted-foreground">
-          Sem metas registadas. Crie metas a partir dos objetivos ou diretamente aqui.
-        </CardContent></Card>
-      ) : view === 'por_objetivo' ? (
-        Object.entries(grouped).map(([objId, goals]) => (
-          <Card key={objId}>
-            <CardContent className="p-4">
-              <h3 className="text-sm font-semibold mb-2">{objId === 'sem_objetivo' ? 'Sem objetivo' : getObjectiveName(objId)}</h3>
-              <Table>
-                <TableHeader><TableRow>
-                   <TableHead>Período</TableHead><TableHead>Área</TableHead><TableHead>Prazo</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead><TableHead></TableHead>
-                </TableRow></TableHeader>
-                <TableBody>{(goals as any[]).sort(sortByPeriod).map(g => renderGoalRow(g, false))}</TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        ))
-      ) : (
-        <Card>
-          <CardContent className="p-4">
-            <Table>
-              <TableHeader><TableRow>
-                 <TableHead>Objetivo</TableHead><TableHead>Período</TableHead><TableHead>Área</TableHead><TableHead>Prazo</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead><TableHead></TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {filteredGoals
-                  .filter((g: any) => view === 'por_trimestre' ? g.period_type === 'trimestral' : g.period_type === 'mensal')
-                  .sort(sortByPeriod)
-                  .map((g: any) => renderGoalRow(g, true))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
       )}
+
+      {/* Render view */}
+      {viewMode === 'mensal' && renderGroupedTable(monthlyByObj, { clickable: true, showDelete: true })}
+      {viewMode === 'trimestral' && renderGroupedTable(quarterlyByObj, { clickable: false, showDelete: false })}
+      {viewMode === 'semestral' && renderGroupedTable(semesterByObj, { clickable: false, showDelete: false })}
+      {viewMode === 'detalhe' && renderGroupedTable(detailGrouped, { clickable: true, showDelete: true })}
 
       {/* Create / Edit Goal Dialog */}
       <Dialog open={dialogOpen} onOpenChange={v => { if (!v) { setDialogOpen(false); setEditGoal(null); } else setDialogOpen(true); }}>
