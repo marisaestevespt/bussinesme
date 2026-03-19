@@ -340,7 +340,7 @@ function ProjectsList({ projects, navigate }: { projects: any[]; navigate: (path
 // ─── Main Page ──────────────────────────────────────────────────
 
 export default function HubEquipaPage() {
-  const [activeSection, setActiveSection] = useState<'tarefas' | 'projetos' | 'conteudos'>('tarefas');
+  const [taskView, setTaskView] = useState<'inbox' | 'today' | 'week'>('inbox');
   const navigate = useNavigate();
   const { settings } = useBusinessSettings();
   const { user } = useAuth();
@@ -412,87 +412,79 @@ export default function HubEquipaPage() {
 
         {/* ─── O que está a acontecer ─── */}
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
-              O que está a acontecer
-            </h2>
-            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
-              {([
-                { key: 'tarefas', label: 'Tarefas', icon: CheckSquare },
-                { key: 'projetos', label: 'Projetos', icon: FolderKanban },
-                { key: 'conteudos', label: 'Conteúdos', icon: MessageSquare },
-              ] as const).map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveSection(tab.key)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    activeSection === tab.key
-                      ? 'bg-background text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <tab.icon className="h-3.5 w-3.5" />
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          <h2 className="text-lg font-bold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
+            O que está a acontecer
+          </h2>
 
           {/* ── Tarefas ── */}
-          {activeSection === 'tarefas' && (
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <CheckSquare className="h-4 w-4" /> Tarefas
-                  </CardTitle>
-                  <Button variant="ghost" size="sm" className="text-xs gap-1" onClick={() => navigate('/hub/tarefas')}>
-                    Ver todas <ArrowRight className="h-3 w-3" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                <InboxSection tasks={tasks} profiles={profiles} />
-                <TodaySection tasks={tasks} profiles={profiles} />
-                <WeekCalendar tasks={tasks} profiles={profiles} />
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <CheckSquare className="h-4 w-4" /> Tarefas
+                </CardTitle>
+                <Button variant="ghost" size="sm" className="text-xs gap-1" onClick={() => navigate('/hub/tarefas')}>
+                  Ver todas <ArrowRight className="h-3 w-3" />
+                </Button>
+              </div>
+              <div className="flex items-center gap-1 bg-muted rounded-lg p-1 w-fit">
+                {([
+                  { key: 'inbox' as const, label: 'Caixa de Entrada', icon: Inbox },
+                  { key: 'today' as const, label: 'Para Hoje', icon: Sun },
+                  { key: 'week' as const, label: 'Esta Semana', icon: CalendarDays },
+                ]).map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setTaskView(tab.key)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                      taskView === tab.key
+                        ? 'bg-background text-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <tab.icon className="h-3.5 w-3.5" />
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {taskView === 'inbox' && <InboxSection tasks={tasks} profiles={profiles} />}
+              {taskView === 'today' && <TodaySection tasks={tasks} profiles={profiles} />}
+              {taskView === 'week' && <WeekCalendar tasks={tasks} profiles={profiles} />}
+            </CardContent>
+          </Card>
 
           {/* ── Projetos ── */}
-          {activeSection === 'projetos' && (
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <FolderKanban className="h-4 w-4" /> Projetos
-                  </CardTitle>
-                  <Button variant="ghost" size="sm" className="text-xs gap-1" onClick={() => navigate('/hub/projetos')}>
-                    Ver todos <ArrowRight className="h-3 w-3" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ProjectsList projects={projects} navigate={navigate} />
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FolderKanban className="h-4 w-4" /> Projetos
+                </CardTitle>
+                <Button variant="ghost" size="sm" className="text-xs gap-1" onClick={() => navigate('/hub/projetos')}>
+                  Ver todos <ArrowRight className="h-3 w-3" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ProjectsList projects={projects} navigate={navigate} />
+            </CardContent>
+          </Card>
 
           {/* ── Conteúdos (placeholder) ── */}
-          {activeSection === 'conteudos' && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4" /> Conteúdos
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="py-8 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Em breve: gestão de conteúdos do negócio.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" /> Conteúdos
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="py-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                Em breve: gestão de conteúdos do negócio.
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </AppLayout>
