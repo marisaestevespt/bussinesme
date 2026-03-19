@@ -139,6 +139,19 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
 
   const CRM_COLUMNS = ['lead','primeiro_contacto','sessao_agendada','proposta_enviada','follow_up_1','follow_up_2','follow_up_3','aguarda_retorno','outra_altura','ganho','perdido'];
   const CRM_LABELS: Record<string,string> = { lead:'Lead', primeiro_contacto:'Primeiro Contacto', sessao_agendada:'Sessão Agendada', proposta_enviada:'Proposta Enviada', follow_up_1:'Follow Up 1', follow_up_2:'Follow Up 2', follow_up_3:'Follow Up 3', aguarda_retorno:'Aguarda Retorno', outra_altura:'Outra Altura', ganho:'Ganho', perdido:'Perdido' };
+  const CRM_COLORS: Record<string,string> = {
+    lead: 'bg-slate-100 text-slate-700 border-slate-200',
+    primeiro_contacto: 'bg-sky-100 text-sky-700 border-sky-200',
+    sessao_agendada: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+    proposta_enviada: 'bg-violet-100 text-violet-700 border-violet-200',
+    follow_up_1: 'bg-amber-100 text-amber-700 border-amber-200',
+    follow_up_2: 'bg-orange-100 text-orange-700 border-orange-200',
+    follow_up_3: 'bg-rose-100 text-rose-700 border-rose-200',
+    aguarda_retorno: 'bg-cyan-100 text-cyan-700 border-cyan-200',
+    outra_altura: 'bg-zinc-100 text-zinc-600 border-zinc-200',
+    ganho: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    perdido: 'bg-red-100 text-red-700 border-red-200',
+  };
 
   const allClients = clientsQ.data || [];
   const activeClients = allClients.filter((c: any) => c.status === 'ativo');
@@ -489,12 +502,13 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 const colLeads = monthLeads.filter((l: any) => l.status === col);
                 return (
                   <div key={col} className="w-44 shrink-0">
-                    <div className="text-[10px] font-medium text-muted-foreground mb-1.5 px-1">{CRM_LABELS[col]} <Badge variant="outline" className="text-[9px] ml-1">{colLeads.length}</Badge></div>
+                    <div className={cn('text-[10px] font-medium mb-1.5 px-2 py-1 rounded-md', CRM_COLORS[col] || 'text-muted-foreground')}>{CRM_LABELS[col]} <Badge variant="outline" className="text-[9px] ml-1">{colLeads.length}</Badge></div>
                     <div className="space-y-1.5">
                       {colLeads.map((l: any) => {
                         const overdue = l.next_followup && parseISO(l.next_followup) < new Date();
+                        const borderColor = CRM_COLORS[col]?.match(/border-\S+/)?.[0] || 'border-border/50';
                         return (
-                          <div key={l.id} className={cn('border border-border/50 rounded-lg p-2 bg-background text-xs space-y-1', overdue && 'border-destructive/50')}>
+                          <div key={l.id} className={cn('border-l-2 border rounded-lg p-2 bg-background text-xs space-y-1', borderColor, overdue && 'border-destructive/50')}>
                             <p className="font-medium truncate">{l.name}</p>
                             {l.email && <p className="text-muted-foreground truncate">{l.email}</p>}
                             {l.phone && <p className="text-muted-foreground">{l.phone}</p>}
