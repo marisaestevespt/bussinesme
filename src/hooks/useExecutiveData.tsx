@@ -111,24 +111,25 @@ export function useExecutiveData(year = currentYear) {
   });
 
   const upsertGoal = useMutation({
-    mutationFn: async (g: any) => {
+    mutationFn: async (raw: any) => {
+      const g = cleanPayload(raw);
       // Auto-calculate month and quarter from target_date
       if (g.target_date) {
-        const d = new Date(g.target_date);
+        const d = new Date(g.target_date as string);
         g.month = d.getMonth() + 1;
         g.quarter = Math.ceil((d.getMonth() + 1) / 3);
       }
       if (g.id) {
-        const { error } = await supabase.from('executive_goals').update(g).eq('id', g.id);
+        const { error } = await supabase.from('executive_goals').update(g as any).eq('id', g.id);
         if (error) throw error;
       } else {
         delete g.id;
-        const { error } = await supabase.from('executive_goals').insert({ ...g, year });
+        const { error } = await supabase.from('executive_goals').insert({ ...g, year } as any);
         if (error) throw error;
       }
     },
     onSuccess: invalidate,
-    onError: () => toast.error('Erro ao guardar meta'),
+    onError: (e: any) => toast.error('Erro ao guardar meta: ' + (e.message || e)),
   });
 
   const deleteGoal = useMutation({
