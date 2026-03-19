@@ -211,7 +211,6 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
 
   const monthlyGoals = goals.filter((g: any) => MONTHS.includes(g.period));
 
-  // Auto-compute quarterly summaries from monthly goals
   const quarterlyRows = Object.entries(QUARTER_MAP).map(([quarter, months]) => {
     const monthGoals = monthlyGoals.filter((g: any) => months.includes(g.period));
     if (monthGoals.length === 0) return null;
@@ -220,13 +219,8 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
     const allDone = monthGoals.length === 3 && monthGoals.every((g: any) => g.status === 'atingido');
     const anyStarted = monthGoals.some((g: any) => g.status === 'em_curso' || g.status === 'atingido');
     return {
-      period: quarter,
-      target_value: targetSum,
-      actual_value: actualSum,
-      deviation: actualSum - targetSum,
-      status: allDone ? 'atingido' : anyStarted ? 'em_curso' : 'por_iniciar',
-      isQuarter: true,
-      count: monthGoals.length,
+      period: quarter, target_value: targetSum, actual_value: actualSum, deviation: actualSum - targetSum,
+      status: allDone ? 'atingido' : anyStarted ? 'em_curso' : 'por_iniciar', isQuarter: true, count: monthGoals.length,
     };
   }).filter(Boolean);
 
@@ -236,21 +230,18 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
     setForm({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
   };
 
-  // Sort monthly + quarterly together
-  const periodOrder = [...MONTHS, 'T1', 'T2', 'T3', 'T4'];
   const allRows = [
     ...monthlyGoals.map((g: any) => ({ ...g, isQuarter: false })),
     ...quarterlyRows,
   ].sort((a: any, b: any) => {
-    // Show Q after its months: T1 after Março, T2 after Junho, etc
-    const idxA = a.isQuarter
-      ? MONTHS.indexOf(QUARTER_MAP[a.period]?.[2] || '') + 0.5
-      : MONTHS.indexOf(a.period);
-    const idxB = b.isQuarter
-      ? MONTHS.indexOf(QUARTER_MAP[b.period]?.[2] || '') + 0.5
-      : MONTHS.indexOf(b.period);
+    const idxA = a.isQuarter ? MONTHS.indexOf(QUARTER_MAP[a.period]?.[2] || '') + 0.5 : MONTHS.indexOf(a.period);
+    const idxB = b.isQuarter ? MONTHS.indexOf(QUARTER_MAP[b.period]?.[2] || '') + 0.5 : MONTHS.indexOf(b.period);
     return idxA - idxB;
   });
+
+  const updateGoal = (g: any, field: string, value: any) => {
+    planning.upsertGoal.mutate({ id: g.id, objective_id: objectiveId, [field]: value });
+  };
 
   return (
     <div>
@@ -272,10 +263,27 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
                   {g.isQuarter && <Badge variant="outline" className="text-[10px] mr-1">Auto</Badge>}
                   {g.period}
                 </TableCell>
-                <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
-                <TableCell className="text-xs">{g.actual_value || '—'}</TableCell>
+                <TableCell>
+                  {g.isQuarter ? <span className="text-xs">{g.target_value}</span> : (
+                    <Input className="h-7 w-24 text-xs" defaultValue={g.target_value || ''} onBlur={e => { if (e.target.value !== (g.target_value || '')) updateGoal(g, 'target_value', e.target.value); }} />
+                  )}
+                </TableCell>
+                <TableCell>
+                  {g.isQuarter ? <span className="text-xs">{g.actual_value}</span> : (
+                    <Input className="h-7 w-24 text-xs" defaultValue={g.actual_value || ''} onBlur={e => { if (e.target.value !== (g.actual_value || '')) updateGoal(g, 'actual_value', e.target.value); }} />
+                  )}
+                </TableCell>
                 <TableCell className={`text-xs ${hasDeviation ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
-                <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(g.status)}</Badge></TableCell>
+                <TableCell>
+                  {g.isQuarter ? (
+                    <Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(g.status)}</Badge>
+                  ) : (
+                    <Select defaultValue={g.status} onValueChange={v => updateGoal(g, 'status', v)}>
+                      <SelectTrigger className="h-7 w-[110px] text-[10px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>{GOAL_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  )}
+                </TableCell>
                 <TableCell>
                   {!g.isQuarter && (
                     <button onClick={(e) => { e.stopPropagation(); planning.deleteGoal.mutate(g.id); }}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
