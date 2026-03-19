@@ -58,10 +58,11 @@ export type ClientOnboarding = {
 };
 
 export const CLIENT_STATUS_OPTIONS = [
+  { value: 'em_onboarding', label: 'Em onboarding' },
   { value: 'ativo', label: 'Ativo' },
-  { value: 'terminado', label: 'Terminado' },
   { value: 'pausado', label: 'Pausado' },
-  { value: 'trial', label: 'Trial' },
+  { value: 'altura_renovacao', label: 'Altura de renovação' },
+  { value: 'terminado', label: 'Terminado' },
 ] as const;
 
 const sb = () => supabase.from('clients' as any) as any;

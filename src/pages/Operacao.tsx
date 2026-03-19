@@ -149,8 +149,8 @@ export default function OperacaoPage() {
   const clientTasks = useMemo(() => tasks.filter(t => t.project_id && clientProjectIds.has(t.project_id) && t.status !== 'concluida'), [tasks, clientProjectIds]);
   const internoTasks = useMemo(() => tasks.filter(t => t.project_id && internoProjectIds.has(t.project_id) && t.status !== 'concluida'), [tasks, internoProjectIds]);
 
-  // Client summary
-  const activeClients = useMemo(() => clients.filter(c => c.status === 'Ativo'), [clients]);
+  // Client summary — all except "terminado"
+  const activeClients = useMemo(() => clients.filter(c => c.status !== 'terminado'), [clients]);
   const productBreakdown = useMemo(() => {
     const map = new Map<string, number>();
     activeClients.forEach(c => {
@@ -161,9 +161,8 @@ export default function OperacaoPage() {
   }, [activeClients]);
 
   const onboardingClients = useMemo(() => {
-    const thirtyDaysAgo = subDays(new Date(), 30);
-    return activeClients.filter(c => c.start_date && isAfter(new Date(c.start_date), thirtyDaysAgo));
-  }, [activeClients]);
+    return clients.filter(c => c.status === 'em_onboarding');
+  }, [clients]);
 
   // Interno summary
   const internoByStatus = useMemo(() => {

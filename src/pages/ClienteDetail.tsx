@@ -103,7 +103,7 @@ export default function ClienteDetailPage() {
   const queryClient = useQueryClient();
 
   if (client && !initialized) { setForm(client); setInitialized(true); }
-  if (isNew && !initialized) { setForm({ full_name: '', status: 'ativo' }); setInitialized(true); }
+  if (isNew && !initialized) { setForm({ full_name: '', status: 'em_onboarding' }); setInitialized(true); }
 
   const update = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
 
