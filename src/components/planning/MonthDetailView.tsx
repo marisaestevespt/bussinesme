@@ -15,6 +15,9 @@ import { cn } from '@/lib/utils';
 import { planStatusLabel, planAreaLabel } from '@/hooks/usePlanningData';
 import { format, parseISO, endOfMonth, startOfMonth, getDay, getDaysInMonth, addMonths, subMonths } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
+import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
+import { ObjectiveDialog } from './ObjectiveDialog';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
