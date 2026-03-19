@@ -251,6 +251,79 @@ export default function ComecaAquiPage() {
             )}
           </section>
 
+          {/* Member detail sheet */}
+          <Sheet open={!!selectedMember} onOpenChange={(open) => !open && setSelectedMember(null)}>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>{selectedMember?.full_name}</SheetTitle>
+                <SheetDescription>{selectedMember?.role_title || 'Membro da equipa'}</SheetDescription>
+              </SheetHeader>
+              {selectedMember && (
+                <div className="mt-6 space-y-6">
+                  {/* Avatar */}
+                  <div className="flex justify-center">
+                    <div className="relative">
+                      <Avatar className="h-24 w-24">
+                        <AvatarImage src={selectedMember.photo_url || ''} />
+                        <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
+                          {getInitials(selectedMember.full_name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span
+                        className={`absolute bottom-1 right-1 h-4 w-4 rounded-full border-2 border-background ${
+                          isWithinSchedule(selectedMember.work_schedule) ? 'bg-green-500' : 'bg-yellow-500'
+                        }`}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Presentation */}
+                  {selectedMember.presentation && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-foreground">Apresentação</p>
+                      <p className="text-sm text-muted-foreground whitespace-pre-line">{selectedMember.presentation}</p>
+                    </div>
+                  )}
+
+                  <Separator />
+
+                  {/* Contacts */}
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-foreground">Contactos</p>
+                    {selectedMember.email && (
+                      <a href={`mailto:${selectedMember.email}`} className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                        <Mail className="h-4 w-4 text-primary" />
+                        {selectedMember.email}
+                      </a>
+                    )}
+                    {selectedMember.whatsapp && (
+                      <a href={`https://wa.me/${selectedMember.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                        <Phone className="h-4 w-4 text-primary" />
+                        {selectedMember.whatsapp}
+                      </a>
+                    )}
+                    {!selectedMember.email && !selectedMember.whatsapp && (
+                      <p className="text-sm text-muted-foreground">Sem contactos registados.</p>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  {/* Schedule */}
+                  {selectedMember.work_schedule && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-foreground">Horário</p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="h-4 w-4 text-primary" />
+                        <span>{formatScheduleSummary(selectedMember.work_schedule)}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </SheetContent>
+          </Sheet>
+
           <Separator />
 
           {/* Document shortcut */}
