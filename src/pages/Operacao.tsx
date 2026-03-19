@@ -92,6 +92,7 @@ function filterTasks(tasks: Task[], filter: TaskFilter): Task[] {
 export default function OperacaoPage() {
   const [clientTaskFilter, setClientTaskFilter] = useState<TaskFilter>('todas');
   const [internoTaskFilter, setInternoTaskFilter] = useState<TaskFilter>('todas');
+  const [expandedStatus, setExpandedStatus] = useState<string | null>(null);
 
   // ── Queries ─────────────────────────────────────────────────
   const { data: projects = [] } = useQuery({
