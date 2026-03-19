@@ -1,0 +1,379 @@
+import { useState } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { AppLayout } from '@/components/AppLayout';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { RichTextEditor } from '@/components/RichTextEditor';
+import { ContentCalendar } from '@/components/marketing/ContentCalendar';
+import { STATUS_OPTIONS, type ContentItem, type MarketingChannel, type ContentChannelLink } from '@/lib/marketing-constants';
+import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { pt } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+import {
+  ChevronLeft, Plus, FileText, Trash2, ExternalLink,
+  Upload, Check, X, Image as ImageIcon,
+} from 'lucide-react';
+
+export default function ChannelPage() {
+  const { channelId } = useParams<{ channelId: string }>();
+  const navigate = useNavigate();
+  const { isOwner } = useAuth();
+  const queryClient = useQueryClient();
+
+  const [showUploadReport, setShowUploadReport] = useState(false);
+  const [reportTitle, setReportTitle] = useState('');
+  const [reportFile, setReportFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [showNewPage, setShowNewPage] = useState(false);
+  const [newPageTitle, setNewPageTitle] = useState('');
+  const [editingPageId, setEditingPageId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState('');
+
+  // Fetch channel
+  const { data: channel } = useQuery({
+    queryKey: ['marketing-channel', channelId],
+    queryFn: async () => {
+      const { data } = await supabase.from('marketing_channels').select('*').eq('id', channelId!).single();
+      return data as MarketingChannel | null;
+    },
+    enabled: !!channelId,
+  });
+
+  // Fetch all channels (for calendar component)
+  const { data: allChannels = [] } = useQuery({
+    queryKey: ['marketing-channels'],
+    queryFn: async () => {
+      const { data } = await supabase.from('marketing_channels').select('*').order('sort_order');
+      return (data || []) as MarketingChannel[];
+    },
+  });
+
+  // Fetch reports
+  const { data: reports = [] } = useQuery({
+    queryKey: ['channel-reports', channelId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('channel_reports')
+        .select('*')
+        .eq('channel_id', channelId!)
+        .order('created_at', { ascending: false }) as { data: any[] | null };
+      return data || [];
+    },
+    enabled: !!channelId,
+  });
+
+  // Fetch channel pages
+  const { data: pages = [] } = useQuery({
+    queryKey: ['channel-pages', channelId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('channel_pages')
+        .select('*')
+        .eq('channel_id', channelId!)
+        .order('sort_order') as { data: any[] | null };
+      return data || [];
+    },
+    enabled: !!channelId,
+  });
+
+  // Fetch content items linked to this channel
+  const { data: contentChannelLinks = [] } = useQuery({
+    queryKey: ['content-channels'],
+    queryFn: async () => {
+      const { data } = await supabase.from('content_channels').select('*');
+      return (data || []) as ContentChannelLink[];
+    },
+  });
+
+  const { data: allContentItems = [] } = useQuery({
+    queryKey: ['content-items'],
+    queryFn: async () => {
+      const { data } = await supabase.from('content_items').select('*').order('scheduled_at');
+      return (data || []) as ContentItem[];
+    },
+  });
+
+  // Filter content for this channel
+  const channelContentIds = contentChannelLinks
+    .filter(l => l.channel_id === channelId)
+    .map(l => l.content_id);
+  const channelContent = allContentItems.filter(i => channelContentIds.includes(i.id));
+
+  // Upload report
+  const uploadReport = async () => {
+    if (!reportFile || !reportTitle.trim() || !channelId) return;
+    setUploading(true);
+    const ext = reportFile.name.split('.').pop();
+    const path = `reports/${channelId}/${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from('content-files').upload(path, reportFile);
+    if (uploadError) { toast.error('Erro no upload'); setUploading(false); return; }
+    const { data: urlData } = supabase.storage.from('content-files').getPublicUrl(path);
+    await supabase.from('channel_reports').insert({
+      channel_id: channelId, title: reportTitle, file_url: urlData.publicUrl, file_name: reportFile.name,
+    } as any);
+    queryClient.invalidateQueries({ queryKey: ['channel-reports', channelId] });
+    setShowUploadReport(false);
+    setReportTitle('');
+    setReportFile(null);
+    setUploading(false);
+    toast.success('Relatório adicionado');
+  };
+
+  const deleteReport = async (id: string) => {
+    await supabase.from('channel_reports').delete().eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['channel-reports', channelId] });
+    toast.success('Relatório removido');
+  };
+
+  // Channel pages
+  const createPage = async () => {
+    if (!newPageTitle.trim() || !channelId) return;
+    await supabase.from('channel_pages').insert({
+      channel_id: channelId, title: newPageTitle, sort_order: pages.length,
+    } as any);
+    queryClient.invalidateQueries({ queryKey: ['channel-pages', channelId] });
+    setShowNewPage(false);
+    setNewPageTitle('');
+    toast.success('Página criada');
+  };
+
+  const savePage = async () => {
+    if (!editingPageId) return;
+    await supabase.from('channel_pages').update({ content: editingContent } as any).eq('id', editingPageId);
+    queryClient.invalidateQueries({ queryKey: ['channel-pages', channelId] });
+    setEditingPageId(null);
+    toast.success('Página guardada');
+  };
+
+  const deletePage = async (id: string) => {
+    await supabase.from('channel_pages').delete().eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['channel-pages', channelId] });
+    toast.success('Página removida');
+  };
+
+  if (!channel) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const editingPage = pages.find((p: any) => p.id === editingPageId);
+
+  return (
+    <AppLayout>
+      <div className="flex flex-col min-h-screen">
+        {/* Header */}
+        <div className="w-full py-10 px-6 flex flex-col items-center gap-2" style={{ background: 'hsl(var(--primary))' }}>
+          <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>
+            Marketing e Branding
+          </p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight" style={{ color: 'hsl(var(--primary-foreground))' }}>
+            {channel.name}
+          </h1>
+        </div>
+
+        <div className="max-w-6xl mx-auto w-full px-4 py-8 space-y-10">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/marketing')}>
+            <ChevronLeft className="h-4 w-4 mr-1" />Voltar ao Marketing
+          </Button>
+
+          {/* Section 1: Reports & Analyses */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">Relatórios & Análises Mensais</h2>
+              {isOwner && (
+                <Button size="sm" onClick={() => setShowUploadReport(true)}>
+                  <Upload className="h-3.5 w-3.5 mr-1" />Carregar PDF
+                </Button>
+              )}
+            </div>
+            {reports.length === 0 ? (
+              <Card><CardContent className="p-8 text-center text-sm text-muted-foreground italic">Nenhum relatório carregado.</CardContent></Card>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {reports.map((r: any) => (
+                  <Card key={r.id} className="group relative">
+                    <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+                      <a href={r.file_url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 hover:opacity-80">
+                        <div className="rounded-lg bg-destructive/10 p-3">
+                          <FileText className="h-6 w-6 text-destructive" />
+                        </div>
+                        <p className="text-sm font-medium text-foreground">{r.title}</p>
+                        <p className="text-[10px] text-muted-foreground">{r.file_name}</p>
+                      </a>
+                      {isOwner && (
+                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
+                          onClick={() => deleteReport(r.id)}>
+                          <Trash2 className="h-3 w-3 text-destructive" />
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <Separator />
+
+          {/* Section 2: Custom Pages */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">Páginas</h2>
+              {isOwner && (
+                <Button size="sm" variant="outline" onClick={() => setShowNewPage(true)}>
+                  <Plus className="h-3.5 w-3.5 mr-1" />Nova Página
+                </Button>
+              )}
+            </div>
+            {pages.length === 0 ? (
+              <Card><CardContent className="p-6 text-center text-sm text-muted-foreground italic">Nenhuma página criada.</CardContent></Card>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {pages.map((p: any) => (
+                  <Card key={p.id} className="hq-transition hover:shadow-md cursor-pointer group relative"
+                    onClick={() => { setEditingPageId(p.id); setEditingContent(p.content || ''); }}>
+                    <CardContent className="p-5 flex items-center gap-3">
+                      <div className="rounded-full bg-primary/10 p-2.5">
+                        <FileText className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{p.title}</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {p.updated_at && format(new Date(p.updated_at), 'dd MMM yyyy', { locale: pt })}
+                        </p>
+                      </div>
+                    </CardContent>
+                    {isOwner && (
+                      <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
+                        onClick={(e) => { e.stopPropagation(); deletePage(p.id); }}>
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </Button>
+                    )}
+                  </Card>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <Separator />
+
+          {/* Section 3: Content Table */}
+          <section className="space-y-4">
+            <h2 className="text-lg font-semibold text-foreground">Todos os Conteúdos — {channel.name}</h2>
+            {channelContent.length === 0 ? (
+              <Card><CardContent className="p-8 text-center text-sm text-muted-foreground italic">Nenhum conteúdo associado a este canal.</CardContent></Card>
+            ) : (
+              <Card>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/30">
+                        <th className="text-left p-3 font-medium text-muted-foreground">Título</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Data</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
+                        <th className="text-left p-3 font-medium text-muted-foreground">Formato</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {channelContent.map(item => {
+                        const status = STATUS_OPTIONS.find(s => s.value === item.status);
+                        return (
+                          <tr key={item.id} className="border-b last:border-0 hover:bg-muted/20 hq-transition cursor-pointer"
+                            onClick={() => navigate(`/hub/marketing/conteudos/${item.id}`)}>
+                            <td className="p-3">
+                              <div className="flex items-center gap-2">
+                                {item.cover_url ? (
+                                  <img src={item.cover_url} className="h-8 w-8 rounded object-cover shrink-0" alt="" />
+                                ) : (
+                                  <div className="h-8 w-8 rounded bg-muted/40 flex items-center justify-center shrink-0">
+                                    <ImageIcon className="h-3.5 w-3.5 text-muted-foreground/40" />
+                                  </div>
+                                )}
+                                <span className="font-medium text-foreground">{item.title}</span>
+                              </div>
+                            </td>
+                            <td className="p-3 text-muted-foreground">
+                              {item.scheduled_at ? format(new Date(item.scheduled_at), 'dd MMM yyyy HH:mm', { locale: pt }) : '—'}
+                            </td>
+                            <td className="p-3">
+                              {status && <Badge className={cn("text-[10px]", status.color)}>{status.label}</Badge>}
+                            </td>
+                            <td className="p-3 text-muted-foreground capitalize">{item.format || '—'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            )}
+          </section>
+
+          <Separator />
+
+          {/* Section 4: Calendar filtered to this channel */}
+          <section className="space-y-4 pb-10">
+            <h2 className="text-lg font-semibold text-foreground">Calendário — {channel.name}</h2>
+            <ContentCalendar
+              items={channelContent}
+              channels={allChannels}
+              contentChannelLinks={contentChannelLinks}
+            />
+          </section>
+        </div>
+      </div>
+
+      {/* Upload Report Dialog */}
+      <Dialog open={showUploadReport} onOpenChange={setShowUploadReport}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>Carregar Relatório</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <Input value={reportTitle} onChange={e => setReportTitle(e.target.value)} placeholder="Título do relatório" />
+            <Input type="file" accept=".pdf" onChange={e => setReportFile(e.target.files?.[0] || null)} />
+            <Button className="w-full" disabled={!reportTitle.trim() || !reportFile || uploading} onClick={uploadReport}>
+              {uploading ? 'A carregar...' : 'Carregar'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* New Page Dialog */}
+      <Dialog open={showNewPage} onOpenChange={setShowNewPage}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>Nova Página</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <Input value={newPageTitle} onChange={e => setNewPageTitle(e.target.value)} placeholder="Título da página"
+              onKeyDown={e => e.key === 'Enter' && createPage()} autoFocus />
+            <Button className="w-full" disabled={!newPageTitle.trim()} onClick={createPage}>Criar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Page Dialog */}
+      <Dialog open={!!editingPageId} onOpenChange={open => { if (!open) setEditingPageId(null); }}>
+        <DialogContent className="sm:max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>{editingPage?.title}</DialogTitle></DialogHeader>
+          <RichTextEditor content={editingContent} onChange={setEditingContent} editable={isOwner} />
+          {isOwner && (
+            <div className="flex justify-end mt-4">
+              <Button onClick={savePage}><Check className="h-3.5 w-3.5 mr-1" />Guardar</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </AppLayout>
+  );
+}

@@ -212,7 +212,7 @@ export default function MarketingDashboard() {
                     {channels.filter(ch => ch.is_active).map(ch => {
                       const count = contentChannelLinks.filter(l => l.channel_id === ch.id).length;
                       return (
-                        <Link key={ch.id} to={`/hub/marketing?canal=${ch.id}`}>
+                        <Link key={ch.id} to={`/hub/marketing/canal/${ch.id}`}>
                           <div className="flex items-center justify-between p-2 rounded-md hq-transition hover:bg-muted/60 cursor-pointer group">
                             <div className="flex items-center gap-2">
                               <div className="h-2 w-2 rounded-full bg-green-500" />
