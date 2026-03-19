@@ -259,11 +259,35 @@ export default function ClienteDetailPage() {
                 </SelectContent>
               </Select>
             </div>
-            <DateField label="Data de Início" value={form.start_date || null} onChange={v => update('start_date', v)} />
+            <DateField label="Data de Início" value={form.start_date || null} onChange={v => {
+              update('start_date', v);
+              // Auto-calculate end_of_cycle if product has cycle_duration
+              if (v && form.current_product) {
+                const prod = productList.find(p => p.name === form.current_product);
+                if (prod?.cycle_duration) {
+                  const start = parseISO(v);
+                  const end = new Date(start);
+                  end.setDate(end.getDate() + prod.cycle_duration);
+                  update('end_of_cycle', format(end, 'yyyy-MM-dd'));
+                }
+              }
+            }} />
             <DateField label="Fim de Ciclo" value={form.end_of_cycle || null} onChange={v => update('end_of_cycle', v)} />
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Produto Atual</Label>
-              <Select value={form.current_product || ''} onValueChange={v => update('current_product', v)}>
+              <Select value={form.current_product || ''} onValueChange={v => {
+                update('current_product', v);
+                // Auto-calculate end_of_cycle if start_date exists and product has cycle_duration
+                if (form.start_date) {
+                  const prod = productList.find(p => p.name === v);
+                  if (prod?.cycle_duration) {
+                    const start = parseISO(form.start_date);
+                    const end = new Date(start);
+                    end.setDate(end.getDate() + prod.cycle_duration);
+                    update('end_of_cycle', format(end, 'yyyy-MM-dd'));
+                  }
+                }
+              }}>
                 <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                 <SelectContent>
                   {productList.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
