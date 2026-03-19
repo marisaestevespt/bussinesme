@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ArrowLeft, Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
