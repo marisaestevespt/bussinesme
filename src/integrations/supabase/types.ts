@@ -2071,30 +2071,45 @@ export type Database = {
           content: string | null
           created_at: string
           created_by: string | null
+          doc_type: string
           file_url: string | null
           id: string
+          notes: string | null
+          responsible_id: string | null
+          status: string
           title: string
           updated_at: string
+          version: string | null
         }
         Insert: {
           category?: string
           content?: string | null
           created_at?: string
           created_by?: string | null
+          doc_type?: string
           file_url?: string | null
           id?: string
+          notes?: string | null
+          responsible_id?: string | null
+          status?: string
           title: string
           updated_at?: string
+          version?: string | null
         }
         Update: {
           category?: string
           content?: string | null
           created_at?: string
           created_by?: string | null
+          doc_type?: string
           file_url?: string | null
           id?: string
+          notes?: string | null
+          responsible_id?: string | null
+          status?: string
           title?: string
           updated_at?: string
+          version?: string | null
         }
         Relationships: []
       }
