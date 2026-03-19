@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -5,7 +6,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Users, ShieldOff } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Users, ShieldOff, Mail } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/sonner';
@@ -13,10 +16,16 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose,
+} from '@/components/ui/dialog';
 
 export function SettingsUsers() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const [emailDialog, setEmailDialog] = useState<{ open: boolean; profile: any | null }>({ open: false, profile: null });
+  const [newEmail, setNewEmail] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const { data: profiles = [], isLoading } = useQuery({
     queryKey: ['settings-profiles'],
@@ -42,15 +51,32 @@ export function SettingsUsers() {
 
   const handleRevokeAccess = async (profile: any) => {
     try {
-      // Remove from members table (revokes module permissions)
       await supabase.from('members').delete().eq('user_id', profile.user_id);
-      // Remove non-owner roles from user_roles
       await supabase.from('user_roles').delete().eq('user_id', profile.user_id).neq('role', 'owner');
       qc.invalidateQueries({ queryKey: ['settings-profiles'] });
       qc.invalidateQueries({ queryKey: ['settings-user-roles'] });
       toast.success(`Acesso removido para ${profile.full_name || 'utilizador'}`);
     } catch (err: any) {
       toast.error('Erro ao remover acesso: ' + (err.message || err));
+    }
+  };
+
+  const handleChangeEmail = async () => {
+    if (!emailDialog.profile || !newEmail.trim()) return;
+    setSaving(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('update-user-email', {
+        body: { target_user_id: emailDialog.profile.user_id, new_email: newEmail.trim() },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Email atualizado para ${newEmail.trim()}`);
+      setEmailDialog({ open: false, profile: null });
+      setNewEmail('');
+    } catch (err: any) {
+      toast.error('Erro ao alterar email: ' + (err.message || err));
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -112,30 +138,46 @@ export function SettingsUsers() {
                           {format(parseISO(p.created_at), 'dd/MM/yyyy')}
                         </TableCell>
                         <TableCell className="text-right">
-                          {!owner && !isSelf && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 px-2">
-                                  <ShieldOff className="h-3.5 w-3.5 mr-1" />
-                                  <span className="text-xs">Remover acesso</span>
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Remover acesso</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Tens a certeza que queres remover o acesso de <strong>{p.full_name}</strong>? Esta pessoa perderá todas as permissões de módulos.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleRevokeAccess(p)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                    Remover
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
+                          <div className="flex items-center justify-end gap-1">
+                            {!isSelf && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                                onClick={() => {
+                                  setEmailDialog({ open: true, profile: p });
+                                  setNewEmail('');
+                                }}
+                              >
+                                <Mail className="h-3.5 w-3.5 mr-1" />
+                                <span className="text-xs">Alterar email</span>
+                              </Button>
+                            )}
+                            {!owner && !isSelf && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 px-2">
+                                    <ShieldOff className="h-3.5 w-3.5 mr-1" />
+                                    <span className="text-xs">Remover acesso</span>
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Remover acesso</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Tens a certeza que queres remover o acesso de <strong>{p.full_name}</strong>? Esta pessoa perderá todas as permissões de módulos.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleRevokeAccess(p)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                      Remover
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -149,6 +191,38 @@ export function SettingsUsers() {
       <p className="text-[11px] text-muted-foreground">
         Total: {profiles.length} utilizador{profiles.length !== 1 ? 'es' : ''}
       </p>
+
+      {/* Change email dialog */}
+      <Dialog open={emailDialog.open} onOpenChange={(o) => { if (!o) setEmailDialog({ open: false, profile: null }); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Alterar email de acesso</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              Alterar o email de login de <strong>{emailDialog.profile?.full_name}</strong>.
+            </p>
+            <div className="space-y-1.5">
+              <Label htmlFor="new-email" className="text-xs">Novo email</Label>
+              <Input
+                id="new-email"
+                type="email"
+                placeholder="novo@email.com"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" size="sm">Cancelar</Button>
+            </DialogClose>
+            <Button size="sm" disabled={!newEmail.trim() || saving} onClick={handleChangeEmail}>
+              {saving ? 'A guardar...' : 'Guardar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
