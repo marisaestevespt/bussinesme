@@ -206,6 +206,8 @@ export default function SecretariaPage() {
 
   const getProjectName = (id: string | null) => allProjects.data?.find(p => p.id === id)?.name || '';
 
+  const [activeTab, setActiveTab] = useState('dia');
+
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
@@ -222,11 +224,12 @@ export default function SecretariaPage() {
           ].map(s => (
             <Card
               key={s.value}
-              className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
-              onClick={() => {
-                const el = document.querySelector(`[data-state="inactive"][value="${s.value}"], [data-state="active"][value="${s.value}"]`) as HTMLElement;
-                el?.click();
-              }}
+              className={cn(
+                'group cursor-pointer border bg-gradient-to-br transition-all duration-200 hover:shadow-md hover:-translate-y-0.5',
+                s.color,
+                activeTab === s.value && 'ring-2 ring-primary/50 shadow-md'
+              )}
+              onClick={() => setActiveTab(s.value)}
             >
               <CardContent className="p-4 flex items-center gap-3">
                 <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
@@ -238,16 +241,15 @@ export default function SecretariaPage() {
           ))}
         </div>
 
-        <Tabs defaultValue="dia">
-
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="hidden">
-            <TabsTrigger value="dia">O Meu Dia</TabsTrigger>
-            <TabsTrigger value="tarefas">As Minhas Tarefas</TabsTrigger>
-            <TabsTrigger value="projetos">Os Meus Projetos</TabsTrigger>
-            <TabsTrigger value="reunioes">As Minhas Reuniões</TabsTrigger>
-            <TabsTrigger value="produtividade">Produtividade</TabsTrigger>
-            <TabsTrigger value="contrato">Contrato</TabsTrigger>
-            <TabsTrigger value="espaco">Espaço</TabsTrigger>
+            <TabsTrigger value="dia" />
+            <TabsTrigger value="tarefas" />
+            <TabsTrigger value="projetos" />
+            <TabsTrigger value="reunioes" />
+            <TabsTrigger value="produtividade" />
+            <TabsTrigger value="contrato" />
+            <TabsTrigger value="espaco" />
           </TabsList>
 
           {/* TAB 1 — O MEU DIA */}
