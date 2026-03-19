@@ -53,9 +53,6 @@ export default function ExecutiveDashboard() {
               <Link to="/executive/weekly-align" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
                 <CalendarCheck className="h-4 w-4 text-muted-foreground" /> Weekly Align
               </Link>
-              <Link to="/hub/recursos-humanos" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
-                <Users className="h-4 w-4 text-muted-foreground" /> Recursos Humanos
-              </Link>
             </CardContent>
           </Card>
 
