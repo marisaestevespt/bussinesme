@@ -230,6 +230,7 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
                     paid={p.paid}
                     isPaid={p.paid > 0}
                     onSave={handleSavePayment}
+                    onToggle={handleTogglePayment}
                   />
                 ))}
                 <TableRow className="border-t-2 font-semibold">
