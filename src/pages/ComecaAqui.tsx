@@ -81,6 +81,32 @@ const formatScheduleSummary = (raw: string | null): string => {
   } catch { return raw; }
 };
 
+const DAY_KEY_MAP: Record<number, string> = { 1: 'seg', 2: 'ter', 3: 'qua', 4: 'qui', 5: 'sex', 6: 'sab', 0: 'dom' };
+
+const isWithinSchedule = (raw: string | null): boolean => {
+  if (!raw) return false;
+  try {
+    const s = JSON.parse(raw);
+    const now = new Date();
+    const dayKey = DAY_KEY_MAP[now.getDay()];
+    const val = s[dayKey];
+    if (!val) return false;
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    const inRange = (range: string) => {
+      const [start, end] = range.split('-').map(t => {
+        const [h, m] = t.split(':').map(Number);
+        return h * 60 + m;
+      });
+      return nowMins >= start && nowMins <= end;
+    };
+    if (typeof val === 'object' && !Array.isArray(val)) {
+      if (val.manha && inRange(val.manha)) return true;
+      if (val.tarde && inRange(val.tarde)) return true;
+    }
+    return false;
+  } catch { return false; }
+};
+
 export default function ComecaAquiPage() {
   const { settings, refetch: refetchSettings } = useBusinessSettings();
   const { isOwner } = useAuth();
