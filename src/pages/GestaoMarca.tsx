@@ -520,6 +520,71 @@ export default function GestaoMarcaPage() {
 
           <Separator />
 
+          {/* ── Concorrência ── */}
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-foreground">Concorrência</h2>
+              {isOwner && (
+                <Button variant="outline" size="sm" onClick={() => { resetCompForm(); setEditingCompetitor(null); setShowAddCompetitor(true); }}>
+                  <Plus className="h-3.5 w-3.5 mr-1" />Adicionar
+                </Button>
+              )}
+            </div>
+            {competitors.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">Nenhum concorrente adicionado.</p>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-muted/50 border-b">
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Nome</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Tipo</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Instagram</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Website</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Produtos</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Preços</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Plataformas</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Posicionamento</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Comunicação</th>
+                      {isOwner && <th className="w-16" />}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {competitors.map(c => (
+                      <tr key={c.id} className="border-b last:border-b-0 hover:bg-muted/30 hq-transition cursor-pointer" onClick={() => isOwner && openEditCompetitor(c)}>
+                        <td className="p-3 font-medium text-foreground">{c.name}</td>
+                        <td className="p-3">
+                          <span className={cn(
+                            'text-xs px-2 py-0.5 rounded-full font-medium',
+                            c.type === 'direta' ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                          )}>
+                            {c.type === 'direta' ? 'Direta' : 'Indireta'}
+                          </span>
+                        </td>
+                        <td className="p-3 text-muted-foreground">{c.instagram || '—'}</td>
+                        <td className="p-3 text-muted-foreground max-w-[150px] truncate">{c.website || '—'}</td>
+                        <td className="p-3 text-muted-foreground max-w-[150px] truncate">{c.produtos || '—'}</td>
+                        <td className="p-3 text-muted-foreground">{c.precos || '—'}</td>
+                        <td className="p-3 text-muted-foreground max-w-[120px] truncate">{c.plataformas || '—'}</td>
+                        <td className="p-3 text-muted-foreground max-w-[150px] truncate">{c.posicionamento || '—'}</td>
+                        <td className="p-3 text-muted-foreground max-w-[150px] truncate">{c.comunicacao || '—'}</td>
+                        {isOwner && (
+                          <td className="p-3">
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); deleteCompetitor(c.id); }}>
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </Button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
+          <Separator />
+
           {/* ── Identidade Visual ── */}
           <section className="space-y-6 pb-10">
             <h2 className="text-xl font-semibold text-foreground">Identidade Visual</h2>
