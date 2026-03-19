@@ -1,0 +1,1 @@
+ALTER TABLE public.product_feedbacks ADD COLUMN image_url text;
