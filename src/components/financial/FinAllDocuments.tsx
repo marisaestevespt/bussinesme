@@ -170,7 +170,7 @@ export function FinAllDocuments() {
                 filtered.map(d => (
                   <TableRow key={d.id}>
                     <TableCell>
-                      <Badge variant={d.type === 'entrada' ? 'default' : 'secondary'} className="text-[10px]">
+                      <Badge className={`text-[10px] border-0 ${d.type === 'entrada' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'}`}>
                         {d.type === 'entrada' ? 'Entrada' : 'Saída'}
                       </Badge>
                     </TableCell>
@@ -182,7 +182,18 @@ export function FinAllDocuments() {
                       {d.type === 'entrada' ? '+' : '-'}{fmt(d.value)}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="text-[10px]">{d.status}</Badge>
+                      {(() => {
+                        const sc: Record<string, string> = {
+                          pago: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+                          confirmada: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+                          pendente: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
+                          por_pagar: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
+                          cancelada: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
+                          cancelado: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
+                        };
+                        const cls = sc[d.status] || 'bg-muted text-muted-foreground';
+                        return <Badge className={`text-[10px] border-0 ${cls}`}>{d.status}</Badge>;
+                      })()}
                     </TableCell>
                     <TableCell>
                       {d.documents && Array.isArray(d.documents) && d.documents.length > 0 ? (
