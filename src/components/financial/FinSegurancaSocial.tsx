@@ -93,6 +93,7 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
         id: existing.id,
         total_with_vat: value,
         base_value: value,
+        status: 'pago',
         description: `Segurança Social — ${MONTHS[month - 1]} ${currentYear}`,
       } as any);
     } else if (value > 0) {
@@ -111,6 +112,18 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
       } as any);
     }
     toast.success(`SS de ${MONTHS[month - 1]} guardada`);
+  };
+
+  const handleTogglePayment = async (month: number) => {
+    const existing = ssExpenses.find(e => e.expense_month === month);
+    if (existing) {
+      const newStatus = existing.status === 'pago' ? 'por_pagar' : 'pago';
+      await fin.upsertExpense.mutateAsync({
+        id: existing.id,
+        status: newStatus,
+      } as any);
+      toast.success(newStatus === 'pago' ? `SS de ${MONTHS[month - 1]} marcada como paga` : `SS de ${MONTHS[month - 1]} marcada como pendente`);
+    }
   };
 
   // SS documents
@@ -217,6 +230,7 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
                     paid={p.paid}
                     isPaid={p.paid > 0}
                     onSave={handleSavePayment}
+                    onToggle={handleTogglePayment}
                   />
                 ))}
                 <TableRow className="border-t-2 font-semibold">
@@ -241,19 +255,37 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
   );
 }
 
-function PaymentRow({ month, predicted, paid, isPaid, onSave }: {
+function PaymentRow({ month, predicted, paid, isPaid, onSave, onToggle }: {
   month: number; predicted: number; paid: number; isPaid: boolean;
   onSave: (month: number, value: number) => Promise<void>;
+  onToggle: (month: number) => Promise<void>;
 }) {
   const [value, setValue] = useState('');
   const [saving, setSaving] = useState(false);
+  const [toggling, setToggling] = useState(false);
 
   const handleSave = async () => {
     const val = parseFloat(value) || predicted;
+    if (val <= 0) return;
     setSaving(true);
     await onSave(month, val);
     setValue('');
     setSaving(false);
+  };
+
+  const handleToggle = async () => {
+    setToggling(true);
+    if (!isPaid) {
+      // If not paid and no custom value, use predicted
+      const val = parseFloat(value) || predicted;
+      if (val > 0) {
+        await onSave(month, val);
+        setValue('');
+      }
+    } else {
+      await onToggle(month);
+    }
+    setToggling(false);
   };
 
   return (
@@ -262,24 +294,33 @@ function PaymentRow({ month, predicted, paid, isPaid, onSave }: {
       <TableCell className="text-right">{predicted > 0 ? fmt(predicted) : '—'}</TableCell>
       <TableCell className="text-right">{isPaid ? fmt(paid) : '—'}</TableCell>
       <TableCell>
-        {isPaid
-          ? <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Pago</Badge>
-          : <Badge variant="outline" className="text-muted-foreground">Pendente</Badge>
-        }
-      </TableCell>
-      <TableCell>
-        <Input
-          type="number"
-          placeholder={predicted > 0 ? String(predicted) : '0.00'}
-          value={value}
-          onChange={e => setValue(e.target.value)}
-          className="h-8 text-sm"
-        />
-      </TableCell>
-      <TableCell>
-        <Button size="sm" variant="ghost" disabled={saving} onClick={handleSave}>
-          <Save className="h-3.5 w-3.5" />
+        <Button
+          size="sm"
+          variant={isPaid ? 'outline' : 'default'}
+          disabled={toggling}
+          onClick={handleToggle}
+          className={isPaid ? 'bg-green-50 text-green-700 border-green-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 h-7 text-xs' : 'h-7 text-xs'}
+        >
+          {isPaid ? 'Pago ✓' : 'Confirmar'}
         </Button>
+      </TableCell>
+      <TableCell>
+        {!isPaid && (
+          <Input
+            type="number"
+            placeholder={predicted > 0 ? String(predicted) : '0.00'}
+            value={value}
+            onChange={e => setValue(e.target.value)}
+            className="h-8 text-sm"
+          />
+        )}
+      </TableCell>
+      <TableCell>
+        {!isPaid && value && (
+          <Button size="sm" variant="ghost" disabled={saving} onClick={handleSave}>
+            <Save className="h-3.5 w-3.5" />
+          </Button>
+        )}
       </TableCell>
     </TableRow>
   );
