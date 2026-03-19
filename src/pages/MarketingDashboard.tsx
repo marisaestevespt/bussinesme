@@ -8,9 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import { ContentCalendar } from '@/components/marketing/ContentCalendar';
 import { STATUS_OPTIONS, type ContentItem, type MarketingChannel, type ContentChannelLink } from '@/lib/marketing-constants';
 import { toast } from 'sonner';
@@ -58,8 +56,6 @@ export default function MarketingDashboard() {
 
   const [editingChannelId, setEditingChannelId] = useState<string | null>(null);
   const [editChannelLink, setEditChannelLink] = useState('');
-  const [showAddChannel, setShowAddChannel] = useState(false);
-  const [newChannelName, setNewChannelName] = useState('');
   // Queries
   const { data: channels = [] } = useQuery({
     queryKey: ['marketing-channels'],
@@ -108,19 +104,8 @@ export default function MarketingDashboard() {
     toast.success('Link atualizado');
   };
 
-  const toggleChannel = async (id: string, active: boolean) => {
-    await supabase.from('marketing_channels').update({ is_active: active } as any).eq('id', id);
-    queryClient.invalidateQueries({ queryKey: ['marketing-channels'] });
-  };
 
-  const addChannel = async () => {
-    if (!newChannelName.trim()) return;
-    await supabase.from('marketing_channels').insert({ name: newChannelName, sort_order: channels.length } as any);
-    queryClient.invalidateQueries({ queryKey: ['marketing-channels'] });
-    setShowAddChannel(false);
-    setNewChannelName('');
-    toast.success('Canal adicionado');
-  };
+
 
   const createContent = async () => {
     const { data, error } = await supabase.from('content_items').insert({
@@ -162,56 +147,6 @@ export default function MarketingDashboard() {
                 </Link>
               ))}
             </div>
-          </section>
-
-          <Separator />
-
-          {/* Section 2: Onde estamos presentes */}
-          <section className="space-y-4">
-            <h2 className="text-xl font-semibold text-foreground">Onde estamos presentes</h2>
-            <Card>
-              <CardContent className="p-5 space-y-4">
-                <p className="text-sm text-muted-foreground">Seleciona os canais onde o teu negócio está presente. Apenas os canais ativos aparecerão no calendário de conteúdos.</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                  {channels.map(ch => {
-                    const emoji = CHANNEL_EMOJI[ch.name] || '📢';
-                    return (
-                      <div
-                        key={ch.id}
-                        className={cn(
-                          "relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 hq-transition cursor-pointer select-none",
-                          ch.is_active
-                            ? "border-primary bg-primary/5 shadow-sm"
-                            : "border-border bg-card opacity-60 hover:opacity-80"
-                        )}
-                        onClick={() => isOwner && toggleChannel(ch.id, !ch.is_active)}
-                      >
-                        <span className="text-2xl">{emoji}</span>
-                        <span className="text-xs font-medium text-foreground text-center">{ch.name}</span>
-                        {isOwner && (
-                          <Switch
-                            checked={ch.is_active}
-                            onCheckedChange={v => toggleChannel(ch.id, v)}
-                            className="absolute top-2 right-2 scale-75"
-                            onClick={e => e.stopPropagation()}
-                          />
-                        )}
-                        {ch.is_active && (
-                          <div className="absolute top-2 left-2">
-                            <div className="h-2 w-2 rounded-full bg-green-500" />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                {isOwner && (
-                  <Button variant="outline" size="sm" onClick={() => setShowAddChannel(true)}>
-                    <Plus className="h-3.5 w-3.5 mr-1" />Adicionar canal
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
           </section>
 
           <Separator />
@@ -331,16 +266,6 @@ export default function MarketingDashboard() {
         </div>
       </div>
 
-      {/* Add Channel Dialog */}
-      <Dialog open={showAddChannel} onOpenChange={setShowAddChannel}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader><DialogTitle>Adicionar Canal</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <Input value={newChannelName} onChange={e => setNewChannelName(e.target.value)} placeholder="Nome do canal" onKeyDown={e => e.key === 'Enter' && addChannel()} />
-            <Button className="w-full" disabled={!newChannelName.trim()} onClick={addChannel}>Adicionar</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </AppLayout>
   );
 }
