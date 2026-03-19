@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { DISPLAY_FONTS, BODY_FONTS } from '@/lib/modules';
 import { toast } from 'sonner';
-import { Upload, Palette, Type, Building2, Save } from 'lucide-react';
+import { Upload, Palette, Type, Building2, Save, ImageIcon } from 'lucide-react';
 
 /* ── colour helpers ── */
 
