@@ -295,6 +295,12 @@ function TeamCapacitySection({ members, clients, products, tasks }: { members: a
       return { clientName: c.full_name, productName: productName || '—', hours };
     });
 
+    // Add estimated hours from active tasks assigned to this member's profile
+    const taskEstimatedHours = tasks
+      .filter(t => t.assigned_to === m.profile_id && t.status !== 'done' && t.estimated_time)
+      .reduce((sum: number, t: any) => sum + Number(t.estimated_time || 0), 0);
+    committedHours += taskEstimatedHours;
+
     const freeHours = Math.round((monthlyAvailable - committedHours) * 10) / 10;
     const occupancy = monthlyAvailable > 0 ? Math.round((committedHours / monthlyAvailable) * 100) : 0;
     const capacityStatus: 'green' | 'amber' | 'red' = occupancy > 100 ? 'red' : occupancy >= 80 ? 'amber' : 'green';
@@ -302,6 +308,7 @@ function TeamCapacitySection({ members, clients, products, tasks }: { members: a
     return {
       id: m.id, name: m.full_name, monthlyAvailable, clientCount: memberClients.length,
       committedHours, freeHours, occupancy, capacityStatus, missingHoursFlag, clientDetails,
+      taskEstimatedHours,
     };
   });
 
