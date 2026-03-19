@@ -201,7 +201,7 @@ export default function ProjetosPage() {
     queryKey: ['all-client-offboarding-progress'],
     queryFn: async () => {
       const { data } = await supabase.from('client_offboarding' as any).select('client_id,completed');
-      return (data || []) as { client_id: string; completed: boolean }[];
+      return (data || []) as unknown as { client_id: string; completed: boolean }[];
     },
   });
   const { data: allClients = [] } = useQuery({
