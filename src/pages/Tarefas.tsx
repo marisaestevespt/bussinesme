@@ -611,6 +611,50 @@ export default function TarefasPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Timer prompt when changing to "A fazer" */}
+      <Dialog open={!!timerPromptTaskId} onOpenChange={(v) => { if (!v) { toast('Não te esqueças de iniciar o timer quando começares a tarefa! ⏱️'); setTimerPromptTaskId(null); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Play className="h-4 w-4" /> Iniciar o timer?
+            </DialogTitle>
+            <DialogDescription>
+              Mudaste o status para "A fazer". Queres iniciar o timer automáticamente?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                toast('Não te esqueças de iniciar o timer quando começares a tarefa! ⏱️');
+                setTimerPromptTaskId(null);
+              }}
+            >
+              Agora não
+            </Button>
+            <Button
+              onClick={async () => {
+                if (timerPromptTaskId && user) {
+                  await supabase.from('task_time_entries').insert({
+                    task_id: timerPromptTaskId,
+                    user_id: user.id,
+                    started_at: new Date().toISOString(),
+                    duration_minutes: 0,
+                    is_manual: false,
+                  });
+                  queryClient.invalidateQueries({ queryKey: ['task-time-entries', timerPromptTaskId] });
+                  toast.success('Timer iniciado! ▶️');
+                }
+                setTimerPromptTaskId(null);
+              }}
+              className="gap-1"
+            >
+              <Play className="h-3.5 w-3.5" /> Sim, iniciar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
