@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { notifyMentions } from '@/hooks/useNotifications';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { ViewTabs } from '@/components/ViewTabs';
@@ -178,6 +179,8 @@ export default function MuralPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mural-posts'] });
       toast.success('Publicação criada');
+      // Notify mentioned users
+      if (user) notifyMentions(formBody, user.id, formTitle, '/mural');
       resetForm();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -238,8 +241,9 @@ export default function MuralPage() {
       const { error } = await supabase.from('mural_comments').insert({ post_id: postId, author_id: user.id, body });
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['mural-comments'] });
+      if (user) notifyMentions(variables.body, user.id, 'Comentário no Mural', '/mural');
     },
   });
 

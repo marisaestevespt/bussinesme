@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+import { NotificationBell } from '@/components/NotificationBell';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { settings } = useBusinessSettings();
@@ -13,9 +14,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <div className="flex-1 flex flex-col min-w-0">
           <header className="h-12 flex items-center border-b px-4 shrink-0">
             <SidebarTrigger className="mr-3" />
-            <span className="text-sm text-muted-foreground truncate">
+            <span className="text-sm text-muted-foreground truncate flex-1">
               HQ | {settings?.business_name || ''}
             </span>
+            <NotificationBell />
           </header>
           <main className="flex-1 p-6 overflow-auto">
             {children}

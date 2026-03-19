@@ -18,6 +18,7 @@ import { useActiveTimer } from '@/hooks/useActiveTimer';
 import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { sendNotification } from '@/hooks/useNotifications';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -200,6 +201,20 @@ export default function TarefasPage() {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['task-dependencies'] });
       toast.success(editingTask ? 'Tarefa atualizada' : 'Tarefa criada');
+      // Notify assigned user
+      if (assignedTo && assignedTo !== user?.id) {
+        const wasReassigned = editingTask && editingTask.assigned_to !== assignedTo;
+        const isNew = !editingTask;
+        if (isNew || wasReassigned) {
+          sendNotification({
+            userId: assignedTo,
+            type: 'task',
+            title: `Tarefa atribuída: ${name}`,
+            message: deadline ? `Prazo: ${format(deadline, 'dd/MM/yyyy')}` : undefined,
+            link: '/tarefas',
+          });
+        }
+      }
       // If status changed to "a_fazer", prompt for timer
       if (result && result.newStatus === 'a_fazer' && result.prevStatus !== 'a_fazer') {
         setTimerPromptTaskId(result.taskId);

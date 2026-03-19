@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { sendNotification } from '@/hooks/useNotifications';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -54,11 +55,23 @@ export default function ExecutiveRecommendations() {
   });
 
   const updateStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status, userId }: { id: string; status: string; userId?: string }) => {
       const { error } = await supabase.from('recommendations').update({ status }).eq('id', id);
       if (error) throw error;
+      return { status, userId };
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['recommendations-all'] }),
+    onSuccess: (result) => {
+      qc.invalidateQueries({ queryKey: ['recommendations-all'] });
+      if (result?.userId && result.status !== 'pending') {
+        sendNotification({
+          userId: result.userId,
+          type: 'recommendation',
+          title: `Recomendação ${statusLabel(result.status).toLowerCase()}`,
+          message: 'O status da tua recomendação foi atualizado.',
+          link: '/executive/recommendations',
+        });
+      }
+    },
   });
 
   const filtered = recommendations
@@ -122,7 +135,7 @@ export default function ExecutiveRecommendations() {
                     <span className="text-xs text-muted-foreground">Status:</span>
                     <Select
                       value={r.status || 'pending'}
-                      onValueChange={(val) => updateStatus.mutate({ id: r.id, status: val })}
+                      onValueChange={(val) => updateStatus.mutate({ id: r.id, status: val, userId: r.user_id })}
                     >
                       <SelectTrigger className="h-7 w-36 text-xs">
                         <Badge variant={statusVariant(r.status || 'pending')} className="text-[10px]">
