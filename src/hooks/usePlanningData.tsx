@@ -41,6 +41,11 @@ export const VALUE_SOURCES = [
   { value: 'bd_clientes', label: 'BD Clientes' },
 ];
 
+export const MEASUREMENT_TYPES = [
+  { value: 'acumulativo', label: 'Acumulativo' },
+  { value: 'progressivo', label: 'Progressivo' },
+];
+
 export const CADENCES = [
   { value: 'diaria', label: 'Diária' },
   { value: 'semanal', label: 'Semanal' },

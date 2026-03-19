@@ -98,7 +98,7 @@ export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
             </>
           )}
 
-          <Button className="w-full" onClick={() => onSave({ ...initial, ...form, product_id: form.product_id || null })} disabled={!form.title?.toString().trim()}>
+          <Button className="w-full" onClick={() => onSave({ ...initial, ...form, product_id: form.product_id || null, measurement_type: form.objective_type === 'quantitativo' ? (form.measurement_type || 'acumulativo') : null })} disabled={!form.title?.toString().trim()}>
             Guardar
           </Button>
         </div>
