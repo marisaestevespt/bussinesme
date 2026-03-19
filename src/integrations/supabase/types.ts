@@ -1858,6 +1858,84 @@ export type Database = {
           },
         ]
       }
+      traffic_creatives: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          formato: string | null
+          headline: string | null
+          id: string
+          legenda: string | null
+          link: string | null
+          name: string
+          objetivo: string | null
+          oferta_goal: string | null
+          start_date: string | null
+          status: string
+          titulo_principal: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          formato?: string | null
+          headline?: string | null
+          id?: string
+          legenda?: string | null
+          link?: string | null
+          name: string
+          objetivo?: string | null
+          oferta_goal?: string | null
+          start_date?: string | null
+          status?: string
+          titulo_principal?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          formato?: string | null
+          headline?: string | null
+          id?: string
+          legenda?: string | null
+          link?: string | null
+          name?: string
+          objetivo?: string | null
+          oferta_goal?: string | null
+          start_date?: string | null
+          status?: string
+          titulo_principal?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      traffic_report_cards: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
