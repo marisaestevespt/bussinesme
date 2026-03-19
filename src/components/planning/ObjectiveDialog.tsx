@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES } from '@/hooks/usePlanningData';
+import { PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES, MEASUREMENT_TYPES } from '@/hooks/usePlanningData';
 import { useProducts } from '@/hooks/useProducts';
 import { Label } from '@/components/ui/label';
 
