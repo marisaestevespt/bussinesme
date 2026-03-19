@@ -377,6 +377,7 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
         current_value: editMetric.current_value || '', target_value: editMetric.target_value || '',
         target_unit: editMetric.target_unit || '', green_threshold: editMetric.green_threshold ?? 90,
         yellow_threshold: editMetric.yellow_threshold ?? 60, product_id: editMetric.product_id || '',
+        measurement_type: editMetric.measurement_type || 'acumulativo',
       });
     }
   }, [editMetric]);
