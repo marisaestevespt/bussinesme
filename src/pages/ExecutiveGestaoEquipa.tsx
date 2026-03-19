@@ -79,11 +79,11 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
 
 // ─── Member Detail Sheet ──────
 function MemberDetailSheet({ open, onClose, member, team }: any) {
+  const [newTask, setNewTask] = useState('');
   if (!member) return null;
   const items = (team.onboarding.data || []).filter((i: any) => i.member_id === member.id);
   const contracts = (team.contracts.data || []).filter((c: any) => c.member_id === member.id);
   const payments = (team.payments.data || []).filter((p: any) => p.member_id === member.id);
-  const [newTask, setNewTask] = useState('');
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
