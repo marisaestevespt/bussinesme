@@ -188,7 +188,20 @@ export function BrandSettings() {
         }
       }
 
-      const { error } = await supabase
+      // Upload new bg if changed
+      let loginBgUrl = (settings as any).login_bg_url || null;
+      if (bgFile) {
+        const ext = bgFile.name.split('.').pop();
+        const { data: { user } } = await supabase.auth.getUser();
+        const path = `${user?.id}/login-bg.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('logos')
+          .upload(path, bgFile, { upsert: true });
+        if (!uploadError) {
+          const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path);
+          loginBgUrl = publicUrl;
+        }
+      }
         .from('business_settings')
         .update({
           business_name: businessName.trim(),
