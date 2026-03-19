@@ -53,7 +53,7 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus }: CrmPipelinePr
         {columns.map(col => (
           <div
             key={col.value}
-            className={`flex flex-col w-[210px] shrink-0 rounded-lg border bg-muted/30 transition-colors ${dragOver === col.value ? 'ring-2 ring-primary/40' : ''}`}
+            className={`flex flex-col w-[240px] shrink-0 rounded-lg border bg-muted/30 transition-colors ${dragOver === col.value ? 'ring-2 ring-primary/40' : ''}`}
             onDragOver={e => { e.preventDefault(); setDragOver(col.value); }}
             onDragLeave={() => setDragOver(null)}
             onDrop={e => handleDrop(e, col.value)}
