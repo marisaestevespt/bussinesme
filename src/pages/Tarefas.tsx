@@ -31,9 +31,9 @@ const TASK_STATUSES = [
 ];
 
 const PRIORITIES = [
-  { value: 'prioridade_1', label: 'Prioridade 1', color: 'bg-red-100 text-red-700 border-red-200' },
-  { value: 'prioridade_2', label: 'Prioridade 2', color: 'bg-amber-100 text-amber-700 border-amber-200' },
-  { value: 'prioridade_3', label: 'Prioridade 3', color: 'bg-muted text-muted-foreground' },
+  { value: 'alta', label: 'Prioridade 1', color: 'bg-red-100 text-red-700 border-red-300' },
+  { value: 'media', label: 'Prioridade 2', color: 'bg-amber-100 text-amber-700 border-amber-300' },
+  { value: 'baixa', label: 'Prioridade 3', color: 'bg-slate-100 text-slate-500 border-slate-300' },
 ];
 
 const TASK_DEPARTMENTS = [
@@ -150,7 +150,7 @@ export default function TarefasPage() {
 
   function openNew() {
     setEditingTask(null);
-    setName(''); setStatus('por_comecar'); setPriority('prioridade_1');
+    setName(''); setStatus('por_comecar'); setPriority('alta');
     setDeadline(undefined); setAssignedTo(''); setDepartment(''); setProjectId(''); setNotes('');
     setDialogOpen(true);
   }
