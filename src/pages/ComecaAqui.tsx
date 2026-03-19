@@ -22,7 +22,7 @@ function useTeamMembers() {
     queryFn: async () => {
       const { data } = await supabase
         .from('team_members')
-        .select('id, full_name, role_title, photo_url, work_schedule, status')
+        .select('id, full_name, role_title, photo_url, work_schedule, status, email, whatsapp, presentation')
         .eq('status', 'ativo')
         .order('full_name');
       
