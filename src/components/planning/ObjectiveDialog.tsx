@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 const DEFAULTS = {
   title: '', description: '', area: 'outro', status: 'por_iniciar', deadline: '',
   objective_type: 'quantitativo', target_value: '', target_unit: '€', current_value: '', value_source: 'manual', product_id: '',
+  measurement_type: 'acumulativo',
 };
 
 export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
