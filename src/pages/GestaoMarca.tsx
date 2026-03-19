@@ -12,12 +12,28 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Separator } from '@/components/ui/separator';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Pencil, Check, X, Plus, ExternalLink, FolderOpen, Zap,
   Trash2, Upload, FileText, Image as ImageIcon, ChevronLeft,
 } from 'lucide-react';
 
 // ── Types ──
+
+interface BrandCompetitor {
+  id: string;
+  name: string;
+  type: string;
+  instagram: string | null;
+  website: string | null;
+  produtos: string | null;
+  precos: string | null;
+  plataformas: string | null;
+  posicionamento: string | null;
+  comunicacao: string | null;
+  sort_order: number;
+}
 
 interface BrandLink {
   id: string;
@@ -91,6 +107,11 @@ export default function GestaoMarcaPage() {
   const [editingVisualDesc, setEditingVisualDesc] = useState(false);
   const [uploadingVisual, setUploadingVisual] = useState(false);
 
+  // Competitors
+  const [editingCompetitor, setEditingCompetitor] = useState<BrandCompetitor | null>(null);
+  const [showAddCompetitor, setShowAddCompetitor] = useState(false);
+  const [compForm, setCompForm] = useState({ name: '', type: 'direta', instagram: '', website: '', produtos: '', precos: '', plataformas: '', posicionamento: '', comunicacao: '' });
+
   // ── Queries ──
 
   const { data: brandLinks = [] } = useQuery({
@@ -122,6 +143,14 @@ export default function GestaoMarcaPage() {
     enabled: !!selectedVisual,
     queryFn: async () => {
       const { data } = await supabase.from('brand_visual_files').select('*').eq('card_id', selectedVisual!.id).order('created_at') as { data: VisualFile[] | null };
+      return data || [];
+    },
+  });
+
+  const { data: competitors = [] } = useQuery({
+    queryKey: ['brand-competitors'],
+    queryFn: async () => {
+      const { data } = await supabase.from('brand_competitors').select('*').order('sort_order') as { data: BrandCompetitor[] | null };
       return data || [];
     },
   });
@@ -243,6 +272,54 @@ export default function GestaoMarcaPage() {
     await supabase.from('brand_visual_files').delete().eq('id', fileId);
     queryClient.invalidateQueries({ queryKey: ['brand-visual-files', selectedVisual?.id] });
     toast.success('Ficheiro removido');
+  };
+
+  // ── Competitor mutations ──
+
+  const resetCompForm = () => setCompForm({ name: '', type: 'direta', instagram: '', website: '', produtos: '', precos: '', plataformas: '', posicionamento: '', comunicacao: '' });
+
+  const saveCompetitor = async () => {
+    if (!compForm.name.trim()) return;
+    if (editingCompetitor) {
+      await supabase.from('brand_competitors').update({
+        name: compForm.name, type: compForm.type,
+        instagram: compForm.instagram || null, website: compForm.website || null,
+        produtos: compForm.produtos || null, precos: compForm.precos || null,
+        plataformas: compForm.plataformas || null, posicionamento: compForm.posicionamento || null,
+        comunicacao: compForm.comunicacao || null,
+      } as any).eq('id', editingCompetitor.id);
+    } else {
+      await supabase.from('brand_competitors').insert({
+        ...compForm, sort_order: competitors.length,
+        instagram: compForm.instagram || null, website: compForm.website || null,
+        produtos: compForm.produtos || null, precos: compForm.precos || null,
+        plataformas: compForm.plataformas || null, posicionamento: compForm.posicionamento || null,
+        comunicacao: compForm.comunicacao || null,
+      } as any);
+    }
+    queryClient.invalidateQueries({ queryKey: ['brand-competitors'] });
+    toast.success(editingCompetitor ? 'Atualizado' : 'Adicionado');
+    setEditingCompetitor(null);
+    setShowAddCompetitor(false);
+    resetCompForm();
+  };
+
+  const deleteCompetitor = async (id: string) => {
+    await supabase.from('brand_competitors').delete().eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['brand-competitors'] });
+    toast.success('Concorrente removido');
+  };
+
+  const openEditCompetitor = (c: BrandCompetitor) => {
+    setCompForm({
+      name: c.name, type: c.type,
+      instagram: c.instagram || '', website: c.website || '',
+      produtos: c.produtos || '', precos: c.precos || '',
+      plataformas: c.plataformas || '', posicionamento: c.posicionamento || '',
+      comunicacao: c.comunicacao || '',
+    });
+    setEditingCompetitor(c);
+    setShowAddCompetitor(true);
   };
 
   // ── Render ──
@@ -445,6 +522,71 @@ export default function GestaoMarcaPage() {
 
           <Separator />
 
+          {/* ── Concorrência ── */}
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-foreground">Concorrência</h2>
+              {isOwner && (
+                <Button variant="outline" size="sm" onClick={() => { resetCompForm(); setEditingCompetitor(null); setShowAddCompetitor(true); }}>
+                  <Plus className="h-3.5 w-3.5 mr-1" />Adicionar
+                </Button>
+              )}
+            </div>
+            {competitors.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">Nenhum concorrente adicionado.</p>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-muted/50 border-b">
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Nome</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Tipo</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Instagram</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Website</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Produtos</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Preços</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Plataformas</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Posicionamento</th>
+                      <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Comunicação</th>
+                      {isOwner && <th className="w-16" />}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {competitors.map(c => (
+                      <tr key={c.id} className="border-b last:border-b-0 hover:bg-muted/30 hq-transition cursor-pointer" onClick={() => isOwner && openEditCompetitor(c)}>
+                        <td className="p-3 font-medium text-foreground">{c.name}</td>
+                        <td className="p-3">
+                          <span className={cn(
+                            'text-xs px-2 py-0.5 rounded-full font-medium',
+                            c.type === 'direta' ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                          )}>
+                            {c.type === 'direta' ? 'Direta' : 'Indireta'}
+                          </span>
+                        </td>
+                        <td className="p-3 text-muted-foreground">{c.instagram || '—'}</td>
+                        <td className="p-3 text-muted-foreground max-w-[150px] truncate">{c.website || '—'}</td>
+                        <td className="p-3 text-muted-foreground max-w-[150px] truncate">{c.produtos || '—'}</td>
+                        <td className="p-3 text-muted-foreground">{c.precos || '—'}</td>
+                        <td className="p-3 text-muted-foreground max-w-[120px] truncate">{c.plataformas || '—'}</td>
+                        <td className="p-3 text-muted-foreground max-w-[150px] truncate">{c.posicionamento || '—'}</td>
+                        <td className="p-3 text-muted-foreground max-w-[150px] truncate">{c.comunicacao || '—'}</td>
+                        {isOwner && (
+                          <td className="p-3">
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); deleteCompetitor(c.id); }}>
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </Button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
+          <Separator />
+
           {/* ── Identidade Visual ── */}
           <section className="space-y-6 pb-10">
             <h2 className="text-xl font-semibold text-foreground">Identidade Visual</h2>
@@ -635,6 +777,62 @@ export default function GestaoMarcaPage() {
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Competitor Dialog ── */}
+      <Dialog open={showAddCompetitor} onOpenChange={open => { if (!open) { setShowAddCompetitor(false); setEditingCompetitor(null); resetCompForm(); } }}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingCompetitor ? 'Editar Concorrente' : 'Adicionar Concorrente'}</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground font-medium">Nome *</label>
+              <Input value={compForm.name} onChange={e => setCompForm(f => ({ ...f, name: e.target.value }))} placeholder="Nome do concorrente" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground font-medium">Tipo</label>
+              <Select value={compForm.type} onValueChange={v => setCompForm(f => ({ ...f, type: v }))}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="direta">Direta</SelectItem>
+                  <SelectItem value="indireta">Indireta</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground font-medium">Instagram</label>
+              <Input value={compForm.instagram} onChange={e => setCompForm(f => ({ ...f, instagram: e.target.value }))} placeholder="@handle" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground font-medium">Website</label>
+              <Input value={compForm.website} onChange={e => setCompForm(f => ({ ...f, website: e.target.value }))} placeholder="https://..." />
+            </div>
+            <div className="space-y-1 sm:col-span-2">
+              <label className="text-xs text-muted-foreground font-medium">Produtos</label>
+              <Input value={compForm.produtos} onChange={e => setCompForm(f => ({ ...f, produtos: e.target.value }))} placeholder="Produtos principais" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground font-medium">Preços</label>
+              <Input value={compForm.precos} onChange={e => setCompForm(f => ({ ...f, precos: e.target.value }))} placeholder="Faixa de preços" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground font-medium">Plataformas</label>
+              <Input value={compForm.plataformas} onChange={e => setCompForm(f => ({ ...f, plataformas: e.target.value }))} placeholder="Instagram, TikTok..." />
+            </div>
+            <div className="space-y-1 sm:col-span-2">
+              <label className="text-xs text-muted-foreground font-medium">Posicionamento</label>
+              <Textarea value={compForm.posicionamento} onChange={e => setCompForm(f => ({ ...f, posicionamento: e.target.value }))} placeholder="Como se posicionam no mercado" rows={2} />
+            </div>
+            <div className="space-y-1 sm:col-span-2">
+              <label className="text-xs text-muted-foreground font-medium">Comunicação</label>
+              <Textarea value={compForm.comunicacao} onChange={e => setCompForm(f => ({ ...f, comunicacao: e.target.value }))} placeholder="Estilo de comunicação" rows={2} />
+            </div>
+          </div>
+          <Button className="w-full mt-2" disabled={!compForm.name.trim()} onClick={saveCompetitor}>
+            <Check className="h-3.5 w-3.5 mr-1" />{editingCompetitor ? 'Guardar' : 'Adicionar'}
+          </Button>
         </DialogContent>
       </Dialog>
     </AppLayout>
