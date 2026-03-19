@@ -680,7 +680,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 <div key={p.id} className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700 p-3 flex items-start gap-2">
                   <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
                   <p className="text-xs text-amber-800 dark:text-amber-300 flex-1">O produto <strong>{p.name}</strong> demorou <strong>{Math.abs(p.deviation)}h</strong> {p.deviation > 0 ? 'a mais' : 'a menos'} do que o estimado. Considera rever as horas definidas no produto.</p>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 shrink-0" onClick={() => navigate(`/produtos/${p.id}`)}><ExternalLink className="h-3 w-3" /> Ver produto</Button>
+                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 shrink-0"><ExternalLink className="h-3 w-3" /> Ver produto</Button>
                 </div>
               ))}
             </>
