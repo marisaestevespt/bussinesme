@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
-import { CalendarIcon, Check, Copy, Trash2, Upload, ExternalLink, X } from 'lucide-react';
+import { CalendarIcon, Check, Copy, Trash2, Upload, ExternalLink, X, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
