@@ -1025,6 +1025,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
                   <CardContent className="p-4 space-y-3">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
+                        <AvatarImage src={m.photo_url || undefined} />
                         <AvatarFallback className="text-xs font-semibold">{getInitials(m.full_name)}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
