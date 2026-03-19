@@ -1372,6 +1372,206 @@ export type Database = {
           },
         ]
       }
+      executive_brain_dump: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          task: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          task: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          task?: string
+        }
+        Relationships: []
+      }
+      executive_goals: {
+        Row: {
+          achieved_date: string | null
+          area: string
+          created_at: string
+          id: string
+          meta: string
+          month: number | null
+          objective_id: string | null
+          quarter: number | null
+          status: string
+          target_date: string | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          achieved_date?: string | null
+          area?: string
+          created_at?: string
+          id?: string
+          meta: string
+          month?: number | null
+          objective_id?: string | null
+          quarter?: number | null
+          status?: string
+          target_date?: string | null
+          updated_at?: string
+          year?: number
+        }
+        Update: {
+          achieved_date?: string | null
+          area?: string
+          created_at?: string
+          id?: string
+          meta?: string
+          month?: number | null
+          objective_id?: string | null
+          quarter?: number | null
+          status?: string
+          target_date?: string | null
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "executive_goals_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "executive_objectives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      executive_monthly_checklists: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          month: number
+          task: string
+          year: number
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          month: number
+          task: string
+          year: number
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          month?: number
+          task?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      executive_objectives: {
+        Row: {
+          area: string
+          created_at: string
+          deadline: string | null
+          description: string | null
+          id: string
+          progress: number
+          status: string
+          title: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          area?: string
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          progress?: number
+          status?: string
+          title: string
+          updated_at?: string
+          year?: number
+        }
+        Update: {
+          area?: string
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          progress?: number
+          status?: string
+          title?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      executive_quarterly_analysis: {
+        Row: {
+          adjustments: string | null
+          created_at: string
+          id: string
+          lessons: string | null
+          quarter: number
+          updated_at: string
+          went_well: string | null
+          went_wrong: string | null
+          year: number
+        }
+        Insert: {
+          adjustments?: string | null
+          created_at?: string
+          id?: string
+          lessons?: string | null
+          quarter: number
+          updated_at?: string
+          went_well?: string | null
+          went_wrong?: string | null
+          year: number
+        }
+        Update: {
+          adjustments?: string | null
+          created_at?: string
+          id?: string
+          lessons?: string | null
+          quarter?: number
+          updated_at?: string
+          went_well?: string | null
+          went_wrong?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
+      executive_weekly_routines: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          routine_key: string
+          week_start: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          routine_key: string
+          week_start: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          routine_key?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
       financial_categories: {
         Row: {
           category_type: string

@@ -13,6 +13,9 @@ import NotFound from "./pages/NotFound";
 import SecretariaPage from "./pages/Secretaria";
 import ComecaAquiPage from "./pages/ComecaAqui";
 import HubPage from "./pages/Hub";
+import ExecutiveDashboard from "./pages/ExecutiveDashboard";
+import ExecutivePlaneamento from "./pages/ExecutivePlaneamento";
+import ExecutiveWeeklyAlign from "./pages/ExecutiveWeeklyAlign";
 import ExecutivePage from "./pages/Executive";
 import DefinicoesPage from "./pages/Definicoes";
 import AgendaPage from "./pages/Agenda";
@@ -115,6 +118,9 @@ function AppRoutes() {
       <Route path="/hub/financeiro/:section" element={<FinanceiroSubPage />} />
       <Route path="/hub/operacao" element={<OperacaoPage />} />
         <Route path="/hub/:module" element={<HubPage />} />
+      <Route path="/executive" element={<ExecutiveDashboard />} />
+      <Route path="/executive/planeamento" element={<ExecutivePlaneamento />} />
+      <Route path="/executive/weekly-align" element={<ExecutiveWeeklyAlign />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
       <Route path="/definicoes" element={<DefinicoesPage />} />
       <Route path="*" element={<NotFound />} />
