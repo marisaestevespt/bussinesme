@@ -84,6 +84,9 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const [expandedClient, setExpandedClient] = useState<{ clientId: string; clientName: string; clientCode: string; estimated: number; realHours: number; deviation: number; productName: string } | null>(null);
   const [convertLead, setConvertLead] = useState<any>(null);
   const [convertForm, setConvertForm] = useState<Record<string, string>>({});
+  const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [leadSheetOpen, setLeadSheetOpen] = useState(false);
+  const { upsertLead, deleteLead } = useCrmData();
 
   // ── Data queries ──
   const salesQ = useQuery({ queryKey: ['md-sales', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales').select('*').eq('sale_year', year).eq('sale_month', monthNum); return data || []; }});
