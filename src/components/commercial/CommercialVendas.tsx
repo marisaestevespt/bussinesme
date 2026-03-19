@@ -209,7 +209,7 @@ export function CommercialVendas() {
             {filteredSales.map(s => {
               const st = STATUS_MAP[s.status] || STATUS_MAP.na;
               return (
-                <TableRow key={s.id}>
+                <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/comercial/vendas/${s.id}`)}>
                   <TableCell className="font-mono text-sm">{s.sale_id}</TableCell>
                   <TableCell><Badge variant="outline" className={st.className}>{st.label}</Badge></TableCell>
                   <TableCell>{s.payment_date ? format(new Date(s.payment_date), 'dd/MM/yyyy') : '—'}</TableCell>
