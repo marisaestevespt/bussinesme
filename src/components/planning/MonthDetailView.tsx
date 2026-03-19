@@ -346,7 +346,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           {renderCalendarGrid(
             allEvents,
             (e: any) => e.start_date ? parseISO(e.start_date) : null,
-            (e: any) => <div key={e.id} className="text-[9px] bg-primary/10 text-primary rounded px-1 py-0.5 truncate">{e.title}</div>
+            (e: any) => <div key={e.id} className="text-[9px] bg-primary/10 text-primary rounded px-1 py-0.5 truncate cursor-pointer hover:bg-primary/20" onClick={() => navigate(`/reunioes/${e.id}`)}>{e.title}</div>
           )}
         </CardContent>
       </Card>
