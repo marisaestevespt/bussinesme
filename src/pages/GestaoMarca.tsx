@@ -70,11 +70,11 @@ interface VisualFile {
 // ── Constants ──
 
 const KANBAN_GROUPS = [
-  { key: 'marca_pessoal', label: 'Marca Pessoal', emoji: '🧬' },
-  { key: 'mercado', label: 'Mercado', emoji: '🌍' },
-  { key: 'posicionamento', label: 'Posicionamento', emoji: '🎯' },
-  { key: 'identidade', label: 'Identidade', emoji: '🪞' },
-  { key: 'impacto', label: 'Impacto', emoji: '⚡' },
+  { key: 'marca_pessoal', label: 'Marca Pessoal' },
+  { key: 'mercado', label: 'Mercado' },
+  { key: 'posicionamento', label: 'Posicionamento' },
+  { key: 'identidade', label: 'Identidade' },
+  { key: 'impacto', label: 'Impacto' },
 ];
 
 // ── Page ──
@@ -513,7 +513,7 @@ export default function GestaoMarcaPage() {
                 return (
                   <div key={group.key} className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"><span className="mr-1">{group.emoji}</span>{group.label}</h3>
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</h3>
                       <span className="text-[10px] text-muted-foreground/60 bg-muted rounded-full px-1.5">{items.length}</span>
                     </div>
                     <div className="space-y-1.5 min-h-[60px]">
@@ -626,12 +626,12 @@ export default function GestaoMarcaPage() {
       <Dialog open={!!selectedKanban} onOpenChange={open => { if (!open) setSelectedKanban(null); }}>
         <DialogContent className={cn(
           'max-h-[90vh] overflow-y-auto',
-          selectedKanban?.title === 'Concorrência' ? 'sm:max-w-5xl' : 'sm:max-w-3xl'
+          selectedKanban?.title?.includes('Concorrência') ? 'sm:max-w-5xl' : 'sm:max-w-3xl'
         )}>
           <DialogHeader>
             <DialogTitle>{selectedKanban?.title}</DialogTitle>
           </DialogHeader>
-          {selectedKanban && selectedKanban.title === 'Análise SWOT' ? (
+          {selectedKanban && selectedKanban.title?.includes('Análise SWOT') ? (
             /* ── SWOT content ── */
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -682,7 +682,7 @@ export default function GestaoMarcaPage() {
                 })}
               </div>
             </div>
-          ) : selectedKanban && selectedKanban.title === 'Diferenciais' ? (
+          ) : selectedKanban && selectedKanban.title?.includes('Diferenciais') ? (
             /* ── Diferenciais content ── */
             <div className="space-y-3">
               {differentials.map(d => (
@@ -708,7 +708,7 @@ export default function GestaoMarcaPage() {
                 </div>
               )}
             </div>
-          ) : selectedKanban && selectedKanban.title === 'Concorrência' ? (
+          ) : selectedKanban && selectedKanban.title?.includes('Concorrência') ? (
             /* ── Concorrência content ── */
             <div className="space-y-4">
               {isOwner && (
