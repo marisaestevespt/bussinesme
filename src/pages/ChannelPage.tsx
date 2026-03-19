@@ -21,6 +21,7 @@ import {
   ChevronLeft, Plus, FileText, Trash2, ExternalLink,
   Upload, Check, X, Image as ImageIcon,
 } from 'lucide-react';
+import { WebsiteChannelContent } from '@/components/marketing/WebsiteChannelContent';
 
 export default function ChannelPage() {
   const { channelId } = useParams<{ channelId: string }>();
