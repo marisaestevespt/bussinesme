@@ -366,7 +366,7 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
   const [historyMetric, setHistoryMetric] = useState<any>(null);
   const [recordDialog, setRecordDialog] = useState(false);
   const [editMetric, setEditMetric] = useState<any>(null);
-  const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60', product_id: '' });
+  const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60', product_id: '', measurement_type: 'acumulativo' });
   const [editForm, setEditForm] = useState<any>({});
   const [recordForm, setRecordForm] = useState({ value: '', notes: '', recorded_at: format(new Date(), 'yyyy-MM-dd') });
 
