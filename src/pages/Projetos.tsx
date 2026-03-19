@@ -130,11 +130,18 @@ function DeptBadge({ dept }: { dept: string }) {
 
 type ViewMode = 'table' | 'gallery' | 'calendar';
 
+const PROJETOS_DEFAULT_VIEWS: DefaultView[] = [
+  { key: 'table', label: 'Tabela', icon: <LayoutList className="h-4 w-4" />, isDefault: true },
+  { key: 'gallery', label: 'Galeria', icon: <LayoutGrid className="h-4 w-4" />, isDefault: true },
+  { key: 'calendar', label: 'Calendário', icon: <CalendarIcon className="h-4 w-4" />, isDefault: true },
+];
+
 export default function ProjetosPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const [view, setView] = useState<ViewMode>('table');
+  const { allViews, addView, renameView, deleteView } = useUserViews('projetos', PROJETOS_DEFAULT_VIEWS);
+  const [view, setView] = useState<string>('table');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [calMonth, setCalMonth] = useState(new Date());
 
