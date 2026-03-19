@@ -38,6 +38,8 @@ import ConteudoDetailPage from "./pages/ConteudoDetail";
 import ChannelPage from "./pages/ChannelPage";
 import MarketingEstrategia from "./pages/MarketingEstrategia";
 import MarketingChannelStrategy from "./pages/MarketingChannelStrategy";
+import MarketingFunis from "./pages/MarketingFunis";
+import MarketingFunilDetail from "./pages/MarketingFunilDetail";
 
 const queryClient = new QueryClient();
 
