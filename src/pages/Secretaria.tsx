@@ -240,17 +240,14 @@ export default function SecretariaPage() {
 
         <Tabs defaultValue="dia">
 
-          <TabsList className="flex-wrap h-auto gap-1">
+          <TabsList className="hidden">
             <TabsTrigger value="dia">O Meu Dia</TabsTrigger>
-            <TabsTrigger value="tarefas">
-              As Minhas Tarefas
-              {overdueTasks.length > 0 && <Badge variant="destructive" className="ml-1.5 h-5 min-w-5 text-[10px]">{overdueTasks.length}</Badge>}
-            </TabsTrigger>
+            <TabsTrigger value="tarefas">As Minhas Tarefas</TabsTrigger>
             <TabsTrigger value="projetos">Os Meus Projetos</TabsTrigger>
             <TabsTrigger value="reunioes">As Minhas Reuniões</TabsTrigger>
-            <TabsTrigger value="produtividade">A Minha Produtividade</TabsTrigger>
-            <TabsTrigger value="contrato">O Meu Contrato & Pagamentos</TabsTrigger>
-            <TabsTrigger value="espaco">O Meu Espaço</TabsTrigger>
+            <TabsTrigger value="produtividade">Produtividade</TabsTrigger>
+            <TabsTrigger value="contrato">Contrato</TabsTrigger>
+            <TabsTrigger value="espaco">Espaço</TabsTrigger>
           </TabsList>
 
           {/* TAB 1 — O MEU DIA */}
