@@ -20,7 +20,7 @@ import { format, parseISO, differenceInDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import {
-  useClient, useClients, useClientHistory, useClientActivities, useClientOnboarding,
+  useClient, useClients, useClientHistory, useClientActivities, useClientOnboarding, useClientOffboarding,
   CLIENT_STATUS_OPTIONS, Client
 } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
