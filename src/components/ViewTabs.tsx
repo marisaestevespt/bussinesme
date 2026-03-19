@@ -50,7 +50,7 @@ export function ViewTabs({ views, activeKey, onSelect, onAdd, onRename, onDelete
               {v.isDefault && (v as any).icon}
               {v.label}
             </Button>
-            {!v.isDefault && (
+            {!v.isDefault && 'id' in v && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -62,10 +62,10 @@ export function ViewTabs({ views, activeKey, onSelect, onAdd, onRename, onDelete
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
-                  <DropdownMenuItem onClick={() => { setEditingId(v.id); setEditLabel(v.label); }}>
+                  <DropdownMenuItem onClick={() => { setEditingId((v as any).id); setEditLabel(v.label); }}>
                     <Pencil className="h-3.5 w-3.5 mr-2" /> Renomear
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="text-destructive" onClick={() => onDelete(v.id)}>
+                  <DropdownMenuItem className="text-destructive" onClick={() => onDelete((v as any).id)}>
                     <Trash2 className="h-3.5 w-3.5 mr-2" /> Eliminar
                   </DropdownMenuItem>
                 </DropdownMenuContent>
