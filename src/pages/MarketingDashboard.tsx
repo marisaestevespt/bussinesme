@@ -22,6 +22,25 @@ import {
   Plus, Pencil, Check, X, ExternalLink, Image as ImageIcon,
 } from 'lucide-react';
 
+const CHANNEL_EMOJI: Record<string, string> = {
+  'Instagram': '📸',
+  'Youtube': '🎬',
+  'Facebook': '👥',
+  'TikTok': '🎵',
+  'LinkedIn': '💼',
+  'Pinterest': '📌',
+  'Website': '🌐',
+  'Email Marketing': '📧',
+  'Twitter': '🐦',
+  'Threads': '🧵',
+  'Spotify': '🎧',
+  'Blog': '📝',
+  'Podcast': '🎙️',
+  'Newsletter': '✉️',
+  'WhatsApp': '💬',
+  'Telegram': '✈️',
+};
+
 const MARKETING_360 = [
   { title: 'Gestão de Marca', desc: 'Branding, identidade e posicionamento', icon: Palette, url: '/hub/marketing/gestao-marca' },
   { title: 'Estratégia', desc: 'Planeamento estratégico', icon: Target, url: '/hub/marketing/estrategia' },
