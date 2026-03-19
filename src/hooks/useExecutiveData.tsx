@@ -216,14 +216,15 @@ export function useExecutiveData(year = currentYear) {
   });
 
   const upsertQuarterlyAnalysis = useMutation({
-    mutationFn: async (rec: any) => {
+    mutationFn: async (raw: any) => {
+      const rec = cleanPayload(raw);
       const { data: existing } = await supabase.from('executive_quarterly_analysis')
-        .select('id').eq('quarter', rec.quarter).eq('year', year).maybeSingle();
+        .select('id').eq('quarter', rec.quarter as number).eq('year', year).maybeSingle();
       if (existing) {
-        const { error } = await supabase.from('executive_quarterly_analysis').update(rec).eq('id', existing.id);
+        const { error } = await supabase.from('executive_quarterly_analysis').update(rec as any).eq('id', existing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('executive_quarterly_analysis').insert({ ...rec, year });
+        const { error } = await supabase.from('executive_quarterly_analysis').insert({ ...rec, year } as any);
         if (error) throw error;
       }
     },
