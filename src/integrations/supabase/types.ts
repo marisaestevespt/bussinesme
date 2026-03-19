@@ -62,6 +62,27 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_differentials: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          sort_order: number
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       brand_kanban_items: {
         Row: {
           content: string | null
@@ -119,6 +140,30 @@ export type Database = {
           type?: string
           updated_at?: string
           url?: string
+        }
+        Relationships: []
+      }
+      brand_swot_items: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          quadrant: string
+          sort_order: number
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          quadrant: string
+          sort_order?: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          quadrant?: string
+          sort_order?: number
         }
         Relationships: []
       }

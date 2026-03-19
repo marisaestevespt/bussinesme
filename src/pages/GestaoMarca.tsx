@@ -70,11 +70,11 @@ interface VisualFile {
 // ── Constants ──
 
 const KANBAN_GROUPS = [
-  { key: 'marca_pessoal', label: 'Marca Pessoal' },
-  { key: 'mercado', label: 'Mercado' },
-  { key: 'posicionamento', label: 'Posicionamento' },
-  { key: 'identidade', label: 'Identidade' },
-  { key: 'impacto', label: 'Impacto' },
+  { key: 'marca_pessoal', label: 'Marca Pessoal', emoji: '🧬' },
+  { key: 'mercado', label: 'Mercado', emoji: '🌍' },
+  { key: 'posicionamento', label: 'Posicionamento', emoji: '🎯' },
+  { key: 'identidade', label: 'Identidade', emoji: '🪞' },
+  { key: 'impacto', label: 'Impacto', emoji: '⚡' },
 ];
 
 // ── Page ──
@@ -111,6 +111,12 @@ export default function GestaoMarcaPage() {
   const [editingCompetitor, setEditingCompetitor] = useState<BrandCompetitor | null>(null);
   const [showAddCompetitor, setShowAddCompetitor] = useState(false);
   const [compForm, setCompForm] = useState({ name: '', type: 'direta', instagram: '', website: '', produtos: '', precos: '', plataformas: '', posicionamento: '', comunicacao: '' });
+
+  // SWOT
+  const [newSwot, setNewSwot] = useState<{ quadrant: string; text: string } | null>(null);
+
+  // Diferenciais
+  const [newDifferential, setNewDifferential] = useState('');
 
   // ── Queries ──
 
@@ -151,6 +157,22 @@ export default function GestaoMarcaPage() {
     queryKey: ['brand-competitors'],
     queryFn: async () => {
       const { data } = await supabase.from('brand_competitors').select('*').order('sort_order') as { data: BrandCompetitor[] | null };
+      return data || [];
+    },
+  });
+
+  const { data: swotItems = [] } = useQuery({
+    queryKey: ['brand-swot'],
+    queryFn: async () => {
+      const { data } = await supabase.from('brand_swot_items').select('*').order('sort_order') as { data: { id: string; quadrant: string; content: string; sort_order: number }[] | null };
+      return data || [];
+    },
+  });
+
+  const { data: differentials = [] } = useQuery({
+    queryKey: ['brand-differentials'],
+    queryFn: async () => {
+      const { data } = await supabase.from('brand_differentials').select('*').order('sort_order') as { data: { id: string; content: string; sort_order: number }[] | null };
       return data || [];
     },
   });
@@ -322,6 +344,35 @@ export default function GestaoMarcaPage() {
     setShowAddCompetitor(true);
   };
 
+  // ── SWOT mutations ──
+
+  const addSwotItem = async (quadrant: string, content: string) => {
+    if (!content.trim()) return;
+    const quadrantItems = swotItems.filter(i => i.quadrant === quadrant);
+    await supabase.from('brand_swot_items').insert({ quadrant, content, sort_order: quadrantItems.length } as any);
+    queryClient.invalidateQueries({ queryKey: ['brand-swot'] });
+    setNewSwot(null);
+  };
+
+  const deleteSwotItem = async (id: string) => {
+    await supabase.from('brand_swot_items').delete().eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['brand-swot'] });
+  };
+
+  // ── Differential mutations ──
+
+  const addDifferential = async () => {
+    if (!newDifferential.trim()) return;
+    await supabase.from('brand_differentials').insert({ content: newDifferential, sort_order: differentials.length } as any);
+    queryClient.invalidateQueries({ queryKey: ['brand-differentials'] });
+    setNewDifferential('');
+  };
+
+  const deleteDifferential = async (id: string) => {
+    await supabase.from('brand_differentials').delete().eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['brand-differentials'] });
+  };
+
   // ── Render ──
 
   return (
@@ -462,7 +513,7 @@ export default function GestaoMarcaPage() {
                 return (
                   <div key={group.key} className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</h3>
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"><span className="mr-1">{group.emoji}</span>{group.label}</h3>
                       <span className="text-[10px] text-muted-foreground/60 bg-muted rounded-full px-1.5">{items.length}</span>
                     </div>
                     <div className="space-y-1.5 min-h-[60px]">
@@ -517,6 +568,106 @@ export default function GestaoMarcaPage() {
                   </div>
                 );
               })}
+            </div>
+          </section>
+
+          <Separator />
+
+          {/* ── Análise SWOT ── */}
+          <section className="space-y-6">
+            <h2 className="text-xl font-semibold text-foreground">📊 Análise SWOT</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                { key: 'forcas', label: 'Forças', emoji: '💪', colorClass: 'border-l-4 border-l-green-500' },
+                { key: 'fraquezas', label: 'Fraquezas', emoji: '⚠️', colorClass: 'border-l-4 border-l-red-500' },
+                { key: 'oportunidades', label: 'Oportunidades', emoji: '🚀', colorClass: 'border-l-4 border-l-blue-500' },
+                { key: 'ameacas', label: 'Ameaças', emoji: '🔥', colorClass: 'border-l-4 border-l-amber-500' },
+              ].map(q => {
+                const items = swotItems.filter(i => i.quadrant === q.key);
+                return (
+                  <Card key={q.key} className={cn('overflow-hidden', q.colorClass)}>
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold text-foreground">{q.emoji} {q.label}</h3>
+                        {isOwner && (
+                          <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setNewSwot({ quadrant: q.key, text: '' })}>
+                            <Plus className="h-3 w-3 mr-1" />Adicionar
+                          </Button>
+                        )}
+                      </div>
+                      <div className="space-y-1.5">
+                        {items.map(item => (
+                          <div key={item.id} className="flex items-start gap-2 group text-sm text-muted-foreground">
+                            <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-foreground/30 shrink-0" />
+                            <span className="flex-1">{item.content}</span>
+                            {isOwner && (
+                              <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteSwotItem(item.id)}>
+                                <Trash2 className="h-3 w-3 text-destructive" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                        {items.length === 0 && <p className="text-xs text-muted-foreground/50 italic">Nenhum item.</p>}
+                      </div>
+                      {newSwot?.quadrant === q.key && (
+                        <div className="flex gap-2">
+                          <Input
+                            value={newSwot.text}
+                            onChange={e => setNewSwot({ ...newSwot, text: e.target.value })}
+                            placeholder={`Adicionar ${q.label.toLowerCase()}...`}
+                            className="h-8 text-xs"
+                            autoFocus
+                            onKeyDown={e => e.key === 'Enter' && addSwotItem(q.key, newSwot.text)}
+                          />
+                          <Button size="sm" className="h-8" onClick={() => addSwotItem(q.key, newSwot.text)}>
+                            <Check className="h-3 w-3" />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-8" onClick={() => setNewSwot(null)}>
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </section>
+
+          <Separator />
+
+          {/* ── Diferenciais ── */}
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-foreground">✨ Diferenciais</h2>
+            </div>
+            <div className="space-y-2">
+              {differentials.map(d => (
+                <div key={d.id} className="flex items-center gap-3 group p-3 rounded-lg border bg-card hq-transition hover:shadow-sm">
+                  <span className="text-primary">✦</span>
+                  <span className="flex-1 text-sm text-foreground">{d.content}</span>
+                  {isOwner && (
+                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteDifferential(d.id)}>
+                      <Trash2 className="h-3 w-3 text-destructive" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              {differentials.length === 0 && <p className="text-sm text-muted-foreground italic">Nenhum diferencial adicionado.</p>}
+              {isOwner && (
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    value={newDifferential}
+                    onChange={e => setNewDifferential(e.target.value)}
+                    placeholder="Adicionar diferencial..."
+                    className="h-9"
+                    onKeyDown={e => e.key === 'Enter' && addDifferential()}
+                  />
+                  <Button size="sm" className="h-9" disabled={!newDifferential.trim()} onClick={addDifferential}>
+                    <Plus className="h-3.5 w-3.5 mr-1" />Adicionar
+                  </Button>
+                </div>
+              )}
             </div>
           </section>
 
