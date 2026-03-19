@@ -190,6 +190,149 @@ export type Database = {
         }
         Relationships: []
       }
+      content_attachments: {
+        Row: {
+          content_id: string
+          created_at: string
+          file_name: string
+          file_type: string
+          file_url: string
+          id: string
+        }
+        Insert: {
+          content_id: string
+          created_at?: string
+          file_name: string
+          file_type?: string
+          file_url: string
+          id?: string
+        }
+        Update: {
+          content_id?: string
+          created_at?: string
+          file_name?: string
+          file_type?: string
+          file_url?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_attachments_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_channels: {
+        Row: {
+          channel_id: string
+          content_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          channel_id: string
+          content_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          channel_id?: string
+          content_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_channels_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_channels_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_items: {
+        Row: {
+          assigned_to: string | null
+          content_type: string | null
+          copy_content: string | null
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          format: string | null
+          funnel_stage: string | null
+          id: string
+          objective: string | null
+          product_name: string | null
+          project_id: string | null
+          scheduled_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          content_type?: string | null
+          copy_content?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          format?: string | null
+          funnel_stage?: string | null
+          id?: string
+          objective?: string | null
+          product_name?: string | null
+          project_id?: string | null
+          scheduled_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          content_type?: string | null
+          copy_content?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          format?: string | null
+          funnel_stage?: string | null
+          id?: string
+          objective?: string | null
+          product_name?: string | null
+          project_id?: string | null
+          scheduled_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_items_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_roles: {
         Row: {
           created_at: string
@@ -402,6 +545,63 @@ export type Database = {
           created_by?: string | null
           file_url?: string | null
           id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      marketing_channels: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          link: string | null
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          link?: string | null
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          link?: string | null
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      marketing_pages: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          page_key: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          page_key: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          page_key?: string
           title?: string
           updated_at?: string
         }
