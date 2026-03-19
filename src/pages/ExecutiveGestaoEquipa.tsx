@@ -847,7 +847,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
 }
 
 // ─── Tab: Equipa (list) ──────
-function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
+export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
   const [dialog, setDialog] = useState<any>(null);
   const [selected, setSelected] = useState<any>(null);
   const allMembers = team.members.data || [];
