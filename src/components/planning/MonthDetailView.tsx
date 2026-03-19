@@ -201,7 +201,6 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   // Product sales breakdown for "goal" tab
   const prodSalesData = useMemo(() => {
     return commProdGoals.map((pg: any) => {
-      const prod = products.find((p: any) => p.name === pg.product_name);
       const prodSales = sales.filter((s: any) => s.product === pg.product_name);
       const totalFat = prodSales.reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0);
       const goalAmt = Number(pg.goal_amount || 0);
