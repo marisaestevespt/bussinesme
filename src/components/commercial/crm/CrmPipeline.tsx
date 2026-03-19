@@ -49,11 +49,11 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus }: CrmPipelinePr
 
   return (
     <ScrollArea className="w-full">
-      <div className="flex gap-3 pb-4" style={{ minWidth: `${columns.length * 220}px` }}>
+      <div className="flex gap-3 pb-4" style={{ minWidth: `${columns.length * 250}px` }}>
         {columns.map(col => (
           <div
             key={col.value}
-            className={`flex flex-col w-[210px] shrink-0 rounded-lg border bg-muted/30 transition-colors ${dragOver === col.value ? 'ring-2 ring-primary/40' : ''}`}
+            className={`flex flex-col w-[240px] shrink-0 rounded-lg border bg-muted/30 transition-colors ${dragOver === col.value ? 'ring-2 ring-primary/40' : ''}`}
             onDragOver={e => { e.preventDefault(); setDragOver(col.value); }}
             onDragLeave={() => setDragOver(null)}
             onDrop={e => handleDrop(e, col.value)}
@@ -93,7 +93,7 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus }: CrmPipelinePr
                       )}
                     </div>
 
-                    <div className="mt-2.5 space-y-1">
+                    <div className="mt-3 pt-2.5 border-t space-y-1">
                       <div className={`flex items-center gap-1 text-xs ${fuBadgeClass(fuState)}`}>
                         <FuIcon state={fuState} />
                         <span className="text-muted-foreground">Próximo FU:</span> {lead.next_followup ? format(new Date(lead.next_followup), 'dd/MM/yyyy') : '—'}
