@@ -144,7 +144,7 @@ export default function ExecutiveProductivity() {
 }
 
 /* ─── TAB 1: VISÃO GERAL ─── */
-function OverviewTab({ entries, members, clients, products }: { entries: any[]; members: any[]; clients: any[]; products: any[] }) {
+function OverviewTab({ entries, members, clients, products, tasks }: { entries: any[]; members: any[]; clients: any[]; products: any[]; tasks: any[] }) {
   const { start, end } = getDateRange('week');
   const weekEntries = entries.filter(e => {
     const d = new Date(e.entry_date);
