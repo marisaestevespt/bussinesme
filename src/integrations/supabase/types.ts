@@ -190,6 +190,79 @@ export type Database = {
         }
         Relationships: []
       }
+      channel_pages: {
+        Row: {
+          channel_id: string
+          content: string | null
+          created_at: string
+          id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          channel_id: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          channel_id?: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_pages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      channel_reports: {
+        Row: {
+          channel_id: string
+          created_at: string
+          file_name: string
+          file_url: string
+          id: string
+          title: string
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          file_name: string
+          file_url: string
+          id?: string
+          title: string
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          file_name?: string
+          file_url?: string
+          id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_reports_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_attachments: {
         Row: {
           content_id: string
