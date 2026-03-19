@@ -52,6 +52,73 @@ function greetingText() {
   return 'Boa noite';
 }
 
+// ─── Analog Clock ──────────────────────────────────────────────────
+
+function AnalogClock() {
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const seconds = time.getSeconds();
+  const minutes = time.getMinutes();
+  const hours = time.getHours() % 12;
+
+  const secDeg = seconds * 6;
+  const minDeg = minutes * 6 + seconds * 0.1;
+  const hrDeg = hours * 30 + minutes * 0.5;
+
+  const dateStr = format(time, "EEEE, d MMM", { locale: pt });
+  const timeStr = format(time, "HH:mm");
+
+  return (
+    <div className="flex flex-col items-center gap-1 shrink-0">
+      <div className="relative h-16 w-16">
+        <svg viewBox="0 0 100 100" className="h-full w-full">
+          {/* Face */}
+          <circle cx="50" cy="50" r="48" fill="none" className="stroke-border" strokeWidth="2" />
+          {/* Hour markers */}
+          {Array.from({ length: 12 }).map((_, i) => {
+            const angle = (i * 30 - 90) * (Math.PI / 180);
+            const x1 = 50 + 40 * Math.cos(angle);
+            const y1 = 50 + 40 * Math.sin(angle);
+            const x2 = 50 + 45 * Math.cos(angle);
+            const y2 = 50 + 45 * Math.sin(angle);
+            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} className="stroke-muted-foreground" strokeWidth="2" strokeLinecap="round" />;
+          })}
+          {/* Hour hand */}
+          <line
+            x1="50" y1="50"
+            x2={50 + 25 * Math.cos((hrDeg - 90) * Math.PI / 180)}
+            y2={50 + 25 * Math.sin((hrDeg - 90) * Math.PI / 180)}
+            className="stroke-foreground" strokeWidth="3" strokeLinecap="round"
+          />
+          {/* Minute hand */}
+          <line
+            x1="50" y1="50"
+            x2={50 + 35 * Math.cos((minDeg - 90) * Math.PI / 180)}
+            y2={50 + 35 * Math.sin((minDeg - 90) * Math.PI / 180)}
+            className="stroke-foreground" strokeWidth="2" strokeLinecap="round"
+          />
+          {/* Second hand */}
+          <line
+            x1="50" y1="50"
+            x2={50 + 38 * Math.cos((secDeg - 90) * Math.PI / 180)}
+            y2={50 + 38 * Math.sin((secDeg - 90) * Math.PI / 180)}
+            className="stroke-primary" strokeWidth="1" strokeLinecap="round"
+          />
+          {/* Center dot */}
+          <circle cx="50" cy="50" r="2.5" className="fill-foreground" />
+        </svg>
+      </div>
+      <span className="text-xs font-medium tabular-nums">{timeStr}</span>
+      <span className="text-[10px] text-muted-foreground capitalize">{dateStr}</span>
+    </div>
+  );
+}
+
 // ─── Page ──────────────────────────────────────────────────
 
 export default function HubEquipaPage() {
