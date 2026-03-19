@@ -37,10 +37,17 @@ export function CommercialOverview() {
 
   const products = (data.productGoals.data || []).map(p => p.product_name);
 
+  // Top selling product
+  const productSales = products.map(p => ({
+    name: p,
+    total: (data.sales.data || []).filter(s => s.product === p).reduce((s, v) => s + Number(v.invoice_total || 0), 0),
+  }));
+  const topProduct = productSales.length > 0 ? productSales.sort((a, b) => b.total - a.total)[0] : null;
+
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Meta Anual</CardTitle></CardHeader>
           <CardContent><p className="text-2xl font-bold">€{fmt(data.annualGoalAmount)}</p></CardContent></Card>
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Faturado</CardTitle></CardHeader>
@@ -49,6 +56,14 @@ export function CommercialOverview() {
           <CardContent><p className="text-2xl font-bold">{data.progressPct.toFixed(1)}%</p></CardContent></Card>
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Faturado este mês</CardTitle></CardHeader>
           <CardContent><p className="text-2xl font-bold">€{fmt(data.currentMonthTotal)}</p></CardContent></Card>
+        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Produto mais vendido</CardTitle></CardHeader>
+          <CardContent>
+            {topProduct && topProduct.total > 0 ? (
+              <div><p className="text-2xl font-bold">{topProduct.name}</p><p className="text-sm text-muted-foreground">€{fmt(topProduct.total)}</p></div>
+            ) : (
+              <p className="text-muted-foreground">Sem dados</p>
+            )}
+          </CardContent></Card>
       </div>
 
       {/* Mismatch alert */}
