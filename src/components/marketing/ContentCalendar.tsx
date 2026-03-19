@@ -48,7 +48,7 @@ function ContentRow({ item, channels, links }: { item: ContentItem; channels: Ma
   );
 }
 
-export function ContentCalendar({ items, channels, contentChannelLinks }: Props) {
+export function ContentCalendar({ items, channels, contentChannelLinks, calendarOnly }: Props) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const monthStart = startOfMonth(currentMonth);
