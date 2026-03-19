@@ -215,6 +215,7 @@ export default function ClienteDetailPage() {
   const { history, addEntry: addHistory, updateEntry: updateHistory, deleteEntry: deleteHistory } = useClientHistory(isNew ? undefined : id);
   const { activities, addEntry: addActivity, updateEntry: updateActivity, deleteEntry: deleteActivity } = useClientActivities(isNew ? undefined : id);
   const { onboarding, addEntry: addOnboarding, updateEntry: updateOnboarding, deleteEntry: deleteOnboarding } = useClientOnboarding(isNew ? undefined : id);
+  const { offboarding, addEntry: addOffboarding, updateEntry: updateOffboarding, deleteEntry: deleteOffboarding } = useClientOffboarding(isNew ? undefined : id);
 
   const productList = products.data || [];
 
