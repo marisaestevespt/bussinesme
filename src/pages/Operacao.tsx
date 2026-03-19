@@ -349,7 +349,7 @@ export default function OperacaoPage() {
                 })}
 
                 <Dialog open={!!expandedStatus} onOpenChange={(open) => !open && setExpandedStatus(null)}>
-                   <DialogContent className={expandedStatus === 'altura_renovacao' ? 'max-w-2xl' : 'max-w-md'}>
+                   <DialogContent className={expandedStatus === 'altura_renovacao' ? 'max-w-2xl' : (expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding') ? 'max-w-2xl' : 'max-w-md'}>
                     <DialogHeader>
                       <DialogTitle className="text-base">
                         {expandedStatus && {
@@ -357,6 +357,7 @@ export default function OperacaoPage() {
                           ativo: 'Ativos',
                           pausado: 'Pausados',
                           altura_renovacao: 'Altura de renovação',
+                          em_offboarding: 'Em offboarding',
                         }[expandedStatus]}
                       </DialogTitle>
                     </DialogHeader>
