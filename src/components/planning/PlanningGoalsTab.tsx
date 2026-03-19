@@ -133,7 +133,7 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
           <CardContent className="p-4">
             <Table>
               <TableHeader><TableRow>
-                <TableHead>Objetivo</TableHead><TableHead>Período</TableHead><TableHead>Tipo</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead>
+                 <TableHead>Objetivo</TableHead><TableHead>Período</TableHead><TableHead>Área</TableHead><TableHead>Prazo</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead>
               </TableRow></TableHeader>
               <TableBody>
                 {filteredGoals
