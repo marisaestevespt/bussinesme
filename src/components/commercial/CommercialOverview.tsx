@@ -64,7 +64,6 @@ export function CommercialOverview() {
               <p className="text-muted-foreground">Sem dados</p>
             )}
           </CardContent></Card>
-          <CardContent><p className="text-2xl font-bold">€{fmt(data.currentMonthTotal)}</p></CardContent></Card>
       </div>
 
       {/* Mismatch alert */}
