@@ -1,14 +1,17 @@
-import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { useState, useMemo } from 'react';
+import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, ExternalLink } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Pencil, Trash2, ExternalLink, Search, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCommercialData } from '@/hooks/useCommercialData';
+import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
+import { ViewTabs } from '@/components/ViewTabs';
 import { SaleFormDialog } from './SaleFormDialog';
 import { useAuth } from '@/hooks/useAuth';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const STATUS_MAP: Record<string, { label: string; className: string }> = {
   na: { label: 'N.A.', className: 'bg-muted text-muted-foreground' },
@@ -18,40 +21,156 @@ const STATUS_MAP: Record<string, { label: string; className: string }> = {
   contabilidade_ok: { label: 'Contabilidade OK', className: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
 };
 
+const STATUS_OPTIONS = Object.entries(STATUS_MAP).map(([value, { label }]) => ({ value, label }));
+const SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
 const QUARTER_LABEL = (q: number | null) => q ? `T${q}` : '—';
 const MONTH_NAMES_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const DEFAULT_VIEWS: DefaultView[] = [
+  { key: 'all', label: 'Todas as Vendas', isDefault: true },
+  { key: 'overdue', label: 'Pagamentos em Atraso', isDefault: true },
+];
 
 export function CommercialVendas() {
   const data = useCommercialData();
   const { isOwner } = useAuth();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  const [view, setView] = useState<'all' | 'overdue'>('all');
+  const [activeView, setActiveView] = useState('all');
+
+  // Search & filter state
+  const [searchText, setSearchText] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('');
+  const [filterProduct, setFilterProduct] = useState<string>('');
+  const [filterSource, setFilterSource] = useState<string>('');
+  const [filterYear, setFilterYear] = useState<string>('');
+  const [filterQuarter, setFilterQuarter] = useState<string>('');
+
+  const { allViews, addView, renameView, deleteView } = useUserViews('comercial-vendas', DEFAULT_VIEWS);
 
   const products = (data.productGoals.data || []).map(p => p.product_name);
   const allSalesData = data.allSales.data || [];
-
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
 
-  const filteredSales = view === 'overdue'
-    ? allSalesData.filter(s => ['na', 'fatura_emitida'].includes(s.status) && s.payment_date && s.payment_date < todayStr)
-    : allSalesData;
+  const hasActiveFilters = searchText || filterStatus || filterProduct || filterSource || filterYear || filterQuarter;
+
+  const clearFilters = () => {
+    setSearchText('');
+    setFilterStatus('');
+    setFilterProduct('');
+    setFilterSource('');
+    setFilterYear('');
+    setFilterQuarter('');
+  };
+
+  const filteredSales = useMemo(() => {
+    let result = allSalesData;
+
+    // Default view filters
+    if (activeView === 'overdue') {
+      result = result.filter(s => ['na', 'fatura_emitida'].includes(s.status) && s.payment_date && s.payment_date < todayStr);
+    }
+
+    // Search text (across description, client, product, sale_id)
+    if (searchText) {
+      const q = searchText.toLowerCase();
+      result = result.filter(s =>
+        (s.description || '').toLowerCase().includes(q) ||
+        (s.client || '').toLowerCase().includes(q) ||
+        (s.product || '').toLowerCase().includes(q) ||
+        (s.sale_id || '').toLowerCase().includes(q)
+      );
+    }
+
+    // Filters
+    if (filterStatus) result = result.filter(s => s.status === filterStatus);
+    if (filterProduct) result = result.filter(s => s.product === filterProduct);
+    if (filterSource) result = result.filter(s => s.source === filterSource);
+    if (filterYear) result = result.filter(s => s.sale_year?.toString() === filterYear);
+    if (filterQuarter) result = result.filter(s => s.sale_quarter?.toString() === filterQuarter);
+
+    return result;
+  }, [allSalesData, activeView, searchText, filterStatus, filterProduct, filterSource, filterYear, filterQuarter, todayStr]);
 
   const totalBase = filteredSales.reduce((s, v) => s + Number(v.base_value || 0), 0);
   const totalInvoice = filteredSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
 
+  // Available years for filter
+  const availableYears = [...new Set(allSalesData.map(s => s.sale_year).filter(Boolean))].sort((a, b) => (b || 0) - (a || 0));
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <Tabs value={view} onValueChange={v => setView(v as any)}>
-          <TabsList>
-            <TabsTrigger value="all">Todas as Vendas</TabsTrigger>
-            <TabsTrigger value="overdue">Pagamentos em Atraso</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        <Button size="sm" onClick={() => { setEditing(null); setFormOpen(true); }}><Plus className="h-4 w-4 mr-1" /> Nova Venda</Button>
+      {/* Views + New Sale */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <ViewTabs
+          views={allViews}
+          activeKey={activeView}
+          onSelect={setActiveView}
+          onAdd={addView}
+          onRename={(id, label) => renameView({ id, label })}
+          onDelete={deleteView}
+        />
+        <Button size="sm" onClick={() => { setEditing(null); setFormOpen(true); }}>
+          <Plus className="h-4 w-4 mr-1" /> Nova Venda
+        </Button>
+      </div>
+
+      {/* Search & Filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Pesquisar por descrição, cliente, produto ou ID..."
+            value={searchText}
+            onChange={e => setSearchText(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={filterStatus} onValueChange={v => setFilterStatus(v === '_all' ? '' : v)}>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_all">Todos os status</SelectItem>
+            {STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filterProduct} onValueChange={v => setFilterProduct(v === '_all' ? '' : v)}>
+          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Produto" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_all">Todos</SelectItem>
+            {products.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filterSource} onValueChange={v => setFilterSource(v === '_all' ? '' : v)}>
+          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Fonte" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_all">Todas</SelectItem>
+            {SOURCE_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filterYear} onValueChange={v => setFilterYear(v === '_all' ? '' : v)}>
+          <SelectTrigger className="w-[110px]"><SelectValue placeholder="Ano" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_all">Todos</SelectItem>
+            {availableYears.map(y => <SelectItem key={y!} value={y!.toString()}>{y}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filterQuarter} onValueChange={v => setFilterQuarter(v === '_all' ? '' : v)}>
+          <SelectTrigger className="w-[110px]"><SelectValue placeholder="Trimestre" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_all">Todos</SelectItem>
+            <SelectItem value="1">T1</SelectItem>
+            <SelectItem value="2">T2</SelectItem>
+            <SelectItem value="3">T3</SelectItem>
+            <SelectItem value="4">T4</SelectItem>
+          </SelectContent>
+        </Select>
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+            <X className="h-3.5 w-3.5 mr-1" /> Limpar
+          </Button>
+        )}
       </div>
 
       {/* Summary */}
