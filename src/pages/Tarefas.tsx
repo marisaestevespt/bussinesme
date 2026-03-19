@@ -50,13 +50,13 @@ const TASK_DEPARTMENTS = [
 
 type View = 'todo' | 'atrasadas' | 'proximas' | 'calendario' | 'responsavel' | 'todas';
 
-const VIEWS: { key: View; label: string; icon: React.ReactNode }[] = [
-  { key: 'todo', label: 'To Do', icon: <ListTodo className="h-4 w-4" /> },
-  { key: 'atrasadas', label: 'Atrasadas', icon: <AlertTriangle className="h-4 w-4" /> },
-  { key: 'proximas', label: 'Próximas Tarefas', icon: <Clock className="h-4 w-4" /> },
-  { key: 'responsavel', label: 'Por Responsável', icon: <Users className="h-4 w-4" /> },
-  { key: 'calendario', label: 'Calendário', icon: <CalendarDays className="h-4 w-4" /> },
-  { key: 'todas', label: 'Todas as Tarefas', icon: <List className="h-4 w-4" /> },
+const DEFAULT_VIEWS: DefaultView[] = [
+  { key: 'todo', label: 'To Do', icon: <ListTodo className="h-4 w-4" />, isDefault: true },
+  { key: 'atrasadas', label: 'Atrasadas', icon: <AlertTriangle className="h-4 w-4" />, isDefault: true },
+  { key: 'proximas', label: 'Próximas Tarefas', icon: <Clock className="h-4 w-4" />, isDefault: true },
+  { key: 'responsavel', label: 'Por Responsável', icon: <Users className="h-4 w-4" />, isDefault: true },
+  { key: 'calendario', label: 'Calendário', icon: <CalendarDays className="h-4 w-4" />, isDefault: true },
+  { key: 'todas', label: 'Todas as Tarefas', icon: <List className="h-4 w-4" />, isDefault: true },
 ];
 
 function getStatusInfo(val: string) {
