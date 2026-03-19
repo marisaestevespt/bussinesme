@@ -127,8 +127,8 @@ export default function HubEquipaPage() {
           <AnalogClock />
         </div>
 
-
-
+        {/* Novidades do mês */}
+        <NovidadesMes />
 
         {/* Transversais cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
@@ -148,9 +148,6 @@ export default function HubEquipaPage() {
           ))}
         </div>
 
-        {/* Quick summary */}
-        <QuickSummary />
-
         {/* Departamentos full width */}
         <DepartamentosColumn />
       </div>
@@ -158,94 +155,73 @@ export default function HubEquipaPage() {
   );
 }
 
+// ─── Novidades do Mês ──────────────────────────────────────────────────
 
-// ─── Quick Summary ──────────────────────────────────────────────────
+function NovidadesMes() {
+  const navigate = useNavigate();
 
-function QuickSummary() {
-  const { user } = useAuth();
-
-  const { data: profile } = useQuery({
-    queryKey: ['my-profile-id', user?.id],
+  const { data: posts = [] } = useQuery({
+    queryKey: ['hub-mural-novidades'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id').eq('user_id', user!.id).maybeSingle();
-      return data;
-    },
-    enabled: !!user,
-  });
-
-  const { data: overdueTasks = 0 } = useQuery({
-    queryKey: ['hub-overdue-tasks', profile?.id],
-    queryFn: async () => {
-      const today = format(new Date(), 'yyyy-MM-dd');
-      const { count } = await supabase
-        .from('tasks')
-        .select('id', { count: 'exact', head: true })
-        .eq('assigned_to', profile!.id)
-        .neq('status', 'done')
-        .lt('deadline', today);
-      return count || 0;
-    },
-    enabled: !!profile,
-  });
-
-  const { data: nextMeetings = [] } = useQuery({
-    queryKey: ['hub-next-meetings', profile?.id],
-    queryFn: async () => {
-      const now = new Date().toISOString();
+      const since = subDays(new Date(), 30).toISOString();
       const { data } = await supabase
-        .from('events')
-        .select('id, title, start_date')
-        .gte('start_date', now)
-        .order('start_date', { ascending: true })
-        .limit(2);
+        .from('mural_posts')
+        .select('id, title, category, created_at, author_id')
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(5);
       return data || [];
     },
-    enabled: !!profile,
   });
 
-  const { data: activeProjects = 0 } = useQuery({
-    queryKey: ['hub-active-projects', profile?.id],
+  // Fetch author names
+  const authorIds = [...new Set(posts.map(p => p.author_id))];
+  const { data: authors = [] } = useQuery({
+    queryKey: ['hub-mural-authors', authorIds],
     queryFn: async () => {
-      const { count } = await supabase
-        .from('projects')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'em_curso');
-      return count || 0;
+      if (!authorIds.length) return [];
+      const { data } = await supabase.from('profiles').select('user_id, full_name').in('user_id', authorIds);
+      return data || [];
     },
-    enabled: !!profile,
+    enabled: authorIds.length > 0,
   });
+
+  const getAuthorName = (id: string) => authors.find((a: any) => a.user_id === id)?.full_name?.split(' ')[0] || '';
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm">Resumo rápido</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-wrap gap-6">
-        <div className="flex items-center gap-2">
-          <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Tarefas em atraso</span>
-          <Badge variant={overdueTasks > 0 ? 'destructive' : 'secondary'} className="text-xs">{overdueTasks}</Badge>
+    <div className="rounded-xl border-2 border-secondary bg-background p-5 space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <MessageSquare className="h-4 w-4 text-secondary" />
+          Novidades do mês
+        </h2>
+        <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => navigate('/hub/mural')}>
+          Ver tudo →
+        </Button>
+      </div>
+
+      {posts.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Sem novidades nos últimos 30 dias.</p>
+      ) : (
+        <div className="space-y-2">
+          {posts.map((p: any) => (
+            <div
+              key={p.id}
+              className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 hover:bg-muted/70 cursor-pointer transition-colors"
+              onClick={() => navigate('/hub/mural')}
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{p.title}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {getAuthorName(p.author_id)} · {format(new Date(p.created_at), "d MMM", { locale: pt })}
+                </p>
+              </div>
+              <Badge variant="outline" className="text-[10px] shrink-0 ml-2">{p.category}</Badge>
+            </div>
+          ))}
         </div>
-        <div className="flex items-center gap-2">
-          <FolderKanban className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Projetos ativos</span>
-          <Badge variant="secondary" className="text-xs">{activeProjects}</Badge>
-        </div>
-        <div className="flex items-center gap-2">
-          <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Próximas reuniões:</span>
-          {nextMeetings.length === 0 ? (
-            <span className="text-xs text-muted-foreground">Nenhuma agendada</span>
-          ) : (
-            nextMeetings.map((m: any) => (
-              <span key={m.id} className="text-xs">
-                {m.title} <span className="text-muted-foreground">({format(new Date(m.start_date), "d MMM, HH:mm", { locale: pt })})</span>
-              </span>
-            ))
-          )}
-        </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }
 
