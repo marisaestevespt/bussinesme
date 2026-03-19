@@ -184,13 +184,14 @@ export function useCommercialData(year = currentYear) {
 
   // Upsert sale
   const upsertSale = useMutation({
-    mutationFn: async (sale: any) => {
-      const payDate = sale.payment_date ? new Date(sale.payment_date) : null;
+    mutationFn: async (raw: any) => {
+      const sale = cleanPayload(raw);
+      const payDate = sale.payment_date ? new Date(sale.payment_date as string) : null;
       const saleMonth = payDate ? payDate.getMonth() + 1 : null;
       const saleQuarter = saleMonth ? Math.ceil(saleMonth / 3) : null;
       const saleYear = payDate ? payDate.getFullYear() : null;
 
-      const record = {
+      const record: any = {
         ...sale,
         sale_month: saleMonth,
         sale_quarter: saleQuarter,
@@ -198,10 +199,9 @@ export function useCommercialData(year = currentYear) {
       };
 
       if (sale.id) {
-        const { error } = await supabase.from('commercial_sales').update(record).eq('id', sale.id);
+        const { error } = await supabase.from('commercial_sales').update(record).eq('id', sale.id as string);
         if (error) throw error;
       } else {
-        // Generate sale_id
         const { data: countData } = await supabase.from('commercial_sales').select('id').eq('sale_year', saleYear || currentYear);
         const nextNum = ((countData?.length || 0) + 1).toString().padStart(2, '0');
         record.sale_id = `V${saleYear || currentYear}-${nextNum}`;
