@@ -613,8 +613,9 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       {/* ═══ SECTION 6: Clientes Ativos & Renovações ═══ */}
       <Card>
         <CardHeader className="pb-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <CardTitle className="text-sm">Clientes Ativos & Renovações</CardTitle>
+            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/clientes')}><Plus className="h-3 w-3" /> Novo Cliente</Button>
             <div className="flex gap-1 ml-auto">
               <Button size="sm" variant={clientTab === 'ativos' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('ativos')}>Clientes Ativos ({activeClients.length})</Button>
               <Button size="sm" variant={clientTab === 'pausados' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('pausados')}>Em Pausa ({pausedClients.length})</Button>
@@ -690,7 +691,12 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
 
       {/* ═══ SECTION 7: Pagamentos ═══ */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Pagamentos de Clientes</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm">Pagamentos de Clientes</CardTitle>
+            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/comercial/vendas')}><Plus className="h-3 w-3" /> Nova Venda</Button>
+          </div>
+        </CardHeader>
         <CardContent>
           <p className="text-[10px] text-muted-foreground mb-2">Recebimentos este mês</p>
           <Table>
@@ -750,7 +756,12 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
 
         return (
           <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Tarefas</CardTitle></CardHeader>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm">Tarefas</CardTitle>
+                <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/tarefas')}><Plus className="h-3 w-3" /> Nova Tarefa</Button>
+              </div>
+            </CardHeader>
             <CardContent>
               <Tabs defaultValue="month" className="w-full">
                 <TabsList className="mb-2">
