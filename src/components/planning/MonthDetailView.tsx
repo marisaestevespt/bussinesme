@@ -502,12 +502,12 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 const colLeads = monthLeads.filter((l: any) => l.status === col);
                 return (
                   <div key={col} className="w-44 shrink-0">
-                    <div className="text-[10px] font-medium text-muted-foreground mb-1.5 px-1">{CRM_LABELS[col]} <Badge variant="outline" className="text-[9px] ml-1">{colLeads.length}</Badge></div>
+                    <div className={cn('text-[10px] font-medium mb-1.5 px-2 py-1 rounded-md', CRM_COLORS[col] || 'text-muted-foreground')}>{CRM_LABELS[col]} <Badge variant="outline" className="text-[9px] ml-1">{colLeads.length}</Badge></div>
                     <div className="space-y-1.5">
                       {colLeads.map((l: any) => {
                         const overdue = l.next_followup && parseISO(l.next_followup) < new Date();
                         return (
-                          <div key={l.id} className={cn('border border-border/50 rounded-lg p-2 bg-background text-xs space-y-1', overdue && 'border-destructive/50')}>
+                          <div key={l.id} className={cn('border rounded-lg p-2 bg-background text-xs space-y-1', CRM_COLORS[col]?.replace(/bg-\S+/, '').trim() || '', overdue && 'border-destructive/50')}>
                             <p className="font-medium truncate">{l.name}</p>
                             {l.email && <p className="text-muted-foreground truncate">{l.email}</p>}
                             {l.phone && <p className="text-muted-foreground">{l.phone}</p>}
