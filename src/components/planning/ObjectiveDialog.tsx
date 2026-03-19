@@ -4,13 +4,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES } from '@/hooks/usePlanningData';
+import { PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES, MEASUREMENT_TYPES } from '@/hooks/usePlanningData';
 import { useProducts } from '@/hooks/useProducts';
 import { Label } from '@/components/ui/label';
 
 const DEFAULTS = {
   title: '', description: '', area: 'outro', status: 'por_iniciar', deadline: '',
   objective_type: 'quantitativo', target_value: '', target_unit: '€', current_value: '', value_source: 'manual', product_id: '',
+  measurement_type: 'acumulativo',
 };
 
 export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
@@ -59,6 +60,17 @@ export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
 
           {form.objective_type === 'quantitativo' && (
             <>
+              <div><Label>Tipo de medição</Label>
+                <Select value={form.measurement_type || 'acumulativo'} onValueChange={v => set('measurement_type', v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{MEASUREMENT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {form.measurement_type === 'progressivo'
+                    ? 'Valor absoluto atual (ex: seguidores, clientes ativos, NPS)'
+                    : 'Soma de registos no período (ex: faturação, vendas, leads)'}
+                </p>
+              </div>
               <div className="grid grid-cols-3 gap-3">
                 <div><Label>Valor alvo</Label><Input type="number" value={form.target_value || ''} onChange={e => set('target_value', e.target.value)} /></div>
                 <div><Label>Unidade</Label><Input value={form.target_unit || ''} onChange={e => set('target_unit', e.target.value)} placeholder="€, seguidores..." /></div>
@@ -86,7 +98,7 @@ export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
             </>
           )}
 
-          <Button className="w-full" onClick={() => onSave({ ...initial, ...form, product_id: form.product_id || null })} disabled={!form.title?.toString().trim()}>
+          <Button className="w-full" onClick={() => onSave({ ...initial, ...form, product_id: form.product_id || null, measurement_type: form.objective_type === 'quantitativo' ? (form.measurement_type || 'acumulativo') : null })} disabled={!form.title?.toString().trim()}>
             Guardar
           </Button>
         </div>

@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, Save, ListTodo, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { planAreaLabel, planStatusLabel, PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES, CADENCES, ACTION_STATUSES, GOAL_STATUSES } from '@/hooks/usePlanningData';
+import { planAreaLabel, planStatusLabel, PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES, CADENCES, ACTION_STATUSES, GOAL_STATUSES, MEASUREMENT_TYPES } from '@/hooks/usePlanningData';
 import { useTeamData } from '@/hooks/useTeamData';
 import { useProducts } from '@/hooks/useProducts';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -39,6 +39,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
         objective_type: obj.objective_type || 'quantitativo', target_value: obj.target_value || '',
         target_unit: obj.target_unit || '€', current_value: obj.current_value || '',
         value_source: obj.value_source || 'manual', product_id: obj.product_id || '',
+        measurement_type: obj.measurement_type || 'acumulativo',
       });
       setEditing(false);
     }
@@ -115,30 +116,40 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                 <div><Label>Data limite</Label><Input type="date" value={form.deadline} onChange={e => set('deadline', e.target.value)} /></div>
               </div>
               {form.objective_type === 'quantitativo' && (
-                <div className="grid grid-cols-3 gap-3">
-                  <div><Label>Valor alvo</Label><Input type="number" value={form.target_value} onChange={e => set('target_value', e.target.value)} /></div>
-                  <div><Label>Unidade</Label><Input value={form.target_unit} onChange={e => set('target_unit', e.target.value)} /></div>
-                  <div><Label>Fonte</Label>
-                    <Select value={form.value_source || 'manual'} onValueChange={v => set('value_source', v)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                  {form.value_source === 'manual' && (
-                    <div><Label>Valor atual</Label><Input type="number" value={form.current_value} onChange={e => set('current_value', e.target.value)} /></div>
-                  )}
-                  {(form.value_source === 'bd_vendas' || form.value_source === 'bd_crm') && (
-                    <div><Label>Produto associado</Label>
-                      <Select value={form.product_id || 'none'} onValueChange={v => set('product_id', v === 'none' ? '' : v)}>
-                        <SelectTrigger><SelectValue placeholder="Todos os produtos" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Todos os produtos</SelectItem>
-                          {productsList.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                        </SelectContent>
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label>Tipo de medição</Label>
+                      <Select value={form.measurement_type || 'acumulativo'} onValueChange={v => set('measurement_type', v)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>{MEASUREMENT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
-                  )}
-                </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div><Label>Valor alvo</Label><Input type="number" value={form.target_value} onChange={e => set('target_value', e.target.value)} /></div>
+                    <div><Label>Unidade</Label><Input value={form.target_unit} onChange={e => set('target_unit', e.target.value)} /></div>
+                    <div><Label>Fonte</Label>
+                      <Select value={form.value_source || 'manual'} onValueChange={v => set('value_source', v)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    {form.value_source === 'manual' && (
+                      <div><Label>Valor atual</Label><Input type="number" value={form.current_value} onChange={e => set('current_value', e.target.value)} /></div>
+                    )}
+                    {(form.value_source === 'bd_vendas' || form.value_source === 'bd_crm') && (
+                      <div><Label>Produto associado</Label>
+                        <Select value={form.product_id || 'none'} onValueChange={v => set('product_id', v === 'none' ? '' : v)}>
+                          <SelectTrigger><SelectValue placeholder="Todos os produtos" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Todos os produtos</SelectItem>
+                            {productsList.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           ) : (
@@ -147,6 +158,9 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
               <div className="flex gap-2 flex-wrap">
                 <Badge variant="outline">{planAreaLabel(obj.area)}</Badge>
                 <Badge variant="outline">{obj.objective_type === 'quantitativo' ? 'Quantitativo' : 'Qualitativo'}</Badge>
+                {obj.objective_type === 'quantitativo' && (
+                  <Badge variant="outline">{MEASUREMENT_TYPES.find(t => t.value === obj.measurement_type)?.label || 'Acumulativo'}</Badge>
+                )}
                 <Badge variant={obj.status === 'atingido' ? 'default' : 'secondary'}>{planStatusLabel(obj.status)}</Badge>
               </div>
             </>
@@ -352,7 +366,7 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
   const [historyMetric, setHistoryMetric] = useState<any>(null);
   const [recordDialog, setRecordDialog] = useState(false);
   const [editMetric, setEditMetric] = useState<any>(null);
-  const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60', product_id: '' });
+  const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60', product_id: '', measurement_type: 'acumulativo' });
   const [editForm, setEditForm] = useState<any>({});
   const [recordForm, setRecordForm] = useState({ value: '', notes: '', recorded_at: format(new Date(), 'yyyy-MM-dd') });
 
@@ -363,6 +377,7 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
         current_value: editMetric.current_value || '', target_value: editMetric.target_value || '',
         target_unit: editMetric.target_unit || '', green_threshold: editMetric.green_threshold ?? 90,
         yellow_threshold: editMetric.yellow_threshold ?? 60, product_id: editMetric.product_id || '',
+        measurement_type: editMetric.measurement_type || 'acumulativo',
       });
     }
   }, [editMetric]);
@@ -380,9 +395,9 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
   };
 
   const handleSaveNew = () => {
-    planning.upsertMetric.mutate({ ...form, product_id: form.product_id || null, target_value: form.target_value ? Number(form.target_value) : null, green_threshold: Number(form.green_threshold), yellow_threshold: Number(form.yellow_threshold), objective_id: objectiveId });
+    planning.upsertMetric.mutate({ ...form, product_id: form.product_id || null, measurement_type: form.measurement_type || 'acumulativo', target_value: form.target_value ? Number(form.target_value) : null, green_threshold: Number(form.green_threshold), yellow_threshold: Number(form.yellow_threshold), objective_id: objectiveId });
     setDialogOpen(false);
-    setForm({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60', product_id: '' });
+    setForm({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60', product_id: '', measurement_type: 'acumulativo' });
   };
 
   const handleSaveEdit = () => {
@@ -390,6 +405,7 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
     planning.upsertMetric.mutate({
       id: editMetric.id, objective_id: objectiveId, ...editForm,
       product_id: editForm.product_id || null,
+      measurement_type: editForm.measurement_type || 'acumulativo',
       target_value: editForm.target_value ? Number(editForm.target_value) : null,
       green_threshold: Number(editForm.green_threshold), yellow_threshold: Number(editForm.yellow_threshold),
     });
@@ -475,6 +491,17 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
           <DialogHeader><DialogTitle>Nova Métrica</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div><Label>Nome</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} /></div>
+            <div><Label>Tipo de medição</Label>
+              <Select value={form.measurement_type || 'acumulativo'} onValueChange={v => setForm(p => ({ ...p, measurement_type: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{MEASUREMENT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                {form.measurement_type === 'progressivo'
+                  ? 'Valor absoluto atual (ex: seguidores, clientes ativos)'
+                  : 'Soma de registos no período (ex: faturação, vendas)'}
+              </p>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Valor objetivo</Label><Input type="number" value={form.target_value} onChange={e => setForm(p => ({ ...p, target_value: e.target.value }))} /></div>
               <div><Label>Unidade</Label><Input value={form.target_unit} onChange={e => setForm(p => ({ ...p, target_unit: e.target.value }))} /></div>
@@ -517,6 +544,17 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
           <DialogHeader><DialogTitle>Editar Métrica</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div><Label>Nome</Label><Input value={editForm.name || ''} onChange={e => setEditForm((p: any) => ({ ...p, name: e.target.value }))} /></div>
+            <div><Label>Tipo de medição</Label>
+              <Select value={editForm.measurement_type || 'acumulativo'} onValueChange={v => setEditForm((p: any) => ({ ...p, measurement_type: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{MEASUREMENT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                {editForm.measurement_type === 'progressivo'
+                  ? 'Valor absoluto atual (ex: seguidores, clientes ativos)'
+                  : 'Soma de registos no período (ex: faturação, vendas)'}
+              </p>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Valor objetivo</Label><Input type="number" value={editForm.target_value || ''} onChange={e => setEditForm((p: any) => ({ ...p, target_value: e.target.value }))} /></div>
               <div><Label>Unidade</Label><Input value={editForm.target_unit || ''} onChange={e => setEditForm((p: any) => ({ ...p, target_unit: e.target.value }))} /></div>
