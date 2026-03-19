@@ -62,7 +62,7 @@ export function CommercialOverview() {
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Meta Anual</CardTitle></CardHeader>
           <CardContent><p className="text-2xl font-bold">€{fmt(data.annualGoalAmount)}</p></CardContent></Card>
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Faturado</CardTitle></CardHeader>
@@ -79,6 +79,20 @@ export function CommercialOverview() {
               <p className="text-muted-foreground">Sem dados</p>
             )}
           </CardContent></Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => navigate('/hub/comercial/crm')}
+        >
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5" /> Leads Ativas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{activeLeadsCount}</p>
+            <p className="text-xs text-muted-foreground">em pipeline</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Mismatch alert */}
