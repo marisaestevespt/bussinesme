@@ -945,7 +945,7 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
 }
 
 // ─── Tab: Performance ──────
-function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> }) {
+export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> }) {
   const allMembers = team.members.data || [];
   const [filterMember, setFilterMember] = useState('');
   const [dateFrom, setDateFrom] = useState('');
