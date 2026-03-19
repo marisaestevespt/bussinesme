@@ -112,6 +112,12 @@ export default function GestaoMarcaPage() {
   const [showAddCompetitor, setShowAddCompetitor] = useState(false);
   const [compForm, setCompForm] = useState({ name: '', type: 'direta', instagram: '', website: '', produtos: '', precos: '', plataformas: '', posicionamento: '', comunicacao: '' });
 
+  // SWOT
+  const [newSwot, setNewSwot] = useState<{ quadrant: string; text: string } | null>(null);
+
+  // Diferenciais
+  const [newDifferential, setNewDifferential] = useState('');
+
   // ── Queries ──
 
   const { data: brandLinks = [] } = useQuery({
