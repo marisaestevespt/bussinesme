@@ -178,7 +178,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
       {/* Entradas */}
       <Card>
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-sm">Entradas — {MONTHS[m - 1]}</CardTitle>
+          <CardTitle className="text-sm">Entradas</CardTitle>
           <Button size="sm" variant="outline" onClick={() => setSaleOpen(true)}><Plus className="h-3.5 w-3.5 mr-1" /> Nova Entrada</Button>
         </CardHeader>
         <CardContent className="p-0">
@@ -198,7 +198,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
       {/* Saídas */}
       <Card>
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-sm">Saídas — {MONTHS[m - 1]}</CardTitle>
+          <CardTitle className="text-sm">Saídas</CardTitle>
           <Button size="sm" variant="outline" onClick={() => setExpOpen(true)}><Plus className="h-3.5 w-3.5 mr-1" /> Nova Saída</Button>
         </CardHeader>
         <CardContent className="p-0">
@@ -233,7 +233,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
 
       {/* IVA Balance */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Balanço IVA — {MONTHS[m - 1]}</CardTitle></CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Balanço IVA</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div><p className="text-muted-foreground">IVA Cobrado (vendas)</p><p className="font-semibold">{fmt(ivaCobrado)}</p></div>
@@ -252,7 +252,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
 
       {/* Segurança Social */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Segurança Social — {MONTHS[m - 1]}</CardTitle></CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Segurança Social</CardTitle></CardHeader>
         <CardContent>
           <div className="flex items-end gap-3">
             <div className="flex-1">
