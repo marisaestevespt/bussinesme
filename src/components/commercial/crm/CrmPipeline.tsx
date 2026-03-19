@@ -93,7 +93,7 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus }: CrmPipelinePr
                       )}
                     </div>
 
-                    <div className="mt-2.5 space-y-1">
+                    <div className="mt-3 pt-2.5 border-t space-y-1">
                       <div className={`flex items-center gap-1 text-xs ${fuBadgeClass(fuState)}`}>
                         <FuIcon state={fuState} />
                         <span className="text-muted-foreground">Próximo FU:</span> {lead.next_followup ? format(new Date(lead.next_followup), 'dd/MM/yyyy') : '—'}
