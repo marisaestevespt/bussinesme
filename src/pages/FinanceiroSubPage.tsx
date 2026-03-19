@@ -13,6 +13,7 @@ import { FinPayroll } from '@/components/financial/FinPayroll';
 import { FinMensal } from '@/components/financial/FinMensal';
 import { FinTrimestral } from '@/components/financial/FinTrimestral';
 import { FinSegurancaSocial } from '@/components/financial/FinSegurancaSocial';
+import { FinAllDocuments } from '@/components/financial/FinAllDocuments';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 
 const TITLES: Record<string, string> = {
