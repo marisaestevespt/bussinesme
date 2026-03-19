@@ -241,6 +241,14 @@ export default function SecretariaPage() {
         <Tabs defaultValue="dia">
 
           <TabsList className="hidden">
+            <TabsTrigger value="dia">O Meu Dia</TabsTrigger>
+            <TabsTrigger value="tarefas">As Minhas Tarefas</TabsTrigger>
+            <TabsTrigger value="projetos">Os Meus Projetos</TabsTrigger>
+            <TabsTrigger value="reunioes">As Minhas Reuniões</TabsTrigger>
+            <TabsTrigger value="produtividade">Produtividade</TabsTrigger>
+            <TabsTrigger value="contrato">Contrato</TabsTrigger>
+            <TabsTrigger value="espaco">Espaço</TabsTrigger>
+          </TabsList>
 
           {/* TAB 1 — O MEU DIA */}
           <TabsContent value="dia">
