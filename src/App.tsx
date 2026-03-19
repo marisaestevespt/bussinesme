@@ -27,6 +27,7 @@ import SopDetailPage from "./pages/SopDetail";
 import BibliotecaPage from "./pages/Biblioteca";
 import TarefasPage from "./pages/Tarefas";
 import HubEquipaPage from "./pages/HubEquipa";
+import GestaoMarcaPage from "./pages/GestaoMarca";
 
 const queryClient = new QueryClient();
 
