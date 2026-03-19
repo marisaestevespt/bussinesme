@@ -1162,6 +1162,7 @@ export default function ProdutoDetailPage() {
                 </CardContent>
               </Card>
 
+              <Card>
                 <CardHeader><CardTitle className="text-base">Melhorias</CardTitle></CardHeader>
                 <CardContent>
                   <RichTextEditor
