@@ -279,20 +279,20 @@ export function usePlanningData(year = currentYear) {
     onError: () => toast.error('Erro ao converter ação'),
   });
 
-  // ─── Auto-calculated values ──────────────────
-  const autoSalesTotal = useQuery({
-    queryKey: ['auto-sales', year],
+  // ─── Auto-calculated values (raw data for filtering) ──────────────────
+  const autoSalesRaw = useQuery({
+    queryKey: ['auto-sales-raw', year],
     queryFn: async () => {
-      const { data } = await supabase.from('commercial_sales').select('invoice_total').eq('sale_year', year);
-      return (data || []).reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+      const { data } = await supabase.from('commercial_sales').select('invoice_total,product').eq('sale_year', year);
+      return data || [];
     },
   });
 
-  const autoCrmWins = useQuery({
-    queryKey: ['auto-crm-wins', year],
+  const autoCrmRaw = useQuery({
+    queryKey: ['auto-crm-raw', year],
     queryFn: async () => {
-      const { data } = await supabase.from('crm_leads').select('id').eq('status', 'ganho');
-      return (data || []).length;
+      const { data } = await supabase.from('crm_leads').select('id,potential_product').eq('status', 'ganho');
+      return data || [];
     },
   });
 
@@ -304,10 +304,18 @@ export function usePlanningData(year = currentYear) {
     },
   });
 
-  // Helper: get auto value for a source
-  const getAutoValue = (source: string) => {
-    if (source === 'bd_vendas') return autoSalesTotal.data ?? null;
-    if (source === 'bd_crm') return autoCrmWins.data ?? null;
+  // Helper: get auto value for a source, optionally filtered by product name
+  const getAutoValue = (source: string, productName?: string | null) => {
+    if (source === 'bd_vendas') {
+      const rows = autoSalesRaw.data || [];
+      const filtered = productName ? rows.filter((r: any) => r.product === productName) : rows;
+      return filtered.reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0);
+    }
+    if (source === 'bd_crm') {
+      const rows = autoCrmRaw.data || [];
+      const filtered = productName ? rows.filter((r: any) => r.potential_product === productName) : rows;
+      return filtered.length;
+    }
     if (source === 'bd_clientes') return autoActiveClients.data ?? null;
     return null;
   };
@@ -315,7 +323,7 @@ export function usePlanningData(year = currentYear) {
   // Helper: compute objective progress
   const objectiveProgress = (obj: any) => {
     if (obj.objective_type === 'quantitativo') {
-      const cv = obj.value_source === 'manual' ? Number(obj.current_value || 0) : (getAutoValue(obj.value_source) ?? 0);
+      const cv = obj.value_source === 'manual' ? Number(obj.current_value || 0) : (getAutoValue(obj.value_source, obj.product_name) ?? 0);
       const tv = Number(obj.target_value || 0);
       if (tv <= 0) return 0;
       return Math.min(100, Math.round((cv / tv) * 100));
@@ -329,7 +337,7 @@ export function usePlanningData(year = currentYear) {
   // Helper: current value for objective
   const objectiveCurrentValue = (obj: any) => {
     if (obj.value_source === 'manual') return Number(obj.current_value || 0);
-    return getAutoValue(obj.value_source) ?? 0;
+    return getAutoValue(obj.value_source, obj.product_name) ?? 0;
   };
 
   // Computed: metrics with overdue check
