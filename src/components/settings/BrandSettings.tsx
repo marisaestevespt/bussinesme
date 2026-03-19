@@ -202,17 +202,19 @@ export function BrandSettings() {
           loginBgUrl = publicUrl;
         }
       }
+      const { error } = await supabase
         .from('business_settings')
         .update({
           business_name: businessName.trim(),
           logo_url: logoUrl,
+          login_bg_url: loginBgUrl,
           primary_color: hexToHsl(colors.primary),
           secondary_color: hexToHsl(colors.secondary),
           background_color: hexToHsl(colors.background),
           text_color: hexToHsl(colors.text),
           font_display: fontDisplay,
           font_body: fontBody,
-        })
+        } as any)
         .eq('id', settings.id);
 
       if (error) throw error;
