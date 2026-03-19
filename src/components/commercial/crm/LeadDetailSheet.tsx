@@ -153,6 +153,15 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
               </div>
               <div><Label>Email</Label><Input value={form.email || ''} onChange={e => set({ email: e.target.value })} /></div>
               <div><Label>Telefone</Label><Input value={form.phone || ''} onChange={e => set({ phone: e.target.value })} /></div>
+              <div className="col-span-2">
+                <Label>Vendedor / Responsável</Label>
+                <Select value={form.responsible_id || ''} onValueChange={v => set({ responsible_id: v })}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    {profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <div>
                 <Label>Produto Potencial</Label>
                 <Select value={form.potential_product || ''} onValueChange={v => set({ potential_product: v })}>
