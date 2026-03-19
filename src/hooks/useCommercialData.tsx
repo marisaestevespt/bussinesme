@@ -190,7 +190,7 @@ export function useCommercialData(year = currentYear) {
 
   // Validation: monthly goals sum vs annual
   const monthlyGoalsSum = (monthlyGoals.data || []).reduce((s, m) => s + Number(m.goal_amount || 0), 0);
-  const monthlyMismatch = annualGoalAmount > 0 && Math.abs(monthlyGoalsSum - annualGoalAmount) > 0.01;
+  const monthlyMismatch = annualGoalAmount > 0 && monthlyGoalsSum < annualGoalAmount - 0.01;
 
   // Quarter totals from sales
   const quarterTotals = [1, 2, 3, 4].map(q =>

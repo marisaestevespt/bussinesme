@@ -32,7 +32,7 @@ export function CommercialMetas() {
 
   // Product goals
   const productGoalsSum = (data.productGoals.data || []).reduce((s, p) => s + Number(p.goal_amount || 0), 0);
-  const productMismatch = data.annualGoalAmount > 0 && Math.abs(productGoalsSum - data.annualGoalAmount) > 0.01;
+  const productMismatch = data.annualGoalAmount > 0 && productGoalsSum < data.annualGoalAmount - 0.01;
 
   // Quarterly
   const qGoals = [1, 2, 3, 4].map(q => {
@@ -40,7 +40,7 @@ export function CommercialMetas() {
     return { quarter: q, goal_amount: Number(existing?.goal_amount || 0) };
   });
   const quarterlySum = qGoals.reduce((s, q) => s + q.goal_amount, 0);
-  const quarterlyMismatch = data.annualGoalAmount > 0 && Math.abs(quarterlySum - data.annualGoalAmount) > 0.01;
+  const quarterlyMismatch = data.annualGoalAmount > 0 && quarterlySum < data.annualGoalAmount - 0.01;
 
   // Monthly
   const mGoals = Array.from({ length: 12 }, (_, i) => {
@@ -53,7 +53,7 @@ export function CommercialMetas() {
   const quarterMonthValidation = [1, 2, 3, 4].map(q => {
     const qGoal = qGoals.find(g => g.quarter === q)?.goal_amount || 0;
     const monthsSum = mGoals.filter(m => MONTH_QUARTER(m.month) === q).reduce((s, m) => s + m.goal_amount, 0);
-    return qGoal > 0 && Math.abs(monthsSum - qGoal) > 0.01;
+    return qGoal > 0 && monthsSum < qGoal - 0.01;
   });
 
   const analysis = (invoiced: number, goal: number) => {
