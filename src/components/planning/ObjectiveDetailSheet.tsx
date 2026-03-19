@@ -128,7 +128,6 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                 <Badge variant="outline">{planAreaLabel(obj.area)}</Badge>
                 <Badge variant="outline">{obj.objective_type === 'quantitativo' ? 'Quantitativo' : 'Qualitativo'}</Badge>
                 <Badge variant={obj.status === 'atingido' ? 'default' : 'secondary'}>{planStatusLabel(obj.status)}</Badge>
-                {obj.deadline && <Badge variant="outline">Até {obj.deadline}</Badge>}
               </div>
             </>
           )}
