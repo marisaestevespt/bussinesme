@@ -144,6 +144,7 @@ export function BrandSettings() {
     if (!settings) return;
     setBusinessName(settings.business_name);
     setLogoPreview(settings.logo_url);
+    setBgPreview((settings as any).login_bg_url || null);
     setColors({
       primary: hslToHex(settings.primary_color),
       secondary: hslToHex(settings.secondary_color),
