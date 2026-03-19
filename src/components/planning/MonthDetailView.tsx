@@ -176,14 +176,27 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const timeEntries = timeEntriesQ.data || [];
   const team = teamQ.data || [];
 
-  // Product review
+  // Product review with per-client breakdown
   const productReview = useMemo(() => {
     return products.map((p: any) => {
       const clientsWithProduct = activeClients.filter((c: any) => c.current_product === p.name);
-      const estimatedHours = (p.monthly_hours_per_client || 0) * clientsWithProduct.length;
-      return { id: p.id, name: p.name, clientCount: clientsWithProduct.length, estimatedHours, realHours: 0, deviation: 0 };
+      const hoursPerClient = p.monthly_hours_per_client || 0;
+      const estimatedHours = hoursPerClient * clientsWithProduct.length;
+
+      // Per-client breakdown with real hours from time_entries
+      const clientBreakdown = clientsWithProduct.map((c: any) => {
+        const clientTimeEntries = timeEntries.filter((te: any) => te.client_id === c.id);
+        const realHours = Math.round(clientTimeEntries.reduce((s: number, te: any) => s + Number(te.duration || 0), 0) * 10) / 10;
+        const deviation = Math.round((realHours - hoursPerClient) * 10) / 10;
+        return { clientId: c.id, clientName: c.full_name, clientCode: c.client_id, estimated: hoursPerClient, realHours, deviation };
+      });
+
+      const totalRealHours = Math.round(clientBreakdown.reduce((s: number, cb: any) => s + cb.realHours, 0) * 10) / 10;
+      const totalDeviation = Math.round((totalRealHours - estimatedHours) * 10) / 10;
+
+      return { id: p.id, name: p.name, clientCount: clientsWithProduct.length, estimatedHours, realHours: totalRealHours, deviation: totalDeviation, clientBreakdown };
     }).filter((p: any) => p.clientCount > 0);
-  }, [products, activeClients]);
+  }, [products, activeClients, timeEntries]);
 
   // Team capacity
   const teamCapacity = useMemo(() => {
@@ -718,30 +731,66 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             <p className="text-sm text-muted-foreground text-center py-4">Sem produtos com clientes ativos para análise.</p>
           ) : (
             <>
-              <Table>
-                <TableHeader><TableRow>
-                  <TableHead>Produto</TableHead><TableHead className="text-right">Horas estimadas</TableHead><TableHead className="text-right">Horas reais</TableHead><TableHead className="text-right">Desvio</TableHead><TableHead>Status</TableHead>
-                </TableRow></TableHeader>
-                <TableBody>
-                  {productReview.map((p: any) => (
-                    <TableRow key={p.id}>
-                      <TableCell className="text-sm font-medium">{p.name}</TableCell>
-                      <TableCell className="text-sm text-right">{p.estimatedHours}h</TableCell>
-                      <TableCell className="text-sm text-right">{p.realHours}h</TableCell>
-                      <TableCell className="text-right">
-                        {Math.abs(p.deviation) >= 10 ? <Badge variant="destructive" className="text-xs">{p.deviation > 0 ? '+' : ''}{p.deviation}h</Badge> : <span className="text-sm">{p.deviation}h</span>}
-                      </TableCell>
-                      <TableCell>{Math.abs(p.deviation) >= 10 ? <Badge variant="destructive" className="text-[10px]">Desvio</Badge> : <Badge variant="secondary" className="text-[10px]">OK</Badge>}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              {productReview.map((p: any) => (
+                <div key={p.id} className="space-y-1">
+                  {/* Product header row */}
+                  <Table>
+                    <TableHeader><TableRow>
+                      <TableHead>Produto</TableHead><TableHead className="text-right">Horas estimadas</TableHead><TableHead className="text-right">Horas reais</TableHead><TableHead className="text-right">Desvio</TableHead><TableHead>Status</TableHead>
+                    </TableRow></TableHeader>
+                    <TableBody>
+                      <TableRow className="font-medium bg-muted/30">
+                        <TableCell className="text-sm font-semibold">{p.name} <span className="text-muted-foreground font-normal">({p.clientCount} clientes)</span></TableCell>
+                        <TableCell className="text-sm text-right">{p.estimatedHours}h</TableCell>
+                        <TableCell className="text-sm text-right">{p.realHours}h</TableCell>
+                        <TableCell className="text-right">
+                          {Math.abs(p.deviation) >= 5 ? <Badge variant="destructive" className="text-xs">{p.deviation > 0 ? '+' : ''}{p.deviation}h</Badge> : <span className="text-sm">{p.deviation > 0 ? '+' : ''}{p.deviation}h</span>}
+                        </TableCell>
+                        <TableCell>{Math.abs(p.deviation) >= 5 ? <Badge variant="destructive" className="text-[10px]">Desvio</Badge> : <Badge variant="secondary" className="text-[10px]">OK</Badge>}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                  {/* Per-client sub-rows */}
+                  <div className="ml-4 border-l-2 border-border/50 pl-3">
+                    <Table>
+                      <TableHeader><TableRow>
+                        <TableHead className="text-[10px]">Cliente</TableHead><TableHead className="text-[10px] text-right">Estimado</TableHead><TableHead className="text-[10px] text-right">Real</TableHead><TableHead className="text-[10px] text-right">Desvio</TableHead><TableHead className="text-[10px]">Status</TableHead>
+                      </TableRow></TableHeader>
+                      <TableBody>
+                        {p.clientBreakdown.map((cb: any) => {
+                          const isOver = cb.deviation > 2;
+                          const isUnder = cb.deviation < -2;
+                          return (
+                            <TableRow key={cb.clientId} className={cn('cursor-pointer hover:bg-muted/60', isOver && 'bg-red-50/50 dark:bg-red-950/10')} onClick={() => navigate(`/clientes/${cb.clientId}`)}>
+                              <TableCell className="text-xs">{cb.clientName} <span className="text-muted-foreground">({cb.clientCode})</span></TableCell>
+                              <TableCell className="text-xs text-right">{cb.estimated}h</TableCell>
+                              <TableCell className="text-xs text-right">{cb.realHours}h</TableCell>
+                              <TableCell className="text-xs text-right">
+                                {isOver ? <span className="text-destructive font-medium">+{cb.deviation}h</span> : isUnder ? <span className="text-blue-600 font-medium">{cb.deviation}h</span> : <span>{cb.deviation > 0 ? '+' : ''}{cb.deviation}h</span>}
+                              </TableCell>
+                              <TableCell>
+                                {isOver ? <Badge variant="destructive" className="text-[9px]">Acima</Badge> : isUnder ? <Badge className="text-[9px] bg-blue-100 text-blue-700">Abaixo</Badge> : <Badge variant="secondary" className="text-[9px]">OK</Badge>}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
 
-              {productReview.filter((p: any) => Math.abs(p.deviation) >= 10).map((p: any) => (
-                <div key={p.id} className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700 p-3 flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                  <p className="text-xs text-amber-800 dark:text-amber-300 flex-1">O produto <strong>{p.name}</strong> demorou <strong>{Math.abs(p.deviation)}h</strong> {p.deviation > 0 ? 'a mais' : 'a menos'} do que o estimado. Considera rever as horas definidas no produto.</p>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 shrink-0"><ExternalLink className="h-3 w-3" /> Ver produto</Button>
+                  {/* Alert if product total deviation is big */}
+                  {Math.abs(p.deviation) >= 5 && (
+                    <div className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700 p-3 flex items-start gap-2">
+                      <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                      <p className="text-xs text-amber-800 dark:text-amber-300 flex-1">
+                        O produto <strong>{p.name}</strong> demorou <strong>{Math.abs(p.deviation)}h</strong> {p.deviation > 0 ? 'a mais' : 'a menos'} do que o estimado.
+                        {p.clientBreakdown.filter((cb: any) => cb.deviation > 2).length > 0 && (
+                          <> Os clientes fora do normal: <strong>{p.clientBreakdown.filter((cb: any) => cb.deviation > 2).map((cb: any) => cb.clientName).join(', ')}</strong>.</>
+                        )}
+                      </p>
+                      <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 shrink-0" onClick={() => navigate(`/produtos/${p.id}`)}><ExternalLink className="h-3 w-3" /> Ver produto</Button>
+                    </div>
+                  )}
                 </div>
               ))}
             </>
