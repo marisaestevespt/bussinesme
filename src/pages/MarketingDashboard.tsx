@@ -41,9 +41,6 @@ export default function MarketingDashboard() {
   const [editChannelLink, setEditChannelLink] = useState('');
   const [showAddChannel, setShowAddChannel] = useState(false);
   const [newChannelName, setNewChannelName] = useState('');
-  const [showNewContent, setShowNewContent] = useState(false);
-  const [newContentTitle, setNewContentTitle] = useState('');
-
   // Queries
   const { data: channels = [] } = useQuery({
     queryKey: ['marketing-channels'],
@@ -107,15 +104,11 @@ export default function MarketingDashboard() {
   };
 
   const createContent = async () => {
-    if (!newContentTitle.trim()) return;
     const { data, error } = await supabase.from('content_items').insert({
-      title: newContentTitle, created_by: user?.id,
+      title: 'Novo Conteúdo', created_by: user?.id,
     } as any).select('id').single() as { data: { id: string } | null; error: any };
     if (error || !data) { toast.error('Erro ao criar'); return; }
-    toast.success('Conteúdo criado');
     queryClient.invalidateQueries({ queryKey: ['content-items'] });
-    setShowNewContent(false);
-    setNewContentTitle('');
     navigate(`/hub/marketing/conteudos/${data.id}`);
   };
 
@@ -251,7 +244,7 @@ export default function MarketingDashboard() {
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-foreground">Conteúdos a sair esta semana</h2>
-              <Button size="sm" onClick={() => setShowNewContent(true)}>
+              <Button size="sm" onClick={createContent}>
                 <Plus className="h-3.5 w-3.5 mr-1" />Novo Conteúdo
               </Button>
             </div>
@@ -300,7 +293,7 @@ export default function MarketingDashboard() {
           <section className="space-y-4 pb-10">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-foreground">Calendário de Conteúdos</h2>
-              <Button size="sm" onClick={() => setShowNewContent(true)}>
+              <Button size="sm" onClick={createContent}>
                 <Plus className="h-3.5 w-3.5 mr-1" />Novo Conteúdo
               </Button>
             </div>
@@ -316,17 +309,6 @@ export default function MarketingDashboard() {
           <div className="space-y-3">
             <Input value={newChannelName} onChange={e => setNewChannelName(e.target.value)} placeholder="Nome do canal" onKeyDown={e => e.key === 'Enter' && addChannel()} />
             <Button className="w-full" disabled={!newChannelName.trim()} onClick={addChannel}>Adicionar</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* New Content Dialog */}
-      <Dialog open={showNewContent} onOpenChange={setShowNewContent}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader><DialogTitle>Novo Conteúdo</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <Input value={newContentTitle} onChange={e => setNewContentTitle(e.target.value)} placeholder="Título do conteúdo" onKeyDown={e => e.key === 'Enter' && createContent()} autoFocus />
-            <Button className="w-full" disabled={!newContentTitle.trim()} onClick={createContent}>Criar e Abrir</Button>
           </div>
         </DialogContent>
       </Dialog>
