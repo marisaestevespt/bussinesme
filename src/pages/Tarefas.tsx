@@ -246,8 +246,6 @@ export default function TarefasPage() {
     setDependsOnIds(deps);
     setDialogOpen(true);
   }
-    setDialogOpen(true);
-  }
 
   function closeDialog() {
     setDialogOpen(false);
