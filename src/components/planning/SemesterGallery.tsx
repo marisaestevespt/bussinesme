@@ -126,6 +126,8 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
   const [metasView, setMetasView] = useState<'metas' | 'objetivos'>('metas');
   const [calendarMonthOffset, setCalendarMonthOffset] = useState(0);
   const [selectedQuarterIdx, setSelectedQuarterIdx] = useState<number | null>(null);
+  const [selectedObjective, setSelectedObjective] = useState<any>(null);
+  const [objDialogOpen, setObjDialogOpen] = useState(false);
 
   // Goals & Objectives
   const goals = planning.allGoals || [];
