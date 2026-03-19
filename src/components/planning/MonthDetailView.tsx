@@ -256,46 +256,31 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   return (
     <div className="space-y-6">
       {/* ── HEADER ── */}
-      <div className="flex gap-6">
-        {/* Sidebar shortcuts */}
-        <div className="hidden sm:flex flex-col gap-2 w-40 shrink-0">
-          <Button variant="outline" size="sm" className="justify-start gap-2 text-xs h-8" onClick={() => navigate('/equipa')}><Users className="h-3.5 w-3.5" />Hub de Equipa</Button>
-          <Button variant="outline" size="sm" className="justify-start gap-2 text-xs h-8" onClick={() => navigate('/executive')}><LayoutDashboard className="h-3.5 w-3.5" />Executive Room</Button>
-          <Separator className="my-1" />
-          <p className="text-[10px] text-muted-foreground font-medium px-1">Comandos rápidos</p>
-          <Button variant="ghost" size="sm" className="justify-start gap-2 text-xs h-7" onClick={() => navigate('/tarefas')}><Plus className="h-3 w-3" />Nova tarefa</Button>
-          <Button variant="ghost" size="sm" className="justify-start gap-2 text-xs h-7" onClick={() => navigate('/mural')}><Lightbulb className="h-3 w-3" />Nova ideia</Button>
-          <Button variant="ghost" size="sm" className="justify-start gap-2 text-xs h-7" onClick={() => navigate('/clientes')}><UserPlus className="h-3 w-3" />Novo cliente</Button>
-          <Button variant="ghost" size="sm" className="justify-start gap-2 text-xs h-7" onClick={() => navigate('/marketing/conteudos')}><FileText className="h-3 w-3" />Novo conteúdo</Button>
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={onBack} className="gap-1.5"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
+          <div>
+            <h2 className="text-xl font-bold">{monthName} {year}</h2>
+            <p className="text-xs text-muted-foreground">Período Mensal — {range.label}</p>
+          </div>
         </div>
 
-        {/* Main header */}
-        <div className="flex-1 space-y-3">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={onBack} className="gap-1.5"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
-            <div>
-              <h2 className="text-xl font-bold">{monthName} {year}</h2>
-              <p className="text-xs text-muted-foreground">Período Mensal — {range.label}</p>
+        {/* Goals summary */}
+        {monthGoals.length > 0 && (
+          <div className="bg-muted/30 rounded-lg p-3 space-y-2">
+            <p className="text-xs font-medium text-muted-foreground">Em detalhe</p>
+            <div className="flex flex-wrap gap-1">
+              {monthGoals.map((g: any) => {
+                const obj = objectives.find((o: any) => o.id === g.objective_id);
+                return <Badge key={g.id} variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{obj?.title || g.period}</Badge>;
+              })}
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground">Progresso: {progress}%</span>
+              <Progress value={progress} className="h-2 flex-1" />
             </div>
           </div>
-
-          {/* Goals summary */}
-          {monthGoals.length > 0 && (
-            <div className="bg-muted/30 rounded-lg p-3 space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">Em detalhe</p>
-              <div className="flex flex-wrap gap-1">
-                {monthGoals.map((g: any) => {
-                  const obj = objectives.find((o: any) => o.id === g.objective_id);
-                  return <Badge key={g.id} variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{obj?.title || g.period}</Badge>;
-                })}
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground">Progresso: {progress}%</span>
-                <Progress value={progress} className="h-2 flex-1" />
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
       {/* ═══ SECTION 1: Objetivos ═══ */}
