@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { AppLayout } from '@/components/AppLayout';
+import { excludeCancelled } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useNavigate } from 'react-router-dom';
