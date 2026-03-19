@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -335,47 +336,53 @@ function MeuDiaTab({ todayTasks, todayMeetings, timeEntries, getProjectName, qc 
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tempo registado</p><p className="text-2xl font-bold">{todayHours.toFixed(1)}h</p></CardContent></Card>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Today tasks */}
-        <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Tarefas de Hoje</CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            {todayTasks.length === 0 && <p className="text-sm text-muted-foreground">Sem tarefas para hoje.</p>}
-            {todayTasks.map((t: any) => (
-              <div key={t.id} className="flex items-center gap-3 p-2 rounded-lg border">
-                <Checkbox checked={false} onCheckedChange={() => markDone(t.id)} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{t.name}</p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <Badge variant="outline" className="text-[10px]">{PRIORITY_LABELS[t.priority] || t.priority}</Badge>
-                    {t.project_id && <span className="text-[10px] text-muted-foreground truncate">{getProjectName(t.project_id)}</span>}
+      {/* Today tasks */}
+      <Card>
+        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Tarefas de Hoje</CardTitle></CardHeader>
+        <CardContent>
+          <ScrollArea className="max-h-[300px] overflow-auto pr-2">
+            <div className="space-y-2">
+              {todayTasks.length === 0 && <p className="text-sm text-muted-foreground">Sem tarefas para hoje.</p>}
+              {todayTasks.map((t: any) => (
+                <div key={t.id} className="flex items-center gap-3 p-2 rounded-lg border">
+                  <Checkbox checked={false} onCheckedChange={() => markDone(t.id)} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{t.name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <Badge variant="outline" className="text-[10px]">{PRIORITY_LABELS[t.priority] || t.priority}</Badge>
+                      {t.project_id && <span className="text-[10px] text-muted-foreground truncate">{getProjectName(t.project_id)}</span>}
+                    </div>
                   </div>
+                  <Badge className={cn('text-[10px]', STATUS_COLORS[t.status])}>{STATUS_LABELS[t.status] || t.status}</Badge>
                 </div>
-                <Badge className={cn('text-[10px]', STATUS_COLORS[t.status])}>{STATUS_LABELS[t.status] || t.status}</Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+              ))}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
 
-        {/* Today meetings */}
-        <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Reuniões de Hoje</CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            {todayMeetings.length === 0 && <p className="text-sm text-muted-foreground">Sem reuniões hoje.</p>}
-            {todayMeetings.map((m: any) => (
-              <div key={m.id} className="flex items-center justify-between p-2 rounded-lg border">
-                <div>
-                  <p className="text-sm font-medium">{m.title}</p>
-                  <p className="text-xs text-muted-foreground">{format(parseISO(m.date_time), 'HH:mm')}</p>
+      {/* Today meetings */}
+      <Card>
+        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Reuniões de Hoje</CardTitle></CardHeader>
+        <CardContent>
+          <ScrollArea className="max-h-[300px] overflow-auto pr-2">
+            <div className="space-y-2">
+              {todayMeetings.length === 0 && <p className="text-sm text-muted-foreground">Sem reuniões hoje.</p>}
+              {todayMeetings.map((m: any) => (
+                <div key={m.id} className="flex items-center justify-between p-2 rounded-lg border">
+                  <div>
+                    <p className="text-sm font-medium">{m.title}</p>
+                    <p className="text-xs text-muted-foreground">{format(parseISO(m.date_time), 'HH:mm')}</p>
+                  </div>
+                  {m.transcript_url && (
+                    <Button variant="ghost" size="sm" asChild><a href={m.transcript_url} target="_blank" rel="noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a></Button>
+                  )}
                 </div>
-                {m.transcript_url && (
-                  <Button variant="ghost" size="sm" asChild><a href={m.transcript_url} target="_blank" rel="noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a></Button>
-                )}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
 
       {/* Today time entries */}
       {todayTime.length > 0 && (
@@ -451,45 +458,51 @@ function MinhaSemanaTab({ allTasks, allMeetings, timeEntries, getProjectName, qc
       </Card>
 
       {/* Week tasks list */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Tarefas da Semana</CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            {weekTasks.length === 0 && <p className="text-sm text-muted-foreground">Sem tarefas esta semana.</p>}
-            {weekTasks.map((t: any) => (
-              <div key={t.id} className="flex items-center gap-3 p-2 rounded-lg border">
-                <Checkbox checked={t.status === 'done'} onCheckedChange={() => t.status !== 'done' && markDone(t.id)} />
-                <div className="flex-1 min-w-0">
-                  <p className={cn('text-sm font-medium truncate', t.status === 'done' && 'line-through text-muted-foreground')}>{t.name}</p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    {t.deadline && <span className="text-[10px] text-muted-foreground">{format(parseISO(t.deadline), 'EEE d', { locale: pt })}</span>}
-                    {t.project_id && <span className="text-[10px] text-muted-foreground">· {getProjectName(t.project_id)}</span>}
+      <Card>
+        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Tarefas da Semana</CardTitle></CardHeader>
+        <CardContent>
+          <ScrollArea className="max-h-[300px] overflow-auto pr-2">
+            <div className="space-y-2">
+              {weekTasks.length === 0 && <p className="text-sm text-muted-foreground">Sem tarefas esta semana.</p>}
+              {weekTasks.map((t: any) => (
+                <div key={t.id} className="flex items-center gap-3 p-2 rounded-lg border">
+                  <Checkbox checked={t.status === 'done'} onCheckedChange={() => t.status !== 'done' && markDone(t.id)} />
+                  <div className="flex-1 min-w-0">
+                    <p className={cn('text-sm font-medium truncate', t.status === 'done' && 'line-through text-muted-foreground')}>{t.name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {t.deadline && <span className="text-[10px] text-muted-foreground">{format(parseISO(t.deadline), 'EEE d', { locale: pt })}</span>}
+                      {t.project_id && <span className="text-[10px] text-muted-foreground">· {getProjectName(t.project_id)}</span>}
+                    </div>
                   </div>
+                  <Badge className={cn('text-[10px]', STATUS_COLORS[t.status])}>{STATUS_LABELS[t.status] || t.status}</Badge>
                 </div>
-                <Badge className={cn('text-[10px]', STATUS_COLORS[t.status])}>{STATUS_LABELS[t.status] || t.status}</Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+              ))}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Reuniões da Semana</CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            {weekMeetings.length === 0 && <p className="text-sm text-muted-foreground">Sem reuniões esta semana.</p>}
-            {weekMeetings.map((m: any) => (
-              <div key={m.id} className="flex items-center justify-between p-2 rounded-lg border">
-                <div>
-                  <p className="text-sm font-medium">{m.title}</p>
-                  <p className="text-xs text-muted-foreground">{format(parseISO(m.date_time), "EEE d, HH:mm", { locale: pt })}</p>
+      <Card>
+        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Reuniões da Semana</CardTitle></CardHeader>
+        <CardContent>
+          <ScrollArea className="max-h-[300px] overflow-auto pr-2">
+            <div className="space-y-2">
+              {weekMeetings.length === 0 && <p className="text-sm text-muted-foreground">Sem reuniões esta semana.</p>}
+              {weekMeetings.map((m: any) => (
+                <div key={m.id} className="flex items-center justify-between p-2 rounded-lg border">
+                  <div>
+                    <p className="text-sm font-medium">{m.title}</p>
+                    <p className="text-xs text-muted-foreground">{format(parseISO(m.date_time), "EEE d, HH:mm", { locale: pt })}</p>
+                  </div>
+                  {m.transcript_url && (
+                    <Button variant="ghost" size="sm" asChild><a href={m.transcript_url} target="_blank" rel="noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a></Button>
+                  )}
                 </div>
-                {m.transcript_url && (
-                  <Button variant="ghost" size="sm" asChild><a href={m.transcript_url} target="_blank" rel="noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a></Button>
-                )}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
     </div>
   );
 }
