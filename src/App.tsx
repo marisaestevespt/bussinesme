@@ -66,7 +66,10 @@ function AppRoutes() {
       <Route path="/hub/processos/:id" element={<SopDetailPage />} />
       <Route path="/hub/biblioteca" element={<BibliotecaPage />} />
       <Route path="/hub/tarefas" element={<TarefasPage />} />
+        <Route path="/hub/marketing" element={<MarketingDashboard />} />
         <Route path="/hub/marketing/gestao-marca" element={<GestaoMarcaPage />} />
+        <Route path="/hub/marketing/conteudos/:id" element={<ConteudoDetailPage />} />
+        <Route path="/hub/marketing/:pageKey" element={<MarketingSubPage />} />
         <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
       <Route path="/definicoes" element={<DefinicoesPage />} />
