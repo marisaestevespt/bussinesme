@@ -194,12 +194,27 @@ export default function ComecaAquiPage() {
                             <span>{m.whatsapp}</span>
                           </div>
                         )}
-                        {m.work_schedule && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Clock className="h-3 w-3 shrink-0" />
-                            <span>{m.work_schedule}</span>
-                          </div>
-                        )}
+                        {m.work_schedule && (() => {
+                          const scheduleToDisplay = (raw: string | null) => {
+                            if (!raw) return '';
+                            try {
+                              const s = JSON.parse(raw);
+                              const DAYS = [{key:'seg',label:'Seg'},{key:'ter',label:'Ter'},{key:'qua',label:'Qua'},{key:'qui',label:'Qui'},{key:'sex',label:'Sex'},{key:'sab',label:'Sáb'}];
+                              return DAYS.filter(d => (s[d.key]||[]).length > 0).map(d => {
+                                const p = s[d.key];
+                                const suffix = p.length === 2 ? '' : p.includes('manha') ? ' (M)' : ' (T)';
+                                return `${d.label}${suffix}`;
+                              }).join(', ');
+                            } catch { return raw; }
+                          };
+                          const display = scheduleToDisplay(m.work_schedule);
+                          return display ? (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Clock className="h-3 w-3 shrink-0" />
+                              <span>{display}</span>
+                            </div>
+                          ) : null;
+                        })()}
                       </div>
                     </CardContent>
                   </Card>
