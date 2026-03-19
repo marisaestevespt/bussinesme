@@ -181,7 +181,22 @@ export default function ProjetosPage() {
     },
   });
 
+  const { data: allTasks = [] } = useQuery({
+    queryKey: ['project-tasks-progress'],
+    queryFn: async () => {
+      const { data } = await supabase.from('tasks').select('project_id,status');
+      return (data || []) as { project_id: string | null; status: string }[];
+    },
+  });
+
   const profileMap = new Map(profiles.map(p => [p.id, p]));
+
+  function getTaskProgress(projectId: string) {
+    const projectTasks = allTasks.filter(t => t.project_id === projectId);
+    if (projectTasks.length === 0) return 0;
+    const done = projectTasks.filter(t => t.status === 'concluida').length;
+    return Math.round((done / projectTasks.length) * 100);
+  }
 
   const createMutation = useMutation({
     mutationFn: async () => {
