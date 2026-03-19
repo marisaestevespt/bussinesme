@@ -117,11 +117,21 @@ export default function BibliotecaPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Biblioteca de Documentos Internos</h1>
-          {isOwner && (
-            <Button onClick={() => setShowNew(true)} size="sm">
-              <Plus className="h-4 w-4 mr-1" /> Novo Documento
-            </Button>
-          )}
+          <div className="flex items-center gap-3">
+            <ViewTabs
+              views={allViews}
+              activeKey={activeView}
+              onSelect={setActiveView}
+              onAdd={(label) => addView(label)}
+              onRename={(id, label) => renameView({ id, label })}
+              onDelete={(id) => { if (activeView.startsWith('custom_')) setActiveView('todos'); deleteView(id); }}
+            />
+            {isOwner && (
+              <Button onClick={() => setShowNew(true)} size="sm">
+                <Plus className="h-4 w-4 mr-1" /> Novo Documento
+              </Button>
+            )}
+          </div>
         </div>
 
         {documents.length === 0 ? (
