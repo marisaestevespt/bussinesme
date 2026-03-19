@@ -208,8 +208,37 @@ export default function SecretariaPage() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6">
+        {/* Navigation cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          {[
+            { value: 'dia', label: 'O Meu Dia', icon: CalendarIcon, iconColor: 'text-blue-600', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
+            { value: 'tarefas', label: 'As Minhas Tarefas', icon: CheckSquare, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
+            { value: 'projetos', label: 'Os Meus Projetos', icon: FolderKanban, iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10' },
+            { value: 'reunioes', label: 'As Minhas Reuniões', icon: Users, iconColor: 'text-rose-600', color: 'from-rose-500/10 to-rose-600/5 hover:from-rose-500/20 hover:to-rose-600/10' },
+            { value: 'produtividade', label: 'Produtividade', icon: BarChart3, iconColor: 'text-amber-600', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10' },
+            { value: 'contrato', label: 'Contrato & Pagamentos', icon: FileText, iconColor: 'text-cyan-600', color: 'from-cyan-500/10 to-cyan-600/5 hover:from-cyan-500/20 hover:to-cyan-600/10' },
+            { value: 'espaco', label: 'O Meu Espaço', icon: ImageIcon, iconColor: 'text-orange-600', color: 'from-orange-500/10 to-orange-600/5 hover:from-orange-500/20 hover:to-orange-600/10' },
+          ].map(s => (
+            <Card
+              key={s.value}
+              className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
+              onClick={() => {
+                const el = document.querySelector(`[data-state="inactive"][value="${s.value}"], [data-state="active"][value="${s.value}"]`) as HTMLElement;
+                el?.click();
+              }}
+            >
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
+                  <s.icon className="h-4.5 w-4.5" />
+                </div>
+                <span className="font-medium text-sm text-foreground">{s.label}</span>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
         <Tabs defaultValue="dia">
+
           <TabsList className="flex-wrap h-auto gap-1">
             <TabsTrigger value="dia">O Meu Dia</TabsTrigger>
             <TabsTrigger value="tarefas">
