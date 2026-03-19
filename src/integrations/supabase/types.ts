@@ -4169,6 +4169,33 @@ export type Database = {
         }
         Relationships: []
       }
+      recommendations: {
+        Row: {
+          created_at: string
+          id: string
+          impacted_area: string
+          member_name: string
+          recommendation: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          impacted_area?: string
+          member_name: string
+          recommendation: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          impacted_area?: string
+          member_name?: string
+          recommendation?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       role_permissions: {
         Row: {
           can_view: boolean
