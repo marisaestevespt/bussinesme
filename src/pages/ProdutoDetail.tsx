@@ -515,38 +515,81 @@ export default function ProdutoDetailPage() {
                     </Button>
                   )}
                 </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Feedback</TableHead>
-                        <TableHead>Cliente</TableHead>
-                        {isOwner && <TableHead className="w-10" />}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {feedbacks.length === 0 && (
-                        <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-4">Sem feedbacks</TableCell></TableRow>
-                      )}
-                      {feedbacks.map((f: any) => (
-                        <TableRow key={f.id}>
-                          <TableCell>
-                            <Input defaultValue={f.feedback} onBlur={e => updateRow.mutate({ table: 'product_feedbacks', id: f.id, data: { feedback: e.target.value } })} className="border-none shadow-none h-auto p-0" readOnly={!isOwner} />
-                          </TableCell>
-                          <TableCell>
-                            <Input defaultValue={f.client_name} onBlur={e => updateRow.mutate({ table: 'product_feedbacks', id: f.id, data: { client_name: e.target.value } })} className="border-none shadow-none h-auto p-0" readOnly={!isOwner} />
-                          </TableCell>
-                          {isOwner && (
-                            <TableCell>
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteRow.mutate({ table: 'product_feedbacks', id: f.id })}>
-                                <Trash2 className="h-3 w-3" />
+                <CardContent className="space-y-4">
+                  {feedbacks.length === 0 && (
+                    <p className="text-center text-muted-foreground py-4">Sem feedbacks</p>
+                  )}
+                  {feedbacks.map((f: any) => (
+                    <div key={f.id} className="border rounded-lg p-4 space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Feedback</Label>
+                          <Textarea
+                            defaultValue={f.feedback}
+                            onBlur={e => updateRow.mutate({ table: 'product_feedbacks', id: f.id, data: { feedback: e.target.value } })}
+                            className="min-h-[60px] text-sm"
+                            readOnly={!isOwner}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Cliente</Label>
+                          <Input
+                            defaultValue={f.client_name}
+                            onBlur={e => updateRow.mutate({ table: 'product_feedbacks', id: f.id, data: { client_name: e.target.value } })}
+                            className="h-9"
+                            readOnly={!isOwner}
+                          />
+                        </div>
+                      </div>
+                      {/* Image */}
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-1 block">Imagem / Print</Label>
+                        {f.image_url ? (
+                          <div className="relative group inline-block">
+                            <img src={f.image_url} alt="Feedback" className="max-h-48 rounded-md border object-contain" />
+                            {isOwner && (
+                              <Button
+                                variant="destructive"
+                                size="icon"
+                                className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => updateRow.mutate({ table: 'product_feedbacks', id: f.id, data: { image_url: null } })}
+                              >
+                                <X className="h-3 w-3" />
                               </Button>
-                            </TableCell>
-                          )}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                            )}
+                          </div>
+                        ) : isOwner ? (
+                          <label className="flex items-center gap-2 px-3 py-2 border border-dashed rounded-md cursor-pointer hover:bg-muted/50 transition-colors w-fit">
+                            <Upload className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">Carregar imagem</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                const path = `feedbacks/${f.id}-${Date.now()}.${file.name.split('.').pop()}`;
+                                const { error } = await supabase.storage.from('product-files').upload(path, file, { upsert: true });
+                                if (error) { toast.error('Erro ao enviar imagem'); return; }
+                                const { data: urlData } = supabase.storage.from('product-files').getPublicUrl(path);
+                                updateRow.mutate({ table: 'product_feedbacks', id: f.id, data: { image_url: urlData.publicUrl } });
+                              }}
+                            />
+                          </label>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">Sem imagem</p>
+                        )}
+                      </div>
+                      {isOwner && (
+                        <div className="flex justify-end">
+                          <Button variant="ghost" size="sm" className="text-destructive" onClick={() => deleteRow.mutate({ table: 'product_feedbacks', id: f.id })}>
+                            <Trash2 className="h-3 w-3 mr-1" /> Remover
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
 
