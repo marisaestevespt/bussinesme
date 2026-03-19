@@ -40,6 +40,9 @@ import MarketingEstrategia from "./pages/MarketingEstrategia";
 import MarketingChannelStrategy from "./pages/MarketingChannelStrategy";
 import MarketingFunis from "./pages/MarketingFunis";
 import MarketingFunilDetail from "./pages/MarketingFunilDetail";
+import MarketingTrafegoPago from "./pages/MarketingTrafegoPago";
+import TrafegoReportDetail from "./pages/TrafegoReportDetail";
+import TrafegoCriativoDetail from "./pages/TrafegoCriativoDetail";
 
 const queryClient = new QueryClient();
 
@@ -87,6 +90,9 @@ function AppRoutes() {
         <Route path="/hub/marketing/automacoes/:id" element={<MarketingAutomacaoDetail />} />
         <Route path="/hub/marketing/funis" element={<MarketingFunis />} />
         <Route path="/hub/marketing/funis/:id" element={<MarketingFunilDetail />} />
+        <Route path="/hub/marketing/trafego-pago" element={<MarketingTrafegoPago />} />
+        <Route path="/hub/marketing/trafego-pago/report/:id" element={<TrafegoReportDetail />} />
+        <Route path="/hub/marketing/trafego-pago/criativo/:id" element={<TrafegoCriativoDetail />} />
         <Route path="/hub/marketing/:pageKey" element={<MarketingSubPage />} />
         <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
