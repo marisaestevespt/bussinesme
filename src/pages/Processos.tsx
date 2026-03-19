@@ -48,11 +48,17 @@ function getStatusInfo(status: string) {
 
 // ─── Main Page ──────────────────────────────────────────────────
 
+const PROCESSOS_DEFAULT_VIEWS: DefaultView[] = [
+  { key: 'galeria', label: 'Galeria', icon: <FileText className="h-4 w-4" />, isDefault: true },
+  { key: 'lista', label: 'Lista', icon: <List className="h-4 w-4" />, isDefault: true },
+];
+
 export default function ProcessosPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  const { allViews, addView, renameView, deleteView } = useUserViews('processos', PROCESSOS_DEFAULT_VIEWS);
   const [selectedDept, setSelectedDept] = useState<string | null>(null);
   const [routineFilter, setRoutineFilter] = useState<string>('all');
   const [showNewSop, setShowNewSop] = useState(false);
