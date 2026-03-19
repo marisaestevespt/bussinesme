@@ -586,7 +586,6 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
   const [vacEnd, setVacEnd] = useState('');
   const [vacNotes, setVacNotes] = useState('');
   const qc = useQueryClient();
-  const [detailTab, setDetailTab] = useState('info');
 
   // Fetch tasks assigned to this member's profile
   const memberTasks = useQuery({
