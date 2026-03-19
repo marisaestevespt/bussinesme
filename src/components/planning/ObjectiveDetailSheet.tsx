@@ -369,7 +369,8 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
   }, [editMetric]);
 
   const getMetricStatus = (m: any) => {
-    const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source) : null;
+    const metricProductName = getProductName(m.product_id);
+    const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source, metricProductName) : null;
     const current = m.source === 'manual' ? Number(m.current_value || 0) : Number(autoVal || 0);
     const target = Number(m.target_value || 0);
     if (!target) return 'neutral';
