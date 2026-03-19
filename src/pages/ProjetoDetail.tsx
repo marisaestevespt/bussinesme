@@ -281,7 +281,46 @@ export default function ProjetoDetailPage() {
     enabled: !!id,
   });
 
-  const { data: meetings = [] } = useQuery({
+  // Fetch onboarding/offboarding for client projects
+  const clientId = (() => {
+    if (!project?.client_name) return undefined;
+    return undefined; // will be resolved by query below
+  })();
+  const { data: clientForProject } = useQuery({
+    queryKey: ['client-by-name', project?.client_name],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients' as any).select('id').eq('full_name', project!.client_name!).maybeSingle();
+      return data as unknown as { id: string } | null;
+    },
+    enabled: !!project?.client_name && project?.type === 'clientes',
+  });
+  const resolvedClientId = clientForProject?.id;
+  const { data: clientOnboardingItems = [] } = useQuery({
+    queryKey: ['client-onboarding-project', resolvedClientId],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_onboarding' as any).select('completed').eq('client_id', resolvedClientId!);
+      return (data || []) as unknown as { completed: boolean }[];
+    },
+    enabled: !!resolvedClientId,
+  });
+  const { data: clientOffboardingItems = [] } = useQuery({
+    queryKey: ['client-offboarding-project', resolvedClientId],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_offboarding' as any).select('completed').eq('client_id', resolvedClientId!);
+      return (data || []) as unknown as { completed: boolean }[];
+    },
+    enabled: !!resolvedClientId,
+  });
+
+  function getProjectProgress() {
+    const tasksDone = tasks.filter(t => t.status === 'concluida').length;
+    const boardingTotal = clientOnboardingItems.length + clientOffboardingItems.length;
+    const boardingDone = clientOnboardingItems.filter(i => i.completed).length + clientOffboardingItems.filter(i => i.completed).length;
+    const total = tasks.length + boardingTotal;
+    if (total === 0) return 0;
+    return Math.round(((tasksDone + boardingDone) / total) * 100);
+  }
+
     queryKey: ['project-meetings', id],
     queryFn: async () => { const { data } = await supabase.from('meetings').select('id, title, date_time, status, project_id').eq('project_id', id!).order('date_time'); return (data || []) as Meeting[]; },
     enabled: !!id,
