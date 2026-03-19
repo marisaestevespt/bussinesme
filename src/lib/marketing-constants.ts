@@ -52,11 +52,38 @@ export const FORMAT_OPTIONS = [
   { value: 'reels', label: 'Reels' },
   { value: 'carrossel', label: 'Carrossel' },
   { value: 'estatico', label: 'Estático' },
-  { value: 'longo_youtube', label: 'Longo Youtube' },
   { value: 'stories', label: 'Stories' },
+  { value: 'longo_youtube', label: 'Longo Youtube' },
+  { value: 'vlog', label: 'Vlog' },
   { value: 'email', label: 'Email' },
+  { value: 'short_tiktok', label: 'Short TikTok' },
+  { value: 'post_linkedin', label: 'Post Linkedin' },
+  { value: 'pin', label: 'Pin' },
   { value: 'outro', label: 'Outro' },
 ];
+
+// Maps channel name (lowercase) to allowed format values
+export const CHANNEL_FORMAT_MAP: Record<string, string[]> = {
+  instagram: ['carrossel', 'reels', 'estatico', 'stories'],
+  facebook: ['carrossel', 'reels', 'estatico', 'stories'],
+  youtube: ['longo_youtube', 'vlog'],
+  'email marketing': ['email'],
+  tiktok: ['short_tiktok'],
+  linkedin: ['post_linkedin'],
+  pinterest: ['pin'],
+};
+
+export function getFormatsForChannels(channelNames: string[]): typeof FORMAT_OPTIONS {
+  if (channelNames.length === 0) return FORMAT_OPTIONS;
+  const allowed = new Set<string>();
+  channelNames.forEach(name => {
+    const key = name.toLowerCase();
+    const formats = CHANNEL_FORMAT_MAP[key];
+    if (formats) formats.forEach(f => allowed.add(f));
+  });
+  if (allowed.size === 0) return FORMAT_OPTIONS;
+  return FORMAT_OPTIONS.filter(f => allowed.has(f.value));
+}
 
 export const OBJECTIVE_OPTIONS = [
   { value: 'comentario_palavra', label: 'Comentário c/ palavra' },

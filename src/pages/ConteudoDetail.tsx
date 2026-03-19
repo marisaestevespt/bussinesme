@@ -16,6 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import {
   STATUS_OPTIONS, FUNNEL_OPTIONS, CONTENT_TYPE_OPTIONS, FORMAT_OPTIONS, OBJECTIVE_OPTIONS,
+  getFormatsForChannels,
   type ContentItem, type MarketingChannel, type ContentChannelLink, type ContentAttachment,
 } from '@/lib/marketing-constants';
 import { toast } from 'sonner';
@@ -382,7 +383,9 @@ export default function ConteudoDetailPage() {
                     <Select value={form.format} onValueChange={v => setForm(f => ({ ...f, format: v }))}>
                       <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
                       <SelectContent>
-                        {FORMAT_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                        {getFormatsForChannels(
+                          selectedChannels.map(chId => channels.find(c => c.id === chId)?.name || '').filter(Boolean)
+                        ).map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </Field>
