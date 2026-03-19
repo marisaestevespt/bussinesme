@@ -53,7 +53,7 @@ export function CommercialMetas() {
   const quarterMonthValidation = [1, 2, 3, 4].map(q => {
     const qGoal = qGoals.find(g => g.quarter === q)?.goal_amount || 0;
     const monthsSum = mGoals.filter(m => MONTH_QUARTER(m.month) === q).reduce((s, m) => s + m.goal_amount, 0);
-    return qGoal > 0 && Math.abs(monthsSum - qGoal) > 0.01;
+    return qGoal > 0 && monthsSum < qGoal - 0.01;
   });
 
   const analysis = (invoiced: number, goal: number) => {
