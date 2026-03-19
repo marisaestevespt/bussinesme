@@ -1,0 +1,222 @@
+import { useState, useEffect } from 'react';
+import { AppLayout } from '@/components/AppLayout';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { ChevronLeft, Check, CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { pt } from 'date-fns/locale';
+
+const STATUSES = [
+  { value: 'em_desenho', label: 'Em desenho', color: 'bg-violet-100 text-violet-800' },
+  { value: 'escrita_copy', label: 'Escrita de copy', color: 'bg-amber-100 text-amber-800' },
+  { value: 'gravacao', label: 'Gravação', color: 'bg-orange-100 text-orange-800' },
+  { value: 'edicao', label: 'Edição', color: 'bg-cyan-100 text-cyan-800' },
+  { value: 'design', label: 'Design', color: 'bg-pink-100 text-pink-800' },
+  { value: 'para_aprovacao', label: 'Para aprovação final', color: 'bg-yellow-100 text-yellow-800' },
+  { value: 'em_campanha', label: 'Em campanha', color: 'bg-emerald-100 text-emerald-800' },
+  { value: 'ajustes', label: 'Ajustes a fazer', color: 'bg-red-100 text-red-800' },
+  { value: 'off', label: 'OFF', color: 'bg-muted text-muted-foreground' },
+];
+
+const FORMATOS = ['Vídeo', 'Imagem', 'Carrossel', 'Stories', 'Outro'];
+
+type CreativeFull = {
+  id: string; name: string; status: string; start_date: string | null;
+  formato: string | null; objetivo: string | null; oferta_goal: string | null;
+  link: string | null; titulo_principal: string | null; headline: string | null;
+  legenda: string | null;
+};
+
+export default function TrafegoCriativoDetail() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { isOwner } = useAuth();
+  const qc = useQueryClient();
+
+  const { data: item, isLoading } = useQuery({
+    queryKey: ['traffic-creative', id],
+    queryFn: async () => {
+      const { data } = await supabase.from('traffic_creatives').select('*').eq('id', id!).single() as any;
+      return data as CreativeFull | null;
+    },
+    enabled: !!id,
+  });
+
+  const [form, setForm] = useState({
+    name: '', status: 'em_desenho', start_date: null as Date | null, formato: '',
+    objetivo: '', oferta_goal: '', link: '', titulo_principal: '', headline: '', legenda: '',
+  });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (item) {
+      setForm({
+        name: item.name || '', status: item.status || 'em_desenho',
+        start_date: item.start_date ? new Date(item.start_date) : null,
+        formato: item.formato || '', objetivo: item.objetivo || '',
+        oferta_goal: item.oferta_goal || '', link: item.link || '',
+        titulo_principal: item.titulo_principal || '', headline: item.headline || '',
+        legenda: item.legenda || '',
+      });
+    }
+  }, [item]);
+
+  const save = async () => {
+    setSaving(true);
+    const { error } = await supabase.from('traffic_creatives').update({
+      name: form.name, status: form.status,
+      start_date: form.start_date ? format(form.start_date, 'yyyy-MM-dd') : null,
+      formato: form.formato || null, objetivo: form.objetivo || null,
+      oferta_goal: form.oferta_goal || null, link: form.link || null,
+      titulo_principal: form.titulo_principal || null, headline: form.headline || null,
+      legenda: form.legenda || null,
+    } as any).eq('id', id!);
+    setSaving(false);
+    if (error) toast.error('Erro ao guardar');
+    else { toast.success('Guardado'); qc.invalidateQueries({ queryKey: ['traffic-creative', id] }); }
+  };
+
+  if (isLoading || !item) return (
+    <AppLayout><div className="flex items-center justify-center min-h-screen"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div></AppLayout>
+  );
+
+  const st = STATUSES.find(s => s.value === form.status) || STATUSES[0];
+
+  return (
+    <AppLayout>
+      <div className="flex flex-col min-h-screen">
+        <div className="w-full py-10 px-6 flex flex-col items-center gap-2" style={{ background: 'hsl(var(--primary))' }}>
+          <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>Criativo</p>
+          <div className="flex items-center gap-3">
+            {isOwner ? (
+              <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                className="text-2xl md:text-3xl font-bold tracking-tight bg-transparent border-none text-center h-auto p-0"
+                style={{ color: 'hsl(var(--primary-foreground))' }} />
+            ) : (
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight" style={{ color: 'hsl(var(--primary-foreground))' }}>{form.name}</h1>
+            )}
+            <Badge className={cn('text-xs', st.color)}>{st.label}</Badge>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto w-full px-4 py-8 space-y-8">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/marketing/trafego-pago')}>
+            <ChevronLeft className="h-4 w-4 mr-1" />Voltar
+          </Button>
+
+          {/* Meta fields */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Status</label>
+              <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))} disabled={!isOwner}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>{STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Formato</label>
+              <Select value={form.formato} onValueChange={v => setForm(f => ({ ...f, formato: v }))} disabled={!isOwner}>
+                <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                <SelectContent>{FORMATOS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Data Início</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full h-9 justify-start text-left font-normal", !form.start_date && "text-muted-foreground")} disabled={!isOwner}>
+                    <CalendarIcon className="h-4 w-4 mr-2" />
+                    {form.start_date ? format(form.start_date, 'dd MMM yyyy', { locale: pt }) : 'Selecionar data'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={form.start_date || undefined}
+                    onSelect={d => setForm(f => ({ ...f, start_date: d || null }))}
+                    className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Oferta Goal</label>
+              <Input value={form.oferta_goal} onChange={e => setForm(f => ({ ...f, oferta_goal: e.target.value }))}
+                className="h-9" placeholder="Produto associado" readOnly={!isOwner} />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Link</label>
+              <Input value={form.link} onChange={e => setForm(f => ({ ...f, link: e.target.value }))}
+                className="h-9" placeholder="https://..." readOnly={!isOwner} />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Objetivo</label>
+            <Textarea value={form.objetivo} onChange={e => setForm(f => ({ ...f, objetivo: e.target.value }))}
+              placeholder="Objetivo do criativo" className="min-h-[60px] resize-none" readOnly={!isOwner} />
+          </div>
+
+          <Separator />
+
+          {/* Título Principal */}
+          <section>
+            <h2 className="text-lg font-semibold text-foreground mb-3">Título Principal</h2>
+            <Card className="border-l-4 border-l-primary/30">
+              <CardContent className="p-4">
+                <Textarea value={form.titulo_principal} onChange={e => setForm(f => ({ ...f, titulo_principal: e.target.value }))}
+                  placeholder="Escreve aqui o título principal do criativo."
+                  className="min-h-[60px] resize-none border-none shadow-none p-0 focus-visible:ring-0" readOnly={!isOwner} />
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* Headline */}
+          <section>
+            <h2 className="text-lg font-semibold text-foreground mb-3">Headline</h2>
+            <Card className="border-l-4 border-l-primary/30">
+              <CardContent className="p-4">
+                <Textarea value={form.headline} onChange={e => setForm(f => ({ ...f, headline: e.target.value }))}
+                  placeholder="Escreve aqui a headline do criativo."
+                  className="min-h-[60px] resize-none border-none shadow-none p-0 focus-visible:ring-0" readOnly={!isOwner} />
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* Legenda */}
+          <section>
+            <h2 className="text-lg font-semibold text-foreground mb-3">Legenda</h2>
+            <Card className="border-l-4 border-l-primary/30">
+              <CardContent className="p-4">
+                <Textarea value={form.legenda} onChange={e => setForm(f => ({ ...f, legenda: e.target.value }))}
+                  placeholder="Escreve aqui a legenda completa do criativo."
+                  className="min-h-[100px] resize-none border-none shadow-none p-0 focus-visible:ring-0" readOnly={!isOwner} />
+              </CardContent>
+            </Card>
+          </section>
+
+          {isOwner && (
+            <div className="flex justify-end pt-4">
+              <Button onClick={save} disabled={saving}>
+                <Check className="h-3.5 w-3.5 mr-1" />{saving ? 'A guardar...' : 'Guardar'}
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </AppLayout>
+  );
+}
