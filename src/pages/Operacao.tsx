@@ -308,15 +308,15 @@ export default function OperacaoPage() {
             <Card>
               <CardContent className="pt-4 pb-3 space-y-2">
                 {[
-                  { value: 'em_onboarding', label: 'Em onboarding' },
-                  { value: 'ativo', label: 'Ativos' },
-                  { value: 'pausado', label: 'Pausados' },
-                  { value: 'altura_renovacao', label: 'Altura de renovação' },
+                  { value: 'em_onboarding', label: 'Em onboarding', className: 'bg-blue-100 text-blue-800' },
+                  { value: 'ativo', label: 'Ativos', className: 'bg-green-100 text-green-800' },
+                  { value: 'pausado', label: 'Pausados', className: 'bg-amber-100 text-amber-800' },
+                  { value: 'altura_renovacao', label: 'Altura de renovação', className: 'bg-purple-100 text-purple-800' },
                 ].map(s => {
                   const count = clients.filter(c => c.status === s.value).length;
                   return (
                     <div key={s.value} className="flex items-center justify-between">
-                      <span className="text-sm">{s.label}</span>
+                      <Badge variant="outline" className={`${s.className} border-0 text-xs`}>{s.label}</Badge>
                       <span className="text-sm font-semibold">{count}</span>
                     </div>
                   );
