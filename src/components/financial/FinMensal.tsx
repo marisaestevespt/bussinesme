@@ -154,7 +154,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
     } as any);
     toast.success('Saída adicionada');
     setExpOpen(false);
-    setExpForm({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [] });
+    setExpForm({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [], includes_vat: false });
   };
 
   return (
