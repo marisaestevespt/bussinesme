@@ -673,7 +673,7 @@ export default function OperacaoPage() {
                     <ListTodo className="h-4 w-4" /> Tarefas Internas
                     <Badge variant="outline" className="text-[10px]">{internoTasks.length}</Badge>
                   </CardTitle>
-                  <TaskFilterButtons filter={internoTaskFilter} setFilter={setInternoTaskFilter} />
+                  <TaskDynamicFilters filters={internoFilters} onChange={setInternoFilters} profiles={profiles} projects={internoProjectOptions} />
                 </div>
               </CardHeader>
               <CardContent className="pt-0 space-y-0.5 max-h-[350px] overflow-y-auto">
