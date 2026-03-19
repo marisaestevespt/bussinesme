@@ -6,9 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const STATUS_OPTIONS = [
   { value: 'na', label: 'N.A.' },
@@ -63,6 +65,18 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
     }
   }, [initialData, open]);
 
+  // Fetch client details by name
+  const clientName = form.client;
+  const clientInfo = useQuery({
+    queryKey: ['client-by-name', clientName],
+    queryFn: async () => {
+      if (!clientName) return null;
+      const { data } = await supabase.from('clients').select('full_name, nif, fiscal_address').eq('full_name', clientName).maybeSingle();
+      return data;
+    },
+    enabled: !!clientName && open,
+  });
+
   const handleSave = () => {
     onSave({
       ...(form.id ? { id: form.id } : {}),
@@ -84,6 +98,21 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{form.id ? 'Editar Venda' : 'Nova Venda'}</DialogTitle></DialogHeader>
         <div className="space-y-4">
+          {/* Client info card */}
+          {clientInfo.data && (
+            <div className="rounded-lg border border-border bg-muted/50 p-3 space-y-1">
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <User className="h-4 w-4 text-muted-foreground" />
+                Dados do Cliente
+              </div>
+              <div className="grid grid-cols-1 gap-1 text-sm text-muted-foreground">
+                <span><strong className="text-foreground">Nome:</strong> {clientInfo.data.full_name}</span>
+                <span><strong className="text-foreground">NIF:</strong> {clientInfo.data.nif || '—'}</span>
+                <span><strong className="text-foreground">Morada Fiscal:</strong> {clientInfo.data.fiscal_address || '—'}</span>
+              </div>
+            </div>
+          )}
+
           {form.sale_id && (
             <div>
               <Label>ID</Label>
