@@ -333,6 +333,8 @@ export default function TarefasPage() {
             getProfileName={getProfileName}
             getProjectName={getProjectName}
             onTaskClick={openEdit}
+            taskDependencies={taskDependencies}
+            allTasks={tasks}
           />
         )}
       </div>
