@@ -232,6 +232,78 @@ export type Database = {
           },
         ]
       }
+      business_plan_cards: {
+        Row: {
+          column_key: string
+          content: string
+          created_at: string
+          id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          column_key: string
+          content?: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          column_key?: string
+          content?: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      business_plan_custom_columns: {
+        Row: {
+          column_key: string
+          created_at: string
+          id: string
+          label: string
+          sort_order: number
+        }
+        Insert: {
+          column_key: string
+          created_at?: string
+          id?: string
+          label: string
+          sort_order?: number
+        }
+        Update: {
+          column_key?: string
+          created_at?: string
+          id?: string
+          label?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      business_plan_settings: {
+        Row: {
+          created_at: string
+          id: string
+          updated_at: string
+          value_proposition: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          value_proposition?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          value_proposition?: string | null
+        }
+        Relationships: []
+      }
       business_settings: {
         Row: {
           about_text: string | null
@@ -1939,6 +2011,57 @@ export type Database = {
           updated_at?: string
           value?: number
           vat_rate?: number
+        }
+        Relationships: []
+      }
+      innovation_docs: {
+        Row: {
+          content: string | null
+          doc_key: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          doc_key: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          doc_key?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      innovation_ideas: {
+        Row: {
+          completed: boolean
+          context: string
+          created_at: string
+          id: string
+          idea: string
+          implementation_date: string | null
+          plan: string
+        }
+        Insert: {
+          completed?: boolean
+          context?: string
+          created_at?: string
+          id?: string
+          idea: string
+          implementation_date?: string | null
+          plan?: string
+        }
+        Update: {
+          completed?: boolean
+          context?: string
+          created_at?: string
+          id?: string
+          idea?: string
+          implementation_date?: string | null
+          plan?: string
         }
         Relationships: []
       }
