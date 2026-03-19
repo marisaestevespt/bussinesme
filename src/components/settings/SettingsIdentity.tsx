@@ -238,7 +238,7 @@ export function SettingsIdentity() {
         const { error: uploadError } = await supabase.storage.from('logos').upload(path, logoFile, { upsert: true });
         if (!uploadError) {
           const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path);
-          logoUrl = publicUrl;
+          logoUrl = `${publicUrl}?t=${Date.now()}`;
         }
       }
 
