@@ -4,14 +4,14 @@ import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, CalendarIcon, ListTodo, AlertTriangle, Clock, CalendarDays, List, Users, Link2, GitBranch, ChevronRight } from 'lucide-react';
+import { Plus, CalendarIcon, ListTodo, AlertTriangle, Clock, CalendarDays, List, Users, Link2, GitBranch, ChevronRight, Play } from 'lucide-react';
 import { TaskTimeTracker } from '@/components/TaskTimeTracker';
 import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -80,6 +80,7 @@ export default function TarefasPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<any>(null);
   const [calMonth, setCalMonth] = useState(new Date());
+  const [timerPromptTaskId, setTimerPromptTaskId] = useState<string | null>(null);
 
   // Form state
   const [name, setName] = useState('');
@@ -131,7 +132,7 @@ export default function TarefasPage() {
   // Mutations
   const upsertTask = useMutation({
     mutationFn: async (payload: any) => {
-      const { _dependsOnIds, ...taskPayload } = payload;
+      const { _dependsOnIds, _prevStatus, ...taskPayload } = payload;
       let taskId: string;
       if (editingTask) {
         const { error } = await supabase.from('tasks').update(taskPayload).eq('id', editingTask.id);
@@ -151,11 +152,16 @@ export default function TarefasPage() {
           if (depErr) throw depErr;
         }
       }
+      return { taskId, newStatus: taskPayload.status, prevStatus: _prevStatus };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['task-dependencies'] });
       toast.success(editingTask ? 'Tarefa atualizada' : 'Tarefa criada');
+      // If status changed to "a_fazer", prompt for timer
+      if (result && result.newStatus === 'a_fazer' && result.prevStatus !== 'a_fazer') {
+        setTimerPromptTaskId(result.taskId);
+      }
       closeDialog();
     },
     onError: () => toast.error('Erro ao guardar tarefa'),
@@ -224,6 +230,7 @@ export default function TarefasPage() {
       parent_task_id: parentTaskId && parentTaskId !== 'none' ? parentTaskId : null,
       notes: notes || null,
       _dependsOnIds: dependsOnIds,
+      _prevStatus: editingTask?.status || null,
     };
     if (isChangingToDone) {
       payload.updated_at = new Date().toISOString();
@@ -602,6 +609,50 @@ export default function TarefasPage() {
               )}
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Timer prompt when changing to "A fazer" */}
+      <Dialog open={!!timerPromptTaskId} onOpenChange={(v) => { if (!v) { toast('Não te esqueças de iniciar o timer quando começares a tarefa! ⏱️'); setTimerPromptTaskId(null); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Play className="h-4 w-4" /> Iniciar o timer?
+            </DialogTitle>
+            <DialogDescription>
+              Mudaste o status para "A fazer". Queres iniciar o timer automáticamente?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                toast('Não te esqueças de iniciar o timer quando começares a tarefa! ⏱️');
+                setTimerPromptTaskId(null);
+              }}
+            >
+              Agora não
+            </Button>
+            <Button
+              onClick={async () => {
+                if (timerPromptTaskId && user) {
+                  await supabase.from('task_time_entries').insert({
+                    task_id: timerPromptTaskId,
+                    user_id: user.id,
+                    started_at: new Date().toISOString(),
+                    duration_minutes: 0,
+                    is_manual: false,
+                  });
+                  queryClient.invalidateQueries({ queryKey: ['task-time-entries', timerPromptTaskId] });
+                  toast.success('Timer iniciado! ▶️');
+                }
+                setTimerPromptTaskId(null);
+              }}
+              className="gap-1"
+            >
+              <Play className="h-3.5 w-3.5" /> Sim, iniciar
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </AppLayout>
