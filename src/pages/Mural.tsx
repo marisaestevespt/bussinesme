@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { Button } from '@/components/ui/button';
