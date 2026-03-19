@@ -282,6 +282,16 @@ export default function TarefasPage() {
             isOverdue={isOverdue}
             onTaskClick={openEdit}
           />
+        ) : view === 'responsavel' ? (
+          <ResponsavelView
+            tasks={tasks.filter(t => t.status !== 'done')}
+            profiles={profiles}
+            isOverdue={isOverdue}
+            isDoneAfterDeadline={isDoneAfterDeadline}
+            getProfileName={getProfileName}
+            getProjectName={getProjectName}
+            onTaskClick={openEdit}
+          />
         ) : (
           <TaskTable
             tasks={filteredTasks}
