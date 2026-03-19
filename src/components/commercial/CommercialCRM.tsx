@@ -20,6 +20,14 @@ export function CommercialCRM() {
   const { productGoals } = useCommercialData();
   const products = (productGoals.data || []).map(p => p.product_name);
 
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['profiles-list'],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id, full_name').order('full_name');
+      return data || [];
+    },
+  });
+
   const openLead = useCallback((lead: any) => {
     setSelectedLead(lead);
     setSheetOpen(true);
