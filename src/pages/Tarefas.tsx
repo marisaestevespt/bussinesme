@@ -860,6 +860,39 @@ export default function TarefasPage() {
               <TaskTimeTracker taskId={editingTask.id} />
             )}
 
+            {/* Estimated time */}
+            <div>
+              <Label className="flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5" /> Tempo Estimado (horas)
+              </Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.5"
+                value={estimatedTime}
+                onChange={e => setEstimatedTime(e.target.value)}
+                placeholder="Ex: 2.5"
+              />
+            </div>
+
+            {/* Capacity warning */}
+            {capacityWarning && (
+              <div className={cn(
+                "rounded-md border p-3",
+                capacityWarning.occupancy > 100
+                  ? "border-destructive/50 bg-destructive/5"
+                  : "border-amber-300 bg-amber-50"
+              )}>
+                <p className={cn(
+                  "text-sm flex items-center gap-1.5",
+                  capacityWarning.occupancy > 100 ? "text-destructive font-medium" : "text-amber-800"
+                )}>
+                  <AlertTriangle className="h-4 w-4" />
+                  Ao atribuir esta tarefa, <strong>{capacityWarning.memberName}</strong> ficará com {capacityWarning.occupancy}% de ocupação esta semana.
+                </p>
+              </div>
+            )}
+
             <div>
               <Label>Notas</Label>
               <Textarea
