@@ -64,13 +64,11 @@ export function CommercialEstrategia() {
         .select('*')
         .limit(1)
         .maybeSingle();
-      return data as {
-        id: string;
-        title: string;
-        period: string;
-        sections: Section[];
-        updated_at: string;
-      } | null;
+      if (!data) return null;
+      return {
+        ...data,
+        sections: (data.sections as unknown as Section[]) || [],
+      };
     },
   });
 
