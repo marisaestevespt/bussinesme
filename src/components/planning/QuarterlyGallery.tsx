@@ -390,8 +390,8 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
           {renderCalendarGrid()}
         </CardContent>
       </Card>
-        </CardContent>
-      </Card>
+
+
 
       {/* ─── 3. MESES DO NEGÓCIO ─── */}
       <Card>
