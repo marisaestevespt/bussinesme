@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -100,6 +101,7 @@ export function QuarterlyGallery({ planning, year }: Props) {
 /* ─── QUARTER DETAIL ─── */
 
 function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: number; planning: any; onBack: () => void }) {
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const q = QUARTERS[qIdx];
   const quarterNum = qIdx + 1;
@@ -397,7 +399,7 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
           {calendarEvents.length > 0 && (
             <div className="mt-3 space-y-1">
               {calendarEvents.slice(0, 8).map((e: any) => (
-                <div key={e.id} className="flex items-center gap-2 text-xs py-1 px-2 rounded bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors">
+                <div key={e.id} className="flex items-center gap-2 text-xs py-1 px-2 rounded bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => navigate('/hub/agenda')}>
                   <Calendar className="h-3 w-3 text-muted-foreground shrink-0" />
                   <span className="text-muted-foreground">{format(parseISO(e.start_date), 'dd/MM')}</span>
                   <span className="truncate">{e.title}</span>
