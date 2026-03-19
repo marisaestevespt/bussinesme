@@ -19,8 +19,8 @@ import type { Expense, Subscription, PayrollEntry, ContractorEntry, FinancialDoc
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
-const CATEGORIES = ['pessoal', 'freelancer', 'campanha', 'ferramenta', 'formacao', 'servico_contratado', 'outro'];
-const CAT_LABELS: Record<string, string> = { pessoal: 'Pessoal', freelancer: 'Freelancer', campanha: 'Campanha', ferramenta: 'Ferramenta', formacao: 'Formação', servico_contratado: 'Serviço Contratado', outro: 'Outro' };
+const CATEGORIES = ['pessoal', 'freelancer', 'campanha', 'ferramenta', 'formacao', 'servico_contratado', 'seguranca_social', 'outro'];
+const CAT_LABELS: Record<string, string> = { pessoal: 'Pessoal', freelancer: 'Freelancer', campanha: 'Campanha', ferramenta: 'Ferramenta', formacao: 'Formação', servico_contratado: 'Serviço Contratado', seguranca_social: 'Segurança Social', outro: 'Outro' };
 const VAT_RATES = [0, 6, 13, 23];
 const LOCATIONS = ['portugal', 'ue', 'fora_ue'];
 const LOC_LABELS: Record<string, string> = { portugal: 'Portugal', ue: 'União Europeia', fora_ue: 'Fora da UE' };
