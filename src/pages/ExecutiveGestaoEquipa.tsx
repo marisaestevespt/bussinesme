@@ -145,9 +145,103 @@ const CONTRACT_DURATIONS = [
   { value: 'indefinido', label: 'Indefinido' },
 ];
 
+const ROLE_COLORS = [
+  { value: '#6366f1', label: 'Roxo' },
+  { value: '#f59e0b', label: 'Amarelo' },
+  { value: '#10b981', label: 'Verde' },
+  { value: '#ef4444', label: 'Vermelho' },
+  { value: '#3b82f6', label: 'Azul' },
+  { value: '#ec4899', label: 'Rosa' },
+  { value: '#8b5cf6', label: 'Violeta' },
+  { value: '#f97316', label: 'Laranja' },
+  { value: '#14b8a6', label: 'Teal' },
+  { value: '#64748b', label: 'Cinza' },
+];
+
+const WEEK_DAYS = [
+  { key: 'seg', label: 'Seg' },
+  { key: 'ter', label: 'Ter' },
+  { key: 'qua', label: 'Qua' },
+  { key: 'qui', label: 'Qui' },
+  { key: 'sex', label: 'Sex' },
+  { key: 'sab', label: 'Sáb' },
+];
+
+const PERIODS = [
+  { key: 'manha', label: 'Manhã' },
+  { key: 'tarde', label: 'Tarde' },
+];
+
+function parseSchedule(raw: string | null): Record<string, string[]> {
+  if (!raw) return {};
+  try { return JSON.parse(raw); } catch { return {}; }
+}
+
+function formatSchedule(schedule: Record<string, string[]>): string {
+  return JSON.stringify(schedule);
+}
+
+function scheduleToDisplay(raw: string | null): string {
+  const s = parseSchedule(raw);
+  return WEEK_DAYS
+    .filter(d => (s[d.key] || []).length > 0)
+    .map(d => {
+      const periods = s[d.key];
+      const p = periods.length === 2 ? '' : periods.includes('manha') ? ' (M)' : ' (T)';
+      return `${d.label}${p}`;
+    })
+    .join(', ') || '';
+}
+
+function ScheduleSelector({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const schedule = parseSchedule(value);
+  const toggle = (day: string, period: string) => {
+    const current = schedule[day] || [];
+    const next = current.includes(period) ? current.filter(p => p !== period) : [...current, period];
+    const updated = { ...schedule, [day]: next };
+    if (next.length === 0) delete updated[day];
+    onChange(formatSchedule(updated));
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <span className="text-xs text-muted-foreground font-medium">Horário de trabalho</span>
+      <div className="grid grid-cols-7 gap-1 text-center">
+        <div />
+        {WEEK_DAYS.map(d => (
+          <span key={d.key} className="text-[10px] font-medium text-muted-foreground">{d.label}</span>
+        ))}
+        {PERIODS.map(p => (
+          <>
+            <span key={`label-${p.key}`} className="text-[10px] text-muted-foreground flex items-center">{p.label}</span>
+            {WEEK_DAYS.map(d => {
+              const active = (schedule[d.key] || []).includes(p.key);
+              return (
+                <button
+                  key={`${d.key}-${p.key}`}
+                  type="button"
+                  onClick={() => toggle(d.key, p.key)}
+                  className={`h-7 w-full rounded text-[10px] font-medium transition-colors ${
+                    active
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  {active ? '✓' : ''}
+                </button>
+              );
+            })}
+          </>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const DEFAULT_MEMBER_FORM = {
   full_name: '',
   role_title: '',
+  role_color: '#6366f1',
   email: '',
   whatsapp: '',
   work_schedule: '',
