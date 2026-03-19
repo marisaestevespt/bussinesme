@@ -78,43 +78,23 @@ function AnalogClock() {
       <div className="relative h-16 w-16">
         <svg viewBox="0 0 100 100" className="h-full w-full">
           {/* Face */}
-          <circle cx="50" cy="50" r="48" fill="none" className="stroke-border" strokeWidth="2" />
-          {/* Hour markers */}
+          <circle cx="50" cy="50" r="48" fill="none" className="stroke-primary-foreground/30" strokeWidth="2" />
           {Array.from({ length: 12 }).map((_, i) => {
             const angle = (i * 30 - 90) * (Math.PI / 180);
             const x1 = 50 + 40 * Math.cos(angle);
             const y1 = 50 + 40 * Math.sin(angle);
             const x2 = 50 + 45 * Math.cos(angle);
             const y2 = 50 + 45 * Math.sin(angle);
-            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} className="stroke-muted-foreground" strokeWidth="2" strokeLinecap="round" />;
+            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} className="stroke-primary-foreground/60" strokeWidth="2" strokeLinecap="round" />;
           })}
-          {/* Hour hand */}
-          <line
-            x1="50" y1="50"
-            x2={50 + 25 * Math.cos((hrDeg - 90) * Math.PI / 180)}
-            y2={50 + 25 * Math.sin((hrDeg - 90) * Math.PI / 180)}
-            className="stroke-foreground" strokeWidth="3" strokeLinecap="round"
-          />
-          {/* Minute hand */}
-          <line
-            x1="50" y1="50"
-            x2={50 + 35 * Math.cos((minDeg - 90) * Math.PI / 180)}
-            y2={50 + 35 * Math.sin((minDeg - 90) * Math.PI / 180)}
-            className="stroke-foreground" strokeWidth="2" strokeLinecap="round"
-          />
-          {/* Second hand */}
-          <line
-            x1="50" y1="50"
-            x2={50 + 38 * Math.cos((secDeg - 90) * Math.PI / 180)}
-            y2={50 + 38 * Math.sin((secDeg - 90) * Math.PI / 180)}
-            className="stroke-primary" strokeWidth="1" strokeLinecap="round"
-          />
-          {/* Center dot */}
-          <circle cx="50" cy="50" r="2.5" className="fill-foreground" />
+          <line x1="50" y1="50" x2={50 + 25 * Math.cos((hrDeg - 90) * Math.PI / 180)} y2={50 + 25 * Math.sin((hrDeg - 90) * Math.PI / 180)} className="stroke-primary-foreground" strokeWidth="3" strokeLinecap="round" />
+          <line x1="50" y1="50" x2={50 + 35 * Math.cos((minDeg - 90) * Math.PI / 180)} y2={50 + 35 * Math.sin((minDeg - 90) * Math.PI / 180)} className="stroke-primary-foreground" strokeWidth="2" strokeLinecap="round" />
+          <line x1="50" y1="50" x2={50 + 38 * Math.cos((secDeg - 90) * Math.PI / 180)} y2={50 + 38 * Math.sin((secDeg - 90) * Math.PI / 180)} className="stroke-primary-foreground/70" strokeWidth="1" strokeLinecap="round" />
+          <circle cx="50" cy="50" r="2.5" className="fill-primary-foreground" />
         </svg>
       </div>
-      <span className="text-xs font-medium tabular-nums">{timeStr}</span>
-      <span className="text-[10px] text-muted-foreground capitalize">{dateStr}</span>
+      <span className="text-xs font-medium tabular-nums text-primary-foreground">{timeStr}</span>
+      <span className="text-[10px] text-primary-foreground/70 capitalize">{dateStr}</span>
     </div>
   );
 }
