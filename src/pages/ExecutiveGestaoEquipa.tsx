@@ -520,7 +520,7 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 {member.email && <div><span className="text-muted-foreground text-xs">Email</span><p>{member.email}</p></div>}
                 {member.whatsapp && <div><span className="text-muted-foreground text-xs">Telefone</span><p>{member.whatsapp}</p></div>}
-                {member.work_schedule && <div><span className="text-muted-foreground text-xs">Horário</span><p>{member.work_schedule}</p></div>}
+                {member.work_schedule && <div><span className="text-muted-foreground text-xs">Horário</span><p>{scheduleToDisplay(member.work_schedule)}</p></div>}
                 {member.identification && <div><span className="text-muted-foreground text-xs">Identificação</span><p>{member.identification}</p></div>}
                 {member.start_date && <div><span className="text-muted-foreground text-xs">Data de início</span><p>{member.start_date}</p></div>}
               </div>
