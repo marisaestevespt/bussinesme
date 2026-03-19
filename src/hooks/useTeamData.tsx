@@ -73,12 +73,17 @@ export function useTeamData() {
 
   const upsertMember = useMutation({
     mutationFn: async (m: any) => {
-      if (m.id) {
-        const { error } = await supabase.from('team_members').update(m).eq('id', m.id);
+      // Clean empty strings to null for nullable/date columns
+      const cleaned: any = {};
+      for (const [k, v] of Object.entries(m)) {
+        cleaned[k] = v === '' ? null : v;
+      }
+      if (cleaned.id) {
+        const { error } = await supabase.from('team_members').update(cleaned).eq('id', cleaned.id);
         if (error) throw error;
       } else {
-        delete m.id;
-        const { error } = await supabase.from('team_members').insert(m);
+        delete cleaned.id;
+        const { error } = await supabase.from('team_members').insert(cleaned);
         if (error) throw error;
       }
     },

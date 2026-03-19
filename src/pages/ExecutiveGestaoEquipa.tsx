@@ -31,6 +31,72 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 
 const currentYear = new Date().getFullYear();
 const currentMonth = new Date().getMonth() + 1;
 
+// Module keys that belong to each department
+const DEPT_MODULE_MAP: Record<string, string[]> = {
+  marketing: ['marketing'],
+  comercial: ['comercial'],
+  clientes: ['clientes'],
+  financeiro: ['financeiro'],
+  operacao: ['operacao'],
+  produtos: ['produtos'],
+  'customer-success': ['customer-success'],
+  'recursos-humanos': ['recursos-humanos'],
+  administrativo: ['administrativo'],
+};
+
+// Modules everyone with a department gets access to
+const HALL_MODULES = ['comeca-aqui', 'mural', 'hub-equipa'];
+const TRANSVERSAL_MODULES = ['agenda', 'reunioes', 'acessos', 'projetos', 'processos', 'tarefas', 'biblioteca'];
+const SECRETARIA_MODULES = ['secretaria'];
+
+function cleanPayload(obj: Record<string, any>): Record<string, any> {
+  const cleaned: Record<string, any> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    cleaned[k] = v === '' ? null : v;
+  }
+  return cleaned;
+}
+
+async function autoAssignPermissions(memberId: string, department: string | null) {
+  if (!department) return;
+
+  // Get or create a role for this department
+  const roleName = `dept_${department}`;
+  let { data: role } = await supabase.from('custom_roles').select('id').eq('name', roleName).maybeSingle();
+  
+  if (!role) {
+    const { data: newRole, error } = await supabase.from('custom_roles').insert({ name: roleName, description: `Auto-generated role for ${department}` }).select('id').single();
+    if (error || !newRole) return;
+    role = newRole;
+
+    // Create permissions for this role
+    const moduleKeys = [
+      ...HALL_MODULES,
+      ...TRANSVERSAL_MODULES,
+      ...SECRETARIA_MODULES,
+      ...(DEPT_MODULE_MAP[department] || []),
+    ];
+    const perms = moduleKeys.map(mk => ({ custom_role_id: role!.id, module_key: mk, can_view: true }));
+    await supabase.from('role_permissions').insert(perms);
+  }
+
+  // Check if team_member has a profile_id (linked user)
+  const { data: tm } = await supabase.from('team_members').select('profile_id').eq('id', memberId).maybeSingle();
+  if (!tm?.profile_id) return;
+
+  // Get the user_id from profile
+  const { data: profile } = await supabase.from('profiles').select('user_id').eq('id', tm.profile_id).maybeSingle();
+  if (!profile?.user_id) return;
+
+  // Upsert into members table
+  const { data: existingMember } = await supabase.from('members').select('id').eq('user_id', profile.user_id).maybeSingle();
+  if (existingMember) {
+    await supabase.from('members').update({ custom_role_id: role.id }).eq('id', existingMember.id);
+  } else {
+    await supabase.from('members').insert({ user_id: profile.user_id, custom_role_id: role.id });
+  }
+}
+
 // Department color mapping for badges (consistent across app)
 const DEPT_COLORS: Record<string, string> = {
   administrativo: 'bg-slate-600 text-white',
@@ -621,14 +687,19 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
       const isNew = !member.id;
       let memberId = member.id;
       if (isNew) {
-        const payload = { ...member };
+        const payload = cleanPayload({ ...member });
         delete payload.id;
-        const { data, error } = await supabase.from('team_members').insert(payload).select('id').single();
+        const { data, error } = await supabase.from('team_members').insert(payload as any).select('id').single();
         if (error) throw error;
         memberId = data.id;
       } else {
-        const { error } = await supabase.from('team_members').update(member).eq('id', member.id);
+        const payload = cleanPayload(member);
+        const { error } = await supabase.from('team_members').update(payload as any).eq('id', member.id);
         if (error) throw error;
+      }
+      // Auto-assign permissions based on department
+      if (member.department) {
+        await autoAssignPermissions(memberId, member.department);
       }
       if (isNew && contractData && memberId) {
         const monthlyVal = parseFloat(contractData.monthly_value) || 0;
@@ -859,14 +930,19 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
       const isNew = !member.id;
       let memberId = member.id;
       if (isNew) {
-        const payload = { ...member };
+        const payload = cleanPayload({ ...member });
         delete payload.id;
-        const { data, error } = await supabase.from('team_members').insert(payload).select('id').single();
+        const { data, error } = await supabase.from('team_members').insert(payload as any).select('id').single();
         if (error) throw error;
         memberId = data.id;
       } else {
-        const { error } = await supabase.from('team_members').update(member).eq('id', member.id);
+        const payload = cleanPayload(member);
+        const { error } = await supabase.from('team_members').update(payload as any).eq('id', member.id);
         if (error) throw error;
+      }
+      // Auto-assign permissions based on department
+      if (member.department) {
+        await autoAssignPermissions(memberId, member.department);
       }
       if (isNew && contractData && memberId) {
         const monthlyVal = parseFloat(contractData.monthly_value) || 0;
