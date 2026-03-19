@@ -186,6 +186,11 @@ export function SettingsIdentity() {
     if (file) { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
   };
 
+  const handleBgChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) { setBgFile(file); setBgPreview(URL.createObjectURL(file)); }
+  };
+
   const updateColor = (key: keyof typeof colors) => (value: string) =>
     setColors(c => ({ ...c, [key]: value }));
 
