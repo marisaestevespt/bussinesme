@@ -1,7 +1,7 @@
 import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { Target, ShoppingCart, Zap, Users, Lightbulb, BookOpen } from 'lucide-react';
+import { Target, ShoppingCart, Zap, Users, Lightbulb, BookOpen, UserCheck, Package, ArrowRight } from 'lucide-react';
 import { CommercialOverview } from '@/components/commercial/CommercialOverview';
 import { Separator } from '@/components/ui/separator';
 
@@ -12,6 +12,11 @@ const SECTIONS = [
   { key: 'crm', label: 'CRM', description: 'Gestão de contactos, leads e pipeline comercial.', icon: Users, color: 'from-rose-500/10 to-rose-600/5 hover:from-rose-500/20 hover:to-rose-600/10', iconColor: 'text-rose-600' },
   { key: 'estrategia', label: 'Estratégia', description: 'Estratégia comercial, posicionamento e planos de ação.', icon: Lightbulb, color: 'from-cyan-500/10 to-cyan-600/5 hover:from-cyan-500/20 hover:to-cyan-600/10', iconColor: 'text-cyan-600' },
   { key: 'biblioteca', label: 'Biblioteca', description: 'Recursos, templates e documentos do departamento.', icon: BookOpen, color: 'from-orange-500/10 to-orange-600/5 hover:from-orange-500/20 hover:to-orange-600/10', iconColor: 'text-orange-600' },
+];
+
+const SHORTCUTS = [
+  { path: '/hub/clientes', label: 'Lista de Clientes', icon: UserCheck, iconColor: 'text-indigo-600' },
+  { path: '/hub/produtos', label: 'Produtos', icon: Package, iconColor: 'text-teal-600' },
 ];
 
 export default function ComercialPage() {
