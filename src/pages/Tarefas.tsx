@@ -89,6 +89,8 @@ export default function TarefasPage() {
   const [department, setDepartment] = useState('');
   const [projectId, setProjectId] = useState('');
   const [notes, setNotes] = useState('');
+  const [parentTaskId, setParentTaskId] = useState('');
+  const [dependsOnIds, setDependsOnIds] = useState<string[]>([]);
 
   // Queries
   const { data: tasks = [] } = useQuery({
