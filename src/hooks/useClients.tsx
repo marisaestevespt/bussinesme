@@ -259,3 +259,45 @@ export function useClientOnboarding(clientId: string | undefined) {
 
   return { onboarding, addEntry, updateEntry, deleteEntry };
 }
+
+export function useClientOffboarding(clientId: string | undefined) {
+  const qc = useQueryClient();
+  const key = ['client_offboarding', clientId];
+
+  const offboarding = useQuery({
+    queryKey: key,
+    queryFn: async () => {
+      if (!clientId) return [];
+      const { data, error } = await sbOffboarding().select('*').eq('client_id', clientId).order('sort_order', { ascending: true });
+      if (error) throw error;
+      return (data || []) as ClientOffboarding[];
+    },
+    enabled: !!clientId,
+  });
+
+  const addEntry = useMutation({
+    mutationFn: async (entry: Partial<ClientOffboarding> & { client_id: string }) => {
+      const { error } = await sbOffboarding().insert(entry);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
+  });
+
+  const updateEntry = useMutation({
+    mutationFn: async ({ id, ...fields }: Partial<ClientOffboarding> & { id: string }) => {
+      const { error } = await sbOffboarding().update(fields).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
+  });
+
+  const deleteEntry = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await sbOffboarding().delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
+  });
+
+  return { offboarding, addEntry, updateEntry, deleteEntry };
+}
