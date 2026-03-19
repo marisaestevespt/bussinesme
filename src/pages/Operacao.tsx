@@ -340,21 +340,28 @@ export default function OperacaoPage() {
                         }[expandedStatus]}
                       </DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-0.5 max-h-[400px] overflow-y-auto">
+                    <div className="max-h-[400px] overflow-y-auto">
                       {clients.filter(c => c.status === expandedStatus).length === 0 ? (
                         <p className="text-sm text-muted-foreground py-3">Nenhum cliente neste status</p>
                       ) : (
-                        clients.filter(c => c.status === expandedStatus).map(c => (
-                          <Link
-                            key={c.id}
-                            to={`/hub/clientes/${c.id}`}
-                            onClick={() => setExpandedStatus(null)}
-                            className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors text-sm"
-                          >
-                            <span className="truncate font-medium">{c.full_name}</span>
-                            {c.current_product && <span className="text-[10px] ml-auto shrink-0 text-muted-foreground">{c.current_product}</span>}
-                          </Link>
-                        ))
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="text-xs">ID</TableHead>
+                              <TableHead className="text-xs">Nome</TableHead>
+                              <TableHead className="text-xs">Data de Início</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {clients.filter(c => c.status === expandedStatus).map(c => (
+                              <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setExpandedStatus(null); window.location.href = `/hub/clientes/${c.id}`; }}>
+                                <TableCell className="text-xs font-mono">{c.client_id}</TableCell>
+                                <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
+                                <TableCell className="text-xs text-muted-foreground">{c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
                       )}
                     </div>
                   </DialogContent>
