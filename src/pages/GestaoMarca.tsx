@@ -631,7 +631,54 @@ export default function GestaoMarcaPage() {
           <DialogHeader>
             <DialogTitle>{selectedKanban?.title}</DialogTitle>
           </DialogHeader>
-          {selectedKanban && selectedKanban.title?.includes('Análise SWOT') ? (
+          {selectedKanban && selectedKanban.title?.includes('Como ser e não ser vista') ? (
+            /* ── Como ser / não ser vista ── */
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                { key: 'como_ser', label: 'Como ser vista', emoji: '✅', colorClass: 'border-l-4 border-l-green-500' },
+                { key: 'como_nao_ser', label: 'Como não ser vista', emoji: '🚫', colorClass: 'border-l-4 border-l-red-500' },
+              ].map(q => {
+                const items = swotItems.filter(i => i.quadrant === q.key);
+                return (
+                  <Card key={q.key} className={cn('overflow-hidden', q.colorClass)}>
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold text-foreground">{q.emoji} {q.label}</h3>
+                        {isOwner && (
+                          <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setNewSwot({ quadrant: q.key, text: '' })}>
+                            <Plus className="h-3 w-3 mr-1" />Adicionar
+                          </Button>
+                        )}
+                      </div>
+                      <div className="space-y-1.5">
+                        {items.map(item => (
+                          <div key={item.id} className="flex items-start gap-2 group text-sm text-muted-foreground">
+                            <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-foreground/30 shrink-0" />
+                            <span className="flex-1">{item.content}</span>
+                            {isOwner && (
+                              <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteSwotItem(item.id)}>
+                                <Trash2 className="h-3 w-3 text-destructive" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                        {items.length === 0 && <p className="text-xs text-muted-foreground/50 italic">Nenhum item.</p>}
+                      </div>
+                      {newSwot?.quadrant === q.key && (
+                        <div className="flex gap-2">
+                          <Input value={newSwot.text} onChange={e => setNewSwot({ ...newSwot, text: e.target.value })}
+                            placeholder={`Adicionar...`} className="h-8 text-xs" autoFocus
+                            onKeyDown={e => e.key === 'Enter' && addSwotItem(q.key, newSwot.text)} />
+                          <Button size="sm" className="h-8" onClick={() => addSwotItem(q.key, newSwot.text)}><Check className="h-3 w-3" /></Button>
+                          <Button size="sm" variant="ghost" className="h-8" onClick={() => setNewSwot(null)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : selectedKanban && selectedKanban.title?.includes('Análise SWOT') ? (
             /* ── SWOT content ── */
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
