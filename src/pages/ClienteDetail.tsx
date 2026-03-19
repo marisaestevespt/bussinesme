@@ -189,7 +189,7 @@ export default function ClienteDetailPage() {
           product,
           client,
           source: null,
-          documents: form.nif ? `NIF: ${form.nif}` : null,
+          documents: null,
           sale_month: payMonth,
           sale_quarter: payQuarter,
           sale_year: payYear,
