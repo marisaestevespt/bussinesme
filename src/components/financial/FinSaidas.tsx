@@ -313,10 +313,7 @@ export function FinSaidas({ fin }: Props) {
             </div>
             <div><Label>Descrição</Label><Input value={expForm.description || ''} onChange={e => setExpForm((f: any) => ({ ...f, description: e.target.value }))} /></div>
             <div><Label>Categoria</Label>
-              <Select value={expForm.category || 'outro'} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{EXP_CATEGORIES.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-              </Select>
+              <CategorySelect type="expense" value={expForm.category || 'outro'} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Valor Base (€)</Label><Input type="number" step="0.01" value={expForm.base_value || ''} onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))} /></div>
