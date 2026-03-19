@@ -52,6 +52,7 @@ const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2,
 const FULL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 export function FinSaidas({ fin }: Props) {
+  const { expenseCategories, subscriptionCategories, getCategoryLabel } = useFinancialCategories();
   const expenses = fin.expenses.data || [];
   const subscriptions = fin.subscriptions.data || [];
   const payrollData = fin.payroll.data || [];
