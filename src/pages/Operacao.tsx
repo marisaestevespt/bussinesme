@@ -367,8 +367,11 @@ export default function OperacaoPage() {
   const projectNameMap = useMemo(() => new Map(projects.map(p => [p.id, p.name])), [projects]);
 
   // Filtered tasks
-  const filteredClientTasks = filterTasks(clientTasks, clientTaskFilter);
-  const filteredInternoTasks = filterTasks(internoTasks, internoTaskFilter);
+  const filteredClientTasks = useMemo(() => applyTaskFilters(clientTasks, clientFilters), [clientTasks, clientFilters]);
+  const filteredInternoTasks = useMemo(() => applyTaskFilters(internoTasks, internoFilters), [internoTasks, internoFilters]);
+
+  const clientProjectOptions = useMemo(() => clientProjects.map(p => ({ id: p.id, name: p.name })), [clientProjects]);
+  const internoProjectOptions = useMemo(() => internoProjects.map(p => ({ id: p.id, name: p.name })), [internoProjects]);
 
   // ── Render helpers ──────────────────────────────────────────
 
