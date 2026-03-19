@@ -349,10 +349,7 @@ export function FinSaidas({ fin }: Props) {
           <div className="space-y-3">
             <div><Label>Nome da Plataforma</Label><Input value={subForm.platform_name || ''} onChange={e => setSubForm((f: any) => ({ ...f, platform_name: e.target.value }))} /></div>
             <div><Label>Categoria</Label>
-              <Select value={subForm.category || 'outro'} onValueChange={v => setSubForm((f: any) => ({ ...f, category: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{SUB_CATEGORIES.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-              </Select>
+              <CategorySelect type="subscription" value={subForm.category || 'outro'} onValueChange={v => setSubForm((f: any) => ({ ...f, category: v }))} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Valor (€)</Label><Input type="number" step="0.01" value={subForm.value || ''} onChange={e => setSubForm((f: any) => ({ ...f, value: e.target.value }))} /></div>
