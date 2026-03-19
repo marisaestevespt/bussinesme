@@ -86,12 +86,14 @@ export default function HubEquipaPage() {
         {/* Quick links */}
         <QuickLinks />
 
-        {/* Three columns */}
-        <div className="grid gap-6 lg:grid-cols-3">
+        {/* Two columns: Hall + Transversais */}
+        <div className="grid gap-8 md:grid-cols-2">
           <HallColumn />
           <TransversaisColumn />
-          <DepartamentosColumn />
         </div>
+
+        {/* Departamentos full width */}
+        <DepartamentosColumn />
       </div>
     </AppLayout>
   );
