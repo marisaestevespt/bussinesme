@@ -163,6 +163,15 @@ export default function ClienteDetailPage() {
     const client = form.full_name;
 
     try {
+      // Fetch product VAT rate
+      let vatMultiplier = 1.23;
+      if (product) {
+        const { data: prodData } = await supabase.from('products').select('vat_rate').eq('name', product).maybeSingle();
+        const rate = prodData?.vat_rate;
+        if (rate === 'isento') vatMultiplier = 1;
+        else if (rate) vatMultiplier = 1 + parseFloat(rate) / 100;
+      }
+
       for (let i = 0; i < numPayments; i++) {
         const payDate = new Date(startDate);
         payDate.setMonth(payDate.getMonth() + i);
@@ -185,7 +194,7 @@ export default function ClienteDetailPage() {
           payment_date: payDateStr,
           description: `${form.client_id}_Pagamento_${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][payMonth - 1]}`,
           base_value: installmentRounded,
-          invoice_total: Math.round(installmentRounded * 1.23 * 100) / 100,
+          invoice_total: Math.round(installmentRounded * vatMultiplier * 100) / 100,
           product,
           client,
           source: null,
