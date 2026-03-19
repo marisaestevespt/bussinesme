@@ -22,9 +22,11 @@ import { pt } from 'date-fns/locale';
 const currentYear = new Date().getFullYear();
 
 // ─── Objective Form Dialog ──────────────────
+const DEFAULT_OBJECTIVE = { title: '', description: '', area: 'outro', deadline: '', status: 'por_iniciar' };
 function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
-  const [form, setForm] = useState(initial || { title: '', description: '', area: 'outro', deadline: '', status: 'por_iniciar' });
+  const [form, setForm] = useState({ ...DEFAULT_OBJECTIVE, ...(initial || {}) });
   const set = (k: string, v: any) => setForm((p: any) => ({ ...p, [k]: v }));
+  useEffect(() => { setForm({ ...DEFAULT_OBJECTIVE, ...(initial || {}) }); }, [initial]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
