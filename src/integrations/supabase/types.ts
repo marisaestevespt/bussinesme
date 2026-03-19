@@ -4092,6 +4092,7 @@ export type Database = {
       team_members: {
         Row: {
           created_at: string
+          department: string | null
           email: string | null
           expected_weekly_hours: number
           full_name: string
@@ -4110,6 +4111,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          department?: string | null
           email?: string | null
           expected_weekly_hours?: number
           full_name: string
@@ -4128,6 +4130,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          department?: string | null
           email?: string | null
           expected_weekly_hours?: number
           full_name?: string
