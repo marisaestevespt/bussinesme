@@ -262,7 +262,7 @@ function OverviewTab({ entries, members, clients, products, tasks }: { entries: 
       )}
 
       {/* ─── Capacidade da Equipa ─── */}
-      <TeamCapacitySection members={members} clients={clients} products={products} />
+      <TeamCapacitySection members={members} clients={clients} products={products} tasks={tasks} />
     </div>
   );
 }
