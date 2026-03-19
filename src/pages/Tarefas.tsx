@@ -150,7 +150,7 @@ export default function TarefasPage() {
 
   function openNew() {
     setEditingTask(null);
-    setName(''); setStatus('por_comecar'); setPriority('prioridade_1');
+    setName(''); setStatus('por_comecar'); setPriority('alta');
     setDeadline(undefined); setAssignedTo(''); setDepartment(''); setProjectId(''); setNotes('');
     setDialogOpen(true);
   }
