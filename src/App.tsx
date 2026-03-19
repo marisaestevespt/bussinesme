@@ -51,6 +51,7 @@ import ClientesPage from "./pages/Clientes";
 import ClienteDetailPage from "./pages/ClienteDetail";
 import VendaDetailPage from "./pages/VendaDetail";
 import FinanceiroPage from "./pages/Financeiro";
+import FinanceiroSubPage from "./pages/FinanceiroSubPage";
 
 const queryClient = new QueryClient();
 
