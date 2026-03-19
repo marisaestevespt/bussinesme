@@ -380,6 +380,66 @@ export type Database = {
         }
         Relationships: []
       }
+      commercial_library_entries: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          end_date: string | null
+          entry_type: string
+          id: string
+          learnings: string | null
+          materials: Json | null
+          notes: string | null
+          product: string | null
+          result: string
+          results_numbers: string | null
+          start_date: string | null
+          summary: string | null
+          title: string
+          updated_at: string
+          what_didnt_work: string | null
+          what_worked: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          entry_type?: string
+          id?: string
+          learnings?: string | null
+          materials?: Json | null
+          notes?: string | null
+          product?: string | null
+          result?: string
+          results_numbers?: string | null
+          start_date?: string | null
+          summary?: string | null
+          title: string
+          updated_at?: string
+          what_didnt_work?: string | null
+          what_worked?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          entry_type?: string
+          id?: string
+          learnings?: string | null
+          materials?: Json | null
+          notes?: string | null
+          product?: string | null
+          result?: string
+          results_numbers?: string | null
+          start_date?: string | null
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          what_didnt_work?: string | null
+          what_worked?: string | null
+        }
+        Relationships: []
+      }
       commercial_monthly_goals: {
         Row: {
           created_at: string
