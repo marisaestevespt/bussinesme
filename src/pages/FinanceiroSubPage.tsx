@@ -72,6 +72,8 @@ export default function FinanceiroSubPage() {
       <div className="p-6 space-y-4">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate('/hub/financeiro')}><ArrowLeft className="h-4 w-4" /></Button>
+          <span className="text-sm text-muted-foreground">Contabilidade</span>
+          <span className="text-muted-foreground">/</span>
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
         </div>
         {renderContent()}
