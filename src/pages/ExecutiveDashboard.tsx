@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Target, CalendarCheck, Lightbulb, Rocket, Clock, Trash2, Plus } from 'lucide-react';
+import { Target, CalendarCheck, Lightbulb, Rocket, Clock, Trash2, Plus, Users } from 'lucide-react';
 import { useExecutiveData, getMonthName, areaLabel, statusLabel } from '@/hooks/useExecutiveData';
 
 const currentMonth = new Date().getMonth() + 1;
