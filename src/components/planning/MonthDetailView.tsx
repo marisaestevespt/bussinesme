@@ -634,7 +634,20 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                               </div>
                             )}
                             {l.status === 'ganho' && (
-                              <Button variant="outline" size="sm" className="h-5 text-[9px] w-full mt-1">Add como cliente</Button>
+                              <Button variant="outline" size="sm" className="h-5 text-[9px] w-full mt-1 gap-1" onClick={(e) => {
+                                e.stopPropagation();
+                                const form: Record<string, string> = {
+                                  full_name: l.name || '',
+                                  email: l.email || '',
+                                  whatsapp: l.phone || '',
+                                  current_product: l.closed_product || '',
+                                  start_date: new Date().toISOString().slice(0, 10),
+                                  _lead_id: l.id,
+                                  nif: '', fiscal_address: '', birthday: '', observations: '', payment_method: '', dp: '',
+                                };
+                                setConvertForm(form);
+                                setConvertLead(l);
+                              }}><UserPlus className="h-3 w-3" /> Tornar Cliente</Button>
                             )}
                           </div>
                         );
