@@ -54,9 +54,11 @@ function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
 }
 
 // ─── Goal Form Dialog ──────────────────
+const DEFAULT_GOAL = { meta: '', area: 'outro', status: 'por_iniciar', target_date: '', achieved_date: '', objective_id: '' };
 function GoalDialog({ open, onClose, initial, onSave, objectives }: any) {
-  const [form, setForm] = useState(initial || { meta: '', area: 'outro', status: 'por_iniciar', target_date: '', achieved_date: '', objective_id: '' });
+  const [form, setForm] = useState({ ...DEFAULT_GOAL, ...(initial || {}) });
   const set = (k: string, v: any) => setForm((p: any) => ({ ...p, [k]: v }));
+  useEffect(() => { setForm({ ...DEFAULT_GOAL, ...(initial || {}) }); }, [initial]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
