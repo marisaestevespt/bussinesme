@@ -536,34 +536,46 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
             <Switch checked={!!f.works_holidays} onCheckedChange={v => set('works_holidays', v)} />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">Feriados específicos (municipais, etc.)</label>
-            <div className="flex gap-2">
-              <Input
-                type="date"
-                id="custom-holiday-input"
-                className="flex-1"
-              />
-              <Button type="button" variant="outline" size="sm" onClick={() => {
-                const input = document.getElementById('custom-holiday-input') as HTMLInputElement;
-                if (input?.value) {
-                  const current: string[] = Array.isArray(f.custom_holidays) ? f.custom_holidays : [];
-                  if (!current.includes(input.value)) {
-                    set('custom_holidays', [...current, input.value]);
-                  }
-                  input.value = '';
-                }
-              }}>
-                <Plus className="h-3 w-3" />
-              </Button>
+            <label className="text-xs text-muted-foreground">Dias off e férias</label>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] text-muted-foreground">Início</label>
+                <Input type="date" id="vacation-start-input" />
+              </div>
+              <div>
+                <label className="text-[10px] text-muted-foreground">Fim</label>
+                <Input type="date" id="vacation-end-input" />
+              </div>
             </div>
+            <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => {
+              const startInput = document.getElementById('vacation-start-input') as HTMLInputElement;
+              const endInput = document.getElementById('vacation-end-input') as HTMLInputElement;
+              if (!startInput?.value || !endInput?.value) { toast.error('Selecione início e fim'); return; }
+              if (endInput.value < startInput.value) { toast.error('Data fim deve ser após início'); return; }
+              const entry = `${startInput.value}|${endInput.value}`;
+              const current: string[] = Array.isArray(f.custom_holidays) ? f.custom_holidays : [];
+              if (!current.includes(entry)) {
+                set('custom_holidays', [...current, entry]);
+              }
+              startInput.value = '';
+              endInput.value = '';
+            }}>
+              <Plus className="h-3 w-3 mr-1" /> Adicionar período
+            </Button>
             {Array.isArray(f.custom_holidays) && f.custom_holidays.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-1">
-                {f.custom_holidays.map((d: string) => (
-                  <Badge key={d} variant="secondary" className="text-xs gap-1">
-                    {(() => { try { return format(parseISO(d), 'dd/MM/yyyy'); } catch { return d; } })()}
-                    <button type="button" onClick={() => set('custom_holidays', f.custom_holidays.filter((x: string) => x !== d))} className="ml-0.5 hover:text-destructive">×</button>
-                  </Badge>
-                ))}
+              <div className="space-y-1 mt-1">
+                {f.custom_holidays.map((d: string, idx: number) => {
+                  const parts = d.split('|');
+                  const label = parts.length === 2
+                    ? `${(() => { try { return format(parseISO(parts[0]), 'dd/MM/yyyy'); } catch { return parts[0]; } })()} → ${(() => { try { return format(parseISO(parts[1]), 'dd/MM/yyyy'); } catch { return parts[1]; } })()}`
+                    : (() => { try { return format(parseISO(d), 'dd/MM/yyyy'); } catch { return d; } })();
+                  return (
+                    <div key={idx} className="flex items-center justify-between bg-muted/50 rounded-md px-2 py-1.5">
+                      <span className="text-xs">{label}</span>
+                      <button type="button" onClick={() => set('custom_holidays', f.custom_holidays.filter((_: string, i: number) => i !== idx))} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
