@@ -1936,6 +1936,41 @@ export type Database = {
         }
         Relationships: []
       }
+      traffic_report_files: {
+        Row: {
+          card_id: string
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_url: string
+          id: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "traffic_report_files_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "traffic_report_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
