@@ -414,22 +414,13 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin }: {
   return (
     <TableRow>
       <TableCell className="font-medium">{sub.platform_name}</TableCell>
+      <TableCell>Subscrição</TableCell>
       <TableCell className="text-right">{fmt(sub.monthly_equivalent)}</TableCell>
       <TableCell>
         {isPaid
           ? <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Pago</Badge>
           : <Badge variant="outline" className="text-muted-foreground">Pendente</Badge>
         }
-      </TableCell>
-      <TableCell>
-        {linkedExpense && (
-          <InvoiceUpload
-            documents={Array.isArray(docs) ? docs : []}
-            onChange={handleDocsChange}
-            label=""
-          />
-        )}
-        {!linkedExpense && <span className="text-xs text-muted-foreground">Confirmar primeiro</span>}
       </TableCell>
       <TableCell>
         <Button
