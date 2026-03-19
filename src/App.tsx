@@ -32,6 +32,8 @@ import MarketingDashboard from "./pages/MarketingDashboard";
 import MarketingSubPage from "./pages/MarketingSubPage";
 import ConteudoDetailPage from "./pages/ConteudoDetail";
 import ChannelPage from "./pages/ChannelPage";
+import MarketingEstrategia from "./pages/MarketingEstrategia";
+import MarketingChannelStrategy from "./pages/MarketingChannelStrategy";
 
 const queryClient = new QueryClient();
 
