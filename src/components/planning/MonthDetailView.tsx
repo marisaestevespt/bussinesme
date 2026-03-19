@@ -208,7 +208,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       return {
         product: pg.product_name,
         numVendas: prodSales.length,
-        price: prod?.base_price || 0,
+        price: 0,
         goalAmount: goalAmt,
         totalFat,
         pct,
