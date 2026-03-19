@@ -421,7 +421,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   {sales.length === 0 ? (
                     <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-4">Sem vendas registadas.</TableCell></TableRow>
                   ) : sales.map((sl: any) => (
-                    <TableRow key={sl.id}>
+                    <TableRow key={sl.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/comercial/vendas/${sl.id}`)}>
                       <TableCell className="text-xs">{sl.sale_id}</TableCell>
                       <TableCell className="text-sm">{sl.client || '—'}</TableCell>
                       <TableCell className="text-sm">{sl.product || '—'}</TableCell>
