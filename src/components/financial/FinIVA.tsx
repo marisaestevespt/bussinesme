@@ -12,7 +12,28 @@ const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2,
 type Sale = { invoice_total: number; base_value: number; sale_month: number | null; sale_year: number | null };
 interface Props { sales: Sale[]; expenses: Expense[]; currentYear: number; fin: ReturnType<typeof useFinancialData>; }
 
-export function FinIVA({ sales, expenses, currentYear }: Props) {
+export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
+  // IVA documents
+  const ivaDoc = useMemo(() => {
+    const doc = (fin.documents.data || []).find(d => d.doc_type === 'iva_declarations' && d.period_year === currentYear);
+    return doc;
+  }, [fin.documents.data, currentYear]);
+
+  const ivaDocuments: FinDocItem[] = useMemo(() => {
+    if (!ivaDoc?.notes) return [];
+    try { return JSON.parse(ivaDoc.notes); } catch { return []; }
+  }, [ivaDoc]);
+
+  const handleDocsUpdate = useCallback(async (docs: FinDocItem[]) => {
+    await fin.upsertDocument.mutateAsync({
+      ...(ivaDoc ? { id: ivaDoc.id } : {}),
+      title: `Declarações IVA ${currentYear}`,
+      doc_type: 'iva_declarations',
+      period_year: currentYear,
+      notes: JSON.stringify(docs),
+      status: 'ativo',
+    });
+  }, [ivaDoc, currentYear, fin]);
   // IVA Cobrado (vendas)
   const ivaCobrado = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
