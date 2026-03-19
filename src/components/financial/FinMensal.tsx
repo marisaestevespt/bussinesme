@@ -123,7 +123,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
 
   // Expense dialog
   const [expOpen, setExpOpen] = useState(false);
-  const [expForm, setExpForm] = useState<any>({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [] });
+  const [expForm, setExpForm] = useState<any>({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [], includes_vat: false });
 
   const saveExpense = async () => {
     if (!expForm.base_value) { toast.error('Valor base é obrigatório'); return; }
