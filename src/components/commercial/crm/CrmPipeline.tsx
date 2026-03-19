@@ -49,7 +49,7 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus }: CrmPipelinePr
 
   return (
     <ScrollArea className="w-full">
-      <div className="flex gap-3 pb-4" style={{ minWidth: `${columns.length * 250}px` }}>
+      <div className="flex gap-3 pb-4" style={{ minWidth: `${columns.length * 290}px` }}>
         {columns.map(col => (
           <div
             key={col.value}
