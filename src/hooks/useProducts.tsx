@@ -27,6 +27,7 @@ export type Product = {
   invoice_denomination: string | null;
   accounting_notes: string | null;
   cycle_duration: number | null;
+  monthly_hours_per_client: number | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
