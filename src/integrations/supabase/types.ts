@@ -870,6 +870,7 @@ export type Database = {
           department: string | null
           id: string
           name: string
+          notes: string | null
           priority: string
           project_id: string | null
           status: string
@@ -883,6 +884,7 @@ export type Database = {
           department?: string | null
           id?: string
           name: string
+          notes?: string | null
           priority?: string
           project_id?: string | null
           status?: string
@@ -896,6 +898,7 @@ export type Database = {
           department?: string | null
           id?: string
           name?: string
+          notes?: string | null
           priority?: string
           project_id?: string | null
           status?: string

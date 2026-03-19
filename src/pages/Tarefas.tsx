@@ -182,7 +182,7 @@ export default function TarefasPage() {
       deadline: format(deadline, 'yyyy-MM-dd'),
       assigned_to: assignedTo || null,
       department: department || null,
-      project_id: projectId || null,
+      project_id: projectId && projectId !== 'none' ? projectId : null,
       notes: notes || null,
     };
     // When changing to done, store completion time in updated_at
@@ -387,6 +387,7 @@ export default function TarefasPage() {
               <Select value={projectId} onValueChange={setProjectId}>
                 <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="none">Nenhum</SelectItem>
                   {projects.map(p => (
                     <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                   ))}
