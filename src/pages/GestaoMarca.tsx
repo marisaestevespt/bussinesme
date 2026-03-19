@@ -779,6 +779,62 @@ export default function GestaoMarcaPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* ── Competitor Dialog ── */}
+      <Dialog open={showAddCompetitor} onOpenChange={open => { if (!open) { setShowAddCompetitor(false); setEditingCompetitor(null); resetCompForm(); } }}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingCompetitor ? 'Editar Concorrente' : 'Adicionar Concorrente'}</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground font-medium">Nome *</label>
+              <Input value={compForm.name} onChange={e => setCompForm(f => ({ ...f, name: e.target.value }))} placeholder="Nome do concorrente" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground font-medium">Tipo</label>
+              <Select value={compForm.type} onValueChange={v => setCompForm(f => ({ ...f, type: v }))}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="direta">Direta</SelectItem>
+                  <SelectItem value="indireta">Indireta</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground font-medium">Instagram</label>
+              <Input value={compForm.instagram} onChange={e => setCompForm(f => ({ ...f, instagram: e.target.value }))} placeholder="@handle" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground font-medium">Website</label>
+              <Input value={compForm.website} onChange={e => setCompForm(f => ({ ...f, website: e.target.value }))} placeholder="https://..." />
+            </div>
+            <div className="space-y-1 sm:col-span-2">
+              <label className="text-xs text-muted-foreground font-medium">Produtos</label>
+              <Input value={compForm.produtos} onChange={e => setCompForm(f => ({ ...f, produtos: e.target.value }))} placeholder="Produtos principais" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground font-medium">Preços</label>
+              <Input value={compForm.precos} onChange={e => setCompForm(f => ({ ...f, precos: e.target.value }))} placeholder="Faixa de preços" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground font-medium">Plataformas</label>
+              <Input value={compForm.plataformas} onChange={e => setCompForm(f => ({ ...f, plataformas: e.target.value }))} placeholder="Instagram, TikTok..." />
+            </div>
+            <div className="space-y-1 sm:col-span-2">
+              <label className="text-xs text-muted-foreground font-medium">Posicionamento</label>
+              <Textarea value={compForm.posicionamento} onChange={e => setCompForm(f => ({ ...f, posicionamento: e.target.value }))} placeholder="Como se posicionam no mercado" rows={2} />
+            </div>
+            <div className="space-y-1 sm:col-span-2">
+              <label className="text-xs text-muted-foreground font-medium">Comunicação</label>
+              <Textarea value={compForm.comunicacao} onChange={e => setCompForm(f => ({ ...f, comunicacao: e.target.value }))} placeholder="Estilo de comunicação" rows={2} />
+            </div>
+          </div>
+          <Button className="w-full mt-2" disabled={!compForm.name.trim()} onClick={saveCompetitor}>
+            <Check className="h-3.5 w-3.5 mr-1" />{editingCompetitor ? 'Guardar' : 'Adicionar'}
+          </Button>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
