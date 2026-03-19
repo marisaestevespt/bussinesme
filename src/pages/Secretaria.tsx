@@ -206,15 +206,30 @@ export default function SecretariaPage() {
 
   const getProjectName = (id: string | null) => allProjects.data?.find(p => p.id === id)?.name || '';
 
-  const [activeTab, setActiveTab] = useState('dia');
+  const [activeTab, setActiveTab] = useState<string | null>(null);
 
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
+        {/* Dashboard greeting */}
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">{greetingText()}, {firstName}.</h2>
+          <p className="text-sm text-muted-foreground">{format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: pt })}</p>
+        </div>
+
+        {/* Summary cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas para hoje</p><p className="text-2xl font-bold">{todayTasks.length}</p></CardContent></Card>
+          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas em atraso</p><p className="text-2xl font-bold text-destructive">{overdueTasks.length}</p></CardContent></Card>
+          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Reuniões hoje</p><p className="text-2xl font-bold">{todayMeetings.length}</p></CardContent></Card>
+          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Projetos ativos</p><p className="text-2xl font-bold">{activeProjects.length}</p></CardContent></Card>
+        </div>
+
         {/* Navigation cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {[
             { value: 'dia', label: 'O Meu Dia', icon: CalendarIcon, iconColor: 'text-blue-600', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
+            { value: 'semana', label: 'A Minha Semana', icon: CalendarIcon, iconColor: 'text-indigo-600', color: 'from-indigo-500/10 to-indigo-600/5 hover:from-indigo-500/20 hover:to-indigo-600/10' },
             { value: 'tarefas', label: 'As Minhas Tarefas', icon: CheckSquare, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
             { value: 'projetos', label: 'Os Meus Projetos', icon: FolderKanban, iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10' },
             { value: 'reunioes', label: 'As Minhas Reuniões', icon: Users, iconColor: 'text-rose-600', color: 'from-rose-500/10 to-rose-600/5 hover:from-rose-500/20 hover:to-rose-600/10' },
@@ -229,7 +244,7 @@ export default function SecretariaPage() {
                 s.color,
                 activeTab === s.value && 'ring-2 ring-primary/50 shadow-md'
               )}
-              onClick={() => setActiveTab(s.value)}
+              onClick={() => setActiveTab(activeTab === s.value ? null : s.value)}
             >
               <CardContent className="p-4 flex items-center gap-3">
                 <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
@@ -241,31 +256,61 @@ export default function SecretariaPage() {
           ))}
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="hidden">
-            <TabsTrigger value="dia" />
-            <TabsTrigger value="tarefas" />
-            <TabsTrigger value="projetos" />
-            <TabsTrigger value="reunioes" />
-            <TabsTrigger value="produtividade" />
-            <TabsTrigger value="contrato" />
-            <TabsTrigger value="espaco" />
-          </TabsList>
+        {/* Tab content */}
+        {activeTab === 'dia' && (
+          <MeuDiaTab
+            todayTasks={todayTasks}
+            todayMeetings={todayMeetings}
+            timeEntries={timeEntries.data || []}
+            getProjectName={getProjectName}
+            qc={qc}
+          />
+        )}
 
-          {/* TAB 1 — O MEU DIA */}
-          <TabsContent value="dia">
-            <MeuDiaTab
-              firstName={firstName}
-              todayTasks={todayTasks}
-              overdueTasks={overdueTasks}
-              todayMeetings={todayMeetings}
-              activeProjects={activeProjects}
-              allTasks={tasks.data || []}
-              allMeetings={meetings.data || []}
-              getProjectName={getProjectName}
-              qc={qc}
-            />
-          </TabsContent>
+        {activeTab === 'semana' && (
+          <MinhaSemanaTab
+            allTasks={tasks.data || []}
+            allMeetings={meetings.data || []}
+            timeEntries={timeEntries.data || []}
+            getProjectName={getProjectName}
+            qc={qc}
+          />
+        )}
+
+        {activeTab === 'tarefas' && (
+          <MinhasTarefasTab tasks={tasks.data || []} getProjectName={getProjectName} qc={qc} userId={user?.id} />
+        )}
+
+        {activeTab === 'projetos' && (
+          <MeusProjetosTab projects={projects.data || []} />
+        )}
+
+        {activeTab === 'reunioes' && (
+          <MinhasReunioesTab meetings={meetings.data || []} profiles={allProfiles.data || []} />
+        )}
+
+        {activeTab === 'produtividade' && (
+          <MinhaProdutividadeTab
+            tasks={tasks.data || []}
+            timeEntries={timeEntries.data || []}
+            teamMember={teamMember.data}
+            allProjects={allProjects.data || []}
+            qc={qc}
+            userId={user?.id}
+          />
+        )}
+
+        {activeTab === 'contrato' && (
+          <MeuContratoTab teamMember={teamMember.data} />
+        )}
+
+        {activeTab === 'espaco' && (
+          <MeuEspacoTab userId={user?.id} teamMember={teamMember.data} />
+        )}
+      </div>
+    </AppLayout>
+  );
+}
 
           {/* TAB 2 — AS MINHAS TAREFAS */}
           <TabsContent value="tarefas">
