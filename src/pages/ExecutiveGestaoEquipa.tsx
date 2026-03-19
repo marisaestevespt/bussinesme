@@ -689,7 +689,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
       if (isNew) {
         const payload = cleanPayload({ ...member });
         delete payload.id;
-        const { data, error } = await supabase.from('team_members').insert(payload).select('id').single();
+        const { data, error } = await supabase.from('team_members').insert(payload as any).select('id').single();
         if (error) throw error;
         memberId = data.id;
       } else {
