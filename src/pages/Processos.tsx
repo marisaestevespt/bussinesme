@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ViewTabs } from '@/components/ViewTabs';
+import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,11 +48,17 @@ function getStatusInfo(status: string) {
 
 // ─── Main Page ──────────────────────────────────────────────────
 
+const PROCESSOS_DEFAULT_VIEWS: DefaultView[] = [
+  { key: 'galeria', label: 'Galeria', icon: <FileText className="h-4 w-4" />, isDefault: true },
+  { key: 'lista', label: 'Lista', icon: <List className="h-4 w-4" />, isDefault: true },
+];
+
 export default function ProcessosPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  const { allViews, addView, renameView, deleteView } = useUserViews('processos', PROCESSOS_DEFAULT_VIEWS);
   const [selectedDept, setSelectedDept] = useState<string | null>(null);
   const [routineFilter, setRoutineFilter] = useState<string>('all');
   const [showNewSop, setShowNewSop] = useState(false);
@@ -300,12 +308,14 @@ export default function ProcessosPage() {
     <AppLayout>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="galeria">Processos</TabsTrigger>
-            <TabsTrigger value="lista">
-              <List className="h-4 w-4 mr-1" /> Lista Total
-            </TabsTrigger>
-          </TabsList>
+          <ViewTabs
+            views={allViews}
+            activeKey={activeTab}
+            onSelect={setActiveTab}
+            onAdd={(label) => addView(label)}
+            onRename={(id, label) => renameView({ id, label })}
+            onDelete={(id) => { if (activeTab.startsWith('custom_')) setActiveTab('galeria'); deleteView(id); }}
+          />
           <Button onClick={() => { if (selectedDept) setNewSopDept(selectedDept); setShowNewSop(true); }} size="sm">
             <Plus className="h-4 w-4 mr-1" /> Novo Processo
           </Button>

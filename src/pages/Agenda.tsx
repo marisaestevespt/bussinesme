@@ -1,5 +1,7 @@
 import { useState, useRef } from 'react';
 import { AppLayout } from '@/components/AppLayout';
+import { ViewTabs } from '@/components/ViewTabs';
+import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -800,8 +802,14 @@ function EventDetailDialog({
 
 // ─── Main Page ──────────────────────────────────────────────────
 
+const AGENDA_DEFAULT_VIEWS: DefaultView[] = [
+  { key: 'calendar', label: 'Calendário', icon: <LayoutGrid className="h-4 w-4" />, isDefault: true },
+  { key: 'list', label: 'Lista', icon: <List className="h-4 w-4" />, isDefault: true },
+];
+
 export default function AgendaPage() {
-  const [view, setView] = useState<'calendar' | 'list'>('calendar');
+  const { allViews, addView, renameView, deleteView } = useUserViews('agenda', AGENDA_DEFAULT_VIEWS);
+  const [view, setView] = useState<string>('calendar');
   const [formOpen, setFormOpen] = useState(false);
   const [editEvent, setEditEvent] = useState<EventRow | null>(null);
   const [detailEvent, setDetailEvent] = useState<EventRow | null>(null);
@@ -828,14 +836,14 @@ export default function AgendaPage() {
                 <Settings2 className="h-4 w-4" />
               </Button>
             )}
-            <div className="flex rounded-lg border border-border overflow-hidden">
-              <button onClick={() => setView('calendar')} className={cn('flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors', view === 'calendar' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-muted')}>
-                <LayoutGrid className="h-4 w-4" /> Calendário
-              </button>
-              <button onClick={() => setView('list')} className={cn('flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors', view === 'list' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-muted')}>
-                <List className="h-4 w-4" /> Lista
-              </button>
-            </div>
+            <ViewTabs
+              views={allViews}
+              activeKey={view}
+              onSelect={setView}
+              onAdd={(label) => addView(label)}
+              onRename={(id, label) => renameView({ id, label })}
+              onDelete={(id) => { if (view.startsWith('custom_')) setView('calendar'); deleteView(id); }}
+            />
             <Button onClick={handleNewEvent}><Plus className="h-4 w-4 mr-1.5" /> Novo Evento</Button>
           </div>
         </div>

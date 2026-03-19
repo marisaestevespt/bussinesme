@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { AppLayout } from '@/components/AppLayout';
-import { Button } from '@/components/ui/button';
+import { ViewTabs } from '@/components/ViewTabs';
+import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -11,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Plus, CalendarIcon, ListTodo, AlertTriangle, Clock, CalendarDays, List, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -48,13 +50,13 @@ const TASK_DEPARTMENTS = [
 
 type View = 'todo' | 'atrasadas' | 'proximas' | 'calendario' | 'responsavel' | 'todas';
 
-const VIEWS: { key: View; label: string; icon: React.ReactNode }[] = [
-  { key: 'todo', label: 'To Do', icon: <ListTodo className="h-4 w-4" /> },
-  { key: 'atrasadas', label: 'Atrasadas', icon: <AlertTriangle className="h-4 w-4" /> },
-  { key: 'proximas', label: 'Próximas Tarefas', icon: <Clock className="h-4 w-4" /> },
-  { key: 'responsavel', label: 'Por Responsável', icon: <Users className="h-4 w-4" /> },
-  { key: 'calendario', label: 'Calendário', icon: <CalendarDays className="h-4 w-4" /> },
-  { key: 'todas', label: 'Todas as Tarefas', icon: <List className="h-4 w-4" /> },
+const DEFAULT_VIEWS: DefaultView[] = [
+  { key: 'todo', label: 'To Do', icon: <ListTodo className="h-4 w-4" />, isDefault: true },
+  { key: 'atrasadas', label: 'Atrasadas', icon: <AlertTriangle className="h-4 w-4" />, isDefault: true },
+  { key: 'proximas', label: 'Próximas Tarefas', icon: <Clock className="h-4 w-4" />, isDefault: true },
+  { key: 'responsavel', label: 'Por Responsável', icon: <Users className="h-4 w-4" />, isDefault: true },
+  { key: 'calendario', label: 'Calendário', icon: <CalendarDays className="h-4 w-4" />, isDefault: true },
+  { key: 'todas', label: 'Todas as Tarefas', icon: <List className="h-4 w-4" />, isDefault: true },
 ];
 
 function getStatusInfo(val: string) {
@@ -72,7 +74,8 @@ function getDeptInfo(val: string) {
 export default function TarefasPage() {
   const { user, isOwner } = useAuth();
   const queryClient = useQueryClient();
-  const [view, setView] = useState<View>('todo');
+  const { allViews, addView, renameView, deleteView } = useUserViews('tarefas', DEFAULT_VIEWS);
+  const [view, setView] = useState<string>('todo');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<any>(null);
   const [calMonth, setCalMonth] = useState(new Date());
@@ -264,19 +267,14 @@ export default function TarefasPage() {
         </div>
 
         {/* View switcher */}
-        <div className="flex flex-wrap gap-2">
-          {VIEWS.map(v => (
-            <Button
-              key={v.key}
-              variant={view === v.key ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setView(v.key)}
-              className="gap-1.5"
-            >
-              {v.icon} {v.label}
-            </Button>
-          ))}
-        </div>
+        <ViewTabs
+          views={allViews}
+          activeKey={view}
+          onSelect={setView}
+          onAdd={(label) => addView(label)}
+          onRename={(id, label) => renameView({ id, label })}
+          onDelete={(id) => { if (view.startsWith('custom_')) setView('todo'); deleteView(id); }}
+        />
 
         {/* Content */}
         {view === 'calendario' ? (

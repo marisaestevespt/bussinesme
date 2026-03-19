@@ -932,6 +932,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_views: {
+        Row: {
+          created_at: string
+          filter_config: Json
+          id: string
+          label: string
+          page_key: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          filter_config?: Json
+          id?: string
+          label: string
+          page_key: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          filter_config?: Json
+          id?: string
+          label?: string
+          page_key?: string
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

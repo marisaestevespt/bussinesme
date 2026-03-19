@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
+import { ViewTabs } from '@/components/ViewTabs';
+import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,9 +27,15 @@ const CATEGORIES = [
   { value: 'outro', label: 'Outro' },
 ];
 
+const BIBLIOTECA_DEFAULT_VIEWS: DefaultView[] = [
+  { key: 'todos', label: 'Todos os Documentos', isDefault: true },
+];
+
 export default function BibliotecaPage() {
   const { user, isOwner } = useAuth();
   const queryClient = useQueryClient();
+  const { allViews, addView, renameView, deleteView } = useUserViews('biblioteca', BIBLIOTECA_DEFAULT_VIEWS);
+  const [activeView, setActiveView] = useState('todos');
   const [showNew, setShowNew] = useState(false);
   const [editingDoc, setEditingDoc] = useState<any>(null);
   const [title, setTitle] = useState('');
@@ -109,11 +117,21 @@ export default function BibliotecaPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Biblioteca de Documentos Internos</h1>
-          {isOwner && (
-            <Button onClick={() => setShowNew(true)} size="sm">
-              <Plus className="h-4 w-4 mr-1" /> Novo Documento
-            </Button>
-          )}
+          <div className="flex items-center gap-3">
+            <ViewTabs
+              views={allViews}
+              activeKey={activeView}
+              onSelect={setActiveView}
+              onAdd={(label) => addView(label)}
+              onRename={(id, label) => renameView({ id, label })}
+              onDelete={(id) => { if (activeView.startsWith('custom_')) setActiveView('todos'); deleteView(id); }}
+            />
+            {isOwner && (
+              <Button onClick={() => setShowNew(true)} size="sm">
+                <Plus className="h-4 w-4 mr-1" /> Novo Documento
+              </Button>
+            )}
+          </div>
         </div>
 
         {documents.length === 0 ? (

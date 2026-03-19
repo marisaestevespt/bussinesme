@@ -1,5 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ViewTabs } from '@/components/ViewTabs';
+import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -327,8 +329,14 @@ function MeetingFormDialog({
 
 // ─── Meetings List Page ─────────────────────────────────────────
 
+const REUNIOES_DEFAULT_VIEWS: DefaultView[] = [
+  { key: 'proximas', label: 'Próximas', icon: <Clock className="h-4 w-4" />, isDefault: true },
+  { key: 'todas', label: 'Todas', isDefault: true },
+];
+
 export default function ReunioesPage() {
-  const [view, setView] = useState<'proximas' | 'todas'>('proximas');
+  const { allViews, addView, renameView, deleteView } = useUserViews('reunioes', REUNIOES_DEFAULT_VIEWS);
+  const [view, setView] = useState<string>('proximas');
   const [formOpen, setFormOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -347,14 +355,14 @@ export default function ReunioesPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground">Reuniões</h1>
           <div className="flex items-center gap-3">
-            <div className="flex rounded-lg border border-border overflow-hidden">
-              <button onClick={() => setView('proximas')} className={cn('flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors', view === 'proximas' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-muted')}>
-                <Clock className="h-4 w-4" /> Próximas
-              </button>
-              <button onClick={() => setView('todas')} className={cn('flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors', view === 'todas' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-muted')}>
-                Todas
-              </button>
-            </div>
+            <ViewTabs
+              views={allViews}
+              activeKey={view}
+              onSelect={setView}
+              onAdd={(label) => addView(label)}
+              onRename={(id, label) => renameView({ id, label })}
+              onDelete={(id) => { if (view.startsWith('custom_')) setView('proximas'); deleteView(id); }}
+            />
             <Button onClick={() => setFormOpen(true)}><Plus className="h-4 w-4 mr-1.5" /> Nova Reunião</Button>
           </div>
         </div>

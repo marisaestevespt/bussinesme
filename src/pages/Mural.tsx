@@ -1,5 +1,7 @@
 import { useState, useRef } from 'react';
 import { AppLayout } from '@/components/AppLayout';
+import { ViewTabs } from '@/components/ViewTabs';
+import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -68,9 +70,15 @@ interface Profile {
   avatar_url: string | null;
 }
 
+const MURAL_DEFAULT_VIEWS: DefaultView[] = [
+  { key: 'todas', label: 'Todas as Publicações', isDefault: true },
+];
+
 export default function MuralPage() {
   const queryClient = useQueryClient();
   const { user, isOwner } = useAuth();
+  const { allViews, addView, renameView, deleteView } = useUserViews('mural', MURAL_DEFAULT_VIEWS);
+  const [activeView, setActiveView] = useState('todas');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formTitle, setFormTitle] = useState('');
   const [formBody, setFormBody] = useState('');
@@ -299,11 +307,21 @@ export default function MuralPage() {
           <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
             Mural
           </h1>
-          {canPublish && (
-            <Button onClick={() => setDialogOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" /> Nova Publicação
-            </Button>
-          )}
+          <div className="flex items-center gap-3">
+            <ViewTabs
+              views={allViews}
+              activeKey={activeView}
+              onSelect={setActiveView}
+              onAdd={(label) => addView(label)}
+              onRename={(id, label) => renameView({ id, label })}
+              onDelete={(id) => { if (activeView.startsWith('custom_')) setActiveView('todas'); deleteView(id); }}
+            />
+            {canPublish && (
+              <Button onClick={() => setDialogOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" /> Nova Publicação
+              </Button>
+            )}
+          </div>
         </div>
 
         {isLoading ? (

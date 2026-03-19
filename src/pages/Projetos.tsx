@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ViewTabs } from '@/components/ViewTabs';
+import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -128,11 +130,18 @@ function DeptBadge({ dept }: { dept: string }) {
 
 type ViewMode = 'table' | 'gallery' | 'calendar';
 
+const PROJETOS_DEFAULT_VIEWS: DefaultView[] = [
+  { key: 'table', label: 'Tabela', icon: <LayoutList className="h-4 w-4" />, isDefault: true },
+  { key: 'gallery', label: 'Galeria', icon: <LayoutGrid className="h-4 w-4" />, isDefault: true },
+  { key: 'calendar', label: 'Calendário', icon: <CalendarIcon className="h-4 w-4" />, isDefault: true },
+];
+
 export default function ProjetosPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const [view, setView] = useState<ViewMode>('table');
+  const { allViews, addView, renameView, deleteView } = useUserViews('projetos', PROJETOS_DEFAULT_VIEWS);
+  const [view, setView] = useState<string>('table');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [calMonth, setCalMonth] = useState(new Date());
 
@@ -232,13 +241,14 @@ export default function ProjetosPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>Projetos</h1>
           <div className="flex items-center gap-2">
-            <div className="flex rounded-lg border p-0.5">
-              {([['table', LayoutList, 'Tabela'], ['gallery', LayoutGrid, 'Galeria'], ['calendar', CalendarIcon, 'Calendário']] as const).map(([v, Icon, label]) => (
-                <Button key={v} variant={view === v ? 'default' : 'ghost'} size="sm" className="h-8 px-3 gap-1.5" onClick={() => setView(v as ViewMode)}>
-                  <Icon className="h-4 w-4" /><span className="text-xs">{label}</span>
-                </Button>
-              ))}
-            </div>
+            <ViewTabs
+              views={allViews}
+              activeKey={view}
+              onSelect={setView}
+              onAdd={(label) => addView(label)}
+              onRename={(id, label) => renameView({ id, label })}
+              onDelete={(id) => { if (view.startsWith('custom_')) setView('table'); deleteView(id); }}
+            />
             <Button onClick={() => setDialogOpen(true)} className="gap-2"><Plus className="h-4 w-4" /> Novo Projeto</Button>
           </div>
         </div>
