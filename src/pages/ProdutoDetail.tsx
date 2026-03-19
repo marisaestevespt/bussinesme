@@ -1062,7 +1062,7 @@ export default function ProdutoDetailPage() {
               </Card>
             </TabsContent>
 
-            {/* ===== CONTABILIDADE ===== */}
+            {/* ===== CONTABILIDADE & PRECIFICAÇÃO ===== */}
             <TabsContent value="contabilidade" className="space-y-6">
               <Card>
                 <CardHeader><CardTitle className="text-base">Dados de Faturação</CardTitle></CardHeader>
@@ -1102,6 +1102,9 @@ export default function ProdutoDetailPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Calculadora de Oferta */}
+              <OfferCalculator vatRate={(form as any).vat_rate || '23'} />
             </TabsContent>
 
             {/* ===== ARQUIVO ===== */}
