@@ -148,8 +148,11 @@ export default function HubEquipaPage() {
           ))}
         </div>
 
-        {/* Departamentos full width */}
+        {/* Departamentos */}
         <DepartamentosColumn />
+
+        {/* Weekly summary cards */}
+        <WeeklySummary />
       </div>
     </AppLayout>
   );
