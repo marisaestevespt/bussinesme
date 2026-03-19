@@ -191,21 +191,17 @@ export default function ComecaAquiPage() {
                   const schedule = formatScheduleSummary(m.work_schedule);
                   return (
                     <Card key={m.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                      <CardContent className="p-5 space-y-3">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-14 w-14">
-                            <AvatarImage src={m.photo_url || ''} />
-                            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                              {getInitials(m.full_name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="min-w-0 space-y-1">
-                            <p className="font-semibold text-foreground truncate">{m.full_name}</p>
-                            {m.role_title && (
-                              <Badge variant="secondary" className="text-[10px]">{m.role_title}</Badge>
-                            )}
-                          </div>
-                        </div>
+                      <CardContent className="p-5 flex flex-col items-center text-center space-y-2">
+                        <Avatar className="h-16 w-16">
+                          <AvatarImage src={m.photo_url || ''} />
+                          <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                            {getInitials(m.full_name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <p className="font-semibold text-foreground truncate max-w-full">{m.full_name}</p>
+                        {m.role_title && (
+                          <Badge variant="secondary" className="text-[10px]">{m.role_title}</Badge>
+                        )}
                         {schedule && (
                           <div className="flex items-center gap-2 text-muted-foreground text-xs">
                             <Clock className="h-3 w-3 shrink-0" />
