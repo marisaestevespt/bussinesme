@@ -122,6 +122,7 @@ function AppRoutes() {
       <Route path="/hub/financeiro/:section" element={<FinanceiroSubPage />} />
       <Route path="/hub/operacao" element={<OperacaoPage />} />
       <Route path="/hub/recursos-humanos" element={<ExecutiveGestaoEquipa />} />
+      <Route path="/hub/recursos-humanos/:section" element={<RecursosHumanosSubPage />} />
         <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive" element={<ExecutiveDashboard />} />
       <Route path="/executive/planeamento" element={<ExecutivePlaneamento />} />
