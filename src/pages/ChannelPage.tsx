@@ -343,6 +343,8 @@ export default function ChannelPage() {
               </section>
             </>
           )}
+        </div>
+      </div>
 
       {/* Upload Report Dialog */}
       <Dialog open={showUploadReport} onOpenChange={setShowUploadReport}>
