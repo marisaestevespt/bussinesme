@@ -116,30 +116,40 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                 <div><Label>Data limite</Label><Input type="date" value={form.deadline} onChange={e => set('deadline', e.target.value)} /></div>
               </div>
               {form.objective_type === 'quantitativo' && (
-                <div className="grid grid-cols-3 gap-3">
-                  <div><Label>Valor alvo</Label><Input type="number" value={form.target_value} onChange={e => set('target_value', e.target.value)} /></div>
-                  <div><Label>Unidade</Label><Input value={form.target_unit} onChange={e => set('target_unit', e.target.value)} /></div>
-                  <div><Label>Fonte</Label>
-                    <Select value={form.value_source || 'manual'} onValueChange={v => set('value_source', v)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                  {form.value_source === 'manual' && (
-                    <div><Label>Valor atual</Label><Input type="number" value={form.current_value} onChange={e => set('current_value', e.target.value)} /></div>
-                  )}
-                  {(form.value_source === 'bd_vendas' || form.value_source === 'bd_crm') && (
-                    <div><Label>Produto associado</Label>
-                      <Select value={form.product_id || 'none'} onValueChange={v => set('product_id', v === 'none' ? '' : v)}>
-                        <SelectTrigger><SelectValue placeholder="Todos os produtos" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Todos os produtos</SelectItem>
-                          {productsList.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                        </SelectContent>
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label>Tipo de medição</Label>
+                      <Select value={form.measurement_type || 'acumulativo'} onValueChange={v => set('measurement_type', v)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>{MEASUREMENT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
-                  )}
-                </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div><Label>Valor alvo</Label><Input type="number" value={form.target_value} onChange={e => set('target_value', e.target.value)} /></div>
+                    <div><Label>Unidade</Label><Input value={form.target_unit} onChange={e => set('target_unit', e.target.value)} /></div>
+                    <div><Label>Fonte</Label>
+                      <Select value={form.value_source || 'manual'} onValueChange={v => set('value_source', v)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    {form.value_source === 'manual' && (
+                      <div><Label>Valor atual</Label><Input type="number" value={form.current_value} onChange={e => set('current_value', e.target.value)} /></div>
+                    )}
+                    {(form.value_source === 'bd_vendas' || form.value_source === 'bd_crm') && (
+                      <div><Label>Produto associado</Label>
+                        <Select value={form.product_id || 'none'} onValueChange={v => set('product_id', v === 'none' ? '' : v)}>
+                          <SelectTrigger><SelectValue placeholder="Todos os produtos" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Todos os produtos</SelectItem>
+                            {productsList.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           ) : (
