@@ -705,6 +705,7 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
               <TabsTrigger value="contrato" className="text-xs flex-1">Contrato</TabsTrigger>
               <TabsTrigger value="pagamentos" className="text-xs flex-1">Pagamentos</TabsTrigger>
               <TabsTrigger value="feedback" className="text-xs flex-1">Feedback</TabsTrigger>
+              <TabsTrigger value="ferias" className="text-xs flex-1">Férias</TabsTrigger>
               <TabsTrigger value="onboarding" className="text-xs flex-1">Onboarding</TabsTrigger>
             </TabsList>
 
