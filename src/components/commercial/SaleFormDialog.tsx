@@ -173,7 +173,10 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div><Label>Valor Base (€)</Label><Input type="number" step="0.01" value={form.base_value} onChange={e => setForm(f => ({ ...f, base_value: e.target.value }))} /></div>
-            <div><Label>Fatura Total (€)</Label><Input type="number" step="0.01" value={form.invoice_total} onChange={e => setForm(f => ({ ...f, invoice_total: e.target.value }))} /></div>
+            <div>
+              <Label>Fatura Total (€) {productInfo.data?.vat_rate && productInfo.data.vat_rate !== 'isento' ? <span className="text-muted-foreground font-normal">({productInfo.data.vat_rate}% IVA)</span> : productInfo.data?.vat_rate === 'isento' ? <span className="text-muted-foreground font-normal">(Isento)</span> : null}</Label>
+              <Input type="number" step="0.01" value={form.invoice_total} onChange={e => setForm(f => ({ ...f, invoice_total: e.target.value }))} />
+            </div>
           </div>
           <div>
             <Label>Produto</Label>
