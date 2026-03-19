@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, CalendarIcon, ListTodo, AlertTriangle, Clock, CalendarDays, List, Users, Link2, GitBranch, ChevronRight, Play, Repeat } from 'lucide-react';
+import { Plus, CalendarIcon, ListTodo, AlertTriangle, Clock, CalendarDays, List, Users, Link2, GitBranch, ChevronRight, Play, Repeat, Filter, X } from 'lucide-react';
 import { TaskTimeTracker } from '@/components/TaskTimeTracker';
 import { useActiveTimer } from '@/hooks/useActiveTimer';
 import { Button } from '@/components/ui/button';
@@ -107,6 +107,12 @@ export default function TarefasPage() {
   const [dependsOnIds, setDependsOnIds] = useState<string[]>([]);
   const [recurrenceType, setRecurrenceType] = useState('');
   const [recurrenceEnd, setRecurrenceEnd] = useState<Date | undefined>();
+
+  // Dynamic filters
+  const [filterDept, setFilterDept] = useState('');
+  const [filterResponsible, setFilterResponsible] = useState('');
+  const [filterPriority, setFilterPriority] = useState('');
+  const [filterProject, setFilterProject] = useState('');
 
   // Queries
   const { data: tasks = [] } = useQuery({
@@ -260,19 +266,25 @@ export default function TarefasPage() {
   const today = startOfDay(new Date());
 
   const filteredTasks = useMemo(() => {
+    let result: typeof tasks;
     switch (view) {
       case 'todo':
-        return tasks.filter(t => t.status !== 'done');
+        result = tasks.filter(t => t.status !== 'done'); break;
       case 'atrasadas':
-        return tasks.filter(t => t.status !== 'done' && t.deadline && isBefore(parseISO(t.deadline), today));
+        result = tasks.filter(t => t.status !== 'done' && t.deadline && isBefore(parseISO(t.deadline), today)); break;
       case 'proximas':
-        return tasks.filter(t => t.status !== 'done' && t.deadline && !isBefore(parseISO(t.deadline), today));
+        result = tasks.filter(t => t.status !== 'done' && t.deadline && !isBefore(parseISO(t.deadline), today)); break;
       case 'todas':
       case 'calendario':
       default:
-        return tasks;
+        result = tasks;
     }
-  }, [tasks, view, today]);
+    if (filterDept) result = result.filter(t => t.department === filterDept);
+    if (filterResponsible) result = result.filter(t => t.assigned_to === filterResponsible);
+    if (filterPriority) result = result.filter(t => t.priority === filterPriority);
+    if (filterProject) result = result.filter(t => t.project_id === filterProject);
+    return result;
+  }, [tasks, view, today, filterDept, filterResponsible, filterPriority, filterProject]);
 
   // Helpers
   const isOverdue = (task: any) => task.status !== 'done' && task.deadline && isBefore(parseISO(task.deadline), today);
@@ -365,6 +377,74 @@ export default function TarefasPage() {
           onRename={(id, label) => renameView({ id, label })}
           onDelete={(id) => { if (view.startsWith('custom_')) setView('todo'); deleteView(id); }}
         />
+
+        {/* Dynamic filters */}
+        {(() => {
+          const activeFilterCount = [filterDept, filterResponsible, filterPriority, filterProject].filter(Boolean).length;
+          return (
+            <div className="flex items-center gap-2 flex-wrap">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5">
+                    <Filter className="h-3.5 w-3.5" /> Filtros
+                    {activeFilterCount > 0 && <Badge variant="secondary" className="h-4 min-w-4 px-1 flex items-center justify-center text-[9px] rounded-full">{activeFilterCount}</Badge>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 space-y-3" align="start">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Departamento</Label>
+                    <Select value={filterDept} onValueChange={v => setFilterDept(v === '_all' ? '' : v)}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_all">Todos</SelectItem>
+                        {TASK_DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Responsável</Label>
+                    <Select value={filterResponsible} onValueChange={v => setFilterResponsible(v === '_all' ? '' : v)}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_all">Todos</SelectItem>
+                        {profiles.filter(p => p.full_name).map(p => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Prioridade</Label>
+                    <Select value={filterPriority} onValueChange={v => setFilterPriority(v === '_all' ? '' : v)}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Todas" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_all">Todas</SelectItem>
+                        {PRIORITIES.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Projeto</Label>
+                    <Select value={filterProject} onValueChange={v => setFilterProject(v === '_all' ? '' : v)}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_all">Todos</SelectItem>
+                        {projects.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {activeFilterCount > 0 && (
+                    <Button size="sm" variant="ghost" className="w-full h-7 text-xs" onClick={() => { setFilterDept(''); setFilterResponsible(''); setFilterPriority(''); setFilterProject(''); }}>
+                      <X className="h-3 w-3 mr-1" /> Limpar filtros
+                    </Button>
+                  )}
+                </PopoverContent>
+              </Popover>
+              {filterDept && <Badge variant="secondary" className="text-xs gap-1">{TASK_DEPARTMENTS.find(d => d.value === filterDept)?.label} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterDept('')} /></Badge>}
+              {filterResponsible && <Badge variant="secondary" className="text-xs gap-1">{profiles.find(p => p.id === filterResponsible)?.full_name} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterResponsible('')} /></Badge>}
+              {filterPriority && <Badge variant="secondary" className="text-xs gap-1">{PRIORITIES.find(p => p.value === filterPriority)?.label} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterPriority('')} /></Badge>}
+              {filterProject && <Badge variant="secondary" className="text-xs gap-1">{projects.find(p => p.id === filterProject)?.name} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterProject('')} /></Badge>}
+            </div>
+          );
+        })()}
 
         {/* Content */}
         {view === 'calendario' ? (
