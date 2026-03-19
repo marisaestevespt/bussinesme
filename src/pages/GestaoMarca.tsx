@@ -389,6 +389,9 @@ export default function GestaoMarcaPage() {
         </div>
 
         <div className="max-w-6xl mx-auto w-full px-4 py-10 space-y-12">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/marketing')}>
+            <ChevronLeft className="h-4 w-4 mr-1" />Voltar ao Marketing
+          </Button>
 
           {/* ── Brand Card ── */}
           <Card className="overflow-hidden">
