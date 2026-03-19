@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { AppLayout } from '@/components/AppLayout';
+import { excludeCancelled } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useNavigate } from 'react-router-dom';
@@ -27,8 +28,8 @@ export default function FinanceiroPage() {
   const navigate = useNavigate();
 
   const currentYear = new Date().getFullYear();
-  const sales = com.sales.data || [];
-  const expenses = fin.expenses.data || [];
+  const sales = excludeCancelled(com.sales.data || []);
+  const expenses = excludeCancelled(fin.expenses.data || []);
 
   const marginData = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
