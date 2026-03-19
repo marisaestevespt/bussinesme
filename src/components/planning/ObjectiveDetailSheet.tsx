@@ -301,7 +301,6 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
             return (
               <TableRow key={g.isQuarter ? g.period : g.id} className={`${!g.isQuarter ? 'cursor-pointer hover:bg-muted/60' : ''} ${g.isQuarter ? 'bg-muted/40 font-medium' : ''} ${hasDeviation ? 'bg-red-50/50' : ''}`} onClick={() => { if (!g.isQuarter) openEdit(g); }}>
                 <TableCell className="text-sm">
-                  {g.isQuarter && <Badge variant="outline" className="text-[10px] mr-1">Auto</Badge>}
                   {g.period}
                 </TableCell>
                 <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
