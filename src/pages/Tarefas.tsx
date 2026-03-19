@@ -354,6 +354,7 @@ export default function TarefasPage() {
       notes: notes || null,
       recurrence_type: recurrenceType || null,
       recurrence_end: recurrenceEnd ? format(recurrenceEnd, 'yyyy-MM-dd') : null,
+      estimated_time: estimatedTime ? parseFloat(estimatedTime) : null,
       _dependsOnIds: dependsOnIds,
       _prevStatus: editingTask?.status || null,
     };
