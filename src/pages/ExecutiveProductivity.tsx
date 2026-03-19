@@ -267,6 +267,153 @@ function OverviewTab({ entries, members, clients, products }: { entries: any[]; 
   );
 }
 
+/* ─── CAPACIDADE DA EQUIPA ─── */
+function TeamCapacitySection({ members, clients, products }: { members: any[]; clients: any[]; products: any[] }) {
+  const activeMembers = members.filter(m => m.status === 'ativo');
+  const activeClients = clients.filter(c => c.status === 'ativo');
+
+  const productHoursMap: Record<string, number | null> = {};
+  products.forEach(p => { productHoursMap[p.name] = p.monthly_hours_per_client; });
+
+  const rows = activeMembers.map(m => {
+    const weeklyHours = Number(m.expected_weekly_hours || 40);
+    const monthlyAvailable = Math.round(weeklyHours * 4.33 * 10) / 10;
+
+    // Clients where dp matches member name
+    const memberClients = activeClients.filter(c => c.dp === m.full_name);
+
+    let committedHours = 0;
+    let missingHoursFlag = false;
+    const clientDetails = memberClients.map(c => {
+      const productName = c.current_product || null;
+      const hours = productName ? productHoursMap[productName] : null;
+      if (hours != null) {
+        committedHours += hours;
+      } else {
+        missingHoursFlag = true;
+      }
+      return { clientName: c.full_name, productName: productName || '—', hours };
+    });
+
+    const freeHours = Math.round((monthlyAvailable - committedHours) * 10) / 10;
+    const occupancy = monthlyAvailable > 0 ? Math.round((committedHours / monthlyAvailable) * 100) : 0;
+    const capacityStatus: 'green' | 'amber' | 'red' = occupancy > 100 ? 'red' : occupancy >= 80 ? 'amber' : 'green';
+
+    return {
+      id: m.id, name: m.full_name, monthlyAvailable, clientCount: memberClients.length,
+      committedHours, freeHours, occupancy, capacityStatus, missingHoursFlag, clientDetails,
+    };
+  });
+
+  const alertRows = rows.filter(r => r.capacityStatus === 'red' || r.capacityStatus === 'amber');
+
+  const statusColors: Record<string, string> = {
+    green: 'bg-emerald-500', amber: 'bg-amber-400', red: 'bg-red-500',
+  };
+  const statusLabels: Record<string, string> = {
+    green: 'Dentro da capacidade', amber: 'Atenção', red: 'Sobrecarga',
+  };
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-base font-semibold flex items-center gap-2"><Users className="h-4 w-4" /> Capacidade da Equipa</h2>
+
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader><TableRow>
+              <TableHead>Membro</TableHead>
+              <TableHead className="text-right">Horas disponíveis/mês</TableHead>
+              <TableHead className="text-right">Clientes ativos</TableHead>
+              <TableHead className="text-right">Horas comprometidas</TableHead>
+              <TableHead className="text-right">Horas livres</TableHead>
+              <TableHead className="text-right">% Ocupação</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow></TableHeader>
+            <TableBody>
+              {rows.length === 0 ? (
+                <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">Sem membros ativos</TableCell></TableRow>
+              ) : rows.map(r => (
+                <TableRow key={r.id}>
+                  <TableCell className="text-sm font-medium">
+                    {r.name}
+                    {r.missingHoursFlag && (
+                      <span className="ml-1.5 text-amber-500" title="Algum produto sem horas mensais definidas"><AlertTriangle className="inline h-3 w-3" /></span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-sm text-right">{r.monthlyAvailable}h</TableCell>
+                  <TableCell className="text-sm text-right">{r.clientCount}</TableCell>
+                  <TableCell className="text-sm text-right">{r.committedHours}h</TableCell>
+                  <TableCell className={`text-sm text-right ${r.freeHours < 0 ? 'text-destructive font-medium' : ''}`}>{r.freeHours}h</TableCell>
+                  <TableCell className="text-sm text-right">{r.occupancy}%</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`inline-block h-2.5 w-2.5 rounded-full ${statusColors[r.capacityStatus]}`} />
+                      <span className="text-xs">{statusLabels[r.capacityStatus]}</span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Alert block */}
+      {alertRows.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-destructive" /> Alertas de Capacidade</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {alertRows.map(r => (
+              <div key={r.id} className="rounded-lg border p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className={`inline-block h-2.5 w-2.5 rounded-full ${statusColors[r.capacityStatus]}`} />
+                  <span className="font-medium text-sm">{r.name}</span>
+                  <Badge variant={r.capacityStatus === 'red' ? 'destructive' : 'secondary'} className="text-xs ml-auto">
+                    {statusLabels[r.capacityStatus]}
+                  </Badge>
+                </div>
+                <div className="text-xs text-muted-foreground grid grid-cols-3 gap-2">
+                  <span>Disponíveis: {r.monthlyAvailable}h</span>
+                  <span>Comprometidas: {r.committedHours}h</span>
+                  <span>{r.capacityStatus === 'red' ? `Excesso: ${Math.abs(r.freeHours)}h` : `Restantes: ${r.freeHours}h`}</span>
+                </div>
+                <p className="text-xs text-muted-foreground italic">
+                  {r.capacityStatus === 'red'
+                    ? `Este membro não tem capacidade para novos clientes. As horas comprometidas excedem as horas disponíveis em ${Math.abs(r.freeHours)}h.`
+                    : `Este membro está a aproximar-se do limite de capacidade. Restam apenas ${r.freeHours}h disponíveis.`}
+                </p>
+                {r.clientDetails.length > 0 && (
+                  <Table>
+                    <TableHeader><TableRow>
+                      <TableHead className="text-xs">Cliente</TableHead>
+                      <TableHead className="text-xs">Produto</TableHead>
+                      <TableHead className="text-xs text-right">Horas/mês</TableHead>
+                    </TableRow></TableHeader>
+                    <TableBody>
+                      {r.clientDetails.map((cd, i) => (
+                        <TableRow key={i}>
+                          <TableCell className="text-xs">{cd.clientName}</TableCell>
+                          <TableCell className="text-xs">{cd.productName}</TableCell>
+                          <TableCell className="text-xs text-right">
+                            {cd.hours != null ? `${cd.hours}h` : <span className="text-amber-500">Sem horas definidas</span>}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 /* ─── TAB 2: TEMPO POR CLIENTE ─── */
 function ByClientTab({ entries, clients }: { entries: any[]; clients: any[] }) {
   const [period, setPeriod] = useState('month');
