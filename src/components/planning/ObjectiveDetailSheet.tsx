@@ -17,7 +17,26 @@ import { useTeamData } from '@/hooks/useTeamData';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 
-export function ObjectiveDetailSheet({ open, onClose, objective, planning, onEdit }: any) {
+import { useState, useEffect } from 'react';
+import { Dialog as FullDialog, DialogContent as FullDialogContent, DialogHeader as FullDialogHeader, DialogTitle as FullDialogTitle } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Plus, Trash2, Save, ArrowRightLeft, TrendingUp, TrendingDown, Minus, ListTodo } from 'lucide-react';
+import { planAreaLabel, planStatusLabel, PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES, CADENCES, PERIODS, ACTION_STATUSES } from '@/hooks/usePlanningData';
+import { useTeamData } from '@/hooks/useTeamData';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { format } from 'date-fns';
+
+export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any) {
   if (!objective) return null;
   const obj = planning.allObjectives.find((o: any) => o.id === objective.id) || objective;
   const prog = planning.objectiveProgress(obj);
@@ -27,25 +46,105 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning, onEdi
   const objMetrics = planning.allMetrics.filter((m: any) => m.objective_id === obj.id);
   const objActions = planning.allActions.filter((a: any) => a.objective_id === obj.id);
 
+  // Editable header fields
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState<any>({});
+  const set = (k: string, v: any) => setForm((p: any) => ({ ...p, [k]: v }));
+
+  useEffect(() => {
+    if (obj) {
+      setForm({
+        title: obj.title || '', description: obj.description || '', area: obj.area || 'outro',
+        status: obj.status || 'por_iniciar', deadline: obj.deadline || '',
+        objective_type: obj.objective_type || 'quantitativo', target_value: obj.target_value || '',
+        target_unit: obj.target_unit || '€', current_value: obj.current_value || '',
+        value_source: obj.value_source || 'manual',
+      });
+      setEditing(false);
+    }
+  }, [obj?.id, obj?.updated_at]);
+
+  const handleSaveHeader = () => {
+    planning.upsertObjective.mutate({ id: obj.id, ...form });
+    setEditing(false);
+  };
+
   return (
     <FullDialog open={open} onOpenChange={v => { if (!v) onClose(); }}>
       <FullDialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <FullDialogHeader>
           <div className="flex items-start justify-between gap-2">
-            <FullDialogTitle className="text-lg">{obj.title}</FullDialogTitle>
-            <Button size="sm" variant="outline" onClick={() => onEdit(obj)}><Pencil className="h-3 w-3 mr-1" /> Editar</Button>
+            {editing ? (
+              <Input className="text-lg font-semibold" value={form.title} onChange={e => set('title', e.target.value)} />
+            ) : (
+              <FullDialogTitle className="text-lg">{obj.title}</FullDialogTitle>
+            )}
+            <div className="flex gap-1 shrink-0">
+              {editing ? (
+                <Button size="sm" onClick={handleSaveHeader}><Save className="h-3 w-3 mr-1" /> Guardar</Button>
+              ) : (
+                <Button size="sm" variant="outline" onClick={() => setEditing(true)}>Editar</Button>
+              )}
+            </div>
           </div>
         </FullDialogHeader>
 
         <div className="space-y-6 mt-4">
-          {/* Header info */}
-          {obj.description && <p className="text-sm text-muted-foreground">{obj.description}</p>}
-          <div className="flex gap-2 flex-wrap">
-            <Badge variant="outline">{planAreaLabel(obj.area)}</Badge>
-            <Badge variant="outline">{obj.objective_type === 'quantitativo' ? 'Quantitativo' : 'Qualitativo'}</Badge>
-            <Badge variant={obj.status === 'atingido' ? 'default' : 'secondary'}>{planStatusLabel(obj.status)}</Badge>
-            {obj.deadline && <Badge variant="outline">Até {obj.deadline}</Badge>}
-          </div>
+          {/* Editable header */}
+          {editing ? (
+            <div className="space-y-3 rounded-lg border p-4">
+              <div><Label>Descrição</Label><Textarea value={form.description} onChange={e => set('description', e.target.value)} rows={2} /></div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div><Label>Área</Label>
+                  <Select value={form.area} onValueChange={v => set('area', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{PLAN_AREAS.map(a => <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div><Label>Tipo</Label>
+                  <Select value={form.objective_type} onValueChange={v => set('objective_type', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="quantitativo">Quantitativo</SelectItem>
+                      <SelectItem value="qualitativo">Qualitativo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div><Label>Status</Label>
+                  <Select value={form.status} onValueChange={v => set('status', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{PLAN_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div><Label>Data limite</Label><Input type="date" value={form.deadline} onChange={e => set('deadline', e.target.value)} /></div>
+              </div>
+              {form.objective_type === 'quantitativo' && (
+                <div className="grid grid-cols-3 gap-3">
+                  <div><Label>Valor alvo</Label><Input type="number" value={form.target_value} onChange={e => set('target_value', e.target.value)} /></div>
+                  <div><Label>Unidade</Label><Input value={form.target_unit} onChange={e => set('target_unit', e.target.value)} /></div>
+                  <div><Label>Fonte</Label>
+                    <Select value={form.value_source || 'manual'} onValueChange={v => set('value_source', v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  {form.value_source === 'manual' && (
+                    <div><Label>Valor atual</Label><Input type="number" value={form.current_value} onChange={e => set('current_value', e.target.value)} /></div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {obj.description && <p className="text-sm text-muted-foreground">{obj.description}</p>}
+              <div className="flex gap-2 flex-wrap">
+                <Badge variant="outline">{planAreaLabel(obj.area)}</Badge>
+                <Badge variant="outline">{obj.objective_type === 'quantitativo' ? 'Quantitativo' : 'Qualitativo'}</Badge>
+                <Badge variant={obj.status === 'atingido' ? 'default' : 'secondary'}>{planStatusLabel(obj.status)}</Badge>
+                {obj.deadline && <Badge variant="outline">Até {obj.deadline}</Badge>}
+              </div>
+            </>
+          )}
 
           {/* Progress */}
           <div>
@@ -54,7 +153,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning, onEdi
           </div>
 
           {/* Quantitative details */}
-          {obj.objective_type === 'quantitativo' && (
+          {obj.objective_type === 'quantitativo' && !editing && (
             <div className="grid grid-cols-3 gap-3 text-center">
               <div className="rounded-lg border p-3">
                 <p className="text-xs text-muted-foreground">Valor alvo</p>
@@ -77,18 +176,10 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning, onEdi
           )}
 
           <Separator />
-
-          {/* Goals section */}
           <GoalsSection objectiveId={obj.id} goals={objGoals} planning={planning} />
-
           <Separator />
-
-          {/* Metrics section */}
           <MetricsSection objectiveId={obj.id} metrics={objMetrics} planning={planning} />
-
           <Separator />
-
-          {/* Actions section */}
           <ActionsSection objectiveId={obj.id} actions={objActions} planning={planning} />
         </div>
       </FullDialogContent>
