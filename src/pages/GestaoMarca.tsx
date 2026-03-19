@@ -145,6 +145,14 @@ export default function GestaoMarcaPage() {
     },
   });
 
+  const { data: competitors = [] } = useQuery({
+    queryKey: ['brand-competitors'],
+    queryFn: async () => {
+      const { data } = await supabase.from('brand_competitors').select('*').order('sort_order') as { data: BrandCompetitor[] | null };
+      return data || [];
+    },
+  });
+
   const folders = brandLinks.filter(l => l.type === 'folder');
   const shortcuts = brandLinks.filter(l => l.type === 'shortcut');
 
