@@ -17,6 +17,8 @@ import ExecutiveDashboard from "./pages/ExecutiveDashboard";
 import ExecutivePlaneamento from "./pages/ExecutivePlaneamento";
 import ExecutiveWeeklyAlign from "./pages/ExecutiveWeeklyAlign";
 import ExecutiveGestaoEquipa from "./pages/ExecutiveGestaoEquipa";
+import ExecutiveBusinessPlan from "./pages/ExecutiveBusinessPlan";
+import ExecutiveInnovation from "./pages/ExecutiveInnovation";
 import ExecutivePage from "./pages/Executive";
 import DefinicoesPage from "./pages/Definicoes";
 import AgendaPage from "./pages/Agenda";
