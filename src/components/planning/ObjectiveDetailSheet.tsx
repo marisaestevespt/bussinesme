@@ -370,12 +370,28 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
             const status = getMetricStatus(m);
             const statusColors: Record<string, string> = { green: 'bg-emerald-500', yellow: 'bg-amber-400', red: 'bg-red-500', neutral: 'bg-muted' };
             const statusLabels: Record<string, string> = { green: 'No caminho', yellow: 'Atenção', red: 'Em risco', neutral: 'Sem objetivo' };
+            const updateMetric = (field: string, value: any) => planning.upsertMetric.mutate({ id: m.id, objective_id: objectiveId, [field]: value });
             return (
               <TableRow key={m.id} className={overdue ? 'bg-red-50' : dueToday ? 'bg-amber-50' : ''}>
-                <TableCell className="text-sm font-medium cursor-pointer hover:underline" onClick={() => setHistoryMetric(m)}>{m.name}</TableCell>
-                <TableCell className="text-xs">{CADENCES.find(c => c.value === m.cadence)?.label || m.cadence}</TableCell>
-                <TableCell className="text-xs">{displayVal != null ? `${Number(displayVal).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
-                <TableCell className="text-xs">{m.target_value ? `${Number(m.target_value).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
+                <TableCell>
+                  <Input className="h-7 w-32 text-xs font-medium" defaultValue={m.name} onBlur={e => { if (e.target.value !== m.name) updateMetric('name', e.target.value); }} />
+                </TableCell>
+                <TableCell>
+                  <Select defaultValue={m.cadence} onValueChange={v => updateMetric('cadence', v)}>
+                    <SelectTrigger className="h-7 w-[90px] text-[10px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>{CADENCES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell>
+                  {m.source === 'manual' ? (
+                    <Input className="h-7 w-24 text-xs" defaultValue={m.current_value || ''} onBlur={e => { if (e.target.value !== (m.current_value || '')) updateMetric('current_value', e.target.value); }} />
+                  ) : (
+                    <span className="text-xs">{displayVal != null ? `${Number(displayVal).toLocaleString()} ${m.target_unit || ''}` : '—'}</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Input className="h-7 w-24 text-xs" defaultValue={m.target_value || ''} onBlur={e => { if (e.target.value !== String(m.target_value || '')) updateMetric('target_value', e.target.value ? Number(e.target.value) : null); }} />
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1.5">
                     <span className={`inline-block h-2.5 w-2.5 rounded-full ${statusColors[status]}`} />
@@ -383,7 +399,8 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
                   </div>
                 </TableCell>
                 <TableCell className="text-xs">{m.last_updated_at ? new Date(m.last_updated_at).toLocaleDateString('pt-PT') : '—'}</TableCell>
-                <TableCell>
+                <TableCell className="flex gap-1">
+                  <button className="text-muted-foreground hover:text-foreground" onClick={() => setHistoryMetric(m)} title="Histórico"><TrendingUp className="h-3 w-3" /></button>
                   <button onClick={() => planning.deleteMetric.mutate(m.id)}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
                 </TableCell>
               </TableRow>
