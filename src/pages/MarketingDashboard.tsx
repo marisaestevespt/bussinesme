@@ -41,9 +41,6 @@ export default function MarketingDashboard() {
   const [editChannelLink, setEditChannelLink] = useState('');
   const [showAddChannel, setShowAddChannel] = useState(false);
   const [newChannelName, setNewChannelName] = useState('');
-  const [showNewContent, setShowNewContent] = useState(false);
-  const [newContentTitle, setNewContentTitle] = useState('');
-
   // Queries
   const { data: channels = [] } = useQuery({
     queryKey: ['marketing-channels'],
