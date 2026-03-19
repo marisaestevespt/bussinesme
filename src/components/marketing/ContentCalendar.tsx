@@ -16,6 +16,7 @@ interface Props {
   items: ContentItem[];
   channels: MarketingChannel[];
   contentChannelLinks: ContentChannelLink[];
+  calendarOnly?: boolean;
 }
 
 function getItemChannels(itemId: string, channels: MarketingChannel[], links: ContentChannelLink[]) {
