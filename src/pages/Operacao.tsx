@@ -339,7 +339,7 @@ export default function OperacaoPage() {
                 })}
 
                 <Dialog open={!!expandedStatus} onOpenChange={(open) => !open && setExpandedStatus(null)}>
-                  <DialogContent className="max-w-md">
+                   <DialogContent className={expandedStatus === 'altura_renovacao' ? 'max-w-2xl' : 'max-w-md'}>
                     <DialogHeader>
                       <DialogTitle className="text-base">
                         {expandedStatus && {
@@ -353,6 +353,27 @@ export default function OperacaoPage() {
                     <div className="max-h-[400px] overflow-y-auto">
                       {clients.filter(c => c.status === expandedStatus).length === 0 ? (
                         <p className="text-sm text-muted-foreground py-3">Nenhum cliente neste status</p>
+                      ) : expandedStatus === 'altura_renovacao' ? (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="text-xs">Nome</TableHead>
+                              <TableHead className="text-xs">Data de Início</TableHead>
+                              <TableHead className="text-xs">Fim de Ciclo</TableHead>
+                              <TableHead className="text-xs">Produto Atual</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {clients.filter(c => c.status === expandedStatus).map(c => (
+                              <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setExpandedStatus(null); window.location.href = `/hub/clientes/${c.id}`; }}>
+                                <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
+                                <TableCell className="text-xs text-muted-foreground">{c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                                <TableCell className="text-xs text-muted-foreground">{c.end_of_cycle ? format(new Date(c.end_of_cycle), 'dd/MM/yyyy') : '—'}</TableCell>
+                                <TableCell className="text-xs">{c.current_product || '—'}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
                       ) : (
                         <Table>
                           <TableHeader>
