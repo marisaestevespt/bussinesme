@@ -153,20 +153,18 @@ export default function MarketingDashboard() {
 
           {/* Section 2b: Canais e Links */}
           <section className="space-y-4">
-            <h2 className="text-xl font-semibold text-foreground">Canais e Links</h2>
+            <h2 className="text-xl font-semibold text-foreground">Links</h2>
             <Card>
               <CardContent className="p-5 space-y-3">
                 <div className="space-y-2">
                   {channels.filter(ch => ch.is_active).map(ch => {
                     const emoji = CHANNEL_EMOJI[ch.name] || '📢';
-                    const count = contentChannelLinks.filter(l => l.channel_id === ch.id).length;
                     return (
                       <div key={ch.id} className="flex items-center gap-3 text-sm group p-2 rounded-lg hover:bg-muted/40 hq-transition">
                         <span className="text-base">{emoji}</span>
                         <Link to={`/hub/marketing/canal/${ch.id}`} className="font-medium text-foreground hover:text-primary shrink-0">
                           {ch.name}
                         </Link>
-                        <Badge variant="secondary" className="text-[10px] h-5 shrink-0">{count}</Badge>
                         <div className="flex-1 min-w-0">
                           {editingChannelId === ch.id ? (
                             <div className="flex items-center gap-1">
