@@ -16,6 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import {
   STATUS_OPTIONS, FUNNEL_OPTIONS, CONTENT_TYPE_OPTIONS, FORMAT_OPTIONS, OBJECTIVE_OPTIONS,
+  getFormatsForChannels,
   type ContentItem, type MarketingChannel, type ContentChannelLink, type ContentAttachment,
 } from '@/lib/marketing-constants';
 import { toast } from 'sonner';
