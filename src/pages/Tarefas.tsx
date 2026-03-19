@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, CalendarIcon, ListTodo, AlertTriangle, Clock, CalendarDays, List, Users } from 'lucide-react';
+import { Plus, CalendarIcon, ListTodo, AlertTriangle, Clock, CalendarDays, List, Users, Link2, GitBranch, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
