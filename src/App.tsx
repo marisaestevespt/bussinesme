@@ -47,6 +47,8 @@ import ComercialPage from "./pages/Comercial";
 import ComercialSubPage from "./pages/ComercialSubPage";
 import ProdutosPage from "./pages/Produtos";
 import ProdutoDetailPage from "./pages/ProdutoDetail";
+import ClientesPage from "./pages/Clientes";
+import ClienteDetailPage from "./pages/ClienteDetail";
 
 const queryClient = new QueryClient();
 
