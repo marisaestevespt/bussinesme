@@ -13,6 +13,7 @@ import { FinPayroll } from '@/components/financial/FinPayroll';
 import { FinMensal } from '@/components/financial/FinMensal';
 import { FinTrimestral } from '@/components/financial/FinTrimestral';
 import { FinSegurancaSocial } from '@/components/financial/FinSegurancaSocial';
+import { FinAllDocuments } from '@/components/financial/FinAllDocuments';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 
 const TITLES: Record<string, string> = {
@@ -22,6 +23,7 @@ const TITLES: Record<string, string> = {
   saidas: 'Saídas',
   iva: 'IVA',
   'seguranca-social': 'Segurança Social',
+  documentos: 'Documentos',
 };
 
 export default function FinanceiroSubPage() {
@@ -61,6 +63,8 @@ export default function FinanceiroSubPage() {
         return <FinIVA sales={sales} expenses={expenses} currentYear={currentYear} fin={fin} />;
       case 'seguranca-social':
         return <FinSegurancaSocial fin={fin} expenses={expenses} currentYear={currentYear} sales={sales} />;
+      case 'documentos':
+        return <FinAllDocuments />;
       default:
         return <EmptyModulePage title={title} />;
     }
@@ -71,6 +75,8 @@ export default function FinanceiroSubPage() {
       <div className="p-6 space-y-4">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate('/hub/financeiro')}><ArrowLeft className="h-4 w-4" /></Button>
+          <span className="text-sm text-muted-foreground">Contabilidade</span>
+          <span className="text-muted-foreground">/</span>
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
         </div>
         {renderContent()}
