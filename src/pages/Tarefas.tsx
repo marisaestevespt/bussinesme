@@ -132,7 +132,7 @@ export default function TarefasPage() {
   // Mutations
   const upsertTask = useMutation({
     mutationFn: async (payload: any) => {
-      const { _dependsOnIds, ...taskPayload } = payload;
+      const { _dependsOnIds, _prevStatus, ...taskPayload } = payload;
       let taskId: string;
       if (editingTask) {
         const { error } = await supabase.from('tasks').update(taskPayload).eq('id', editingTask.id);
@@ -152,11 +152,16 @@ export default function TarefasPage() {
           if (depErr) throw depErr;
         }
       }
+      return { taskId, newStatus: taskPayload.status, prevStatus: _prevStatus };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['task-dependencies'] });
       toast.success(editingTask ? 'Tarefa atualizada' : 'Tarefa criada');
+      // If status changed to "a_fazer", prompt for timer
+      if (result && result.newStatus === 'a_fazer' && result.prevStatus !== 'a_fazer') {
+        setTimerPromptTaskId(result.taskId);
+      }
       closeDialog();
     },
     onError: () => toast.error('Erro ao guardar tarefa'),
