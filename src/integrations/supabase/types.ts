@@ -800,6 +800,57 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_funnels: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          entry_points: Json | null
+          etapas: Json | null
+          fluxo_resumido: string | null
+          id: string
+          name: string
+          notas: string | null
+          objetivo: string | null
+          oferta_final: string | null
+          plataformas: Json | null
+          status: string
+          tipo_funil: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          entry_points?: Json | null
+          etapas?: Json | null
+          fluxo_resumido?: string | null
+          id?: string
+          name: string
+          notas?: string | null
+          objetivo?: string | null
+          oferta_final?: string | null
+          plataformas?: Json | null
+          status?: string
+          tipo_funil?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          entry_points?: Json | null
+          etapas?: Json | null
+          fluxo_resumido?: string | null
+          id?: string
+          name?: string
+          notas?: string | null
+          objetivo?: string | null
+          oferta_final?: string | null
+          plataformas?: Json | null
+          status?: string
+          tipo_funil?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       marketing_ideas: {
         Row: {
           category: string

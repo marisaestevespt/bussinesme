@@ -38,6 +38,8 @@ import ConteudoDetailPage from "./pages/ConteudoDetail";
 import ChannelPage from "./pages/ChannelPage";
 import MarketingEstrategia from "./pages/MarketingEstrategia";
 import MarketingChannelStrategy from "./pages/MarketingChannelStrategy";
+import MarketingFunis from "./pages/MarketingFunis";
+import MarketingFunilDetail from "./pages/MarketingFunilDetail";
 
 const queryClient = new QueryClient();
 
@@ -83,6 +85,8 @@ function AppRoutes() {
         <Route path="/hub/marketing/recursos-mkt" element={<MarketingRecursos />} />
         <Route path="/hub/marketing/automacoes" element={<MarketingAutomacoes />} />
         <Route path="/hub/marketing/automacoes/:id" element={<MarketingAutomacaoDetail />} />
+        <Route path="/hub/marketing/funis" element={<MarketingFunis />} />
+        <Route path="/hub/marketing/funis/:id" element={<MarketingFunilDetail />} />
         <Route path="/hub/marketing/:pageKey" element={<MarketingSubPage />} />
         <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />

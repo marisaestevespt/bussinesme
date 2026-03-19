@@ -1,0 +1,181 @@
+import { useState } from 'react';
+import { AppLayout } from '@/components/AppLayout';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { ChevronLeft, Plus, Trash2 } from 'lucide-react';
+import { format } from 'date-fns';
+import { pt } from 'date-fns/locale';
+
+const STATUSES = [
+  { value: 'em_ideia', label: 'Em ideia', color: 'bg-violet-100 text-violet-800' },
+  { value: 'em_construcao', label: 'Em construção', color: 'bg-amber-100 text-amber-800' },
+  { value: 'ativo', label: 'Ativo', color: 'bg-emerald-100 text-emerald-800' },
+  { value: 'pausado', label: 'Pausado', color: 'bg-blue-100 text-blue-800' },
+  { value: 'arquivo', label: 'Arquivo', color: 'bg-muted text-muted-foreground' },
+];
+
+const ENTRY_POINTS = ['Landing Page', 'Redes Sociais', 'Email', 'Anúncio', 'Orgânico', 'Outro'];
+const PLATAFORMAS = ['Systeme.io', 'Mailerlite', 'ActiveCampaign', 'Stripe', 'Hotmart', 'Outro'];
+const TIPOS_FUNIL = [
+  { value: 'venda', label: 'Venda', color: 'bg-emerald-100 text-emerald-800' },
+  { value: 'nutricao', label: 'Nutrição', color: 'bg-blue-100 text-blue-800' },
+  { value: 'captacao', label: 'Captação', color: 'bg-amber-100 text-amber-800' },
+  { value: 'reactivacao', label: 'Reactivação', color: 'bg-violet-100 text-violet-800' },
+  { value: 'outro', label: 'Outro', color: 'bg-muted text-muted-foreground' },
+];
+
+type Funnel = {
+  id: string; name: string; status: string; entry_points: string[];
+  oferta_final: string | null; objetivo: string | null; plataformas: string[];
+  tipo_funil: string | null; notas: string | null; updated_at: string;
+};
+
+export default function MarketingFunis() {
+  const navigate = useNavigate();
+  const { user, isOwner } = useAuth();
+  const qc = useQueryClient();
+
+  const [showNew, setShowNew] = useState(false);
+  const [form, setForm] = useState({ name: '', status: 'em_ideia', oferta_final: '', objetivo: '', tipo_funil: '' });
+
+  const { data: funnels = [] } = useQuery({
+    queryKey: ['marketing-funnels'],
+    queryFn: async () => {
+      const { data } = await supabase.from('marketing_funnels').select('*').order('created_at', { ascending: false }) as any;
+      return (data || []) as Funnel[];
+    },
+  });
+
+  const create = async () => {
+    if (!form.name.trim()) return;
+    await supabase.from('marketing_funnels').insert({
+      name: form.name, status: form.status,
+      oferta_final: form.oferta_final || null,
+      objetivo: form.objetivo || null,
+      tipo_funil: form.tipo_funil || null,
+      created_by: user?.id,
+    } as any);
+    qc.invalidateQueries({ queryKey: ['marketing-funnels'] });
+    setShowNew(false);
+    setForm({ name: '', status: 'em_ideia', oferta_final: '', objetivo: '', tipo_funil: '' });
+    toast.success('Funil criado');
+  };
+
+  const deleteFunnel = async (id: string) => {
+    await supabase.from('marketing_funnels').delete().eq('id', id) as any;
+    qc.invalidateQueries({ queryKey: ['marketing-funnels'] });
+    toast.success('Funil eliminado');
+  };
+
+  return (
+    <AppLayout>
+      <div className="flex flex-col min-h-screen">
+        <div className="w-full py-10 px-6 flex flex-col items-center gap-2" style={{ background: 'hsl(var(--primary))' }}>
+          <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>Marketing 360</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight" style={{ color: 'hsl(var(--primary-foreground))' }}>Funis</h1>
+        </div>
+
+        <div className="max-w-6xl mx-auto w-full px-4 py-8 space-y-6">
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/hub/marketing')}>
+              <ChevronLeft className="h-4 w-4 mr-1" />Voltar ao Marketing
+            </Button>
+            <Button size="sm" onClick={() => setShowNew(true)}>
+              <Plus className="h-4 w-4 mr-1" />Novo Funil
+            </Button>
+          </div>
+
+          {funnels.length === 0 ? (
+            <p className="text-sm text-muted-foreground italic text-center py-12">Nenhum funil criado.</p>
+          ) : (
+            <div className="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead className="w-28">Status</TableHead>
+                    <TableHead className="w-28">Tipo</TableHead>
+                    <TableHead className="w-36">Ponto(s) de Entrada</TableHead>
+                    <TableHead className="w-36">Plataforma(s)</TableHead>
+                    <TableHead className="w-40">Oferta Final</TableHead>
+                    <TableHead className="w-32">Última Atualização</TableHead>
+                    {isOwner && <TableHead className="w-10" />}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {funnels.map(f => {
+                    const st = STATUSES.find(s => s.value === f.status) || STATUSES[0];
+                    const tf = TIPOS_FUNIL.find(t => t.value === f.tipo_funil);
+                    const entries = Array.isArray(f.entry_points) ? f.entry_points : [];
+                    const plats = Array.isArray(f.plataformas) ? f.plataformas : [];
+                    return (
+                      <TableRow key={f.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/marketing/funis/${f.id}`)}>
+                        <TableCell className="font-medium">{f.name}</TableCell>
+                        <TableCell><Badge className={cn('text-xs', st.color)}>{st.label}</Badge></TableCell>
+                        <TableCell>{tf ? <Badge className={cn('text-xs', tf.color)}>{tf.label}</Badge> : '—'}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {entries.length > 0 ? entries.map((e: string) => (
+                            <Badge key={e} variant="outline" className="text-xs mr-1 mb-0.5">{e}</Badge>
+                          )) : '—'}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground truncate max-w-[140px]">
+                          {plats.length > 0 ? plats.join(', ') : '—'}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground truncate max-w-[160px]">{f.oferta_final || '—'}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{format(new Date(f.updated_at), 'dd MMM yyyy', { locale: pt })}</TableCell>
+                        {isOwner && (
+                          <TableCell>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); deleteFunnel(f.id); }}>
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <Dialog open={showNew} onOpenChange={setShowNew}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader><DialogTitle>Novo Funil</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div><Label>Nome *</Label><Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Ex: Funil de venda do curso X" /></div>
+            <div>
+              <Label>Status</Label>
+              <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Tipo de Funil</Label>
+              <Select value={form.tipo_funil} onValueChange={v => setForm(f => ({ ...f, tipo_funil: v }))}>
+                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                <SelectContent>{TIPOS_FUNIL.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Oferta Final</Label><Input value={form.oferta_final} onChange={e => setForm(f => ({ ...f, oferta_final: e.target.value }))} placeholder="Produto associado (opcional)" /></div>
+            <div><Label>Objetivo</Label><Input value={form.objetivo} onChange={e => setForm(f => ({ ...f, objetivo: e.target.value }))} placeholder="Objetivo do funil" /></div>
+            <Button className="w-full" disabled={!form.name.trim()} onClick={create}>Criar Funil</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </AppLayout>
+  );
+}
