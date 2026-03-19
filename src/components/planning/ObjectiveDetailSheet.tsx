@@ -409,6 +409,14 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
           <DialogHeader><DialogTitle>Nova Métrica</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div><Label>Nome</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Valor objetivo</Label><Input type="number" placeholder="Ex: 10000" value={form.target_value} onChange={e => setForm(p => ({ ...p, target_value: e.target.value }))} /></div>
+              <div><Label>Unidade</Label><Input placeholder="Ex: €, leads, %" value={form.target_unit} onChange={e => setForm(p => ({ ...p, target_unit: e.target.value }))} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>% para "No caminho"</Label><Input type="number" value={form.green_threshold} onChange={e => setForm(p => ({ ...p, green_threshold: e.target.value }))} /></div>
+              <div><Label>% para "Atenção"</Label><Input type="number" value={form.yellow_threshold} onChange={e => setForm(p => ({ ...p, yellow_threshold: e.target.value }))} /></div>
+            </div>
             <div><Label>Cadência</Label>
               <Select value={form.cadence} onValueChange={v => setForm(p => ({ ...p, cadence: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
