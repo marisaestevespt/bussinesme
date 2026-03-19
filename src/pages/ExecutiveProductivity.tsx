@@ -100,7 +100,7 @@ export default function ExecutiveProductivity() {
   const tasks = useQuery({
     queryKey: ['tasks_list'],
     queryFn: async () => {
-      const { data } = await supabase.from('tasks').select('id, name, assigned_to, project_id, department');
+      const { data } = await supabase.from('tasks').select('id, name, assigned_to, project_id, department, estimated_time, deadline, status');
       return (data || []) as any[];
     },
   });
@@ -123,7 +123,7 @@ export default function ExecutiveProductivity() {
           </TabsList>
 
           <TabsContent value="overview">
-            <OverviewTab entries={entries.data || []} members={members.data || []} clients={clients.data || []} products={productsQ.data || []} />
+            <OverviewTab entries={entries.data || []} members={members.data || []} clients={clients.data || []} products={productsQ.data || []} tasks={tasks.data || []} />
           </TabsContent>
           <TabsContent value="by-client">
             <ByClientTab entries={entries.data || []} clients={clients.data || []} />
@@ -144,7 +144,7 @@ export default function ExecutiveProductivity() {
 }
 
 /* ─── TAB 1: VISÃO GERAL ─── */
-function OverviewTab({ entries, members, clients, products }: { entries: any[]; members: any[]; clients: any[]; products: any[] }) {
+function OverviewTab({ entries, members, clients, products, tasks }: { entries: any[]; members: any[]; clients: any[]; products: any[]; tasks: any[] }) {
   const { start, end } = getDateRange('week');
   const weekEntries = entries.filter(e => {
     const d = new Date(e.entry_date);
@@ -262,13 +262,13 @@ function OverviewTab({ entries, members, clients, products }: { entries: any[]; 
       )}
 
       {/* ─── Capacidade da Equipa ─── */}
-      <TeamCapacitySection members={members} clients={clients} products={products} />
+      <TeamCapacitySection members={members} clients={clients} products={products} tasks={tasks} />
     </div>
   );
 }
 
 /* ─── CAPACIDADE DA EQUIPA ─── */
-function TeamCapacitySection({ members, clients, products }: { members: any[]; clients: any[]; products: any[] }) {
+function TeamCapacitySection({ members, clients, products, tasks }: { members: any[]; clients: any[]; products: any[]; tasks: any[] }) {
   const activeMembers = members.filter(m => m.status === 'ativo');
   const activeClients = clients.filter(c => c.status === 'ativo');
 
@@ -295,6 +295,12 @@ function TeamCapacitySection({ members, clients, products }: { members: any[]; c
       return { clientName: c.full_name, productName: productName || '—', hours };
     });
 
+    // Add estimated hours from active tasks assigned to this member's profile
+    const taskEstimatedHours = tasks
+      .filter(t => t.assigned_to === m.profile_id && t.status !== 'done' && t.estimated_time)
+      .reduce((sum: number, t: any) => sum + Number(t.estimated_time || 0), 0);
+    committedHours += taskEstimatedHours;
+
     const freeHours = Math.round((monthlyAvailable - committedHours) * 10) / 10;
     const occupancy = monthlyAvailable > 0 ? Math.round((committedHours / monthlyAvailable) * 100) : 0;
     const capacityStatus: 'green' | 'amber' | 'red' = occupancy > 100 ? 'red' : occupancy >= 80 ? 'amber' : 'green';
@@ -302,6 +308,7 @@ function TeamCapacitySection({ members, clients, products }: { members: any[]; c
     return {
       id: m.id, name: m.full_name, monthlyAvailable, clientCount: memberClients.length,
       committedHours, freeHours, occupancy, capacityStatus, missingHoursFlag, clientDetails,
+      taskEstimatedHours,
     };
   });
 

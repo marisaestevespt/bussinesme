@@ -20,7 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { format, isPast, isToday, startOfDay, isBefore, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, addDays, addWeeks, isSameDay, setDate as setDateFns } from 'date-fns';
+import { format, isPast, isToday, startOfDay, isBefore, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, addDays, addWeeks, isSameDay, setDate as setDateFns, startOfWeek, endOfWeek } from 'date-fns';
 import { pt } from 'date-fns/locale';
 
 // ─── Constants ──────────────────────────────────────────────────
@@ -107,6 +107,9 @@ export default function TarefasPage() {
   const [dependsOnIds, setDependsOnIds] = useState<string[]>([]);
   const [recurrenceType, setRecurrenceType] = useState('');
   const [recurrenceEnd, setRecurrenceEnd] = useState<Date | undefined>();
+  const [estimatedTime, setEstimatedTime] = useState('');
+  const [suggestion, setSuggestion] = useState<{ taskName: string; avgHours: number } | null>(null);
+  const [suggestionDismissed, setSuggestionDismissed] = useState(false);
 
   // Dynamic filters
   const [filterDept, setFilterDept] = useState('');
@@ -136,6 +139,24 @@ export default function TarefasPage() {
     queryKey: ['projects-list'],
     queryFn: async () => {
       const { data } = await supabase.from('projects').select('id, name');
+      return data || [];
+    },
+  });
+
+  // All time entries for similarity suggestion (task_id + duration)
+  const { data: allTimeEntries = [] } = useQuery({
+    queryKey: ['task-time-entries-all'],
+    queryFn: async () => {
+      const { data } = await supabase.from('task_time_entries').select('task_id, duration_minutes').or('ended_at.not.is.null,is_manual.eq.true');
+      return data || [];
+    },
+  });
+
+  // Team members for capacity warning
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['team', 'members'],
+    queryFn: async () => {
+      const { data } = await supabase.from('team_members').select('id, full_name, profile_id, expected_weekly_hours, status');
       return data || [];
     },
   });
@@ -205,6 +226,7 @@ export default function TarefasPage() {
     setName(''); setStatus('por_comecar'); setPriority('alta');
     setDeadline(undefined); setAssignedTo(''); setDepartment(''); setProjectId(''); setNotes('');
     setParentTaskId(''); setDependsOnIds([]); setRecurrenceType(''); setRecurrenceEnd(undefined);
+    setEstimatedTime(''); setSuggestion(null); setSuggestionDismissed(false);
     setDialogOpen(true);
   }
 
@@ -217,11 +239,91 @@ export default function TarefasPage() {
     setParentTaskId(task.parent_task_id || '');
     setRecurrenceType(task.recurrence_type || '');
     setRecurrenceEnd(task.recurrence_end ? parseISO(task.recurrence_end) : undefined);
+    setEstimatedTime(task.estimated_time != null ? String(task.estimated_time) : '');
+    setSuggestion(null); setSuggestionDismissed(false);
     // Load dependencies for this task
     const deps = taskDependencies.filter(d => d.task_id === task.id).map(d => d.depends_on_task_id);
     setDependsOnIds(deps);
     setDialogOpen(true);
   }
+
+  // ─── Similarity search ────────────────────────────────────────
+  function normalize(s: string) {
+    return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  }
+
+  function findSimilarTasks(input: string) {
+    if (!input || input.length < 3 || editingTask) return;
+    const norm = normalize(input);
+    // Find tasks with similar names that have time entries
+    const taskTimeMap: Record<string, number[]> = {};
+    allTimeEntries.forEach(e => {
+      if (!e.task_id || !e.duration_minutes) return;
+      if (!taskTimeMap[e.task_id]) taskTimeMap[e.task_id] = [];
+      taskTimeMap[e.task_id].push(e.duration_minutes);
+    });
+
+    for (const t of tasks) {
+      if (!taskTimeMap[t.id]) continue;
+      const tn = normalize(t.name);
+      // Check if names are similar (one contains the other, or levenshtein-like)
+      if (tn === norm || tn.includes(norm) || norm.includes(tn)) {
+        const times = taskTimeMap[t.id];
+        const avgMinutes = times.reduce((s, v) => s + v, 0) / times.length;
+        const avgHours = Math.round((avgMinutes / 60) * 10) / 10;
+        if (avgHours > 0) {
+          setSuggestion({ taskName: t.name, avgHours });
+          return;
+        }
+      }
+    }
+    setSuggestion(null);
+  }
+
+  function handleNameChange(val: string) {
+    setName(val);
+    setSuggestionDismissed(false);
+    // Debounce-like: only search when typing pauses (simple approach)
+    findSimilarTasks(val);
+  }
+
+  // ─── Capacity warning ─────────────────────────────────────────
+  const capacityWarning = useMemo(() => {
+    if (!assignedTo || !estimatedTime || !deadline) return null;
+    const estHours = parseFloat(estimatedTime);
+    if (isNaN(estHours) || estHours <= 0) return null;
+
+    const member = teamMembers.find(m => m.profile_id === assignedTo && m.status === 'ativo');
+    if (!member) return null;
+
+    const weeklyHours = Number(member.expected_weekly_hours || 40);
+    // Calculate existing committed hours for the deadline week
+    const dlDate = deadline;
+    const weekStart = startOfDay(dlDate);
+    // Get tasks assigned to same member in same week (simple: same week)
+    const wStart = startOfWeek(dlDate, { weekStartsOn: 1 });
+    const wEnd = endOfWeek(dlDate, { weekStartsOn: 1 });
+
+    let committedHours = 0;
+    tasks.forEach(t => {
+      if (t.assigned_to !== assignedTo || t.status === 'done') return;
+      if (editingTask && t.id === editingTask.id) return;
+      if (!t.deadline) return;
+      const td = parseISO(t.deadline);
+      if (td >= wStart && td <= wEnd && t.estimated_time) {
+        committedHours += Number(t.estimated_time);
+      }
+    });
+
+    const totalAfter = committedHours + estHours;
+    const occupancy = Math.round((totalAfter / weeklyHours) * 100);
+    const memberName = member.full_name || profiles.find(p => p.id === assignedTo)?.full_name || 'Membro';
+
+    if (occupancy >= 80) {
+      return { memberName, occupancy };
+    }
+    return null;
+  }, [assignedTo, estimatedTime, deadline, tasks, teamMembers, profiles, editingTask]);
 
   function closeDialog() {
     setDialogOpen(false);
@@ -253,6 +355,7 @@ export default function TarefasPage() {
       notes: notes || null,
       recurrence_type: recurrenceType || null,
       recurrence_end: recurrenceEnd ? format(recurrenceEnd, 'yyyy-MM-dd') : null,
+      estimated_time: estimatedTime ? parseFloat(estimatedTime) : null,
       _dependsOnIds: dependsOnIds,
       _prevStatus: editingTask?.status || null,
     };
@@ -496,7 +599,23 @@ export default function TarefasPage() {
           <div className="space-y-4 mt-2">
             <div>
               <Label>Nome da tarefa *</Label>
-              <Input value={name} onChange={e => setName(e.target.value)} placeholder="Nome da tarefa" />
+              <Input value={name} onChange={e => handleNameChange(e.target.value)} placeholder="Nome da tarefa" />
+              {/* Similarity suggestion */}
+              {!editingTask && suggestion && !suggestionDismissed && (
+                <div className="mt-2 rounded-md border border-border bg-muted/30 p-3 space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    Tarefa similar encontrada: <strong className="text-foreground">{suggestion.taskName}</strong>. Tempo médio registado: <strong className="text-foreground">{suggestion.avgHours}h</strong>. Aplicar?
+                  </p>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="secondary" className="h-7 text-xs" onClick={() => { setEstimatedTime(String(suggestion.avgHours)); setSuggestionDismissed(true); }}>
+                      Aplicar
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setSuggestionDismissed(true)}>
+                      Ignorar
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -739,6 +858,39 @@ export default function TarefasPage() {
             {/* Time tracking */}
             {editingTask && (
               <TaskTimeTracker taskId={editingTask.id} />
+            )}
+
+            {/* Estimated time */}
+            <div>
+              <Label className="flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5" /> Tempo Estimado (horas)
+              </Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.5"
+                value={estimatedTime}
+                onChange={e => setEstimatedTime(e.target.value)}
+                placeholder="Ex: 2.5"
+              />
+            </div>
+
+            {/* Capacity warning */}
+            {capacityWarning && (
+              <div className={cn(
+                "rounded-md border p-3",
+                capacityWarning.occupancy > 100
+                  ? "border-destructive/50 bg-destructive/5"
+                  : "border-amber-300 bg-amber-50"
+              )}>
+                <p className={cn(
+                  "text-sm flex items-center gap-1.5",
+                  capacityWarning.occupancy > 100 ? "text-destructive font-medium" : "text-amber-800"
+                )}>
+                  <AlertTriangle className="h-4 w-4" />
+                  Ao atribuir esta tarefa, <strong>{capacityWarning.memberName}</strong> ficará com {capacityWarning.occupancy}% de ocupação esta semana.
+                </p>
+              </div>
             )}
 
             <div>
