@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import { calcMonthlyEquivalent, type Expense, type Subscription } from '@/hooks/useFinancialData';
+import { InvoiceUpload, type DocEntry } from './InvoiceUpload';
 
 const EXP_CATEGORIES = [
   { value: 'pessoal', label: 'Pessoal' },
