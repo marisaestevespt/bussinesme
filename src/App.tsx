@@ -45,6 +45,8 @@ import TrafegoReportDetail from "./pages/TrafegoReportDetail";
 import TrafegoCriativoDetail from "./pages/TrafegoCriativoDetail";
 import ComercialPage from "./pages/Comercial";
 import ComercialSubPage from "./pages/ComercialSubPage";
+import ProdutosPage from "./pages/Produtos";
+import ProdutoDetailPage from "./pages/ProdutoDetail";
 
 const queryClient = new QueryClient();
 
@@ -98,6 +100,8 @@ function AppRoutes() {
         <Route path="/hub/marketing/:pageKey" element={<MarketingSubPage />} />
       <Route path="/hub/comercial" element={<ComercialPage />} />
       <Route path="/hub/comercial/:section" element={<ComercialSubPage />} />
+      <Route path="/hub/produtos" element={<ProdutosPage />} />
+      <Route path="/hub/produtos/:id" element={<ProdutoDetailPage />} />
         <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
       <Route path="/definicoes" element={<DefinicoesPage />} />
