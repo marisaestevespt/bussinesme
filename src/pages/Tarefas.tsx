@@ -118,6 +118,15 @@ export default function TarefasPage() {
     },
   });
 
+  const { data: taskDependencies = [] } = useQuery({
+    queryKey: ['task-dependencies'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('task_dependencies').select('*');
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   // Mutations
   const upsertTask = useMutation({
     mutationFn: async (payload: any) => {
