@@ -194,6 +194,7 @@ interface TeamMember {
 export default function ComecaAquiPage() {
   const { settings, refetch: refetchSettings } = useBusinessSettings();
   const { isOwner, user } = useAuth();
+  const navigate = useNavigate();
 
   const [welcomeText, setWelcomeText] = useState('');
   const [aboutText, setAboutText] = useState('');
