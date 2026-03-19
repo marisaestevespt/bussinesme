@@ -159,11 +159,6 @@ export default function MarketingAutomacaoDetail() {
             <Button variant="ghost" size="sm" onClick={() => navigate('/hub/marketing/automacoes')}>
               <ChevronLeft className="h-4 w-4 mr-1" />Voltar
             </Button>
-            {isOwner && (
-              <Button size="sm" onClick={save} disabled={saving}>
-                <Check className="h-3.5 w-3.5 mr-1" />{saving ? 'A guardar...' : 'Guardar'}
-              </Button>
-            )}
           </div>
 
           {/* Meta fields */}
