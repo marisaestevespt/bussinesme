@@ -16,6 +16,7 @@ interface Props {
   items: ContentItem[];
   channels: MarketingChannel[];
   contentChannelLinks: ContentChannelLink[];
+  calendarOnly?: boolean;
 }
 
 function getItemChannels(itemId: string, channels: MarketingChannel[], links: ContentChannelLink[]) {
@@ -47,7 +48,7 @@ function ContentRow({ item, channels, links }: { item: ContentItem; channels: Ma
   );
 }
 
-export function ContentCalendar({ items, channels, contentChannelLinks }: Props) {
+export function ContentCalendar({ items, channels, contentChannelLinks, calendarOnly }: Props) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const monthStart = startOfMonth(currentMonth);
@@ -61,6 +62,48 @@ export function ContentCalendar({ items, channels, contentChannelLinks }: Props)
 
   const monthLabel = format(currentMonth, 'MMMM yyyy', { locale: pt });
 
+  const calendarGrid = (
+    <>
+      <div className="flex items-center justify-between mb-4">
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <h3 className="text-sm font-semibold capitalize">{monthLabel}</h3>
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+      <div className="grid grid-cols-7 gap-px">
+        {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(d => (
+          <div key={d} className="text-[10px] text-center font-medium text-muted-foreground py-1.5">{d}</div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-px border rounded-lg overflow-hidden bg-border">
+        {days.map(day => {
+          const dayItems = datedItems.filter(i => isSameDay(new Date(i.scheduled_at!), day));
+          const isCurrentMonth = isSameMonth(day, currentMonth);
+          return (
+            <div key={day.toISOString()} className={cn("min-h-[80px] p-1 bg-card", !isCurrentMonth && "opacity-40")}>
+              <p className={cn("text-[11px] font-medium mb-0.5", isSameDay(day, new Date()) && "text-primary font-bold")}>{format(day, 'd')}</p>
+              {dayItems.slice(0, 3).map(item => {
+                const status = STATUS_OPTIONS.find(s => s.value === item.status);
+                return (
+                  <Link key={item.id} to={`/hub/marketing/conteudos/${item.id}`}
+                    className={cn("block text-[9px] truncate px-1 py-0.5 rounded-sm mb-0.5 leading-tight", status?.color || 'bg-muted')}>
+                    {item.title}
+                  </Link>
+                );
+              })}
+              {dayItems.length > 3 && <p className="text-[9px] text-muted-foreground pl-1">+{dayItems.length - 3}</p>}
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+
+  if (calendarOnly) return calendarGrid;
+
   return (
     <Tabs defaultValue="geral">
       <TabsList className="mb-4">
@@ -71,41 +114,7 @@ export function ContentCalendar({ items, channels, contentChannelLinks }: Props)
       </TabsList>
 
       <TabsContent value="geral">
-        <div className="flex items-center justify-between mb-4">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <h3 className="text-sm font-semibold capitalize">{monthLabel}</h3>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-        <div className="grid grid-cols-7 gap-px">
-          {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(d => (
-            <div key={d} className="text-[10px] text-center font-medium text-muted-foreground py-1.5">{d}</div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-px border rounded-lg overflow-hidden bg-border">
-          {days.map(day => {
-            const dayItems = datedItems.filter(i => isSameDay(new Date(i.scheduled_at!), day));
-            const isCurrentMonth = isSameMonth(day, currentMonth);
-            return (
-              <div key={day.toISOString()} className={cn("min-h-[80px] p-1 bg-card", !isCurrentMonth && "opacity-40")}>
-                <p className={cn("text-[11px] font-medium mb-0.5", isSameDay(day, new Date()) && "text-primary font-bold")}>{format(day, 'd')}</p>
-                {dayItems.slice(0, 3).map(item => {
-                  const status = STATUS_OPTIONS.find(s => s.value === item.status);
-                  return (
-                    <Link key={item.id} to={`/hub/marketing/conteudos/${item.id}`}
-                      className={cn("block text-[9px] truncate px-1 py-0.5 rounded-sm mb-0.5 leading-tight", status?.color || 'bg-muted')}>
-                      {item.title}
-                    </Link>
-                  );
-                })}
-                {dayItems.length > 3 && <p className="text-[9px] text-muted-foreground pl-1">+{dayItems.length - 3}</p>}
-              </div>
-            );
-          })}
-        </div>
+        {calendarGrid}
       </TabsContent>
 
       <TabsContent value="status">

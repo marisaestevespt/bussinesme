@@ -277,6 +277,7 @@ export default function ChannelPage() {
               items={channelContent}
               channels={allChannels}
               contentChannelLinks={contentChannelLinks}
+              calendarOnly
             />
           </section>
 
