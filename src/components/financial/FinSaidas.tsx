@@ -323,8 +323,12 @@ export function FinSaidas({ fin }: Props) {
             <div><Label>Categoria</Label>
               <CategorySelect type="expense" value={expForm.category || 'outro'} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))} />
             </div>
+            <div className="flex items-center gap-2 py-1">
+              <Switch checked={expForm.includes_vat || false} onCheckedChange={v => setExpForm((f: any) => ({ ...f, includes_vat: v }))} />
+              <Label className="text-sm font-normal">Valor inclui IVA</Label>
+            </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Valor Base (€)</Label><Input type="number" step="0.01" value={expForm.base_value || ''} onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))} /></div>
+              <div><Label>{expForm.includes_vat ? 'Valor Total c/ IVA (€)' : 'Valor Base (€)'}</Label><Input type="number" step="0.01" value={expForm.base_value || ''} onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))} /></div>
               <div><Label>IVA (%)</Label>
                 <Select value={String(expForm.vat_rate ?? 23)} onValueChange={v => setExpForm((f: any) => ({ ...f, vat_rate: parseInt(v) }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -332,6 +336,14 @@ export function FinSaidas({ fin }: Props) {
                 </Select>
               </div>
             </div>
+            {expForm.base_value && parseFloat(expForm.base_value) > 0 && (expForm.vat_rate ?? 23) > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {expForm.includes_vat
+                  ? `Base: ${(parseFloat(expForm.base_value) / (1 + (expForm.vat_rate ?? 23) / 100)).toFixed(2)} € · IVA: ${(parseFloat(expForm.base_value) - parseFloat(expForm.base_value) / (1 + (expForm.vat_rate ?? 23) / 100)).toFixed(2)} €`
+                  : `Total c/ IVA: ${(parseFloat(expForm.base_value) * (1 + (expForm.vat_rate ?? 23) / 100)).toFixed(2)} € · IVA: ${(parseFloat(expForm.base_value) * (expForm.vat_rate ?? 23) / 100).toFixed(2)} €`
+                }
+              </p>
+            )}
             <div><Label>Localização</Label>
               <Select value={expForm.location || 'portugal'} onValueChange={v => setExpForm((f: any) => ({ ...f, location: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
