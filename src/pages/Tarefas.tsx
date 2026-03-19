@@ -80,6 +80,7 @@ export default function TarefasPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<any>(null);
   const [calMonth, setCalMonth] = useState(new Date());
+  const [timerPromptTaskId, setTimerPromptTaskId] = useState<string | null>(null);
 
   // Form state
   const [name, setName] = useState('');
