@@ -392,18 +392,22 @@ export default function OperacaoPage() {
                               <TableHead className="text-xs">ID</TableHead>
                               <TableHead className="text-xs">Nome</TableHead>
                               <TableHead className="text-xs">Data de Início</TableHead>
-                              {expandedStatus === 'em_onboarding' && <TableHead className="text-xs">Por concluir</TableHead>}
+                              {(expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding') && <TableHead className="text-xs">Por concluir</TableHead>}
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {clients.filter(c => c.status === expandedStatus).map(c => {
-                              const pendingItems = expandedStatus === 'em_onboarding' ? allOnboarding.filter(o => o.client_id === c.id) : [];
+                              const pendingItems = expandedStatus === 'em_onboarding'
+                                ? allOnboarding.filter(o => o.client_id === c.id)
+                                : expandedStatus === 'em_offboarding'
+                                ? allOffboarding.filter(o => o.client_id === c.id)
+                                : [];
                               return (
                                 <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 align-top" onClick={() => { setExpandedStatus(null); window.location.href = `/hub/clientes/${c.id}`; }}>
                                   <TableCell className="text-xs font-mono">{c.client_id}</TableCell>
                                   <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
                                   <TableCell className="text-xs text-muted-foreground">{c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
-                                  {expandedStatus === 'em_onboarding' && (
+                                  {(expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding') && (
                                     <TableCell>
                                       {pendingItems.length === 0 ? (
                                         <span className="text-xs text-muted-foreground">Sem checklist</span>
