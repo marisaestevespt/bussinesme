@@ -458,6 +458,23 @@ export default function ProdutoDetailPage() {
                   </div>
 
                   <div>
+                    <h4 className="text-sm font-semibold mb-2">Tempo de Ciclo / Acesso</h4>
+                    <p className="text-xs text-muted-foreground mb-2">Duração em dias do acesso ou ciclo do produto. Usado para calcular automaticamente o "Fim de Ciclo" nos clientes.</p>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder="Ex: 90"
+                        value={form.cycle_duration ?? ''}
+                        onChange={e => update('cycle_duration', e.target.value ? parseInt(e.target.value) : null)}
+                        className="h-8 text-sm w-32"
+                        readOnly={!isOwner}
+                      />
+                      <span className="text-sm text-muted-foreground">dias</span>
+                    </div>
+                  </div>
+
+                  <div>
                     <h4 className="text-sm font-semibold mb-2">FAQ's</h4>
                     <Accordion type="multiple" className="w-full">
                       {faqs.map((faq, i) => (
