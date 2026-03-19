@@ -64,9 +64,7 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus }: CrmPipelinePr
                 <span className="text-xs font-semibold truncate">{col.label}</span>
                 <Badge variant="secondary" className="text-xs">{col.leads.length}</Badge>
               </div>
-              {col.total > 0 && (
-                <p className="text-xs text-muted-foreground mt-1">{col.total.toLocaleString('pt-PT')}€</p>
-              )}
+              <p className="text-xs text-muted-foreground mt-1">{col.total.toLocaleString('pt-PT')}€</p>
             </div>
 
             {/* Cards */}
