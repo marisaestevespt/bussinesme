@@ -723,7 +723,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
-          documents: string | null
+          documents: Json | null
           id: string
           invoice_total: number
           payment_date: string | null
@@ -742,7 +742,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
-          documents?: string | null
+          documents?: Json | null
           id?: string
           invoice_total?: number
           payment_date?: string | null
@@ -761,7 +761,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
-          documents?: string | null
+          documents?: Json | null
           id?: string
           invoice_total?: number
           payment_date?: string | null
