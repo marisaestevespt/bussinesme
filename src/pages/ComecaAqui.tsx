@@ -30,10 +30,31 @@ function useTeamMembers() {
   });
 }
 
-const MEMBER_TYPE_LABELS: Record<string, string> = {
-  colaborador: 'Colaborador',
-  prestador: 'Prestador',
-  estagiario: 'Estagiário',
+const formatScheduleSummary = (raw: string | null): string => {
+  if (!raw) return '';
+  try {
+    const s = JSON.parse(raw);
+    const DAYS = [
+      { key: 'seg', label: 'Seg' }, { key: 'ter', label: 'Ter' }, { key: 'qua', label: 'Qua' },
+      { key: 'qui', label: 'Qui' }, { key: 'sex', label: 'Sex' }, { key: 'sab', label: 'Sáb' }, { key: 'dom', label: 'Dom' },
+    ];
+    return DAYS.filter(d => {
+      const val = s[d.key];
+      if (!val) return false;
+      if (Array.isArray(val)) return val.length > 0;
+      return val.manha || val.tarde;
+    }).map(d => {
+      const val = s[d.key];
+      if (Array.isArray(val)) {
+        const suffix = val.length === 2 ? '' : val.includes('manha') ? ' (M)' : ' (T)';
+        return `${d.label}${suffix}`;
+      }
+      const parts: string[] = [];
+      if (val.manha) parts.push(val.manha);
+      if (val.tarde) parts.push(val.tarde);
+      return `${d.label} ${parts.join(' / ')}`;
+    }).join(' · ');
+  } catch { return raw; }
 };
 
 export default function ComecaAquiPage() {
