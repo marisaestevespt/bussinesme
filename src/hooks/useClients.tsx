@@ -65,6 +65,7 @@ export const CLIENT_STATUS_OPTIONS = [
   { value: 'ativo', label: 'Ativo' },
   { value: 'pausado', label: 'Pausado' },
   { value: 'altura_renovacao', label: 'Altura de renovação' },
+  { value: 'em_offboarding', label: 'Em offboarding' },
   { value: 'terminado', label: 'Terminado' },
 ] as const;
 

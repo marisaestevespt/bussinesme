@@ -138,6 +138,15 @@ export default function OperacaoPage() {
     },
   });
 
+  // Offboarding items for all clients (for the popup)
+  const { data: allOffboarding = [] } = useQuery({
+    queryKey: ['op-all-offboarding'],
+    queryFn: async () => {
+      const { data } = await (supabase.from('client_offboarding' as any) as any).select('client_id,activity,completed,phase').eq('completed', false);
+      return (data || []) as unknown as { client_id: string; activity: string; completed: boolean; phase: string | null }[];
+    },
+  });
+
   const { data: projectMembers = [] } = useQuery({
     queryKey: ['op-project-members'],
     queryFn: async () => {
@@ -324,6 +333,7 @@ export default function OperacaoPage() {
                   { value: 'ativo', label: 'Ativos', className: 'bg-green-100 text-green-800' },
                   { value: 'pausado', label: 'Pausados', className: 'bg-amber-100 text-amber-800' },
                   { value: 'altura_renovacao', label: 'Altura de renovação', className: 'bg-purple-100 text-purple-800' },
+                  { value: 'em_offboarding', label: 'Em offboarding', className: 'bg-orange-100 text-orange-800' },
                 ].map(s => {
                   const count = clients.filter(c => c.status === s.value).length;
                   return (
@@ -339,7 +349,7 @@ export default function OperacaoPage() {
                 })}
 
                 <Dialog open={!!expandedStatus} onOpenChange={(open) => !open && setExpandedStatus(null)}>
-                   <DialogContent className={expandedStatus === 'altura_renovacao' ? 'max-w-2xl' : 'max-w-md'}>
+                   <DialogContent className={expandedStatus === 'altura_renovacao' ? 'max-w-2xl' : (expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding') ? 'max-w-2xl' : 'max-w-md'}>
                     <DialogHeader>
                       <DialogTitle className="text-base">
                         {expandedStatus && {
@@ -347,6 +357,7 @@ export default function OperacaoPage() {
                           ativo: 'Ativos',
                           pausado: 'Pausados',
                           altura_renovacao: 'Altura de renovação',
+                          em_offboarding: 'Em offboarding',
                         }[expandedStatus]}
                       </DialogTitle>
                     </DialogHeader>
@@ -381,18 +392,22 @@ export default function OperacaoPage() {
                               <TableHead className="text-xs">ID</TableHead>
                               <TableHead className="text-xs">Nome</TableHead>
                               <TableHead className="text-xs">Data de Início</TableHead>
-                              {expandedStatus === 'em_onboarding' && <TableHead className="text-xs">Por concluir</TableHead>}
+                              {(expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding') && <TableHead className="text-xs">Por concluir</TableHead>}
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {clients.filter(c => c.status === expandedStatus).map(c => {
-                              const pendingItems = expandedStatus === 'em_onboarding' ? allOnboarding.filter(o => o.client_id === c.id) : [];
+                              const pendingItems = expandedStatus === 'em_onboarding'
+                                ? allOnboarding.filter(o => o.client_id === c.id)
+                                : expandedStatus === 'em_offboarding'
+                                ? allOffboarding.filter(o => o.client_id === c.id)
+                                : [];
                               return (
                                 <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 align-top" onClick={() => { setExpandedStatus(null); window.location.href = `/hub/clientes/${c.id}`; }}>
                                   <TableCell className="text-xs font-mono">{c.client_id}</TableCell>
                                   <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
                                   <TableCell className="text-xs text-muted-foreground">{c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
-                                  {expandedStatus === 'em_onboarding' && (
+                                  {(expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding') && (
                                     <TableCell>
                                       {pendingItems.length === 0 ? (
                                         <span className="text-xs text-muted-foreground">Sem checklist</span>
