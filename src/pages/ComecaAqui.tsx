@@ -113,6 +113,7 @@ export default function ComecaAquiPage() {
   const { isOwner } = useAuth();
   const navigate = useNavigate();
   const teamMembers = useTeamMembers();
+  const [selectedMember, setSelectedMember] = useState<any>(null);
 
   const [welcomeText, setWelcomeText] = useState('');
   const [aboutText, setAboutText] = useState('');
