@@ -31,6 +31,7 @@ import GestaoMarcaPage from "./pages/GestaoMarca";
 import MarketingDashboard from "./pages/MarketingDashboard";
 import MarketingSubPage from "./pages/MarketingSubPage";
 import MarketingProcessos from "./pages/MarketingProcessos";
+import MarketingRecursos from "./pages/MarketingRecursos";
 import ConteudoDetailPage from "./pages/ConteudoDetail";
 import ChannelPage from "./pages/ChannelPage";
 import MarketingEstrategia from "./pages/MarketingEstrategia";
