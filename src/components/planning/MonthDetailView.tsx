@@ -122,6 +122,20 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] }),
   });
 
+  const upsertGoal = useMutation({
+    mutationFn: async (amount: number) => {
+      if (commMonthGoalQ.data?.id) {
+        const { error } = await supabase.from('commercial_monthly_goals').update({ goal_amount: amount }).eq('id', commMonthGoalQ.data.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('commercial_monthly_goals').insert({ year, month: monthNum, goal_amount: amount });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['md-comm-goal', year, monthNum] }); setGoalEditOpen(false); toast.success('Meta atualizada'); },
+    onError: () => toast.error('Erro ao guardar meta'),
+  });
+
   // ── Derived data ──
   const goals = planning.allGoals || [];
   const objectives = planning.allObjectives || [];
