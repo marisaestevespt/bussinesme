@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
@@ -171,7 +172,7 @@ export default function ComecaAquiPage() {
                         </Avatar>
                         <div className="min-w-0">
                           <p className="font-semibold text-foreground truncate">{m.full_name}</p>
-                          {m.role_title && <p className="text-xs text-muted-foreground truncate">{m.role_title}</p>}
+                          {m.role_title && <Badge className="text-[10px] text-white mt-0.5" style={{ backgroundColor: (m as any).role_color || '#6366f1' }}>{m.role_title}</Badge>}
                         </div>
                       </div>
 
@@ -194,12 +195,27 @@ export default function ComecaAquiPage() {
                             <span>{m.whatsapp}</span>
                           </div>
                         )}
-                        {m.work_schedule && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Clock className="h-3 w-3 shrink-0" />
-                            <span>{m.work_schedule}</span>
-                          </div>
-                        )}
+                        {m.work_schedule && (() => {
+                          const scheduleToDisplay = (raw: string | null) => {
+                            if (!raw) return '';
+                            try {
+                              const s = JSON.parse(raw);
+                              const DAYS = [{key:'seg',label:'Seg'},{key:'ter',label:'Ter'},{key:'qua',label:'Qua'},{key:'qui',label:'Qui'},{key:'sex',label:'Sex'},{key:'sab',label:'Sáb'}];
+                              return DAYS.filter(d => (s[d.key]||[]).length > 0).map(d => {
+                                const p = s[d.key];
+                                const suffix = p.length === 2 ? '' : p.includes('manha') ? ' (M)' : ' (T)';
+                                return `${d.label}${suffix}`;
+                              }).join(', ');
+                            } catch { return raw; }
+                          };
+                          const display = scheduleToDisplay(m.work_schedule);
+                          return display ? (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Clock className="h-3 w-3 shrink-0" />
+                              <span>{display}</span>
+                            </div>
+                          ) : null;
+                        })()}
                       </div>
                     </CardContent>
                   </Card>

@@ -145,9 +145,103 @@ const CONTRACT_DURATIONS = [
   { value: 'indefinido', label: 'Indefinido' },
 ];
 
+const ROLE_COLORS = [
+  { value: '#6366f1', label: 'Roxo' },
+  { value: '#f59e0b', label: 'Amarelo' },
+  { value: '#10b981', label: 'Verde' },
+  { value: '#ef4444', label: 'Vermelho' },
+  { value: '#3b82f6', label: 'Azul' },
+  { value: '#ec4899', label: 'Rosa' },
+  { value: '#8b5cf6', label: 'Violeta' },
+  { value: '#f97316', label: 'Laranja' },
+  { value: '#14b8a6', label: 'Teal' },
+  { value: '#64748b', label: 'Cinza' },
+];
+
+const WEEK_DAYS = [
+  { key: 'seg', label: 'Seg' },
+  { key: 'ter', label: 'Ter' },
+  { key: 'qua', label: 'Qua' },
+  { key: 'qui', label: 'Qui' },
+  { key: 'sex', label: 'Sex' },
+  { key: 'sab', label: 'Sáb' },
+];
+
+const PERIODS = [
+  { key: 'manha', label: 'Manhã' },
+  { key: 'tarde', label: 'Tarde' },
+];
+
+function parseSchedule(raw: string | null): Record<string, string[]> {
+  if (!raw) return {};
+  try { return JSON.parse(raw); } catch { return {}; }
+}
+
+function formatSchedule(schedule: Record<string, string[]>): string {
+  return JSON.stringify(schedule);
+}
+
+function scheduleToDisplay(raw: string | null): string {
+  const s = parseSchedule(raw);
+  return WEEK_DAYS
+    .filter(d => (s[d.key] || []).length > 0)
+    .map(d => {
+      const periods = s[d.key];
+      const p = periods.length === 2 ? '' : periods.includes('manha') ? ' (M)' : ' (T)';
+      return `${d.label}${p}`;
+    })
+    .join(', ') || '';
+}
+
+function ScheduleSelector({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const schedule = parseSchedule(value);
+  const toggle = (day: string, period: string) => {
+    const current = schedule[day] || [];
+    const next = current.includes(period) ? current.filter(p => p !== period) : [...current, period];
+    const updated = { ...schedule, [day]: next };
+    if (next.length === 0) delete updated[day];
+    onChange(formatSchedule(updated));
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <span className="text-xs text-muted-foreground font-medium">Horário de trabalho</span>
+      <div className="grid grid-cols-7 gap-1 text-center">
+        <div />
+        {WEEK_DAYS.map(d => (
+          <span key={d.key} className="text-[10px] font-medium text-muted-foreground">{d.label}</span>
+        ))}
+        {PERIODS.map(p => (
+          <>
+            <span key={`label-${p.key}`} className="text-[10px] text-muted-foreground flex items-center">{p.label}</span>
+            {WEEK_DAYS.map(d => {
+              const active = (schedule[d.key] || []).includes(p.key);
+              return (
+                <button
+                  key={`${d.key}-${p.key}`}
+                  type="button"
+                  onClick={() => toggle(d.key, p.key)}
+                  className={`h-7 w-full rounded text-[10px] font-medium transition-colors ${
+                    active
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  {active ? '✓' : ''}
+                </button>
+              );
+            })}
+          </>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const DEFAULT_MEMBER_FORM = {
   full_name: '',
   role_title: '',
+  role_color: '#6366f1',
   email: '',
   whatsapp: '',
   work_schedule: '',
@@ -207,13 +301,33 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
         <div className="space-y-4">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Informação Pessoal</h3>
           <Input placeholder="Nome completo *" value={f.full_name} onChange={e => set('full_name', e.target.value)} />
-          <Input placeholder="Função" value={f.role_title || ''} onChange={e => set('role_title', e.target.value)} />
+          <div className="space-y-1.5">
+            <span className="text-xs text-muted-foreground font-medium">Função</span>
+            <div className="flex gap-2 items-center">
+              <Input placeholder="Ex: Designer, Gestor..." className="flex-1" value={f.role_title || ''} onChange={e => set('role_title', e.target.value)} />
+              <div className="flex gap-1">
+                {ROLE_COLORS.map(c => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => set('role_color', c.value)}
+                    className={`h-6 w-6 rounded-full border-2 transition-all shrink-0 ${f.role_color === c.value ? 'border-foreground scale-110' : 'border-transparent'}`}
+                    style={{ backgroundColor: c.value }}
+                    title={c.label}
+                  />
+                ))}
+              </div>
+            </div>
+            {f.role_title && (
+              <Badge className="text-xs text-white" style={{ backgroundColor: f.role_color || '#6366f1' }}>{f.role_title}</Badge>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <Input placeholder="Email" value={f.email || ''} onChange={e => set('email', e.target.value)} />
             <Input placeholder="Telefone" value={f.whatsapp || ''} onChange={e => set('whatsapp', e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <Input placeholder="Horário de trabalho" value={f.work_schedule || ''} onChange={e => set('work_schedule', e.target.value)} />
+            <ScheduleSelector value={f.work_schedule || ''} onChange={v => set('work_schedule', v)} />
             <Input placeholder="Identificação (BI/NIF)" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
           </div>
           <div className="grid grid-cols-3 gap-2">
@@ -365,7 +479,7 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
           <div className="flex gap-2 flex-wrap">
             <Badge variant={member.status === 'ativo' ? 'default' : 'secondary'}>{labelFor(MEMBER_STATUSES, member.status)}</Badge>
             <Badge variant="outline">{labelFor(MEMBER_TYPES, member.member_type)}</Badge>
-            {member.role_title && <Badge variant="outline">{member.role_title}</Badge>}
+            {member.role_title && <Badge className="text-xs text-white" style={{ backgroundColor: (member as any).role_color || '#6366f1' }}>{member.role_title}</Badge>}
             <DeptBadge dept={member.department} />
           </div>
 
@@ -406,7 +520,7 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 {member.email && <div><span className="text-muted-foreground text-xs">Email</span><p>{member.email}</p></div>}
                 {member.whatsapp && <div><span className="text-muted-foreground text-xs">Telefone</span><p>{member.whatsapp}</p></div>}
-                {member.work_schedule && <div><span className="text-muted-foreground text-xs">Horário</span><p>{member.work_schedule}</p></div>}
+                {member.work_schedule && <div><span className="text-muted-foreground text-xs">Horário</span><p>{scheduleToDisplay(member.work_schedule)}</p></div>}
                 {member.identification && <div><span className="text-muted-foreground text-xs">Identificação</span><p>{member.identification}</p></div>}
                 {member.start_date && <div><span className="text-muted-foreground text-xs">Data de início</span><p>{member.start_date}</p></div>}
               </div>

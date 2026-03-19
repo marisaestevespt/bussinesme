@@ -4743,6 +4743,7 @@ export type Database = {
           presentation: string | null
           profile_id: string | null
           responsibilities: string | null
+          role_color: string | null
           role_title: string | null
           start_date: string | null
           status: string
@@ -4762,6 +4763,7 @@ export type Database = {
           presentation?: string | null
           profile_id?: string | null
           responsibilities?: string | null
+          role_color?: string | null
           role_title?: string | null
           start_date?: string | null
           status?: string
@@ -4781,6 +4783,7 @@ export type Database = {
           presentation?: string | null
           profile_id?: string | null
           responsibilities?: string | null
+          role_color?: string | null
           role_title?: string | null
           start_date?: string | null
           status?: string
