@@ -16,16 +16,8 @@ import { toast } from 'sonner';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import { calcMonthlyEquivalent, type Expense, type Subscription } from '@/hooks/useFinancialData';
 import { InvoiceUpload, type DocEntry } from './InvoiceUpload';
-
-const EXP_CATEGORIES = [
-  { value: 'pessoal', label: 'Pessoal' },
-  { value: 'freelancer', label: 'Freelancer' },
-  { value: 'campanha', label: 'Campanha' },
-  { value: 'ferramenta', label: 'Ferramenta' },
-  { value: 'formacao', label: 'Formação' },
-  { value: 'servico_contratado', label: 'Serviço Contratado' },
-  { value: 'outro', label: 'Outro' },
-];
+import { CategorySelect } from './CategorySelect';
+import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 
 const EXP_STATUS = [
   { value: 'por_pagar', label: 'Por Pagar' },
@@ -38,15 +30,6 @@ const LOCATIONS = [
   { value: 'portugal', label: 'Portugal' },
   { value: 'ue', label: 'União Europeia' },
   { value: 'fora_ue', label: 'Fora da UE' },
-];
-
-const SUB_CATEGORIES = [
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'operacao', label: 'Operação' },
-  { value: 'comunicacao', label: 'Comunicação' },
-  { value: 'financeiro', label: 'Financeiro' },
-  { value: 'design', label: 'Design' },
-  { value: 'outro', label: 'Outro' },
 ];
 
 const PERIODICITIES = [
