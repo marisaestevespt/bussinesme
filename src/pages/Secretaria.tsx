@@ -258,6 +258,7 @@ export default function SecretariaPage() {
               <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Projetos ativos</p><p className="text-2xl font-bold">{activeProjects.length}</p></CardContent></Card>
             </div>
             <DashboardPersonalWidgets userId={user?.id} teamMember={teamMember.data} />
+            <RecommendationWidget memberName={firstName} />
           </>
         )}
 
