@@ -187,7 +187,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
           <Separator />
           <GoalsSection objectiveId={obj.id} goals={objGoals} planning={planning} />
           <Separator />
-          <MetricsSection objectiveId={obj.id} metrics={objMetrics} planning={planning} />
+          <MetricsSection objectiveId={obj.id} metrics={objMetrics} planning={planning} productsList={productsList} getProductName={getProductName} />
           <Separator />
           <ActionsSection objectiveId={obj.id} actions={objActions} planning={planning} />
         </div>
