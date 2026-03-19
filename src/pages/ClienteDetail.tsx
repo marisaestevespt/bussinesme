@@ -123,9 +123,9 @@ export default function ClienteDetailPage() {
   const { data: clientMeetings = [] } = useFilteredMeetings(form.full_name);
 
   // Local tables
-  const { history, addEntry: addHistory, deleteEntry: deleteHistory } = useClientHistory(isNew ? undefined : id);
-  const { activities, addEntry: addActivity, deleteEntry: deleteActivity } = useClientActivities(isNew ? undefined : id);
-  const { onboarding, addEntry: addOnboarding, deleteEntry: deleteOnboarding } = useClientOnboarding(isNew ? undefined : id);
+  const { history, addEntry: addHistory, updateEntry: updateHistory, deleteEntry: deleteHistory } = useClientHistory(isNew ? undefined : id);
+  const { activities, addEntry: addActivity, updateEntry: updateActivity, deleteEntry: deleteActivity } = useClientActivities(isNew ? undefined : id);
+  const { onboarding, addEntry: addOnboarding, updateEntry: updateOnboarding, deleteEntry: deleteOnboarding } = useClientOnboarding(isNew ? undefined : id);
 
   const productList = products.data || [];
 
