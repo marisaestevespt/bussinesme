@@ -192,15 +192,15 @@ export function useCommercialData(year = currentYear) {
   const monthlyGoalsSum = (monthlyGoals.data || []).reduce((s, m) => s + Number(m.goal_amount || 0), 0);
   const monthlyMismatch = annualGoalAmount > 0 && monthlyGoalsSum < annualGoalAmount - 0.01;
 
-  // Quarter totals from sales (only counted statuses)
+  // Quarter totals from sales
   const quarterTotals = [1, 2, 3, 4].map(q =>
-    countedSales.filter(v => v.sale_quarter === q).reduce((s, v) => s + Number(v.invoice_total || 0), 0)
+    yearSales.filter(v => v.sale_quarter === q).reduce((s, v) => s + Number(v.invoice_total || 0), 0)
   );
 
-  // Product totals from sales (only counted statuses)
+  // Product totals from sales
   const productTotals = (productGoals.data || []).map(pg => ({
     ...pg,
-    totalInvoiced: countedSales.filter(v => v.product === pg.product_name).reduce((s, v) => s + Number(v.invoice_total || 0), 0),
+    totalInvoiced: yearSales.filter(v => v.product === pg.product_name).reduce((s, v) => s + Number(v.invoice_total || 0), 0),
   }));
 
   return {
