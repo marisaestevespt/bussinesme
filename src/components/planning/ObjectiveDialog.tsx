@@ -60,6 +60,17 @@ export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
 
           {form.objective_type === 'quantitativo' && (
             <>
+              <div><Label>Tipo de medição</Label>
+                <Select value={form.measurement_type || 'acumulativo'} onValueChange={v => set('measurement_type', v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{MEASUREMENT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {form.measurement_type === 'progressivo'
+                    ? 'Valor absoluto atual (ex: seguidores, clientes ativos, NPS)'
+                    : 'Soma de registos no período (ex: faturação, vendas, leads)'}
+                </p>
+              </div>
               <div className="grid grid-cols-3 gap-3">
                 <div><Label>Valor alvo</Label><Input type="number" value={form.target_value || ''} onChange={e => set('target_value', e.target.value)} /></div>
                 <div><Label>Unidade</Label><Input value={form.target_unit || ''} onChange={e => set('target_unit', e.target.value)} placeholder="€, seguidores..." /></div>
