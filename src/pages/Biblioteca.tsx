@@ -27,9 +27,15 @@ const CATEGORIES = [
   { value: 'outro', label: 'Outro' },
 ];
 
+const BIBLIOTECA_DEFAULT_VIEWS: DefaultView[] = [
+  { key: 'todos', label: 'Todos os Documentos', isDefault: true },
+];
+
 export default function BibliotecaPage() {
   const { user, isOwner } = useAuth();
   const queryClient = useQueryClient();
+  const { allViews, addView, renameView, deleteView } = useUserViews('biblioteca', BIBLIOTECA_DEFAULT_VIEWS);
+  const [activeView, setActiveView] = useState('todos');
   const [showNew, setShowNew] = useState(false);
   const [editingDoc, setEditingDoc] = useState<any>(null);
   const [title, setTitle] = useState('');
