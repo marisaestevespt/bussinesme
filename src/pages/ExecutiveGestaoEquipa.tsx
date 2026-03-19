@@ -316,6 +316,7 @@ const DEFAULT_MEMBER_FORM = {
   full_name: '',
   role_title: '',
   role_color: '#6366f1',
+  photo_url: '',
   email: '',
   whatsapp: '',
   work_schedule: '',
