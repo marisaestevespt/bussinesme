@@ -21,10 +21,38 @@ export function CommercialCRM() {
   const products = (productGoals.data || []).map(p => p.product_name);
 
   const { data: profiles = [] } = useQuery({
-    queryKey: ['profiles-list'],
+    queryKey: ['profiles-commercial-team'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id, full_name').order('full_name');
-      return data || [];
+      // Get owners
+      const { data: ownerRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'owner');
+      const ownerIds = (ownerRoles || []).map(r => r.user_id);
+
+      // Get members with comercial module permission
+      const { data: commercialPerms } = await supabase
+        .from('role_permissions')
+        .select('custom_role_id')
+        .eq('module_key', 'comercial')
+        .eq('can_view', true);
+      const commercialRoleIds = (commercialPerms || []).map(p => p.custom_role_id);
+
+      let commercialUserIds: string[] = [];
+      if (commercialRoleIds.length > 0) {
+        const { data: members } = await supabase
+          .from('members')
+          .select('user_id')
+          .in('custom_role_id', commercialRoleIds);
+        commercialUserIds = (members || []).map(m => m.user_id);
+      }
+
+      const allUserIds = [...new Set([...ownerIds, ...commercialUserIds])];
+      if (allUserIds.length === 0) return [];
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, full_name, user_id')
+        .in('user_id', allUserIds)
+        .order('full_name');
+      return (data || []).map(p => ({ id: p.id, full_name: p.full_name }));
     },
   });
 
