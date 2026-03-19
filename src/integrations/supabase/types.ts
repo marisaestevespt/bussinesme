@@ -2524,6 +2524,44 @@ export type Database = {
           },
         ]
       }
+      product_project_templates: {
+        Row: {
+          created_at: string
+          id: string
+          phase: string | null
+          product_id: string
+          responsible: string | null
+          sort_order: number
+          task_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          phase?: string | null
+          product_id: string
+          responsible?: string | null
+          sort_order?: number
+          task_name?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          phase?: string | null
+          product_id?: string
+          responsible?: string | null
+          sort_order?: number
+          task_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_project_templates_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_traffic_ads: {
         Row: {
           created_at: string
