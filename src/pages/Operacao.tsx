@@ -321,14 +321,6 @@ export default function OperacaoPage() {
                     </div>
                   );
                 })}
-                {productBreakdown.length > 0 && (
-                  <>
-                    <Separator />
-                    <p className="text-xs text-muted-foreground">
-                      {productBreakdown.map(([prod, count]) => `${count} ${prod}`).join(' · ')}
-                    </p>
-                  </>
-                )}
               </CardContent>
             </Card>
 
