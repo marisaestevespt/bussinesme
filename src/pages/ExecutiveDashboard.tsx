@@ -7,14 +7,18 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Target, CalendarCheck, Lightbulb, Rocket, Clock, Trash2, Plus, Users, Briefcase } from 'lucide-react';
-import { useExecutiveData, getMonthName, areaLabel, statusLabel } from '@/hooks/useExecutiveData';
+import { Target, CalendarCheck, Lightbulb, Rocket, Clock, Trash2, Plus, Briefcase } from 'lucide-react';
+import { useExecutiveData, getMonthName } from '@/hooks/useExecutiveData';
+import { usePlanningData, planAreaLabel, planStatusLabel } from '@/hooks/usePlanningData';
 
 const currentMonth = new Date().getMonth() + 1;
 const currentYear = new Date().getFullYear();
 
+const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
 export default function ExecutiveDashboard() {
   const exec = useExecutiveData(currentYear);
+  const planning = usePlanningData(currentYear);
   const [newTask, setNewTask] = useState('');
 
   const handleAddTask = () => {
@@ -23,9 +27,9 @@ export default function ExecutiveDashboard() {
     setNewTask('');
   };
 
-  const monthGoals = exec.goalsForMonth(currentMonth);
-  const monthProg = exec.monthProgress(currentMonth);
-  const monthRange = `1 - ${new Date(currentYear, currentMonth, 0).getDate()} ${getMonthName(currentMonth)}`;
+  // Current month goals from planning_goals
+  const currentMonthName = MONTH_NAMES[currentMonth - 1];
+  const monthGoals = planning.allGoals.filter(g => g.period === currentMonthName);
 
   return (
     <AppLayout>
@@ -41,7 +45,6 @@ export default function ExecutiveDashboard() {
 
         {/* 3-Column Layout */}
         <div className="grid gap-6 md:grid-cols-3">
-          {/* Coluna Esquerda — Gestão */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2"><Briefcase className="h-4 w-4" /> Gestão</CardTitle>
@@ -56,7 +59,6 @@ export default function ExecutiveDashboard() {
             </CardContent>
           </Card>
 
-          {/* Coluna Central — Business */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2"><Lightbulb className="h-4 w-4" /> Business</CardTitle>
@@ -74,29 +76,20 @@ export default function ExecutiveDashboard() {
             </CardContent>
           </Card>
 
-          {/* Coluna Direita — Brain Dump */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Brain Dump</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex gap-2">
-                <Input
-                  placeholder="Nova tarefa rápida..."
-                  value={newTask}
-                  onChange={e => setNewTask(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleAddTask()}
-                  className="h-8 text-sm"
-                />
+                <Input placeholder="Nova tarefa rápida..." value={newTask} onChange={e => setNewTask(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleAddTask()} className="h-8 text-sm" />
                 <Button size="sm" variant="ghost" onClick={handleAddTask} className="h-8 px-2"><Plus className="h-4 w-4" /></Button>
               </div>
               <div className="space-y-1 max-h-48 overflow-y-auto">
                 {(exec.brainDump.data || []).map(item => (
                   <div key={item.id} className="flex items-center gap-2 group">
-                    <Checkbox
-                      checked={item.completed}
-                      onCheckedChange={(v) => exec.toggleBrainDump.mutate({ id: item.id, completed: !!v })}
-                    />
+                    <Checkbox checked={item.completed} onCheckedChange={(v) => exec.toggleBrainDump.mutate({ id: item.id, completed: !!v })} />
                     <span className={`text-sm flex-1 ${item.completed ? 'line-through text-muted-foreground' : ''}`}>{item.task}</span>
                     <button onClick={() => exec.deleteBrainDump.mutate(item.id)} className="opacity-0 group-hover:opacity-100 transition-opacity">
                       <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
@@ -113,68 +106,76 @@ export default function ExecutiveDashboard() {
 
         {/* Este Ano + Este Mês */}
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Este Ano — Objetivos */}
+          {/* Este Ano — Objetivos from new planning DB */}
           <div className="lg:col-span-2 space-y-4">
             <h2 className="text-lg font-semibold">Este ano — Como estamos...</h2>
-            {exec.allObjectives.length === 0 ? (
+            {planning.allObjectives.length === 0 ? (
               <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">
                 Sem objetivos para {currentYear}. <Link to="/executive/planeamento" className="text-primary underline">Criar objetivos</Link>
               </CardContent></Card>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
-                {exec.allObjectives.map(obj => {
-                  const prog = exec.objectiveProgress(obj.id);
+                {planning.allObjectives.map((obj: any) => {
+                  const prog = planning.objectiveProgress(obj);
                   return (
-                    <Card key={obj.id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="p-4 space-y-3">
-                        <div className="flex items-start justify-between">
-                          <h3 className="font-medium text-sm">{obj.title}</h3>
-                          <Badge variant={obj.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px] shrink-0">
-                            {statusLabel(obj.status)}
-                          </Badge>
-                        </div>
-                        <Badge variant="outline" className="text-[10px]">{areaLabel(obj.area)}</Badge>
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs text-muted-foreground">
-                            <span>{prog}%</span>
-                            {obj.deadline && <span>Até {obj.deadline}</span>}
+                    <Link key={obj.id} to="/executive/planeamento" className="block">
+                      <Card className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4 space-y-3">
+                          <div className="flex items-start justify-between">
+                            <h3 className="font-medium text-sm">{obj.title}</h3>
+                            <Badge variant={obj.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px] shrink-0">
+                              {planStatusLabel(obj.status)}
+                            </Badge>
                           </div>
-                          <Progress value={prog} className="h-2" />
-                        </div>
-                        {obj.description && <p className="text-xs text-muted-foreground line-clamp-2">{obj.description}</p>}
-                      </CardContent>
-                    </Card>
+                          <div className="flex gap-1 flex-wrap">
+                            <Badge variant="outline" className="text-[10px]">{planAreaLabel(obj.area)}</Badge>
+                            <Badge variant="outline" className="text-[10px]">{obj.objective_type === 'quantitativo' ? 'Quantitativo' : 'Qualitativo'}</Badge>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs text-muted-foreground">
+                              <span>{prog}%</span>
+                              {obj.deadline && <span>Até {obj.deadline}</span>}
+                            </div>
+                            <Progress value={prog} className="h-2" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   );
                 })}
               </div>
             )}
           </div>
 
-          {/* Este Mês */}
+          {/* Este Mês — from planning_goals */}
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">Este mês</h2>
             <Card>
               <CardContent className="p-4 space-y-4">
                 <div>
-                  <h3 className="font-medium text-sm">{getMonthName(currentMonth)}</h3>
-                  <p className="text-xs text-muted-foreground">{monthRange}</p>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Progresso</span><span>{monthProg}%</span>
-                  </div>
-                  <Progress value={monthProg} className="h-2" />
+                  <h3 className="font-medium text-sm">{currentMonthName}</h3>
                 </div>
                 <div className="space-y-2">
                   <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Metas do mês</h4>
                   {monthGoals.length === 0 ? (
                     <p className="text-xs text-muted-foreground">Sem metas para este mês</p>
-                  ) : monthGoals.map(g => (
-                    <div key={g.id} className="flex items-center gap-2">
-                      <div className={`h-2 w-2 rounded-full shrink-0 ${g.status === 'atingido' ? 'bg-green-500' : g.status === 'doing' ? 'bg-yellow-500' : 'bg-muted-foreground/30'}`} />
-                      <span className="text-xs">{g.meta}</span>
-                    </div>
-                  ))}
+                  ) : monthGoals.map((g: any) => {
+                    const obj = planning.allObjectives.find((o: any) => o.id === g.objective_id);
+                    const dev = g.actual_value && g.target_value ? (Number(g.actual_value) - Number(g.target_value)) : null;
+                    return (
+                      <div key={g.id} className="text-xs space-y-0.5 py-1 border-b last:border-0">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">{obj?.title || '—'}</span>
+                          <Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[9px]">{planStatusLabel(g.status)}</Badge>
+                        </div>
+                        <div className="flex gap-3 text-muted-foreground">
+                          <span>Alvo: {g.target_value || '—'}</span>
+                          <span>Real: {g.actual_value || '—'}</span>
+                          {dev != null && <span className={dev < 0 ? 'text-destructive' : ''}>{dev >= 0 ? `+${dev}` : dev}</span>}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
