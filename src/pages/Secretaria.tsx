@@ -24,7 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import {
   CheckSquare, AlertTriangle, Users, FolderKanban, Play, Square, Clock,
   Plus, CalendarIcon, Link2, ImageIcon, FileText, ExternalLink, Trash2,
-  BarChart3, ListTodo, ChevronRight, ArrowLeft,
+  BarChart3, ListTodo, ChevronRight, ArrowLeft, Building2,
 } from 'lucide-react';
 import { format, parseISO, isToday, isBefore, startOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, differenceInSeconds, eachDayOfInterval, addDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
