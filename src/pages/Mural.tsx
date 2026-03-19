@@ -241,8 +241,9 @@ export default function MuralPage() {
       const { error } = await supabase.from('mural_comments').insert({ post_id: postId, author_id: user.id, body });
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['mural-comments'] });
+      if (user) notifyMentions(variables.body, user.id, 'Comentário no Mural', '/mural');
     },
   });
 
