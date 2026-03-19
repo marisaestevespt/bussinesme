@@ -74,7 +74,7 @@ export function CommercialVendas() {
 
     // Default view filters
     if (activeView === 'overdue') {
-      result = result.filter(s => ['na', 'fatura_emitida'].includes(s.status) && s.payment_date && s.payment_date < todayStr);
+      result = result.filter(s => s.status === 'em_atraso' || (['na', 'aguarda_pagamento', 'fatura_emitida'].includes(s.status) && s.payment_date && s.payment_date < todayStr));
     }
 
     // Search text (across description, client, product, sale_id)
