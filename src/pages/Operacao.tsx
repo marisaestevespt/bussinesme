@@ -115,7 +115,7 @@ export default function OperacaoPage() {
   const { data: clients = [] } = useQuery({
     queryKey: ['op-clients'],
     queryFn: async () => {
-      const { data } = await supabase.from('clients').select('id,full_name,status,current_product,start_date');
+      const { data } = await supabase.from('clients').select('id,client_id,full_name,status,current_product,start_date');
       return (data || []) as Client[];
     },
   });
