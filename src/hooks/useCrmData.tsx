@@ -106,13 +106,14 @@ export function useCrmData() {
   });
 
   const upsertInteraction = useMutation({
-    mutationFn: async (rec: any) => {
+    mutationFn: async (raw: any) => {
+      const rec = cleanPayload(raw);
       if (rec.id) {
-        const { error } = await supabase.from('crm_interactions').update(rec).eq('id', rec.id);
+        const { error } = await supabase.from('crm_interactions').update(rec as any).eq('id', rec.id);
         if (error) throw error;
       } else {
         delete rec.id;
-        const { error } = await supabase.from('crm_interactions').insert(rec);
+        const { error } = await supabase.from('crm_interactions').insert(rec as any);
         if (error) throw error;
       }
     },
