@@ -422,7 +422,8 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
           <TableBody>{metrics.map((m: any) => {
             const overdue = planning.isMetricOverdue(m);
             const dueToday = planning.isMetricDueToday(m);
-            const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source) : null;
+            const metricProductName = getProductName(m.product_id);
+            const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source, metricProductName) : null;
             const displayVal = m.source === 'manual' ? m.current_value : autoVal;
             const status = getMetricStatus(m);
             return (
