@@ -548,7 +548,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
                 </TableHeader>
                 <TableBody>
                   {linkedObjectives.map((o: any) => (
-                    <TableRow key={o.id}>
+                    <TableRow key={o.id} className="cursor-pointer hover:bg-muted/60" onClick={() => setSelectedObjective(o)}>
                       <TableCell><Badge variant={o.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">{planStatusLabel(o.status)}</Badge></TableCell>
                       <TableCell className="text-sm">{planAreaLabel(o.area)}</TableCell>
                       <TableCell className="text-sm font-medium">{o.title}</TableCell>
