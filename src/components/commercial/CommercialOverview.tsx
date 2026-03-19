@@ -25,8 +25,20 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
 
 export function CommercialOverview() {
   const data = useCommercialData();
+  const navigate = useNavigate();
   const [dismissed, setDismissed] = useState(false);
   const [saleOpen, setSaleOpen] = useState(false);
+
+  const { data: activeLeadsCount = 0 } = useQuery({
+    queryKey: ['active-leads-count'],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('crm_leads')
+        .select('*', { count: 'exact', head: true })
+        .not('status', 'in', '("ganho","perdido")');
+      return count || 0;
+    },
+  });
 
   const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
