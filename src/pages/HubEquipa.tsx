@@ -141,12 +141,12 @@ export default function HubEquipaPage() {
     <AppLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-start justify-between">
+        <div className="rounded-xl bg-primary px-6 py-5 flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight text-primary-foreground">
               {greetingText()}, {firstName}.
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-primary-foreground/70 mt-1">
               Olá! Bem-vindo(a) ao nosso espaço. Este é o lugar onde organizamos, colaboramos e crescemos juntos.
             </p>
           </div>
