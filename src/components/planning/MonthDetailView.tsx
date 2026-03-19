@@ -202,17 +202,20 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const [newTask, setNewTask] = useState('');
   const [addingToGroup, setAddingToGroup] = useState<string | null>(null);
 
-  // Product sales breakdown for "goal" tab
+  // Product sales breakdown for "goal" tab — always show all active products
   const prodSalesData = useMemo(() => {
-    return commProdGoals.map((pg: any) => {
-      const prodSales = sales.filter((s: any) => s.product === pg.product_name);
+    const activeProducts = products.filter((p: any) => p.status !== 'off');
+    return activeProducts.map((prod: any) => {
+      const prodSales = sales.filter((s: any) => s.product === prod.name);
       const totalFat = prodSales.reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0);
-      const goalAmt = Number(pg.goal_amount || 0);
+      const pg = commProdGoals.find((g: any) => g.product_name === prod.name);
+      const goalAmt = Number(pg?.goal_amount || 0);
       const pct = goalAmt > 0 ? Math.round((totalFat / goalAmt) * 100) : 0;
+      const ticketValue = prod.ticket ? parseFloat(prod.ticket.replace(/[^\d.,]/g, '').replace(',', '.')) || 0 : 0;
       return {
-        product: pg.product_name,
+        product: prod.name,
         numVendas: prodSales.length,
-        price: 0,
+        price: ticketValue,
         goalAmount: goalAmt,
         totalFat,
         pct,
