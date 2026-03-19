@@ -501,7 +501,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                               </div>
                             )}
                             {l.status === 'ganho' && (
-                              <Button variant="outline" size="sm" className="h-5 text-[9px] w-full mt-1" onClick={() => navigate('/clientes')}>Add como cliente</Button>
+                              <Button variant="outline" size="sm" className="h-5 text-[9px] w-full mt-1">Add como cliente</Button>
                             )}
                           </div>
                         );
