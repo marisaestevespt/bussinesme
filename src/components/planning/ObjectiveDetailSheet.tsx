@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, Save, ListTodo, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { planAreaLabel, planStatusLabel, PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES, CADENCES, ACTION_STATUSES, GOAL_STATUSES } from '@/hooks/usePlanningData';
 import { useTeamData } from '@/hooks/useTeamData';
+import { useProducts } from '@/hooks/useProducts';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 
