@@ -133,8 +133,8 @@ export default function OperacaoPage() {
   const { data: allOnboarding = [] } = useQuery({
     queryKey: ['op-all-onboarding'],
     queryFn: async () => {
-      const { data } = await supabase.from('client_onboarding' as any).select('client_id,activity,completed,phase').eq('completed', false);
-      return (data || []) as { client_id: string; activity: string; completed: boolean; phase: string | null }[];
+      const { data } = await (supabase.from('client_onboarding' as any) as any).select('client_id,activity,completed,phase').eq('completed', false);
+      return (data || []) as unknown as { client_id: string; activity: string; completed: boolean; phase: string | null }[];
     },
   });
 
