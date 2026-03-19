@@ -1017,6 +1017,52 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           })()}
         </DialogContent>
       </Dialog>
+
+      {/* ═══ Convert Lead to Client Sheet ═══ */}
+      <Sheet open={!!convertLead} onOpenChange={(v) => { if (!v) setConvertLead(null); }}>
+        <SheetContent side="right" className="overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Tornar Cliente</SheetTitle>
+            <SheetDescription>Preenche os dados em falta para criar a ficha de cliente.</SheetDescription>
+          </SheetHeader>
+          <Separator className="my-4" />
+          <div className="space-y-4">
+            {[
+              { key: 'full_name', label: 'Nome completo' },
+              { key: 'email', label: 'Email' },
+              { key: 'whatsapp', label: 'Whatsapp / Telefone' },
+              { key: 'current_product', label: 'Produto' },
+              { key: 'start_date', label: 'Data de início', type: 'date' },
+              { key: 'nif', label: 'NIF' },
+              { key: 'fiscal_address', label: 'Morada fiscal' },
+              { key: 'birthday', label: 'Data de nascimento', type: 'date' },
+              { key: 'payment_method', label: 'Método de pagamento' },
+              { key: 'dp', label: 'Data de pagamento' },
+              { key: 'observations', label: 'Observações' },
+            ].map(f => (
+              <div key={f.key}>
+                <label className="text-xs font-medium text-muted-foreground">{f.label}</label>
+                <Input
+                  type={f.type || 'text'}
+                  value={convertForm[f.key] || ''}
+                  onChange={e => setConvertForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+            ))}
+            <Button
+              className="w-full"
+              onClick={() => {
+                if (!convertForm.full_name?.trim()) { toast.error('Nome é obrigatório'); return; }
+                createClientFromLead.mutate(convertForm);
+              }}
+              disabled={createClientFromLead.isPending}
+            >
+              {createClientFromLead.isPending ? 'A criar...' : 'Criar Cliente'}
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
