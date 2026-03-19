@@ -121,11 +121,12 @@ function AppRoutes() {
       <Route path="/hub/financeiro" element={<FinanceiroPage />} />
       <Route path="/hub/financeiro/:section" element={<FinanceiroSubPage />} />
       <Route path="/hub/operacao" element={<OperacaoPage />} />
+      <Route path="/hub/recursos-humanos" element={<ExecutiveGestaoEquipa />} />
         <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive" element={<ExecutiveDashboard />} />
       <Route path="/executive/planeamento" element={<ExecutivePlaneamento />} />
       <Route path="/executive/weekly-align" element={<ExecutiveWeeklyAlign />} />
-      <Route path="/executive/gestao-equipa" element={<ExecutiveGestaoEquipa />} />
+      
       <Route path="/executive/business-plan" element={<ExecutiveBusinessPlan />} />
       <Route path="/executive/innovation" element={<ExecutiveInnovation />} />
       <Route path="/executive/productivity" element={<ExecutiveProductivity />} />

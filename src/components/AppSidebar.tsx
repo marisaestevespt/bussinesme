@@ -63,7 +63,6 @@ const departamentosItems: NavItem[] = [
   { title: 'Financeiro', url: '/hub/financeiro', icon: 'DollarSign', moduleKey: 'financeiro' },
   { title: 'Operação', url: '/hub/operacao', icon: 'Headphones', moduleKey: 'operacao' },
   { title: 'Produtos', url: '/hub/produtos', icon: 'Package', moduleKey: 'produtos' },
-  { title: 'Customer Success', url: '/hub/customer-success', icon: 'Heart', moduleKey: 'customer-success' },
   { title: 'Recursos Humanos', url: '/hub/recursos-humanos', icon: 'UsersRound', moduleKey: 'recursos-humanos' },
 ];
 
@@ -71,7 +70,6 @@ const executiveItems: NavItem[] = [
   { title: 'Executive Room', url: '/executive', icon: 'Crown', moduleKey: 'executive-room' },
   { title: 'Planeamento de Negócio', url: '/executive/planeamento', icon: 'Target', moduleKey: 'planeamento' },
   { title: 'Weekly Align', url: '/executive/weekly-align', icon: 'CalendarCheck', moduleKey: 'weekly-align' },
-  { title: 'Gestão de Equipa', url: '/executive/gestao-equipa', icon: 'Crown', moduleKey: 'gestao-equipa-ceo' },
 ];
 
 function getIcon(name: string) {
