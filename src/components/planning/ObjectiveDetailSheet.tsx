@@ -388,15 +388,17 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
       {metrics.length > 0 && metrics.map((m: any) => {
         const records = allHistory.filter((r: any) => r.metric_id === m.id);
         if (records.length < 2) return null;
+        const chartData = records.map((r: any) => ({ date: r.recorded_at, value: Number(r.value), ...(m.target_value ? { target: Number(m.target_value) } : {}) }));
         return (
           <div key={m.id} className="mt-4">
-            <p className="text-xs font-medium mb-1">{m.name} — Tendência</p>
+            <p className="text-xs font-medium mb-1">{m.name} — Tendência {m.target_value ? `(objetivo: ${Number(m.target_value).toLocaleString()} ${m.target_unit || ''})` : ''}</p>
             <ResponsiveContainer width="100%" height={120}>
-              <LineChart data={records.map((r: any) => ({ date: r.recorded_at, value: Number(r.value) }))}>
+              <LineChart data={chartData}>
                 <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 10 }} width={40} />
                 <Tooltip />
                 <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                {m.target_value && <Line type="monotone" dataKey="target" stroke="hsl(var(--destructive))" strokeWidth={1} strokeDasharray="4 4" dot={false} />}
               </LineChart>
             </ResponsiveContainer>
           </div>
