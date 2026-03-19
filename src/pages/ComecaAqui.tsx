@@ -171,7 +171,7 @@ export default function ComecaAquiPage() {
                         </Avatar>
                         <div className="min-w-0">
                           <p className="font-semibold text-foreground truncate">{m.full_name}</p>
-                          {m.role_title && <p className="text-xs text-muted-foreground truncate">{m.role_title}</p>}
+                          {m.role_title && <Badge className="text-[10px] text-white mt-0.5" style={{ backgroundColor: (m as any).role_color || '#6366f1' }}>{m.role_title}</Badge>}
                         </div>
                       </div>
 
