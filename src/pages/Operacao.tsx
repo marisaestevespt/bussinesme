@@ -14,6 +14,7 @@ import { Users, FolderOpen, CheckCircle2, Clock, AlertTriangle, Briefcase, Build
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format, isToday, isBefore, startOfToday, isAfter, subDays, endOfWeek, startOfWeek } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 // ─── Types ──────────────────────────────────────────────────────
 
