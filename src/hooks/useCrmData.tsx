@@ -71,13 +71,14 @@ export function useCrmData() {
   const invalidate = () => qc.invalidateQueries({ queryKey: key });
 
   const upsertLead = useMutation({
-    mutationFn: async (lead: any) => {
+    mutationFn: async (raw: any) => {
+      const lead = cleanPayload(raw);
       if (lead.id) {
-        const { error } = await supabase.from('crm_leads').update(lead).eq('id', lead.id);
+        const { error } = await supabase.from('crm_leads').update(lead as any).eq('id', lead.id);
         if (error) throw error;
       } else {
         delete lead.id;
-        const { error } = await supabase.from('crm_leads').insert(lead);
+        const { error } = await supabase.from('crm_leads').insert(lead as any);
         if (error) throw error;
       }
     },
