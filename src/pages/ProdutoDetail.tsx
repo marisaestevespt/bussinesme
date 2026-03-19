@@ -1268,6 +1268,11 @@ export default function ProdutoDetailPage() {
               <OfferCalculator vatRate={(form as any).vat_rate || '23'} />
             </TabsContent>
 
+            {/* ===== CUSTOMER SUCCESS ===== */}
+            <TabsContent value="customer-success" className="space-y-6">
+              <ProductCustomerSuccess productId={id!} isOwner={isOwner} />
+            </TabsContent>
+
             {/* ===== ARQUIVO ===== */}
             <TabsContent value="arquivo" className="space-y-6">
               <Card>
