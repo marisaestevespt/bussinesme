@@ -261,7 +261,10 @@ export default function ClienteDetailPage() {
           <TabsContent value="gestao" className="space-y-6 mt-4">
             {/* Payments filtered view */}
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Gestão de Pagamentos</CardTitle></CardHeader>
+              <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm">Gestão de Pagamentos</CardTitle>
+                <Button size="sm" variant="outline" onClick={() => setSaleOpen(true)}><Plus className="h-3 w-3 mr-1" />Novo Pagamento</Button>
+              </CardHeader>
               <CardContent className="p-0">
                 <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-9 gap-2">
                   <span>Status</span><span>Data</span><span>Descrição</span><span>Valor Base</span><span>Fatura</span><span>Produto</span><span>Mês</span><span>Ano</span><span>Docs</span>
