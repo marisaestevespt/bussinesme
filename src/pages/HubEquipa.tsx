@@ -340,7 +340,7 @@ function ProjectsList({ projects, navigate }: { projects: any[]; navigate: (path
 // ─── Main Page ──────────────────────────────────────────────────
 
 export default function HubEquipaPage() {
-  const [activeSection, setActiveSection] = useState<'tarefas' | 'projetos' | 'conteudos'>('tarefas');
+  const [taskView, setTaskView] = useState<'inbox' | 'today' | 'week'>('inbox');
   const navigate = useNavigate();
   const { settings } = useBusinessSettings();
   const { user } = useAuth();
