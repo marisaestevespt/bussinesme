@@ -15,7 +15,8 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X } from 'lucide-react';
+import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock } from 'lucide-react';
+import { useTaskTimeTotals, formatDuration } from '@/components/TaskTimeTracker';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -61,6 +62,16 @@ const TASK_PRIORITIES = [
 
 function getPriorityInfo(v: string) { return TASK_PRIORITIES.find(p => p.value === v) || TASK_PRIORITIES[1]; }
 function getTaskStatusInfo(v: string) { return TASK_STATUSES.find(s => s.value === v) || TASK_STATUSES[0]; }
+
+function ProjectTimeDisplay({ taskIds }: { taskIds: string[] }) {
+  const { data: totalMinutes = 0 } = useTaskTimeTotals(taskIds);
+  if (totalMinutes === 0) return null;
+  return (
+    <Badge variant="secondary" className="gap-1 text-xs">
+      <Clock className="h-3 w-3" /> {formatDuration(totalMinutes)} investidas
+    </Badge>
+  );
+}
 
 // ─── Entregáveis Sub-Page Component ─────────────────────────────
 
@@ -617,7 +628,10 @@ export default function ProjetoDetailPage() {
         {/* Section 2: Estado e Prioridades */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Estado e Prioridades</h3>
+            <div className="flex items-center gap-3">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Estado e Prioridades</h3>
+              <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
+            </div>
             <div className="flex gap-2">
               <Button size="sm" variant="outline" className="gap-1.5 h-8" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
               <Button size="sm" variant="outline" className="gap-1.5 h-8" onClick={() => setMeetingDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Reunião</Button>
