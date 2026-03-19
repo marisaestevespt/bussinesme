@@ -207,6 +207,50 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
         </CardContent>
       </Card>
 
+      {/* Subscrições Recorrentes */}
+      {activeSubs.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Subscrições Recorrentes — {MONTHS[m - 1]}</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Plataforma</TableHead>
+                  <TableHead className="text-right">Valor Mensal</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Fatura</TableHead>
+                  <TableHead />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activeSubs.map(sub => {
+                  const linkedExpense = subExpenseMap.get(sub.id);
+                  const isPaid = !!linkedExpense && linkedExpense.status === 'pago';
+                  return (
+                    <SubRow
+                      key={sub.id}
+                      sub={sub}
+                      linkedExpense={linkedExpense}
+                      isPaid={isPaid}
+                      month={m}
+                      currentYear={currentYear}
+                      fin={fin}
+                    />
+                  );
+                })}
+                <TableRow className="border-t-2 font-semibold">
+                  <TableCell>Total Subscrições</TableCell>
+                  <TableCell className="text-right">{fmt(subsTotalThisMonth)}</TableCell>
+                  <TableCell colSpan={3} />
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
       {/* IVA Balance */}
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-sm">Balanço IVA — {MONTHS[m - 1]}</CardTitle></CardHeader>
