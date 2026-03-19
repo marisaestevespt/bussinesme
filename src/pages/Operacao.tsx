@@ -214,6 +214,20 @@ export default function OperacaoPage() {
     return counts;
   }, [activeInternoProjects]);
 
+  // Interno by department for pie chart
+  const internoByDept = useMemo(() => {
+    const map = new Map<string, number>();
+    activeInternoProjects.forEach(p => {
+      const dept = p.department || 'sem_dept';
+      map.set(dept, (map.get(dept) || 0) + 1);
+    });
+    return Array.from(map.entries()).map(([dept, count]) => ({
+      name: DEPT_LABELS[dept] || dept,
+      value: count,
+      color: DEPT_COLORS[dept] || 'hsl(var(--muted-foreground))',
+    })).sort((a, b) => b.value - a.value);
+  }, [activeInternoProjects]);
+
   // Project progress from tasks
   const projectProgress = useMemo(() => {
     const map = new Map<string, number>();
