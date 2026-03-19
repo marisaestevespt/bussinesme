@@ -441,8 +441,8 @@ function GalleryView({ projects, getMembersForProject, onOpen }: { projects: Pro
               <h3 className="font-semibold mb-1">{p.name}</h3>
               {p.department && <div className="mb-2"><DeptBadge dept={p.department} /></div>}
               <div className="flex items-center gap-2 mb-3">
-                <Progress value={p.progress} className="h-2 flex-1" />
-                <span className="text-xs text-muted-foreground">{p.progress}%</span>
+                <Progress value={getTaskProgress(p.id)} className="h-2 flex-1" />
+                <span className="text-xs text-muted-foreground">{getTaskProgress(p.id)}%</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="text-xs text-muted-foreground space-y-0.5">
