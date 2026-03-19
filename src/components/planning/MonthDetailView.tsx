@@ -72,6 +72,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const [selectedObjective, setSelectedObjective] = useState<any>(null);
   const [objDialogOpen, setObjDialogOpen] = useState(false);
   const navigate = useNavigate();
+  const [expandedClient, setExpandedClient] = useState<string | null>(null);
 
   // ── Data queries ──
   const salesQ = useQuery({ queryKey: ['md-sales', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales').select('*').eq('sale_year', year).eq('sale_month', monthNum); return data || []; }});
