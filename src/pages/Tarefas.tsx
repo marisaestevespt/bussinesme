@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, CalendarIcon, ListTodo, AlertTriangle, Clock, CalendarDays, List } from 'lucide-react';
+import { Plus, CalendarIcon, ListTodo, AlertTriangle, Clock, CalendarDays, List, Users } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -46,12 +46,13 @@ const TASK_DEPARTMENTS = [
   { value: 'operacao', label: 'Operação', color: 'bg-violet-100 text-violet-700 border-violet-200' },
 ];
 
-type View = 'todo' | 'atrasadas' | 'proximas' | 'calendario' | 'todas';
+type View = 'todo' | 'atrasadas' | 'proximas' | 'calendario' | 'responsavel' | 'todas';
 
 const VIEWS: { key: View; label: string; icon: React.ReactNode }[] = [
   { key: 'todo', label: 'To Do', icon: <ListTodo className="h-4 w-4" /> },
   { key: 'atrasadas', label: 'Atrasadas', icon: <AlertTriangle className="h-4 w-4" /> },
   { key: 'proximas', label: 'Próximas Tarefas', icon: <Clock className="h-4 w-4" /> },
+  { key: 'responsavel', label: 'Por Responsável', icon: <Users className="h-4 w-4" /> },
   { key: 'calendario', label: 'Calendário', icon: <CalendarDays className="h-4 w-4" /> },
   { key: 'todas', label: 'Todas as Tarefas', icon: <List className="h-4 w-4" /> },
 ];
@@ -279,6 +280,16 @@ export default function TarefasPage() {
             firstDayOffset={firstDayOffset}
             tasksByDate={tasksByDate}
             isOverdue={isOverdue}
+            onTaskClick={openEdit}
+          />
+        ) : view === 'responsavel' ? (
+          <ResponsavelView
+            tasks={tasks.filter(t => t.status !== 'done')}
+            profiles={profiles}
+            isOverdue={isOverdue}
+            isDoneAfterDeadline={isDoneAfterDeadline}
+            getProfileName={getProfileName}
+            getProjectName={getProjectName}
             onTaskClick={openEdit}
           />
         ) : (
@@ -597,6 +608,106 @@ function CalendarView({
           );
         })}
       </div>
+    </div>
+  );
+}
+
+// ─── Responsável View ───────────────────────────────────────────
+
+function ResponsavelView({
+  tasks, profiles, isOverdue, isDoneAfterDeadline, getProfileName, getProjectName, onTaskClick,
+}: {
+  tasks: any[];
+  profiles: any[];
+  isOverdue: (t: any) => boolean;
+  isDoneAfterDeadline: (t: any) => boolean;
+  getProfileName: (id: string | null) => string;
+  getProjectName: (id: string | null) => string;
+  onTaskClick: (t: any) => void;
+}) {
+  const grouped = useMemo(() => {
+    const map: Record<string, any[]> = {};
+    tasks.forEach(t => {
+      const key = t.assigned_to || '__unassigned';
+      if (!map[key]) map[key] = [];
+      map[key].push(t);
+    });
+    return map;
+  }, [tasks]);
+
+  const sortedKeys = Object.keys(grouped).sort((a, b) => {
+    if (a === '__unassigned') return 1;
+    if (b === '__unassigned') return -1;
+    return getProfileName(a).localeCompare(getProfileName(b));
+  });
+
+  if (!tasks.length) {
+    return <div className="text-center py-12 text-muted-foreground">Sem tarefas atribuídas.</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {sortedKeys.map(key => {
+        const personTasks = grouped[key];
+        const personName = key === '__unassigned' ? 'Sem responsável' : getProfileName(key);
+
+        return (
+          <div key={key} className="space-y-2">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-foreground">{personName}</h3>
+              <Badge variant="secondary" className="text-xs">{personTasks.length}</Badge>
+            </div>
+            <div className="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tarefa</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Prioridade</TableHead>
+                    <TableHead>Prazo</TableHead>
+                    <TableHead>Departamento</TableHead>
+                    <TableHead>Projeto</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {personTasks.map(task => {
+                    const overdue = isOverdue(task);
+                    const statusInfo = getStatusInfo(task.status);
+                    const priorityInfo = getPriorityInfo(task.priority);
+                    const deptInfo = getDeptInfo(task.department);
+
+                    return (
+                      <TableRow key={task.id} className="cursor-pointer hover:bg-muted/50" onClick={() => onTaskClick(task)}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{task.name}</span>
+                            {overdue && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={cn('text-xs', statusInfo.color)}>{statusInfo.label}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={cn('text-xs', priorityInfo.color)}>{priorityInfo.label}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className={cn('text-sm', overdue && 'text-destructive font-semibold')}>
+                            {task.deadline ? format(parseISO(task.deadline), 'dd/MM/yyyy') : '—'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {deptInfo ? <Badge variant="outline" className={cn('text-xs', deptInfo.color)}>{deptInfo.label}</Badge> : '—'}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{getProjectName(task.project_id) || '—'}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
