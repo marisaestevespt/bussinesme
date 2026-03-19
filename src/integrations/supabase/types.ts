@@ -438,6 +438,7 @@ export type Database = {
           client_id: string
           completed: boolean
           created_at: string
+          documents_links: string | null
           id: string
           phase: string | null
           responsible: string | null
@@ -449,6 +450,7 @@ export type Database = {
           client_id: string
           completed?: boolean
           created_at?: string
+          documents_links?: string | null
           id?: string
           phase?: string | null
           responsible?: string | null
@@ -460,6 +462,7 @@ export type Database = {
           client_id?: string
           completed?: boolean
           created_at?: string
+          documents_links?: string | null
           id?: string
           phase?: string | null
           responsible?: string | null
@@ -2379,6 +2382,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "product_kpi_reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_onboarding_templates: {
+        Row: {
+          activity: string
+          created_at: string
+          documents_links: string | null
+          id: string
+          phase: string | null
+          product_id: string
+          responsible: string | null
+          rule: string | null
+          sort_order: number
+        }
+        Insert: {
+          activity?: string
+          created_at?: string
+          documents_links?: string | null
+          id?: string
+          phase?: string | null
+          product_id: string
+          responsible?: string | null
+          rule?: string | null
+          sort_order?: number
+        }
+        Update: {
+          activity?: string
+          created_at?: string
+          documents_links?: string | null
+          id?: string
+          phase?: string | null
+          product_id?: string
+          responsible?: string | null
+          rule?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_onboarding_templates_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"

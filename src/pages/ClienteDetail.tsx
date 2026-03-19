@@ -482,25 +482,43 @@ export default function ClienteDetailPage() {
             <Card>
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm">Checklist de Onboarding</CardTitle>
-                {!isNew && (
-                  <Button size="sm" variant="outline" onClick={() => addOnboarding.mutateAsync({ client_id: id!, activity: '' })}>
-                    <Plus className="h-3 w-3 mr-1" />Nova Entrada
-                  </Button>
-                )}
+                <div className="flex gap-2">
+                  {!isNew && form.current_product && (onboarding.data || []).length === 0 && (
+                    <Button size="sm" variant="outline" onClick={async () => {
+                      // Find product by name and copy its onboarding template
+                      const prod = productList.find(p => p.name === form.current_product);
+                      if (!prod) { toast.error('Produto não encontrado'); return; }
+                      const { data: template } = await supabase.from('product_onboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
+                      if (!template || template.length === 0) { toast.error('Sem template de onboarding neste produto'); return; }
+                      for (const t of template as any[]) {
+                        await addOnboarding.mutateAsync({ client_id: id!, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
+                      }
+                      toast.success('Checklist copiada do produto');
+                    }}>
+                      <Copy className="h-3 w-3 mr-1" />Copiar do Produto
+                    </Button>
+                  )}
+                  {!isNew && (
+                    <Button size="sm" variant="outline" onClick={() => addOnboarding.mutateAsync({ client_id: id!, activity: '' })}>
+                      <Plus className="h-3 w-3 mr-1" />Nova Entrada
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[32px_1fr_1fr_1fr_1fr_32px] gap-2">
-                  <span>✓</span><span>Fase</span><span>Atividade</span><span>Responsável</span><span>Regra</span><span></span>
+                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[32px_1fr_1fr_1fr_1fr_1fr_32px] gap-2">
+                  <span>✓</span><span>Fase</span><span>Atividade</span><span>Responsável</span><span>Regra</span><span>Docs/Links</span><span></span>
                 </div>
                 {(onboarding.data || []).length === 0 ? (
                   <p className="text-center text-muted-foreground py-8 text-sm">Sem entradas</p>
                 ) : (onboarding.data || []).map(o => (
-                  <div key={o.id} className={cn("px-4 py-2 text-xs grid grid-cols-[32px_1fr_1fr_1fr_1fr_32px] gap-2 border-b items-center", o.completed && "opacity-60")}>
+                  <div key={o.id} className={cn("px-4 py-2 text-xs grid grid-cols-[32px_1fr_1fr_1fr_1fr_1fr_32px] gap-2 border-b items-center", o.completed && "opacity-60")}>
                     <Checkbox checked={o.completed} onCheckedChange={(v) => updateOnboarding.mutate({ id: o.id, completed: !!v })} />
                     <Input className="h-7 text-xs" defaultValue={o.phase || ''} placeholder="Fase" onBlur={e => updateOnboarding.mutate({ id: o.id, phase: e.target.value })} />
                     <Input className={cn("h-7 text-xs", o.completed && "line-through")} defaultValue={o.activity} placeholder="Atividade" onBlur={e => updateOnboarding.mutate({ id: o.id, activity: e.target.value })} />
                     <Input className="h-7 text-xs" defaultValue={o.responsible || ''} placeholder="Responsável" onBlur={e => updateOnboarding.mutate({ id: o.id, responsible: e.target.value })} />
                     <Input className="h-7 text-xs" defaultValue={o.rule || ''} placeholder="Regra" onBlur={e => updateOnboarding.mutate({ id: o.id, rule: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={(o as any).documents_links || ''} placeholder="URL/notas" onBlur={e => updateOnboarding.mutate({ id: o.id, documents_links: e.target.value } as any)} />
                     <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteOnboarding.mutate(o.id)}><X className="h-3 w-3" /></Button>
                   </div>
                 ))}

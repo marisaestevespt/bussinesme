@@ -53,6 +53,7 @@ export type ClientOnboarding = {
   responsible: string | null;
   rule: string | null;
   completed: boolean;
+  documents_links: string | null;
   sort_order: number;
   created_at: string;
 };

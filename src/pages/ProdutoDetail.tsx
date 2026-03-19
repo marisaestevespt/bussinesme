@@ -160,6 +160,16 @@ export default function ProdutoDetailPage() {
     enabled: !isNew,
   });
 
+  const { data: onboardingTemplate = [] } = useQuery({
+    queryKey: ['product-onboarding-template', id],
+    queryFn: async () => {
+      if (!id || isNew) return [];
+      const { data } = await supabase.from('product_onboarding_templates' as any).select('*').eq('product_id', id).order('sort_order');
+      return data || [];
+    },
+    enabled: !isNew,
+  });
+
   // Actions from commercial_sales_actions filtered by product
   const { data: salesActions = [] } = useQuery({
     queryKey: ['product-sales-actions', form.name],
@@ -190,6 +200,7 @@ export default function ProdutoDetailPage() {
     qc.invalidateQueries({ queryKey: ['product-traffic-ads', id] });
     qc.invalidateQueries({ queryKey: ['product-useful-links', id] });
     qc.invalidateQueries({ queryKey: ['product-costs', id] });
+    qc.invalidateQueries({ queryKey: ['product-onboarding-template', id] });
   };
 
   const addRow = useMutation({
@@ -996,6 +1007,50 @@ export default function ProdutoDetailPage() {
                           <TableCell className="font-medium">{s.name}</TableCell>
                           <TableCell className="text-sm">{s.product_name || '—'}</TableCell>
                           <TableCell className="text-xs text-muted-foreground">{format(new Date(s.updated_at), 'dd/MM/yyyy')}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              {/* Processo de Onboarding */}
+              <Card>
+                <CardHeader className="flex-row items-center justify-between">
+                  <CardTitle className="text-base">Processo de Onboarding</CardTitle>
+                  {isOwner && (
+                    <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_onboarding_templates', data: { product_id: id, activity: '' } })}>
+                      <Plus className="h-3 w-3 mr-1" /> Adicionar Passo
+                    </Button>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-muted-foreground mb-3">Template de onboarding que será aplicado a cada cliente deste produto.</p>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Fase</TableHead>
+                        <TableHead>Atividade</TableHead>
+                        <TableHead>Responsável</TableHead>
+                        <TableHead>Regra</TableHead>
+                        <TableHead>Documentos / Links</TableHead>
+                        {isOwner && <TableHead className="w-10" />}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {onboardingTemplate.length === 0 && (
+                        <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-4">Sem passos de onboarding</TableCell></TableRow>
+                      )}
+                      {onboardingTemplate.map((t: any) => (
+                        <TableRow key={t.id}>
+                          <TableCell><Input defaultValue={t.phase || ''} placeholder="Fase" onBlur={e => updateRow.mutate({ table: 'product_onboarding_templates', id: t.id, data: { phase: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
+                          <TableCell><Input defaultValue={t.activity || ''} placeholder="Atividade" onBlur={e => updateRow.mutate({ table: 'product_onboarding_templates', id: t.id, data: { activity: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
+                          <TableCell><Input defaultValue={t.responsible || ''} placeholder="Responsável" onBlur={e => updateRow.mutate({ table: 'product_onboarding_templates', id: t.id, data: { responsible: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
+                          <TableCell><Input defaultValue={t.rule || ''} placeholder="Regra" onBlur={e => updateRow.mutate({ table: 'product_onboarding_templates', id: t.id, data: { rule: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
+                          <TableCell><Input defaultValue={t.documents_links || ''} placeholder="URL ou notas" onBlur={e => updateRow.mutate({ table: 'product_onboarding_templates', id: t.id, data: { documents_links: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
+                          {isOwner && (
+                            <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteRow.mutate({ table: 'product_onboarding_templates', id: t.id })}><Trash2 className="h-3 w-3" /></Button></TableCell>
+                          )}
                         </TableRow>
                       ))}
                     </TableBody>
