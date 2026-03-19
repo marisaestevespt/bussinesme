@@ -21,6 +21,7 @@ import ExecutiveBusinessPlan from "./pages/ExecutiveBusinessPlan";
 import ExecutiveInnovation from "./pages/ExecutiveInnovation";
 import ExecutiveProductivity from "./pages/ExecutiveProductivity";
 import ExecutivePage from "./pages/Executive";
+import ExecutiveRecommendations from "./pages/ExecutiveRecommendations";
 import DefinicoesPage from "./pages/Definicoes";
 import AgendaPage from "./pages/Agenda";
 import ReunioesPage from "./pages/Reunioes";
