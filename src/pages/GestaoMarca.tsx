@@ -344,6 +344,35 @@ export default function GestaoMarcaPage() {
     setShowAddCompetitor(true);
   };
 
+  // ── SWOT mutations ──
+
+  const addSwotItem = async (quadrant: string, content: string) => {
+    if (!content.trim()) return;
+    const quadrantItems = swotItems.filter(i => i.quadrant === quadrant);
+    await supabase.from('brand_swot_items').insert({ quadrant, content, sort_order: quadrantItems.length } as any);
+    queryClient.invalidateQueries({ queryKey: ['brand-swot'] });
+    setNewSwot(null);
+  };
+
+  const deleteSwotItem = async (id: string) => {
+    await supabase.from('brand_swot_items').delete().eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['brand-swot'] });
+  };
+
+  // ── Differential mutations ──
+
+  const addDifferential = async () => {
+    if (!newDifferential.trim()) return;
+    await supabase.from('brand_differentials').insert({ content: newDifferential, sort_order: differentials.length } as any);
+    queryClient.invalidateQueries({ queryKey: ['brand-differentials'] });
+    setNewDifferential('');
+  };
+
+  const deleteDifferential = async (id: string) => {
+    await supabase.from('brand_differentials').delete().eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['brand-differentials'] });
+  };
+
   // ── Render ──
 
   return (
