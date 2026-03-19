@@ -314,13 +314,24 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [historyMetric, setHistoryMetric] = useState<any>(null);
   const [recordDialog, setRecordDialog] = useState(false);
-  const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual' });
+  const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60' });
   const [recordForm, setRecordForm] = useState({ value: '', notes: '', recorded_at: format(new Date(), 'yyyy-MM-dd') });
 
   const handleSave = () => {
-    planning.upsertMetric.mutate({ ...form, objective_id: objectiveId });
+    planning.upsertMetric.mutate({ ...form, target_value: form.target_value ? Number(form.target_value) : null, green_threshold: Number(form.green_threshold), yellow_threshold: Number(form.yellow_threshold), objective_id: objectiveId });
     setDialogOpen(false);
-    setForm({ name: '', cadence: 'mensal', source: 'manual' });
+    setForm({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60' });
+  };
+
+  const getMetricStatus = (m: any) => {
+    const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source) : null;
+    const current = m.source === 'manual' ? Number(m.current_value || 0) : Number(autoVal || 0);
+    const target = Number(m.target_value || 0);
+    if (!target) return 'neutral';
+    const pct = (current / target) * 100;
+    if (pct >= (m.green_threshold ?? 90)) return 'green';
+    if (pct >= (m.yellow_threshold ?? 60)) return 'yellow';
+    return 'red';
   };
 
   const handleRecord = () => {
