@@ -78,18 +78,19 @@ export function useExecutiveData(year = currentYear) {
   });
 
   const upsertObjective = useMutation({
-    mutationFn: async (obj: any) => {
+    mutationFn: async (raw: any) => {
+      const obj = cleanPayload(raw);
       if (obj.id) {
-        const { error } = await supabase.from('executive_objectives').update(obj).eq('id', obj.id);
+        const { error } = await supabase.from('executive_objectives').update(obj as any).eq('id', obj.id);
         if (error) throw error;
       } else {
         delete obj.id;
-        const { error } = await supabase.from('executive_objectives').insert({ ...obj, year });
+        const { error } = await supabase.from('executive_objectives').insert({ ...obj, year } as any);
         if (error) throw error;
       }
     },
     onSuccess: invalidate,
-    onError: () => toast.error('Erro ao guardar objetivo'),
+    onError: (e: any) => toast.error('Erro ao guardar objetivo: ' + (e.message || e)),
   });
 
   const deleteObjective = useMutation({
