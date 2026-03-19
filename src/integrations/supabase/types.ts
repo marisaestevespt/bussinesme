@@ -356,6 +356,177 @@ export type Database = {
           },
         ]
       }
+      commercial_annual_goals: {
+        Row: {
+          created_at: string
+          goal_amount: number
+          id: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          goal_amount?: number
+          id?: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          goal_amount?: number
+          id?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      commercial_monthly_goals: {
+        Row: {
+          created_at: string
+          goal_amount: number
+          id: string
+          month: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          goal_amount?: number
+          id?: string
+          month: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          goal_amount?: number
+          id?: string
+          month?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      commercial_product_goals: {
+        Row: {
+          created_at: string
+          goal_amount: number
+          id: string
+          intention: string | null
+          product_name: string
+          sort_order: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          goal_amount?: number
+          id?: string
+          intention?: string | null
+          product_name: string
+          sort_order?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          goal_amount?: number
+          id?: string
+          intention?: string | null
+          product_name?: string
+          sort_order?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      commercial_quarterly_goals: {
+        Row: {
+          created_at: string
+          goal_amount: number
+          id: string
+          quarter: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          goal_amount?: number
+          id?: string
+          quarter: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          goal_amount?: number
+          id?: string
+          quarter?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      commercial_sales: {
+        Row: {
+          base_value: number
+          client: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          documents: string | null
+          id: string
+          invoice_total: number
+          payment_date: string | null
+          product: string | null
+          sale_id: string
+          sale_month: number | null
+          sale_quarter: number | null
+          sale_year: number | null
+          source: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          base_value?: number
+          client?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          documents?: string | null
+          id?: string
+          invoice_total?: number
+          payment_date?: string | null
+          product?: string | null
+          sale_id: string
+          sale_month?: number | null
+          sale_quarter?: number | null
+          sale_year?: number | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          base_value?: number
+          client?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          documents?: string | null
+          id?: string
+          invoice_total?: number
+          payment_date?: string | null
+          product?: string | null
+          sale_id?: string
+          sale_month?: number | null
+          sale_quarter?: number | null
+          sale_year?: number | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       content_attachments: {
         Row: {
           content_id: string
