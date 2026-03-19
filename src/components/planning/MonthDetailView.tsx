@@ -91,14 +91,18 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   // Checklists
   const checklistQ = useQuery({ queryKey: ['md-checklist', year, monthNum], queryFn: async () => { const { data } = await supabase.from('executive_monthly_checklists').select('*').eq('year', year).eq('month', monthNum).order('created_at'); return data || []; }});
 
-  const seedHabits = useMutation({
-    mutationFn: async () => {
+  // Auto-seed checklist when month has none
+  const seededRef = useRef<string | null>(null);
+  useEffect(() => {
+    const key = `${year}-${monthNum}`;
+    if (checklistQ.isSuccess && checklistQ.data?.length === 0 && seededRef.current !== key) {
+      seededRef.current = key;
       const items = DEFAULT_HABITS.flatMap(g => g.tasks.map(t => ({ year, month: monthNum, task: `${g.category}::${t}`, completed: false })));
-      const { error } = await supabase.from('executive_monthly_checklists').insert(items);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] }),
-  });
+      supabase.from('executive_monthly_checklists').insert(items).then(() => {
+        qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] });
+      });
+    }
+  }, [checklistQ.isSuccess, checklistQ.data, year, monthNum, qc]);
 
   const addCheckItem = useMutation({
     mutationFn: async (task: string) => { const { error } = await supabase.from('executive_monthly_checklists').insert({ year, month: monthNum, task, completed: false }); if (error) throw error; },
