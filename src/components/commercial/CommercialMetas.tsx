@@ -40,7 +40,7 @@ export function CommercialMetas() {
     return { quarter: q, goal_amount: Number(existing?.goal_amount || 0) };
   });
   const quarterlySum = qGoals.reduce((s, q) => s + q.goal_amount, 0);
-  const quarterlyMismatch = data.annualGoalAmount > 0 && Math.abs(quarterlySum - data.annualGoalAmount) > 0.01;
+  const quarterlyMismatch = data.annualGoalAmount > 0 && quarterlySum < data.annualGoalAmount - 0.01;
 
   // Monthly
   const mGoals = Array.from({ length: 12 }, (_, i) => {
