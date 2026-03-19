@@ -52,6 +52,21 @@ export default function ComercialPage() {
               </Card>
             ))}
           </div>
+          <div className="flex gap-3 mt-4">
+            {SHORTCUTS.map(s => (
+              <Card
+                key={s.path}
+                className="group cursor-pointer border hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                onClick={() => navigate(s.path)}
+              >
+                <CardContent className="p-4 flex items-center gap-3">
+                  <s.icon className={`h-5 w-5 ${s.iconColor}`} />
+                  <span className="font-medium text-foreground">{s.label}</span>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto group-hover:translate-x-0.5 transition-transform" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
 
         <Separator />
