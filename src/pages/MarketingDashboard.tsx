@@ -111,15 +111,6 @@ export default function MarketingDashboard() {
     queryClient.invalidateQueries({ queryKey: ['marketing-channels'] });
   };
 
-  const addChannel = async () => {
-    if (!newChannelName.trim()) return;
-    await supabase.from('marketing_channels').insert({ name: newChannelName, sort_order: channels.length } as any);
-    queryClient.invalidateQueries({ queryKey: ['marketing-channels'] });
-    setShowAddChannel(false);
-    setNewChannelName('');
-    toast.success('Canal adicionado');
-  };
-
   const createContent = async () => {
     const { data, error } = await supabase.from('content_items').insert({
       title: 'Novo Conteúdo', created_by: user?.id,
