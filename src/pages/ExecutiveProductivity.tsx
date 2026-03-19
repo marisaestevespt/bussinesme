@@ -76,7 +76,15 @@ export default function ExecutiveProductivity() {
   const clients = useQuery({
     queryKey: ['clients_list'],
     queryFn: async () => {
-      const { data } = await supabase.from('clients').select('id, full_name, current_product, status');
+      const { data } = await supabase.from('clients').select('id, full_name, current_product, status, dp');
+      return (data || []) as any[];
+    },
+  });
+
+  const productsQ = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('id, name, monthly_hours_per_client');
       return (data || []) as any[];
     },
   });
