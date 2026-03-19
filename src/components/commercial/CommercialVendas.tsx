@@ -16,6 +16,8 @@ import { useAuth } from '@/hooks/useAuth';
 
 const STATUS_MAP: Record<string, { label: string; className: string }> = {
   na: { label: 'N.A.', className: 'bg-muted text-muted-foreground' },
+  aguarda_pagamento: { label: 'Aguarda Pagamento', className: 'bg-orange-100 text-orange-800 border-orange-200' },
+  em_atraso: { label: 'Em Atraso', className: 'bg-red-100 text-red-800 border-red-200' },
   fatura_emitida: { label: 'Fatura Emitida', className: 'bg-amber-100 text-amber-800 border-amber-200' },
   pagamento_ok: { label: 'Pagamento OK', className: 'bg-green-100 text-green-800 border-green-200' },
   recibo_enviado: { label: 'Recibo Enviado', className: 'bg-blue-100 text-blue-800 border-blue-200' },
