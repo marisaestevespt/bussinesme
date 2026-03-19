@@ -352,19 +352,28 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
       {metrics.length === 0 ? <p className="text-xs text-muted-foreground">Sem métricas definidas</p> : (
         <Table>
           <TableHeader><TableRow>
-            <TableHead>Métrica</TableHead><TableHead>Cadência</TableHead><TableHead>Fonte</TableHead><TableHead>Valor atual</TableHead><TableHead>Última atualiz.</TableHead><TableHead></TableHead>
+            <TableHead>Métrica</TableHead><TableHead>Cadência</TableHead><TableHead>Valor atual</TableHead><TableHead>Objetivo</TableHead><TableHead>Estado</TableHead><TableHead>Última atualiz.</TableHead><TableHead></TableHead>
           </TableRow></TableHeader>
           <TableBody>{metrics.map((m: any) => {
             const overdue = planning.isMetricOverdue(m);
             const dueToday = planning.isMetricDueToday(m);
             const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source) : null;
             const displayVal = m.source === 'manual' ? m.current_value : autoVal;
+            const status = getMetricStatus(m);
+            const statusColors: Record<string, string> = { green: 'bg-emerald-500', yellow: 'bg-amber-400', red: 'bg-red-500', neutral: 'bg-muted' };
+            const statusLabels: Record<string, string> = { green: 'No caminho', yellow: 'Atenção', red: 'Em risco', neutral: 'Sem objetivo' };
             return (
               <TableRow key={m.id} className={overdue ? 'bg-red-50' : dueToday ? 'bg-amber-50' : ''}>
                 <TableCell className="text-sm font-medium cursor-pointer hover:underline" onClick={() => setHistoryMetric(m)}>{m.name}</TableCell>
                 <TableCell className="text-xs">{CADENCES.find(c => c.value === m.cadence)?.label || m.cadence}</TableCell>
-                <TableCell className="text-xs">{VALUE_SOURCES.find(s => s.value === m.source)?.label || m.source}</TableCell>
-                <TableCell className="text-xs">{displayVal != null ? Number(displayVal).toLocaleString() : '—'}</TableCell>
+                <TableCell className="text-xs">{displayVal != null ? `${Number(displayVal).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
+                <TableCell className="text-xs">{m.target_value ? `${Number(m.target_value).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1.5">
+                    <span className={`inline-block h-2.5 w-2.5 rounded-full ${statusColors[status]}`} />
+                    <span className="text-xs">{statusLabels[status]}</span>
+                  </div>
+                </TableCell>
                 <TableCell className="text-xs">{m.last_updated_at ? new Date(m.last_updated_at).toLocaleDateString('pt-PT') : '—'}</TableCell>
                 <TableCell>
                   <button onClick={() => planning.deleteMetric.mutate(m.id)}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
