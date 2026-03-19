@@ -348,12 +348,12 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
 }
 
 // ─── Metrics ─────────────
-function MetricsSection({ objectiveId, metrics, planning }: any) {
+function MetricsSection({ objectiveId, metrics, planning, productsList, getProductName }: any) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [historyMetric, setHistoryMetric] = useState<any>(null);
   const [recordDialog, setRecordDialog] = useState(false);
   const [editMetric, setEditMetric] = useState<any>(null);
-  const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60' });
+  const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60', product_id: '' });
   const [editForm, setEditForm] = useState<any>({});
   const [recordForm, setRecordForm] = useState({ value: '', notes: '', recorded_at: format(new Date(), 'yyyy-MM-dd') });
 
