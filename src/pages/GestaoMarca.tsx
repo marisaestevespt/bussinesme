@@ -573,6 +573,106 @@ export default function GestaoMarcaPage() {
 
           <Separator />
 
+          {/* ── Análise SWOT ── */}
+          <section className="space-y-6">
+            <h2 className="text-xl font-semibold text-foreground">📊 Análise SWOT</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                { key: 'forcas', label: 'Forças', emoji: '💪', colorClass: 'border-l-4 border-l-green-500' },
+                { key: 'fraquezas', label: 'Fraquezas', emoji: '⚠️', colorClass: 'border-l-4 border-l-red-500' },
+                { key: 'oportunidades', label: 'Oportunidades', emoji: '🚀', colorClass: 'border-l-4 border-l-blue-500' },
+                { key: 'ameacas', label: 'Ameaças', emoji: '🔥', colorClass: 'border-l-4 border-l-amber-500' },
+              ].map(q => {
+                const items = swotItems.filter(i => i.quadrant === q.key);
+                return (
+                  <Card key={q.key} className={cn('overflow-hidden', q.colorClass)}>
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold text-foreground">{q.emoji} {q.label}</h3>
+                        {isOwner && (
+                          <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setNewSwot({ quadrant: q.key, text: '' })}>
+                            <Plus className="h-3 w-3 mr-1" />Adicionar
+                          </Button>
+                        )}
+                      </div>
+                      <div className="space-y-1.5">
+                        {items.map(item => (
+                          <div key={item.id} className="flex items-start gap-2 group text-sm text-muted-foreground">
+                            <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-foreground/30 shrink-0" />
+                            <span className="flex-1">{item.content}</span>
+                            {isOwner && (
+                              <Button variant="ghost" size="icon" className="h-5 w-5 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteSwotItem(item.id)}>
+                                <Trash2 className="h-3 w-3 text-destructive" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                        {items.length === 0 && <p className="text-xs text-muted-foreground/50 italic">Nenhum item.</p>}
+                      </div>
+                      {newSwot?.quadrant === q.key && (
+                        <div className="flex gap-2">
+                          <Input
+                            value={newSwot.text}
+                            onChange={e => setNewSwot({ ...newSwot, text: e.target.value })}
+                            placeholder={`Adicionar ${q.label.toLowerCase()}...`}
+                            className="h-8 text-xs"
+                            autoFocus
+                            onKeyDown={e => e.key === 'Enter' && addSwotItem(q.key, newSwot.text)}
+                          />
+                          <Button size="sm" className="h-8" onClick={() => addSwotItem(q.key, newSwot.text)}>
+                            <Check className="h-3 w-3" />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-8" onClick={() => setNewSwot(null)}>
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </section>
+
+          <Separator />
+
+          {/* ── Diferenciais ── */}
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-foreground">✨ Diferenciais</h2>
+            </div>
+            <div className="space-y-2">
+              {differentials.map(d => (
+                <div key={d.id} className="flex items-center gap-3 group p-3 rounded-lg border bg-card hq-transition hover:shadow-sm">
+                  <span className="text-primary">✦</span>
+                  <span className="flex-1 text-sm text-foreground">{d.content}</span>
+                  {isOwner && (
+                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 shrink-0" onClick={() => deleteDifferential(d.id)}>
+                      <Trash2 className="h-3 w-3 text-destructive" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              {differentials.length === 0 && <p className="text-sm text-muted-foreground italic">Nenhum diferencial adicionado.</p>}
+              {isOwner && (
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    value={newDifferential}
+                    onChange={e => setNewDifferential(e.target.value)}
+                    placeholder="Adicionar diferencial..."
+                    className="h-9"
+                    onKeyDown={e => e.key === 'Enter' && addDifferential()}
+                  />
+                  <Button size="sm" className="h-9" disabled={!newDifferential.trim()} onClick={addDifferential}>
+                    <Plus className="h-3.5 w-3.5 mr-1" />Adicionar
+                  </Button>
+                </div>
+              )}
+            </div>
+          </section>
+
+          <Separator />
+
           {/* ── Concorrência ── */}
           <section className="space-y-6">
             <div className="flex items-center justify-between">
