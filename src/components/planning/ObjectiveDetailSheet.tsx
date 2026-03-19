@@ -390,6 +390,7 @@ function MetricsSection({ objectiveId, metrics, planning, productsList, getProdu
     if (!editMetric) return;
     planning.upsertMetric.mutate({
       id: editMetric.id, objective_id: objectiveId, ...editForm,
+      product_id: editForm.product_id || null,
       target_value: editForm.target_value ? Number(editForm.target_value) : null,
       green_threshold: Number(editForm.green_threshold), yellow_threshold: Number(editForm.yellow_threshold),
     });
