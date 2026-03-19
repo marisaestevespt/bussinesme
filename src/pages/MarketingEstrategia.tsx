@@ -135,14 +135,7 @@ export default function MarketingEstrategia() {
     <AppLayout>
       <div className="flex flex-col min-h-screen">
         {/* Header */}
-        <div className="w-full py-10 px-6 flex flex-col items-center gap-2" style={{ background: 'hsl(var(--primary))' }}>
-          <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>
-            Marketing 360
-          </p>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight" style={{ color: 'hsl(var(--primary-foreground))' }}>
-            Estratégia
-          </h1>
-        </div>
+        <PageHeader title="Estratégia" subtitle="Marketing 360" />
 
         <div className="max-w-6xl mx-auto w-full px-4 py-8 space-y-10">
           <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
