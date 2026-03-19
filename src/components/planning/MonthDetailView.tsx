@@ -176,14 +176,27 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const timeEntries = timeEntriesQ.data || [];
   const team = teamQ.data || [];
 
-  // Product review
+  // Product review with per-client breakdown
   const productReview = useMemo(() => {
     return products.map((p: any) => {
       const clientsWithProduct = activeClients.filter((c: any) => c.current_product === p.name);
-      const estimatedHours = (p.monthly_hours_per_client || 0) * clientsWithProduct.length;
-      return { id: p.id, name: p.name, clientCount: clientsWithProduct.length, estimatedHours, realHours: 0, deviation: 0 };
+      const hoursPerClient = p.monthly_hours_per_client || 0;
+      const estimatedHours = hoursPerClient * clientsWithProduct.length;
+
+      // Per-client breakdown with real hours from time_entries
+      const clientBreakdown = clientsWithProduct.map((c: any) => {
+        const clientTimeEntries = timeEntries.filter((te: any) => te.client_id === c.id);
+        const realHours = Math.round(clientTimeEntries.reduce((s: number, te: any) => s + Number(te.duration || 0), 0) * 10) / 10;
+        const deviation = Math.round((realHours - hoursPerClient) * 10) / 10;
+        return { clientId: c.id, clientName: c.full_name, clientCode: c.client_id, estimated: hoursPerClient, realHours, deviation };
+      });
+
+      const totalRealHours = Math.round(clientBreakdown.reduce((s: number, cb: any) => s + cb.realHours, 0) * 10) / 10;
+      const totalDeviation = Math.round((totalRealHours - estimatedHours) * 10) / 10;
+
+      return { id: p.id, name: p.name, clientCount: clientsWithProduct.length, estimatedHours, realHours: totalRealHours, deviation: totalDeviation, clientBreakdown };
     }).filter((p: any) => p.clientCount > 0);
-  }, [products, activeClients]);
+  }, [products, activeClients, timeEntries]);
 
   // Team capacity
   const teamCapacity = useMemo(() => {
