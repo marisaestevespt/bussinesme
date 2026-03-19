@@ -332,6 +332,8 @@ const DEFAULT_MEMBER_FORM = {
   start_date: '',
   presentation: '',
   responsibilities: '',
+  works_holidays: false,
+  custom_holidays: [] as string[],
 };
 
 // ─── Member Form Dialog ──────
