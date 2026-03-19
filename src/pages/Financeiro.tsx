@@ -195,9 +195,6 @@ export default function FinanceiroPage() {
             </Popover>
           </div>
 
-          <TabsContent value="overview">
-            <FinOverview sales={sales} expenses={expenses} subscriptions={subscriptions} payrollData={payrollData} contractorsData={contractorsData} currentYear={currentYear} />
-          </TabsContent>
           <TabsContent value="mensal">
             <FinMensal sales={sales} expenses={expenses} subscriptions={subscriptions} payrollData={payrollData} contractorsData={contractorsData} documents={documents} currentYear={currentYear} />
           </TabsContent>
