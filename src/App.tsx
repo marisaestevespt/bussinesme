@@ -43,6 +43,7 @@ import MarketingFunilDetail from "./pages/MarketingFunilDetail";
 import MarketingTrafegoPago from "./pages/MarketingTrafegoPago";
 import TrafegoReportDetail from "./pages/TrafegoReportDetail";
 import TrafegoCriativoDetail from "./pages/TrafegoCriativoDetail";
+import ComercialPage from "./pages/Comercial";
 
 const queryClient = new QueryClient();
 
@@ -94,6 +95,7 @@ function AppRoutes() {
         <Route path="/hub/marketing/trafego-pago/report/:id" element={<TrafegoReportDetail />} />
         <Route path="/hub/marketing/trafego-pago/criativo/:id" element={<TrafegoCriativoDetail />} />
         <Route path="/hub/marketing/:pageKey" element={<MarketingSubPage />} />
+      <Route path="/hub/comercial" element={<ComercialPage />} />
         <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
       <Route path="/definicoes" element={<DefinicoesPage />} />
