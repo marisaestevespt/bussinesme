@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
