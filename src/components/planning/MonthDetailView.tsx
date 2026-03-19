@@ -756,7 +756,12 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
 
         return (
           <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Tarefas</CardTitle></CardHeader>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm">Tarefas</CardTitle>
+                <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/tarefas')}><Plus className="h-3 w-3" /> Nova Tarefa</Button>
+              </div>
+            </CardHeader>
             <CardContent>
               <Tabs defaultValue="month" className="w-full">
                 <TabsList className="mb-2">
