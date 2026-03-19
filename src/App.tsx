@@ -44,6 +44,7 @@ import MarketingTrafegoPago from "./pages/MarketingTrafegoPago";
 import TrafegoReportDetail from "./pages/TrafegoReportDetail";
 import TrafegoCriativoDetail from "./pages/TrafegoCriativoDetail";
 import ComercialPage from "./pages/Comercial";
+import ComercialSubPage from "./pages/ComercialSubPage";
 
 const queryClient = new QueryClient();
 
