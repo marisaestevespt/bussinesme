@@ -29,7 +29,7 @@ export const INTERACTION_TYPES = [
   { value: 'outro', label: 'Outro' },
 ];
 
-const ACTIVE_STATUSES = CRM_STATUSES.filter(s => s.value !== 'ganho' && s.value !== 'perdido').map(s => s.value);
+const ACTIVE_STATUSES: string[] = CRM_STATUSES.filter(s => s.value !== 'ganho' && s.value !== 'perdido').map(s => s.value);
 
 export function statusLabel(val: string) {
   return CRM_STATUSES.find(s => s.value === val)?.label || val;
