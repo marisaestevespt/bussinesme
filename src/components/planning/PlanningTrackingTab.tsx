@@ -1,9 +1,12 @@
-import { useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TrendingUp, TrendingDown, Minus, AlertTriangle } from 'lucide-react';
 import { VALUE_SOURCES, CADENCES } from '@/hooks/usePlanningData';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -12,6 +15,37 @@ export function PlanningTrackingTab({ planning }: { planning: any }) {
   const allMetrics = planning.allMetrics;
   const allHistory = planning.metricHistory.data || [];
   const objectives = planning.allObjectives;
+
+  const [editMetric, setEditMetric] = useState<any>(null);
+  const [editForm, setEditForm] = useState<any>({});
+
+  useEffect(() => {
+    if (editMetric) {
+      setEditForm({
+        name: editMetric.name || '',
+        cadence: editMetric.cadence || 'mensal',
+        source: editMetric.source || 'manual',
+        current_value: editMetric.current_value || '',
+        target_value: editMetric.target_value || '',
+        target_unit: editMetric.target_unit || '',
+        green_threshold: editMetric.green_threshold ?? 90,
+        yellow_threshold: editMetric.yellow_threshold ?? 60,
+      });
+    }
+  }, [editMetric]);
+
+  const handleSaveEdit = () => {
+    if (!editMetric) return;
+    planning.upsertMetric.mutate({
+      id: editMetric.id,
+      objective_id: editMetric.objective_id,
+      ...editForm,
+      target_value: editForm.target_value ? Number(editForm.target_value) : null,
+      green_threshold: Number(editForm.green_threshold),
+      yellow_threshold: Number(editForm.yellow_threshold),
+    });
+    setEditMetric(null);
+  };
 
   const getObjectiveName = (id: string) => objectives.find((o: any) => o.id === id)?.title || '—';
   const getObjectiveArea = (id: string) => objectives.find((o: any) => o.id === id)?.area || '';
@@ -47,10 +81,6 @@ export function PlanningTrackingTab({ planning }: { planning: any }) {
     if (trend === 'up') return <TrendingUp className="h-4 w-4 text-green-600" />;
     if (trend === 'down') return <TrendingDown className="h-4 w-4 text-destructive" />;
     return <Minus className="h-4 w-4 text-muted-foreground" />;
-  };
-
-  const updateMetric = (m: any, field: string, value: any) => {
-    planning.upsertMetric.mutate({ id: m.id, objective_id: m.objective_id, [field]: value });
   };
 
   return (
@@ -101,27 +131,12 @@ export function PlanningTrackingTab({ planning }: { planning: any }) {
                 const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source) : null;
                 const displayVal = m.source === 'manual' ? m.current_value : autoVal;
                 return (
-                  <TableRow key={m.id} className={overdue ? 'bg-red-50' : ''}>
+                  <TableRow key={m.id} className={`cursor-pointer hover:bg-muted/60 ${overdue ? 'bg-red-50' : ''}`} onClick={() => setEditMetric(m)}>
                     <TableCell className="text-xs">{getObjectiveName(m.objective_id)}</TableCell>
-                    <TableCell>
-                      <Input className="h-7 w-32 text-xs font-medium" defaultValue={m.name} onBlur={e => { if (e.target.value !== m.name) updateMetric(m, 'name', e.target.value); }} />
-                    </TableCell>
-                    <TableCell>
-                      <Select defaultValue={m.cadence} onValueChange={v => updateMetric(m, 'cadence', v)}>
-                        <SelectTrigger className="h-7 w-[90px] text-[10px]"><SelectValue /></SelectTrigger>
-                        <SelectContent>{CADENCES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      {m.source === 'manual' ? (
-                        <Input className="h-7 w-24 text-xs" defaultValue={m.current_value || ''} onBlur={e => { if (e.target.value !== (m.current_value || '')) updateMetric(m, 'current_value', e.target.value); }} />
-                      ) : (
-                        <span className="text-xs">{displayVal != null ? Number(displayVal).toLocaleString() : '—'}</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Input className="h-7 w-24 text-xs" defaultValue={m.target_value || ''} onBlur={e => { if (e.target.value !== String(m.target_value || '')) updateMetric(m, 'target_value', e.target.value ? Number(e.target.value) : null); }} />
-                    </TableCell>
+                    <TableCell className="text-sm font-medium">{m.name}</TableCell>
+                    <TableCell className="text-xs">{CADENCES.find(c => c.value === m.cadence)?.label || m.cadence}</TableCell>
+                    <TableCell className="text-xs">{displayVal != null ? Number(displayVal).toLocaleString() : '—'}</TableCell>
+                    <TableCell className="text-xs">{m.target_value ? `${Number(m.target_value).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
                     <TableCell className="text-xs">{m.last_updated_at ? new Date(m.last_updated_at).toLocaleDateString('pt-PT') : '—'}</TableCell>
                     <TableCell><TrendIcon metricId={m.id} /></TableCell>
                   </TableRow>
@@ -162,6 +177,40 @@ export function PlanningTrackingTab({ planning }: { planning: any }) {
           </Card>
         );
       })}
+
+      {/* Edit Metric Dialog */}
+      <Dialog open={!!editMetric} onOpenChange={v => { if (!v) setEditMetric(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Editar Métrica</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div><Label>Nome</Label><Input value={editForm.name || ''} onChange={e => setEditForm((p: any) => ({ ...p, name: e.target.value }))} /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Valor objetivo</Label><Input type="number" value={editForm.target_value || ''} onChange={e => setEditForm((p: any) => ({ ...p, target_value: e.target.value }))} /></div>
+              <div><Label>Unidade</Label><Input value={editForm.target_unit || ''} onChange={e => setEditForm((p: any) => ({ ...p, target_unit: e.target.value }))} /></div>
+            </div>
+            {editForm.source === 'manual' && (
+              <div><Label>Valor atual</Label><Input type="number" value={editForm.current_value || ''} onChange={e => setEditForm((p: any) => ({ ...p, current_value: e.target.value }))} /></div>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>% "No caminho"</Label><Input type="number" value={editForm.green_threshold ?? ''} onChange={e => setEditForm((p: any) => ({ ...p, green_threshold: e.target.value }))} /></div>
+              <div><Label>% "Atenção"</Label><Input type="number" value={editForm.yellow_threshold ?? ''} onChange={e => setEditForm((p: any) => ({ ...p, yellow_threshold: e.target.value }))} /></div>
+            </div>
+            <div><Label>Cadência</Label>
+              <Select value={editForm.cadence || 'mensal'} onValueChange={v => setEditForm((p: any) => ({ ...p, cadence: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{CADENCES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div><Label>Fonte</Label>
+              <Select value={editForm.source || 'manual'} onValueChange={v => setEditForm((p: any) => ({ ...p, source: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <Button className="w-full" onClick={handleSaveEdit}>Guardar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

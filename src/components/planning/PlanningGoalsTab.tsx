@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,12 +12,26 @@ import { planStatusLabel, PERIODS, GOAL_STATUSES } from '@/hooks/usePlanningData
 
 export function PlanningGoalsTab({ planning }: { planning: any }) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editGoal, setEditGoal] = useState<any>(null);
   const [filter, setFilter] = useState('todos');
   const [view, setView] = useState('por_objetivo');
   const [form, setForm] = useState({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
 
   const allGoals = planning.allGoals;
   const objectives = planning.allObjectives;
+
+  // When editGoal changes, populate form
+  useEffect(() => {
+    if (editGoal) {
+      setForm({
+        objective_id: editGoal.objective_id || '',
+        period: editGoal.period || 'Janeiro',
+        target_value: editGoal.target_value || '',
+        actual_value: editGoal.actual_value || '',
+        status: editGoal.status || 'por_iniciar',
+      });
+    }
+  }, [editGoal]);
 
   const filteredGoals = useMemo(() => {
     let g = allGoals;
@@ -28,9 +42,21 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
   }, [allGoals, filter]);
 
   const handleSave = () => {
-    planning.upsertGoal.mutate(form);
+    planning.upsertGoal.mutate(editGoal ? { id: editGoal.id, ...form } : form);
     setDialogOpen(false);
+    setEditGoal(null);
     setForm({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
+  };
+
+  const openNew = () => {
+    setEditGoal(null);
+    setForm({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
+    setDialogOpen(true);
+  };
+
+  const openEdit = (g: any) => {
+    setEditGoal(g);
+    setDialogOpen(true);
   };
 
   const getObjectiveName = (id: string) => objectives.find((o: any) => o.id === id)?.title || '—';
@@ -60,36 +86,28 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
 
   const getObjectiveDeadline = (id: string) => objectives.find((o: any) => o.id === id)?.deadline || null;
 
-  const updateGoal = (g: any, field: string, value: any) => {
-    planning.upsertGoal.mutate({ id: g.id, objective_id: g.objective_id, [field]: value });
-  };
-
   const renderGoalRow = (g: any, showObjective: boolean) => {
     const dev = g.actual_value && g.target_value ? (Number(g.actual_value) - Number(g.target_value)) : null;
     const hasDeviation = dev !== null && dev < 0;
     const area = getObjectiveArea(g.objective_id);
     const deadline = getObjectiveDeadline(g.objective_id);
     return (
-      <TableRow key={g.id} className={hasDeviation ? 'bg-red-50/50' : ''}>
+      <TableRow key={g.id} className={`cursor-pointer hover:bg-muted/60 ${hasDeviation ? 'bg-red-50/50' : ''}`} onClick={() => openEdit(g)}>
         {showObjective && <TableCell className="text-xs">{getObjectiveName(g.objective_id)}</TableCell>}
         <TableCell className="text-sm">{g.period}</TableCell>
         <TableCell className="text-xs">{area ? <Badge variant="outline" className="text-[10px]">{area}</Badge> : '—'}</TableCell>
         <TableCell className="text-xs">{deadline || '—'}</TableCell>
-        <TableCell>
-          <Input className="h-7 w-24 text-xs" defaultValue={g.target_value || ''} onBlur={e => { if (e.target.value !== (g.target_value || '')) updateGoal(g, 'target_value', e.target.value); }} />
-        </TableCell>
-        <TableCell>
-          <Input className="h-7 w-24 text-xs" defaultValue={g.actual_value || ''} onBlur={e => { if (e.target.value !== (g.actual_value || '')) updateGoal(g, 'actual_value', e.target.value); }} />
-        </TableCell>
+        <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
+        <TableCell className="text-xs">{g.actual_value || '—'}</TableCell>
         <TableCell className={`text-xs ${hasDeviation ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
         <TableCell>
-          <Select defaultValue={g.status} onValueChange={v => updateGoal(g, 'status', v)}>
-            <SelectTrigger className="h-7 w-[110px] text-[10px]"><SelectValue /></SelectTrigger>
-            <SelectContent>{GOAL_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-          </Select>
+          <Badge variant={g.status === 'atingido' ? 'default' : g.status === 'nao_atingido' ? 'destructive' : 'secondary'} className="text-[10px]">
+            {planStatusLabel(g.status)}
+          </Badge>
+          {hasDeviation && g.status !== 'atingido' && <Badge variant="destructive" className="text-[9px] ml-1">Desvio</Badge>}
         </TableCell>
         <TableCell>
-          <button onClick={() => planning.deleteGoal.mutate(g.id)}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
+          <button onClick={e => { e.stopPropagation(); planning.deleteGoal.mutate(g.id); }}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
         </TableCell>
       </TableRow>
     );
@@ -114,7 +132,7 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
               <SelectItem value="por_trimestre">Por trimestre</SelectItem>
             </SelectContent>
           </Select>
-          <Button size="sm" onClick={() => setDialogOpen(true)}><Plus className="h-4 w-4 mr-1" /> Nova Meta</Button>
+          <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Meta</Button>
         </div>
       </div>
 
@@ -154,10 +172,10 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
         </Card>
       )}
 
-      {/* New Goal Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {/* Create / Edit Goal Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={v => { if (!v) { setDialogOpen(false); setEditGoal(null); } else setDialogOpen(true); }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Nova Meta</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editGoal ? 'Editar Meta' : 'Nova Meta'}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div><Label>Objetivo Anual</Label>
               <Select value={form.objective_id || '_none'} onValueChange={v => setForm(p => ({ ...p, objective_id: v === '_none' ? '' : v }))}>
