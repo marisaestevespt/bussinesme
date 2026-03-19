@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Link } from 'react-router-dom';
 import { Users, FolderOpen, CheckCircle2, Clock, AlertTriangle, Briefcase, Building2, ListTodo } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format, isToday, isBefore, startOfToday, isAfter, subDays, endOfWeek, startOfWeek } from 'date-fns';
 import { pt } from 'date-fns/locale';
 
