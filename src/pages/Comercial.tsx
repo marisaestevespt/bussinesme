@@ -1,4 +1,5 @@
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { Target, ShoppingCart, Zap, Users, Lightbulb, BookOpen, UserCheck, Package, GitBranch, ArrowRight } from 'lucide-react';

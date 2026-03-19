@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { Input } from '@/components/ui/input';

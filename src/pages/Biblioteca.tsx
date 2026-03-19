@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { PageHeader } from '@/components/PageHeader';
 import { AppLayout } from '@/components/AppLayout';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';

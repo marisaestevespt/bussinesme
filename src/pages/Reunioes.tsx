@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
