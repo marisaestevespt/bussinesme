@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { usePlanningData } from '@/hooks/usePlanningData';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
-import { PlanningGoalsTab } from '@/components/planning/PlanningGoalsTab';
+import { PlanningGoalsTab, type GoalsViewMode } from '@/components/planning/PlanningGoalsTab';
 import { PlanningTrackingTab } from '@/components/planning/PlanningTrackingTab';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
