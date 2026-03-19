@@ -20,19 +20,13 @@ import { pt } from 'date-fns/locale';
 
 // ─── Constants ──────────────────────────────────────────────────
 
-const HALL_LINKS = [
-  { label: 'Começa Aqui', icon: Rocket, path: '/comeca-aqui' },
-  { label: 'Mural', icon: MessageSquare, path: '/hub/mural' },
-  { label: 'Hub de Equipa', icon: Users, path: '/hub-equipa' },
-];
-
-const TRANSVERSAIS_LINKS = [
-  { label: 'Agenda de Negócio', icon: Calendar, path: '/hub/agenda' },
-  { label: 'Reuniões', icon: Video, path: '/hub/reunioes' },
-  { label: 'Acessos', icon: Key, path: '/hub/acessos' },
-  { label: 'Projetos', icon: FolderKanban, path: '/hub/projetos' },
-  { label: 'Processos', icon: GitBranch, path: '/hub/processos' },
-  { label: 'Tarefas', icon: CheckSquare, path: '/hub/tarefas' },
+const TRANSVERSAIS_CARDS = [
+  { label: 'Agenda de Negócio', icon: Calendar, path: '/hub/agenda', iconColor: 'text-blue-600', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
+  { label: 'Reuniões', icon: Video, path: '/hub/reunioes', iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10' },
+  { label: 'Acessos', icon: Key, path: '/hub/acessos', iconColor: 'text-amber-600', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10' },
+  { label: 'Projetos', icon: FolderKanban, path: '/hub/projetos', iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
+  { label: 'Processos', icon: GitBranch, path: '/hub/processos', iconColor: 'text-slate-600', color: 'from-slate-500/10 to-slate-600/5 hover:from-slate-500/20 hover:to-slate-600/10' },
+  { label: 'Tarefas', icon: CheckSquare, path: '/hub/tarefas', iconColor: 'text-rose-600', color: 'from-rose-500/10 to-rose-600/5 hover:from-rose-500/20 hover:to-rose-600/10' },
 ];
 
 const DEPARTMENT_CARDS = [
@@ -136,11 +130,26 @@ export default function HubEquipaPage() {
         {/* Quick links */}
         <QuickLinks />
 
-        {/* Two columns: Hall + Transversais */}
-        <div className="grid gap-8 md:grid-cols-2">
-          <HallColumn />
-          <TransversaisColumn />
+        {/* Transversais cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+          {TRANSVERSAIS_CARDS.map(s => (
+            <Card
+              key={s.path}
+              className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
+              onClick={() => navigate(s.path)}
+            >
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
+                  <s.icon className="h-4.5 w-4.5" />
+                </div>
+                <span className="font-medium text-sm">{s.label}</span>
+              </CardContent>
+            </Card>
+          ))}
         </div>
+
+        {/* Quick summary */}
+        <QuickSummary />
 
         {/* Departamentos full width */}
         <DepartamentosColumn />
@@ -193,44 +202,11 @@ function QuickLinks() {
   );
 }
 
-// ─── Column 1: Hall ──────────────────────────────────────────────────
+// ─── Quick Summary ──────────────────────────────────────────────────
 
-function HallColumn() {
-  const navigate = useNavigate();
-  const { isOwner } = useAuth();
-
-  return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm uppercase tracking-wide text-muted-foreground">Hall</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-1">
-          {HALL_LINKS.map(l => (
-            <button
-              key={l.path}
-              onClick={() => navigate(l.path)}
-              className="block text-sm font-semibold hover:text-primary transition-colors text-left py-1"
-            >
-              {l.label}
-            </button>
-          ))}
-        </CardContent>
-      </Card>
-
-      
-    </div>
-  );
-}
-
-
-// ─── Column 2: Transversais ──────────────────────────────────────────
-
-function TransversaisColumn() {
-  const navigate = useNavigate();
+function QuickSummary() {
   const { user } = useAuth();
 
-  // Get profile id for filtering
   const { data: profile } = useQuery({
     queryKey: ['my-profile-id', user?.id],
     queryFn: async () => {
@@ -240,7 +216,6 @@ function TransversaisColumn() {
     enabled: !!user,
   });
 
-  // Overdue tasks count
   const { data: overdueTasks = 0 } = useQuery({
     queryKey: ['hub-overdue-tasks', profile?.id],
     queryFn: async () => {
@@ -256,7 +231,6 @@ function TransversaisColumn() {
     enabled: !!profile,
   });
 
-  // Next 2 meetings
   const { data: nextMeetings = [] } = useQuery({
     queryKey: ['hub-next-meetings', profile?.id],
     queryFn: async () => {
@@ -272,7 +246,6 @@ function TransversaisColumn() {
     enabled: !!profile,
   });
 
-  // Active projects count
   const { data: activeProjects = 0 } = useQuery({
     queryKey: ['hub-active-projects', profile?.id],
     queryFn: async () => {
@@ -286,69 +259,36 @@ function TransversaisColumn() {
   });
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm uppercase tracking-wide text-muted-foreground">Transversais</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-1">
-          {TRANSVERSAIS_LINKS.map(l => (
-            <button
-              key={l.path}
-              onClick={() => navigate(l.path)}
-              className="block text-sm font-semibold hover:text-primary transition-colors text-left py-1"
-            >
-              {l.label}
-            </button>
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* Quick summary */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Resumo rápido</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {/* Overdue tasks */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground flex items-center gap-2">
-              <AlertTriangle className="h-3.5 w-3.5" /> Tarefas em atraso
-            </span>
-            <Badge variant={overdueTasks > 0 ? 'destructive' : 'secondary'} className="text-xs">
-              {overdueTasks}
-            </Badge>
-          </div>
-
-          {/* Next meetings */}
-          <div className="space-y-1.5">
-            <span className="text-sm text-muted-foreground flex items-center gap-2">
-              <Calendar className="h-3.5 w-3.5" /> Próximas reuniões
-            </span>
-            {nextMeetings.length === 0 ? (
-              <p className="text-xs text-muted-foreground pl-6">Nenhuma agendada</p>
-            ) : (
-              nextMeetings.map((m: any) => (
-                <div key={m.id} className="flex items-center justify-between pl-6">
-                  <span className="text-xs truncate">{m.title}</span>
-                  <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
-                    {format(new Date(m.start_date), "d MMM, HH:mm", { locale: pt })}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Active projects */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground flex items-center gap-2">
-              <FolderKanban className="h-3.5 w-3.5" /> Projetos ativos
-            </span>
-            <Badge variant="secondary" className="text-xs">{activeProjects}</Badge>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm">Resumo rápido</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-wrap gap-6">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Tarefas em atraso</span>
+          <Badge variant={overdueTasks > 0 ? 'destructive' : 'secondary'} className="text-xs">{overdueTasks}</Badge>
+        </div>
+        <div className="flex items-center gap-2">
+          <FolderKanban className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Projetos ativos</span>
+          <Badge variant="secondary" className="text-xs">{activeProjects}</Badge>
+        </div>
+        <div className="flex items-center gap-2">
+          <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Próximas reuniões:</span>
+          {nextMeetings.length === 0 ? (
+            <span className="text-xs text-muted-foreground">Nenhuma agendada</span>
+          ) : (
+            nextMeetings.map((m: any) => (
+              <span key={m.id} className="text-xs">
+                {m.title} <span className="text-muted-foreground">({format(new Date(m.start_date), "d MMM, HH:mm", { locale: pt })})</span>
+              </span>
+            ))
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
