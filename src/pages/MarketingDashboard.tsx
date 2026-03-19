@@ -269,16 +269,6 @@ export default function MarketingDashboard() {
         </div>
       </div>
 
-      {/* Add Channel Dialog */}
-      <Dialog open={showAddChannel} onOpenChange={setShowAddChannel}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader><DialogTitle>Adicionar Canal</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <Input value={newChannelName} onChange={e => setNewChannelName(e.target.value)} placeholder="Nome do canal" onKeyDown={e => e.key === 'Enter' && addChannel()} />
-            <Button className="w-full" disabled={!newChannelName.trim()} onClick={addChannel}>Adicionar</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </AppLayout>
   );
 }
