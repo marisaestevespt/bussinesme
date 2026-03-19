@@ -23,6 +23,17 @@ export function usePermissions() {
     }
 
     const fetchPermissions = async () => {
+      // Check if user's team_member has department = 'admin' (full access like owner)
+      const { data: profile } = await supabase.from('profiles').select('id').eq('user_id', user.id).maybeSingle();
+      if (profile) {
+        const { data: teamMember } = await supabase.from('team_members').select('department').eq('profile_id', profile.id).maybeSingle();
+        if (teamMember?.department === 'admin') {
+          setAllowedModules(new Set(['*']));
+          setLoading(false);
+          return;
+        }
+      }
+
       // Get user's custom role via members table
       const { data: member } = await supabase
         .from('members')

@@ -33,7 +33,10 @@ const currentYear = new Date().getFullYear();
 const currentMonth = new Date().getMonth() + 1;
 
 // Module keys that belong to each department
+const ALL_DEPT_MODULES = ['marketing', 'comercial', 'clientes', 'financeiro', 'operacao', 'produtos', 'customer-success', 'recursos-humanos', 'administrativo', 'equipa', 'planeamento', 'weekly-align', 'gestao-equipa-ceo'];
+
 const DEPT_MODULE_MAP: Record<string, string[]> = {
+  admin: ALL_DEPT_MODULES,
   marketing: ['marketing'],
   comercial: ['comercial'],
   clientes: ['clientes'],
