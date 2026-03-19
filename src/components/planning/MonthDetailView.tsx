@@ -1,0 +1,717 @@
+import { useState, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AlertTriangle, ArrowLeft, Calendar, ChevronLeft, ChevronRight, ExternalLink, Plus, Trash2, Users, LayoutDashboard, FileText, UserPlus, Lightbulb } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { planStatusLabel, planAreaLabel } from '@/hooks/usePlanningData';
+import { format, parseISO, endOfMonth, startOfMonth, getDay, getDaysInMonth, addMonths, subMonths } from 'date-fns';
+import { pt } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
+
+const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function monthRange(monthIdx: number, year: number) {
+  const start = new Date(year, monthIdx, 1);
+  const end = endOfMonth(start);
+  return { start, end, label: `01/${String(monthIdx+1).padStart(2,'0')}/${year} → ${format(end,'dd/MM/yyyy')}` };
+}
+
+// Default habit groups
+const DEFAULT_HABITS: { category: string; label: string; color: string; tasks: string[] }[] = [
+  { category: 'fecho_financeiro', label: 'Fecho Financeiro', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300', tasks: [
+    'Rever todos os recebimentos do mês','Confirmar se há valores em falta ou pendentes','Validar faturação total do mês','Verificar IVA (faturas emitidas e a pagar)','Organizar documentos do mês','Pagar ordenado','Pagar segurança social [dia 20]'
+  ]},
+  { category: 'analise_vendas', label: 'Análise de Vendas', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300', tasks: [
+    'Analisar KPIs de cada produto','Identificar o que não vendeu','Perceber o que contribuiu mais para a faturação'
+  ]},
+  { category: 'clientes_operacao', label: 'Clientes & Operação', color: 'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300', tasks: [
+    'Rever clientes ativos vs finalizados','Arquivar projetos/serviços terminados','Atualizar estado de contratos ou renovações','Identificar clientes que precisam de acompanhamento extra','Backup Notion','Backup contactos CRM'
+  ]},
+  { category: 'marketing_conteudo', label: 'Marketing & Conteúdo', color: 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300', tasks: [
+    'Rever o que foi publicado','Analisar métricas e fazer report do mês'
+  ]},
+  { category: 'organizacao_sistema', label: 'Organização & Sistema', color: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300', tasks: [
+    'Limpar bases','Rever se algum processo precisa de ajuste','Anotar melhorias para implementar'
+  ]},
+  { category: 'fecho_consciente', label: 'Fecho Consciente', color: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300', tasks: [
+    'Análise do mês (o que correu bem, o que não correu, melhorias, etc)'
+  ]},
+];
+
+interface Props {
+  monthIdx: number;
+  year: number;
+  planning: any;
+  onBack: () => void;
+}
+
+export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const monthName = MONTHS[monthIdx];
+  const monthNum = monthIdx + 1;
+  const range = monthRange(monthIdx, year);
+
+  // ── Active tab states ──
+  const [objTab, setObjTab] = useState<'metas'|'objetivos'>('metas');
+  const [vendasTab, setVendasTab] = useState<'goal'|'real'>('goal');
+  const [clientTab, setClientTab] = useState<'ativos'|'terminar'>('ativos');
+  const [contentTab, setContentTab] = useState('calendario');
+  const [calMonth, setCalMonth] = useState(new Date(year, monthIdx, 1));
+
+  // ── Data queries ──
+  const salesQ = useQuery({ queryKey: ['md-sales', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales').select('*').eq('sale_year', year).eq('sale_month', monthNum); return data || []; }});
+  const salesActionsQ = useQuery({ queryKey: ['md-sales-actions', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales_actions').select('*'); return (data || []).filter((a: any) => { if (!a.start_date) return false; const d = parseISO(a.start_date); return d >= range.start && d <= range.end; }); }});
+  const leadsQ = useQuery({ queryKey: ['md-leads', year, monthNum], queryFn: async () => { const { data } = await supabase.from('crm_leads').select('*'); return data || []; }});
+  const clientsQ = useQuery({ queryKey: ['md-clients'], queryFn: async () => { const { data } = await supabase.from('clients').select('*'); return data || []; }});
+  const eventsQ = useQuery({ queryKey: ['md-events', year, monthNum], queryFn: async () => { const { data } = await supabase.from('events').select('*'); return data || []; }});
+  const contentQ = useQuery({ queryKey: ['md-content', year, monthNum], queryFn: async () => { const { data } = await supabase.from('content_items').select('*, content_channels(channel_id)'); return data || []; }});
+  const channelsQ = useQuery({ queryKey: ['md-channels'], queryFn: async () => { const { data } = await supabase.from('marketing_channels').select('*').eq('is_active', true).order('sort_order'); return data || []; }});
+  const productsQ = useQuery({ queryKey: ['md-products'], queryFn: async () => { const { data } = await supabase.from('products').select('id, name, monthly_hours_per_client'); return data || []; }});
+  const timeEntriesQ = useQuery({ queryKey: ['md-time', year, monthNum], queryFn: async () => { const { data } = await supabase.from('time_entries').select('*').eq('entry_year', year).eq('entry_month', monthNum); return data || []; }});
+  const commMonthGoalQ = useQuery({ queryKey: ['md-comm-goal', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_monthly_goals').select('*').eq('year', year).eq('month', monthNum).maybeSingle(); return data; }});
+  const commProdGoalQ = useQuery({ queryKey: ['md-comm-prod-goals', year], queryFn: async () => { const { data } = await supabase.from('commercial_product_goals').select('*').eq('year', year).order('sort_order'); return data || []; }});
+  const npsQ = useQuery({ queryKey: ['md-nps', year, monthNum], queryFn: async () => { const { data } = await supabase.from('client_nps_records').select('*'); return data || []; }});
+  const teamQ = useQuery({ queryKey: ['md-team'], queryFn: async () => { const { data } = await supabase.from('team_members').select('*').eq('status', 'ativo'); return data || []; }});
+  const tasksQ = useQuery({ queryKey: ['md-tasks', year, monthNum], queryFn: async () => { const { data } = await supabase.from('tasks').select('*'); return data || []; }});
+
+  // Checklists
+  const checklistQ = useQuery({ queryKey: ['md-checklist', year, monthNum], queryFn: async () => { const { data } = await supabase.from('executive_monthly_checklists').select('*').eq('year', year).eq('month', monthNum).order('created_at'); return data || []; }});
+
+  const seedHabits = useMutation({
+    mutationFn: async () => {
+      const items = DEFAULT_HABITS.flatMap(g => g.tasks.map(t => ({ year, month: monthNum, task: `${g.category}::${t}`, completed: false })));
+      const { error } = await supabase.from('executive_monthly_checklists').insert(items);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] }),
+  });
+
+  const addCheckItem = useMutation({
+    mutationFn: async (task: string) => { const { error } = await supabase.from('executive_monthly_checklists').insert({ year, month: monthNum, task, completed: false }); if (error) throw error; },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] }),
+  });
+  const toggleCheck = useMutation({
+    mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => { const { error } = await supabase.from('executive_monthly_checklists').update({ completed }).eq('id', id); if (error) throw error; },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] }),
+  });
+  const deleteCheck = useMutation({
+    mutationFn: async (id: string) => { const { error } = await supabase.from('executive_monthly_checklists').delete().eq('id', id); if (error) throw error; },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] }),
+  });
+
+  // ── Derived data ──
+  const goals = planning.allGoals || [];
+  const objectives = planning.allObjectives || [];
+  const monthGoals = goals.filter((g: any) => g.period === monthName);
+  const progress = monthGoals.length > 0 ? Math.round(monthGoals.filter((g: any) => g.status === 'atingido').length / monthGoals.length * 100) : 0;
+
+  // Objectives linked to this month's goals
+  const linkedObjIds = [...new Set(monthGoals.map((g: any) => g.objective_id).filter(Boolean))];
+  const linkedObjectives = objectives.filter((o: any) => linkedObjIds.includes(o.id));
+
+  const sales = salesQ.data || [];
+  const totalInvoiced = sales.reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0);
+  const salesActions = salesActionsQ.data || [];
+  const commGoal = commMonthGoalQ.data;
+  const commProdGoals = commProdGoalQ.data || [];
+  const products = productsQ.data || [];
+
+  const allLeads = leadsQ.data || [];
+  const monthLeads = allLeads.filter((l: any) => {
+    const added = l.added_at ? parseISO(l.added_at) : null;
+    const updated = l.updated_at ? parseISO(l.updated_at) : null;
+    return (added && added >= range.start && added <= range.end) || (updated && updated >= range.start && updated <= range.end);
+  });
+
+  const CRM_COLUMNS = ['lead','primeiro_contacto','sessao_agendada','proposta_enviada','follow_up_1','follow_up_2','follow_up_3','aguarda_retorno','outra_altura','ganho','perdido'];
+  const CRM_LABELS: Record<string,string> = { lead:'Lead', primeiro_contacto:'Primeiro Contacto', sessao_agendada:'Sessão Agendada', proposta_enviada:'Proposta Enviada', follow_up_1:'Follow Up 1', follow_up_2:'Follow Up 2', follow_up_3:'Follow Up 3', aguarda_retorno:'Aguarda Retorno', outra_altura:'Outra Altura', ganho:'Ganho', perdido:'Perdido' };
+
+  const allClients = clientsQ.data || [];
+  const activeClients = allClients.filter((c: any) => c.status === 'ativo');
+  const endingClients = allClients.filter((c: any) => { if (!c.end_of_cycle) return false; const d = parseISO(c.end_of_cycle); return d >= range.start && d <= range.end; });
+
+  const allEvents = (eventsQ.data || []).filter((e: any) => { if (!e.start_date) return false; const d = parseISO(e.start_date); return d.getMonth() === calMonth.getMonth() && d.getFullYear() === calMonth.getFullYear(); });
+
+  const allContent = (contentQ.data || []).filter((c: any) => { if (!c.scheduled_at) return false; const d = parseISO(c.scheduled_at); return d >= range.start && d <= range.end; });
+  const channels = channelsQ.data || [];
+
+  const monthTasks = (tasksQ.data || []).filter((t: any) => { if (!t.deadline) return false; const d = parseISO(t.deadline); return d >= range.start && d <= range.end; });
+
+  const timeEntries = timeEntriesQ.data || [];
+  const team = teamQ.data || [];
+
+  // Product review
+  const productReview = useMemo(() => {
+    return products.map((p: any) => {
+      const clientsWithProduct = activeClients.filter((c: any) => c.current_product === p.name);
+      const estimatedHours = (p.monthly_hours_per_client || 0) * clientsWithProduct.length;
+      return { id: p.id, name: p.name, clientCount: clientsWithProduct.length, estimatedHours, realHours: 0, deviation: 0 };
+    }).filter((p: any) => p.clientCount > 0);
+  }, [products, activeClients]);
+
+  // Team capacity
+  const teamCapacity = useMemo(() => {
+    return team.map((m: any) => {
+      const weeklyH = Number(m.expected_weekly_hours || 40);
+      const monthlyAvailable = weeklyH * 4.33;
+      const memberTasks = monthTasks.filter((t: any) => t.assigned_to === m.profile_id);
+      const committed = memberTasks.reduce((s: number, t: any) => s + Number(t.estimated_time || 0), 0);
+      return { name: m.full_name, available: Math.round(monthlyAvailable), committed: Math.round(committed), over: committed > monthlyAvailable };
+    }).filter(m => m.committed > 0);
+  }, [team, monthTasks]);
+
+  // Checklist grouped
+  const checklist = checklistQ.data || [];
+  const checklistGrouped = useMemo(() => {
+    const groups: Record<string, { label: string; color: string; items: any[] }> = {};
+    // Init default groups
+    DEFAULT_HABITS.forEach(g => { groups[g.category] = { label: g.label, color: g.color, items: [] }; });
+    checklist.forEach((item: any) => {
+      const sep = item.task.indexOf('::');
+      if (sep > -1) {
+        const cat = item.task.substring(0, sep);
+        const taskText = item.task.substring(sep + 2);
+        if (!groups[cat]) groups[cat] = { label: cat, color: 'bg-muted text-muted-foreground', items: [] };
+        groups[cat].items.push({ ...item, displayTask: taskText });
+      } else {
+        if (!groups['_other']) groups['_other'] = { label: 'Outros', color: 'bg-muted text-muted-foreground', items: [] };
+        groups['_other'].items.push({ ...item, displayTask: item.task });
+      }
+    });
+    return Object.entries(groups).filter(([, g]) => g.items.length > 0);
+  }, [checklist]);
+
+  const hasHabitsSeeded = checklist.some((c: any) => c.task.includes('::'));
+
+  // New checklist item state
+  const [newCat, setNewCat] = useState('');
+  const [newTask, setNewTask] = useState('');
+  const [addingToGroup, setAddingToGroup] = useState<string | null>(null);
+
+  // Product sales breakdown for "goal" tab
+  const prodSalesData = useMemo(() => {
+    return commProdGoals.map((pg: any) => {
+      const prodSales = sales.filter((s: any) => s.product === pg.product_name);
+      const totalFat = prodSales.reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0);
+      const goalAmt = Number(pg.goal_amount || 0);
+      const pct = goalAmt > 0 ? Math.round((totalFat / goalAmt) * 100) : 0;
+      return {
+        product: pg.product_name,
+        numVendas: prodSales.length,
+        price: 0,
+        goalAmount: goalAmt,
+        totalFat,
+        pct,
+      };
+    });
+  }, [commProdGoals, sales, products]);
+
+  // ── Calendar helper ──
+  function renderCalendarGrid(items: any[], getDate: (item: any) => Date | null, renderItem: (item: any) => React.ReactNode) {
+    const daysInMonth = getDaysInMonth(calMonth);
+    const firstDay = (getDay(startOfMonth(calMonth)) + 6) % 7; // Monday start
+    const dayNames = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+    const cells: React.ReactNode[] = [];
+
+    for (let i = 0; i < firstDay; i++) cells.push(<div key={`e-${i}`} />);
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dayItems = items.filter(item => { const dt = getDate(item); return dt && dt.getDate() === d; });
+      const isToday = d === new Date().getDate() && calMonth.getMonth() === new Date().getMonth() && calMonth.getFullYear() === new Date().getFullYear();
+      cells.push(
+        <div key={d} className={cn('min-h-[60px] border border-border/30 rounded p-1', isToday && 'bg-primary/5 ring-1 ring-primary')}>
+          <span className="text-[10px] font-medium text-muted-foreground">{d}</span>
+          <div className="space-y-0.5 mt-0.5">{dayItems.map(renderItem)}</div>
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <Button variant="ghost" size="sm" className="h-7" onClick={() => setCalMonth(subMonths(calMonth, 1))}><ChevronLeft className="h-3.5 w-3.5" /></Button>
+          <span className="text-xs font-medium">{format(calMonth, 'MMMM yyyy', { locale: pt })}</span>
+          <Button variant="ghost" size="sm" className="h-7" onClick={() => setCalMonth(addMonths(calMonth, 1))}><ChevronRight className="h-3.5 w-3.5" /></Button>
+        </div>
+        <div className="grid grid-cols-7 gap-0.5">
+          {dayNames.map(dn => <div key={dn} className="text-center text-[10px] font-medium text-muted-foreground py-1">{dn}</div>)}
+          {cells}
+        </div>
+      </div>
+    );
+  }
+
+  // Quarter for this month
+  const quarter = Math.ceil(monthNum / 3);
+
+  return (
+    <div className="space-y-6">
+      {/* ── HEADER ── */}
+      <div className="flex gap-6">
+        {/* Sidebar shortcuts */}
+        <div className="hidden sm:flex flex-col gap-2 w-40 shrink-0">
+          <Button variant="outline" size="sm" className="justify-start gap-2 text-xs h-8" onClick={() => navigate('/equipa')}><Users className="h-3.5 w-3.5" />Hub de Equipa</Button>
+          <Button variant="outline" size="sm" className="justify-start gap-2 text-xs h-8" onClick={() => navigate('/executive')}><LayoutDashboard className="h-3.5 w-3.5" />Executive Room</Button>
+          <Separator className="my-1" />
+          <p className="text-[10px] text-muted-foreground font-medium px-1">Comandos rápidos</p>
+          <Button variant="ghost" size="sm" className="justify-start gap-2 text-xs h-7" onClick={() => navigate('/tarefas')}><Plus className="h-3 w-3" />Nova tarefa</Button>
+          <Button variant="ghost" size="sm" className="justify-start gap-2 text-xs h-7" onClick={() => navigate('/mural')}><Lightbulb className="h-3 w-3" />Nova ideia</Button>
+          <Button variant="ghost" size="sm" className="justify-start gap-2 text-xs h-7" onClick={() => navigate('/clientes')}><UserPlus className="h-3 w-3" />Novo cliente</Button>
+          <Button variant="ghost" size="sm" className="justify-start gap-2 text-xs h-7" onClick={() => navigate('/marketing/conteudos')}><FileText className="h-3 w-3" />Novo conteúdo</Button>
+        </div>
+
+        {/* Main header */}
+        <div className="flex-1 space-y-3">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={onBack} className="gap-1.5"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
+            <div>
+              <h2 className="text-xl font-bold">{monthName} {year}</h2>
+              <p className="text-xs text-muted-foreground">Período Mensal — {range.label}</p>
+            </div>
+          </div>
+
+          {/* Goals summary */}
+          {monthGoals.length > 0 && (
+            <div className="bg-muted/30 rounded-lg p-3 space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">Em detalhe</p>
+              <div className="flex flex-wrap gap-1">
+                {monthGoals.map((g: any) => {
+                  const obj = objectives.find((o: any) => o.id === g.objective_id);
+                  return <Badge key={g.id} variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{obj?.title || g.period}</Badge>;
+                })}
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground">Progresso: {progress}%</span>
+                <Progress value={progress} className="h-2 flex-1" />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ═══ SECTION 1: Objetivos ═══ */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-sm">Objetivos</CardTitle>
+            <div className="flex gap-1 ml-auto">
+              <Button size="sm" variant={objTab === 'metas' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setObjTab('metas')}>Metas do mês</Button>
+              <Button size="sm" variant={objTab === 'objetivos' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setObjTab('objetivos')}>Objetivos anuais</Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {objTab === 'metas' ? (
+            monthGoals.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">Sem metas para {monthName}.</p> : (
+              <Table>
+                <TableHeader><TableRow>
+                  <TableHead>Status</TableHead><TableHead>Área</TableHead><TableHead>Meta</TableHead><TableHead>Data meta</TableHead><TableHead>Data atingida</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>
+                  {monthGoals.map((g: any) => {
+                    const obj = objectives.find((o: any) => o.id === g.objective_id);
+                    return (
+                      <TableRow key={g.id}>
+                        <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">{planStatusLabel(g.status)}</Badge></TableCell>
+                        <TableCell className="text-xs">{obj ? planAreaLabel(obj.area) : '—'}</TableCell>
+                        <TableCell className="text-sm">{obj?.title || '—'}</TableCell>
+                        <TableCell className="text-xs">{obj?.deadline || '—'}</TableCell>
+                        <TableCell className="text-xs">{g.status === 'atingido' ? g.updated_at ? format(parseISO(g.updated_at), 'dd/MM/yyyy') : '—' : '—'}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )
+          ) : (
+            linkedObjectives.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">Sem objetivos anuais ligados a este mês.</p> : (
+              <Table>
+                <TableHeader><TableRow>
+                  <TableHead>Status</TableHead><TableHead>Área</TableHead><TableHead>Objetivo</TableHead><TableHead>Tipo</TableHead><TableHead>Prazo</TableHead><TableHead>Progresso</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>
+                  {linkedObjectives.map((o: any) => (
+                    <TableRow key={o.id}>
+                      <TableCell><Badge variant={o.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">{planStatusLabel(o.status)}</Badge></TableCell>
+                      <TableCell className="text-xs">{planAreaLabel(o.area)}</TableCell>
+                      <TableCell className="text-sm font-medium">{o.title}</TableCell>
+                      <TableCell className="text-xs">{o.objective_type === 'quantitativo' ? 'Quantitativo' : 'Qualitativo'}</TableCell>
+                      <TableCell className="text-xs">{o.deadline || '—'}</TableCell>
+                      <TableCell><Progress value={planning.objectiveProgress(o)} className="h-1.5 w-20" /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ═══ SECTION 2: Agenda ═══ */}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Agenda ME & Calendários</CardTitle></CardHeader>
+        <CardContent>
+          {renderCalendarGrid(
+            allEvents,
+            (e: any) => e.start_date ? parseISO(e.start_date) : null,
+            (e: any) => <div key={e.id} className="text-[9px] bg-primary/10 text-primary rounded px-1 py-0.5 truncate">{e.title}</div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ═══ SECTION 3: Produtos & Vendas ═══ */}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Produtos & Vendas</CardTitle></CardHeader>
+        <CardContent className="space-y-5">
+          {/* Meta estabelecida */}
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-2">Meta estabelecida</p>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader><TableRow>
+                  <TableHead>Trimestre</TableHead><TableHead>Mês</TableHead><TableHead>Intervalo</TableHead><TableHead className="text-right">Meta</TableHead><TableHead className="text-right">Até agora</TableHead><TableHead>Análise</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="text-xs">T{quarter}</TableCell>
+                    <TableCell className="text-xs">{monthName}</TableCell>
+                    <TableCell className="text-xs">{range.label}</TableCell>
+                    <TableCell className="text-xs text-right font-medium">{commGoal ? `${Number(commGoal.goal_amount).toLocaleString('pt-PT')}€` : '—'}</TableCell>
+                    <TableCell className="text-xs text-right font-medium">{totalInvoiced.toLocaleString('pt-PT')}€</TableCell>
+                    <TableCell className="text-xs">
+                      {commGoal ? (
+                        <span className="text-muted-foreground">
+                          Progresso: {Math.round((totalInvoiced / Number(commGoal.goal_amount)) * 100)}% — Faturado: {totalInvoiced.toLocaleString('pt-PT')}€ de {Number(commGoal.goal_amount).toLocaleString('pt-PT')}€
+                        </span>
+                      ) : <span className="text-muted-foreground">Sem meta definida</span>}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          {/* Product distribution tabs */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <p className="text-xs font-medium text-muted-foreground">Distribuição por produto & vendas</p>
+              <div className="flex gap-1 ml-auto">
+                <Button size="sm" variant={vendasTab === 'goal' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setVendasTab('goal')}>Goal</Button>
+                <Button size="sm" variant={vendasTab === 'real' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setVendasTab('real')}>Como está a correr</Button>
+              </div>
+            </div>
+            {vendasTab === 'goal' ? (
+              <Table>
+                <TableHeader><TableRow>
+                  <TableHead>Produto</TableHead><TableHead className="text-right">Nº Vendas</TableHead><TableHead className="text-right">Preço</TableHead><TableHead className="text-right">Faturação prevista</TableHead><TableHead className="text-right">Faturação total</TableHead><TableHead>Análise</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>
+                  {prodSalesData.length === 0 ? (
+                    <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem metas de produto definidas.</TableCell></TableRow>
+                  ) : prodSalesData.map(p => (
+                    <TableRow key={p.product}>
+                      <TableCell className="text-sm font-medium">{p.product}</TableCell>
+                      <TableCell className="text-xs text-right">{p.numVendas}</TableCell>
+                      <TableCell className="text-xs text-right">{Number(p.price).toLocaleString('pt-PT')}€</TableCell>
+                      <TableCell className="text-xs text-right">{p.goalAmount.toLocaleString('pt-PT')}€</TableCell>
+                      <TableCell className="text-xs text-right">{p.totalFat.toLocaleString('pt-PT')}€</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{p.goalAmount > 0 ? `Em progresso (${p.pct}%)` : 'Sem previsão definida'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <Table>
+                <TableHeader><TableRow>
+                  <TableHead>Ref</TableHead><TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead className="text-right">Valor</TableHead><TableHead>Status</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>
+                  {sales.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-4">Sem vendas registadas.</TableCell></TableRow>
+                  ) : sales.map((sl: any) => (
+                    <TableRow key={sl.id}>
+                      <TableCell className="text-xs">{sl.sale_id}</TableCell>
+                      <TableCell className="text-sm">{sl.client || '—'}</TableCell>
+                      <TableCell className="text-sm">{sl.product || '—'}</TableCell>
+                      <TableCell className="text-sm text-right">{Number(sl.invoice_total || 0).toLocaleString('pt-PT')}€</TableCell>
+                      <TableCell><Badge variant="secondary" className="text-xs">{sl.status}</Badge></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+
+          {/* Sales actions */}
+          {salesActions.length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">Ações de Vendas</p>
+              <Table>
+                <TableHeader><TableRow><TableHead>Status</TableHead><TableHead>Ação</TableHead><TableHead>Data/Período</TableHead><TableHead>Produto</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  {salesActions.map((a: any) => (
+                    <TableRow key={a.id}>
+                      <TableCell><Badge variant="secondary" className="text-xs">{a.status}</Badge></TableCell>
+                      <TableCell className="text-sm">{a.action_name}</TableCell>
+                      <TableCell className="text-xs">{a.start_date ? format(parseISO(a.start_date), 'dd/MM') : '—'}{a.end_date ? ` → ${format(parseISO(a.end_date), 'dd/MM')}` : ''}</TableCell>
+                      <TableCell className="text-sm">{a.product || '—'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ═══ SECTION 4: Marketing & Conteúdo ═══ */}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Marketing & Conteúdo</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          {/* Channel tabs */}
+          <div className="flex gap-1 flex-wrap">
+            <Button size="sm" variant={contentTab === 'calendario' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setContentTab('calendario')}>Calendário</Button>
+            {channels.map((ch: any) => (
+              <Button key={ch.id} size="sm" variant={contentTab === ch.id ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setContentTab(ch.id)}>{ch.name}</Button>
+            ))}
+          </div>
+
+          {renderCalendarGrid(
+            contentTab === 'calendario' ? allContent : allContent.filter((c: any) => c.content_channels?.some((cc: any) => cc.channel_id === contentTab)),
+            (c: any) => c.scheduled_at ? parseISO(c.scheduled_at) : null,
+            (c: any) => <div key={c.id} className="text-[9px] bg-accent/50 rounded px-1 py-0.5 truncate">{c.title}</div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ═══ SECTION 5: CRM ═══ */}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">CRM</CardTitle></CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto pb-2">
+            <div className="flex gap-2" style={{ minWidth: CRM_COLUMNS.length * 180 }}>
+              {CRM_COLUMNS.map(col => {
+                const colLeads = monthLeads.filter((l: any) => l.status === col);
+                return (
+                  <div key={col} className="w-44 shrink-0">
+                    <div className="text-[10px] font-medium text-muted-foreground mb-1.5 px-1">{CRM_LABELS[col]} <Badge variant="outline" className="text-[9px] ml-1">{colLeads.length}</Badge></div>
+                    <div className="space-y-1.5">
+                      {colLeads.map((l: any) => {
+                        const overdue = l.next_followup && parseISO(l.next_followup) < new Date();
+                        return (
+                          <div key={l.id} className={cn('border border-border/50 rounded-lg p-2 bg-background text-xs space-y-1', overdue && 'border-destructive/50')}>
+                            <p className="font-medium truncate">{l.name}</p>
+                            {l.email && <p className="text-muted-foreground truncate">{l.email}</p>}
+                            {l.phone && <p className="text-muted-foreground">{l.phone}</p>}
+                            {l.next_followup && (
+                              <div className={cn('text-[10px]', overdue ? 'text-destructive font-medium' : 'text-muted-foreground')}>
+                                Follow-up: {format(parseISO(l.next_followup), 'dd/MM')}{overdue && ' ⚠️'}
+                              </div>
+                            )}
+                            {l.status === 'ganho' && (
+                              <Button variant="outline" size="sm" className="h-5 text-[9px] w-full mt-1" onClick={() => navigate('/clientes')}>Add como cliente</Button>
+                            )}
+                          </div>
+                        );
+                      })}
+                      {colLeads.length === 0 && <div className="text-[10px] text-muted-foreground text-center py-3">—</div>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ═══ SECTION 6: Clientes Ativos & Renovações ═══ */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-sm">Clientes Ativos & Renovações</CardTitle>
+            <div className="flex gap-1 ml-auto">
+              <Button size="sm" variant={clientTab === 'ativos' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('ativos')}>Clientes Ativos</Button>
+              <Button size="sm" variant={clientTab === 'terminar' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('terminar')}>A terminar este mês</Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {clientTab === 'ativos' ? (
+            <Table>
+              <TableHeader><TableRow>
+                <TableHead>ID</TableHead><TableHead>Data Início</TableHead><TableHead>Status</TableHead><TableHead>Nome</TableHead><TableHead>Email</TableHead><TableHead>Whatsapp</TableHead>
+              </TableRow></TableHeader>
+              <TableBody>
+                {activeClients.length === 0 ? (
+                  <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem clientes ativos.</TableCell></TableRow>
+                ) : activeClients.map((c: any) => (
+                  <TableRow key={c.id}>
+                    <TableCell className="text-xs">{c.client_id}</TableCell>
+                    <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
+                    <TableCell><Badge variant="default" className="text-xs">{c.status}</Badge></TableCell>
+                    <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
+                    <TableCell className="text-xs">{c.email || '—'}</TableCell>
+                    <TableCell className="text-xs">{c.whatsapp || '—'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <Table>
+              <TableHeader><TableRow>
+                <TableHead>ID</TableHead><TableHead>Data Início</TableHead><TableHead>Status</TableHead><TableHead>Nome</TableHead><TableHead>Email</TableHead><TableHead>Whatsapp</TableHead><TableHead>Fim de Ciclo</TableHead>
+              </TableRow></TableHeader>
+              <TableBody>
+                {endingClients.length === 0 ? (
+                  <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-4">Sem clientes a terminar este mês.</TableCell></TableRow>
+                ) : endingClients.map((c: any) => (
+                  <TableRow key={c.id}>
+                    <TableCell className="text-xs">{c.client_id}</TableCell>
+                    <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
+                    <TableCell><Badge variant="secondary" className="text-xs">{c.status}</Badge></TableCell>
+                    <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
+                    <TableCell className="text-xs">{c.email || '—'}</TableCell>
+                    <TableCell className="text-xs">{c.whatsapp || '—'}</TableCell>
+                    <TableCell><Badge variant="destructive" className="text-xs">{c.end_of_cycle}</Badge></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ═══ SECTION 7: Pagamentos ═══ */}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Pagamentos de Clientes</CardTitle></CardHeader>
+        <CardContent>
+          <p className="text-[10px] text-muted-foreground mb-2">Recebimentos este mês</p>
+          <Table>
+            <TableHeader><TableRow>
+              <TableHead>Nº Venda</TableHead><TableHead>Status</TableHead><TableHead>Data transação</TableHead><TableHead>Descrição</TableHead><TableHead className="text-right">Valor Base</TableHead><TableHead>Produto/Serviço</TableHead><TableHead>Cliente</TableHead>
+            </TableRow></TableHeader>
+            <TableBody>
+              {sales.length === 0 ? (
+                <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-4">Sem recebimentos registados.</TableCell></TableRow>
+              ) : sales.map((sl: any) => (
+                <TableRow key={sl.id}>
+                  <TableCell className="text-xs">{sl.sale_id}</TableCell>
+                  <TableCell><Badge variant="secondary" className="text-xs">{sl.status}</Badge></TableCell>
+                  <TableCell className="text-xs">{sl.payment_date ? format(parseISO(sl.payment_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                  <TableCell className="text-xs">{sl.description || '—'}</TableCell>
+                  <TableCell className="text-xs text-right">{Number(sl.base_value || 0).toLocaleString('pt-PT')}€</TableCell>
+                  <TableCell className="text-xs">{sl.product || '—'}</TableCell>
+                  <TableCell className="text-xs">{sl.client || '—'}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* ═══ SECTION 8: Checklists ═══ */}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Checklists do Mês — Hábitos Mensais</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          {!hasHabitsSeeded && checklist.length === 0 && (
+            <div className="text-center py-6 space-y-2">
+              <p className="text-sm text-muted-foreground">Os hábitos mensais ainda não foram criados para {monthName}.</p>
+              <Button size="sm" onClick={() => seedHabits.mutate()} disabled={seedHabits.isPending}>Criar hábitos padrão</Button>
+            </div>
+          )}
+
+          {checklistGrouped.map(([catKey, group]) => (
+            <div key={catKey} className="space-y-1.5">
+              <Badge className={cn('text-[10px]', group.color)}>{group.label}</Badge>
+              <div className="space-y-1">
+                {group.items.map((item: any) => (
+                  <div key={item.id} className="flex items-center gap-2 p-1.5 rounded-md bg-muted/20 border border-border/30">
+                    <Checkbox checked={item.completed} onCheckedChange={(v) => toggleCheck.mutate({ id: item.id, completed: !!v })} />
+                    <span className={cn('text-sm flex-1', item.completed && 'line-through text-muted-foreground')}>{item.displayTask}</span>
+                    <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => deleteCheck.mutate(item.id)}><Trash2 className="h-3 w-3" /></Button>
+                  </div>
+                ))}
+              </div>
+              {addingToGroup === catKey ? (
+                <div className="flex gap-1">
+                  <Input value={newTask} onChange={e => setNewTask(e.target.value)} placeholder="Novo item..." className="h-7 text-xs" onKeyDown={e => { if (e.key === 'Enter' && newTask.trim()) { addCheckItem.mutate(`${catKey}::${newTask.trim()}`); setNewTask(''); setAddingToGroup(null); }}} />
+                  <Button size="sm" className="h-7 text-xs" onClick={() => { if (newTask.trim()) { addCheckItem.mutate(`${catKey}::${newTask.trim()}`); setNewTask(''); setAddingToGroup(null); }}}>OK</Button>
+                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setAddingToGroup(null)}>✕</Button>
+                </div>
+              ) : (
+                <Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1" onClick={() => { setAddingToGroup(catKey); setNewTask(''); }}><Plus className="h-3 w-3" /> Adicionar</Button>
+              )}
+            </div>
+          ))}
+
+          {/* Add new group */}
+          <Separator />
+          <div className="flex gap-2">
+            <Input value={newCat} onChange={e => setNewCat(e.target.value)} placeholder="Nome do novo grupo..." className="h-7 text-xs max-w-48" />
+            <Button size="sm" variant="outline" className="h-7 text-xs gap-1" disabled={!newCat.trim()} onClick={() => {
+              const slug = newCat.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+              addCheckItem.mutate(`${slug}::Primeiro item`);
+              setNewCat('');
+            }}><Plus className="h-3 w-3" /> Novo grupo</Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ═══ SECTION 9: Revisão Operacional ═══ */}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Revisão Operacional</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          {productReview.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">Sem produtos com clientes ativos para análise.</p>
+          ) : (
+            <>
+              <Table>
+                <TableHeader><TableRow>
+                  <TableHead>Produto</TableHead><TableHead className="text-right">Horas estimadas</TableHead><TableHead className="text-right">Horas reais</TableHead><TableHead className="text-right">Desvio</TableHead><TableHead>Status</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>
+                  {productReview.map((p: any) => (
+                    <TableRow key={p.id}>
+                      <TableCell className="text-sm font-medium">{p.name}</TableCell>
+                      <TableCell className="text-sm text-right">{p.estimatedHours}h</TableCell>
+                      <TableCell className="text-sm text-right">{p.realHours}h</TableCell>
+                      <TableCell className="text-right">
+                        {Math.abs(p.deviation) >= 10 ? <Badge variant="destructive" className="text-xs">{p.deviation > 0 ? '+' : ''}{p.deviation}h</Badge> : <span className="text-sm">{p.deviation}h</span>}
+                      </TableCell>
+                      <TableCell>{Math.abs(p.deviation) >= 10 ? <Badge variant="destructive" className="text-[10px]">Desvio</Badge> : <Badge variant="secondary" className="text-[10px]">OK</Badge>}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {productReview.filter((p: any) => Math.abs(p.deviation) >= 10).map((p: any) => (
+                <div key={p.id} className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700 p-3 flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-800 dark:text-amber-300 flex-1">O produto <strong>{p.name}</strong> demorou <strong>{Math.abs(p.deviation)}h</strong> {p.deviation > 0 ? 'a mais' : 'a menos'} do que o estimado. Considera rever as horas definidas no produto.</p>
+                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 shrink-0" onClick={() => navigate(`/produtos/${p.id}`)}><ExternalLink className="h-3 w-3" /> Ver produto</Button>
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* Team capacity warnings */}
+          {teamCapacity.filter(m => m.over).map(m => (
+            <div key={m.name} className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700 p-3 flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+              <p className="text-xs text-amber-800 dark:text-amber-300">Este mês <strong>{m.name}</strong> teve <strong>{m.committed}h</strong> comprometidas com <strong>{m.available}h</strong> disponíveis. Considera redistribuir clientes.</p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
