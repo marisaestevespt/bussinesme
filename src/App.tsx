@@ -60,6 +60,7 @@ import VendaDetailPage from "./pages/VendaDetail";
 import FinanceiroPage from "./pages/Financeiro";
 import FinanceiroSubPage from "./pages/FinanceiroSubPage";
 import OperacaoPage from "./pages/Operacao";
+import RecursosHumanosSubPage from "./pages/RecursosHumanosSubPage";
 
 const queryClient = new QueryClient();
 
