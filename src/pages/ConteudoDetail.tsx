@@ -22,7 +22,7 @@ import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon } from 'lucide-react';
+import { ChevronLeft, Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle } from 'lucide-react';
 
 export default function ConteudoDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +38,7 @@ export default function ConteudoDetailPage() {
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showResponsibleReminder, setShowResponsibleReminder] = useState(false);
 
   const { data: item, isLoading } = useQuery({
     queryKey: ['content-item', id],
@@ -303,12 +304,26 @@ export default function ConteudoDetailPage() {
               <Card>
                 <CardContent className="p-4 space-y-4">
                   <Field label="Status">
-                    <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+                    <Select value={form.status} onValueChange={v => {
+                      setForm(f => ({ ...f, status: v }));
+                      setShowResponsibleReminder(true);
+                    }}>
                       <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
+                    {showResponsibleReminder && (
+                      <div className="flex items-start gap-2 mt-2 p-2.5 rounded-md bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-800">
+                        <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-xs font-medium text-amber-800 dark:text-amber-300">O responsável de fase continua o mesmo?</p>
+                          <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">Confirma que o responsável de fase está correto para este novo status.</p>
+                        </div>
+                        <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900"
+                          onClick={() => setShowResponsibleReminder(false)}>OK</Button>
+                      </div>
+                    )}
                   </Field>
 
                   <Field label="Data e Hora">
