@@ -365,3 +365,97 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
     </div>
   );
 }
+
+function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin }: {
+  sub: Subscription;
+  linkedExpense: Expense | undefined;
+  isPaid: boolean;
+  month: number;
+  currentYear: number;
+  fin: ReturnType<typeof useFinancialData>;
+}) {
+  const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const [confirming, setConfirming] = useState(false);
+
+  const handleConfirm = async () => {
+    setConfirming(true);
+    const dateStr = `${currentYear}-${String(month).padStart(2, '0')}-15`;
+    if (linkedExpense) {
+      // Toggle status
+      await fin.upsertExpense.mutateAsync({
+        id: linkedExpense.id,
+        status: isPaid ? 'por_pagar' : 'pago',
+      } as any);
+    } else {
+      // Create expense linked to this subscription
+      await fin.upsertExpense.mutateAsync({
+        description: `${sub.platform_name} — ${MONTHS[month - 1]} ${currentYear}`,
+        category: 'ferramenta',
+        base_value: sub.monthly_equivalent,
+        vat_rate: 0,
+        total_with_vat: sub.monthly_equivalent,
+        location: sub.location,
+        expense_date: dateStr,
+        expense_month: month,
+        expense_quarter: Math.ceil(month / 3),
+        expense_year: currentYear,
+        status: 'pago',
+        source_type: 'subscription',
+        source_id: sub.id,
+      } as any);
+    }
+    setConfirming(false);
+    toast.success(isPaid ? 'Marcado como pendente' : 'Confirmado como pago');
+  };
+
+  // Invoice upload for this subscription expense
+  const handleDocsChange = async (docs: any[]) => {
+    if (linkedExpense) {
+      await fin.upsertExpense.mutateAsync({
+        id: linkedExpense.id,
+        documents: docs,
+      } as any);
+      toast.success('Fatura atualizada');
+    }
+  };
+
+  const docs = linkedExpense?.documents;
+  const docCount = Array.isArray(docs) ? docs.length : 0;
+
+  return (
+    <TableRow>
+      <TableCell className="font-medium">{sub.platform_name}</TableCell>
+      <TableCell className="text-right">{fmt(sub.monthly_equivalent)}</TableCell>
+      <TableCell>
+        {isPaid
+          ? <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Pago</Badge>
+          : <Badge variant="outline" className="text-muted-foreground">Pendente</Badge>
+        }
+      </TableCell>
+      <TableCell>
+        {linkedExpense && (
+          <InvoiceUpload
+            documents={Array.isArray(docs) ? docs : []}
+            onChange={handleDocsChange}
+            label=""
+          />
+        )}
+        {!linkedExpense && <span className="text-xs text-muted-foreground">Confirmar primeiro</span>}
+      </TableCell>
+      <TableCell>
+        <Button
+          size="sm"
+          variant={isPaid ? 'ghost' : 'default'}
+          disabled={confirming}
+          onClick={handleConfirm}
+          className="text-xs"
+        >
+          <Check className="h-3.5 w-3.5 mr-1" />
+          {isPaid ? 'Desfazer' : 'Confirmar'}
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
