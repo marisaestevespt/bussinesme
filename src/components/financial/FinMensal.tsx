@@ -18,11 +18,10 @@ import { supabase } from '@/integrations/supabase/client';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import type { Expense, Subscription, PayrollEntry, ContractorEntry, FinancialDocument } from '@/hooks/useFinancialData';
 import { InvoiceUpload } from './InvoiceUpload';
-
+import { CategorySelect } from './CategorySelect';
+import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
-const CATEGORIES = ['pessoal', 'freelancer', 'campanha', 'ferramenta', 'formacao', 'servico_contratado', 'seguranca_social', 'outro'];
-const CAT_LABELS: Record<string, string> = { pessoal: 'Pessoal', freelancer: 'Freelancer', campanha: 'Campanha', ferramenta: 'Ferramenta', formacao: 'Formação', servico_contratado: 'Serviço Contratado', seguranca_social: 'Segurança Social', outro: 'Outro' };
 const VAT_RATES = [0, 6, 13, 23];
 const LOCATIONS = ['portugal', 'ue', 'fora_ue'];
 const LOC_LABELS: Record<string, string> = { portugal: 'Portugal', ue: 'União Europeia', fora_ue: 'Fora da UE' };
@@ -43,6 +42,7 @@ interface Props {
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
 export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: Props) {
+  const { getCategoryLabel } = useFinancialCategories();
   const currentMonth = new Date().getMonth() + 1;
   const [month, setMonth] = useState(currentMonth.toString());
   const m = parseInt(month);
@@ -200,7 +200,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
               {monthExpenses.length === 0 ? (
                 <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Sem saídas</TableCell></TableRow>
               ) : monthExpenses.map(e => (
-                <TableRow key={e.id}><TableCell className="font-mono text-xs">{e.expense_id}</TableCell><TableCell>{e.description || '—'}</TableCell><TableCell>{CAT_LABELS[e.category] || e.category}</TableCell><TableCell className="text-right">{fmt(e.total_with_vat)}</TableCell><TableCell><Badge variant="outline">{e.status}</Badge></TableCell></TableRow>
+                <TableRow key={e.id}><TableCell className="font-mono text-xs">{e.expense_id}</TableCell><TableCell>{e.description || '—'}</TableCell><TableCell>{getCategoryLabel('expense', e.category)}</TableCell><TableCell className="text-right">{fmt(e.total_with_vat)}</TableCell><TableCell><Badge variant="outline">{e.status}</Badge></TableCell></TableRow>
               ))}
             </TableBody>
           </Table>
@@ -334,10 +334,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
           <div className="space-y-3">
             <div><Label>Descrição</Label><Input value={expForm.description} onChange={e => setExpForm((f: any) => ({ ...f, description: e.target.value }))} /></div>
             <div><Label>Categoria</Label>
-              <Select value={expForm.category} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{CATEGORIES.map(c => <SelectItem key={c} value={c}>{CAT_LABELS[c]}</SelectItem>)}</SelectContent>
-              </Select>
+              <CategorySelect type="expense" value={expForm.category} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Valor Base (€)</Label><Input type="number" value={expForm.base_value} onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))} /></div>

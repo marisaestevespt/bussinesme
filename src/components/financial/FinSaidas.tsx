@@ -16,16 +16,8 @@ import { toast } from 'sonner';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import { calcMonthlyEquivalent, type Expense, type Subscription } from '@/hooks/useFinancialData';
 import { InvoiceUpload, type DocEntry } from './InvoiceUpload';
-
-const EXP_CATEGORIES = [
-  { value: 'pessoal', label: 'Pessoal' },
-  { value: 'freelancer', label: 'Freelancer' },
-  { value: 'campanha', label: 'Campanha' },
-  { value: 'ferramenta', label: 'Ferramenta' },
-  { value: 'formacao', label: 'Formação' },
-  { value: 'servico_contratado', label: 'Serviço Contratado' },
-  { value: 'outro', label: 'Outro' },
-];
+import { CategorySelect } from './CategorySelect';
+import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 
 const EXP_STATUS = [
   { value: 'por_pagar', label: 'Por Pagar' },
@@ -38,15 +30,6 @@ const LOCATIONS = [
   { value: 'portugal', label: 'Portugal' },
   { value: 'ue', label: 'União Europeia' },
   { value: 'fora_ue', label: 'Fora da UE' },
-];
-
-const SUB_CATEGORIES = [
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'operacao', label: 'Operação' },
-  { value: 'comunicacao', label: 'Comunicação' },
-  { value: 'financeiro', label: 'Financeiro' },
-  { value: 'design', label: 'Design' },
-  { value: 'outro', label: 'Outro' },
 ];
 
 const PERIODICITIES = [
@@ -69,6 +52,7 @@ const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2,
 const FULL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 export function FinSaidas({ fin }: Props) {
+  const { expenseCategories, subscriptionCategories, getCategoryLabel } = useFinancialCategories();
   const expenses = fin.expenses.data || [];
   const subscriptions = fin.subscriptions.data || [];
   const payrollData = fin.payroll.data || [];
@@ -200,7 +184,7 @@ export function FinSaidas({ fin }: Props) {
                     <TableCell><Badge variant="outline" className={e.status === 'pago' ? 'bg-green-100 text-green-800' : e.status === 'cancelado' ? 'bg-muted text-muted-foreground' : 'bg-amber-100 text-amber-800'}>{EXP_STATUS.find(s => s.value === e.status)?.label || e.status}</Badge></TableCell>
                     <TableCell>{e.expense_date || '—'}</TableCell>
                     <TableCell className="truncate max-w-[200px]">{e.description || '—'}</TableCell>
-                    <TableCell>{EXP_CATEGORIES.find(c => c.value === e.category)?.label || e.category}</TableCell>
+                    <TableCell>{getCategoryLabel('expense', e.category)}</TableCell>
                     <TableCell className="text-right">{fmt(e.base_value)}</TableCell>
                     <TableCell>{e.vat_rate}%</TableCell>
                     <TableCell className="text-right font-medium">{fmt(e.total_with_vat)}</TableCell>
@@ -246,7 +230,7 @@ export function FinSaidas({ fin }: Props) {
                       setSubOpen(true);
                     }}>
                       <TableCell className="font-medium">{s.platform_name}</TableCell>
-                      <TableCell>{SUB_CATEGORIES.find(c => c.value === s.category)?.label || s.category}</TableCell>
+                      <TableCell>{getCategoryLabel('subscription', s.category)}</TableCell>
                       <TableCell className="text-right">{fmt(s.value)}</TableCell>
                       <TableCell>{PERIODICITIES.find(p => p.value === s.periodicity)?.label || s.periodicity}</TableCell>
                       <TableCell className="text-right font-medium">{fmt(s.monthly_equivalent)}</TableCell>
@@ -329,10 +313,7 @@ export function FinSaidas({ fin }: Props) {
             </div>
             <div><Label>Descrição</Label><Input value={expForm.description || ''} onChange={e => setExpForm((f: any) => ({ ...f, description: e.target.value }))} /></div>
             <div><Label>Categoria</Label>
-              <Select value={expForm.category || 'outro'} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{EXP_CATEGORIES.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-              </Select>
+              <CategorySelect type="expense" value={expForm.category || 'outro'} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Valor Base (€)</Label><Input type="number" step="0.01" value={expForm.base_value || ''} onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))} /></div>
@@ -368,10 +349,7 @@ export function FinSaidas({ fin }: Props) {
           <div className="space-y-3">
             <div><Label>Nome da Plataforma</Label><Input value={subForm.platform_name || ''} onChange={e => setSubForm((f: any) => ({ ...f, platform_name: e.target.value }))} /></div>
             <div><Label>Categoria</Label>
-              <Select value={subForm.category || 'outro'} onValueChange={v => setSubForm((f: any) => ({ ...f, category: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{SUB_CATEGORIES.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-              </Select>
+              <CategorySelect type="subscription" value={subForm.category || 'outro'} onValueChange={v => setSubForm((f: any) => ({ ...f, category: v }))} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Valor (€)</Label><Input type="number" step="0.01" value={subForm.value || ''} onChange={e => setSubForm((f: any) => ({ ...f, value: e.target.value }))} /></div>
