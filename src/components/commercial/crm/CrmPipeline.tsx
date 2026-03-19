@@ -49,11 +49,11 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus }: CrmPipelinePr
 
   return (
     <ScrollArea className="w-full">
-      <div className="flex gap-3 pb-4" style={{ minWidth: `${columns.length * 250}px` }}>
+      <div className="flex gap-3 pb-4" style={{ minWidth: `${columns.length * 290}px` }}>
         {columns.map(col => (
           <div
             key={col.value}
-            className={`flex flex-col w-[240px] shrink-0 rounded-lg border bg-muted/30 transition-colors ${dragOver === col.value ? 'ring-2 ring-primary/40' : ''}`}
+            className={`flex flex-col w-[280px] shrink-0 rounded-lg border bg-muted/30 transition-colors ${dragOver === col.value ? 'ring-2 ring-primary/40' : ''}`}
             onDragOver={e => { e.preventDefault(); setDragOver(col.value); }}
             onDragLeave={() => setDragOver(null)}
             onDrop={e => handleDrop(e, col.value)}
