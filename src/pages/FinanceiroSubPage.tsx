@@ -33,8 +33,8 @@ export default function FinanceiroSubPage() {
   const fin = useFinancialData();
   const com = useCommercialData();
   const currentYear = new Date().getFullYear();
-  const sales = com.sales.data || [];
-  const expenses = fin.expenses.data || [];
+  const sales = excludeCancelled(com.sales.data || []);
+  const expenses = excludeCancelled(fin.expenses.data || []);
   const subscriptions = fin.subscriptions.data || [];
   const payrollData = fin.payroll.data || [];
   const contractorsData = fin.contractors.data || [];
