@@ -31,17 +31,9 @@ function isPeriodEnded(period: string): boolean {
   return idx < new Date().getMonth();
 }
 
-type ViewMode = 'mensal' | 'trimestral' | 'semestral' | 'detalhe';
+export type GoalsViewMode = 'mensal' | 'trimestral' | 'semestral' | 'metas';
 
-const VIEW_BUTTONS: { key: ViewMode; label: string }[] = [
-  { key: 'mensal', label: 'Mensal' },
-  { key: 'trimestral', label: 'Trimestral' },
-  { key: 'semestral', label: 'Semestral' },
-  { key: 'detalhe', label: 'Metas em Detalhe' },
-];
-
-export function PlanningGoalsTab({ planning }: { planning: any }) {
-  const [viewMode, setViewMode] = useState<ViewMode>('mensal');
+export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: any; viewMode?: GoalsViewMode }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editGoal, setEditGoal] = useState<any>(null);
   const [filter, setFilter] = useState('todos');
@@ -235,40 +227,25 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
 
   return (
     <div className="space-y-4 mt-4">
-      {/* View mode buttons + Nova Meta */}
+      {/* Nova Meta + filters for 'metas' view */}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex gap-2">
-          {VIEW_BUTTONS.map(v => (
-            <Button
-              key={v.key}
-              size="sm"
-              variant={viewMode === v.key ? 'default' : 'outline'}
-              onClick={() => setViewMode(v.key)}
-              className="text-xs h-7"
-            >
-              {v.label}
-            </Button>
-          ))}
-        </div>
+        {viewMode === 'metas' ? (
+          <div className="flex gap-2">
+            {['todos', 'com_desvio', 'atingidas', 'por_iniciar'].map(f => (
+              <Button key={f} size="sm" variant={filter === f ? 'default' : 'outline'} onClick={() => setFilter(f)} className="text-xs h-7">
+                {f === 'todos' ? 'Todos' : f === 'com_desvio' ? 'Com desvio' : f === 'atingidas' ? 'Atingidas' : 'Por iniciar'}
+              </Button>
+            ))}
+          </div>
+        ) : <div />}
         <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Meta</Button>
       </div>
-
-      {/* Detalhe view: show filters */}
-      {viewMode === 'detalhe' && (
-        <div className="flex gap-2">
-          {['todos', 'com_desvio', 'atingidas', 'por_iniciar'].map(f => (
-            <Button key={f} size="sm" variant={filter === f ? 'default' : 'outline'} onClick={() => setFilter(f)} className="text-xs h-7">
-              {f === 'todos' ? 'Todos' : f === 'com_desvio' ? 'Com desvio' : f === 'atingidas' ? 'Atingidas' : 'Por iniciar'}
-            </Button>
-          ))}
-        </div>
-      )}
 
       {/* Render view */}
       {viewMode === 'mensal' && renderGroupedTable(monthlyByObj, { clickable: true, showDelete: true })}
       {viewMode === 'trimestral' && renderGroupedTable(quarterlyByObj, { clickable: false, showDelete: false })}
       {viewMode === 'semestral' && renderGroupedTable(semesterByObj, { clickable: false, showDelete: false })}
-      {viewMode === 'detalhe' && renderGroupedTable(detailGrouped, { clickable: true, showDelete: true })}
+      {viewMode === 'metas' && renderGroupedTable(detailGrouped, { clickable: true, showDelete: true })}
 
       {/* Create / Edit Goal Dialog */}
       <Dialog open={dialogOpen} onOpenChange={v => { if (!v) { setDialogOpen(false); setEditGoal(null); } else setDialogOpen(true); }}>
