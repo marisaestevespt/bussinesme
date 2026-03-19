@@ -320,10 +320,25 @@ export function usePlanningData(year = currentYear) {
     return null;
   };
 
+  // Products for resolving product_id → name
+  const productsQuery = useQuery({
+    queryKey: ['products-names'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('id,name');
+      return data || [];
+    },
+  });
+
+  const resolveProductName = (productId: string | null) => {
+    if (!productId) return null;
+    return (productsQuery.data || []).find((p: any) => p.id === productId)?.name || null;
+  };
+
   // Helper: compute objective progress
   const objectiveProgress = (obj: any) => {
     if (obj.objective_type === 'quantitativo') {
-      const cv = obj.value_source === 'manual' ? Number(obj.current_value || 0) : (getAutoValue(obj.value_source, obj.product_name) ?? 0);
+      const pName = obj.product_name ?? resolveProductName(obj.product_id);
+      const cv = obj.value_source === 'manual' ? Number(obj.current_value || 0) : (getAutoValue(obj.value_source, pName) ?? 0);
       const tv = Number(obj.target_value || 0);
       if (tv <= 0) return 0;
       return Math.min(100, Math.round((cv / tv) * 100));
@@ -337,7 +352,8 @@ export function usePlanningData(year = currentYear) {
   // Helper: current value for objective
   const objectiveCurrentValue = (obj: any) => {
     if (obj.value_source === 'manual') return Number(obj.current_value || 0);
-    return getAutoValue(obj.value_source, obj.product_name) ?? 0;
+    const pName = obj.product_name ?? resolveProductName(obj.product_id);
+    return getAutoValue(obj.value_source, pName) ?? 0;
   };
 
   // Computed: metrics with overdue check
