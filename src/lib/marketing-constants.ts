@@ -21,21 +21,23 @@ export interface ContentAttachment {
 }
 
 export const STATUS_OPTIONS = [
-  { value: 'por_planear', label: 'Por planear', color: 'bg-muted text-muted-foreground' },
-  { value: 'a_produzir', label: 'A produzir', color: 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300' },
-  { value: 'gravar', label: 'Gravar', color: 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300' },
+  { value: 'em_ideia', label: 'Em ideia', color: 'bg-muted text-muted-foreground' },
+  { value: 'pronto_para_copy', label: 'Pronto para copy', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300' },
+  { value: 'em_copy', label: 'Em copy', color: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' },
+  { value: 'pronto_para_design', label: 'Pronto para design', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300' },
+  { value: 'em_design', label: 'Em design', color: 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300' },
+  { value: 'gravar', label: 'Gravar', color: 'bg-pink-100 text-pink-800 dark:bg-pink-950 dark:text-pink-300' },
   { value: 'editar', label: 'Editar', color: 'bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300' },
+  { value: 'aprovacao_final', label: 'Aprovação Final', color: 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300' },
+  { value: 'tudo_pronto', label: 'Tudo pronto', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' },
   { value: 'agendado', label: 'Agendado', color: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300' },
   { value: 'publicado', label: 'Publicado', color: 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300' },
-  { value: 'arquivo', label: 'Arquivo', color: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400' },
 ];
 
 export const FUNNEL_OPTIONS = [
-  { value: 'topo', label: 'Topo' },
-  { value: 'meio_nutricao', label: 'Meio — Nutrição' },
-  { value: 'meio_conversao', label: 'Meio — Conversão' },
-  { value: 'fundo', label: 'Fundo' },
-  { value: 'posicionamento', label: 'Posicionamento' },
+  { value: 'topo', label: 'Topo de Funil' },
+  { value: 'meio', label: 'Meio de Funil' },
+  { value: 'fundo', label: 'Fundo de Funil' },
 ];
 
 export const CONTENT_TYPE_OPTIONS = [
@@ -57,12 +59,13 @@ export const FORMAT_OPTIONS = [
 ];
 
 export const OBJECTIVE_OPTIONS = [
+  { value: 'comentario_palavra', label: 'Comentário c/ palavra' },
+  { value: 'click_link', label: 'Click em link' },
   { value: 'comentarios', label: 'Comentários' },
-  { value: 'partilhas', label: 'Partilhas' },
+  { value: 'gostos', label: 'Gostos' },
   { value: 'guardados', label: 'Guardados' },
-  { value: 'cliques', label: 'Cliques' },
-  { value: 'leads', label: 'Leads' },
-  { value: 'vendas', label: 'Vendas' },
+  { value: 'partilhas', label: 'Partilhas' },
+  { value: 'respostas', label: 'Respostas' },
 ];
 
 export function getStatusOption(value: string) {
