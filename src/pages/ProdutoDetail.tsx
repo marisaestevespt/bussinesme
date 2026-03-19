@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Copy, Trash2, Plus, ExternalLink, X } from 'lucide-react';
+import { ArrowLeft, Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, Product } from '@/hooks/useProducts';
 import { useCommercialData } from '@/hooks/useCommercialData';
