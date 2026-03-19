@@ -544,8 +544,9 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           <div className="flex items-center gap-2">
             <CardTitle className="text-sm">Clientes Ativos & Renovações</CardTitle>
             <div className="flex gap-1 ml-auto">
-              <Button size="sm" variant={clientTab === 'ativos' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('ativos')}>Clientes Ativos</Button>
-              <Button size="sm" variant={clientTab === 'terminar' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('terminar')}>A terminar este mês</Button>
+              <Button size="sm" variant={clientTab === 'ativos' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('ativos')}>Clientes Ativos ({activeClients.length})</Button>
+              <Button size="sm" variant={clientTab === 'pausados' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('pausados')}>Em Pausa ({pausedClients.length})</Button>
+              <Button size="sm" variant={clientTab === 'terminar' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('terminar')}>A terminar este mês ({endingClients.length})</Button>
             </div>
           </div>
         </CardHeader>
