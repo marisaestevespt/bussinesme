@@ -98,6 +98,7 @@ export default function ClienteDetailPage() {
   const [saleOpen, setSaleOpen] = useState(false);
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [meetingForm, setMeetingForm] = useState({ title: '', date_time: '', meeting_url: '' });
+  const [totalValue, setTotalValue] = useState('');
 
   const queryClient = useQueryClient();
 
