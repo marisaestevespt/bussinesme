@@ -360,16 +360,36 @@ export default function OperacaoPage() {
                               <TableHead className="text-xs">ID</TableHead>
                               <TableHead className="text-xs">Nome</TableHead>
                               <TableHead className="text-xs">Data de Início</TableHead>
+                              {expandedStatus === 'em_onboarding' && <TableHead className="text-xs">Por concluir</TableHead>}
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {clients.filter(c => c.status === expandedStatus).map(c => (
-                              <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setExpandedStatus(null); window.location.href = `/hub/clientes/${c.id}`; }}>
-                                <TableCell className="text-xs font-mono">{c.client_id}</TableCell>
-                                <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
-                                <TableCell className="text-xs text-muted-foreground">{c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
-                              </TableRow>
-                            ))}
+                            {clients.filter(c => c.status === expandedStatus).map(c => {
+                              const pendingItems = expandedStatus === 'em_onboarding' ? allOnboarding.filter(o => o.client_id === c.id) : [];
+                              return (
+                                <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 align-top" onClick={() => { setExpandedStatus(null); window.location.href = `/hub/clientes/${c.id}`; }}>
+                                  <TableCell className="text-xs font-mono">{c.client_id}</TableCell>
+                                  <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
+                                  <TableCell className="text-xs text-muted-foreground">{c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                                  {expandedStatus === 'em_onboarding' && (
+                                    <TableCell>
+                                      {pendingItems.length === 0 ? (
+                                        <span className="text-xs text-muted-foreground">Sem checklist</span>
+                                      ) : (
+                                        <ul className="space-y-0.5">
+                                          {pendingItems.map((item, i) => (
+                                            <li key={i} className="text-xs text-destructive flex items-center gap-1">
+                                              <span className="h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
+                                              {item.phase ? `${item.phase}: ` : ''}{item.activity}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      )}
+                                    </TableCell>
+                                  )}
+                                </TableRow>
+                              );
+                            })}
                           </TableBody>
                         </Table>
                       )}
