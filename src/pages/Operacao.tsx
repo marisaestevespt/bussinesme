@@ -196,8 +196,8 @@ function applyTaskFilters(tasks: Task[], filters: TaskFilters): Task[] {
 // ─── Main ───────────────────────────────────────────────────────
 
 export default function OperacaoPage() {
-  const [clientTaskFilter, setClientTaskFilter] = useState<TaskFilter>('todas');
-  const [internoTaskFilter, setInternoTaskFilter] = useState<TaskFilter>('todas');
+  const [clientFilters, setClientFilters] = useState<TaskFilters>(EMPTY_FILTERS);
+  const [internoFilters, setInternoFilters] = useState<TaskFilters>(EMPTY_FILTERS);
   const [expandedStatus, setExpandedStatus] = useState<string | null>(null);
 
   // ── Queries ─────────────────────────────────────────────────
