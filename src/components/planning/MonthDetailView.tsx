@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertTriangle, ArrowLeft, Calendar, ChevronLeft, ChevronRight, ExternalLink, Plus, Trash2 } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Calendar, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, Plus, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -72,6 +72,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const [selectedObjective, setSelectedObjective] = useState<any>(null);
   const [objDialogOpen, setObjDialogOpen] = useState(false);
   const navigate = useNavigate();
+  const [expandedClient, setExpandedClient] = useState<string | null>(null);
 
   // ── Data queries ──
   const salesQ = useQuery({ queryKey: ['md-sales', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales').select('*').eq('sale_year', year).eq('sale_month', monthNum); return data || []; }});
@@ -754,7 +755,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                       </TableRow>
                     </TableBody>
                   </Table>
-                  <div className="ml-4 border-l-2 border-border/50 pl-3">
+                   <div className="ml-4 border-l-2 border-border/50 pl-3">
                     <Table>
                       <TableHeader><TableRow>
                         <TableHead className="text-[10px]">Cliente</TableHead><TableHead className="text-[10px] text-right">Estimado</TableHead><TableHead className="text-[10px] text-right">Real</TableHead><TableHead className="text-[10px] text-right">Desvio</TableHead><TableHead className="text-[10px]">Status</TableHead>
@@ -763,18 +764,57 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                         {p.clientBreakdown.map((cb: any) => {
                           const isOver = cb.deviation > 2;
                           const isUnder = cb.deviation < -2;
+                          const isExpanded = expandedClient === `${p.id}-${cb.clientId}`;
+                          const clientEntries = timeEntries.filter((te: any) => te.client_id === cb.clientId);
                           return (
-                            <TableRow key={cb.clientId} className={cn('cursor-pointer hover:bg-muted/60', isOver && 'bg-red-50/50 dark:bg-red-950/10')} onClick={() => navigate(`/clientes/${cb.clientId}`)}>
-                              <TableCell className="text-xs">{cb.clientName} <span className="text-muted-foreground">({cb.clientCode})</span></TableCell>
-                              <TableCell className="text-xs text-right">{cb.estimated}h</TableCell>
-                              <TableCell className="text-xs text-right">{cb.realHours}h</TableCell>
-                              <TableCell className="text-xs text-right">
-                                {isOver ? <span className="text-destructive font-medium">+{cb.deviation}h</span> : isUnder ? <span className="text-blue-600 font-medium">{cb.deviation}h</span> : <span>{cb.deviation > 0 ? '+' : ''}{cb.deviation}h</span>}
-                              </TableCell>
-                              <TableCell>
-                                {isOver ? <Badge variant="destructive" className="text-[9px]">Acima</Badge> : isUnder ? <Badge className="text-[9px] bg-blue-100 text-blue-700">Abaixo</Badge> : <Badge variant="secondary" className="text-[9px]">OK</Badge>}
-                              </TableCell>
-                            </TableRow>
+                            <React.Fragment key={cb.clientId}>
+                              <TableRow className={cn('cursor-pointer hover:bg-muted/60', isOver && 'bg-destructive/5')} onClick={() => setExpandedClient(isExpanded ? null : `${p.id}-${cb.clientId}`)}>
+                                <TableCell className="text-xs">{cb.clientName} <span className="text-muted-foreground">({cb.clientCode})</span> {isExpanded ? <ChevronDown className="inline h-3 w-3" /> : <ChevronRight className="inline h-3 w-3" />}</TableCell>
+                                <TableCell className="text-xs text-right">{cb.estimated}h</TableCell>
+                                <TableCell className="text-xs text-right">{cb.realHours}h</TableCell>
+                                <TableCell className="text-xs text-right">
+                                  {isOver ? <span className="text-destructive font-medium">+{cb.deviation}h</span> : isUnder ? <span className="text-blue-600 font-medium">{cb.deviation}h</span> : <span>{cb.deviation > 0 ? '+' : ''}{cb.deviation}h</span>}
+                                </TableCell>
+                                <TableCell>
+                                  {isOver ? <Badge variant="destructive" className="text-[9px]">Acima</Badge> : isUnder ? <Badge className="text-[9px] bg-blue-100 text-blue-700">Abaixo</Badge> : <Badge variant="secondary" className="text-[9px]">OK</Badge>}
+                                </TableCell>
+                              </TableRow>
+                              {isExpanded && (
+                                <TableRow>
+                                  <TableCell colSpan={5} className="p-0">
+                                    <div className="bg-muted/30 p-3 ml-4 border-l-2 border-primary/30">
+                                      {clientEntries.length === 0 ? (
+                                        <p className="text-xs text-muted-foreground">Sem registos de tempo para este cliente neste mês.</p>
+                                      ) : (
+                                        <Table>
+                                          <TableHeader><TableRow>
+                                            <TableHead className="text-[10px]">Data</TableHead>
+                                            <TableHead className="text-[10px]">Descrição</TableHead>
+                                            <TableHead className="text-[10px]">Categoria</TableHead>
+                                            <TableHead className="text-[10px]">Responsável</TableHead>
+                                            <TableHead className="text-[10px] text-right">Tempo</TableHead>
+                                          </TableRow></TableHeader>
+                                          <TableBody>
+                                            {clientEntries.sort((a: any, b: any) => (a.entry_date || '').localeCompare(b.entry_date || '')).map((te: any) => {
+                                              const memberName = team.find((m: any) => m.id === te.member_id)?.full_name || '—';
+                                              return (
+                                                <TableRow key={te.id}>
+                                                  <TableCell className="text-[11px]">{te.entry_date}</TableCell>
+                                                  <TableCell className="text-[11px]">{te.description || '—'}</TableCell>
+                                                  <TableCell><Badge variant="outline" className="text-[9px]">{te.category || '—'}</Badge></TableCell>
+                                                  <TableCell className="text-[11px]">{memberName}</TableCell>
+                                                  <TableCell className="text-[11px] text-right font-medium">{te.duration}h</TableCell>
+                                                </TableRow>
+                                              );
+                                            })}
+                                          </TableBody>
+                                        </Table>
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              )}
+                            </React.Fragment>
                           );
                         })}
                       </TableBody>
