@@ -1,4 +1,5 @@
 import { AppLayout } from '@/components/AppLayout';
+import { excludeCancelled } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
