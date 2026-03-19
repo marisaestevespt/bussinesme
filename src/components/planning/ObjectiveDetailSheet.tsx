@@ -39,6 +39,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
         objective_type: obj.objective_type || 'quantitativo', target_value: obj.target_value || '',
         target_unit: obj.target_unit || '€', current_value: obj.current_value || '',
         value_source: obj.value_source || 'manual', product_id: obj.product_id || '',
+        measurement_type: obj.measurement_type || 'acumulativo',
       });
       setEditing(false);
     }
