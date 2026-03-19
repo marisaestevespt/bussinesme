@@ -116,6 +116,7 @@ export function CommercialCRM() {
         onOpenChange={v => { setSheetOpen(v); if (!v) setSelectedLead(null); }}
         lead={selectedLead}
         products={products}
+        profiles={profiles}
         onSave={handleSave}
         onDelete={handleDelete}
       />
