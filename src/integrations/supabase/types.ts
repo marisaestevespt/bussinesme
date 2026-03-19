@@ -14,6 +14,131 @@ export type Database = {
   }
   public: {
     Tables: {
+      brand_kanban_items: {
+        Row: {
+          content: string | null
+          created_at: string
+          group_key: string
+          id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          group_key: string
+          id?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          group_key?: string
+          id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      brand_links: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          sort_order: number
+          type: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          sort_order?: number
+          type?: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          sort_order?: number
+          type?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      brand_visual_cards: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      brand_visual_files: {
+        Row: {
+          card_id: string
+          created_at: string
+          file_name: string
+          file_type: string
+          file_url: string
+          id: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          file_name: string
+          file_type?: string
+          file_url: string
+          id?: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          file_name?: string
+          file_type?: string
+          file_url?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_visual_files_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "brand_visual_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_settings: {
         Row: {
           about_text: string | null
@@ -25,6 +150,7 @@ export type Database = {
           id: string
           logo_url: string | null
           primary_color: string
+          proposta_unica_valor: string | null
           secondary_color: string
           text_color: string
           updated_at: string
@@ -40,6 +166,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           primary_color?: string
+          proposta_unica_valor?: string | null
           secondary_color?: string
           text_color?: string
           updated_at?: string
@@ -55,6 +182,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           primary_color?: string
+          proposta_unica_valor?: string | null
           secondary_color?: string
           text_color?: string
           updated_at?: string

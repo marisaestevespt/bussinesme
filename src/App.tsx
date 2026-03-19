@@ -27,6 +27,7 @@ import SopDetailPage from "./pages/SopDetail";
 import BibliotecaPage from "./pages/Biblioteca";
 import TarefasPage from "./pages/Tarefas";
 import HubEquipaPage from "./pages/HubEquipa";
+import GestaoMarcaPage from "./pages/GestaoMarca";
 
 const queryClient = new QueryClient();
 
@@ -62,7 +63,8 @@ function AppRoutes() {
       <Route path="/hub/processos/:id" element={<SopDetailPage />} />
       <Route path="/hub/biblioteca" element={<BibliotecaPage />} />
       <Route path="/hub/tarefas" element={<TarefasPage />} />
-      <Route path="/hub/:module" element={<HubPage />} />
+        <Route path="/hub/marketing/gestao-marca" element={<GestaoMarcaPage />} />
+        <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
       <Route path="/definicoes" element={<DefinicoesPage />} />
       <Route path="*" element={<NotFound />} />
