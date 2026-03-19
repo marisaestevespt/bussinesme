@@ -572,6 +572,33 @@ export type Database = {
         }
         Relationships: []
       }
+      commercial_strategy: {
+        Row: {
+          created_at: string
+          id: string
+          period: string
+          sections: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          period?: string
+          sections?: Json
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          period?: string
+          sections?: Json
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       content_attachments: {
         Row: {
           content_id: string
