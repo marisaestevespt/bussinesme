@@ -2148,6 +2148,7 @@ export type Database = {
       products: {
         Row: {
           about_content: string | null
+          accounting_notes: string | null
           brainstorming_content: string | null
           client_profile: Json | null
           competitors: Json | null
@@ -2162,6 +2163,7 @@ export type Database = {
           important_dates: Json | null
           improvements_content: string | null
           included_items: Json | null
+          invoice_denomination: string | null
           logo_url: string | null
           name: string
           product_type: string | null
@@ -2170,9 +2172,11 @@ export type Database = {
           status: string
           ticket: string | null
           updated_at: string
+          vat_rate: string | null
         }
         Insert: {
           about_content?: string | null
+          accounting_notes?: string | null
           brainstorming_content?: string | null
           client_profile?: Json | null
           competitors?: Json | null
@@ -2187,6 +2191,7 @@ export type Database = {
           important_dates?: Json | null
           improvements_content?: string | null
           included_items?: Json | null
+          invoice_denomination?: string | null
           logo_url?: string | null
           name: string
           product_type?: string | null
@@ -2195,9 +2200,11 @@ export type Database = {
           status?: string
           ticket?: string | null
           updated_at?: string
+          vat_rate?: string | null
         }
         Update: {
           about_content?: string | null
+          accounting_notes?: string | null
           brainstorming_content?: string | null
           client_profile?: Json | null
           competitors?: Json | null
@@ -2212,6 +2219,7 @@ export type Database = {
           important_dates?: Json | null
           improvements_content?: string | null
           included_items?: Json | null
+          invoice_denomination?: string | null
           logo_url?: string | null
           name?: string
           product_type?: string | null
@@ -2220,6 +2228,7 @@ export type Database = {
           status?: string
           ticket?: string | null
           updated_at?: string
+          vat_rate?: string | null
         }
         Relationships: []
       }
