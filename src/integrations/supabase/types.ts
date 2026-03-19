@@ -1694,6 +1694,7 @@ export type Database = {
           deadline: string | null
           description: string | null
           id: string
+          measurement_type: string
           objective_type: string
           product_id: string | null
           progress: number
@@ -1712,6 +1713,7 @@ export type Database = {
           deadline?: string | null
           description?: string | null
           id?: string
+          measurement_type?: string
           objective_type?: string
           product_id?: string | null
           progress?: number
@@ -1730,6 +1732,7 @@ export type Database = {
           deadline?: string | null
           description?: string | null
           id?: string
+          measurement_type?: string
           objective_type?: string
           product_id?: string | null
           progress?: number
@@ -3099,6 +3102,7 @@ export type Database = {
           green_threshold: number | null
           id: string
           last_updated_at: string | null
+          measurement_type: string
           name: string
           objective_id: string
           product_id: string | null
@@ -3114,6 +3118,7 @@ export type Database = {
           green_threshold?: number | null
           id?: string
           last_updated_at?: string | null
+          measurement_type?: string
           name?: string
           objective_id: string
           product_id?: string | null
@@ -3129,6 +3134,7 @@ export type Database = {
           green_threshold?: number | null
           id?: string
           last_updated_at?: string | null
+          measurement_type?: string
           name?: string
           objective_id?: string
           product_id?: string | null
