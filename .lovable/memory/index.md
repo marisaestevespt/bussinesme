@@ -9,6 +9,7 @@ Design system: white-label HQ business management app. Matte ceramic surfaces, G
 - profiles: auto-created on signup via trigger
 - internal_documents: title, category, content, file_url, created_by, timestamps
 - routines.sop_id: links routine to its step-by-step SOP
+- user_views: per-user custom views per page (user_id, page_key, label, filter_config, sort_order)
 
 ## Auth Flow
 1. No user → AuthPage (login/signup)
@@ -33,3 +34,5 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, bib
 - Owner role cannot be edited/deleted (is_owner=true in custom_roles)
 - has_role() is SECURITY DEFINER function for RLS
 - Routines create linked SOPs that count in total SOP count
+- ViewTabs: Owner defines default views, each user can add/rename/delete personal custom views (useUserViews hook + ViewTabs component)
+- Pages with ViewTabs: tarefas, projetos, reunioes, processos, agenda, mural, biblioteca
