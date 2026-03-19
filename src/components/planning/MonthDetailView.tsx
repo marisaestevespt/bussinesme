@@ -366,7 +366,12 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
 
       {/* ═══ SECTION 2: Agenda ═══ */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Agenda ME & Calendários</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm">Agenda ME & Calendários</CardTitle>
+            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/agenda')}><Plus className="h-3 w-3" /> Novo Evento</Button>
+          </div>
+        </CardHeader>
         <CardContent>
           {renderCalendarGrid(
             allEvents,
