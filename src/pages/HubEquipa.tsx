@@ -148,6 +148,9 @@ export default function HubEquipaPage() {
           ))}
         </div>
 
+        {/* Quick summary */}
+        <QuickSummary />
+
         {/* Departamentos full width */}
         <DepartamentosColumn />
       </div>
