@@ -38,7 +38,7 @@ export function TabCustomerSuccess({ productId, isOwner, teamMembers }: Props) {
     queryKey: ['product-nps-config', productId],
     queryFn: async () => {
       const { data } = await supabase.from('product_nps_config' as any).select('*').eq('product_id', productId).maybeSingle();
-      return data;
+      return data as any;
     },
   });
 
