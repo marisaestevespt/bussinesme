@@ -3159,6 +3159,143 @@ export type Database = {
           },
         ]
       }
+      product_milestones: {
+        Row: {
+          created_at: string
+          days_after_start: number
+          id: string
+          milestone: string
+          milestone_type: string
+          product_id: string
+          responsible_id: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          days_after_start?: number
+          id?: string
+          milestone?: string
+          milestone_type?: string
+          product_id: string
+          responsible_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          days_after_start?: number
+          id?: string
+          milestone?: string
+          milestone_type?: string
+          product_id?: string
+          responsible_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_milestones_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_milestones_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_nps_config: {
+        Row: {
+          cadence_days: number
+          collection_message: string | null
+          created_at: string
+          id: string
+          product_id: string
+          responsible_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          cadence_days?: number
+          collection_message?: string | null
+          created_at?: string
+          id?: string
+          product_id: string
+          responsible_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cadence_days?: number
+          collection_message?: string | null
+          created_at?: string
+          id?: string
+          product_id?: string
+          responsible_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_nps_config_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_nps_config_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_nps_records: {
+        Row: {
+          client_name: string
+          collection_date: string
+          created_at: string
+          id: string
+          notes: string | null
+          nps_score: number | null
+          product_id: string
+          status: string
+        }
+        Insert: {
+          client_name?: string
+          collection_date?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          nps_score?: number | null
+          product_id: string
+          status?: string
+        }
+        Update: {
+          client_name?: string
+          collection_date?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          nps_score?: number | null
+          product_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_nps_records_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_offboarding_templates: {
         Row: {
           activity: string
