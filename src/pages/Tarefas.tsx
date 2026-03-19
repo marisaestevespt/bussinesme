@@ -76,6 +76,7 @@ function getDeptInfo(val: string) {
 export default function TarefasPage() {
   const { user, isOwner } = useAuth();
   const queryClient = useQueryClient();
+  const { startTimer: globalStartTimer } = useActiveTimer();
   const { allViews, addView, renameView, deleteView } = useUserViews('tarefas', DEFAULT_VIEWS);
   const [view, setView] = useState<string>('todo');
   const [dialogOpen, setDialogOpen] = useState(false);
