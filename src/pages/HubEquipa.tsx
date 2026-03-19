@@ -130,10 +130,22 @@ export default function HubEquipaPage() {
         {/* Quick links */}
         <QuickLinks />
 
-        {/* Two columns: Hall + Transversais */}
-        <div className="grid gap-8 md:grid-cols-2">
-          <HallColumn />
-          <TransversaisColumn />
+        {/* Transversais cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+          {TRANSVERSAIS_CARDS.map(s => (
+            <Card
+              key={s.path}
+              className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
+              onClick={() => navigate(s.path)}
+            >
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
+                  <s.icon className="h-4.5 w-4.5" />
+                </div>
+                <span className="font-medium text-sm">{s.label}</span>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Departamentos full width */}
