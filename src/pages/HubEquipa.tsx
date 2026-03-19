@@ -151,18 +151,22 @@ function HallColumn() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Hall</h2>
-      <div className="space-y-1">
-        {HALL_LINKS.map(l => (
-          <button
-            key={l.path}
-            onClick={() => navigate(l.path)}
-            className="block text-sm font-semibold hover:text-primary transition-colors text-left py-1"
-          >
-            {l.label}
-          </button>
-        ))}
-      </div>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm uppercase tracking-wide text-muted-foreground">Hall</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          {HALL_LINKS.map(l => (
+            <button
+              key={l.path}
+              onClick={() => navigate(l.path)}
+              className="block text-sm font-semibold hover:text-primary transition-colors text-left py-1"
+            >
+              {l.label}
+            </button>
+          ))}
+        </CardContent>
+      </Card>
 
       <RecommendationsBox isAdmin={isOwner} />
     </div>
@@ -303,18 +307,22 @@ function TransversaisColumn() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Transversais</h2>
-      <div className="space-y-1">
-        {TRANSVERSAIS_LINKS.map(l => (
-          <button
-            key={l.path}
-            onClick={() => navigate(l.path)}
-            className="block text-sm font-semibold hover:text-primary transition-colors text-left py-1"
-          >
-            {l.label}
-          </button>
-        ))}
-      </div>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm uppercase tracking-wide text-muted-foreground">Transversais</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          {TRANSVERSAIS_LINKS.map(l => (
+            <button
+              key={l.path}
+              onClick={() => navigate(l.path)}
+              className="block text-sm font-semibold hover:text-primary transition-colors text-left py-1"
+            >
+              {l.label}
+            </button>
+          ))}
+        </CardContent>
+      </Card>
 
       {/* Quick summary */}
       <Card>
