@@ -16,6 +16,7 @@ import HubPage from "./pages/Hub";
 import ExecutiveDashboard from "./pages/ExecutiveDashboard";
 import ExecutivePlaneamento from "./pages/ExecutivePlaneamento";
 import ExecutiveWeeklyAlign from "./pages/ExecutiveWeeklyAlign";
+import ExecutiveGestaoEquipa from "./pages/ExecutiveGestaoEquipa";
 import ExecutivePage from "./pages/Executive";
 import DefinicoesPage from "./pages/Definicoes";
 import AgendaPage from "./pages/Agenda";
@@ -121,6 +122,7 @@ function AppRoutes() {
       <Route path="/executive" element={<ExecutiveDashboard />} />
       <Route path="/executive/planeamento" element={<ExecutivePlaneamento />} />
       <Route path="/executive/weekly-align" element={<ExecutiveWeeklyAlign />} />
+      <Route path="/executive/gestao-equipa" element={<ExecutiveGestaoEquipa />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
       <Route path="/definicoes" element={<DefinicoesPage />} />
       <Route path="*" element={<NotFound />} />

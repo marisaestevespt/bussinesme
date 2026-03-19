@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Target, CalendarCheck, Lightbulb, Rocket, Clock, Trash2, Plus } from 'lucide-react';
+import { Target, CalendarCheck, Lightbulb, Rocket, Clock, Trash2, Plus, Users } from 'lucide-react';
 import { useExecutiveData, getMonthName, areaLabel, statusLabel } from '@/hooks/useExecutiveData';
 
 const currentMonth = new Date().getMonth() + 1;
@@ -52,6 +52,9 @@ export default function ExecutiveDashboard() {
               </Link>
               <Link to="/executive/weekly-align" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
                 <CalendarCheck className="h-4 w-4 text-muted-foreground" /> Weekly Align
+              </Link>
+              <Link to="/executive/gestao-equipa" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
+                <Users className="h-4 w-4 text-muted-foreground" /> Gestão de Equipa
               </Link>
             </CardContent>
           </Card>

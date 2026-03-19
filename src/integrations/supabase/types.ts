@@ -1572,6 +1572,53 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback_sessions: {
+        Row: {
+          agreements: string | null
+          created_at: string
+          feedback_type: string
+          id: string
+          member_id: string
+          next_session: string | null
+          session_date: string
+          to_improve: string | null
+          updated_at: string
+          went_well: string | null
+        }
+        Insert: {
+          agreements?: string | null
+          created_at?: string
+          feedback_type?: string
+          id?: string
+          member_id: string
+          next_session?: string | null
+          session_date: string
+          to_improve?: string | null
+          updated_at?: string
+          went_well?: string | null
+        }
+        Update: {
+          agreements?: string | null
+          created_at?: string
+          feedback_type?: string
+          id?: string
+          member_id?: string
+          next_session?: string | null
+          session_date?: string
+          to_improve?: string | null
+          updated_at?: string
+          went_well?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_sessions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_categories: {
         Row: {
           category_type: string
@@ -2254,6 +2301,138 @@ export type Database = {
           },
         ]
       }
+      member_contracts: {
+        Row: {
+          contract_type: string
+          created_at: string
+          document_url: string | null
+          end_date: string | null
+          id: string
+          member_id: string
+          notes: string | null
+          start_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          contract_type?: string
+          created_at?: string
+          document_url?: string | null
+          end_date?: string | null
+          id?: string
+          member_id: string
+          notes?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          contract_type?: string
+          created_at?: string
+          document_url?: string | null
+          end_date?: string | null
+          id?: string
+          member_id?: string
+          notes?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_contracts_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_onboarding: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          member_id: string
+          sort_order: number
+          task: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          member_id: string
+          sort_order?: number
+          task: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          member_id?: string
+          sort_order?: number
+          task?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_onboarding_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_payments: {
+        Row: {
+          created_at: string
+          document_url: string | null
+          gross_value: number
+          id: string
+          member_id: string
+          month: number
+          net_value: number
+          payment_type: string
+          status: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          document_url?: string | null
+          gross_value?: number
+          id?: string
+          member_id: string
+          month: number
+          net_value?: number
+          payment_type?: string
+          status?: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          document_url?: string | null
+          gross_value?: number
+          id?: string
+          member_id?: string
+          month?: number
+          net_value?: number
+          payment_type?: string
+          status?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_payments_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       members: {
         Row: {
           created_at: string
@@ -2382,6 +2561,115 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "mural_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      performance_monthly: {
+        Row: {
+          comments: string | null
+          created_at: string
+          hours_worked: number | null
+          id: string
+          member_id: string
+          month: number
+          notes: string | null
+          overall_status: string
+          projects_active: number | null
+          rating: number | null
+          tasks_completed: number | null
+          tasks_overdue: number | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          comments?: string | null
+          created_at?: string
+          hours_worked?: number | null
+          id?: string
+          member_id: string
+          month: number
+          notes?: string | null
+          overall_status?: string
+          projects_active?: number | null
+          rating?: number | null
+          tasks_completed?: number | null
+          tasks_overdue?: number | null
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          comments?: string | null
+          created_at?: string
+          hours_worked?: number | null
+          id?: string
+          member_id?: string
+          month?: number
+          notes?: string | null
+          overall_status?: string
+          projects_active?: number | null
+          rating?: number | null
+          tasks_completed?: number | null
+          tasks_overdue?: number | null
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_monthly_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      performance_weekly: {
+        Row: {
+          created_at: string
+          id: string
+          member_id: string
+          notes: string | null
+          overall_status: string
+          projects_active: number | null
+          tasks_completed: number | null
+          tasks_overdue: number | null
+          updated_at: string
+          week_end: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_id: string
+          notes?: string | null
+          overall_status?: string
+          projects_active?: number | null
+          tasks_completed?: number | null
+          tasks_overdue?: number | null
+          updated_at?: string
+          week_end: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_id?: string
+          notes?: string | null
+          overall_status?: string
+          projects_active?: number | null
+          tasks_completed?: number | null
+          tasks_overdue?: number | null
+          updated_at?: string
+          week_end?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_weekly_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
             referencedColumns: ["id"]
           },
         ]
@@ -3581,6 +3869,68 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          identification: string | null
+          member_type: string
+          presentation: string | null
+          profile_id: string | null
+          responsibilities: string | null
+          role_title: string | null
+          start_date: string | null
+          status: string
+          updated_at: string
+          whatsapp: string | null
+          work_schedule: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          identification?: string | null
+          member_type?: string
+          presentation?: string | null
+          profile_id?: string | null
+          responsibilities?: string | null
+          role_title?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+          work_schedule?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          identification?: string | null
+          member_type?: string
+          presentation?: string | null
+          profile_id?: string | null
+          responsibilities?: string | null
+          role_title?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+          work_schedule?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
