@@ -617,7 +617,35 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
     },
   });
 
-  if (!member) return null;
+  // Fetch vacations for this member
+  const memberVacations = useQuery({
+    queryKey: ['member-vacations', member?.id],
+    enabled: !!member?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from('team_member_vacations').select('*').eq('member_id', member.id).order('start_date', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const handleAddVacation = async () => {
+    if (!vacStart || !vacEnd) { toast.error('Selecione as datas'); return; }
+    if (vacEnd < vacStart) { toast.error('Data fim deve ser após início'); return; }
+    const { error } = await supabase.from('team_member_vacations').insert({
+      member_id: member.id,
+      start_date: vacStart,
+      end_date: vacEnd,
+      notes: vacNotes || null,
+    });
+    if (error) toast.error('Erro ao guardar');
+    else { toast.success('Férias adicionadas'); setVacStart(''); setVacEnd(''); setVacNotes(''); qc.invalidateQueries({ queryKey: ['member-vacations', member.id] }); qc.invalidateQueries({ queryKey: ['escala-vacations'] }); }
+  };
+
+  const handleDeleteVacation = async (id: string) => {
+    await supabase.from('team_member_vacations').delete().eq('id', id);
+    toast.success('Férias removidas');
+    qc.invalidateQueries({ queryKey: ['member-vacations', member.id] });
+    qc.invalidateQueries({ queryKey: ['escala-vacations'] });
+  };
 
   const items = (team.onboarding.data || []).filter((i: any) => i.member_id === member.id);
   const contracts = (team.contracts.data || []).filter((c: any) => c.member_id === member.id);
