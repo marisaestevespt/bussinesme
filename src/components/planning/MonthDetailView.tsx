@@ -366,7 +366,12 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
 
       {/* ═══ SECTION 2: Agenda ═══ */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Agenda ME & Calendários</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm">Agenda ME & Calendários</CardTitle>
+            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/agenda')}><Plus className="h-3 w-3" /> Novo Evento</Button>
+          </div>
+        </CardHeader>
         <CardContent>
           {renderCalendarGrid(
             allEvents,
@@ -483,7 +488,17 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
 
       {/* ═══ SECTION 4: Marketing & Conteúdo ═══ */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Marketing & Conteúdo</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm">Marketing & Conteúdo</CardTitle>
+            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={async () => {
+              const { data, error } = await supabase.from('content_items').insert({ title: 'Novo Conteúdo' } as any).select('id').single() as any;
+              if (error || !data) { toast.error('Erro ao criar conteúdo'); return; }
+              qc.invalidateQueries({ queryKey: ['md-content'] });
+              navigate(`/hub/marketing/conteudos/${data.id}`);
+            }}><Plus className="h-3 w-3" /> Novo Conteúdo</Button>
+          </div>
+        </CardHeader>
         <CardContent className="space-y-4">
           {/* Channel tabs */}
           <div className="flex gap-1 flex-wrap">
@@ -496,7 +511,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           {renderCalendarGrid(
             contentTab === 'calendario' ? allContent : allContent.filter((c: any) => c.content_channels?.some((cc: any) => cc.channel_id === contentTab)),
             (c: any) => c.scheduled_at ? parseISO(c.scheduled_at) : null,
-            (c: any) => <div key={c.id} className="text-[9px] bg-accent/50 rounded px-1 py-0.5 truncate">{c.title}</div>
+            (c: any) => <div key={c.id} className="text-[9px] bg-accent/50 rounded px-1 py-0.5 truncate cursor-pointer hover:bg-accent" onClick={() => navigate(`/hub/marketing/conteudos/${c.id}`)}>{c.title}</div>
           )}
         </CardContent>
       </Card>
@@ -517,7 +532,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                         const overdue = l.next_followup && parseISO(l.next_followup) < new Date();
                         const borderColor = CRM_COLORS[col]?.match(/border-\S+/)?.[0] || 'border-border/50';
                         return (
-                          <div key={l.id} className={cn('border-l-2 border rounded-lg p-2 bg-background text-xs space-y-1', borderColor, overdue && 'border-destructive/50')}>
+                          <div key={l.id} className={cn('border-l-2 border rounded-lg p-2 bg-background text-xs space-y-1 cursor-pointer hover:bg-muted/40', borderColor, overdue && 'border-destructive/50')} onClick={() => navigate('/comercial/crm')}>
                             <p className="font-medium truncate">{l.name}</p>
                             {l.email && <p className="text-muted-foreground truncate">{l.email}</p>}
                             {l.phone && <p className="text-muted-foreground">{l.phone}</p>}
