@@ -230,6 +230,49 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
     setForm({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
   };
 
+  const [editGoal, setEditGoal] = useState<any>(null);
+  const [editForm, setEditForm] = useState({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
+
+  useEffect(() => {
+    if (editGoal) {
+      setEditForm({
+        period: editGoal.period || 'Janeiro',
+        target_value: editGoal.target_value || '',
+        actual_value: editGoal.actual_value || '',
+        status: editGoal.status || 'por_iniciar',
+      });
+    }
+  }, [editGoal]);
+
+  const monthlyGoals = goals.filter((g: any) => MONTHS.includes(g.period));
+
+  const quarterlyRows = Object.entries(QUARTER_MAP).map(([quarter, months]) => {
+    const monthGoals = monthlyGoals.filter((g: any) => months.includes(g.period));
+    if (monthGoals.length === 0) return null;
+    const targetSum = monthGoals.reduce((s: number, g: any) => s + Number(g.target_value || 0), 0);
+    const actualSum = monthGoals.reduce((s: number, g: any) => s + Number(g.actual_value || 0), 0);
+    const allDone = monthGoals.length === 3 && monthGoals.every((g: any) => g.status === 'atingido');
+    const anyStarted = monthGoals.some((g: any) => g.status === 'em_curso' || g.status === 'atingido');
+    return {
+      period: quarter, target_value: targetSum, actual_value: actualSum, deviation: actualSum - targetSum,
+      status: allDone ? 'atingido' : anyStarted ? 'em_curso' : 'por_iniciar', isQuarter: true, count: monthGoals.length,
+    };
+  }).filter(Boolean);
+
+  const handleSave = () => {
+    if (editGoal) {
+      planning.upsertGoal.mutate({ id: editGoal.id, objective_id: objectiveId, ...editForm });
+    } else {
+      planning.upsertGoal.mutate({ ...form, objective_id: objectiveId });
+    }
+    setDialogOpen(false);
+    setEditGoal(null);
+    setForm({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
+  };
+
+  const openNew = () => { setEditGoal(null); setForm({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' }); setDialogOpen(true); };
+  const openEdit = (g: any) => { setEditGoal(g); setDialogOpen(true); };
+
   const allRows = [
     ...monthlyGoals.map((g: any) => ({ ...g, isQuarter: false })),
     ...quarterlyRows,
@@ -239,15 +282,11 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
     return idxA - idxB;
   });
 
-  const updateGoal = (g: any, field: string, value: any) => {
-    planning.upsertGoal.mutate({ id: g.id, objective_id: objectiveId, [field]: value });
-  };
-
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-semibold">Desdobramento em Metas</h3>
-        <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}><Plus className="h-3 w-3 mr-1" /> Nova Meta Mensal</Button>
+        <Button size="sm" variant="outline" onClick={openNew}><Plus className="h-3 w-3 mr-1" /> Nova Meta Mensal</Button>
       </div>
       {allRows.length === 0 ? <p className="text-xs text-muted-foreground">Sem metas associadas. Defina metas mensais e os trimestres serão calculados automaticamente.</p> : (
         <Table>
@@ -258,32 +297,15 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
             const dev = g.isQuarter ? g.deviation : (g.actual_value && g.target_value ? (Number(g.actual_value) - Number(g.target_value)) : null);
             const hasDeviation = dev !== null && dev < 0;
             return (
-              <TableRow key={g.isQuarter ? g.period : g.id} className={`${g.isQuarter ? 'bg-muted/40 font-medium' : ''} ${hasDeviation ? 'bg-red-50/50' : ''}`}>
+              <TableRow key={g.isQuarter ? g.period : g.id} className={`${!g.isQuarter ? 'cursor-pointer hover:bg-muted/60' : ''} ${g.isQuarter ? 'bg-muted/40 font-medium' : ''} ${hasDeviation ? 'bg-red-50/50' : ''}`} onClick={() => { if (!g.isQuarter) openEdit(g); }}>
                 <TableCell className="text-sm">
                   {g.isQuarter && <Badge variant="outline" className="text-[10px] mr-1">Auto</Badge>}
                   {g.period}
                 </TableCell>
-                <TableCell>
-                  {g.isQuarter ? <span className="text-xs">{g.target_value}</span> : (
-                    <Input className="h-7 w-24 text-xs" defaultValue={g.target_value || ''} onBlur={e => { if (e.target.value !== (g.target_value || '')) updateGoal(g, 'target_value', e.target.value); }} />
-                  )}
-                </TableCell>
-                <TableCell>
-                  {g.isQuarter ? <span className="text-xs">{g.actual_value}</span> : (
-                    <Input className="h-7 w-24 text-xs" defaultValue={g.actual_value || ''} onBlur={e => { if (e.target.value !== (g.actual_value || '')) updateGoal(g, 'actual_value', e.target.value); }} />
-                  )}
-                </TableCell>
+                <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
+                <TableCell className="text-xs">{g.actual_value || '—'}</TableCell>
                 <TableCell className={`text-xs ${hasDeviation ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
-                <TableCell>
-                  {g.isQuarter ? (
-                    <Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(g.status)}</Badge>
-                  ) : (
-                    <Select defaultValue={g.status} onValueChange={v => updateGoal(g, 'status', v)}>
-                      <SelectTrigger className="h-7 w-[110px] text-[10px]"><SelectValue /></SelectTrigger>
-                      <SelectContent>{GOAL_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-                    </Select>
-                  )}
-                </TableCell>
+                <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(g.status)}</Badge></TableCell>
                 <TableCell>
                   {!g.isQuarter && (
                     <button onClick={(e) => { e.stopPropagation(); planning.deleteGoal.mutate(g.id); }}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
@@ -295,19 +317,25 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
         </Table>
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={v => { if (!v) { setDialogOpen(false); setEditGoal(null); } else setDialogOpen(true); }}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Nova Meta Mensal</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editGoal ? 'Editar Meta' : 'Nova Meta Mensal'}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div><Label>Mês</Label>
-              <Select value={form.period} onValueChange={v => setForm(p => ({ ...p, period: v }))}>
+              <Select value={editGoal ? editForm.period : form.period} onValueChange={v => editGoal ? setEditForm(p => ({ ...p, period: v })) : setForm(p => ({ ...p, period: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Valor alvo</Label><Input value={form.target_value} onChange={e => setForm(p => ({ ...p, target_value: e.target.value }))} /></div>
-              <div><Label>Valor real</Label><Input value={form.actual_value} onChange={e => setForm(p => ({ ...p, actual_value: e.target.value }))} /></div>
+              <div><Label>Valor alvo</Label><Input value={editGoal ? editForm.target_value : form.target_value} onChange={e => editGoal ? setEditForm(p => ({ ...p, target_value: e.target.value })) : setForm(p => ({ ...p, target_value: e.target.value }))} /></div>
+              <div><Label>Valor real</Label><Input value={editGoal ? editForm.actual_value : form.actual_value} onChange={e => editGoal ? setEditForm(p => ({ ...p, actual_value: e.target.value })) : setForm(p => ({ ...p, actual_value: e.target.value }))} /></div>
+            </div>
+            <div><Label>Status</Label>
+              <Select value={editGoal ? editForm.status : form.status} onValueChange={v => editGoal ? setEditForm(p => ({ ...p, status: v })) : setForm(p => ({ ...p, status: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{GOAL_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+              </Select>
             </div>
             <Button className="w-full" onClick={handleSave}>Guardar</Button>
           </div>
