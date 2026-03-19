@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ArrowLeft, Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -122,9 +123,9 @@ export default function ClienteDetailPage() {
   const { data: clientMeetings = [] } = useFilteredMeetings(form.full_name);
 
   // Local tables
-  const { history, addEntry: addHistory, deleteEntry: deleteHistory } = useClientHistory(isNew ? undefined : id);
-  const { activities, addEntry: addActivity, deleteEntry: deleteActivity } = useClientActivities(isNew ? undefined : id);
-  const { onboarding, addEntry: addOnboarding, deleteEntry: deleteOnboarding } = useClientOnboarding(isNew ? undefined : id);
+  const { history, addEntry: addHistory, updateEntry: updateHistory, deleteEntry: deleteHistory } = useClientHistory(isNew ? undefined : id);
+  const { activities, addEntry: addActivity, updateEntry: updateActivity, deleteEntry: deleteActivity } = useClientActivities(isNew ? undefined : id);
+  const { onboarding, addEntry: addOnboarding, updateEntry: updateOnboarding, deleteEntry: deleteOnboarding } = useClientOnboarding(isNew ? undefined : id);
 
   const productList = products.data || [];
 
@@ -294,16 +295,17 @@ export default function ClienteDetailPage() {
                 )}
               </CardHeader>
               <CardContent className="p-0">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-4 gap-2">
-                  <span>Data</span><span className="col-span-2">Marco</span><span>Observações</span>
+                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2">
+                  <span>Data</span><span>Marco</span><span>Observações</span><span></span>
                 </div>
                 {(history.data || []).length === 0 ? (
                   <p className="text-center text-muted-foreground py-8 text-sm">Sem entradas</p>
                 ) : (history.data || []).map(h => (
-                  <div key={h.id} className="px-4 py-2 text-xs grid grid-cols-4 gap-2 border-b items-center">
-                    <span>{format(parseISO(h.entry_date), 'dd/MM/yyyy')}</span>
-                    <span className="col-span-2">{h.milestone || '—'}</span>
-                    <span className="truncate">{h.observations || '—'}</span>
+                  <div key={h.id} className="px-4 py-2 text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2 border-b items-center">
+                    <Input type="date" className="h-7 text-xs" defaultValue={h.entry_date} onBlur={e => updateHistory.mutate({ id: h.id, entry_date: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={h.milestone} placeholder="Marco" onBlur={e => updateHistory.mutate({ id: h.id, milestone: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={h.observations || ''} placeholder="Observações" onBlur={e => updateHistory.mutate({ id: h.id, observations: e.target.value })} />
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteHistory.mutate(h.id)}><X className="h-3 w-3" /></Button>
                   </div>
                 ))}
               </CardContent>
@@ -320,17 +322,18 @@ export default function ClienteDetailPage() {
                 )}
               </CardHeader>
               <CardContent className="p-0">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-4 gap-2">
-                  <span>Fase</span><span>Atividade</span><span>Responsável</span><span>Regra</span>
+                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[1fr_1fr_1fr_1fr_32px] gap-2">
+                  <span>Fase</span><span>Atividade</span><span>Responsável</span><span>Regra</span><span></span>
                 </div>
                 {(activities.data || []).length === 0 ? (
                   <p className="text-center text-muted-foreground py-8 text-sm">Sem entradas</p>
                 ) : (activities.data || []).map(a => (
-                  <div key={a.id} className="px-4 py-2 text-xs grid grid-cols-4 gap-2 border-b items-center">
-                    <span>{a.phase || '—'}</span>
-                    <span>{a.activity || '—'}</span>
-                    <span>{a.responsible || '—'}</span>
-                    <span>{a.rule || '—'}</span>
+                  <div key={a.id} className="px-4 py-2 text-xs grid grid-cols-[1fr_1fr_1fr_1fr_32px] gap-2 border-b items-center">
+                    <Input className="h-7 text-xs" defaultValue={a.phase || ''} placeholder="Fase" onBlur={e => updateActivity.mutate({ id: a.id, phase: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={a.activity} placeholder="Atividade" onBlur={e => updateActivity.mutate({ id: a.id, activity: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={a.responsible || ''} placeholder="Responsável" onBlur={e => updateActivity.mutate({ id: a.id, responsible: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={a.rule || ''} placeholder="Regra" onBlur={e => updateActivity.mutate({ id: a.id, rule: e.target.value })} />
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteActivity.mutate(a.id)}><X className="h-3 w-3" /></Button>
                   </div>
                 ))}
               </CardContent>
@@ -350,17 +353,19 @@ export default function ClienteDetailPage() {
                 )}
               </CardHeader>
               <CardContent className="p-0">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-4 gap-2">
-                  <span>Fase</span><span>Atividade</span><span>Responsável</span><span>Regra</span>
+                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[32px_1fr_1fr_1fr_1fr_32px] gap-2">
+                  <span>✓</span><span>Fase</span><span>Atividade</span><span>Responsável</span><span>Regra</span><span></span>
                 </div>
                 {(onboarding.data || []).length === 0 ? (
                   <p className="text-center text-muted-foreground py-8 text-sm">Sem entradas</p>
                 ) : (onboarding.data || []).map(o => (
-                  <div key={o.id} className="px-4 py-2 text-xs grid grid-cols-4 gap-2 border-b items-center">
-                    <span>{o.phase || '—'}</span>
-                    <span>{o.activity || '—'}</span>
-                    <span>{o.responsible || '—'}</span>
-                    <span>{o.rule || '—'}</span>
+                  <div key={o.id} className={cn("px-4 py-2 text-xs grid grid-cols-[32px_1fr_1fr_1fr_1fr_32px] gap-2 border-b items-center", o.completed && "opacity-60")}>
+                    <Checkbox checked={o.completed} onCheckedChange={(v) => updateOnboarding.mutate({ id: o.id, completed: !!v })} />
+                    <Input className="h-7 text-xs" defaultValue={o.phase || ''} placeholder="Fase" onBlur={e => updateOnboarding.mutate({ id: o.id, phase: e.target.value })} />
+                    <Input className={cn("h-7 text-xs", o.completed && "line-through")} defaultValue={o.activity} placeholder="Atividade" onBlur={e => updateOnboarding.mutate({ id: o.id, activity: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={o.responsible || ''} placeholder="Responsável" onBlur={e => updateOnboarding.mutate({ id: o.id, responsible: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={o.rule || ''} placeholder="Regra" onBlur={e => updateOnboarding.mutate({ id: o.id, rule: e.target.value })} />
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteOnboarding.mutate(o.id)}><X className="h-3 w-3" /></Button>
                   </div>
                 ))}
               </CardContent>
