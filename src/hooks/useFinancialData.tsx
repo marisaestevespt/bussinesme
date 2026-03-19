@@ -34,6 +34,7 @@ export type Subscription = {
   renewal_date: string | null;
   status: string;
   notes: string | null;
+  documents: any;
   created_at: string;
 };
 
