@@ -28,7 +28,7 @@ type Task = {
 };
 type Client = {
   id: string; client_id: string; full_name: string; status: string; current_product: string | null;
-  start_date: string | null;
+  start_date: string | null; end_of_cycle: string | null;
 };
 type Profile = {
   id: string; full_name: string | null; avatar_url: string | null;
