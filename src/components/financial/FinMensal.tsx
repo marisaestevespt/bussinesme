@@ -50,6 +50,25 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
   const monthSales = useMemo(() => sales.filter(s => s.sale_year === currentYear && s.sale_month === m), [sales, currentYear, m]);
   const monthExpenses = useMemo(() => expenses.filter(e => e.expense_year === currentYear && e.expense_month === m), [expenses, currentYear, m]);
 
+  // Active subscriptions that apply to this month
+  const activeSubs = useMemo(() => {
+    return (subscriptions || []).filter(s => s.status === 'ativo');
+  }, [subscriptions]);
+
+  // Check which subs already have a confirmed expense for this month
+  const subExpenseMap = useMemo(() => {
+    const map = new Map<string, Expense>();
+    monthExpenses.forEach(e => {
+      if (e.source_type === 'subscription' && e.source_id) {
+        map.set(e.source_id, e);
+      }
+    });
+    return map;
+  }, [monthExpenses]);
+
+  // Include subscription costs in totals
+  const subsTotalThisMonth = activeSubs.reduce((s, sub) => s + sub.monthly_equivalent, 0);
+
   const totalEntradas = monthSales.reduce((s, v) => s + v.invoice_total, 0);
   const totalBaseEntradas = monthSales.reduce((s, v) => s + v.base_value, 0);
   const ivaCobrado = totalEntradas - totalBaseEntradas;
