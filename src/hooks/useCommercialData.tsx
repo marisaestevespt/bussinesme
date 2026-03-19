@@ -4,6 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { excludeCancelled } from '@/lib/utils';
 import { toast } from 'sonner';
 
+function cleanPayload(obj: Record<string, any>): Record<string, any> {
+  const cleaned: Record<string, any> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    cleaned[k] = v === '' ? null : v;
+  }
+  return cleaned;
+}
+
 const currentYear = new Date().getFullYear();
 const currentMonth = new Date().getMonth() + 1;
 
