@@ -46,19 +46,6 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
   const objActions = planning.allActions.filter((a: any) => a.objective_id === obj.id);
   const set = (k: string, v: any) => setForm((p: any) => ({ ...p, [k]: v }));
 
-  useEffect(() => {
-    if (obj) {
-      setForm({
-        title: obj.title || '', description: obj.description || '', area: obj.area || 'outro',
-        status: obj.status || 'por_iniciar', deadline: obj.deadline || '',
-        objective_type: obj.objective_type || 'quantitativo', target_value: obj.target_value || '',
-        target_unit: obj.target_unit || '€', current_value: obj.current_value || '',
-        value_source: obj.value_source || 'manual',
-      });
-      setEditing(false);
-    }
-  }, [obj?.id, obj?.updated_at]);
-
   const handleSaveHeader = () => {
     planning.upsertObjective.mutate({ id: obj.id, ...form });
     setEditing(false);
