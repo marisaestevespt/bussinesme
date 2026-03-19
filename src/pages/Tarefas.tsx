@@ -143,6 +143,24 @@ export default function TarefasPage() {
     },
   });
 
+  // All time entries for similarity suggestion (task_id + duration)
+  const { data: allTimeEntries = [] } = useQuery({
+    queryKey: ['task-time-entries-all'],
+    queryFn: async () => {
+      const { data } = await supabase.from('task_time_entries').select('task_id, duration_minutes').or('ended_at.not.is.null,is_manual.eq.true');
+      return data || [];
+    },
+  });
+
+  // Team members for capacity warning
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['team', 'members'],
+    queryFn: async () => {
+      const { data } = await supabase.from('team_members').select('id, full_name, profile_id, expected_weekly_hours, status');
+      return data || [];
+    },
+  });
+
   const { data: taskDependencies = [] } = useQuery({
     queryKey: ['task-dependencies'],
     queryFn: async () => {
