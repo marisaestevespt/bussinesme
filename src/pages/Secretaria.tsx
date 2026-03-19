@@ -676,7 +676,9 @@ function MinhasReunioesTab({ meetings, profiles }: { meetings: any[]; profiles: 
 // ═══════════════════════════════════════════════════════════════
 
 function MinhaProdutividadeTab({ tasks, timeEntries, teamMember, allProjects, qc, userId }: any) {
-  const [period, setPeriod] = useState<'week' | 'month'>('week');
+  const [period, setPeriod] = useState<'week' | 'month' | 'custom'>('week');
+  const [customFrom, setCustomFrom] = useState<Date | undefined>(undefined);
+  const [customTo, setCustomTo] = useState<Date | undefined>(undefined);
 
   // Timer state
   const [timerRunning, setTimerRunning] = useState(false);
@@ -729,8 +731,9 @@ function MinhaProdutividadeTab({ tasks, timeEntries, teamMember, allProjects, qc
   };
 
   // Period filters
-  const periodStart = period === 'week' ? weekStart : monthStart;
-  const periodEnd = period === 'week' ? weekEnd : monthEnd;
+  const periodStart = period === 'week' ? weekStart : period === 'month' ? monthStart : (customFrom ? startOfDay(customFrom) : weekStart);
+  const periodEnd = period === 'week' ? weekEnd : period === 'month' ? monthEnd : (customTo ? startOfDay(customTo) : weekEnd);
+
   const periodEntries = useMemo(() => timeEntries.filter((e: any) => {
     const d = parseISO(e.entry_date);
     return isWithinInterval(d, { start: periodStart, end: periodEnd });
@@ -740,8 +743,23 @@ function MinhaProdutividadeTab({ tasks, timeEntries, teamMember, allProjects, qc
   const completedTasks = useMemo(() => tasks.filter((t: any) => t.status === 'done' && t.updated_at && isWithinInterval(parseISO(t.updated_at), { start: periodStart, end: periodEnd })), [tasks, periodStart, periodEnd]);
   const overdueTasks = tasks.filter((t: any) => t.status !== 'done' && t.deadline && isBefore(parseISO(t.deadline), today));
 
-  const daysInPeriod = period === 'week' ? 5 : Math.ceil((periodEnd.getTime() - periodStart.getTime()) / 86400000);
+  const daysInPeriod = period === 'week' ? 5 : Math.max(1, Math.ceil((periodEnd.getTime() - periodStart.getTime()) / 86400000));
   const avgPerDay = daysInPeriod > 0 ? Math.round((totalHours / daysInPeriod) * 10) / 10 : 0;
+
+  // Top 3 tasks that took the most time in period
+  const top3Tasks = useMemo(() => {
+    const taskTimeMap: Record<string, { name: string; hours: number }> = {};
+    periodEntries.forEach((e: any) => {
+      if (!e.task_id) return;
+      const task = tasks.find((t: any) => t.id === e.task_id);
+      if (!task) return;
+      if (!taskTimeMap[e.task_id]) taskTimeMap[e.task_id] = { name: task.name, hours: 0 };
+      taskTimeMap[e.task_id].hours += Number(e.duration || 0);
+    });
+    return Object.values(taskTimeMap)
+      .sort((a, b) => b.hours - a.hours)
+      .slice(0, 3);
+  }, [periodEntries, tasks]);
 
   // Week entries for history
   const weekEntries = useMemo(() => timeEntries.filter((e: any) => {
@@ -779,9 +797,37 @@ function MinhaProdutividadeTab({ tasks, timeEntries, teamMember, allProjects, qc
   return (
     <div className="space-y-6 mt-4">
       {/* Period toggle + summary */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap items-end gap-2">
         <Button variant={period === 'week' ? 'default' : 'outline'} size="sm" onClick={() => setPeriod('week')}>Esta semana</Button>
         <Button variant={period === 'month' ? 'default' : 'outline'} size="sm" onClick={() => setPeriod('month')}>Este mês</Button>
+        <Button variant={period === 'custom' ? 'default' : 'outline'} size="sm" onClick={() => setPeriod('custom')}>Personalizado</Button>
+        {period === 'custom' && (
+          <div className="flex items-center gap-2 ml-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={cn('w-[130px] justify-start text-left font-normal', !customFrom && 'text-muted-foreground')}>
+                  <CalendarIcon className="mr-1 h-3.5 w-3.5" />
+                  {customFrom ? format(customFrom, 'dd/MM/yyyy') : 'De...'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={customFrom} onSelect={setCustomFrom} initialFocus className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+            <span className="text-xs text-muted-foreground">—</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={cn('w-[130px] justify-start text-left font-normal', !customTo && 'text-muted-foreground')}>
+                  <CalendarIcon className="mr-1 h-3.5 w-3.5" />
+                  {customTo ? format(customTo, 'dd/MM/yyyy') : 'Até...'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={customTo} onSelect={setCustomTo} initialFocus className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -790,6 +836,33 @@ function MinhaProdutividadeTab({ tasks, timeEntries, teamMember, allProjects, qc
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas em atraso</p><p className="text-2xl font-bold text-destructive">{overdueTasks.length}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Média horas/dia</p><p className="text-2xl font-bold">{avgPerDay}h</p></CardContent></Card>
       </div>
+
+      {/* Top 3 tarefas mais demoradas */}
+      <Card>
+        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">🏆 Top 3 — Tarefas mais demoradas no período</CardTitle></CardHeader>
+        <CardContent>
+          {top3Tasks.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Sem registos de tempo associados a tarefas neste período.</p>
+          ) : (
+            <div className="space-y-3">
+              {top3Tasks.map((t, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className={cn(
+                    'h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0',
+                    i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-slate-100 text-slate-600' : 'bg-orange-100 text-orange-600'
+                  )}>
+                    {i + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{t.name}</p>
+                  </div>
+                  <span className="text-sm font-bold tabular-nums">{Math.round(t.hours * 10) / 10}h</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Time tracker */}
       <Card>
