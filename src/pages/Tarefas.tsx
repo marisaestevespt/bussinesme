@@ -466,8 +466,8 @@ export default function TarefasPage() {
     <AppLayout>
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Tarefas</h1>
+        <PageHeader title="Tarefas" />
+        <div className="flex items-center justify-end">
           <Button onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Tarefa</Button>
         </div>
 

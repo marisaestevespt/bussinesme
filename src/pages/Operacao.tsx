@@ -432,10 +432,7 @@ export default function OperacaoPage() {
   return (
     <AppLayout>
       <div className="p-4 md:p-6 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Operação</h1>
-          <p className="text-sm text-muted-foreground">Vista operacional de projetos de clientes e internos</p>
-        </div>
+        <PageHeader title="Operação" subtitle="Vista operacional de projetos de clientes e internos" />
 
         <div className="space-y-10">
 

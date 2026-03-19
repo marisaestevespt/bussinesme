@@ -293,8 +293,9 @@ export default function ProjetosPage() {
     <AppLayout>
       <div className="space-y-6">
         {/* Header */}
+        <PageHeader title="Projetos" />
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>Projetos</h1>
+          <div />
           <div className="flex items-center gap-2">
             <ViewTabs
               views={allViews}

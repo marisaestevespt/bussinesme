@@ -50,10 +50,7 @@ export default function FinanceiroPage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Contabilidade</h1>
-          <p className="text-muted-foreground mt-1">Gestão contabilística, entradas, saídas e obrigações fiscais.</p>
-        </div>
+        <PageHeader title="Contabilidade" subtitle="Gestão contabilística, entradas, saídas e obrigações fiscais." />
 
         {/* Navigation cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">

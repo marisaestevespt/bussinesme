@@ -23,10 +23,7 @@ export default function ComercialPage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Comercial</h1>
-          <p className="text-muted-foreground mt-1">Gestão comercial, vendas e metas do negócio.</p>
-        </div>
+        <PageHeader title="Comercial" subtitle="Gestão comercial, vendas e metas do negócio." />
 
         {/* Navigation cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">

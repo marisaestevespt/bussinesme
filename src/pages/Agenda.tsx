@@ -828,8 +828,9 @@ export default function AgendaPage() {
   return (
     <AppLayout>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+        <PageHeader title="Agenda do Negócio" />
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Agenda do Negócio</h1>
+          <div />
           <div className="flex items-center gap-3">
             {isOwner && (
               <Button variant="ghost" size="icon" onClick={() => setTypesManagerOpen(true)} title="Gerir tipos de evento">
