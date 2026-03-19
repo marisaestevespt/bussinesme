@@ -161,6 +161,22 @@ export default function GestaoMarcaPage() {
     },
   });
 
+  const { data: swotItems = [] } = useQuery({
+    queryKey: ['brand-swot'],
+    queryFn: async () => {
+      const { data } = await supabase.from('brand_swot_items').select('*').order('sort_order') as { data: { id: string; quadrant: string; content: string; sort_order: number }[] | null };
+      return data || [];
+    },
+  });
+
+  const { data: differentials = [] } = useQuery({
+    queryKey: ['brand-differentials'],
+    queryFn: async () => {
+      const { data } = await supabase.from('brand_differentials').select('*').order('sort_order') as { data: { id: string; content: string; sort_order: number }[] | null };
+      return data || [];
+    },
+  });
+
   const folders = brandLinks.filter(l => l.type === 'folder');
   const shortcuts = brandLinks.filter(l => l.type === 'shortcut');
 
