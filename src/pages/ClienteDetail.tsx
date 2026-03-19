@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeft, Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO, differenceInDays } from 'date-fns';
@@ -24,8 +25,9 @@ import {
 } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
 import { useCommercialData } from '@/hooks/useCommercialData';
+import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 
 // ─── Meetings query for filtered view ───────────────────────────
 function useFilteredMeetings(clientName: string | undefined) {
@@ -93,6 +95,11 @@ export default function ClienteDetailPage() {
 
   const [form, setForm] = useState<Partial<Client>>({});
   const [initialized, setInitialized] = useState(false);
+  const [saleOpen, setSaleOpen] = useState(false);
+  const [meetingOpen, setMeetingOpen] = useState(false);
+  const [meetingForm, setMeetingForm] = useState({ title: '', date_time: '', meeting_url: '' });
+
+  const queryClient = useQueryClient();
 
   if (client && !initialized) { setForm(client); setInitialized(true); }
   if (isNew && !initialized) { setForm({ full_name: '', status: 'ativo' }); setInitialized(true); }
@@ -121,6 +128,27 @@ export default function ClienteDetailPage() {
 
   // Filtered meetings
   const { data: clientMeetings = [] } = useFilteredMeetings(form.full_name);
+
+  // Create meeting mutation
+  const createMeeting = useMutation({
+    mutationFn: async (data: { title: string; date_time: string; meeting_url: string }) => {
+      const { error } = await supabase.from('meetings').insert({
+        title: data.title,
+        date_time: data.date_time,
+        client_name: form.full_name || '',
+        status: 'agendada' as any,
+        meeting_url: data.meeting_url || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['meetings'] });
+      toast.success('Reunião criada');
+      setMeetingOpen(false);
+      setMeetingForm({ title: '', date_time: '', meeting_url: '' });
+    },
+    onError: () => toast.error('Erro ao criar reunião'),
+  });
 
   // Local tables
   const { history, addEntry: addHistory, updateEntry: updateHistory, deleteEntry: deleteHistory } = useClientHistory(isNew ? undefined : id);
@@ -233,7 +261,10 @@ export default function ClienteDetailPage() {
           <TabsContent value="gestao" className="space-y-6 mt-4">
             {/* Payments filtered view */}
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Gestão de Pagamentos</CardTitle></CardHeader>
+              <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm">Gestão de Pagamentos</CardTitle>
+                <Button size="sm" variant="outline" onClick={() => setSaleOpen(true)}><Plus className="h-3 w-3 mr-1" />Novo Pagamento</Button>
+              </CardHeader>
               <CardContent className="p-0">
                 <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-9 gap-2">
                   <span>Status</span><span>Data</span><span>Descrição</span><span>Valor Base</span><span>Fatura</span><span>Produto</span><span>Mês</span><span>Ano</span><span>Docs</span>
@@ -258,7 +289,10 @@ export default function ClienteDetailPage() {
 
             {/* Meetings filtered view */}
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Reuniões</CardTitle></CardHeader>
+              <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm">Reuniões</CardTitle>
+                <Button size="sm" variant="outline" onClick={() => setMeetingOpen(true)}><Plus className="h-3 w-3 mr-1" />Nova Reunião</Button>
+              </CardHeader>
               <CardContent className="p-0">
                 <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-5 gap-2">
                   <span>Status</span><span>Data & Hora</span><span>Reunião</span><span>Participantes</span><span>Link</span>
@@ -395,6 +429,43 @@ export default function ClienteDetailPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Sale dialog */}
+      <SaleFormDialog
+        open={saleOpen}
+        onOpenChange={setSaleOpen}
+        products={productList.map(p => p.name)}
+        initialData={{ client: form.full_name || '' }}
+        onSave={(sale) => {
+          commercialData.upsertSale.mutate(sale);
+          setSaleOpen(false);
+        }}
+      />
+
+      {/* Meeting dialog */}
+      <Dialog open={meetingOpen} onOpenChange={setMeetingOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Nova Reunião</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Título</Label>
+              <Input value={meetingForm.title} onChange={e => setMeetingForm(p => ({ ...p, title: e.target.value }))} />
+            </div>
+            <div>
+              <Label>Data & Hora</Label>
+              <Input type="datetime-local" value={meetingForm.date_time} onChange={e => setMeetingForm(p => ({ ...p, date_time: e.target.value }))} />
+            </div>
+            <div>
+              <Label>Link de Acesso</Label>
+              <Input value={meetingForm.meeting_url} onChange={e => setMeetingForm(p => ({ ...p, meeting_url: e.target.value }))} placeholder="https://..." />
+            </div>
+            <Button className="w-full" onClick={() => {
+              if (!meetingForm.title || !meetingForm.date_time) { toast.error('Título e data são obrigatórios'); return; }
+              createMeeting.mutate(meetingForm);
+            }}>Criar Reunião</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
