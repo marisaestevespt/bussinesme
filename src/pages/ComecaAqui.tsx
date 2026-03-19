@@ -218,7 +218,7 @@ export default function ComecaAquiPage() {
                 {(teamMembers.data || []).map((m: any) => {
                   const schedule = formatScheduleSummary(m.work_schedule);
                   return (
-                    <Card key={m.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                    <Card key={m.id} className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedMember(m)}>
                       <CardContent className="p-5 flex flex-col items-center text-center space-y-2">
                         <div className="relative">
                           <Avatar className="h-16 w-16">
