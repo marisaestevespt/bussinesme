@@ -203,61 +203,33 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
         </CardHeader>
         <CardContent className="p-0">
           <Table>
-            <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Descrição</TableHead><TableHead>Categoria</TableHead><TableHead className="text-right">Total c/ IVA</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead>Categoria</TableHead><TableHead className="text-right">Total c/ IVA</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
             <TableBody>
-              {monthExpenses.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Sem saídas</TableCell></TableRow>
-              ) : monthExpenses.map(e => (
-                <TableRow key={e.id}><TableCell className="font-mono text-xs">{e.expense_id}</TableCell><TableCell>{e.description || '—'}</TableCell><TableCell>{getCategoryLabel('expense', e.category)}</TableCell><TableCell className="text-right">{fmt(e.total_with_vat)}</TableCell><TableCell><Badge variant="outline">{e.status}</Badge></TableCell></TableRow>
+              {monthExpenses.filter(e => e.source_type !== 'subscription').map(e => (
+                <TableRow key={e.id}><TableCell>{e.description || '—'}</TableCell><TableCell>{getCategoryLabel('expense', e.category)}</TableCell><TableCell className="text-right">{fmt(e.total_with_vat)}</TableCell><TableCell><Badge variant="outline">{e.status}</Badge></TableCell><TableCell /></TableRow>
               ))}
+              {activeSubs.map(sub => {
+                const linkedExpense = subExpenseMap.get(sub.id);
+                const isPaid = !!linkedExpense && linkedExpense.status === 'pago';
+                return (
+                  <SubRow
+                    key={sub.id}
+                    sub={sub}
+                    linkedExpense={linkedExpense}
+                    isPaid={isPaid}
+                    month={m}
+                    currentYear={currentYear}
+                    fin={fin}
+                  />
+                );
+              })}
+              {monthExpenses.filter(e => e.source_type !== 'subscription').length === 0 && activeSubs.length === 0 && (
+                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Sem saídas</TableCell></TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
-
-      {/* Subscrições Recorrentes */}
-      {activeSubs.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Subscrições Recorrentes — {MONTHS[m - 1]}</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Plataforma</TableHead>
-                  <TableHead className="text-right">Valor Mensal</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Fatura</TableHead>
-                  <TableHead />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {activeSubs.map(sub => {
-                  const linkedExpense = subExpenseMap.get(sub.id);
-                  const isPaid = !!linkedExpense && linkedExpense.status === 'pago';
-                  return (
-                    <SubRow
-                      key={sub.id}
-                      sub={sub}
-                      linkedExpense={linkedExpense}
-                      isPaid={isPaid}
-                      month={m}
-                      currentYear={currentYear}
-                      fin={fin}
-                    />
-                  );
-                })}
-                <TableRow className="border-t-2 font-semibold">
-                  <TableCell>Total Subscrições</TableCell>
-                  <TableCell className="text-right">{fmt(subsTotalThisMonth)}</TableCell>
-                  <TableCell colSpan={3} />
-                </TableRow>
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
 
       {/* IVA Balance */}
       <Card>
