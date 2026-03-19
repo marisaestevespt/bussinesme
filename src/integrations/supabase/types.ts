@@ -2155,6 +2155,7 @@ export type Database = {
           cover_url: string | null
           created_at: string
           created_by: string | null
+          cycle_duration: number | null
           description: string | null
           drive_url: string | null
           escada: string | null
@@ -2183,6 +2184,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           created_by?: string | null
+          cycle_duration?: number | null
           description?: string | null
           drive_url?: string | null
           escada?: string | null
@@ -2211,6 +2213,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           created_by?: string | null
+          cycle_duration?: number | null
           description?: string | null
           drive_url?: string | null
           escada?: string | null
