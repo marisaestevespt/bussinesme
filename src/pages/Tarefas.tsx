@@ -108,6 +108,12 @@ export default function TarefasPage() {
   const [recurrenceType, setRecurrenceType] = useState('');
   const [recurrenceEnd, setRecurrenceEnd] = useState<Date | undefined>();
 
+  // Dynamic filters
+  const [filterDept, setFilterDept] = useState('');
+  const [filterResponsible, setFilterResponsible] = useState('');
+  const [filterPriority, setFilterPriority] = useState('');
+  const [filterProject, setFilterProject] = useState('');
+
   // Queries
   const { data: tasks = [] } = useQuery({
     queryKey: ['tasks'],
