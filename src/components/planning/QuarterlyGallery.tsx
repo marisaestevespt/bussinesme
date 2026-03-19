@@ -221,19 +221,6 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
           </div>
         </div>
 
-        {/* Em detalhe */}
-        {quarterGoals.length > 0 && (
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground">Em detalhe</p>
-            <div className="flex flex-wrap gap-1.5">
-              {quarterGoals.map((g: any) => (
-                <Badge key={g.id} variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">
-                  {g.name || g.period}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Progress */}
         <div className="space-y-1">
