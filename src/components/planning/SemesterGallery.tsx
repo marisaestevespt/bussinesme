@@ -846,13 +846,13 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
           {/* Clients won vs lost */}
           <p className="text-xs font-medium text-muted-foreground">Clientes ganhos vs perdidos</p>
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4 text-center">
-              <p className="text-xs text-emerald-700 dark:text-emerald-300">Clientes ganhos</p>
-              <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">{clientsWon.length}</p>
+            <div className="bg-muted/50 border border-border/40 rounded-lg p-4 text-center">
+              <p className="text-xs text-muted-foreground">Clientes ganhos</p>
+              <p className="text-2xl font-bold text-foreground">{clientsWon.length}</p>
             </div>
-            <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-center">
-              <p className="text-xs text-red-700 dark:text-red-300">Clientes perdidos</p>
-              <p className="text-2xl font-bold text-red-700 dark:text-red-300">{clientsLost.length}</p>
+            <div className="bg-muted/50 border border-border/40 rounded-lg p-4 text-center">
+              <p className="text-xs text-muted-foreground">Clientes perdidos</p>
+              <p className="text-2xl font-bold text-destructive">{clientsLost.length}</p>
             </div>
           </div>
         </CardContent>
