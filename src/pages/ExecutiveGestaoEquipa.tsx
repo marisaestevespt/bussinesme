@@ -1138,7 +1138,7 @@ function FeedbackDialog({ open, onClose, initial, members, onSave }: any) {
 }
 
 // ─── Tab: Feedback ──────
-function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) {
+export function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) {
   const allMembers = team.members.data || [];
   const [filterMember, setFilterMember] = useState('');
   const [dialog, setDialog] = useState<any>(null);
