@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, Save, ListTodo, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { planAreaLabel, planStatusLabel, PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES, CADENCES, ACTION_STATUSES } from '@/hooks/usePlanningData';
+import { planAreaLabel, planStatusLabel, PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES, CADENCES, ACTION_STATUSES, GOAL_STATUSES } from '@/hooks/usePlanningData';
 import { useTeamData } from '@/hooks/useTeamData';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
@@ -211,7 +211,6 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
 
   const monthlyGoals = goals.filter((g: any) => MONTHS.includes(g.period));
 
-  // Auto-compute quarterly summaries from monthly goals
   const quarterlyRows = Object.entries(QUARTER_MAP).map(([quarter, months]) => {
     const monthGoals = monthlyGoals.filter((g: any) => months.includes(g.period));
     if (monthGoals.length === 0) return null;
@@ -220,13 +219,8 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
     const allDone = monthGoals.length === 3 && monthGoals.every((g: any) => g.status === 'atingido');
     const anyStarted = monthGoals.some((g: any) => g.status === 'em_curso' || g.status === 'atingido');
     return {
-      period: quarter,
-      target_value: targetSum,
-      actual_value: actualSum,
-      deviation: actualSum - targetSum,
-      status: allDone ? 'atingido' : anyStarted ? 'em_curso' : 'por_iniciar',
-      isQuarter: true,
-      count: monthGoals.length,
+      period: quarter, target_value: targetSum, actual_value: actualSum, deviation: actualSum - targetSum,
+      status: allDone ? 'atingido' : anyStarted ? 'em_curso' : 'por_iniciar', isQuarter: true, count: monthGoals.length,
     };
   }).filter(Boolean);
 
@@ -236,21 +230,18 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
     setForm({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
   };
 
-  // Sort monthly + quarterly together
-  const periodOrder = [...MONTHS, 'T1', 'T2', 'T3', 'T4'];
   const allRows = [
     ...monthlyGoals.map((g: any) => ({ ...g, isQuarter: false })),
     ...quarterlyRows,
   ].sort((a: any, b: any) => {
-    // Show Q after its months: T1 after Março, T2 after Junho, etc
-    const idxA = a.isQuarter
-      ? MONTHS.indexOf(QUARTER_MAP[a.period]?.[2] || '') + 0.5
-      : MONTHS.indexOf(a.period);
-    const idxB = b.isQuarter
-      ? MONTHS.indexOf(QUARTER_MAP[b.period]?.[2] || '') + 0.5
-      : MONTHS.indexOf(b.period);
+    const idxA = a.isQuarter ? MONTHS.indexOf(QUARTER_MAP[a.period]?.[2] || '') + 0.5 : MONTHS.indexOf(a.period);
+    const idxB = b.isQuarter ? MONTHS.indexOf(QUARTER_MAP[b.period]?.[2] || '') + 0.5 : MONTHS.indexOf(b.period);
     return idxA - idxB;
   });
+
+  const updateGoal = (g: any, field: string, value: any) => {
+    planning.upsertGoal.mutate({ id: g.id, objective_id: objectiveId, [field]: value });
+  };
 
   return (
     <div>
@@ -272,10 +263,27 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
                   {g.isQuarter && <Badge variant="outline" className="text-[10px] mr-1">Auto</Badge>}
                   {g.period}
                 </TableCell>
-                <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
-                <TableCell className="text-xs">{g.actual_value || '—'}</TableCell>
+                <TableCell>
+                  {g.isQuarter ? <span className="text-xs">{g.target_value}</span> : (
+                    <Input className="h-7 w-24 text-xs" defaultValue={g.target_value || ''} onBlur={e => { if (e.target.value !== (g.target_value || '')) updateGoal(g, 'target_value', e.target.value); }} />
+                  )}
+                </TableCell>
+                <TableCell>
+                  {g.isQuarter ? <span className="text-xs">{g.actual_value}</span> : (
+                    <Input className="h-7 w-24 text-xs" defaultValue={g.actual_value || ''} onBlur={e => { if (e.target.value !== (g.actual_value || '')) updateGoal(g, 'actual_value', e.target.value); }} />
+                  )}
+                </TableCell>
                 <TableCell className={`text-xs ${hasDeviation ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
-                <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(g.status)}</Badge></TableCell>
+                <TableCell>
+                  {g.isQuarter ? (
+                    <Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(g.status)}</Badge>
+                  ) : (
+                    <Select defaultValue={g.status} onValueChange={v => updateGoal(g, 'status', v)}>
+                      <SelectTrigger className="h-7 w-[110px] text-[10px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>{GOAL_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  )}
+                </TableCell>
                 <TableCell>
                   {!g.isQuarter && (
                     <button onClick={(e) => { e.stopPropagation(); planning.deleteGoal.mutate(g.id); }}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
@@ -362,12 +370,28 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
             const status = getMetricStatus(m);
             const statusColors: Record<string, string> = { green: 'bg-emerald-500', yellow: 'bg-amber-400', red: 'bg-red-500', neutral: 'bg-muted' };
             const statusLabels: Record<string, string> = { green: 'No caminho', yellow: 'Atenção', red: 'Em risco', neutral: 'Sem objetivo' };
+            const updateMetric = (field: string, value: any) => planning.upsertMetric.mutate({ id: m.id, objective_id: objectiveId, [field]: value });
             return (
               <TableRow key={m.id} className={overdue ? 'bg-red-50' : dueToday ? 'bg-amber-50' : ''}>
-                <TableCell className="text-sm font-medium cursor-pointer hover:underline" onClick={() => setHistoryMetric(m)}>{m.name}</TableCell>
-                <TableCell className="text-xs">{CADENCES.find(c => c.value === m.cadence)?.label || m.cadence}</TableCell>
-                <TableCell className="text-xs">{displayVal != null ? `${Number(displayVal).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
-                <TableCell className="text-xs">{m.target_value ? `${Number(m.target_value).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
+                <TableCell>
+                  <Input className="h-7 w-32 text-xs font-medium" defaultValue={m.name} onBlur={e => { if (e.target.value !== m.name) updateMetric('name', e.target.value); }} />
+                </TableCell>
+                <TableCell>
+                  <Select defaultValue={m.cadence} onValueChange={v => updateMetric('cadence', v)}>
+                    <SelectTrigger className="h-7 w-[90px] text-[10px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>{CADENCES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell>
+                  {m.source === 'manual' ? (
+                    <Input className="h-7 w-24 text-xs" defaultValue={m.current_value || ''} onBlur={e => { if (e.target.value !== (m.current_value || '')) updateMetric('current_value', e.target.value); }} />
+                  ) : (
+                    <span className="text-xs">{displayVal != null ? `${Number(displayVal).toLocaleString()} ${m.target_unit || ''}` : '—'}</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Input className="h-7 w-24 text-xs" defaultValue={m.target_value || ''} onBlur={e => { if (e.target.value !== String(m.target_value || '')) updateMetric('target_value', e.target.value ? Number(e.target.value) : null); }} />
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1.5">
                     <span className={`inline-block h-2.5 w-2.5 rounded-full ${statusColors[status]}`} />
@@ -375,7 +399,8 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
                   </div>
                 </TableCell>
                 <TableCell className="text-xs">{m.last_updated_at ? new Date(m.last_updated_at).toLocaleDateString('pt-PT') : '—'}</TableCell>
-                <TableCell>
+                <TableCell className="flex gap-1">
+                  <button className="text-muted-foreground hover:text-foreground" onClick={() => setHistoryMetric(m)} title="Histórico"><TrendingUp className="h-3 w-3" /></button>
                   <button onClick={() => planning.deleteMetric.mutate(m.id)}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
                 </TableCell>
               </TableRow>
@@ -505,23 +530,43 @@ function ActionsSection({ objectiveId, actions, planning }: any) {
           <TableHeader><TableRow>
             <TableHead>Descrição</TableHead><TableHead>Tipo</TableHead><TableHead>Status</TableHead><TableHead>Deadline</TableHead><TableHead></TableHead>
           </TableRow></TableHeader>
-          <TableBody>{actions.map((a: any) => (
-            <TableRow key={a.id}>
-              <TableCell className="text-sm">{a.description}</TableCell>
-              <TableCell className="text-xs">{a.action_type === 'tarefa' ? 'Tarefa' : 'Ação Simples'}</TableCell>
-              <TableCell><Badge variant={a.status === 'feito' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(a.status)}</Badge></TableCell>
-              <TableCell className="text-xs">{a.deadline || '—'}</TableCell>
-              <TableCell className="flex gap-1">
-                {a.action_type !== 'tarefa' && !a.task_id && (
-                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => planning.convertActionToTask.mutate(a)}>
-                    <ListTodo className="h-3 w-3 mr-1" /> Converter em Tarefa
-                  </Button>
-                )}
-                {a.task_id && <Badge variant="outline" className="text-[10px]">Tarefa criada</Badge>}
-                <button onClick={() => planning.deleteAction.mutate(a.id)}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
-              </TableCell>
-            </TableRow>
-          ))}</TableBody>
+          <TableBody>{actions.map((a: any) => {
+            const updateAction = (field: string, value: any) => planning.upsertAction.mutate({ id: a.id, objective_id: objectiveId, [field]: value });
+            return (
+              <TableRow key={a.id}>
+                <TableCell>
+                  <Input className="h-7 w-full text-xs" defaultValue={a.description} onBlur={e => { if (e.target.value !== a.description) updateAction('description', e.target.value); }} />
+                </TableCell>
+                <TableCell>
+                  <Select defaultValue={a.action_type} onValueChange={v => updateAction('action_type', v)}>
+                    <SelectTrigger className="h-7 w-[110px] text-[10px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="simples">Ação Simples</SelectItem>
+                      <SelectItem value="tarefa">Tarefa</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell>
+                  <Select defaultValue={a.status} onValueChange={v => updateAction('status', v)}>
+                    <SelectTrigger className="h-7 w-[100px] text-[10px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>{ACTION_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell>
+                  <Input type="date" className="h-7 w-[130px] text-xs" defaultValue={a.deadline || ''} onBlur={e => { if (e.target.value !== (a.deadline || '')) updateAction('deadline', e.target.value); }} />
+                </TableCell>
+                <TableCell className="flex gap-1">
+                  {a.action_type !== 'tarefa' && !a.task_id && (
+                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => planning.convertActionToTask.mutate(a)}>
+                      <ListTodo className="h-3 w-3 mr-1" /> Tarefa
+                    </Button>
+                  )}
+                  {a.task_id && <Badge variant="outline" className="text-[10px]">Tarefa criada</Badge>}
+                  <button onClick={() => planning.deleteAction.mutate(a.id)}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
+                </TableCell>
+              </TableRow>
+            );
+          })}</TableBody>
         </Table>
       )}
 
