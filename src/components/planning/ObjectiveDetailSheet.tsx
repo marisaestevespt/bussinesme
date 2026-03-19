@@ -1,22 +1,3 @@
-import { useState } from 'react';
-import { Dialog as FullDialog, DialogContent as FullDialogContent, DialogHeader as FullDialogHeader, DialogTitle as FullDialogTitle } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Separator } from '@/components/ui/separator';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Pencil, ArrowRightLeft, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { planAreaLabel, planStatusLabel, VALUE_SOURCES, CADENCES, PERIODS, ACTION_STATUSES } from '@/hooks/usePlanningData';
-import { useTeamData } from '@/hooks/useTeamData';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { format } from 'date-fns';
-
 import { useState, useEffect } from 'react';
 import { Dialog as FullDialog, DialogContent as FullDialogContent, DialogHeader as FullDialogHeader, DialogTitle as FullDialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -30,25 +11,39 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Save, ArrowRightLeft, TrendingUp, TrendingDown, Minus, ListTodo } from 'lucide-react';
-import { planAreaLabel, planStatusLabel, PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES, CADENCES, PERIODS, ACTION_STATUSES } from '@/hooks/usePlanningData';
+import { Plus, Trash2, Save, ListTodo, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { planAreaLabel, planStatusLabel, PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES, CADENCES, ACTION_STATUSES } from '@/hooks/usePlanningData';
 import { useTeamData } from '@/hooks/useTeamData';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 
 export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any) {
-  if (!objective) return null;
-  const obj = planning.allObjectives.find((o: any) => o.id === objective.id) || objective;
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState<any>({});
+
+  const obj = objective ? (planning.allObjectives.find((o: any) => o.id === objective.id) || objective) : null;
+
+  useEffect(() => {
+    if (obj) {
+      setForm({
+        title: obj.title || '', description: obj.description || '', area: obj.area || 'outro',
+        status: obj.status || 'por_iniciar', deadline: obj.deadline || '',
+        objective_type: obj.objective_type || 'quantitativo', target_value: obj.target_value || '',
+        target_unit: obj.target_unit || '€', current_value: obj.current_value || '',
+        value_source: obj.value_source || 'manual',
+      });
+      setEditing(false);
+    }
+  }, [obj?.id, obj?.updated_at]);
+
+  if (!obj) return null;
+
   const prog = planning.objectiveProgress(obj);
   const currentVal = planning.objectiveCurrentValue(obj);
   const objCriteria = (planning.criteria.data || []).filter((c: any) => c.objective_id === obj.id);
   const objGoals = planning.allGoals.filter((g: any) => g.objective_id === obj.id);
   const objMetrics = planning.allMetrics.filter((m: any) => m.objective_id === obj.id);
   const objActions = planning.allActions.filter((a: any) => a.objective_id === obj.id);
-
-  // Editable header fields
-  const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<any>({});
   const set = (k: string, v: any) => setForm((p: any) => ({ ...p, [k]: v }));
 
   useEffect(() => {
