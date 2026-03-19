@@ -1069,6 +1069,33 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Lead Detail Sheet */}
+      <LeadDetailSheet
+        open={leadSheetOpen}
+        onOpenChange={v => { setLeadSheetOpen(v); if (!v) setSelectedLead(null); }}
+        lead={selectedLead}
+        products={(commProdGoalQ.data || []).map((p: any) => p.product_name)}
+        profiles={[]}
+        onSave={(lead) => {
+          upsertLead.mutate(lead, {
+            onSuccess: () => {
+              setLeadSheetOpen(false);
+              setSelectedLead(null);
+              qc.invalidateQueries({ queryKey: ['md-leads'] });
+            },
+          });
+        }}
+        onDelete={(id) => {
+          deleteLead.mutate(id, {
+            onSuccess: () => {
+              setLeadSheetOpen(false);
+              setSelectedLead(null);
+              qc.invalidateQueries({ queryKey: ['md-leads'] });
+            },
+          });
+        }}
+      />
     </div>
   );
 }
