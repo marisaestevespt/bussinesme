@@ -101,6 +101,7 @@ export function QuarterlyGallery({ planning, year }: Props) {
 /* ─── QUARTER DETAIL ─── */
 
 function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: number; planning: any; onBack: () => void }) {
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const q = QUARTERS[qIdx];
   const quarterNum = qIdx + 1;
