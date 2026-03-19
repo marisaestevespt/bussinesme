@@ -3,6 +3,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -193,6 +194,7 @@ interface TeamMember {
 export default function ComecaAquiPage() {
   const { settings, refetch: refetchSettings } = useBusinessSettings();
   const { isOwner, user } = useAuth();
+  const navigate = useNavigate();
 
   const [welcomeText, setWelcomeText] = useState('');
   const [aboutText, setAboutText] = useState('');
@@ -472,14 +474,14 @@ export default function ComecaAquiPage() {
 
           {/* Document shortcut */}
           <section className="pb-10">
-            <Card className="hq-transition hover:shadow-md">
+            <Card className="hq-transition hover:shadow-md cursor-pointer" onClick={() => navigate('/hub/biblioteca')}>
               <CardContent className="flex items-center gap-4 p-5">
                 <div className="rounded-full bg-primary/10 p-3">
                   <FileText className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">Biblioteca de Documentos Internos</p>
-                  <p className="text-xs text-muted-foreground">Em breve — documentos partilhados da equipa.</p>
+                  <p className="text-xs text-muted-foreground">Documentos partilhados da equipa.</p>
                 </div>
               </CardContent>
             </Card>
