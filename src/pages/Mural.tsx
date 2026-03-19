@@ -70,9 +70,15 @@ interface Profile {
   avatar_url: string | null;
 }
 
+const MURAL_DEFAULT_VIEWS: DefaultView[] = [
+  { key: 'todas', label: 'Todas as Publicações', isDefault: true },
+];
+
 export default function MuralPage() {
   const queryClient = useQueryClient();
   const { user, isOwner } = useAuth();
+  const { allViews, addView, renameView, deleteView } = useUserViews('mural', MURAL_DEFAULT_VIEWS);
+  const [activeView, setActiveView] = useState('todas');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formTitle, setFormTitle] = useState('');
   const [formBody, setFormBody] = useState('');
