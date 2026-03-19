@@ -70,6 +70,7 @@ const sb = () => supabase.from('clients' as any) as any;
 const sbHistory = () => supabase.from('client_history' as any) as any;
 const sbActivities = () => supabase.from('client_activities' as any) as any;
 const sbOnboarding = () => supabase.from('client_onboarding' as any) as any;
+const sbOffboarding = () => supabase.from('client_offboarding' as any) as any;
 
 export function useClients() {
   const qc = useQueryClient();
