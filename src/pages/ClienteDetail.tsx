@@ -681,17 +681,18 @@ export default function ClienteDetailPage() {
               </CardContent>
             </Card>
           </TabsContent>
+          {/* ─── Customer Success ──────────────────────── */}
+          <TabsContent value="customer-success" className="space-y-6 mt-4">
+            {!isNew && (
+              <ClientCustomerSuccess
+                clientId={id!}
+                clientName={form.full_name || ''}
+                productName={form.current_product || null}
+                startDate={form.start_date || null}
+              />
+            )}
+          </TabsContent>
         </Tabs>
-
-        {/* Customer Success */}
-        {!isNew && (
-          <ClientCustomerSuccess
-            clientId={id!}
-            clientName={form.full_name || ''}
-            productName={form.current_product || null}
-            startDate={form.start_date || null}
-          />
-        )}
       </div>
 
       {/* Sale dialog */}
