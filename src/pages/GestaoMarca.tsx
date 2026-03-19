@@ -631,7 +631,7 @@ export default function GestaoMarcaPage() {
           <DialogHeader>
             <DialogTitle>{selectedKanban?.title}</DialogTitle>
           </DialogHeader>
-          {selectedKanban && selectedKanban.title === 'Análise SWOT' ? (
+          {selectedKanban && selectedKanban.title?.includes('Análise SWOT') ? (
             /* ── SWOT content ── */
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
