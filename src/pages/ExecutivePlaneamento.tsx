@@ -60,14 +60,6 @@ export default function ExecutivePlaneamento() {
           <h2 className="text-lg font-semibold">Metas</h2>
           <PlanningGoalsTab planning={planning} viewMode={viewMode} />
         </section>
-
-        <Separator />
-
-        {/* Acompanhamento */}
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Acompanhamento</h2>
-          <PlanningTrackingTab planning={planning} />
-        </section>
       </div>
     </AppLayout>
   );
