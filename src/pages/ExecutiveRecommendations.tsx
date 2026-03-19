@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { sendNotification } from '@/hooks/useNotifications';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
