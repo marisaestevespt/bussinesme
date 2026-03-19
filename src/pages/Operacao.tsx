@@ -296,7 +296,7 @@ export default function OperacaoPage() {
           <p className="text-sm text-muted-foreground">Vista operacional de projetos de clientes e internos</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-10">
 
           {/* ═══════════════ COLUNA ESQUERDA — CLIENTES ═══════════════ */}
           <div className="space-y-4">
