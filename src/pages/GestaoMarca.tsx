@@ -19,6 +19,20 @@ import {
 
 // ── Types ──
 
+interface BrandCompetitor {
+  id: string;
+  name: string;
+  type: string;
+  instagram: string | null;
+  website: string | null;
+  produtos: string | null;
+  precos: string | null;
+  plataformas: string | null;
+  posicionamento: string | null;
+  comunicacao: string | null;
+  sort_order: number;
+}
+
 interface BrandLink {
   id: string;
   type: string;
