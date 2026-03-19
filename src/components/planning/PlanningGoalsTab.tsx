@@ -245,7 +245,7 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
       {viewMode === 'mensal' && renderGroupedTable(monthlyByObj, { clickable: true, showDelete: true })}
       {viewMode === 'trimestral' && renderGroupedTable(quarterlyByObj, { clickable: false, showDelete: false })}
       {viewMode === 'semestral' && renderGroupedTable(semesterByObj, { clickable: false, showDelete: false })}
-      {viewMode === 'detalhe' && renderGroupedTable(detailGrouped, { clickable: true, showDelete: true })}
+      {viewMode === 'metas' && renderGroupedTable(detailGrouped, { clickable: true, showDelete: true })}
 
       {/* Create / Edit Goal Dialog */}
       <Dialog open={dialogOpen} onOpenChange={v => { if (!v) { setDialogOpen(false); setEditGoal(null); } else setDialogOpen(true); }}>
