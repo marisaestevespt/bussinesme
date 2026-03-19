@@ -537,7 +537,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 {activeClients.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem clientes ativos.</TableCell></TableRow>
                 ) : activeClients.map((c: any) => (
-                  <TableRow key={c.id}>
+                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/clientes/${c.id}`)}>
                     <TableCell className="text-xs">{c.client_id}</TableCell>
                     <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
                     <TableCell><Badge variant="default" className="text-xs">{c.status}</Badge></TableCell>
