@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -91,14 +91,18 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   // Checklists
   const checklistQ = useQuery({ queryKey: ['md-checklist', year, monthNum], queryFn: async () => { const { data } = await supabase.from('executive_monthly_checklists').select('*').eq('year', year).eq('month', monthNum).order('created_at'); return data || []; }});
 
-  const seedHabits = useMutation({
-    mutationFn: async () => {
+  // Auto-seed checklist when month has none
+  const seededRef = useRef<string | null>(null);
+  useEffect(() => {
+    const key = `${year}-${monthNum}`;
+    if (checklistQ.isSuccess && checklistQ.data?.length === 0 && seededRef.current !== key) {
+      seededRef.current = key;
       const items = DEFAULT_HABITS.flatMap(g => g.tasks.map(t => ({ year, month: monthNum, task: `${g.category}::${t}`, completed: false })));
-      const { error } = await supabase.from('executive_monthly_checklists').insert(items);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] }),
-  });
+      supabase.from('executive_monthly_checklists').insert(items).then(() => {
+        qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] });
+      });
+    }
+  }, [checklistQ.isSuccess, checklistQ.data, year, monthNum, qc]);
 
   const addCheckItem = useMutation({
     mutationFn: async (task: string) => { const { error } = await supabase.from('executive_monthly_checklists').insert({ year, month: monthNum, task, completed: false }); if (error) throw error; },
@@ -213,7 +217,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
     return Object.entries(groups).filter(([, g]) => g.items.length > 0);
   }, [checklist]);
 
-  const hasHabitsSeeded = checklist.some((c: any) => c.task.includes('::'));
+  
 
   // New checklist item state
   const [newCat, setNewCat] = useState('');
@@ -648,10 +652,9 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-sm">Checklists do Mês — Hábitos Mensais</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          {!hasHabitsSeeded && checklist.length === 0 && (
-            <div className="text-center py-6 space-y-2">
-              <p className="text-sm text-muted-foreground">Os hábitos mensais ainda não foram criados para {monthName}.</p>
-              <Button size="sm" onClick={() => seedHabits.mutate()} disabled={seedHabits.isPending}>Criar hábitos padrão</Button>
+          {checklist.length === 0 && (
+            <div className="text-center py-6">
+              <p className="text-sm text-muted-foreground">A criar checklists para {monthName}…</p>
             </div>
           )}
 
