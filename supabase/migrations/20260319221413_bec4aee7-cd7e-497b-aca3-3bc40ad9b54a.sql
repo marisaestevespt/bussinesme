@@ -1,0 +1,1 @@
+ALTER TABLE public.business_settings ADD COLUMN login_bg_url TEXT;

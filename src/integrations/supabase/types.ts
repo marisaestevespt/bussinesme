@@ -314,6 +314,7 @@ export type Database = {
           font_body: string
           font_display: string
           id: string
+          login_bg_url: string | null
           logo_url: string | null
           primary_color: string
           proposta_unica_valor: string | null
@@ -331,6 +332,7 @@ export type Database = {
           font_body?: string
           font_display?: string
           id?: string
+          login_bg_url?: string | null
           logo_url?: string | null
           primary_color?: string
           proposta_unica_valor?: string | null
@@ -348,6 +350,7 @@ export type Database = {
           font_body?: string
           font_display?: string
           id?: string
+          login_bg_url?: string | null
           logo_url?: string | null
           primary_color?: string
           proposta_unica_valor?: string | null
