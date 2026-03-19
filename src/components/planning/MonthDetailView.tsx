@@ -65,7 +65,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   // ── Active tab states ──
   const [objTab, setObjTab] = useState<'metas'|'objetivos'>('metas');
   const [vendasTab, setVendasTab] = useState<'goal'|'real'>('goal');
-  const [clientTab, setClientTab] = useState<'ativos'|'terminar'>('ativos');
+  const [clientTab, setClientTab] = useState<'ativos'|'pausados'|'terminar'>('ativos');
   const [contentTab, setContentTab] = useState('calendario');
   const [calMonth, setCalMonth] = useState(new Date(year, monthIdx, 1));
   const [selectedObjective, setSelectedObjective] = useState<any>(null);
@@ -154,8 +154,13 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   };
 
   const allClients = clientsQ.data || [];
-  const activeClients = allClients.filter((c: any) => c.status === 'ativo');
-  const endingClients = allClients.filter((c: any) => { if (!c.end_of_cycle) return false; const d = parseISO(c.end_of_cycle); return d >= range.start && d <= range.end; });
+  const activeClients = allClients.filter((c: any) => c.status === 'ativo' || c.status === 'em_onboarding');
+  const pausedClients = allClients.filter((c: any) => c.status === 'pausado');
+  const endingClients = allClients.filter((c: any) => {
+    const isTerminado = c.status === 'terminado';
+    const endsCycle = c.end_of_cycle ? (() => { const d = parseISO(c.end_of_cycle); return d >= range.start && d <= range.end; })() : false;
+    return isTerminado || endsCycle;
+  });
 
   const allEvents = (eventsQ.data || []).filter((e: any) => { if (!e.start_date) return false; const d = parseISO(e.start_date); return d.getMonth() === calMonth.getMonth() && d.getFullYear() === calMonth.getFullYear(); });
 
@@ -539,8 +544,9 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           <div className="flex items-center gap-2">
             <CardTitle className="text-sm">Clientes Ativos & Renovações</CardTitle>
             <div className="flex gap-1 ml-auto">
-              <Button size="sm" variant={clientTab === 'ativos' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('ativos')}>Clientes Ativos</Button>
-              <Button size="sm" variant={clientTab === 'terminar' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('terminar')}>A terminar este mês</Button>
+              <Button size="sm" variant={clientTab === 'ativos' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('ativos')}>Clientes Ativos ({activeClients.length})</Button>
+              <Button size="sm" variant={clientTab === 'pausados' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('pausados')}>Em Pausa ({pausedClients.length})</Button>
+              <Button size="sm" variant={clientTab === 'terminar' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setClientTab('terminar')}>A terminar este mês ({endingClients.length})</Button>
             </div>
           </div>
         </CardHeader>
@@ -557,7 +563,27 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/clientes/${c.id}`)}>
                     <TableCell className="text-xs">{c.client_id}</TableCell>
                     <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
-                    <TableCell><Badge variant="default" className="text-xs">{c.status}</Badge></TableCell>
+                    <TableCell><Badge variant="default" className="text-xs">{c.status === 'em_onboarding' ? 'Em onboarding' : 'Ativo'}</Badge></TableCell>
+                    <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
+                    <TableCell className="text-xs">{c.email || '—'}</TableCell>
+                    <TableCell className="text-xs">{c.whatsapp || '—'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : clientTab === 'pausados' ? (
+            <Table>
+              <TableHeader><TableRow>
+                <TableHead>ID</TableHead><TableHead>Data Início</TableHead><TableHead>Status</TableHead><TableHead>Nome</TableHead><TableHead>Email</TableHead><TableHead>Whatsapp</TableHead>
+              </TableRow></TableHeader>
+              <TableBody>
+                {pausedClients.length === 0 ? (
+                  <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem clientes em pausa.</TableCell></TableRow>
+                ) : pausedClients.map((c: any) => (
+                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/60" onClick={() => navigate(`/clientes/${c.id}`)}>
+                    <TableCell className="text-xs">{c.client_id}</TableCell>
+                    <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
+                    <TableCell><Badge variant="secondary" className="bg-amber-100 text-amber-800 text-xs">Pausado</Badge></TableCell>
                     <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
                     <TableCell className="text-xs">{c.email || '—'}</TableCell>
                     <TableCell className="text-xs">{c.whatsapp || '—'}</TableCell>
