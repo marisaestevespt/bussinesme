@@ -3,6 +3,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
