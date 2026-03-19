@@ -28,14 +28,14 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning, onEdi
   const objActions = planning.allActions.filter((a: any) => a.objective_id === obj.id);
 
   return (
-    <Sheet open={open} onOpenChange={v => !v && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
-        <SheetHeader>
+    <FullDialog open={open} onOpenChange={v => { if (!v) onClose(); }}>
+      <FullDialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+        <FullDialogHeader>
           <div className="flex items-start justify-between gap-2">
-            <SheetTitle className="text-lg">{obj.title}</SheetTitle>
+            <FullDialogTitle className="text-lg">{obj.title}</FullDialogTitle>
             <Button size="sm" variant="outline" onClick={() => onEdit(obj)}><Pencil className="h-3 w-3 mr-1" /> Editar</Button>
           </div>
-        </SheetHeader>
+        </FullDialogHeader>
 
         <div className="space-y-6 mt-4">
           {/* Header info */}
