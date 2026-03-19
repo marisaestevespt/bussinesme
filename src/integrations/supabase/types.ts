@@ -4730,9 +4730,45 @@ export type Database = {
           },
         ]
       }
+      team_member_vacations: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          member_id: string
+          notes: string | null
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          member_id: string
+          notes?: string | null
+          start_date: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          member_id?: string
+          notes?: string | null
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_member_vacations_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           created_at: string
+          custom_holidays: Json | null
           department: string | null
           email: string | null
           expected_weekly_hours: number
@@ -4751,9 +4787,11 @@ export type Database = {
           updated_at: string
           whatsapp: string | null
           work_schedule: string | null
+          works_holidays: boolean
         }
         Insert: {
           created_at?: string
+          custom_holidays?: Json | null
           department?: string | null
           email?: string | null
           expected_weekly_hours?: number
@@ -4772,9 +4810,11 @@ export type Database = {
           updated_at?: string
           whatsapp?: string | null
           work_schedule?: string | null
+          works_holidays?: boolean
         }
         Update: {
           created_at?: string
+          custom_holidays?: Json | null
           department?: string | null
           email?: string | null
           expected_weekly_hours?: number
@@ -4793,6 +4833,7 @@ export type Database = {
           updated_at?: string
           whatsapp?: string | null
           work_schedule?: string | null
+          works_holidays?: boolean
         }
         Relationships: [
           {
