@@ -314,13 +314,24 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [historyMetric, setHistoryMetric] = useState<any>(null);
   const [recordDialog, setRecordDialog] = useState(false);
-  const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual' });
+  const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60' });
   const [recordForm, setRecordForm] = useState({ value: '', notes: '', recorded_at: format(new Date(), 'yyyy-MM-dd') });
 
   const handleSave = () => {
-    planning.upsertMetric.mutate({ ...form, objective_id: objectiveId });
+    planning.upsertMetric.mutate({ ...form, target_value: form.target_value ? Number(form.target_value) : null, green_threshold: Number(form.green_threshold), yellow_threshold: Number(form.yellow_threshold), objective_id: objectiveId });
     setDialogOpen(false);
-    setForm({ name: '', cadence: 'mensal', source: 'manual' });
+    setForm({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60' });
+  };
+
+  const getMetricStatus = (m: any) => {
+    const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source) : null;
+    const current = m.source === 'manual' ? Number(m.current_value || 0) : Number(autoVal || 0);
+    const target = Number(m.target_value || 0);
+    if (!target) return 'neutral';
+    const pct = (current / target) * 100;
+    if (pct >= (m.green_threshold ?? 90)) return 'green';
+    if (pct >= (m.yellow_threshold ?? 60)) return 'yellow';
+    return 'red';
   };
 
   const handleRecord = () => {
@@ -341,19 +352,28 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
       {metrics.length === 0 ? <p className="text-xs text-muted-foreground">Sem métricas definidas</p> : (
         <Table>
           <TableHeader><TableRow>
-            <TableHead>Métrica</TableHead><TableHead>Cadência</TableHead><TableHead>Fonte</TableHead><TableHead>Valor atual</TableHead><TableHead>Última atualiz.</TableHead><TableHead></TableHead>
+            <TableHead>Métrica</TableHead><TableHead>Cadência</TableHead><TableHead>Valor atual</TableHead><TableHead>Objetivo</TableHead><TableHead>Estado</TableHead><TableHead>Última atualiz.</TableHead><TableHead></TableHead>
           </TableRow></TableHeader>
           <TableBody>{metrics.map((m: any) => {
             const overdue = planning.isMetricOverdue(m);
             const dueToday = planning.isMetricDueToday(m);
             const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source) : null;
             const displayVal = m.source === 'manual' ? m.current_value : autoVal;
+            const status = getMetricStatus(m);
+            const statusColors: Record<string, string> = { green: 'bg-emerald-500', yellow: 'bg-amber-400', red: 'bg-red-500', neutral: 'bg-muted' };
+            const statusLabels: Record<string, string> = { green: 'No caminho', yellow: 'Atenção', red: 'Em risco', neutral: 'Sem objetivo' };
             return (
               <TableRow key={m.id} className={overdue ? 'bg-red-50' : dueToday ? 'bg-amber-50' : ''}>
                 <TableCell className="text-sm font-medium cursor-pointer hover:underline" onClick={() => setHistoryMetric(m)}>{m.name}</TableCell>
                 <TableCell className="text-xs">{CADENCES.find(c => c.value === m.cadence)?.label || m.cadence}</TableCell>
-                <TableCell className="text-xs">{VALUE_SOURCES.find(s => s.value === m.source)?.label || m.source}</TableCell>
-                <TableCell className="text-xs">{displayVal != null ? Number(displayVal).toLocaleString() : '—'}</TableCell>
+                <TableCell className="text-xs">{displayVal != null ? `${Number(displayVal).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
+                <TableCell className="text-xs">{m.target_value ? `${Number(m.target_value).toLocaleString()} ${m.target_unit || ''}` : '—'}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1.5">
+                    <span className={`inline-block h-2.5 w-2.5 rounded-full ${statusColors[status]}`} />
+                    <span className="text-xs">{statusLabels[status]}</span>
+                  </div>
+                </TableCell>
                 <TableCell className="text-xs">{m.last_updated_at ? new Date(m.last_updated_at).toLocaleDateString('pt-PT') : '—'}</TableCell>
                 <TableCell>
                   <button onClick={() => planning.deleteMetric.mutate(m.id)}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
@@ -368,15 +388,17 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
       {metrics.length > 0 && metrics.map((m: any) => {
         const records = allHistory.filter((r: any) => r.metric_id === m.id);
         if (records.length < 2) return null;
+        const chartData = records.map((r: any) => ({ date: r.recorded_at, value: Number(r.value), ...(m.target_value ? { target: Number(m.target_value) } : {}) }));
         return (
           <div key={m.id} className="mt-4">
-            <p className="text-xs font-medium mb-1">{m.name} — Tendência</p>
+            <p className="text-xs font-medium mb-1">{m.name} — Tendência {m.target_value ? `(objetivo: ${Number(m.target_value).toLocaleString()} ${m.target_unit || ''})` : ''}</p>
             <ResponsiveContainer width="100%" height={120}>
-              <LineChart data={records.map((r: any) => ({ date: r.recorded_at, value: Number(r.value) }))}>
+              <LineChart data={chartData}>
                 <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 10 }} width={40} />
                 <Tooltip />
                 <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                {m.target_value && <Line type="monotone" dataKey="target" stroke="hsl(var(--destructive))" strokeWidth={1} strokeDasharray="4 4" dot={false} />}
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -389,6 +411,14 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
           <DialogHeader><DialogTitle>Nova Métrica</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div><Label>Nome</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Valor objetivo</Label><Input type="number" placeholder="Ex: 10000" value={form.target_value} onChange={e => setForm(p => ({ ...p, target_value: e.target.value }))} /></div>
+              <div><Label>Unidade</Label><Input placeholder="Ex: €, leads, %" value={form.target_unit} onChange={e => setForm(p => ({ ...p, target_unit: e.target.value }))} /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>% para "No caminho"</Label><Input type="number" value={form.green_threshold} onChange={e => setForm(p => ({ ...p, green_threshold: e.target.value }))} /></div>
+              <div><Label>% para "Atenção"</Label><Input type="number" value={form.yellow_threshold} onChange={e => setForm(p => ({ ...p, yellow_threshold: e.target.value }))} /></div>
+            </div>
             <div><Label>Cadência</Label>
               <Select value={form.cadence} onValueChange={v => setForm(p => ({ ...p, cadence: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
