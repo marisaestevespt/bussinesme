@@ -307,6 +307,7 @@ export type Database = {
       business_settings: {
         Row: {
           about_text: string | null
+          accent_color: string
           background_color: string
           business_name: string
           created_at: string
@@ -323,6 +324,7 @@ export type Database = {
         }
         Insert: {
           about_text?: string | null
+          accent_color?: string
           background_color?: string
           business_name: string
           created_at?: string
@@ -339,6 +341,7 @@ export type Database = {
         }
         Update: {
           about_text?: string | null
+          accent_color?: string
           background_color?: string
           business_name?: string
           created_at?: string
@@ -1373,6 +1376,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      custom_fonts: {
+        Row: {
+          created_at: string
+          font_name: string
+          font_type: string
+          font_url: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          font_name: string
+          font_type?: string
+          font_url: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          font_name?: string
+          font_type?: string
+          font_url?: string
+          id?: string
+        }
+        Relationships: []
       }
       custom_roles: {
         Row: {
