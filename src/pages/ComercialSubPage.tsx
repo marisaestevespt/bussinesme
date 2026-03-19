@@ -6,6 +6,7 @@ import { CommercialMetas } from '@/components/commercial/CommercialMetas';
 import { CommercialVendas } from '@/components/commercial/CommercialVendas';
 import { CommercialProcessos } from '@/components/commercial/CommercialProcessos';
 import { CommercialAcoes } from '@/components/commercial/CommercialAcoes';
+import { CommercialCRM } from '@/components/commercial/CommercialCRM';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 
 const TITLES: Record<string, string> = {
@@ -28,6 +29,7 @@ export default function ComercialSubPage() {
       case 'metas': return <CommercialMetas />;
       case 'vendas': return <CommercialVendas />;
       case 'acoes': return <CommercialAcoes />;
+      case 'crm': return <CommercialCRM />;
       case 'processos': return <CommercialProcessos />;
       default: return <EmptyModulePage title={title} description="Conteúdo será construído em breve." />;
     }

@@ -715,6 +715,142 @@ export type Database = {
           },
         ]
       }
+      crm_interactions: {
+        Row: {
+          created_at: string
+          files: string | null
+          id: string
+          interaction_date: string
+          interaction_type: string
+          lead_id: string
+          notes: string | null
+        }
+        Insert: {
+          created_at?: string
+          files?: string | null
+          id?: string
+          interaction_date?: string
+          interaction_type?: string
+          lead_id: string
+          notes?: string | null
+        }
+        Update: {
+          created_at?: string
+          files?: string | null
+          id?: string
+          interaction_date?: string
+          interaction_type?: string
+          lead_id?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_interactions_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_lead_actions: {
+        Row: {
+          completed: boolean
+          created_at: string
+          deadline: string | null
+          id: string
+          lead_id: string
+          task: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          lead_id: string
+          task: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          deadline?: string | null
+          id?: string
+          lead_id?: string
+          task?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_lead_actions_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_leads: {
+        Row: {
+          added_at: string
+          closed_product: string | null
+          context: string | null
+          created_at: string
+          created_by: string | null
+          documents: string | null
+          email: string | null
+          estimated_value: number | null
+          followup_notes: string | null
+          id: string
+          lost_reason: string | null
+          name: string
+          next_followup: string | null
+          phone: string | null
+          potential_product: string | null
+          source: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          added_at?: string
+          closed_product?: string | null
+          context?: string | null
+          created_at?: string
+          created_by?: string | null
+          documents?: string | null
+          email?: string | null
+          estimated_value?: number | null
+          followup_notes?: string | null
+          id?: string
+          lost_reason?: string | null
+          name: string
+          next_followup?: string | null
+          phone?: string | null
+          potential_product?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          added_at?: string
+          closed_product?: string | null
+          context?: string | null
+          created_at?: string
+          created_by?: string | null
+          documents?: string | null
+          email?: string | null
+          estimated_value?: number | null
+          followup_notes?: string | null
+          id?: string
+          lost_reason?: string | null
+          name?: string
+          next_followup?: string | null
+          phone?: string | null
+          potential_product?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       custom_roles: {
         Row: {
           created_at: string
