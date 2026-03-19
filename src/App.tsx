@@ -21,6 +21,7 @@ import ExecutiveBusinessPlan from "./pages/ExecutiveBusinessPlan";
 import ExecutiveInnovation from "./pages/ExecutiveInnovation";
 import ExecutiveProductivity from "./pages/ExecutiveProductivity";
 import ExecutivePage from "./pages/Executive";
+import ExecutiveRecommendations from "./pages/ExecutiveRecommendations";
 import DefinicoesPage from "./pages/Definicoes";
 import AgendaPage from "./pages/Agenda";
 import ReunioesPage from "./pages/Reunioes";
@@ -132,6 +133,7 @@ function AppRoutes() {
       <Route path="/executive/business-plan" element={<ExecutiveBusinessPlan />} />
       <Route path="/executive/innovation" element={<ExecutiveInnovation />} />
       <Route path="/executive/productivity" element={<ExecutiveProductivity />} />
+      <Route path="/executive/recommendations" element={<ExecutiveRecommendations />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
       <Route path="/definicoes" element={<DefinicoesPage />} />
       <Route path="*" element={<NotFound />} />

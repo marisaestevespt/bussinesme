@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { RecommendationWidget } from '@/components/RecommendationWidget';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -258,6 +259,7 @@ export default function SecretariaPage() {
               <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Projetos ativos</p><p className="text-2xl font-bold">{activeProjects.length}</p></CardContent></Card>
             </div>
             <DashboardPersonalWidgets userId={user?.id} teamMember={teamMember.data} />
+            <RecommendationWidget memberName={firstName} />
           </>
         )}
 
