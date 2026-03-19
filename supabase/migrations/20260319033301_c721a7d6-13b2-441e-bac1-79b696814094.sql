@@ -1,0 +1,1 @@
+ALTER TABLE public.crm_leads ADD COLUMN responsible_id UUID REFERENCES public.profiles(id);

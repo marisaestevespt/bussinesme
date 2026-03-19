@@ -24,11 +24,12 @@ interface LeadDetailSheetProps {
   onOpenChange: (v: boolean) => void;
   lead: any | null;
   products: string[];
+  profiles: { id: string; full_name: string | null }[];
   onSave: (lead: any) => void;
   onDelete?: (id: string) => void;
 }
 
-export function LeadDetailSheet({ open, onOpenChange, lead, products, onSave, onDelete }: LeadDetailSheetProps) {
+export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, onSave, onDelete }: LeadDetailSheetProps) {
   const { useLeadInteractions, upsertInteraction, deleteInteraction, useLeadActions, upsertLeadAction, deleteLeadAction } = useCrmData();
 
   const [form, setForm] = useState<any>({});
@@ -54,6 +55,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, onSave, on
         phone: lead.phone || '',
         potential_product: lead.potential_product || '',
         closed_product: lead.closed_product || '',
+        responsible_id: lead.responsible_id || '',
         next_followup: lead.next_followup ? new Date(lead.next_followup) : undefined,
         followup_notes: lead.followup_notes || '',
         estimated_value: lead.estimated_value?.toString() || '',
@@ -64,7 +66,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, onSave, on
     } else {
       setForm({
         name: '', added_at: new Date().toISOString().split('T')[0], source: '', status: 'lead',
-        email: '', phone: '', potential_product: '', closed_product: '',
+        email: '', phone: '', potential_product: '', closed_product: '', responsible_id: '',
         next_followup: undefined, followup_notes: '', estimated_value: '', documents: '', context: '', lost_reason: '',
       });
     }
@@ -100,6 +102,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, onSave, on
       phone: form.phone || null,
       potential_product: form.potential_product || null,
       closed_product: form.closed_product || null,
+      responsible_id: form.responsible_id || null,
       next_followup: form.next_followup ? format(form.next_followup, 'yyyy-MM-dd') : null,
       followup_notes: form.followup_notes || null,
       estimated_value: parseFloat(form.estimated_value) || 0,
@@ -150,6 +153,15 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, onSave, on
               </div>
               <div><Label>Email</Label><Input value={form.email || ''} onChange={e => set({ email: e.target.value })} /></div>
               <div><Label>Telefone</Label><Input value={form.phone || ''} onChange={e => set({ phone: e.target.value })} /></div>
+              <div className="col-span-2">
+                <Label>Vendedor / Responsável</Label>
+                <Select value={form.responsible_id || ''} onValueChange={v => set({ responsible_id: v })}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    {profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <div>
                 <Label>Produto Potencial</Label>
                 <Select value={form.potential_product || ''} onValueChange={v => set({ potential_product: v })}>

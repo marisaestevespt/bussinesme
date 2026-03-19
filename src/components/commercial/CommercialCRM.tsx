@@ -1,4 +1,6 @@
 import { useState, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Plus, LayoutGrid, List } from 'lucide-react';
 import { useCrmData } from '@/hooks/useCrmData';
@@ -17,6 +19,14 @@ export function CommercialCRM() {
   const { allLeads, activeLeads, leadsToContact, pipelineValue, winsThisMonth, upsertLead, deleteLead } = useCrmData();
   const { productGoals } = useCommercialData();
   const products = (productGoals.data || []).map(p => p.product_name);
+
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['profiles-list'],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id, full_name').order('full_name');
+      return data || [];
+    },
+  });
 
   const openLead = useCallback((lead: any) => {
     setSelectedLead(lead);
@@ -106,6 +116,7 @@ export function CommercialCRM() {
         onOpenChange={v => { setSheetOpen(v); if (!v) setSelectedLead(null); }}
         lead={selectedLead}
         products={products}
+        profiles={profiles}
         onSave={handleSave}
         onDelete={handleDelete}
       />
