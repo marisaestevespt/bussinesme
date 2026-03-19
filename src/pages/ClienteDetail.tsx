@@ -314,6 +314,30 @@ export default function ClienteDetailPage() {
                         toast.success('Checklist de offboarding copiada automaticamente');
                       }
                     }
+
+                    // Auto-create project of type "clientes" with tasks from product template
+                    const { data: projData, error: projErr } = await supabase.from('projects').insert({
+                      name: `${form.full_name || 'Cliente'} — ${v}`,
+                      type: 'clientes',
+                      status: 'em_curso',
+                      department: 'clientes',
+                      client_name: form.full_name || null,
+                    }).select('id').single();
+                    if (!projErr && projData) {
+                      const { data: taskTemplates } = await supabase.from('product_project_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
+                      if (taskTemplates && taskTemplates.length > 0) {
+                        for (const t of taskTemplates as any[]) {
+                          await supabase.from('tasks').insert({
+                            name: t.task_name || '',
+                            project_id: projData.id,
+                            department: 'clientes',
+                            status: 'pendente',
+                            priority: 'media',
+                          });
+                        }
+                      }
+                      toast.success('Projeto criado automaticamente');
+                    }
                   }
                 }
               }}>
