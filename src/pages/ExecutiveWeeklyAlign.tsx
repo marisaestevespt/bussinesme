@@ -9,7 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useExecutiveData, SALES_ROUTINES, getMonthName, areaLabel, statusLabel } from '@/hooks/useExecutiveData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfWeek, endOfWeek, format, subDays, addDays } from 'date-fns';
+import { startOfWeek, endOfWeek, format, subDays, addDays, parseISO, differenceInDays } from 'date-fns';
+import { useTeamData } from '@/hooks/useTeamData';
+import { cn } from '@/lib/utils';
 
 const now = new Date();
 const currentMonth = now.getMonth() + 1;
