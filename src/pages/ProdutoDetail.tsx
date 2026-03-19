@@ -1122,7 +1122,46 @@ export default function ProdutoDetailPage() {
                 </CardContent>
               </Card>
 
+              {/* Template de Projeto */}
               <Card>
+                <CardHeader className="flex-row items-center justify-between">
+                  <CardTitle className="text-base">Template de Projeto</CardTitle>
+                  {isOwner && (
+                    <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_project_templates', data: { product_id: id, task_name: '' } })}>
+                      <Plus className="h-3 w-3 mr-1" /> Adicionar Tarefa
+                    </Button>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-muted-foreground mb-3">Tarefas que serão criadas automaticamente no projeto de cada cliente deste produto.</p>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Fase</TableHead>
+                        <TableHead>Tarefa</TableHead>
+                        <TableHead>Responsável</TableHead>
+                        {isOwner && <TableHead className="w-10" />}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {projectTemplate.length === 0 && (
+                        <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-4">Sem tarefas no template</TableCell></TableRow>
+                      )}
+                      {projectTemplate.map((t: any) => (
+                        <TableRow key={t.id}>
+                          <TableCell><Input defaultValue={t.phase || ''} placeholder="Fase" onBlur={e => updateRow.mutate({ table: 'product_project_templates', id: t.id, data: { phase: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
+                          <TableCell><Input defaultValue={t.task_name || ''} placeholder="Nome da tarefa" onBlur={e => updateRow.mutate({ table: 'product_project_templates', id: t.id, data: { task_name: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
+                          <TableCell><Input defaultValue={t.responsible || ''} placeholder="Responsável" onBlur={e => updateRow.mutate({ table: 'product_project_templates', id: t.id, data: { responsible: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
+                          {isOwner && (
+                            <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteRow.mutate({ table: 'product_project_templates', id: t.id })}><Trash2 className="h-3 w-3" /></Button></TableCell>
+                          )}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
                 <CardHeader><CardTitle className="text-base">Melhorias</CardTitle></CardHeader>
                 <CardContent>
                   <RichTextEditor
