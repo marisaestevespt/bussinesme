@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      brand_competitors: {
+        Row: {
+          comunicacao: string | null
+          created_at: string
+          id: string
+          instagram: string | null
+          name: string
+          plataformas: string | null
+          posicionamento: string | null
+          precos: string | null
+          produtos: string | null
+          sort_order: number
+          type: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          comunicacao?: string | null
+          created_at?: string
+          id?: string
+          instagram?: string | null
+          name: string
+          plataformas?: string | null
+          posicionamento?: string | null
+          precos?: string | null
+          produtos?: string | null
+          sort_order?: number
+          type?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          comunicacao?: string | null
+          created_at?: string
+          id?: string
+          instagram?: string | null
+          name?: string
+          plataformas?: string | null
+          posicionamento?: string | null
+          precos?: string | null
+          produtos?: string | null
+          sort_order?: number
+          type?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       brand_kanban_items: {
         Row: {
           content: string | null
