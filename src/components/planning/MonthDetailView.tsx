@@ -141,6 +141,40 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
     onError: () => toast.error('Erro ao guardar meta'),
   });
 
+  const createClientFromLead = useMutation({
+    mutationFn: async (form: Record<string, string>) => {
+      const { data, error } = await (supabase.from('clients' as any) as any).insert({
+        full_name: form.full_name,
+        email: form.email || null,
+        whatsapp: form.whatsapp || null,
+        current_product: form.current_product || null,
+        status: 'em_onboarding',
+        start_date: form.start_date || new Date().toISOString().slice(0, 10),
+        nif: form.nif || null,
+        fiscal_address: form.fiscal_address || null,
+        birthday: form.birthday || null,
+        observations: form.observations || null,
+        payment_method: form.payment_method || null,
+        dp: form.dp || null,
+      }).select('id').single();
+      if (error) throw error;
+      // Update lead status to ganho if not already
+      if (form._lead_id) {
+        await supabase.from('crm_leads').update({ status: 'ganho' } as any).eq('id', form._lead_id);
+      }
+      return data;
+    },
+    onSuccess: (data: any) => {
+      qc.invalidateQueries({ queryKey: ['clients'] });
+      qc.invalidateQueries({ queryKey: ['md-clients'] });
+      qc.invalidateQueries({ queryKey: ['md-leads'] });
+      setConvertLead(null);
+      toast.success('Cliente criado com sucesso!');
+      navigate(`/clientes/${data.id}`);
+    },
+    onError: () => toast.error('Erro ao criar cliente'),
+  });
+
   // ── Derived data ──
   const goals = planning.allGoals || [];
   const objectives = planning.allObjectives || [];
