@@ -138,6 +138,15 @@ export default function OperacaoPage() {
     },
   });
 
+  // Offboarding items for all clients (for the popup)
+  const { data: allOffboarding = [] } = useQuery({
+    queryKey: ['op-all-offboarding'],
+    queryFn: async () => {
+      const { data } = await (supabase.from('client_offboarding' as any) as any).select('client_id,activity,completed,phase').eq('completed', false);
+      return (data || []) as unknown as { client_id: string; activity: string; completed: boolean; phase: string | null }[];
+    },
+  });
+
   const { data: projectMembers = [] } = useQuery({
     queryKey: ['op-project-members'],
     queryFn: async () => {
