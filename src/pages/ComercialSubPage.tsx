@@ -34,6 +34,7 @@ export default function ComercialSubPage() {
       case 'crm': return <CommercialCRM />;
       case 'processos': return <CommercialProcessos />;
       case 'estrategia': return <CommercialEstrategia />;
+      case 'biblioteca': return <CommercialBiblioteca />;
       default: return <EmptyModulePage title={title} description="Conteúdo será construído em breve." />;
     }
   };
