@@ -121,7 +121,7 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
               <h3 className="text-sm font-semibold mb-2">{objId === 'sem_objetivo' ? 'Sem objetivo' : getObjectiveName(objId)}</h3>
               <Table>
                 <TableHeader><TableRow>
-                  <TableHead>Período</TableHead><TableHead>Tipo</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead>
+                   <TableHead>Período</TableHead><TableHead>Área</TableHead><TableHead>Prazo</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>{(goals as any[]).sort(sortByPeriod).map(g => renderGoalRow(g, false))}</TableBody>
               </Table>
