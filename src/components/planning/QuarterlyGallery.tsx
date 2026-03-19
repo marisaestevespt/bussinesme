@@ -106,8 +106,10 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
 
   // State
   const [metasView, setMetasView] = useState<'metas' | 'objetivos'>('metas');
-  const [calendarMonthOffset, setCalendarMonthOffset] = useState(0); // 0, 1, 2 within quarter
+  const [calendarMonthOffset, setCalendarMonthOffset] = useState(0);
   const [selectedMonthIdx, setSelectedMonthIdx] = useState<number | null>(null);
+  const [selectedObjective, setSelectedObjective] = useState<any>(null);
+  const [objDialogOpen, setObjDialogOpen] = useState(false);
 
   // Goals & Objectives
   const goals = planning.allGoals || [];
