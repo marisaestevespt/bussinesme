@@ -56,11 +56,16 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
       <FullDialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <FullDialogHeader>
           <div className="flex items-start justify-between gap-2">
-            {editing ? (
-              <Input className="text-lg font-semibold" value={form.title} onChange={e => set('title', e.target.value)} />
-            ) : (
-              <FullDialogTitle className="text-lg">{obj.title}</FullDialogTitle>
-            )}
+            <div className="space-y-1">
+              {editing ? (
+                <Input className="text-lg font-semibold" value={form.title} onChange={e => set('title', e.target.value)} />
+              ) : (
+                <FullDialogTitle className="text-lg">{obj.title}</FullDialogTitle>
+              )}
+              {!editing && obj.deadline && (
+                <p className="text-sm text-muted-foreground">Prazo: {obj.deadline}</p>
+              )}
+            </div>
             <div className="flex gap-1 shrink-0">
               {editing ? (
                 <Button size="sm" onClick={handleSaveHeader}><Save className="h-3 w-3 mr-1" /> Guardar</Button>
