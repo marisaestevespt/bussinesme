@@ -312,17 +312,6 @@ export default function MarketingDashboard() {
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* New Content Dialog */}
-      <Dialog open={showNewContent} onOpenChange={setShowNewContent}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader><DialogTitle>Novo Conteúdo</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <Input value={newContentTitle} onChange={e => setNewContentTitle(e.target.value)} placeholder="Título do conteúdo" onKeyDown={e => e.key === 'Enter' && createContent()} autoFocus />
-            <Button className="w-full" disabled={!newContentTitle.trim()} onClick={createContent}>Criar e Abrir</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </AppLayout>
   );
 }
