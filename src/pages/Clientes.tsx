@@ -35,7 +35,7 @@ export default function ClientesPage() {
   const { products } = useProducts();
 
   const items = clients.data || [];
-  const activeCount = items.filter(c => c.status === 'ativo').length;
+  const activeCount = items.filter(c => c.status !== 'terminado').length;
 
   // Donut data
   const donutData = [
