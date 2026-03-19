@@ -23,7 +23,8 @@ export function AuthPage() {
       if (data) {
         setLogoUrl(data.logo_url);
         setBusinessName(data.business_name || '');
-        setBgUrl((data as any).login_bg_url || null);
+        const bg = data.login_bg_url;
+        setBgUrl(bg ? `${bg}?t=${Date.now()}` : null);
       }
     });
   }, []);
