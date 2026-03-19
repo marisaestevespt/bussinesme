@@ -21,29 +21,11 @@ function useTeamMembers() {
     queryFn: async () => {
       const { data } = await supabase
         .from('team_members')
-        .select('id, full_name, role_title, email, whatsapp, work_schedule, member_type, profile_id, status')
+        .select('id, full_name, role_title, photo_url, work_schedule, status')
         .eq('status', 'ativo')
         .order('full_name');
       
-      if (!data?.length) return [];
-
-      // Fetch avatar URLs from profiles
-      const profileIds = data.filter(m => m.profile_id).map(m => m.profile_id!);
-      let avatarMap: Record<string, string | null> = {};
-      if (profileIds.length) {
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, avatar_url')
-          .in('id', profileIds);
-        if (profiles) {
-          avatarMap = Object.fromEntries(profiles.map(p => [p.id, p.avatar_url]));
-        }
-      }
-
-      return data.map(m => ({
-        ...m,
-        avatar_url: m.profile_id ? avatarMap[m.profile_id] || null : null,
-      }));
+      return data || [];
     },
   });
 }
