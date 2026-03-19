@@ -272,6 +272,15 @@ export default function ClienteDetailPage() {
               </Select>
             </div>
             <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Valor Total (€)</Label>
+              <Input type="number" step="0.01" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="Ex: 900" />
+              {totalValue && form.payment_method && parseInt(form.payment_method) > 1 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  = {(parseFloat(totalValue) / parseInt(form.payment_method)).toFixed(2)}€ × {form.payment_method}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Nome Completo</Label>
               <Input value={form.full_name || ''} onChange={e => update('full_name', e.target.value)} />
             </div>
