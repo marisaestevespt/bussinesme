@@ -50,6 +50,16 @@ const TASK_DEPARTMENTS = [
   { value: 'operacao', label: 'Operação', color: 'bg-violet-100 text-violet-700 border-violet-200' },
 ];
 
+type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'diario';
+const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
+  { value: '', label: 'Não se repete' },
+  { value: 'diario', label: 'Todos os dias' },
+  { value: 'semanal', label: 'Todas as semanas' },
+  { value: 'quinzenal', label: 'A cada 2 semanas' },
+  { value: 'mensal', label: 'Todos os meses (mesmo dia)' },
+  { value: 'mensal_primeiro', label: '1º dia de cada mês' },
+];
+
 type View = 'todo' | 'atrasadas' | 'proximas' | 'calendario' | 'responsavel' | 'todas';
 
 const DEFAULT_VIEWS: DefaultView[] = [
