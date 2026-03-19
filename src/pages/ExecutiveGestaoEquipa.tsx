@@ -13,8 +13,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText, LayoutDashboard, AlertTriangle, Clock, CreditCard } from 'lucide-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText, LayoutDashboard, AlertTriangle, Clock, CreditCard, Upload, ExternalLink, CheckSquare, ListTodo, CalendarIcon } from 'lucide-react';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
@@ -226,73 +227,261 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
   );
 }
 
-// ─── Member Detail Sheet ──────
+// ─── Member Detail Sheet (comprehensive) ──────
 function MemberDetailSheet({ open, onClose, member, team }: any) {
   const [newTask, setNewTask] = useState('');
+  const [detailTab, setDetailTab] = useState('info');
+
+  // Fetch tasks assigned to this member's profile
+  const memberTasks = useQuery({
+    queryKey: ['member-tasks', member?.profile_id],
+    enabled: !!member?.profile_id,
+    queryFn: async () => {
+      const { data } = await supabase.from('tasks').select('*').eq('assigned_to', member.profile_id).order('created_at', { ascending: false }).limit(50);
+      return data || [];
+    },
+  });
+
+  // Fetch time entries for this member
+  const memberTime = useQuery({
+    queryKey: ['member-time', member?.id],
+    enabled: !!member?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from('time_entries').select('*').eq('member_id', member.id).order('entry_date', { ascending: false }).limit(50);
+      return data || [];
+    },
+  });
+
+  // Fetch feedback sessions for this member
+  const memberFeedback = useQuery({
+    queryKey: ['member-feedback', member?.id],
+    enabled: !!member?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from('feedback_sessions').select('*').eq('member_id', member.id).order('session_date', { ascending: false });
+      return data || [];
+    },
+  });
+
   if (!member) return null;
+
   const items = (team.onboarding.data || []).filter((i: any) => i.member_id === member.id);
   const contracts = (team.contracts.data || []).filter((c: any) => c.member_id === member.id);
   const payments = (team.payments.data || []).filter((p: any) => p.member_id === member.id);
+  const totalHours = (memberTime.data || []).reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
+  const monthHours = (memberTime.data || []).filter((e: any) => e.entry_month === currentMonth && e.entry_year === currentYear).reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
+  const pendingTasks = (memberTasks.data || []).filter((t: any) => t.status !== 'concluida').length;
+  const feedbackSessions = memberFeedback.data || [];
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
         <SheetHeader><SheetTitle>{member.full_name}</SheetTitle></SheetHeader>
         <div className="space-y-4 mt-4">
+          {/* Header badges */}
           <div className="flex gap-2 flex-wrap">
             <Badge variant={member.status === 'ativo' ? 'default' : 'secondary'}>{labelFor(MEMBER_STATUSES, member.status)}</Badge>
             <Badge variant="outline">{labelFor(MEMBER_TYPES, member.member_type)}</Badge>
             {member.role_title && <Badge variant="outline">{member.role_title}</Badge>}
             <DeptBadge dept={member.department} />
           </div>
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            {member.email && <div><span className="text-muted-foreground text-xs">Email</span><p>{member.email}</p></div>}
-            {member.whatsapp && <div><span className="text-muted-foreground text-xs">Whatsapp</span><p>{member.whatsapp}</p></div>}
-            {member.work_schedule && <div><span className="text-muted-foreground text-xs">Horário</span><p>{member.work_schedule}</p></div>}
-            {member.identification && <div><span className="text-muted-foreground text-xs">Identificação</span><p>{member.identification}</p></div>}
-            {member.start_date && <div><span className="text-muted-foreground text-xs">Data de início</span><p>{member.start_date}</p></div>}
-          </div>
-          {member.presentation && <div><span className="text-xs text-muted-foreground">Apresentação</span><p className="text-sm mt-1">{member.presentation}</p></div>}
-          {member.responsibilities && <div><span className="text-xs text-muted-foreground">Responsabilidades</span><p className="text-sm mt-1 whitespace-pre-wrap">{member.responsibilities}</p></div>}
 
-          <Separator />
-          <h3 className="text-sm font-semibold">Onboarding</h3>
-          <div className="space-y-1">
-            {['Sobre o negócio', 'Valores da equipa', 'O que não fazemos', 'Comunicação', 'Hábitos importantes'].map(label => {
-              const item = items.find((i: any) => i.task === label);
-              return (
-                <div key={label} className="flex items-center gap-2">
-                  <Checkbox
-                    checked={!!item?.completed}
-                    onCheckedChange={v => {
-                      if (item) team.toggleOnboardingItem.mutate({ id: item.id, completed: !!v });
-                      else team.addOnboardingItem.mutate({ member_id: member.id, task: label });
-                    }}
-                  />
-                  <span className="text-sm">{label}</span>
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex gap-2 mt-2">
-            <Input placeholder="Novo item..." value={newTask} onChange={e => setNewTask(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && newTask.trim()) { team.addOnboardingItem.mutate({ member_id: member.id, task: newTask.trim() }); setNewTask(''); }}} className="h-8 text-sm" />
-            <Button size="sm" variant="ghost" className="h-8" onClick={() => { if (newTask.trim()) { team.addOnboardingItem.mutate({ member_id: member.id, task: newTask.trim() }); setNewTask(''); }}}><Plus className="h-4 w-4" /></Button>
-          </div>
-          {items.filter((i: any) => !['Sobre o negócio', 'Valores da equipa', 'O que não fazemos', 'Comunicação', 'Hábitos importantes'].includes(i.task)).map((i: any) => (
-            <div key={i.id} className="flex items-center gap-2 group">
-              <Checkbox checked={i.completed} onCheckedChange={v => team.toggleOnboardingItem.mutate({ id: i.id, completed: !!v })} />
-              <span className={`text-sm flex-1 ${i.completed ? 'line-through text-muted-foreground' : ''}`}>{i.task}</span>
-              <button onClick={() => team.deleteOnboardingItem.mutate(i.id)} className="opacity-0 group-hover:opacity-100"><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
+          {/* Quick stats */}
+          <div className="grid grid-cols-4 gap-2">
+            <div className="bg-muted/50 rounded-lg p-2 text-center">
+              <p className="text-xs text-muted-foreground">Horas (mês)</p>
+              <p className="font-bold text-sm">{monthHours.toFixed(1)}h</p>
             </div>
-          ))}
-
-          <Separator />
-          <h3 className="text-sm font-semibold">Work Together</h3>
-          <div className="text-sm space-y-1">
-            <p className="text-xs text-muted-foreground">Contratos: {contracts.length}</p>
-            <p className="text-xs text-muted-foreground">Pagamentos: {payments.length}</p>
+            <div className="bg-muted/50 rounded-lg p-2 text-center">
+              <p className="text-xs text-muted-foreground">Horas (total)</p>
+              <p className="font-bold text-sm">{totalHours.toFixed(1)}h</p>
+            </div>
+            <div className="bg-muted/50 rounded-lg p-2 text-center">
+              <p className="text-xs text-muted-foreground">Tarefas ativas</p>
+              <p className="font-bold text-sm">{pendingTasks}</p>
+            </div>
+            <div className="bg-muted/50 rounded-lg p-2 text-center">
+              <p className="text-xs text-muted-foreground">Sessões feedback</p>
+              <p className="font-bold text-sm">{feedbackSessions.length}</p>
+            </div>
           </div>
+
+          {/* Tabs inside sheet */}
+          <Tabs value={detailTab} onValueChange={setDetailTab}>
+            <TabsList className="w-full">
+              <TabsTrigger value="info" className="text-xs flex-1">Info</TabsTrigger>
+              <TabsTrigger value="tarefas" className="text-xs flex-1">Tarefas</TabsTrigger>
+              <TabsTrigger value="tempo" className="text-xs flex-1">Tempo</TabsTrigger>
+              <TabsTrigger value="contrato" className="text-xs flex-1">Contrato</TabsTrigger>
+              <TabsTrigger value="pagamentos" className="text-xs flex-1">Pagamentos</TabsTrigger>
+              <TabsTrigger value="feedback" className="text-xs flex-1">Feedback</TabsTrigger>
+              <TabsTrigger value="onboarding" className="text-xs flex-1">Onboarding</TabsTrigger>
+            </TabsList>
+
+            {/* Info tab */}
+            <TabsContent value="info" className="space-y-3 mt-3">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                {member.email && <div><span className="text-muted-foreground text-xs">Email</span><p>{member.email}</p></div>}
+                {member.whatsapp && <div><span className="text-muted-foreground text-xs">Telefone</span><p>{member.whatsapp}</p></div>}
+                {member.work_schedule && <div><span className="text-muted-foreground text-xs">Horário</span><p>{member.work_schedule}</p></div>}
+                {member.identification && <div><span className="text-muted-foreground text-xs">Identificação</span><p>{member.identification}</p></div>}
+                {member.start_date && <div><span className="text-muted-foreground text-xs">Data de início</span><p>{member.start_date}</p></div>}
+              </div>
+              {member.presentation && <div><span className="text-xs text-muted-foreground">Apresentação</span><p className="text-sm mt-1">{member.presentation}</p></div>}
+              {member.responsibilities && <div><span className="text-xs text-muted-foreground">Responsabilidades</span><p className="text-sm mt-1 whitespace-pre-wrap">{member.responsibilities}</p></div>}
+            </TabsContent>
+
+            {/* Tasks tab */}
+            <TabsContent value="tarefas" className="space-y-2 mt-3">
+              {!member.profile_id ? (
+                <p className="text-xs text-muted-foreground">Este membro não está ligado a um perfil de utilizador.</p>
+              ) : (memberTasks.data || []).length === 0 ? (
+                <p className="text-xs text-muted-foreground">Sem tarefas atribuídas.</p>
+              ) : (
+                <div className="space-y-1">
+                  {(memberTasks.data || []).map((t: any) => (
+                    <div key={t.id} className="flex items-center gap-2 py-1.5 border-b border-border/50">
+                      <CheckSquare className={`h-3.5 w-3.5 ${t.status === 'concluida' ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <span className={`text-sm flex-1 ${t.status === 'concluida' ? 'line-through text-muted-foreground' : ''}`}>{t.name}</span>
+                      <Badge variant="outline" className="text-[10px]">{t.status}</Badge>
+                      {t.deadline && <span className="text-[10px] text-muted-foreground">{t.deadline}</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Time tab */}
+            <TabsContent value="tempo" className="space-y-2 mt-3">
+              {(memberTime.data || []).length === 0 ? (
+                <p className="text-xs text-muted-foreground">Sem registos de tempo.</p>
+              ) : (
+                <Table>
+                  <TableHeader><TableRow>
+                    <TableHead className="text-xs">Data</TableHead><TableHead className="text-xs">Duração</TableHead><TableHead className="text-xs">Categoria</TableHead><TableHead className="text-xs">Descrição</TableHead>
+                  </TableRow></TableHeader>
+                  <TableBody>
+                    {(memberTime.data || []).slice(0, 20).map((e: any) => (
+                      <TableRow key={e.id}>
+                        <TableCell className="text-xs">{e.entry_date}</TableCell>
+                        <TableCell className="text-xs">{Number(e.duration).toFixed(1)}h</TableCell>
+                        <TableCell className="text-xs">{e.category || '—'}</TableCell>
+                        <TableCell className="text-xs max-w-[200px] truncate">{e.description || '—'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </TabsContent>
+
+            {/* Contract tab */}
+            <TabsContent value="contrato" className="space-y-2 mt-3">
+              {contracts.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Sem contratos.</p>
+              ) : contracts.map((c: any) => (
+                <Card key={c.id}>
+                  <CardContent className="p-3 space-y-2 text-sm">
+                    <div className="flex justify-between items-center">
+                      <Badge variant={c.status === 'ativo' ? 'default' : 'secondary'} className="text-[10px]">{labelFor(CONTRACT_STATUSES, c.status)}</Badge>
+                      <span className="text-xs text-muted-foreground">{labelFor(CONTRACT_TYPES, c.contract_type)}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div><span className="text-muted-foreground">Início:</span> {c.start_date || '—'}</div>
+                      <div><span className="text-muted-foreground">Fim:</span> {c.end_date || '—'}</div>
+                      {c.monthly_value > 0 && <div><span className="text-muted-foreground">Valor mensal:</span> €{Number(c.monthly_value).toLocaleString()}</div>}
+                      {c.contracted_hours && <div><span className="text-muted-foreground">Horas contratadas:</span> {c.contracted_hours}</div>}
+                      {c.payment_day && <div><span className="text-muted-foreground">Dia de pagamento:</span> {c.payment_day}</div>}
+                    </div>
+                    {c.document_url && <a href={c.document_url} target="_blank" rel="noopener" className="text-xs text-primary underline flex items-center gap-1"><ExternalLink className="h-3 w-3" /> Ver documento</a>}
+                    {c.notes && <p className="text-xs text-muted-foreground mt-1">{c.notes}</p>}
+                  </CardContent>
+                </Card>
+              ))}
+            </TabsContent>
+
+            {/* Payments tab */}
+            <TabsContent value="pagamentos" className="space-y-2 mt-3">
+              {payments.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Sem pagamentos.</p>
+              ) : (
+                <Table>
+                  <TableHeader><TableRow>
+                    <TableHead className="text-xs">Mês</TableHead><TableHead className="text-xs">Tipo</TableHead><TableHead className="text-xs">Bruto</TableHead><TableHead className="text-xs">Líquido</TableHead><TableHead className="text-xs">Status</TableHead>
+                  </TableRow></TableHeader>
+                  <TableBody>
+                    {payments.map((p: any) => {
+                      const isOverdue = p.status === 'por_pagar' && (p.year < currentYear || (p.year === currentYear && p.month < currentMonth));
+                      return (
+                        <TableRow key={p.id} className={isOverdue ? 'bg-destructive/5' : ''}>
+                          <TableCell className="text-xs">{p.month && p.year ? `${getMonthName(p.month)} ${p.year}` : '—'}</TableCell>
+                          <TableCell className="text-xs">{labelFor(PAYMENT_TYPES, p.payment_type)}</TableCell>
+                          <TableCell className="text-xs">€{Number(p.gross_value).toLocaleString()}</TableCell>
+                          <TableCell className="text-xs">€{Number(p.net_value).toLocaleString()}</TableCell>
+                          <TableCell><Badge variant={p.status === 'pago' ? 'default' : isOverdue ? 'destructive' : 'secondary'} className="text-[10px]">{isOverdue ? 'Em atraso' : labelFor(PAYMENT_STATUSES, p.status)}</Badge></TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
+            </TabsContent>
+
+            {/* Feedback tab */}
+            <TabsContent value="feedback" className="space-y-2 mt-3">
+              {feedbackSessions.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Sem sessões de feedback.</p>
+              ) : feedbackSessions.map((fb: any) => (
+                <Card key={fb.id}>
+                  <CardContent className="p-3 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-xs font-medium">{fb.session_date}{fb.session_time ? ` às ${fb.session_time}` : ''}</span>
+                      </div>
+                      <Badge variant="outline" className="text-[10px]">{labelFor(FEEDBACK_TYPES, fb.feedback_type)}</Badge>
+                    </div>
+                    {fb.summary && <div><span className="text-xs text-muted-foreground">Resumo:</span><p className="text-xs mt-0.5">{fb.summary}</p></div>}
+                    {fb.went_well && <div><span className="text-xs text-muted-foreground">Correu bem:</span><p className="text-xs mt-0.5">{fb.went_well}</p></div>}
+                    {fb.to_improve && <div><span className="text-xs text-muted-foreground">A melhorar:</span><p className="text-xs mt-0.5">{fb.to_improve}</p></div>}
+                    {fb.agreements && <div><span className="text-xs text-muted-foreground">Acordos:</span><p className="text-xs mt-0.5">{fb.agreements}</p></div>}
+                    {fb.transcript_url && <a href={fb.transcript_url} target="_blank" rel="noopener" className="text-xs text-primary underline flex items-center gap-1"><FileText className="h-3 w-3" /> Ver transcrição</a>}
+                  </CardContent>
+                </Card>
+              ))}
+            </TabsContent>
+
+            {/* Onboarding tab */}
+            <TabsContent value="onboarding" className="space-y-2 mt-3">
+              <div className="space-y-1">
+                {['Sobre o negócio', 'Valores da equipa', 'O que não fazemos', 'Comunicação', 'Hábitos importantes'].map(label => {
+                  const item = items.find((i: any) => i.task === label);
+                  return (
+                    <div key={label} className="flex items-center gap-2">
+                      <Checkbox
+                        checked={!!item?.completed}
+                        onCheckedChange={v => {
+                          if (item) team.toggleOnboardingItem.mutate({ id: item.id, completed: !!v });
+                          else team.addOnboardingItem.mutate({ member_id: member.id, task: label });
+                        }}
+                      />
+                      <span className="text-sm">{label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex gap-2 mt-2">
+                <Input placeholder="Novo item..." value={newTask} onChange={e => setNewTask(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && newTask.trim()) { team.addOnboardingItem.mutate({ member_id: member.id, task: newTask.trim() }); setNewTask(''); }}} className="h-8 text-sm" />
+                <Button size="sm" variant="ghost" className="h-8" onClick={() => { if (newTask.trim()) { team.addOnboardingItem.mutate({ member_id: member.id, task: newTask.trim() }); setNewTask(''); }}}><Plus className="h-4 w-4" /></Button>
+              </div>
+              {items.filter((i: any) => !['Sobre o negócio', 'Valores da equipa', 'O que não fazemos', 'Comunicação', 'Hábitos importantes'].includes(i.task)).map((i: any) => (
+                <div key={i.id} className="flex items-center gap-2 group">
+                  <Checkbox checked={i.completed} onCheckedChange={v => team.toggleOnboardingItem.mutate({ id: i.id, completed: !!v })} />
+                  <span className={`text-sm flex-1 ${i.completed ? 'line-through text-muted-foreground' : ''}`}>{i.task}</span>
+                  <button onClick={() => team.deleteOnboardingItem.mutate(i.id)} className="opacity-0 group-hover:opacity-100"><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
+                </div>
+              ))}
+            </TabsContent>
+          </Tabs>
         </div>
       </SheetContent>
     </Sheet>
@@ -874,11 +1063,60 @@ function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> }) {
   );
 }
 
+// ─── Feedback Session Dialog (custom, not generic) ──────
+const FEEDBACK_EVENT_TYPE_ID = 'b058c64c-169c-4098-bfaf-2b1773a3c60f';
+
+function FeedbackDialog({ open, onClose, initial, members, onSave }: any) {
+  const isEdit = !!initial?.id;
+  const [f, setF] = useState(initial || {
+    member_id: '', session_date: '', session_time: '', feedback_type: 'feedback_formal',
+    went_well: '', to_improve: '', agreements: '', next_session: '', summary: '', transcript_url: '',
+  });
+  const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader><DialogTitle>{isEdit ? 'Editar Feedback' : 'Nova Sessão de Feedback'}</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs text-muted-foreground">Membro *</label>
+            <Select value={f.member_id || ''} onValueChange={v => set('member_id', v)}>
+              <SelectTrigger><SelectValue placeholder="Selecionar membro" /></SelectTrigger>
+              <SelectContent>{members.map((m: any) => <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><label className="text-xs text-muted-foreground">Data *</label><Input type="date" value={f.session_date || ''} onChange={e => set('session_date', e.target.value)} /></div>
+            <div><label className="text-xs text-muted-foreground">Hora</label><Input type="time" value={f.session_time || ''} onChange={e => set('session_time', e.target.value)} /></div>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground">Tipo</label>
+            <Select value={f.feedback_type || 'feedback_formal'} onValueChange={v => set('feedback_type', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{FEEDBACK_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div><label className="text-xs text-muted-foreground">Resumo</label><Textarea value={f.summary || ''} onChange={e => set('summary', e.target.value)} rows={2} /></div>
+          <div><label className="text-xs text-muted-foreground">O que correu bem</label><Textarea value={f.went_well || ''} onChange={e => set('went_well', e.target.value)} rows={2} /></div>
+          <div><label className="text-xs text-muted-foreground">O que melhorar</label><Textarea value={f.to_improve || ''} onChange={e => set('to_improve', e.target.value)} rows={2} /></div>
+          <div><label className="text-xs text-muted-foreground">Acordos & próximos passos</label><Textarea value={f.agreements || ''} onChange={e => set('agreements', e.target.value)} rows={2} /></div>
+          <div><label className="text-xs text-muted-foreground">URL da transcrição (PDF)</label><Input placeholder="https://..." value={f.transcript_url || ''} onChange={e => set('transcript_url', e.target.value)} /></div>
+          <div><label className="text-xs text-muted-foreground">Próxima sessão</label><Input type="date" value={f.next_session || ''} onChange={e => set('next_session', e.target.value)} /></div>
+          <Button className="w-full" disabled={!f.member_id || !f.session_date} onClick={() => { onSave({ ...initial, ...f }); onClose(false); }}>Guardar</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── Tab: Feedback ──────
 function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) {
   const allMembers = team.members.data || [];
   const [filterMember, setFilterMember] = useState('');
   const [dialog, setDialog] = useState<any>(null);
+  const { user } = useAuth();
+  const qc = useQueryClient();
 
   const data = useMemo(() => {
     let d = team.feedback.data || [];
@@ -888,15 +1126,57 @@ function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) {
 
   const memberName = (id: string) => allMembers.find(m => m.id === id)?.full_name || '—';
 
-  const fields = [
-    { key: 'member_id', label: 'Membro', type: 'select', options: allMembers.map(m => ({ value: m.id, label: m.full_name })) },
-    { key: 'session_date', label: 'Data', type: 'date' },
-    { key: 'feedback_type', label: 'Tipo', type: 'select', options: FEEDBACK_TYPES },
-    { key: 'went_well', label: 'O que correu bem', type: 'textarea' },
-    { key: 'to_improve', label: 'O que melhorar', type: 'textarea' },
-    { key: 'agreements', label: 'Acordos & próximos passos', type: 'textarea' },
-    { key: 'next_session', label: 'Próxima sessão', type: 'date' },
-  ];
+  // Save feedback + create event in agenda
+  const saveFeedback = async (rec: any) => {
+    try {
+      const isNew = !rec.id;
+      const memberObj = allMembers.find((m: any) => m.id === rec.member_id);
+
+      // Save feedback session
+      if (isNew) {
+        const payload = { ...rec };
+        delete payload.id;
+
+        // Create event in agenda first
+        const startDate = rec.session_date && rec.session_time
+          ? `${rec.session_date}T${rec.session_time}:00`
+          : `${rec.session_date}T09:00:00`;
+
+        const { data: eventData } = await supabase.from('events').insert({
+          title: `Sessão de Feedback — ${memberObj?.full_name || 'Membro'}`,
+          start_date: startDate,
+          event_type_id: FEEDBACK_EVENT_TYPE_ID,
+          department: 'recursos-humanos',
+          created_by: user?.id || null,
+          notes: rec.summary || null,
+        }).select('id').single();
+
+        // Add event members (owner + team member's profile)
+        if (eventData?.id) {
+          const memberProfiles: string[] = [];
+          if (user?.id) memberProfiles.push(user.id);
+          if (memberObj?.profile_id && memberObj.profile_id !== user?.id) memberProfiles.push(memberObj.profile_id);
+          if (memberProfiles.length > 0) {
+            await supabase.from('event_members').insert(
+              memberProfiles.map(pid => ({ event_id: eventData.id, profile_id: pid }))
+            );
+          }
+          payload.event_id = eventData.id;
+        }
+
+        const { error } = await supabase.from('feedback_sessions').insert(payload);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('feedback_sessions').update(rec).eq('id', rec.id);
+        if (error) throw error;
+      }
+
+      qc.invalidateQueries({ queryKey: ['team'] });
+      toast.success(isNew ? 'Sessão criada e adicionada à agenda!' : 'Sessão atualizada');
+    } catch (err: any) {
+      toast.error('Erro: ' + (err.message || err));
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -910,18 +1190,18 @@ function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) {
       <Card><div className="overflow-x-auto">
         <Table>
           <TableHeader><TableRow>
-            <TableHead>Data</TableHead><TableHead>Membro</TableHead><TableHead>Tipo</TableHead><TableHead>O que correu bem</TableHead><TableHead>O que melhorar</TableHead><TableHead>Acordos</TableHead><TableHead>Próxima</TableHead><TableHead></TableHead>
+            <TableHead>Data</TableHead><TableHead>Hora</TableHead><TableHead>Membro</TableHead><TableHead>Tipo</TableHead><TableHead>Resumo</TableHead><TableHead>Transcrição</TableHead><TableHead>Próxima</TableHead><TableHead></TableHead>
           </TableRow></TableHeader>
           <TableBody>
             {data.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Sem sessões</TableCell></TableRow> :
               data.map(r => (
                 <TableRow key={r.id}>
                   <TableCell className="text-xs">{r.session_date}</TableCell>
+                  <TableCell className="text-xs">{r.session_time || '—'}</TableCell>
                   <TableCell className="text-sm">{memberName(r.member_id)}</TableCell>
                   <TableCell><Badge variant="outline" className="text-[10px]">{labelFor(FEEDBACK_TYPES, r.feedback_type)}</Badge></TableCell>
-                  <TableCell className="text-xs max-w-[120px] truncate">{r.went_well || '—'}</TableCell>
-                  <TableCell className="text-xs max-w-[120px] truncate">{r.to_improve || '—'}</TableCell>
-                  <TableCell className="text-xs max-w-[120px] truncate">{r.agreements || '—'}</TableCell>
+                  <TableCell className="text-xs max-w-[150px] truncate">{r.summary || '—'}</TableCell>
+                  <TableCell>{r.transcript_url ? <a href={r.transcript_url} target="_blank" rel="noopener" className="text-xs text-primary underline">PDF</a> : '—'}</TableCell>
                   <TableCell className="text-xs">{r.next_session || '—'}</TableCell>
                   <TableCell><div className="flex gap-1">
                     <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setDialog(r)}>Editar</Button>
@@ -933,7 +1213,7 @@ function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) {
           </TableBody>
         </Table>
       </div></Card>
-      {dialog !== null && <RecordDialog open onClose={() => setDialog(null)} title={dialog.id ? 'Editar Feedback' : 'Nova Sessão de Feedback'} fields={fields} initial={dialog} onSave={(r: any) => team.upsertFeedback.mutate(r)} />}
+      {dialog !== null && <FeedbackDialog open onClose={() => setDialog(null)} initial={dialog} members={allMembers} onSave={saveFeedback} />}
     </div>
   );
 }
