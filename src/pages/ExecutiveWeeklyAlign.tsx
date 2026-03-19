@@ -209,15 +209,17 @@ export default function ExecutiveWeeklyAlign() {
   const routineMap = Object.fromEntries((exec.weeklyRoutines.data || []).map(r => [r.routine_key, r.completed]));
 
   // --- Detail openers for each section ---
-  const openGoalDetail = (g: any) => openDetail(g.meta, 'Meta', [
-    { label: 'Status', value: statusLabel(g.status), badge: true, badgeVariant: g.status === 'atingido' ? 'default' : 'secondary' },
-    { label: 'Área', value: areaLabel(g.area) },
-    { label: 'Data meta', value: g.target_date },
-    { label: 'Data atingida', value: g.achieved_date },
-    { label: 'Mês', value: g.month ? getMonthName(g.month) : null },
-    { label: 'Trimestre', value: g.quarter ? `T${g.quarter}` : null },
-    { label: 'Objetivo', value: exec.allObjectives.find(o => o.id === g.objective_id)?.title },
-  ]);
+  const openGoalDetail = (g: any) => {
+    const obj = planning.allObjectives.find((o: any) => o.id === g.objective_id);
+    openDetail(g.period || 'Meta', 'Meta', [
+      { label: 'Objetivo Anual', value: obj?.title },
+      { label: 'Período', value: g.period },
+      { label: 'Status', value: planStatusLabel(g.status), badge: true, badgeVariant: g.status === 'atingido' ? 'default' : 'secondary' },
+      { label: 'Valor alvo', value: g.target_value },
+      { label: 'Valor real', value: g.actual_value },
+      { label: 'Desvio', value: g.actual_value && g.target_value ? String(Number(g.actual_value) - Number(g.target_value)) : null },
+    ]);
+  };
 
   const openEventDetail = (e: any) => openDetail(e.title, 'Evento', [
     { label: 'Data início', value: e.start_date?.slice(0, 10) },
