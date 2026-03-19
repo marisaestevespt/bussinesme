@@ -58,6 +58,8 @@ export type ClientOnboarding = {
   created_at: string;
 };
 
+export type ClientOffboarding = ClientOnboarding;
+
 export const CLIENT_STATUS_OPTIONS = [
   { value: 'em_onboarding', label: 'Em onboarding' },
   { value: 'ativo', label: 'Ativo' },
