@@ -85,16 +85,32 @@ export default function ExecutiveDashboard() {
                   onKeyDown={e => e.key === 'Enter' && handleAddTask()} className="h-8 text-sm" />
                 <Button size="sm" variant="ghost" onClick={handleAddTask} className="h-8 px-2"><Plus className="h-4 w-4" /></Button>
               </div>
-              <div className="space-y-1 max-h-48 overflow-y-auto">
-                {(exec.brainDump.data || []).map(item => (
-                  <div key={item.id} className="flex items-center gap-2 group">
-                    <Checkbox checked={item.completed} onCheckedChange={(v) => exec.toggleBrainDump.mutate({ id: item.id, completed: !!v })} />
-                    <span className={`text-sm flex-1 ${item.completed ? 'line-through text-muted-foreground' : ''}`}>{item.task}</span>
-                    <button onClick={() => exec.deleteBrainDump.mutate(item.id)} className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
-                    </button>
-                  </div>
-                ))}
+              <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                {(exec.brainDump.data || []).map(item => {
+                  const daysOld = differenceInDays(new Date(), new Date(item.created_at));
+                  const isStale = daysOld >= 30 && !item.completed;
+                  return (
+                    <div key={item.id} className={`flex items-start gap-2 group rounded-md p-1 ${isStale ? 'bg-destructive/10' : ''}`}>
+                      <Checkbox checked={item.completed} onCheckedChange={(v) => exec.toggleBrainDump.mutate({ id: item.id, completed: !!v })} className="mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <span className={`text-sm ${item.completed ? 'line-through text-muted-foreground' : ''}`}>{item.task}</span>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[10px] text-muted-foreground">
+                            {new Date(item.created_at).toLocaleDateString('pt-PT')}
+                          </span>
+                          {isStale && (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-destructive">
+                              <AlertTriangle className="h-2.5 w-2.5" /> +{daysOld}d
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <button onClick={() => exec.deleteBrainDump.mutate(item.id)} className="opacity-0 group-hover:opacity-100 transition-opacity mt-0.5">
+                        <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                      </button>
+                    </div>
+                  );
+                })}
                 {(exec.brainDump.data || []).length === 0 && (
                   <p className="text-xs text-muted-foreground text-center py-4">Sem tarefas rápidas</p>
                 )}
