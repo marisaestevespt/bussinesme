@@ -648,6 +648,16 @@ export default function ClienteDetailPage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Customer Success */}
+        {!isNew && (
+          <ClientCustomerSuccess
+            clientId={id!}
+            clientName={form.full_name || ''}
+            productName={form.current_product || null}
+            startDate={form.start_date || null}
+          />
+        )}
       </div>
 
       {/* Sale dialog */}
