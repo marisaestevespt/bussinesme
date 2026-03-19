@@ -56,6 +56,9 @@ export default function ExecutiveDashboard() {
               <Link to="/executive/weekly-align" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
                 <CalendarCheck className="h-4 w-4 text-muted-foreground" /> Weekly Align
               </Link>
+              <Link to="/executive/productivity" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
+                <Clock className="h-4 w-4 text-muted-foreground" /> Gestão de Produtividade & Tempo
+              </Link>
               <Link to="/executive/recommendations" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
                 <MessageSquareHeart className="h-4 w-4 text-muted-foreground" /> Caixa das Recomendações
               </Link>
@@ -72,9 +75,6 @@ export default function ExecutiveDashboard() {
               </Link>
               <Link to="/executive/innovation" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
                 <Lightbulb className="h-4 w-4 text-muted-foreground" /> Desenvolvimento & Inovação
-              </Link>
-              <Link to="/executive/productivity" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
-                <Clock className="h-4 w-4 text-muted-foreground" /> Gestão de Produtividade & Tempo
               </Link>
             </CardContent>
           </Card>
