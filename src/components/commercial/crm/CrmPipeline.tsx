@@ -62,10 +62,7 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus }: CrmPipelinePr
             <div className="p-3 border-b">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold truncate">{col.label}</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-primary">{col.total.toLocaleString('pt-PT')}€</span>
-                  <Badge variant="secondary" className="text-xs">{col.leads.length}</Badge>
-                </div>
+                <Badge variant="secondary" className="text-xs">{col.total.toLocaleString('pt-PT')}€</Badge>
               </div>
             </div>
 
