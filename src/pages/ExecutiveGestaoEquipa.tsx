@@ -1246,7 +1246,7 @@ export function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) 
 }
 
 // ─── Tab: Contratos & Pagamentos ──────
-function TabContracts({ team }: { team: ReturnType<typeof useTeamData> }) {
+export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> }) {
   const allMembers = team.members.data || [];
   const [filterMember, setFilterMember] = useState('');
   const [contractDialog, setContractDialog] = useState<any>(null);
