@@ -77,28 +77,34 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus }: CrmPipelinePr
                     draggable
                     onDragStart={e => handleDragStart(e, lead.id)}
                     onClick={() => onOpenLead(lead)}
-                    className="p-3 cursor-pointer hover:shadow-md transition-shadow space-y-1.5"
+                    className="p-3 cursor-pointer hover:shadow-md transition-shadow"
                   >
-                    <p className="font-medium text-sm truncate">{lead.name}</p>
-                    {lead.email && (
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
-                        <Mail className="h-3 w-3 shrink-0" />{lead.email}
-                      </div>
-                    )}
-                    {lead.phone && (
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Phone className="h-3 w-3 shrink-0" />{lead.phone}
-                      </div>
-                    )}
-                    {lead.next_followup && (
+                    <div className="space-y-1">
+                      <p className="font-medium text-sm truncate">{lead.name}</p>
+                      {lead.email && (
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+                          <Mail className="h-3 w-3 shrink-0" />{lead.email}
+                        </div>
+                      )}
+                      {lead.phone && (
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Phone className="h-3 w-3 shrink-0" />{lead.phone}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-2.5 space-y-1">
                       <div className={`flex items-center gap-1 text-xs ${fuBadgeClass(fuState)}`}>
                         <FuIcon state={fuState} />
-                        FU: {format(new Date(lead.next_followup), 'dd/MM')}
+                        <span className="text-muted-foreground">Próximo FU:</span> {lead.next_followup ? format(new Date(lead.next_followup), 'dd/MM/yyyy') : '—'}
                       </div>
-                    )}
-                    {Number(lead.estimated_value) > 0 && (
-                      <p className="text-xs font-semibold text-primary">{Number(lead.estimated_value).toLocaleString('pt-PT')}€</p>
-                    )}
+                      <div className="text-xs text-muted-foreground truncate">
+                        <span>Notas:</span> {lead.followup_notes || '—'}
+                      </div>
+                      <div className="text-xs">
+                        <span className="text-muted-foreground">Valor:</span> <span className="font-semibold text-primary">{Number(lead.estimated_value || 0).toLocaleString('pt-PT')}€</span>
+                      </div>
+                    </div>
                   </Card>
                 );
               })}
