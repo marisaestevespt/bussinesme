@@ -301,13 +301,33 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
         <div className="space-y-4">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Informação Pessoal</h3>
           <Input placeholder="Nome completo *" value={f.full_name} onChange={e => set('full_name', e.target.value)} />
-          <Input placeholder="Função" value={f.role_title || ''} onChange={e => set('role_title', e.target.value)} />
+          <div className="space-y-1.5">
+            <span className="text-xs text-muted-foreground font-medium">Função</span>
+            <div className="flex gap-2 items-center">
+              <Input placeholder="Ex: Designer, Gestor..." className="flex-1" value={f.role_title || ''} onChange={e => set('role_title', e.target.value)} />
+              <div className="flex gap-1">
+                {ROLE_COLORS.map(c => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => set('role_color', c.value)}
+                    className={`h-6 w-6 rounded-full border-2 transition-all shrink-0 ${f.role_color === c.value ? 'border-foreground scale-110' : 'border-transparent'}`}
+                    style={{ backgroundColor: c.value }}
+                    title={c.label}
+                  />
+                ))}
+              </div>
+            </div>
+            {f.role_title && (
+              <Badge className="text-xs text-white" style={{ backgroundColor: f.role_color || '#6366f1' }}>{f.role_title}</Badge>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <Input placeholder="Email" value={f.email || ''} onChange={e => set('email', e.target.value)} />
             <Input placeholder="Telefone" value={f.whatsapp || ''} onChange={e => set('whatsapp', e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <Input placeholder="Horário de trabalho" value={f.work_schedule || ''} onChange={e => set('work_schedule', e.target.value)} />
+            <ScheduleSelector value={f.work_schedule || ''} onChange={v => set('work_schedule', v)} />
             <Input placeholder="Identificação (BI/NIF)" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
           </div>
           <div className="grid grid-cols-3 gap-2">
