@@ -402,7 +402,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 </TableRow></TableHeader>
                 <TableBody>
                   {prodSalesData.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem metas de produto definidas.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-4">Sem produtos ativos.</TableCell></TableRow>
                   ) : prodSalesData.map(p => (
                     <TableRow key={p.product}>
                       <TableCell className="text-sm font-medium">{p.product}</TableCell>
