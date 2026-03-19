@@ -3,6 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useMemo } from 'react';
 
+function cleanPayload(obj: Record<string, any>): Record<string, any> {
+  const cleaned: Record<string, any> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    cleaned[k] = v === '' ? null : v;
+  }
+  return cleaned;
+}
+
 export const CRM_STATUSES = [
   { value: 'lead', label: 'Lead' },
   { value: 'primeiro_contacto', label: 'Primeiro Contacto' },
@@ -63,13 +71,14 @@ export function useCrmData() {
   const invalidate = () => qc.invalidateQueries({ queryKey: key });
 
   const upsertLead = useMutation({
-    mutationFn: async (lead: any) => {
+    mutationFn: async (raw: any) => {
+      const lead = cleanPayload(raw);
       if (lead.id) {
-        const { error } = await supabase.from('crm_leads').update(lead).eq('id', lead.id);
+        const { error } = await supabase.from('crm_leads').update(lead as any).eq('id', lead.id);
         if (error) throw error;
       } else {
         delete lead.id;
-        const { error } = await supabase.from('crm_leads').insert(lead);
+        const { error } = await supabase.from('crm_leads').insert(lead as any);
         if (error) throw error;
       }
     },
@@ -97,13 +106,14 @@ export function useCrmData() {
   });
 
   const upsertInteraction = useMutation({
-    mutationFn: async (rec: any) => {
+    mutationFn: async (raw: any) => {
+      const rec = cleanPayload(raw);
       if (rec.id) {
-        const { error } = await supabase.from('crm_interactions').update(rec).eq('id', rec.id);
+        const { error } = await supabase.from('crm_interactions').update(rec as any).eq('id', rec.id);
         if (error) throw error;
       } else {
         delete rec.id;
-        const { error } = await supabase.from('crm_interactions').insert(rec);
+        const { error } = await supabase.from('crm_interactions').insert(rec as any);
         if (error) throw error;
       }
     },
@@ -131,13 +141,14 @@ export function useCrmData() {
   });
 
   const upsertLeadAction = useMutation({
-    mutationFn: async (rec: any) => {
+    mutationFn: async (raw: any) => {
+      const rec = cleanPayload(raw);
       if (rec.id) {
-        const { error } = await supabase.from('crm_lead_actions').update(rec).eq('id', rec.id);
+        const { error } = await supabase.from('crm_lead_actions').update(rec as any).eq('id', rec.id);
         if (error) throw error;
       } else {
         delete rec.id;
-        const { error } = await supabase.from('crm_lead_actions').insert(rec);
+        const { error } = await supabase.from('crm_lead_actions').insert(rec as any);
         if (error) throw error;
       }
     },

@@ -3,6 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { startOfWeek, format } from 'date-fns';
 
+function cleanPayload(obj: Record<string, any>): Record<string, any> {
+  const cleaned: Record<string, any> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    cleaned[k] = v === '' ? null : v;
+  }
+  return cleaned;
+}
+
 const currentYear = new Date().getFullYear();
 
 export const OBJECTIVE_AREAS = [
@@ -70,18 +78,19 @@ export function useExecutiveData(year = currentYear) {
   });
 
   const upsertObjective = useMutation({
-    mutationFn: async (obj: any) => {
+    mutationFn: async (raw: any) => {
+      const obj = cleanPayload(raw);
       if (obj.id) {
-        const { error } = await supabase.from('executive_objectives').update(obj).eq('id', obj.id);
+        const { error } = await supabase.from('executive_objectives').update(obj as any).eq('id', obj.id);
         if (error) throw error;
       } else {
         delete obj.id;
-        const { error } = await supabase.from('executive_objectives').insert({ ...obj, year });
+        const { error } = await supabase.from('executive_objectives').insert({ ...obj, year } as any);
         if (error) throw error;
       }
     },
     onSuccess: invalidate,
-    onError: () => toast.error('Erro ao guardar objetivo'),
+    onError: (e: any) => toast.error('Erro ao guardar objetivo: ' + (e.message || e)),
   });
 
   const deleteObjective = useMutation({
@@ -102,24 +111,25 @@ export function useExecutiveData(year = currentYear) {
   });
 
   const upsertGoal = useMutation({
-    mutationFn: async (g: any) => {
+    mutationFn: async (raw: any) => {
+      const g = cleanPayload(raw);
       // Auto-calculate month and quarter from target_date
       if (g.target_date) {
-        const d = new Date(g.target_date);
+        const d = new Date(g.target_date as string);
         g.month = d.getMonth() + 1;
         g.quarter = Math.ceil((d.getMonth() + 1) / 3);
       }
       if (g.id) {
-        const { error } = await supabase.from('executive_goals').update(g).eq('id', g.id);
+        const { error } = await supabase.from('executive_goals').update(g as any).eq('id', g.id);
         if (error) throw error;
       } else {
         delete g.id;
-        const { error } = await supabase.from('executive_goals').insert({ ...g, year });
+        const { error } = await supabase.from('executive_goals').insert({ ...g, year } as any);
         if (error) throw error;
       }
     },
     onSuccess: invalidate,
-    onError: () => toast.error('Erro ao guardar meta'),
+    onError: (e: any) => toast.error('Erro ao guardar meta: ' + (e.message || e)),
   });
 
   const deleteGoal = useMutation({
@@ -206,14 +216,15 @@ export function useExecutiveData(year = currentYear) {
   });
 
   const upsertQuarterlyAnalysis = useMutation({
-    mutationFn: async (rec: any) => {
+    mutationFn: async (raw: any) => {
+      const rec = cleanPayload(raw);
       const { data: existing } = await supabase.from('executive_quarterly_analysis')
-        .select('id').eq('quarter', rec.quarter).eq('year', year).maybeSingle();
+        .select('id').eq('quarter', rec.quarter as number).eq('year', year).maybeSingle();
       if (existing) {
-        const { error } = await supabase.from('executive_quarterly_analysis').update(rec).eq('id', existing.id);
+        const { error } = await supabase.from('executive_quarterly_analysis').update(rec as any).eq('id', existing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('executive_quarterly_analysis').insert({ ...rec, year });
+        const { error } = await supabase.from('executive_quarterly_analysis').insert({ ...rec, year } as any);
         if (error) throw error;
       }
     },
