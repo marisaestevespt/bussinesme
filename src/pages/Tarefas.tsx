@@ -639,6 +639,14 @@ function TaskTable({
             const statusInfo = getStatusInfo(task.status);
             const priorityInfo = getPriorityInfo(task.priority);
             const deptInfo = getDeptInfo(task.department);
+            const hasDeps = taskDependencies.some(d => d.task_id === task.id);
+            const hasBlockingDeps = taskDependencies
+              .filter(d => d.task_id === task.id)
+              .some(d => {
+                const dep = allTasks.find((t: any) => t.id === d.depends_on_task_id);
+                return dep && dep.status !== 'done';
+              });
+            const subtaskCount = allTasks.filter((t: any) => t.parent_task_id === task.id).length;
 
             return (
               <TableRow
@@ -648,7 +656,14 @@ function TaskTable({
               >
                 <TableCell>
                   <div className="flex items-center gap-2">
+                    {task.parent_task_id && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
                     <span className="font-medium">{task.name}</span>
+                    {subtaskCount > 0 && (
+                      <Badge variant="secondary" className="text-[9px] px-1 py-0 gap-0.5">
+                        <GitBranch className="h-2.5 w-2.5" />{subtaskCount}
+                      </Badge>
+                    )}
+                    {hasBlockingDeps && <Link2 className="h-3.5 w-3.5 text-amber-500" />}
                     {overdue && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
                     {lateComplete && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
                   </div>
