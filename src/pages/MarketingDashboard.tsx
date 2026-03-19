@@ -153,7 +153,7 @@ export default function MarketingDashboard() {
 
           {/* Section 2b: Canais e Links */}
           <section className="space-y-4">
-            <h2 className="text-xl font-semibold text-foreground">Canais e Links</h2>
+            <h2 className="text-xl font-semibold text-foreground">Links</h2>
             <Card>
               <CardContent className="p-5 space-y-3">
                 <div className="space-y-2">
