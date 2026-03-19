@@ -81,3 +81,31 @@ export async function sendNotification(params: {
     link: params.link || null,
   });
 }
+
+/** Extract @mentions from text and notify mentioned users */
+export async function notifyMentions(text: string, authorId: string, context: string, link?: string) {
+  // Mentions are stored as @Full Name
+  const mentionRegex = /@([A-Za-zÀ-ÖØ-öø-ÿ]+(?:\s[A-Za-zÀ-ÖØ-öø-ÿ]+)*)/g;
+  const names = new Set<string>();
+  let match;
+  while ((match = mentionRegex.exec(text)) !== null) {
+    names.add(match[1].trim());
+  }
+  if (names.size === 0) return;
+
+  // Look up user IDs from profile names
+  const { data: profiles } = await supabase.from('profiles').select('user_id, full_name');
+  if (!profiles) return;
+
+  for (const name of names) {
+    const profile = profiles.find(p => p.full_name === name);
+    if (profile && profile.user_id !== authorId) {
+      await sendNotification({
+        userId: profile.user_id,
+        type: 'mention',
+        title: `Foste mencionado(a): ${context}`,
+        link,
+      });
+    }
+  }
+}
