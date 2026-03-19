@@ -251,6 +251,9 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
               <Button variant={metasView === 'objetivos' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setMetasView('objetivos')}>
                 Objetivos anuais
               </Button>
+              <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setObjDialogOpen(true)}>
+                <Plus className="h-3 w-3" /> Novo objetivo
+              </Button>
             </div>
           </div>
         </CardHeader>
