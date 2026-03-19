@@ -24,6 +24,8 @@ import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
 import { ObjectiveDialog } from './ObjectiveDialog';
 import { BackNavigation } from '@/components/BackNavigation';
 import { CLIENT_STATUS_OPTIONS } from '@/hooks/useClients';
+import { LeadDetailSheet } from '@/components/commercial/crm/LeadDetailSheet';
+import { useCrmData } from '@/hooks/useCrmData';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
@@ -82,6 +84,9 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const [expandedClient, setExpandedClient] = useState<{ clientId: string; clientName: string; clientCode: string; estimated: number; realHours: number; deviation: number; productName: string } | null>(null);
   const [convertLead, setConvertLead] = useState<any>(null);
   const [convertForm, setConvertForm] = useState<Record<string, string>>({});
+  const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [leadSheetOpen, setLeadSheetOpen] = useState(false);
+  const { upsertLead, deleteLead } = useCrmData();
 
   // ── Data queries ──
   const salesQ = useQuery({ queryKey: ['md-sales', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales').select('*').eq('sale_year', year).eq('sale_month', monthNum); return data || []; }});
@@ -625,7 +630,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                         const overdue = l.next_followup && parseISO(l.next_followup) < new Date();
                         const borderColor = CRM_COLORS[col]?.match(/border-\S+/)?.[0] || 'border-border/50';
                         return (
-                          <div key={l.id} className={cn('border-l-2 border rounded-lg p-2 bg-background text-xs space-y-1 cursor-pointer hover:bg-muted/40', borderColor, overdue && 'border-destructive/50')} onClick={() => navigate('/hub/comercial/crm')}>
+                          <div key={l.id} className={cn('border-l-2 border rounded-lg p-2 bg-background text-xs space-y-1 cursor-pointer hover:bg-muted/40', borderColor, overdue && 'border-destructive/50')} onClick={() => { setSelectedLead(l); setLeadSheetOpen(true); }}>
                             <p className="font-medium truncate">{l.name}</p>
                             {l.email && <p className="text-muted-foreground truncate">{l.email}</p>}
                             {l.phone && <p className="text-muted-foreground">{l.phone}</p>}
@@ -1064,6 +1069,33 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Lead Detail Sheet */}
+      <LeadDetailSheet
+        open={leadSheetOpen}
+        onOpenChange={v => { setLeadSheetOpen(v); if (!v) setSelectedLead(null); }}
+        lead={selectedLead}
+        products={(commProdGoalQ.data || []).map((p: any) => p.product_name)}
+        profiles={[]}
+        onSave={(lead) => {
+          upsertLead.mutate(lead, {
+            onSuccess: () => {
+              setLeadSheetOpen(false);
+              setSelectedLead(null);
+              qc.invalidateQueries({ queryKey: ['md-leads'] });
+            },
+          });
+        }}
+        onDelete={(id) => {
+          deleteLead.mutate(id, {
+            onSuccess: () => {
+              setLeadSheetOpen(false);
+              setSelectedLead(null);
+              qc.invalidateQueries({ queryKey: ['md-leads'] });
+            },
+          });
+        }}
+      />
     </div>
   );
 }
