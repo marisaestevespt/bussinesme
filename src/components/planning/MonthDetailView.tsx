@@ -517,7 +517,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                         const overdue = l.next_followup && parseISO(l.next_followup) < new Date();
                         const borderColor = CRM_COLORS[col]?.match(/border-\S+/)?.[0] || 'border-border/50';
                         return (
-                          <div key={l.id} className={cn('border-l-2 border rounded-lg p-2 bg-background text-xs space-y-1', borderColor, overdue && 'border-destructive/50')}>
+                          <div key={l.id} className={cn('border-l-2 border rounded-lg p-2 bg-background text-xs space-y-1 cursor-pointer hover:bg-muted/40', borderColor, overdue && 'border-destructive/50')} onClick={() => navigate('/comercial/crm')}>
                             <p className="font-medium truncate">{l.name}</p>
                             {l.email && <p className="text-muted-foreground truncate">{l.email}</p>}
                             {l.phone && <p className="text-muted-foreground">{l.phone}</p>}
