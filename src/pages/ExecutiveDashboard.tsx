@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { differenceInDays } from 'date-fns';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
