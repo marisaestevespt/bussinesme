@@ -60,6 +60,7 @@ import VendaDetailPage from "./pages/VendaDetail";
 import FinanceiroPage from "./pages/Financeiro";
 import FinanceiroSubPage from "./pages/FinanceiroSubPage";
 import OperacaoPage from "./pages/Operacao";
+import RecursosHumanosSubPage from "./pages/RecursosHumanosSubPage";
 
 const queryClient = new QueryClient();
 
@@ -122,6 +123,7 @@ function AppRoutes() {
       <Route path="/hub/financeiro/:section" element={<FinanceiroSubPage />} />
       <Route path="/hub/operacao" element={<OperacaoPage />} />
       <Route path="/hub/recursos-humanos" element={<ExecutiveGestaoEquipa />} />
+      <Route path="/hub/recursos-humanos/:section" element={<RecursosHumanosSubPage />} />
         <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive" element={<ExecutiveDashboard />} />
       <Route path="/executive/planeamento" element={<ExecutivePlaneamento />} />
