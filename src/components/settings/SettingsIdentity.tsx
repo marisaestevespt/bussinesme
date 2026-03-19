@@ -130,6 +130,8 @@ export function SettingsIdentity() {
   const [businessName, setBusinessName] = useState('');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [bgFile, setBgFile] = useState<File | null>(null);
+  const [bgPreview, setBgPreview] = useState<string | null>(null);
   const [colors, setColors] = useState({
     primary: '#1a1f36',
     secondary: '#f0f4f8',
