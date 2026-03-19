@@ -358,31 +358,72 @@ export default function ExecutiveWeeklyAlign() {
         <section className="space-y-4">
           <h2 className="text-base font-semibold">1 // Metas</h2>
           <Tabs defaultValue="metas">
-            <TabsList><TabsTrigger value="metas">Metas do mês</TabsTrigger><TabsTrigger value="agenda">Agenda do mês</TabsTrigger></TabsList>
+            <TabsList><TabsTrigger value="metas">Metas do mês</TabsTrigger><TabsTrigger value="metricas_atraso">Métricas em atraso</TabsTrigger><TabsTrigger value="agenda">Agenda do mês</TabsTrigger></TabsList>
             <TabsContent value="metas">
-              <Card><div className="overflow-x-auto">
-                <Table>
-                  <TableHeader><TableRow>
-                    <TableHead>Status</TableHead><TableHead>Meta</TableHead><TableHead>Área</TableHead><TableHead>Data meta</TableHead><TableHead>Atingida</TableHead><TableHead>Mês</TableHead><TableHead>Trim.</TableHead><TableHead>Objetivo</TableHead>
-                  </TableRow></TableHeader>
-                  <TableBody>
-                    {monthGoals.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Sem metas este mês</TableCell></TableRow> :
-                      monthGoals.map(g => (
-                        <TableRow key={g.id} className={clickableRow} onClick={() => openGoalDetail(g)}>
-                          <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{statusLabel(g.status)}</Badge></TableCell>
-                          <TableCell className="text-sm">{g.meta}</TableCell>
-                          <TableCell className="text-xs">{areaLabel(g.area)}</TableCell>
-                          <TableCell className="text-xs">{g.target_date || '—'}</TableCell>
-                          <TableCell className="text-xs">{g.achieved_date || '—'}</TableCell>
-                          <TableCell className="text-xs">{g.month ? getMonthName(g.month) : '—'}</TableCell>
-                          <TableCell className="text-xs">{g.quarter ? `T${g.quarter}` : '—'}</TableCell>
-                          <TableCell className="text-xs">{exec.allObjectives.find(o => o.id === g.objective_id)?.title || '—'}</TableCell>
-                        </TableRow>
-                      ))
-                    }
-                  </TableBody>
-                </Table>
-              </div></Card>
+              {(() => {
+                const currentMonthName = MONTH_NAMES[currentMonth - 1];
+                const monthPlanGoals = planning.allGoals.filter((g: any) => g.period === currentMonthName);
+                return (
+                  <Card><div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader><TableRow>
+                        <TableHead>Objetivo Anual</TableHead><TableHead>Período</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead>
+                      </TableRow></TableHeader>
+                      <TableBody>
+                        {monthPlanGoals.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground text-sm py-6">Sem metas este mês</TableCell></TableRow> :
+                          monthPlanGoals.map((g: any) => {
+                            const obj = planning.allObjectives.find((o: any) => o.id === g.objective_id);
+                            const dev = g.actual_value && g.target_value ? (Number(g.actual_value) - Number(g.target_value)) : null;
+                            return (
+                              <TableRow key={g.id} className={clickableRow} onClick={() => openGoalDetail(g)}>
+                                <TableCell className="text-xs">{obj?.title || '—'}</TableCell>
+                                <TableCell className="text-sm">{g.period}</TableCell>
+                                <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
+                                <TableCell className="text-xs">{g.actual_value || '—'}</TableCell>
+                                <TableCell className={`text-xs ${dev !== null && dev < 0 ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
+                                <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(g.status)}</Badge></TableCell>
+                              </TableRow>
+                            );
+                          })
+                        }
+                      </TableBody>
+                    </Table>
+                  </div></Card>
+                );
+              })()}
+            </TabsContent>
+            <TabsContent value="metricas_atraso">
+              {(() => {
+                const overdueMetrics = planning.allMetrics.filter((m: any) => planning.isMetricOverdue(m));
+                const getDaysOverdue = (m: any) => {
+                  if (!m.last_updated_at) return '—';
+                  return Math.floor((new Date().getTime() - new Date(m.last_updated_at).getTime()) / (1000 * 60 * 60 * 24));
+                };
+                return (
+                  <Card><div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader><TableRow>
+                        <TableHead>Objetivo</TableHead><TableHead>Métrica</TableHead><TableHead>Última atualização</TableHead><TableHead>Dias em atraso</TableHead>
+                      </TableRow></TableHeader>
+                      <TableBody>
+                        {overdueMetrics.length === 0 ? <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground text-sm py-6">Sem métricas em atraso</TableCell></TableRow> :
+                          overdueMetrics.map((m: any) => {
+                            const obj = planning.allObjectives.find((o: any) => o.id === m.objective_id);
+                            return (
+                              <TableRow key={m.id} className="bg-red-50">
+                                <TableCell className="text-xs">{obj?.title || '—'}</TableCell>
+                                <TableCell className="text-sm font-medium">{m.name}</TableCell>
+                                <TableCell className="text-xs">{m.last_updated_at ? new Date(m.last_updated_at).toLocaleDateString('pt-PT') : 'Nunca'}</TableCell>
+                                <TableCell className="text-xs text-destructive font-medium">{getDaysOverdue(m)} dias</TableCell>
+                              </TableRow>
+                            );
+                          })
+                        }
+                      </TableBody>
+                    </Table>
+                  </div></Card>
+                );
+              })()}
             </TabsContent>
             <TabsContent value="agenda">
               <Card><div className="overflow-x-auto">
