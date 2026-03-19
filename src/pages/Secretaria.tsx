@@ -1071,28 +1071,6 @@ function MeuContratoTab({ teamMember }: { teamMember: any }) {
 function DashboardPersonalWidgets({ userId, teamMember }: { userId?: string; teamMember: any }) {
   const qc = useQueryClient();
 
-  // Personal image
-  const personalImage = useQuery({
-    queryKey: ['personal-image', userId],
-    enabled: !!userId,
-    queryFn: async () => {
-      const { data } = await supabase.from('member_personal_images').select('*').eq('user_id', userId!).maybeSingle();
-      return data;
-    },
-  });
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !userId) return;
-    const path = `${userId}/${Date.now()}_${file.name}`;
-    const { error: upErr } = await supabase.storage.from('personal-images').upload(path, file);
-    if (upErr) { toast.error('Erro no upload'); return; }
-    const { data: { publicUrl } } = supabase.storage.from('personal-images').getPublicUrl(path);
-    await supabase.from('member_personal_images').upsert({ user_id: userId, image_url: publicUrl, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
-    qc.invalidateQueries({ queryKey: ['personal-image'] });
-    toast.success('Imagem atualizada');
-  };
-
   // Personal notes
   const personalNotes = useQuery({
     queryKey: ['personal-notes', userId],
