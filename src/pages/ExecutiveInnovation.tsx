@@ -95,7 +95,6 @@ function DocEditor({ docKey, placeholder }: { docKey: string; placeholder: strin
         <RichTextEditor
           content={doc.data?.content || ''}
           onChange={(html) => save.mutate(html)}
-          placeholder={placeholder}
         />
       </CardContent>
     </Card>
