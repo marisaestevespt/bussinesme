@@ -72,6 +72,8 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const [calMonth, setCalMonth] = useState(new Date(year, monthIdx, 1));
   const [selectedObjective, setSelectedObjective] = useState<any>(null);
   const [objDialogOpen, setObjDialogOpen] = useState(false);
+  const [goalEditOpen, setGoalEditOpen] = useState(false);
+  const [goalEditValue, setGoalEditValue] = useState('');
   const navigate = useNavigate();
   const [expandedClient, setExpandedClient] = useState<{ clientId: string; clientName: string; clientCode: string; estimated: number; realHours: number; deviation: number; productName: string } | null>(null);
 
@@ -118,6 +120,20 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const deleteCheck = useMutation({
     mutationFn: async (id: string) => { const { error } = await supabase.from('executive_monthly_checklists').delete().eq('id', id); if (error) throw error; },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] }),
+  });
+
+  const upsertGoal = useMutation({
+    mutationFn: async (amount: number) => {
+      if (commMonthGoalQ.data?.id) {
+        const { error } = await supabase.from('commercial_monthly_goals').update({ goal_amount: amount }).eq('id', commMonthGoalQ.data.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('commercial_monthly_goals').insert({ year, month: monthNum, goal_amount: amount });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['md-comm-goal', year, monthNum] }); setGoalEditOpen(false); toast.success('Meta atualizada'); },
+    onError: () => toast.error('Erro ao guardar meta'),
   });
 
   // ── Derived data ──
@@ -410,7 +426,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   <TableHead>Trimestre</TableHead><TableHead>Mês</TableHead><TableHead>Intervalo</TableHead><TableHead className="text-right">Meta</TableHead><TableHead className="text-right">Até agora</TableHead><TableHead>Análise</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
-                  <TableRow>
+                  <TableRow className="cursor-pointer hover:bg-muted/60" onClick={() => { setGoalEditValue(commGoal ? String(commGoal.goal_amount) : ''); setGoalEditOpen(true); }}>
                     <TableCell className="text-xs">T{quarter}</TableCell>
                     <TableCell className="text-xs">{monthName}</TableCell>
                     <TableCell className="text-xs">{range.label}</TableCell>
@@ -421,12 +437,28 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                         <span className="text-muted-foreground">
                           Progresso: {Math.round((totalInvoiced / Number(commGoal.goal_amount)) * 100)}% — Faturado: {totalInvoiced.toLocaleString('pt-PT')}€ de {Number(commGoal.goal_amount).toLocaleString('pt-PT')}€
                         </span>
-                      ) : <span className="text-muted-foreground">Sem meta definida</span>}
+                      ) : <span className="text-muted-foreground">Sem meta definida — clica para adicionar</span>}
                     </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
             </div>
+
+            {/* Goal edit dialog */}
+            <Dialog open={goalEditOpen} onOpenChange={setGoalEditOpen}>
+              <DialogContent className="max-w-sm">
+                <DialogHeader><DialogTitle>Editar Meta Mensal</DialogTitle></DialogHeader>
+                <div className="space-y-3 pt-2">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground">Valor da meta (€)</label>
+                    <Input type="number" value={goalEditValue} onChange={e => setGoalEditValue(e.target.value)} placeholder="0" className="mt-1" />
+                  </div>
+                  <Button className="w-full" onClick={() => { const v = parseFloat(goalEditValue); if (isNaN(v) || v < 0) { toast.error('Valor inválido'); return; } upsertGoal.mutate(v); }} disabled={upsertGoal.isPending}>
+                    {upsertGoal.isPending ? 'A guardar...' : 'Guardar'}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {/* Product distribution tabs */}
