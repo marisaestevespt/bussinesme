@@ -541,7 +541,7 @@ export default function ProjetoDetailPage() {
               <div><Label className="text-xs">Prazo</Label>
                 <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{local.deadline ? format(new Date(local.deadline), 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
               </div>
-              <div><Label className="text-xs">Progresso ({local.progress}%)</Label><Slider value={[local.progress]} onValueChange={v => updateField('progress', v[0])} max={100} step={5} className="mt-3" /></div>
+              <div><Label className="text-xs">Progresso ({tasks.length > 0 ? Math.round(tasks.filter(t => t.status === 'concluida').length / tasks.length * 100) : 0}%)</Label><Progress value={tasks.length > 0 ? Math.round(tasks.filter(t => t.status === 'concluida').length / tasks.length * 100) : 0} className="h-2 mt-3" /><p className="text-[10px] text-muted-foreground mt-1">{tasks.filter(t => t.status === 'concluida').length}/{tasks.length} tarefas</p></div>
             </div>
             <div><Label className="text-xs">Equipa</Label><div className="flex gap-1 mt-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div></div>
             <Separator />
@@ -596,9 +596,9 @@ export default function ProjetoDetailPage() {
               <Popover><PopoverTrigger asChild><Button variant="outline" size="sm" className={cn("h-7 text-xs", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-1 h-3 w-3" />{local.deadline ? format(new Date(local.deadline), 'd MMM yyyy', { locale: pt }) : '—'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
             </div>
             <div className="flex items-center gap-2 min-w-[160px]">
-              <Progress value={local.progress} className="h-2 flex-1" />
-              <span className="text-xs text-muted-foreground">{local.progress}%</span>
-              <Slider value={[local.progress]} onValueChange={v => updateField('progress', v[0])} max={100} step={5} className="w-24" />
+              <Progress value={tasks.length > 0 ? Math.round(tasks.filter(t => t.status === 'concluida').length / tasks.length * 100) : 0} className="h-2 flex-1" />
+              <span className="text-xs text-muted-foreground">{tasks.length > 0 ? Math.round(tasks.filter(t => t.status === 'concluida').length / tasks.length * 100) : 0}%</span>
+              <span className="text-[10px] text-muted-foreground">({tasks.filter(t => t.status === 'concluida').length}/{tasks.length})</span>
             </div>
             <div className="flex -space-x-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-6 w-6 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div>
           </div>
