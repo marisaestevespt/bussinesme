@@ -260,6 +260,9 @@ function OverviewTab({ entries, members, clients, products }: { entries: any[]; 
           </CardContent>
         </Card>
       )}
+
+      {/* ─── Capacidade da Equipa ─── */}
+      <TeamCapacitySection members={members} clients={clients} products={products} />
     </div>
   );
 }
