@@ -14,7 +14,7 @@ import { Users, FolderOpen, CheckCircle2, Clock, AlertTriangle, Briefcase, Build
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format, isToday, isBefore, startOfToday, isAfter, subDays, endOfWeek, startOfWeek } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -548,7 +548,7 @@ export default function OperacaoPage() {
               <h2 className="text-lg font-semibold">Interno</h2>
             </div>
 
-            {/* Projetos internos ativos — Pie chart by department */}
+            {/* Projetos internos ativos — Bar chart by department */}
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -560,38 +560,19 @@ export default function OperacaoPage() {
                 {activeInternoProjects.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-3">Nenhum projeto interno ativo</p>
                 ) : (
-                  <div className="flex items-center gap-4">
-                    <div className="w-[180px] h-[180px] shrink-0">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={internoByDept}
-                            dataKey="value"
-                            nameKey="name"
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={40}
-                            outerRadius={75}
-                            paddingAngle={2}
-                            strokeWidth={0}
-                          >
-                            {internoByDept.map((entry, i) => (
-                              <Cell key={i} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <Tooltip formatter={(value: number, name: string) => [`${value} projeto${value !== 1 ? 's' : ''}`, name]} />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div className="flex-1 space-y-1.5">
-                      {internoByDept.map((d, i) => (
-                        <div key={i} className="flex items-center gap-2 text-sm">
-                          <span className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
-                          <span className="flex-1 truncate">{d.name}</span>
-                          <span className="font-semibold">{d.value}</span>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="h-[250px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={internoByDept} margin={{ top: 8, right: 8, bottom: 4, left: -16 }}>
+                        <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-20} textAnchor="end" height={50} />
+                        <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                        <Tooltip formatter={(value: number) => [`${value} projeto${value !== 1 ? 's' : ''}`, 'Ativos']} />
+                        <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                          {internoByDept.map((entry, i) => (
+                            <Cell key={i} fill={entry.color} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 )}
               </CardContent>
