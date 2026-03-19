@@ -36,10 +36,7 @@ export default function ExecutiveInnovation() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Desenvolvimento & Inovação</h1>
-          <p className="text-sm text-muted-foreground mt-1">Aprendizagens, ideias e referências para o negócio</p>
-        </div>
+        <PageHeader title="Desenvolvimento & Inovação" subtitle="Aprendizagens, ideias e referências para o negócio" />
 
         <Tabs defaultValue="estudos">
           <TabsList>

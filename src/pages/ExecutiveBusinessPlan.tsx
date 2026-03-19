@@ -111,10 +111,7 @@ export default function ExecutiveBusinessPlan() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Plano & Modelo de Negócio</h1>
-          <p className="text-sm text-muted-foreground mt-1">Visão estratégica do modelo de negócio</p>
-        </div>
+        <PageHeader title="Plano & Modelo de Negócio" subtitle="Visão estratégica do modelo de negócio" />
 
         {/* Value Proposition Callout */}
         <Card className="border-primary/30 bg-primary/5">

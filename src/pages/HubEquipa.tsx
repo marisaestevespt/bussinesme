@@ -58,10 +58,7 @@ export default function HubEquipaPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Equipa</h1>
-          <p className="text-sm text-muted-foreground mt-1">Membros, processos e documentos internos</p>
-        </div>
+        <PageHeader title="Equipa" subtitle="Membros, processos e documentos internos" />
 
         <Tabs defaultValue="membros">
           <TabsList>

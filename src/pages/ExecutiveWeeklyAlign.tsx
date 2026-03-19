@@ -349,10 +349,7 @@ export default function ExecutiveWeeklyAlign() {
   return (
     <AppLayout>
       <div className="space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold">Weekly Align</h1>
-          <p className="text-sm text-muted-foreground">Semana {format(weekStart, 'dd/MM')} — {format(weekEnd, 'dd/MM/yyyy')}</p>
-        </div>
+        <PageHeader title="Weekly Align" subtitle={`Semana ${format(weekStart, 'dd/MM')} — ${format(weekEnd, 'dd/MM/yyyy')}`} />
 
         {/* 1 // Metas */}
         <section className="space-y-4">

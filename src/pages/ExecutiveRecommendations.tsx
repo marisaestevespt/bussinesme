@@ -44,13 +44,7 @@ export default function ExecutiveRecommendations() {
         <BackNavigation parentRoute="/executive" parentLabel="Executive Room" />
 
         <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-3">
-            <MessageSquareHeart className="h-6 w-6 text-primary" />
-            <div>
-              <h1 className="text-xl font-bold text-foreground">Caixa das Recomendações</h1>
-              <p className="text-sm text-muted-foreground">Todas as recomendações da equipa</p>
-            </div>
-          </div>
+        <PageHeader title="Caixa das Recomendações" subtitle="Todas as recomendações da equipa" />
           <Select value={filterArea} onValueChange={setFilterArea}>
             <SelectTrigger className="w-52">
               <SelectValue />
