@@ -682,7 +682,7 @@ export default function GestaoMarcaPage() {
                 })}
               </div>
             </div>
-          ) : selectedKanban && selectedKanban.title === 'Diferenciais' ? (
+          ) : selectedKanban && selectedKanban.title?.includes('Diferenciais') ? (
             /* ── Diferenciais content ── */
             <div className="space-y-3">
               {differentials.map(d => (
