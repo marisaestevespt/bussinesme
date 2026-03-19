@@ -33,7 +33,7 @@ const currentYear = new Date().getFullYear();
 const currentMonth = new Date().getMonth() + 1;
 
 // Module keys that belong to each department
-const ALL_DEPT_MODULES = ['marketing', 'comercial', 'clientes', 'financeiro', 'operacao', 'produtos', 'customer-success', 'recursos-humanos', 'administrativo', 'equipa', 'planeamento', 'weekly-align', 'gestao-equipa-ceo'];
+const ALL_DEPT_MODULES = ['marketing', 'comercial', 'clientes', 'financeiro', 'operacao', 'produtos', 'recursos-humanos', 'equipa', 'planeamento', 'weekly-align', 'gestao-equipa-ceo'];
 
 const DEPT_MODULE_MAP: Record<string, string[]> = {
   admin: ALL_DEPT_MODULES,
@@ -43,9 +43,7 @@ const DEPT_MODULE_MAP: Record<string, string[]> = {
   financeiro: ['financeiro'],
   operacao: ['operacao'],
   produtos: ['produtos'],
-  'customer-success': ['customer-success'],
   'recursos-humanos': ['recursos-humanos'],
-  administrativo: ['administrativo'],
 };
 
 // Modules everyone with a department gets access to
