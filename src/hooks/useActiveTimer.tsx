@@ -10,12 +10,16 @@ interface ActiveTimer {
   taskId: string;
   taskName: string;
   startedAt: Date;
+  paused: boolean;
+  pausedElapsed: number; // seconds accumulated before pause
 }
 
 interface ActiveTimerContextValue {
   activeTimer: ActiveTimer | null;
   elapsed: number;
   startTimer: (taskId: string, taskName: string) => Promise<void>;
+  pauseTimer: () => void;
+  resumeTimer: () => Promise<void>;
   stopTimer: () => Promise<void>;
   refreshTimer: () => void;
 }
@@ -47,13 +51,14 @@ export function ActiveTimerProvider({ children }: { children: ReactNode }) {
       .single();
 
     if (data && data.started_at) {
-      // Fetch task name
       const { data: task } = await supabase.from('tasks').select('name').eq('id', data.task_id).single();
       setActiveTimer({
         entryId: data.id,
         taskId: data.task_id,
         taskName: task?.name || 'Tarefa',
         startedAt: parseISO(data.started_at),
+        paused: false,
+        pausedElapsed: 0,
       });
     } else {
       setActiveTimer(null);
@@ -64,10 +69,13 @@ export function ActiveTimerProvider({ children }: { children: ReactNode }) {
 
   // Tick
   useEffect(() => {
-    if (activeTimer) {
+    if (activeTimer && !activeTimer.paused) {
       intervalRef.current = setInterval(() => {
-        setElapsed(differenceInSeconds(new Date(), activeTimer.startedAt));
+        setElapsed(activeTimer.pausedElapsed + differenceInSeconds(new Date(), activeTimer.startedAt));
       }, 1000);
+    } else if (activeTimer && activeTimer.paused) {
+      setElapsed(activeTimer.pausedElapsed);
+      if (intervalRef.current) clearInterval(intervalRef.current);
     } else {
       if (intervalRef.current) clearInterval(intervalRef.current);
       setElapsed(0);
@@ -79,7 +87,7 @@ export function ActiveTimerProvider({ children }: { children: ReactNode }) {
     if (!user?.id) return;
     // Stop any existing timer first
     if (activeTimer) {
-      await stopTimerInternal();
+      await finishTimer();
     }
     const { data, error } = await supabase.from('task_time_entries').insert({
       task_id: taskId,
@@ -94,31 +102,46 @@ export function ActiveTimerProvider({ children }: { children: ReactNode }) {
       taskId,
       taskName,
       startedAt: new Date(),
+      paused: false,
+      pausedElapsed: 0,
     });
     queryClient.invalidateQueries({ queryKey: ['task-time-entries', taskId] });
   }, [user?.id, activeTimer]);
 
-  const stopTimerInternal = useCallback(async () => {
+  const pauseTimer = useCallback(() => {
+    if (!activeTimer || activeTimer.paused) return;
+    const currentElapsed = activeTimer.pausedElapsed + differenceInSeconds(new Date(), activeTimer.startedAt);
+    setActiveTimer(prev => prev ? { ...prev, paused: true, pausedElapsed: currentElapsed } : null);
+    toast.info('Timer em pausa');
+  }, [activeTimer]);
+
+  const resumeTimer = useCallback(async () => {
+    if (!activeTimer || !activeTimer.paused) return;
+    setActiveTimer(prev => prev ? { ...prev, paused: false, startedAt: new Date() } : null);
+    toast.success('Timer retomado');
+  }, [activeTimer]);
+
+  const finishTimer = useCallback(async () => {
     if (!activeTimer) return;
-    const now = new Date();
-    const mins = Math.max(1, differenceInMinutes(now, activeTimer.startedAt));
+    const totalSeconds = activeTimer.paused
+      ? activeTimer.pausedElapsed
+      : activeTimer.pausedElapsed + differenceInSeconds(new Date(), activeTimer.startedAt);
+    const mins = Math.max(1, Math.round(totalSeconds / 60));
     await supabase.from('task_time_entries')
-      .update({ ended_at: now.toISOString(), duration_minutes: mins })
+      .update({ ended_at: new Date().toISOString(), duration_minutes: mins })
       .eq('id', activeTimer.entryId);
     queryClient.invalidateQueries({ queryKey: ['task-time-entries', activeTimer.taskId] });
     queryClient.invalidateQueries({ queryKey: ['task-time-entries-totals'] });
-    const prevTimer = activeTimer;
     setActiveTimer(null);
-    return prevTimer;
   }, [activeTimer, queryClient]);
 
   const stopTimer = useCallback(async () => {
-    await stopTimerInternal();
-    toast.success('Timer parado');
-  }, [stopTimerInternal]);
+    await finishTimer();
+    toast.success('Timer terminado');
+  }, [finishTimer]);
 
   return (
-    <ActiveTimerContext.Provider value={{ activeTimer, elapsed, startTimer, stopTimer, refreshTimer: fetchRunning }}>
+    <ActiveTimerContext.Provider value={{ activeTimer, elapsed, startTimer, pauseTimer, resumeTimer, stopTimer, refreshTimer: fetchRunning }}>
       {children}
     </ActiveTimerContext.Provider>
   );
