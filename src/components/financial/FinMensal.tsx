@@ -457,5 +457,3 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin }: {
     </TableRow>
   );
 }
-
-const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
