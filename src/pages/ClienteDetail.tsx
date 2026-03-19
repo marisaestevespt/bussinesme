@@ -95,6 +95,11 @@ export default function ClienteDetailPage() {
 
   const [form, setForm] = useState<Partial<Client>>({});
   const [initialized, setInitialized] = useState(false);
+  const [saleOpen, setSaleOpen] = useState(false);
+  const [meetingOpen, setMeetingOpen] = useState(false);
+  const [meetingForm, setMeetingForm] = useState({ title: '', date_time: '', meeting_url: '' });
+
+  const queryClient = useQueryClient();
 
   if (client && !initialized) { setForm(client); setInitialized(true); }
   if (isNew && !initialized) { setForm({ full_name: '', status: 'ativo' }); setInitialized(true); }
@@ -123,6 +128,27 @@ export default function ClienteDetailPage() {
 
   // Filtered meetings
   const { data: clientMeetings = [] } = useFilteredMeetings(form.full_name);
+
+  // Create meeting mutation
+  const createMeeting = useMutation({
+    mutationFn: async (data: { title: string; date_time: string; meeting_url: string }) => {
+      const { error } = await supabase.from('meetings').insert({
+        title: data.title,
+        date_time: data.date_time,
+        client_name: form.full_name || '',
+        status: 'agendada' as any,
+        meeting_url: data.meeting_url || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['meetings'] });
+      toast.success('Reunião criada');
+      setMeetingOpen(false);
+      setMeetingForm({ title: '', date_time: '', meeting_url: '' });
+    },
+    onError: () => toast.error('Erro ao criar reunião'),
+  });
 
   // Local tables
   const { history, addEntry: addHistory, updateEntry: updateHistory, deleteEntry: deleteHistory } = useClientHistory(isNew ? undefined : id);
