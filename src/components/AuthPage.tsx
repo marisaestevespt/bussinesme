@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export function AuthPage() {
@@ -12,6 +13,20 @@ export function AuthPage() {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
+
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [bgUrl, setBgUrl] = useState<string | null>(null);
+  const [businessName, setBusinessName] = useState('');
+
+  useEffect(() => {
+    supabase.from('business_settings').select('logo_url, business_name, login_bg_url').limit(1).maybeSingle().then(({ data }) => {
+      if (data) {
+        setLogoUrl(data.logo_url);
+        setBusinessName(data.business_name || '');
+        setBgUrl((data as any).login_bg_url || null);
+      }
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,69 +47,95 @@ export function AuthPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center hq-surface-sunken">
-      <div className="hq-card w-full max-w-md p-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            {isSignUp ? 'Criar conta' : 'Entrar'}
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {isSignUp ? 'Cria a tua conta para começar.' : 'Bem-vinda de volta ao teu HQ.'}
-          </p>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden">
+      {/* Background image */}
+      {bgUrl && (
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${bgUrl})` }}
+        >
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
         </div>
+      )}
+      {!bgUrl && <div className="absolute inset-0 hq-surface-sunken" />}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {isSignUp && (
+      {/* Login card */}
+      <div className="relative z-10 w-full max-w-md mx-4">
+        <div className="hq-card p-8 shadow-xl rounded-xl border bg-card/95 backdrop-blur-sm">
+          {/* Logo + Welcome */}
+          <div className="mb-8 text-center space-y-3">
+            {logoUrl && (
+              <div className="flex justify-center">
+                <img src={logoUrl} alt={businessName} className="h-14 w-auto object-contain" />
+              </div>
+            )}
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+                {isSignUp ? 'Criar conta' : 'Bem-vinda!'}
+              </h1>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                {isSignUp
+                  ? 'Cria a tua conta para começar.'
+                  : businessName
+                    ? `Entra no teu espaço ${businessName}.`
+                    : 'Bem-vinda de volta ao teu HQ.'}
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Nome completo</Label>
+                <Input
+                  id="fullName"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="O teu nome"
+                  required
+                />
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label htmlFor="fullName">Nome completo</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="fullName"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="O teu nome"
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="email@exemplo.com"
                 required
               />
             </div>
-          )}
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="email@exemplo.com"
-              required
-            />
+            <div className="space-y-2">
+              <Label htmlFor="password">Palavra-passe</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                minLength={6}
+              />
+            </div>
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'A processar...' : isSignUp ? 'Criar conta' : 'Entrar'}
+            </Button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-sm text-muted-foreground hq-transition hover:text-foreground"
+            >
+              {isSignUp ? 'Já tens conta? Entra aqui.' : 'Não tens conta? Cria uma.'}
+            </button>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password">Palavra-passe</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              minLength={6}
-            />
-          </div>
-
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'A processar...' : isSignUp ? 'Criar conta' : 'Entrar'}
-          </Button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <button
-            type="button"
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-sm text-muted-foreground hq-transition hover:text-foreground"
-          >
-            {isSignUp ? 'Já tens conta? Entra aqui.' : 'Não tens conta? Cria uma.'}
-          </button>
         </div>
       </div>
     </div>

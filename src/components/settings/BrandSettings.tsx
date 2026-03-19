@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { DISPLAY_FONTS, BODY_FONTS } from '@/lib/modules';
 import { toast } from 'sonner';
-import { Upload, Palette, Type, Building2, Save } from 'lucide-react';
+import { Upload, Palette, Type, Building2, Save, ImageIcon } from 'lucide-react';
 
 /* ── colour helpers ── */
 
@@ -128,6 +128,8 @@ export function BrandSettings() {
   const [businessName, setBusinessName] = useState('');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [bgFile, setBgFile] = useState<File | null>(null);
+  const [bgPreview, setBgPreview] = useState<string | null>(null);
   const [colors, setColors] = useState({
     primary: '#1a1f36',
     secondary: '#f0f4f8',
@@ -142,6 +144,7 @@ export function BrandSettings() {
     if (!settings) return;
     setBusinessName(settings.business_name);
     setLogoPreview(settings.logo_url);
+    setBgPreview((settings as any).login_bg_url || null);
     setColors({
       primary: hslToHex(settings.primary_color),
       secondary: hslToHex(settings.secondary_color),
@@ -154,10 +157,12 @@ export function BrandSettings() {
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setLogoFile(file);
-      setLogoPreview(URL.createObjectURL(file));
-    }
+    if (file) { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
+  };
+
+  const handleBgChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) { setBgFile(file); setBgPreview(URL.createObjectURL(file)); }
   };
 
   const updateColor = (key: keyof typeof colors) => (value: string) =>
@@ -183,18 +188,33 @@ export function BrandSettings() {
         }
       }
 
+      // Upload new bg if changed
+      let loginBgUrl = (settings as any).login_bg_url || null;
+      if (bgFile) {
+        const ext = bgFile.name.split('.').pop();
+        const { data: { user } } = await supabase.auth.getUser();
+        const path = `${user?.id}/login-bg.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('logos')
+          .upload(path, bgFile, { upsert: true });
+        if (!uploadError) {
+          const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path);
+          loginBgUrl = publicUrl;
+        }
+      }
       const { error } = await supabase
         .from('business_settings')
         .update({
           business_name: businessName.trim(),
           logo_url: logoUrl,
+          login_bg_url: loginBgUrl,
           primary_color: hexToHsl(colors.primary),
           secondary_color: hexToHsl(colors.secondary),
           background_color: hexToHsl(colors.background),
           text_color: hexToHsl(colors.text),
           font_display: fontDisplay,
           font_body: fontBody,
-        })
+        } as any)
         .eq('id', settings.id);
 
       if (error) throw error;
@@ -249,6 +269,30 @@ export function BrandSettings() {
             <div className="text-xs text-muted-foreground">
               <p>Arrasta ou clica para carregar</p>
               <p className="mt-0.5">PNG, JPG ou SVG</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Login background */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Fundo da página de login</Label>
+          <div className="flex items-center gap-4">
+            <label className="flex h-20 w-32 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 hq-transition hover:border-muted-foreground/50 hover:bg-muted/50 overflow-hidden">
+              {bgPreview ? (
+                <img src={bgPreview} alt="Login bg preview" className="h-full w-full object-cover" />
+              ) : (
+                <ImageIcon className="h-5 w-5 text-muted-foreground/50" />
+              )}
+              <input type="file" accept="image/*" onChange={handleBgChange} className="hidden" />
+            </label>
+            <div className="text-xs text-muted-foreground">
+              <p>Imagem de fundo para a página de login</p>
+              <p className="mt-0.5">Recomendado: 1920×1080 ou superior</p>
+              {bgPreview && (
+                <button type="button" className="mt-1 text-destructive hover:underline" onClick={() => { setBgFile(null); setBgPreview(null); }}>
+                  Remover fundo
+                </button>
+              )}
             </div>
           </div>
         </div>
