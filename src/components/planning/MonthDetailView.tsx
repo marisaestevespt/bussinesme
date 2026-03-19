@@ -864,6 +864,59 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         initial={null}
         onSave={(data: any) => { planning.upsertObjective.mutate(data); setObjDialogOpen(false); }}
       />
+
+      {/* Client time entries dialog */}
+      <Dialog open={!!expandedClient} onOpenChange={(open) => { if (!open) setExpandedClient(null); }}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          {expandedClient && (() => {
+            const clientEntries = timeEntries.filter((te: any) => te.client_id === expandedClient.clientId);
+            const totalHours = Math.round(clientEntries.reduce((s: number, te: any) => s + Number(te.duration || 0), 0) * 10) / 10;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="text-base">{expandedClient.clientName} <span className="text-muted-foreground font-normal text-sm">({expandedClient.clientCode})</span> — {expandedClient.productName}</DialogTitle>
+                  <div className="flex gap-4 text-xs text-muted-foreground pt-1">
+                    <span>Estimado: <strong className="text-foreground">{expandedClient.estimated}h</strong></span>
+                    <span>Real: <strong className="text-foreground">{expandedClient.realHours}h</strong></span>
+                    <span>Desvio: <strong className={cn(expandedClient.deviation > 2 ? 'text-destructive' : expandedClient.deviation < -2 ? 'text-blue-600' : 'text-foreground')}>{expandedClient.deviation > 0 ? '+' : ''}{expandedClient.deviation}h</strong></span>
+                  </div>
+                </DialogHeader>
+                {clientEntries.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">Sem registos de tempo para este cliente neste mês.</p>
+                ) : (
+                  <Table>
+                    <TableHeader><TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Descrição</TableHead>
+                      <TableHead>Categoria</TableHead>
+                      <TableHead>Responsável</TableHead>
+                      <TableHead className="text-right">Tempo</TableHead>
+                    </TableRow></TableHeader>
+                    <TableBody>
+                      {clientEntries.sort((a: any, b: any) => (a.entry_date || '').localeCompare(b.entry_date || '')).map((te: any) => {
+                        const memberName = team.find((m: any) => m.id === te.member_id)?.full_name || '—';
+                        return (
+                          <TableRow key={te.id}>
+                            <TableCell className="text-xs">{te.entry_date}</TableCell>
+                            <TableCell className="text-xs">{te.description || '—'}</TableCell>
+                            <TableCell><Badge variant="outline" className="text-[10px]">{te.category || '—'}</Badge></TableCell>
+                            <TableCell className="text-xs">{memberName}</TableCell>
+                            <TableCell className="text-xs text-right font-medium">{te.duration}h</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                      <TableRow className="bg-muted/30 font-medium">
+                        <TableCell colSpan={4} className="text-xs text-right">Total</TableCell>
+                        <TableCell className="text-xs text-right font-bold">{totalHours}h</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                )}
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
