@@ -130,21 +130,30 @@ export default function TarefasPage() {
   // Mutations
   const upsertTask = useMutation({
     mutationFn: async (payload: any) => {
+      const { _dependsOnIds, ...taskPayload } = payload;
+      let taskId: string;
       if (editingTask) {
-        const updateData: any = { ...payload };
-        // Auto-fill completed_at when status changes to done
-        if (payload.status === 'done' && editingTask.status !== 'done') {
-          updateData.updated_at = new Date().toISOString();
-        }
-        const { error } = await supabase.from('tasks').update(updateData).eq('id', editingTask.id);
+        const { error } = await supabase.from('tasks').update(taskPayload).eq('id', editingTask.id);
         if (error) throw error;
+        taskId = editingTask.id;
       } else {
-        const { error } = await supabase.from('tasks').insert({ ...payload, created_by: user?.id });
+        const { data, error } = await supabase.from('tasks').insert({ ...taskPayload, created_by: user?.id }).select('id').single();
         if (error) throw error;
+        taskId = data.id;
+      }
+      // Sync dependencies
+      if (_dependsOnIds !== undefined) {
+        await supabase.from('task_dependencies').delete().eq('task_id', taskId);
+        if (_dependsOnIds.length > 0) {
+          const rows = _dependsOnIds.map((depId: string) => ({ task_id: taskId, depends_on_task_id: depId }));
+          const { error: depErr } = await supabase.from('task_dependencies').insert(rows);
+          if (depErr) throw depErr;
+        }
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['task-dependencies'] });
       toast.success(editingTask ? 'Tarefa atualizada' : 'Tarefa criada');
       closeDialog();
     },
@@ -158,6 +167,7 @@ export default function TarefasPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['task-dependencies'] });
       toast.success('Tarefa eliminada');
       closeDialog();
     },
