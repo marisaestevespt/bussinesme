@@ -123,7 +123,7 @@ export default function ClientesPage() {
               items.map(c => (
                 <div
                   key={c.id}
-                  className="px-4 py-2.5 text-sm grid grid-cols-8 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
+                  className="px-4 py-2.5 text-sm grid grid-cols-9 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
                   onClick={() => navigate(`/hub/clientes/${c.id}`)}
                 >
                   <span className="font-mono text-xs">{c.client_id}</span>
@@ -137,6 +137,7 @@ export default function ClientesPage() {
                   <span className="truncate text-muted-foreground">{c.email || '—'}</span>
                   <span className="truncate text-muted-foreground">{c.whatsapp || '—'}</span>
                   <span className="truncate">{c.current_product || '—'}</span>
+                  <span className="text-muted-foreground">{c.payment_method || '—'}</span>
                   <span><EndOfCycleBadge date={c.end_of_cycle} /></span>
                 </div>
               ))
