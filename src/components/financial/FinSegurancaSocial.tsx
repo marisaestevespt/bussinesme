@@ -1,8 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Save } from 'lucide-react';
+import { toast } from 'sonner';
 import type { useFinancialData } from '@/hooks/useFinancialData';
+import type { Expense } from '@/hooks/useFinancialData';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -10,86 +15,117 @@ const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2,
 
 interface Props {
   fin: ReturnType<typeof useFinancialData>;
-  profiles: { id: string; full_name: string | null }[];
+  expenses: Expense[];
+  currentYear: number;
 }
 
-export function FinSegurancaSocial({ fin, profiles }: Props) {
-  const currentYear = new Date().getFullYear();
-  const payrollData = fin.payroll.data || [];
+export function FinSegurancaSocial({ fin, expenses, currentYear }: Props) {
+  const ssExpenses = useMemo(() =>
+    expenses.filter(e => e.category === 'seguranca_social' && e.expense_year === currentYear),
+    [expenses, currentYear]
+  );
+
+  const [editValues, setEditValues] = useState<Record<number, string>>({});
 
   const monthlyData = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
-      const entries = payrollData.filter(p => p.year === currentYear && p.month === m);
-      const ssEmployee = entries.reduce((s, v) => s + v.ss_employee, 0);
-      const ssEmployer = entries.reduce((s, v) => s + v.ss_employer, 0);
-      const withholding = entries.reduce((s, v) => s + v.withholding_value, 0);
-      return {
-        month: MONTHS[i],
-        collaborators: entries.length,
-        ssEmployee,
-        ssEmployer,
-        totalSS: ssEmployee + ssEmployer,
-        withholding,
-        total: ssEmployee + ssEmployer + withholding,
-      };
+      const entry = ssExpenses.find(e => e.expense_month === m);
+      return { month: m, label: MONTHS[i], value: entry?.total_with_vat ?? 0, entry };
     });
-  }, [payrollData, currentYear]);
+  }, [ssExpenses]);
 
-  const totals = useMemo(() => ({
-    ssEmployee: monthlyData.reduce((s, d) => s + d.ssEmployee, 0),
-    ssEmployer: monthlyData.reduce((s, d) => s + d.ssEmployer, 0),
-    totalSS: monthlyData.reduce((s, d) => s + d.totalSS, 0),
-    withholding: monthlyData.reduce((s, d) => s + d.withholding, 0),
-    total: monthlyData.reduce((s, d) => s + d.total, 0),
-  }), [monthlyData]);
+  const totalPago = monthlyData.reduce((s, d) => s + d.value, 0);
+  const mesesPagos = monthlyData.filter(d => d.value > 0).length;
+
+  const handleSave = async (m: number) => {
+    const val = parseFloat(editValues[m] || '0') || 0;
+    const existing = monthlyData.find(d => d.month === m)?.entry;
+    const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-15`;
+
+    if (existing) {
+      await fin.upsertExpense.mutateAsync({
+        id: existing.id,
+        total_with_vat: val,
+        base_value: val,
+        description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}`,
+      } as any);
+    } else if (val > 0) {
+      await fin.upsertExpense.mutateAsync({
+        description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}`,
+        category: 'seguranca_social',
+        base_value: val,
+        vat_rate: 0,
+        total_with_vat: val,
+        location: 'portugal',
+        expense_date: dateStr,
+        expense_month: m,
+        expense_quarter: Math.ceil(m / 3),
+        expense_year: currentYear,
+        status: 'pago',
+      } as any);
+    }
+    setEditValues(prev => { const n = { ...prev }; delete n[m]; return n; });
+    toast.success(`SS de ${MONTHS[m - 1]} guardada`);
+  };
 
   return (
     <div className="space-y-6 mt-4">
-      {/* Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">SS Colaborador (11%)</p><p className="text-lg font-bold">{fmt(totals.ssEmployee)}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">SS Entidade (23,75%)</p><p className="text-lg font-bold">{fmt(totals.ssEmployer)}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Retenção na Fonte</p><p className="text-lg font-bold">{fmt(totals.withholding)}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Obrigações</p><p className="text-lg font-bold">{fmt(totals.total)}</p></CardContent></Card>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Pago ({currentYear})</p><p className="text-lg font-bold">{fmt(totalPago)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Meses Pagos</p><p className="text-lg font-bold">{mesesPagos} / 12</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Média Mensal</p><p className="text-lg font-bold">{fmt(mesesPagos > 0 ? totalPago / mesesPagos : 0)}</p></CardContent></Card>
       </div>
 
-      {/* Monthly breakdown */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Obrigações Mensais — {currentYear}</CardTitle></CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Segurança Social — Trabalhador Independente — {currentYear}</CardTitle></CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Mês</TableHead>
-                <TableHead className="text-right">Colaboradores</TableHead>
-                <TableHead className="text-right">SS Colaborador</TableHead>
-                <TableHead className="text-right">SS Entidade</TableHead>
-                <TableHead className="text-right">Total SS</TableHead>
-                <TableHead className="text-right">Retenção</TableHead>
-                <TableHead className="text-right">Total</TableHead>
+                <TableHead className="text-right">Valor Pago</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead className="w-[200px]">Editar</TableHead>
+                <TableHead />
               </TableRow>
             </TableHeader>
             <TableBody>
-              {monthlyData.map((d, i) => (
-                <TableRow key={i}>
-                  <TableCell className="font-medium">{d.month}</TableCell>
-                  <TableCell className="text-right">{d.collaborators || '—'}</TableCell>
-                  <TableCell className="text-right">{d.ssEmployee > 0 ? fmt(d.ssEmployee) : '—'}</TableCell>
-                  <TableCell className="text-right">{d.ssEmployer > 0 ? fmt(d.ssEmployer) : '—'}</TableCell>
-                  <TableCell className="text-right">{d.totalSS > 0 ? fmt(d.totalSS) : '—'}</TableCell>
-                  <TableCell className="text-right">{d.withholding > 0 ? fmt(d.withholding) : '—'}</TableCell>
-                  <TableCell className="text-right font-medium">{d.total > 0 ? fmt(d.total) : '—'}</TableCell>
+              {monthlyData.map(d => (
+                <TableRow key={d.month}>
+                  <TableCell className="font-medium">{String(d.month).padStart(2, '0')} {d.label}</TableCell>
+                  <TableCell className="text-right">{d.value > 0 ? fmt(d.value) : '—'}</TableCell>
+                  <TableCell>
+                    {d.value > 0
+                      ? <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Pago</Badge>
+                      : <Badge variant="outline" className="text-muted-foreground">Pendente</Badge>
+                    }
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type="number"
+                      placeholder={d.value > 0 ? String(d.value) : '0.00'}
+                      value={editValues[d.month] ?? ''}
+                      onChange={e => setEditValues(prev => ({ ...prev, [d.month]: e.target.value }))}
+                      className="h-8 text-sm"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleSave(d.month)}
+                      disabled={!(d.month in editValues) || editValues[d.month] === ''}
+                    >
+                      <Save className="h-3.5 w-3.5" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
               <TableRow className="border-t-2 font-semibold">
                 <TableCell>Total</TableCell>
-                <TableCell className="text-right" />
-                <TableCell className="text-right">{fmt(totals.ssEmployee)}</TableCell>
-                <TableCell className="text-right">{fmt(totals.ssEmployer)}</TableCell>
-                <TableCell className="text-right">{fmt(totals.totalSS)}</TableCell>
-                <TableCell className="text-right">{fmt(totals.withholding)}</TableCell>
-                <TableCell className="text-right">{fmt(totals.total)}</TableCell>
+                <TableCell className="text-right">{fmt(totalPago)}</TableCell>
+                <TableCell colSpan={3} />
               </TableRow>
             </TableBody>
           </Table>
