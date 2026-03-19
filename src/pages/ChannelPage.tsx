@@ -270,8 +270,20 @@ export default function ChannelPage() {
 
           <Separator />
 
-          {/* Section 3: Content Table */}
+          {/* Section 3: Calendar filtered to this channel */}
           <section className="space-y-4">
+            <h2 className="text-lg font-semibold text-foreground">Calendário — {channel.name}</h2>
+            <ContentCalendar
+              items={channelContent}
+              channels={allChannels}
+              contentChannelLinks={contentChannelLinks}
+            />
+          </section>
+
+          <Separator />
+
+          {/* Section 4: Content Table */}
+          <section className="space-y-4 pb-10">
             <h2 className="text-lg font-semibold text-foreground">Todos os Conteúdos — {channel.name}</h2>
             {channelContent.length === 0 ? (
               <Card><CardContent className="p-8 text-center text-sm text-muted-foreground italic">Nenhum conteúdo associado a este canal.</CardContent></Card>
@@ -320,18 +332,6 @@ export default function ChannelPage() {
                 </div>
               </Card>
             )}
-          </section>
-
-          <Separator />
-
-          {/* Section 4: Calendar filtered to this channel */}
-          <section className="space-y-4 pb-10">
-            <h2 className="text-lg font-semibold text-foreground">Calendário — {channel.name}</h2>
-            <ContentCalendar
-              items={channelContent}
-              channels={allChannels}
-              contentChannelLinks={contentChannelLinks}
-            />
           </section>
         </div>
       </div>
