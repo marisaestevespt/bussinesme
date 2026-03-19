@@ -150,6 +150,54 @@ export default function ClienteDetailPage() {
     onError: () => toast.error('Erro ao criar reunião'),
   });
 
+  // Auto-generate installment payments
+  const generateInstallments = async () => {
+    const numPayments = parseInt(form.payment_method?.replace('x', '') || '0');
+    if (!numPayments || numPayments < 1) { toast.error('Seleciona uma forma de pagamento (1x-6x)'); return; }
+    if (!form.start_date) { toast.error('Define a Data de Início primeiro'); return; }
+    if (!form.full_name) { toast.error('Nome do cliente é obrigatório'); return; }
+
+    const startDate = parseISO(form.start_date);
+    const product = form.current_product || '';
+    const client = form.full_name;
+
+    try {
+      for (let i = 0; i < numPayments; i++) {
+        const payDate = new Date(startDate);
+        payDate.setMonth(payDate.getMonth() + i);
+        const payMonth = payDate.getMonth() + 1;
+        const payQuarter = Math.ceil(payMonth / 3);
+        const payYear = payDate.getFullYear();
+        const payDateStr = format(payDate, 'yyyy-MM-dd');
+
+        // Generate sale_id
+        const { data: countData } = await supabase.from('commercial_sales').select('id').eq('sale_year', payYear);
+        const nextNum = ((countData?.length || 0) + 1).toString().padStart(2, '0');
+        const saleId = `V${payYear}-${nextNum}`;
+
+        await supabase.from('commercial_sales').insert({
+          sale_id: saleId,
+          status: 'na',
+          payment_date: payDateStr,
+          description: `${product} - Pagamento ${i + 1}/${numPayments}`,
+          base_value: 0,
+          invoice_total: 0,
+          product,
+          client,
+          source: null,
+          documents: form.nif ? `NIF: ${form.nif}` : null,
+          sale_month: payMonth,
+          sale_quarter: payQuarter,
+          sale_year: payYear,
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['commercial'] });
+      toast.success(`${numPayments} pagamentos criados com sucesso`);
+    } catch (e) {
+      toast.error('Erro ao gerar pagamentos');
+    }
+  };
+
   // Local tables
   const { history, addEntry: addHistory, updateEntry: updateHistory, deleteEntry: deleteHistory } = useClientHistory(isNew ? undefined : id);
   const { activities, addEntry: addActivity, updateEntry: updateActivity, deleteEntry: deleteActivity } = useClientActivities(isNew ? undefined : id);
@@ -215,7 +263,12 @@ export default function ClienteDetailPage() {
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">F. de Pagamento</Label>
-              <Input value={form.payment_method || ''} onChange={e => update('payment_method', e.target.value)} placeholder="Ex: mensal, trimestral" />
+              <Select value={form.payment_method || ''} onValueChange={v => update('payment_method', v)}>
+                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                <SelectContent>
+                  {['1x', '2x', '3x', '4x', '5x', '6x'].map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Nome Completo</Label>
@@ -263,7 +316,14 @@ export default function ClienteDetailPage() {
             <Card>
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm">Gestão de Pagamentos</CardTitle>
-                <Button size="sm" variant="outline" onClick={() => setSaleOpen(true)}><Plus className="h-3 w-3 mr-1" />Novo Pagamento</Button>
+                <div className="flex items-center gap-2">
+                  {form.payment_method && parseInt(form.payment_method) > 1 && (
+                    <Button size="sm" variant="secondary" onClick={generateInstallments}>
+                      Gerar {form.payment_method} Pagamentos
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" onClick={() => setSaleOpen(true)}><Plus className="h-3 w-3 mr-1" />Novo Pagamento</Button>
+                </div>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-9 gap-2">
