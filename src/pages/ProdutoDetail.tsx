@@ -21,6 +21,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { OfferCalculator } from '@/components/product/OfferCalculator';
+import { ProductCustomerSuccess } from '@/components/product/ProductCustomerSuccess';
 import { format } from 'date-fns';
 
 const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
