@@ -558,6 +558,11 @@ export default function TarefasPage() {
               </div>
             )}
 
+            {/* Time tracking */}
+            {editingTask && (
+              <TaskTimeTracker taskId={editingTask.id} />
+            )}
+
             <div>
               <Label>Notas</Label>
               <Textarea
