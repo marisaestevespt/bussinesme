@@ -1322,6 +1322,293 @@ export type Database = {
           },
         ]
       }
+      financial_contractors: {
+        Row: {
+          contractor_name: string
+          created_at: string
+          created_by: string | null
+          documents: Json | null
+          expense_id: string | null
+          id: string
+          location: string
+          month: number
+          service: string | null
+          status: string
+          updated_at: string
+          value: number
+          year: number
+        }
+        Insert: {
+          contractor_name: string
+          created_at?: string
+          created_by?: string | null
+          documents?: Json | null
+          expense_id?: string | null
+          id?: string
+          location?: string
+          month: number
+          service?: string | null
+          status?: string
+          updated_at?: string
+          value?: number
+          year: number
+        }
+        Update: {
+          contractor_name?: string
+          created_at?: string
+          created_by?: string | null
+          documents?: Json | null
+          expense_id?: string | null
+          id?: string
+          location?: string
+          month?: number
+          service?: string | null
+          status?: string
+          updated_at?: string
+          value?: number
+          year?: number
+        }
+        Relationships: []
+      }
+      financial_documents: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          doc_type: string
+          document_name: string | null
+          document_url: string | null
+          due_date: string | null
+          id: string
+          notes: string | null
+          period_end: string | null
+          period_month: number | null
+          period_start: string | null
+          period_year: number | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          doc_type?: string
+          document_name?: string | null
+          document_url?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          period_end?: string | null
+          period_month?: number | null
+          period_start?: string | null
+          period_year?: number | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          doc_type?: string
+          document_name?: string | null
+          document_url?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          period_end?: string | null
+          period_month?: number | null
+          period_start?: string | null
+          period_year?: number | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      financial_expenses: {
+        Row: {
+          base_value: number
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          documents: Json | null
+          expense_date: string | null
+          expense_id: string
+          expense_month: number | null
+          expense_quarter: number | null
+          expense_year: number | null
+          id: string
+          location: string
+          source_id: string | null
+          source_type: string | null
+          status: string
+          total_with_vat: number
+          updated_at: string
+          vat_rate: number
+        }
+        Insert: {
+          base_value?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          documents?: Json | null
+          expense_date?: string | null
+          expense_id?: string
+          expense_month?: number | null
+          expense_quarter?: number | null
+          expense_year?: number | null
+          id?: string
+          location?: string
+          source_id?: string | null
+          source_type?: string | null
+          status?: string
+          total_with_vat?: number
+          updated_at?: string
+          vat_rate?: number
+        }
+        Update: {
+          base_value?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          documents?: Json | null
+          expense_date?: string | null
+          expense_id?: string
+          expense_month?: number | null
+          expense_quarter?: number | null
+          expense_year?: number | null
+          id?: string
+          location?: string
+          source_id?: string | null
+          source_type?: string | null
+          status?: string
+          total_with_vat?: number
+          updated_at?: string
+          vat_rate?: number
+        }
+        Relationships: []
+      }
+      financial_payroll: {
+        Row: {
+          collaborator_name: string
+          created_at: string
+          created_by: string | null
+          expense_id: string | null
+          gross_salary: number
+          id: string
+          month: number
+          net_salary: number
+          profile_id: string | null
+          ss_employee: number
+          ss_employer: number
+          status: string
+          total_cost: number
+          updated_at: string
+          withholding_rate: number
+          withholding_value: number
+          year: number
+        }
+        Insert: {
+          collaborator_name: string
+          created_at?: string
+          created_by?: string | null
+          expense_id?: string | null
+          gross_salary?: number
+          id?: string
+          month: number
+          net_salary?: number
+          profile_id?: string | null
+          ss_employee?: number
+          ss_employer?: number
+          status?: string
+          total_cost?: number
+          updated_at?: string
+          withholding_rate?: number
+          withholding_value?: number
+          year: number
+        }
+        Update: {
+          collaborator_name?: string
+          created_at?: string
+          created_by?: string | null
+          expense_id?: string | null
+          gross_salary?: number
+          id?: string
+          month?: number
+          net_salary?: number
+          profile_id?: string | null
+          ss_employee?: number
+          ss_employer?: number
+          status?: string
+          total_cost?: number
+          updated_at?: string
+          withholding_rate?: number
+          withholding_value?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_payroll_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_subscriptions: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          id: string
+          location: string
+          monthly_equivalent: number
+          notes: string | null
+          periodicity: string
+          platform_name: string
+          renewal_date: string | null
+          start_date: string | null
+          status: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          location?: string
+          monthly_equivalent?: number
+          notes?: string | null
+          periodicity?: string
+          platform_name: string
+          renewal_date?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          value?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          location?: string
+          monthly_equivalent?: number
+          notes?: string | null
+          periodicity?: string
+          platform_name?: string
+          renewal_date?: string | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: []
+      }
       internal_documents: {
         Row: {
           category: string
