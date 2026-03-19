@@ -28,8 +28,8 @@ export default function FinanceiroPage() {
   const navigate = useNavigate();
 
   const currentYear = new Date().getFullYear();
-  const sales = com.sales.data || [];
-  const expenses = fin.expenses.data || [];
+  const sales = excludeCancelled(com.sales.data || []);
+  const expenses = excludeCancelled(fin.expenses.data || []);
 
   const marginData = useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
