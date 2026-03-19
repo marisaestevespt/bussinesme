@@ -9,7 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useExecutiveData, SALES_ROUTINES, getMonthName, areaLabel, statusLabel } from '@/hooks/useExecutiveData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfWeek, endOfWeek, format, subDays, addDays } from 'date-fns';
+import { startOfWeek, endOfWeek, format, subDays, addDays, parseISO, differenceInDays } from 'date-fns';
+import { useTeamData } from '@/hooks/useTeamData';
+import { cn } from '@/lib/utils';
 
 const now = new Date();
 const currentMonth = now.getMonth() + 1;
@@ -135,6 +137,58 @@ export default function ExecutiveWeeklyAlign() {
       return data || [];
     },
   });
+
+  // NPS records this week & overdue
+  const npsWeek = useQuery({
+    queryKey: ['wa-nps-week', weekStartStr, weekEndStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_nps_records').select('*, clients!client_nps_records_client_id_fkey(full_name, current_product)').gte('expected_date', weekStartStr).lte('expected_date', weekEndStr).order('expected_date');
+      return (data || []) as any[];
+    },
+  });
+
+  const npsOverdue = useQuery({
+    queryKey: ['wa-nps-overdue', weekStartStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_nps_records').select('*, clients!client_nps_records_client_id_fkey(full_name, current_product)').lt('expected_date', weekStartStr).neq('status', 'feito').order('expected_date');
+      return (data || []) as any[];
+    },
+  });
+
+  // Milestones this week
+  const milestonesWeek = useQuery({
+    queryKey: ['wa-milestones-week', weekStartStr, weekEndStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_milestones').select('*, clients!client_milestones_client_id_fkey(full_name, current_product)').gte('expected_date', weekStartStr).lte('expected_date', weekEndStr).order('expected_date');
+      return (data || []) as any[];
+    },
+  });
+
+  const { members } = useTeamData();
+  const teamMembers = members.data || [];
+  const getMemberName = (id: string | null) => {
+    if (!id) return '—';
+    return teamMembers.find((t: any) => t.id === id)?.full_name || '—';
+  };
+
+  const overdueCount = (npsOverdue.data || []).length;
+
+  const getNpsRowColor = (expectedDate: string, status: string) => {
+    if (status === 'feito') return 'bg-emerald-50 border-l-4 border-l-emerald-500';
+    const diff = differenceInDays(parseISO(expectedDate), now);
+    if (diff < 0) return 'bg-red-50 border-l-4 border-l-red-500';
+    return 'bg-amber-50 border-l-4 border-l-amber-500';
+  };
+
+  const autoNpsStatus = (expectedDate: string, currentStatus: string) => {
+    if (currentStatus === 'feito') return 'feito';
+    if (differenceInDays(parseISO(expectedDate), now) < 0) return 'em_atraso';
+    return 'por_fazer';
+  };
+
+  const MILESTONE_TYPE_LABELS: Record<string, string> = {
+    check_in: 'Check-in', feedback: 'Recolha de Feedback', reuniao: 'Reunião', email: 'Email', outro: 'Outro',
+  };
 
   const routineMap = Object.fromEntries((exec.weeklyRoutines.data || []).map(r => [r.routine_key, r.completed]));
 
@@ -353,6 +407,88 @@ export default function ExecutiveWeeklyAlign() {
               </div></Card>
             </TabsContent>
           </Tabs>
+        </section>
+
+        <Separator />
+
+        {/* 4.1 // NPS desta semana */}
+        <section className="space-y-4">
+          <h2 className="text-base font-semibold">4.1 // NPS desta semana</h2>
+          <p className="text-xs text-muted-foreground">Acompanhamento de NPS e marcos de Customer Success da semana corrente.</p>
+
+          {/* NPS this week */}
+          <Card><CardContent className="p-4">
+            <h3 className="text-sm font-medium mb-2">Recolhas de NPS previstas esta semana</h3>
+            {(npsWeek.data || []).length === 0 ? <p className="text-xs text-muted-foreground">Sem recolhas previstas esta semana</p> :
+              <div className="overflow-x-auto">
+                <Table><TableHeader><TableRow>
+                  <TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Data prevista</TableHead><TableHead>Status</TableHead><TableHead>NPS</TableHead><TableHead>Responsável</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>{(npsWeek.data || []).map((r: any) => {
+                  const status = autoNpsStatus(r.expected_date, r.status);
+                  return (
+                    <TableRow key={r.id} className={getNpsRowColor(r.expected_date, status)}>
+                      <TableCell className="text-sm font-medium">{r.clients?.full_name || '—'}</TableCell>
+                      <TableCell className="text-xs">{r.clients?.current_product || '—'}</TableCell>
+                      <TableCell className="text-xs">{format(parseISO(r.expected_date), 'dd/MM/yyyy')}</TableCell>
+                      <TableCell><Badge variant={status === 'feito' ? 'default' : status === 'em_atraso' ? 'destructive' : 'secondary'} className="text-[10px]">{status === 'feito' ? 'Feito' : status === 'em_atraso' ? 'Em atraso' : 'Por fazer'}</Badge></TableCell>
+                      <TableCell className="text-xs">{r.nps_score != null ? r.nps_score : '—'}</TableCell>
+                      <TableCell className="text-xs">{getMemberName(r.responsible_id)}</TableCell>
+                    </TableRow>
+                  );
+                })}</TableBody></Table>
+              </div>
+            }
+          </CardContent></Card>
+
+          {/* NPS overdue */}
+          <Card><CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-sm font-medium">Recolhas em atraso</h3>
+              {overdueCount > 0 && <Badge variant="destructive" className="text-[10px]">{overdueCount}</Badge>}
+            </div>
+            {overdueCount === 0 ? <p className="text-xs text-muted-foreground">Sem recolhas em atraso</p> :
+              <div className="overflow-x-auto">
+                <Table><TableHeader><TableRow>
+                  <TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Data prevista</TableHead><TableHead>Dias em atraso</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>{(npsOverdue.data || []).map((r: any) => (
+                  <TableRow key={r.id} className="bg-red-50 border-l-4 border-l-red-500">
+                    <TableCell className="text-sm font-medium">{r.clients?.full_name || '—'}</TableCell>
+                    <TableCell className="text-xs">{r.clients?.current_product || '—'}</TableCell>
+                    <TableCell className="text-xs">{format(parseISO(r.expected_date), 'dd/MM/yyyy')}</TableCell>
+                    <TableCell className="text-xs font-medium text-destructive">{differenceInDays(now, parseISO(r.expected_date))} dias</TableCell>
+                  </TableRow>
+                ))}</TableBody></Table>
+              </div>
+            }
+          </CardContent></Card>
+
+          {/* Milestones this week */}
+          <Card><CardContent className="p-4">
+            <h3 className="text-sm font-medium mb-2">Marcos de acompanhamento desta semana</h3>
+            {(milestonesWeek.data || []).length === 0 ? <p className="text-xs text-muted-foreground">Sem marcos previstos esta semana</p> :
+              <div className="overflow-x-auto">
+                <Table><TableHeader><TableRow>
+                  <TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Marco</TableHead><TableHead>Tipo</TableHead><TableHead>Data prevista</TableHead><TableHead>Responsável</TableHead><TableHead>Status</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>{(milestonesWeek.data || []).map((m: any) => {
+                  const status = autoNpsStatus(m.expected_date, m.status);
+                  return (
+                    <TableRow key={m.id} className={getNpsRowColor(m.expected_date, status)}>
+                      <TableCell className="text-sm font-medium">{m.clients?.full_name || '—'}</TableCell>
+                      <TableCell className="text-xs">{m.clients?.current_product || '—'}</TableCell>
+                      <TableCell className="text-xs">{m.milestone || '—'}</TableCell>
+                      <TableCell className="text-xs">{MILESTONE_TYPE_LABELS[m.milestone_type] || m.milestone_type}</TableCell>
+                      <TableCell className="text-xs">{format(parseISO(m.expected_date), 'dd/MM/yyyy')}</TableCell>
+                      <TableCell className="text-xs">{getMemberName(m.responsible_id)}</TableCell>
+                      <TableCell><Badge variant={status === 'feito' ? 'default' : status === 'em_atraso' ? 'destructive' : 'secondary'} className="text-[10px]">{status === 'feito' ? 'Feito' : status === 'em_atraso' ? 'Em atraso' : 'Por fazer'}</Badge></TableCell>
+                    </TableRow>
+                  );
+                })}</TableBody></Table>
+              </div>
+            }
+          </CardContent></Card>
         </section>
 
         <Separator />
