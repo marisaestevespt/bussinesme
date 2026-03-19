@@ -20,6 +20,7 @@ import { useCommercialData } from '@/hooks/useCommercialData';
 import { useAuth } from '@/hooks/useAuth';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { OfferCalculator } from '@/components/product/OfferCalculator';
 import { format } from 'date-fns';
 
 const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -412,7 +413,7 @@ export default function ProdutoDetailPage() {
             <TabsList className="grid grid-cols-5 w-full">
               <TabsTrigger value="produto">Produto</TabsTrigger>
               <TabsTrigger value="comercial">Comercial & Marketing</TabsTrigger>
-              <TabsTrigger value="contabilidade">Contabilidade</TabsTrigger>
+              <TabsTrigger value="contabilidade">Contabilidade & Precificação</TabsTrigger>
               <TabsTrigger value="backoffice">Backoffice</TabsTrigger>
               <TabsTrigger value="arquivo">Arquivo</TabsTrigger>
             </TabsList>
@@ -1062,7 +1063,7 @@ export default function ProdutoDetailPage() {
               </Card>
             </TabsContent>
 
-            {/* ===== CONTABILIDADE ===== */}
+            {/* ===== CONTABILIDADE & PRECIFICAÇÃO ===== */}
             <TabsContent value="contabilidade" className="space-y-6">
               <Card>
                 <CardHeader><CardTitle className="text-base">Dados de Faturação</CardTitle></CardHeader>
@@ -1102,6 +1103,9 @@ export default function ProdutoDetailPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Calculadora de Oferta */}
+              <OfferCalculator vatRate={(form as any).vat_rate || '23'} />
             </TabsContent>
 
             {/* ===== ARQUIVO ===== */}
