@@ -91,8 +91,8 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning, onEdi
           {/* Actions section */}
           <ActionsSection objectiveId={obj.id} actions={objActions} planning={planning} />
         </div>
-      </SheetContent>
-    </Sheet>
+      </FullDialogContent>
+    </FullDialog>
   );
 }
 
