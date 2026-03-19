@@ -109,13 +109,17 @@ export function FinSaidas({ fin }: Props) {
   const [subForm, setSubForm] = useState<any>({});
 
   const openNewSub = () => {
-    setSubForm({ category: 'outro', periodicity: 'mensal', location: 'portugal', status: 'ativo', value: '', platform_name: '' });
+    setSubForm({ category: 'outro', periodicity: 'mensal', location: 'portugal', status: 'ativo', value: '', platform_name: '', vat_rate: 0, includes_vat: false });
     setSubOpen(true);
   };
 
   const saveSub = async () => {
     if (!subForm.platform_name?.trim()) { toast.error('Nome é obrigatório'); return; }
-    const val = parseFloat(subForm.value) || 0;
+    const inputVal = parseFloat(subForm.value) || 0;
+    const vatRate = parseInt(subForm.vat_rate) || 0;
+    let val = inputVal;
+    // If includes_vat, the stored "value" should be the total (with VAT) as entered
+    // monthly_equivalent is computed from value by calcMonthlyEquivalent
     await fin.upsertSubscription.mutateAsync({
       ...(subForm.id ? { id: subForm.id } : {}),
       platform_name: subForm.platform_name,
@@ -128,6 +132,8 @@ export function FinSaidas({ fin }: Props) {
       status: subForm.status,
       notes: subForm.notes || null,
       documents: subForm.documents || [],
+      vat_rate: vatRate,
+      includes_vat: !!subForm.includes_vat,
     });
     setSubOpen(false);
     toast.success('Subscrição guardada');
