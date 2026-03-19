@@ -428,7 +428,116 @@ export default function TarefasPage() {
               </Select>
             </div>
 
-            {/* Done after deadline warning */}
+            {/* Sub-tarefa (parent) */}
+            <div>
+              <Label className="flex items-center gap-1.5"><GitBranch className="h-3.5 w-3.5" /> Sub-tarefa de</Label>
+              <Select value={parentTaskId} onValueChange={setParentTaskId}>
+                <SelectTrigger><SelectValue placeholder="Nenhuma (tarefa principal)" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma (tarefa principal)</SelectItem>
+                  {tasks.filter(t => t.id !== editingTask?.id && !t.parent_task_id).map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Dependencies */}
+            <div>
+              <Label className="flex items-center gap-1.5"><Link2 className="h-3.5 w-3.5" /> Depende de</Label>
+              <Select
+                value=""
+                onValueChange={(val) => {
+                  if (val && !dependsOnIds.includes(val)) {
+                    setDependsOnIds(prev => [...prev, val]);
+                  }
+                }}
+              >
+                <SelectTrigger><SelectValue placeholder="Adicionar dependência..." /></SelectTrigger>
+                <SelectContent>
+                  {tasks.filter(t => t.id !== editingTask?.id && !dependsOnIds.includes(t.id)).map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {dependsOnIds.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  {dependsOnIds.map(depId => {
+                    const depTask = tasks.find(t => t.id === depId);
+                    if (!depTask) return null;
+                    const depStatus = getStatusInfo(depTask.status);
+                    const depAssignee = getProfileName(depTask.assigned_to);
+                    return (
+                      <div key={depId} className="flex items-center gap-2 p-2 rounded-md bg-muted/30 border border-border/50 text-sm">
+                        <span className="truncate flex-1">{depTask.name}</span>
+                        <Badge variant="outline" className={cn('text-[10px] shrink-0', depStatus.color)}>{depStatus.label}</Badge>
+                        <span className="text-[10px] text-muted-foreground shrink-0">{depAssignee}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 shrink-0"
+                          onClick={() => setDependsOnIds(prev => prev.filter(id => id !== depId))}
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Dependency warnings */}
+            {editingTask && dependsOnIds.length > 0 && (() => {
+              const blockers = dependsOnIds
+                .map(depId => tasks.find(t => t.id === depId))
+                .filter(t => t && t.status !== 'done');
+              if (blockers.length === 0) return null;
+              return (
+                <div className="rounded-md border border-amber-300 bg-amber-50 p-3 space-y-1.5">
+                  <p className="text-sm font-medium text-amber-800 flex items-center gap-1.5">
+                    <Link2 className="h-4 w-4" /> Esta tarefa tem dependências pendentes
+                  </p>
+                  {blockers.map(dep => {
+                    if (!dep) return null;
+                    const depStatus = getStatusInfo(dep.status);
+                    const depAssignee = getProfileName(dep.assigned_to);
+                    return (
+                      <p key={dep.id} className="text-xs text-amber-700">
+                        Pendente da tarefa <strong>"{dep.name}"</strong> de <strong>{depAssignee}</strong>, que está neste momento <Badge variant="outline" className={cn('text-[9px] px-1 py-0 ml-1', depStatus.color)}>{depStatus.label}</Badge>
+                      </p>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
+            {/* Show subtasks of this task */}
+            {editingTask && (() => {
+              const subtasks = tasks.filter(t => t.parent_task_id === editingTask.id);
+              if (subtasks.length === 0) return null;
+              return (
+                <div>
+                  <Label className="flex items-center gap-1.5 mb-2"><GitBranch className="h-3.5 w-3.5" /> Sub-tarefas ({subtasks.length})</Label>
+                  <div className="space-y-1">
+                    {subtasks.map(st => {
+                      const stStatus = getStatusInfo(st.status);
+                      return (
+                        <button
+                          key={st.id}
+                          onClick={() => openEdit(st)}
+                          className="w-full flex items-center gap-2 p-2 rounded-md bg-muted/20 border border-border/40 hover:bg-muted/50 transition-colors text-left text-sm"
+                        >
+                          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="truncate flex-1">{st.name}</span>
+                          <Badge variant="outline" className={cn('text-[10px] shrink-0', stStatus.color)}>{stStatus.label}</Badge>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
             {editingTask && isDoneAfterDeadline(editingTask) && (
               <div className="rounded-md border border-destructive/50 bg-destructive/5 p-3 space-y-1">
                 <p className="text-sm font-medium text-destructive flex items-center gap-1.5">
