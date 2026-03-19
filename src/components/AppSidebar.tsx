@@ -57,7 +57,6 @@ const transversaisItems: NavItem[] = [
 ];
 
 const departamentosItems: NavItem[] = [
-  { title: 'Administrativo', url: '/hub/administrativo', icon: 'Building2', moduleKey: 'administrativo' },
   { title: 'Marketing', url: '/hub/marketing', icon: 'Megaphone', moduleKey: 'marketing' },
   { title: 'Comercial', url: '/hub/comercial', icon: 'ShoppingCart', moduleKey: 'comercial' },
   { title: 'Clientes', url: '/hub/clientes', icon: 'UserCheck', moduleKey: 'clientes' },
