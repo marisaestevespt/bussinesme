@@ -2,19 +2,19 @@ import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CommercialOverview } from '@/components/commercial/CommercialOverview';
 import { CommercialMetas } from '@/components/commercial/CommercialMetas';
 import { CommercialVendas } from '@/components/commercial/CommercialVendas';
+import { CommercialProcessos } from '@/components/commercial/CommercialProcessos';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 
 const TITLES: Record<string, string> = {
-  'visao-geral': 'Visão Geral',
   metas: 'Metas Comerciais',
   vendas: 'Vendas',
   acoes: 'Ações de Vendas',
   crm: 'CRM',
   estrategia: 'Estratégia',
   biblioteca: 'Biblioteca',
+  processos: 'Processos',
 };
 
 export default function ComercialSubPage() {
@@ -24,9 +24,9 @@ export default function ComercialSubPage() {
 
   const renderContent = () => {
     switch (section) {
-      case 'visao-geral': return <CommercialOverview />;
       case 'metas': return <CommercialMetas />;
       case 'vendas': return <CommercialVendas />;
+      case 'processos': return <CommercialProcessos />;
       default: return <EmptyModulePage title={title} description="Conteúdo será construído em breve." />;
     }
   };
