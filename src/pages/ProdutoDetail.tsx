@@ -441,11 +441,12 @@ export default function ProdutoDetailPage() {
         {/* Content tabs - 4 blocks */}
         {!isNew && (
           <Tabs defaultValue="produto" className="space-y-4">
-            <TabsList className="grid grid-cols-5 w-full">
+            <TabsList className="grid grid-cols-6 w-full">
               <TabsTrigger value="produto">Produto</TabsTrigger>
               <TabsTrigger value="comercial">Comercial & Marketing</TabsTrigger>
               <TabsTrigger value="contabilidade">Contabilidade & Precificação</TabsTrigger>
               <TabsTrigger value="backoffice">Backoffice</TabsTrigger>
+              <TabsTrigger value="customer-success">Customer Success</TabsTrigger>
               <TabsTrigger value="arquivo">Arquivo</TabsTrigger>
             </TabsList>
 
