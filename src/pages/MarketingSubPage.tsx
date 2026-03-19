@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { toast } from 'sonner';
 import { ChevronLeft, Check } from 'lucide-react';
+import { BackNavigation } from '@/components/BackNavigation';
 
 export default function MarketingSubPage() {
   const { pageKey } = useParams<{ pageKey: string }>();
@@ -64,9 +65,7 @@ export default function MarketingSubPage() {
           </h1>
         </div>
         <div className="max-w-4xl mx-auto w-full px-4 py-8">
-          <Button variant="ghost" size="sm" className="mb-6" onClick={() => navigate('/hub/marketing')}>
-            <ChevronLeft className="h-4 w-4 mr-1" />Voltar ao Marketing
-          </Button>
+          <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
           <RichTextEditor content={content} onChange={setContent} editable={isOwner} />
           {isOwner && (
             <div className="flex justify-end mt-4">

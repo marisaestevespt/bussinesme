@@ -29,6 +29,7 @@ import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ClientCustomerSuccess } from '@/components/client/ClientCustomerSuccess';
+import { BackNavigation } from '@/components/BackNavigation';
 
 // ─── Meetings query for filtered view ───────────────────────────
 function useFilteredMeetings(clientName: string | undefined) {
@@ -230,7 +231,7 @@ export default function ClienteDetailPage() {
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/hub/clientes')}><ArrowLeft className="h-4 w-4" /></Button>
+            <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
             <div>
               <h1 className="text-xl font-bold">{form.full_name || 'Novo Cliente'}</h1>
               {form.client_id && <p className="text-xs text-muted-foreground font-mono">{form.client_id}</p>}

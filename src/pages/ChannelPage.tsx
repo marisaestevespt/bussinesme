@@ -22,6 +22,7 @@ import {
   Upload, Check, X, Image as ImageIcon,
 } from 'lucide-react';
 import { WebsiteChannelContent } from '@/components/marketing/WebsiteChannelContent';
+import { BackNavigation } from '@/components/BackNavigation';
 
 export default function ChannelPage() {
   const { channelId } = useParams<{ channelId: string }>();
@@ -188,9 +189,7 @@ export default function ChannelPage() {
         </div>
 
         <div className="max-w-6xl mx-auto w-full px-4 py-8 space-y-10">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/marketing')}>
-            <ChevronLeft className="h-4 w-4 mr-1" />Voltar ao Marketing
-          </Button>
+          <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
 
           {isWebsite ? (
             <WebsiteChannelContent channelId={channelId!} channelName={channel.name} />

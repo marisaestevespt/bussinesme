@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { BackNavigation } from '@/components/BackNavigation';
 
 const DEPARTMENTS = [
   { value: 'administrativo', label: 'Administrativo' },
@@ -279,9 +280,7 @@ export default function SopDetailPage() {
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/hub/processos')}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+          <BackNavigation parentRoute="/hub/processos" parentLabel="Processos" />
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <Input value={sopId} onChange={e => setSopId(e.target.value)} className="w-24 font-mono text-xs h-7" />

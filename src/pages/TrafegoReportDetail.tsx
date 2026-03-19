@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { ChevronLeft, Upload, FileText, Trash2, ExternalLink, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { BackNavigation } from '@/components/BackNavigation';
 
 type ReportFile = {
   id: string;
@@ -125,9 +126,7 @@ export default function TrafegoReportDetail() {
 
         <div className="max-w-4xl mx-auto w-full px-4 py-8 space-y-6">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/hub/marketing/trafego-pago')}>
-              <ChevronLeft className="h-4 w-4 mr-1" />Voltar
-            </Button>
+            <BackNavigation parentRoute="/hub/marketing/trafego-pago" parentLabel="Tráfego Pago" />
             {isOwner && title !== card.title && (
               <Button size="sm" onClick={saveTitle} disabled={saving}>
                 <Check className="h-3.5 w-3.5 mr-1" />{saving ? 'A guardar...' : 'Guardar título'}

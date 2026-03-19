@@ -22,6 +22,7 @@ import { pt } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
 import { ObjectiveDialog } from './ObjectiveDialog';
+import { BackNavigation } from '@/components/BackNavigation';
 import { CLIENT_STATUS_OPTIONS } from '@/hooks/useClients';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -358,7 +359,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       {/* ── HEADER ── */}
       <div className="space-y-3">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={onBack} className="gap-1.5"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
+          <BackNavigation parentRoute="/executive/planeamento" parentLabel="Planeamento" onBack={onBack} />
           <div>
             <h2 className="text-xl font-bold">{monthName} {year}</h2>
             <p className="text-xs text-muted-foreground">Período Mensal — {range.label}</p>

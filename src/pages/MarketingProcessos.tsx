@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { BackNavigation } from '@/components/BackNavigation';
 
 const DEPT = 'marketing';
 
@@ -179,9 +180,7 @@ export default function MarketingProcessos() {
 
         <div className="max-w-6xl mx-auto w-full px-4 py-8 space-y-6">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/hub/marketing')}>
-              <ChevronLeft className="h-4 w-4 mr-1" />Voltar ao Marketing
-            </Button>
+            <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => setShowNewRoutine(true)}>
                 <Plus className="h-4 w-4 mr-1" />Nova Rotina

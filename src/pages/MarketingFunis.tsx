@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { ChevronLeft, Plus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { BackNavigation } from '@/components/BackNavigation';
 
 const STATUSES = [
   { value: 'em_ideia', label: 'Em ideia', color: 'bg-violet-100 text-violet-800' },
@@ -88,9 +89,7 @@ export default function MarketingFunis() {
 
         <div className="max-w-6xl mx-auto w-full px-4 py-8 space-y-6">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/hub/marketing')}>
-              <ChevronLeft className="h-4 w-4 mr-1" />Voltar ao Marketing
-            </Button>
+            <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
             <Button size="sm" onClick={() => setShowNew(true)}>
               <Plus className="h-4 w-4 mr-1" />Novo Funil
             </Button>

@@ -10,6 +10,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, Plus } from 'lucide-rea
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { BackNavigation } from '@/components/BackNavigation';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { planStatusLabel, planAreaLabel } from '@/hooks/usePlanningData';
@@ -250,9 +251,7 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
       {/* ─── HEADER ─── */}
       <div className="space-y-4">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={onBack} className="gap-1.5">
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </Button>
+          <BackNavigation parentRoute="/executive/planeamento" parentLabel="Planeamento" onBack={onBack} />
           <div>
             <h2 className="text-xl font-bold">{q.short} — {year}</h2>
             <p className="text-xs text-muted-foreground">{q.range}/{year}</p>
