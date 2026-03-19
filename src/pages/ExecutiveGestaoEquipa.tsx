@@ -15,7 +15,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText, LayoutDashboard, AlertTriangle, Clock, CreditCard, Upload, ExternalLink, CheckSquare, ListTodo, CalendarIcon } from 'lucide-react';
+import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText, LayoutDashboard, AlertTriangle, Clock, CreditCard, Upload, ExternalLink, CheckSquare, ListTodo, CalendarIcon, Palmtree } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { format, parseISO } from 'date-fns';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -330,6 +332,8 @@ const DEFAULT_MEMBER_FORM = {
   start_date: '',
   presentation: '',
   responsibilities: '',
+  works_holidays: false,
+  custom_holidays: [] as string[],
 };
 
 // ─── Member Form Dialog ──────
@@ -526,6 +530,45 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
           )}
 
           <Separator />
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Feriados & Férias</h3>
+          <div className="flex items-center justify-between">
+            <label className="text-sm">Trabalha em feriados?</label>
+            <Switch checked={!!f.works_holidays} onCheckedChange={v => set('works_holidays', v)} />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs text-muted-foreground">Feriados específicos (municipais, etc.)</label>
+            <div className="flex gap-2">
+              <Input
+                type="date"
+                id="custom-holiday-input"
+                className="flex-1"
+              />
+              <Button type="button" variant="outline" size="sm" onClick={() => {
+                const input = document.getElementById('custom-holiday-input') as HTMLInputElement;
+                if (input?.value) {
+                  const current: string[] = Array.isArray(f.custom_holidays) ? f.custom_holidays : [];
+                  if (!current.includes(input.value)) {
+                    set('custom_holidays', [...current, input.value]);
+                  }
+                  input.value = '';
+                }
+              }}>
+                <Plus className="h-3 w-3" />
+              </Button>
+            </div>
+            {Array.isArray(f.custom_holidays) && f.custom_holidays.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1">
+                {f.custom_holidays.map((d: string) => (
+                  <Badge key={d} variant="secondary" className="text-xs gap-1">
+                    {(() => { try { return format(parseISO(d), 'dd/MM/yyyy'); } catch { return d; } })()}
+                    <button type="button" onClick={() => set('custom_holidays', f.custom_holidays.filter((x: string) => x !== d))} className="ml-0.5 hover:text-destructive">×</button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <Separator />
           <Textarea placeholder="Apresentação" value={f.presentation || ''} onChange={e => set('presentation', e.target.value)} rows={2} />
           <Textarea placeholder="Responsabilidades" value={f.responsibilities || ''} onChange={e => set('responsibilities', e.target.value)} rows={2} />
           <Button className="w-full" onClick={() => { onSave({ member: { ...initial, ...f }, contract: isEdit ? null : contract }); onClose(false); }} disabled={!f.full_name.trim()}>Guardar</Button>
@@ -539,6 +582,10 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
 function MemberDetailSheet({ open, onClose, member, team }: any) {
   const [newTask, setNewTask] = useState('');
   const [detailTab, setDetailTab] = useState('info');
+  const [vacStart, setVacStart] = useState('');
+  const [vacEnd, setVacEnd] = useState('');
+  const [vacNotes, setVacNotes] = useState('');
+  const qc = useQueryClient();
 
   // Fetch tasks assigned to this member's profile
   const memberTasks = useQuery({
@@ -570,7 +617,35 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
     },
   });
 
-  if (!member) return null;
+  // Fetch vacations for this member
+  const memberVacations = useQuery({
+    queryKey: ['member-vacations', member?.id],
+    enabled: !!member?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from('team_member_vacations').select('*').eq('member_id', member.id).order('start_date', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const handleAddVacation = async () => {
+    if (!vacStart || !vacEnd) { toast.error('Selecione as datas'); return; }
+    if (vacEnd < vacStart) { toast.error('Data fim deve ser após início'); return; }
+    const { error } = await supabase.from('team_member_vacations').insert({
+      member_id: member.id,
+      start_date: vacStart,
+      end_date: vacEnd,
+      notes: vacNotes || null,
+    });
+    if (error) toast.error('Erro ao guardar');
+    else { toast.success('Férias adicionadas'); setVacStart(''); setVacEnd(''); setVacNotes(''); qc.invalidateQueries({ queryKey: ['member-vacations', member.id] }); qc.invalidateQueries({ queryKey: ['escala-vacations'] }); }
+  };
+
+  const handleDeleteVacation = async (id: string) => {
+    await supabase.from('team_member_vacations').delete().eq('id', id);
+    toast.success('Férias removidas');
+    qc.invalidateQueries({ queryKey: ['member-vacations', member.id] });
+    qc.invalidateQueries({ queryKey: ['escala-vacations'] });
+  };
 
   const items = (team.onboarding.data || []).filter((i: any) => i.member_id === member.id);
   const contracts = (team.contracts.data || []).filter((c: any) => c.member_id === member.id);
@@ -630,6 +705,7 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
               <TabsTrigger value="contrato" className="text-xs flex-1">Contrato</TabsTrigger>
               <TabsTrigger value="pagamentos" className="text-xs flex-1">Pagamentos</TabsTrigger>
               <TabsTrigger value="feedback" className="text-xs flex-1">Feedback</TabsTrigger>
+              <TabsTrigger value="ferias" className="text-xs flex-1">Férias</TabsTrigger>
               <TabsTrigger value="onboarding" className="text-xs flex-1">Onboarding</TabsTrigger>
             </TabsList>
 
@@ -796,6 +872,68 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
                   <button onClick={() => team.deleteOnboardingItem.mutate(i.id)} className="opacity-0 group-hover:opacity-100"><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
                 </div>
               ))}
+            </TabsContent>
+
+            {/* Férias tab */}
+            <TabsContent value="ferias" className="space-y-3 mt-3">
+              {/* Holiday settings */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Trabalha em feriados</span>
+                  <Badge variant={member.works_holidays ? 'default' : 'secondary'} className="text-[10px]">{member.works_holidays ? 'Sim' : 'Não'}</Badge>
+                </div>
+                {Array.isArray(member.custom_holidays) && member.custom_holidays.length > 0 && (
+                  <div>
+                    <span className="text-xs text-muted-foreground">Feriados municipais</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {member.custom_holidays.map((d: string) => (
+                        <Badge key={d} variant="outline" className="text-[10px]">
+                          {(() => { try { return format(parseISO(d), 'dd/MM/yyyy'); } catch { return d; } })()}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Existing vacations */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Períodos de férias</p>
+                {(memberVacations.data || []).length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Sem férias registadas.</p>
+                ) : (memberVacations.data || []).map((v: any) => (
+                  <div key={v.id} className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2">
+                    <div>
+                      <span className="text-sm">{format(parseISO(v.start_date), 'dd/MM/yyyy')} → {format(parseISO(v.end_date), 'dd/MM/yyyy')}</span>
+                      {v.notes && <p className="text-xs text-muted-foreground">{v.notes}</p>}
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteVacation(v.id)}>
+                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              <Separator />
+
+              {/* Add new vacation */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Adicionar férias</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-muted-foreground">Início</label>
+                    <Input type="date" value={vacStart} onChange={e => setVacStart(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">Fim</label>
+                    <Input type="date" value={vacEnd} onChange={e => setVacEnd(e.target.value)} />
+                  </div>
+                </div>
+                <Input placeholder="Notas (opcional)" value={vacNotes} onChange={e => setVacNotes(e.target.value)} />
+                <Button size="sm" onClick={handleAddVacation} className="w-full"><Plus className="h-4 w-4 mr-1" /> Adicionar Férias</Button>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
