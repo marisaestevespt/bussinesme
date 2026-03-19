@@ -113,6 +113,28 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
     toast.success(`SS de ${MONTHS[month - 1]} guardada`);
   };
 
+  // SS documents
+  const ssDoc = useMemo(() => {
+    const doc = (fin.documents.data || []).find(d => d.doc_type === 'ss_declarations' && d.period_year === currentYear);
+    return doc;
+  }, [fin.documents.data, currentYear]);
+
+  const ssDocuments: FinDocItem[] = useMemo(() => {
+    if (!ssDoc?.notes) return [];
+    try { return JSON.parse(ssDoc.notes); } catch { return []; }
+  }, [ssDoc]);
+
+  const handleDocsUpdate = useCallback(async (docs: FinDocItem[]) => {
+    await fin.upsertDocument.mutateAsync({
+      ...(ssDoc ? { id: ssDoc.id } : {}),
+      title: `Declarações SS ${currentYear}`,
+      doc_type: 'ss_declarations',
+      period_year: currentYear,
+      notes: JSON.stringify(docs),
+      status: 'ativo',
+    });
+  }, [ssDoc, currentYear, fin]);
+
   return (
     <div className="space-y-6 mt-4">
       {/* Summary */}
@@ -187,19 +209,16 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {q.actualPayments.map((p) => {
-                  const isPaid = p.paid > 0;
-                  return (
-                    <PaymentRow
-                      key={p.month}
-                      month={p.month}
-                      predicted={p.predicted}
-                      paid={p.paid}
-                      isPaid={isPaid}
-                      onSave={handleSavePayment}
-                    />
-                  );
-                })}
+                {q.actualPayments.map((p) => (
+                  <PaymentRow
+                    key={p.month}
+                    month={p.month}
+                    predicted={p.predicted}
+                    paid={p.paid}
+                    isPaid={p.paid > 0}
+                    onSave={handleSavePayment}
+                  />
+                ))}
                 <TableRow className="border-t-2 font-semibold">
                   <TableCell>Total {q.label.split(' ')[0]}</TableCell>
                   <TableCell className="text-right">{fmt(q.quarterTotal)}</TableCell>
@@ -211,6 +230,13 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
           </CardContent>
         </Card>
       ))}
+
+      {/* Documentos */}
+      <FinDocumentsUpload
+        title={`Declarações de Segurança Social — ${currentYear}`}
+        documents={ssDocuments}
+        onUpdate={handleDocsUpdate}
+      />
     </div>
   );
 }
