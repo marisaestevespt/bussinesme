@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useAuth } from '@/hooks/useAuth';
@@ -80,6 +81,7 @@ const KANBAN_GROUPS = [
 // ── Page ──
 
 export default function GestaoMarcaPage() {
+  const navigate = useNavigate();
   const { settings, refetch: refetchSettings } = useBusinessSettings();
   const { isOwner } = useAuth();
   const queryClient = useQueryClient();
@@ -389,6 +391,9 @@ export default function GestaoMarcaPage() {
         </div>
 
         <div className="max-w-6xl mx-auto w-full px-4 py-10 space-y-12">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/marketing')}>
+            <ChevronLeft className="h-4 w-4 mr-1" />Voltar ao Marketing
+          </Button>
 
           {/* ── Brand Card ── */}
           <Card className="overflow-hidden">
