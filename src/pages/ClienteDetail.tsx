@@ -432,11 +432,12 @@ export default function ClienteDetailPage() {
         </Card>
 
         {/* Content tabs */}
-        <Tabs defaultValue="gestao" className="w-full">
+        <Tabs defaultValue="jornada" className="w-full">
           <TabsList className="bg-transparent gap-2 flex-wrap">
-            <TabsTrigger value="gestao" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-sm bg-background border border-secondary text-secondary-foreground">Gestão do Cliente</TabsTrigger>
-            <TabsTrigger value="uteis" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-sm bg-background border border-secondary text-secondary-foreground">Úteis</TabsTrigger>
             <TabsTrigger value="jornada" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-sm bg-background border border-secondary text-secondary-foreground">Jornada</TabsTrigger>
+            <TabsTrigger value="gestao" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-sm bg-background border border-secondary text-secondary-foreground">Gestão do Cliente</TabsTrigger>
+            <TabsTrigger value="customer-success" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-sm bg-background border border-secondary text-secondary-foreground">Customer Success</TabsTrigger>
+            <TabsTrigger value="uteis" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-sm bg-background border border-secondary text-secondary-foreground">Úteis</TabsTrigger>
           </TabsList>
 
           {/* ─── Gestão do Cliente ───────────────────────── */}
