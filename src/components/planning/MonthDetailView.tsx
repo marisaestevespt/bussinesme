@@ -426,7 +426,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   <TableHead>Trimestre</TableHead><TableHead>Mês</TableHead><TableHead>Intervalo</TableHead><TableHead className="text-right">Meta</TableHead><TableHead className="text-right">Até agora</TableHead><TableHead>Análise</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
-                  <TableRow>
+                  <TableRow className="cursor-pointer hover:bg-muted/60" onClick={() => { setGoalEditValue(commGoal ? String(commGoal.goal_amount) : ''); setGoalEditOpen(true); }}>
                     <TableCell className="text-xs">T{quarter}</TableCell>
                     <TableCell className="text-xs">{monthName}</TableCell>
                     <TableCell className="text-xs">{range.label}</TableCell>
@@ -437,12 +437,28 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                         <span className="text-muted-foreground">
                           Progresso: {Math.round((totalInvoiced / Number(commGoal.goal_amount)) * 100)}% — Faturado: {totalInvoiced.toLocaleString('pt-PT')}€ de {Number(commGoal.goal_amount).toLocaleString('pt-PT')}€
                         </span>
-                      ) : <span className="text-muted-foreground">Sem meta definida</span>}
+                      ) : <span className="text-muted-foreground">Sem meta definida — clica para adicionar</span>}
                     </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
             </div>
+
+            {/* Goal edit dialog */}
+            <Dialog open={goalEditOpen} onOpenChange={setGoalEditOpen}>
+              <DialogContent className="max-w-sm">
+                <DialogHeader><DialogTitle>Editar Meta Mensal</DialogTitle></DialogHeader>
+                <div className="space-y-3 pt-2">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground">Valor da meta (€)</label>
+                    <Input type="number" value={goalEditValue} onChange={e => setGoalEditValue(e.target.value)} placeholder="0" className="mt-1" />
+                  </div>
+                  <Button className="w-full" onClick={() => { const v = parseFloat(goalEditValue); if (isNaN(v) || v < 0) { toast.error('Valor inválido'); return; } upsertGoal.mutate(v); }} disabled={upsertGoal.isPending}>
+                    {upsertGoal.isPending ? 'A guardar...' : 'Guardar'}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {/* Product distribution tabs */}
