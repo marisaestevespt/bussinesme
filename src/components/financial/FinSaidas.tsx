@@ -230,7 +230,7 @@ export function FinSaidas({ fin }: Props) {
                       setSubOpen(true);
                     }}>
                       <TableCell className="font-medium">{s.platform_name}</TableCell>
-                      <TableCell>{SUB_CATEGORIES.find(c => c.value === s.category)?.label || s.category}</TableCell>
+                      <TableCell>{getCategoryLabel('subscription', s.category)}</TableCell>
                       <TableCell className="text-right">{fmt(s.value)}</TableCell>
                       <TableCell>{PERIODICITIES.find(p => p.value === s.periodicity)?.label || s.periodicity}</TableCell>
                       <TableCell className="text-right font-medium">{fmt(s.monthly_equivalent)}</TableCell>
