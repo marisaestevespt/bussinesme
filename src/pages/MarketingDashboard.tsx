@@ -104,10 +104,8 @@ export default function MarketingDashboard() {
     toast.success('Link atualizado');
   };
 
-  const toggleChannel = async (id: string, active: boolean) => {
-    await supabase.from('marketing_channels').update({ is_active: active } as any).eq('id', id);
-    queryClient.invalidateQueries({ queryKey: ['marketing-channels'] });
-  };
+
+
 
   const createContent = async () => {
     const { data, error } = await supabase.from('content_items').insert({
