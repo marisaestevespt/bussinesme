@@ -81,6 +81,7 @@ const KANBAN_GROUPS = [
 // ── Page ──
 
 export default function GestaoMarcaPage() {
+  const navigate = useNavigate();
   const { settings, refetch: refetchSettings } = useBusinessSettings();
   const { isOwner } = useAuth();
   const queryClient = useQueryClient();
