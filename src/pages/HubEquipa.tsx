@@ -218,7 +218,7 @@ function HallColumn() {
         </CardContent>
       </Card>
 
-      <RecommendationsBox isAdmin={isOwner} />
+      
     </div>
   );
 }
