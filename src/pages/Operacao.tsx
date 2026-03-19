@@ -67,20 +67,97 @@ function getInitials(name: string | null) {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
-function TaskFilterButtons({ filter, setFilter }: { filter: TaskFilter; setFilter: (f: TaskFilter) => void }) {
-  const opts: { key: TaskFilter; label: string }[] = [
-    { key: 'todas', label: 'Todas' },
-    { key: 'hoje', label: 'Hoje' },
-    { key: 'semana', label: 'Esta semana' },
-    { key: 'atrasadas', label: 'Atrasadas' },
-  ];
+type TaskFilters = {
+  time: TaskFilter;
+  department: string;
+  responsible: string;
+  priority: string;
+  project: string;
+};
+
+const EMPTY_FILTERS: TaskFilters = { time: 'todas', department: '', responsible: '', priority: '', project: '' };
+
+const PRIORITY_OPTIONS = [
+  { value: 'baixa', label: 'Baixa' },
+  { value: 'media', label: 'Média' },
+  { value: 'alta', label: 'Alta' },
+  { value: 'urgente', label: 'Urgente' },
+];
+
+function TaskDynamicFilters({ filters, onChange, profiles, projects }: {
+  filters: TaskFilters;
+  onChange: (f: TaskFilters) => void;
+  profiles: Profile[];
+  projects: { id: string; name: string }[];
+}) {
+  const activeCount = [filters.department, filters.responsible, filters.priority, filters.project].filter(Boolean).length
+    + (filters.time !== 'todas' ? 1 : 0);
+
   return (
-    <div className="flex gap-1.5">
-      {opts.map(o => (
-        <Button key={o.key} size="sm" variant={filter === o.key ? 'default' : 'outline'} className="h-7 text-xs" onClick={() => setFilter(o.key)}>
-          {o.label}
+    <div className="flex items-center gap-1.5 flex-wrap">
+      {/* Time filter pills */}
+      {(['todas', 'hoje', 'semana', 'atrasadas'] as TaskFilter[]).map(k => (
+        <Button key={k} size="sm" variant={filters.time === k ? 'default' : 'outline'} className="h-7 text-xs"
+          onClick={() => onChange({ ...filters, time: k })}>
+          {{ todas: 'Todas', hoje: 'Hoje', semana: 'Semana', atrasadas: 'Atrasadas' }[k]}
         </Button>
       ))}
+
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button size="sm" variant="outline" className="h-7 text-xs gap-1">
+            <Filter className="h-3 w-3" /> Filtros
+            {activeCount > 0 && <Badge variant="secondary" className="h-4 w-4 p-0 flex items-center justify-center text-[9px] rounded-full">{activeCount}</Badge>}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 space-y-3" align="end">
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground">Departamento</label>
+            <Select value={filters.department} onValueChange={v => onChange({ ...filters, department: v === '_all' ? '' : v })}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_all">Todos</SelectItem>
+                {Object.entries(DEPT_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground">Responsável</label>
+            <Select value={filters.responsible} onValueChange={v => onChange({ ...filters, responsible: v === '_all' ? '' : v })}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_all">Todos</SelectItem>
+                {profiles.filter(p => p.full_name).map(p => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground">Prioridade</label>
+            <Select value={filters.priority} onValueChange={v => onChange({ ...filters, priority: v === '_all' ? '' : v })}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Todas" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_all">Todas</SelectItem>
+                {PRIORITY_OPTIONS.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground">Projeto</label>
+            <Select value={filters.project} onValueChange={v => onChange({ ...filters, project: v === '_all' ? '' : v })}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_all">Todos</SelectItem>
+                {projects.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          {activeCount > 0 && (
+            <Button size="sm" variant="ghost" className="w-full h-7 text-xs" onClick={() => onChange(EMPTY_FILTERS)}>
+              <X className="h-3 w-3 mr-1" /> Limpar filtros
+            </Button>
+          )}
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }
@@ -100,15 +177,20 @@ function PriorityDot({ priority }: { priority: string }) {
   return <span className={`inline-block h-2 w-2 rounded-full ${colors[priority] || 'bg-muted'}`} />;
 }
 
-function filterTasks(tasks: Task[], filter: TaskFilter): Task[] {
+function applyTaskFilters(tasks: Task[], filters: TaskFilters): Task[] {
+  let result = tasks;
   const today = startOfToday();
   const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
-  switch (filter) {
-    case 'hoje': return tasks.filter(t => t.deadline && isToday(new Date(t.deadline)));
-    case 'semana': return tasks.filter(t => t.deadline && !isBefore(new Date(t.deadline), today) && !isAfter(new Date(t.deadline), weekEnd));
-    case 'atrasadas': return tasks.filter(t => t.deadline && isBefore(new Date(t.deadline), today) && t.status !== 'concluida');
-    default: return tasks;
+  switch (filters.time) {
+    case 'hoje': result = result.filter(t => t.deadline && isToday(new Date(t.deadline))); break;
+    case 'semana': result = result.filter(t => t.deadline && !isBefore(new Date(t.deadline), today) && !isAfter(new Date(t.deadline), weekEnd)); break;
+    case 'atrasadas': result = result.filter(t => t.deadline && isBefore(new Date(t.deadline), today) && t.status !== 'concluida'); break;
   }
+  if (filters.department) result = result.filter(t => t.department === filters.department);
+  if (filters.responsible) result = result.filter(t => t.assigned_to === filters.responsible);
+  if (filters.priority) result = result.filter(t => t.priority === filters.priority);
+  if (filters.project) result = result.filter(t => t.project_id === filters.project);
+  return result;
 }
 
 // ─── Main ───────────────────────────────────────────────────────
