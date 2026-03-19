@@ -288,6 +288,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             <div className="flex gap-1 ml-auto">
               <Button size="sm" variant={objTab === 'metas' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setObjTab('metas')}>Metas do mês</Button>
               <Button size="sm" variant={objTab === 'objetivos' ? 'default' : 'outline'} className="h-6 text-[10px] px-2" onClick={() => setObjTab('objetivos')}>Objetivos anuais</Button>
+              <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => setObjDialogOpen(true)}><Plus className="h-3 w-3" /> Novo objetivo</Button>
             </div>
           </div>
         </CardHeader>
@@ -302,7 +303,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                   {monthGoals.map((g: any) => {
                     const obj = objectives.find((o: any) => o.id === g.objective_id);
                     return (
-                      <TableRow key={g.id}>
+                      <TableRow key={g.id} className="cursor-pointer hover:bg-muted/60" onClick={() => obj && setSelectedObjective(obj)}>
                         <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">{planStatusLabel(g.status)}</Badge></TableCell>
                         <TableCell className="text-xs">{obj ? planAreaLabel(obj.area) : '—'}</TableCell>
                         <TableCell className="text-sm">{obj?.title || '—'}</TableCell>
@@ -322,7 +323,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 </TableRow></TableHeader>
                 <TableBody>
                   {linkedObjectives.map((o: any) => (
-                    <TableRow key={o.id}>
+                    <TableRow key={o.id} className="cursor-pointer hover:bg-muted/60" onClick={() => setSelectedObjective(o)}>
                       <TableCell><Badge variant={o.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">{planStatusLabel(o.status)}</Badge></TableCell>
                       <TableCell className="text-xs">{planAreaLabel(o.area)}</TableCell>
                       <TableCell className="text-sm font-medium">{o.title}</TableCell>
