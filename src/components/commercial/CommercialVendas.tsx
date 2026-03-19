@@ -36,6 +36,7 @@ const DEFAULT_VIEWS: DefaultView[] = [
 export function CommercialVendas() {
   const data = useCommercialData();
   const { isOwner } = useAuth();
+  const navigate = useNavigate();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [activeView, setActiveView] = useState('all');
