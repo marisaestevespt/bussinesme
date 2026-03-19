@@ -127,8 +127,8 @@ export default function HubEquipaPage() {
           <AnalogClock />
         </div>
 
-
-
+        {/* Novidades do mês */}
+        <NovidadesMes />
 
         {/* Transversais cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
@@ -147,9 +147,6 @@ export default function HubEquipaPage() {
             </Card>
           ))}
         </div>
-
-        {/* Quick summary */}
-        <QuickSummary />
 
         {/* Departamentos full width */}
         <DepartamentosColumn />
