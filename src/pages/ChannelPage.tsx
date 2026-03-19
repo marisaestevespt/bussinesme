@@ -160,6 +160,8 @@ export default function ChannelPage() {
     toast.success('Página removida');
   };
 
+  const isWebsite = channel?.name?.toLowerCase() === 'website';
+
   if (!channel) {
     return (
       <AppLayout>
