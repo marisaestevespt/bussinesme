@@ -3938,6 +3938,7 @@ export type Database = {
           included_items: Json | null
           invoice_denomination: string | null
           logo_url: string | null
+          monthly_hours_per_client: number | null
           name: string
           product_type: string | null
           sales_page_url: string | null
@@ -3967,6 +3968,7 @@ export type Database = {
           included_items?: Json | null
           invoice_denomination?: string | null
           logo_url?: string | null
+          monthly_hours_per_client?: number | null
           name: string
           product_type?: string | null
           sales_page_url?: string | null
@@ -3996,6 +3998,7 @@ export type Database = {
           included_items?: Json | null
           invoice_denomination?: string | null
           logo_url?: string | null
+          monthly_hours_per_client?: number | null
           name?: string
           product_type?: string | null
           sales_page_url?: string | null
