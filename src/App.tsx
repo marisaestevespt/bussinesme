@@ -78,7 +78,10 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <BusinessSettingsProvider>
-            <AppRoutes />
+            <ActiveTimerProvider>
+              <FloatingTimer />
+              <AppRoutes />
+            </ActiveTimerProvider>
           </BusinessSettingsProvider>
         </AuthProvider>
       </BrowserRouter>
