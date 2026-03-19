@@ -176,13 +176,16 @@ export default function ClienteDetailPage() {
         const nextNum = ((countData?.length || 0) + 1).toString().padStart(2, '0');
         const saleId = `V${payYear}-${nextNum}`;
 
+          const installmentValue = totalValue ? parseFloat(totalValue) / numPayments : 0;
+          const installmentRounded = Math.round(installmentValue * 100) / 100;
+
         await supabase.from('commercial_sales').insert({
           sale_id: saleId,
           status: 'na',
           payment_date: payDateStr,
           description: `${product} - Pagamento ${i + 1}/${numPayments}`,
-          base_value: 0,
-          invoice_total: 0,
+          base_value: installmentRounded,
+          invoice_total: installmentRounded,
           product,
           client,
           source: null,
