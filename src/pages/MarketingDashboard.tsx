@@ -107,15 +107,11 @@ export default function MarketingDashboard() {
   };
 
   const createContent = async () => {
-    if (!newContentTitle.trim()) return;
     const { data, error } = await supabase.from('content_items').insert({
-      title: newContentTitle, created_by: user?.id,
+      title: 'Novo Conteúdo', created_by: user?.id,
     } as any).select('id').single() as { data: { id: string } | null; error: any };
     if (error || !data) { toast.error('Erro ao criar'); return; }
-    toast.success('Conteúdo criado');
     queryClient.invalidateQueries({ queryKey: ['content-items'] });
-    setShowNewContent(false);
-    setNewContentTitle('');
     navigate(`/hub/marketing/conteudos/${data.id}`);
   };
 
