@@ -298,7 +298,12 @@ export default function MarketingDashboard() {
 
           {/* Section 4: Content Calendar */}
           <section className="space-y-4 pb-10">
-            <h2 className="text-xl font-semibold text-foreground">Calendário de Conteúdos</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-foreground">Calendário de Conteúdos</h2>
+              <Button size="sm" onClick={() => setShowNewContent(true)}>
+                <Plus className="h-3.5 w-3.5 mr-1" />Novo Conteúdo
+              </Button>
+            </div>
             <ContentCalendar items={contentItems} channels={channels} contentChannelLinks={contentChannelLinks} />
           </section>
         </div>
