@@ -102,8 +102,8 @@ function AppRoutes() {
         <Route path="/hub/marketing/trafego-pago/criativo/:id" element={<TrafegoCriativoDetail />} />
         <Route path="/hub/marketing/:pageKey" element={<MarketingSubPage />} />
       <Route path="/hub/comercial" element={<ComercialPage />} />
-      <Route path="/hub/comercial/:section" element={<ComercialSubPage />} />
       <Route path="/hub/comercial/vendas/:id" element={<VendaDetailPage />} />
+      <Route path="/hub/comercial/:section" element={<ComercialSubPage />} />
       <Route path="/hub/produtos" element={<ProdutosPage />} />
       <Route path="/hub/produtos/:id" element={<ProdutoDetailPage />} />
       <Route path="/hub/clientes" element={<ClientesPage />} />
