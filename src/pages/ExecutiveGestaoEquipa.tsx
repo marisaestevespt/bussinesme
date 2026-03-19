@@ -948,20 +948,34 @@ function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
 function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> }) {
   const allMembers = team.members.data || [];
   const [filterMember, setFilterMember] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [weeklyDialog, setWeeklyDialog] = useState<any>(null);
   const [monthlyDialog, setMonthlyDialog] = useState<any>(null);
 
   const weeklyData = useMemo(() => {
     let d = team.perfWeekly.data || [];
     if (filterMember) d = d.filter(r => r.member_id === filterMember);
+    if (dateFrom) d = d.filter(r => (r.week_end || r.week_start) >= dateFrom);
+    if (dateTo) d = d.filter(r => r.week_start <= dateTo);
     return d;
-  }, [team.perfWeekly.data, filterMember]);
+  }, [team.perfWeekly.data, filterMember, dateFrom, dateTo]);
 
   const monthlyData = useMemo(() => {
     let d = team.perfMonthly.data || [];
     if (filterMember) d = d.filter(r => r.member_id === filterMember);
+    if (dateFrom) {
+      const fromY = parseInt(dateFrom.slice(0, 4));
+      const fromM = parseInt(dateFrom.slice(5, 7));
+      d = d.filter(r => r.year > fromY || (r.year === fromY && (r.month || 1) >= fromM));
+    }
+    if (dateTo) {
+      const toY = parseInt(dateTo.slice(0, 4));
+      const toM = parseInt(dateTo.slice(5, 7));
+      d = d.filter(r => r.year < toY || (r.year === toY && (r.month || 12) <= toM));
+    }
     return d;
-  }, [team.perfMonthly.data, filterMember]);
+  }, [team.perfMonthly.data, filterMember, dateFrom, dateTo]);
 
   const memberName = (id: string) => allMembers.find(m => m.id === id)?.full_name || '—';
 
