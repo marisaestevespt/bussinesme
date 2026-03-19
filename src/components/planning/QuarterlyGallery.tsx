@@ -491,6 +491,20 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
           </div>
         </CardContent>
       </Card>
+
+      {/* ═══ DETAIL SHEETS ═══ */}
+      <ObjectiveDetailSheet
+        open={!!selectedObjective}
+        onClose={() => setSelectedObjective(null)}
+        objective={selectedObjective}
+        planning={planning}
+      />
+      <ObjectiveDialog
+        open={objDialogOpen}
+        onClose={() => setObjDialogOpen(false)}
+        initial={null}
+        onSave={(data: any) => { planning.upsertObjective.mutate(data); setObjDialogOpen(false); }}
+      />
     </div>
   );
 }
