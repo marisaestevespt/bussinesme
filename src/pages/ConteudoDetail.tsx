@@ -22,7 +22,7 @@ import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon } from 'lucide-react';
+import { ChevronLeft, Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle } from 'lucide-react';
 
 export default function ConteudoDetailPage() {
   const { id } = useParams<{ id: string }>();
