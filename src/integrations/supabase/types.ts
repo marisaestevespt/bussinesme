@@ -4176,6 +4176,7 @@ export type Database = {
           impacted_area: string
           member_name: string
           recommendation: string
+          status: string
           user_id: string
         }
         Insert: {
@@ -4184,6 +4185,7 @@ export type Database = {
           impacted_area?: string
           member_name: string
           recommendation: string
+          status?: string
           user_id: string
         }
         Update: {
@@ -4192,6 +4194,7 @@ export type Database = {
           impacted_area?: string
           member_name?: string
           recommendation?: string
+          status?: string
           user_id?: string
         }
         Relationships: []

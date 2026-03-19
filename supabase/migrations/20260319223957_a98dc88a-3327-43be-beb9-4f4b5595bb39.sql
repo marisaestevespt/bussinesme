@@ -1,0 +1,1 @@
+ALTER TABLE public.recommendations ADD COLUMN status text NOT NULL DEFAULT 'pending';
