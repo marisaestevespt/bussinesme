@@ -49,6 +49,7 @@ import ProdutosPage from "./pages/Produtos";
 import ProdutoDetailPage from "./pages/ProdutoDetail";
 import ClientesPage from "./pages/Clientes";
 import ClienteDetailPage from "./pages/ClienteDetail";
+import VendaDetailPage from "./pages/VendaDetail";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +102,7 @@ function AppRoutes() {
         <Route path="/hub/marketing/trafego-pago/criativo/:id" element={<TrafegoCriativoDetail />} />
         <Route path="/hub/marketing/:pageKey" element={<MarketingSubPage />} />
       <Route path="/hub/comercial" element={<ComercialPage />} />
+      <Route path="/hub/comercial/vendas/:id" element={<VendaDetailPage />} />
       <Route path="/hub/comercial/:section" element={<ComercialSubPage />} />
       <Route path="/hub/produtos" element={<ProdutosPage />} />
       <Route path="/hub/produtos/:id" element={<ProdutoDetailPage />} />

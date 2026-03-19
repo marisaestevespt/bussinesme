@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,7 @@ const DEFAULT_VIEWS: DefaultView[] = [
 export function CommercialVendas() {
   const data = useCommercialData();
   const { isOwner } = useAuth();
+  const navigate = useNavigate();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [activeView, setActiveView] = useState('all');
@@ -207,7 +209,7 @@ export function CommercialVendas() {
             {filteredSales.map(s => {
               const st = STATUS_MAP[s.status] || STATUS_MAP.na;
               return (
-                <TableRow key={s.id}>
+                <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/comercial/vendas/${s.id}`)}>
                   <TableCell className="font-mono text-sm">{s.sale_id}</TableCell>
                   <TableCell><Badge variant="outline" className={st.className}>{st.label}</Badge></TableCell>
                   <TableCell>{s.payment_date ? format(new Date(s.payment_date), 'dd/MM/yyyy') : '—'}</TableCell>
@@ -217,11 +219,11 @@ export function CommercialVendas() {
                   <TableCell>{s.product || '—'}</TableCell>
                   <TableCell>{s.client || '—'}</TableCell>
                   <TableCell>{s.source || '—'}</TableCell>
-                  <TableCell>{s.documents ? <a href={s.documents} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a> : '—'}</TableCell>
+                  <TableCell onClick={e => e.stopPropagation()}>{s.documents ? <a href={s.documents} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a> : '—'}</TableCell>
                   <TableCell>{s.sale_month ? MONTH_NAMES_SHORT[s.sale_month - 1] : '—'}</TableCell>
                   <TableCell>{QUARTER_LABEL(s.sale_quarter)}</TableCell>
                   <TableCell>{s.sale_year || '—'}</TableCell>
-                  <TableCell>
+                  <TableCell onClick={e => e.stopPropagation()}>
                     <div className="flex gap-1">
                       <Button variant="ghost" size="sm" onClick={() => { setEditing(s); setFormOpen(true); }}><Pencil className="h-3.5 w-3.5" /></Button>
                       {isOwner && <Button variant="ghost" size="sm" onClick={() => data.deleteSale.mutate(s.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>}
