@@ -1,0 +1,406 @@
+import { useState, useEffect } from 'react';
+import { AppLayout } from '@/components/AppLayout';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RichTextEditor } from '@/components/RichTextEditor';
+import {
+  STATUS_OPTIONS, FUNNEL_OPTIONS, CONTENT_TYPE_OPTIONS, FORMAT_OPTIONS, OBJECTIVE_OPTIONS,
+  type ContentItem, type MarketingChannel, type ContentChannelLink, type ContentAttachment,
+} from '@/lib/marketing-constants';
+import { toast } from 'sonner';
+import { format, parseISO } from 'date-fns';
+import { pt } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+import { ChevronLeft, Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon } from 'lucide-react';
+
+export default function ConteudoDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { isOwner } = useAuth();
+  const queryClient = useQueryClient();
+
+  const [form, setForm] = useState({
+    title: '', scheduled_at: null as string | null, status: 'por_planear',
+    funnel_stage: '', content_type: '', format: '', objective: '',
+    product_name: '', project_id: '', assigned_to: '', copy_content: '', cover_url: '',
+  });
+  const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const { data: item, isLoading } = useQuery({
+    queryKey: ['content-item', id],
+    queryFn: async () => {
+      const { data } = await supabase.from('content_items').select('*').eq('id', id!).single() as { data: ContentItem | null };
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const { data: channels = [] } = useQuery({
+    queryKey: ['marketing-channels'],
+    queryFn: async () => {
+      const { data } = await supabase.from('marketing_channels').select('*').order('sort_order') as { data: MarketingChannel[] | null };
+      return data || [];
+    },
+  });
+
+  const { data: itemChannelLinks = [] } = useQuery({
+    queryKey: ['content-item-channels', id],
+    queryFn: async () => {
+      const { data } = await supabase.from('content_channels').select('*').eq('content_id', id!) as { data: ContentChannelLink[] | null };
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: attachments = [] } = useQuery({
+    queryKey: ['content-attachments', id],
+    queryFn: async () => {
+      const { data } = await supabase.from('content_attachments').select('*').eq('content_id', id!).order('created_at') as { data: ContentAttachment[] | null };
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['profiles'],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id, full_name');
+      return data || [];
+    },
+  });
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects-list'],
+    queryFn: async () => {
+      const { data } = await supabase.from('projects').select('id, name');
+      return data || [];
+    },
+  });
+
+  useEffect(() => {
+    if (item) {
+      setForm({
+        title: item.title, scheduled_at: item.scheduled_at, status: item.status,
+        funnel_stage: item.funnel_stage || '', content_type: item.content_type || '',
+        format: item.format || '', objective: item.objective || '',
+        product_name: item.product_name || '', project_id: item.project_id || '',
+        assigned_to: item.assigned_to || '', copy_content: item.copy_content || '',
+        cover_url: item.cover_url || '',
+      });
+    }
+  }, [item]);
+
+  useEffect(() => {
+    setSelectedChannels(itemChannelLinks.map(l => l.channel_id));
+  }, [itemChannelLinks]);
+
+  const handleSave = async () => {
+    if (!id) return;
+    setSaving(true);
+    await supabase.from('content_items').update({
+      title: form.title, scheduled_at: form.scheduled_at, status: form.status,
+      funnel_stage: form.funnel_stage || null, content_type: form.content_type || null,
+      format: form.format || null, objective: form.objective || null,
+      product_name: form.product_name || null, project_id: form.project_id || null,
+      assigned_to: form.assigned_to || null, copy_content: form.copy_content || null,
+      cover_url: form.cover_url || null,
+    } as any).eq('id', id);
+    // Sync channels
+    await supabase.from('content_channels').delete().eq('content_id', id);
+    if (selectedChannels.length > 0) {
+      await supabase.from('content_channels').insert(
+        selectedChannels.map(chId => ({ content_id: id, channel_id: chId })) as any
+      );
+    }
+    queryClient.invalidateQueries({ queryKey: ['content-item', id] });
+    queryClient.invalidateQueries({ queryKey: ['content-item-channels', id] });
+    queryClient.invalidateQueries({ queryKey: ['content-items'] });
+    queryClient.invalidateQueries({ queryKey: ['content-channels'] });
+    toast.success('Guardado');
+    setSaving(false);
+  };
+
+  const uploadCover = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0] || !id) return;
+    setUploading(true);
+    const file = e.target.files[0];
+    const path = `${id}/cover/${Date.now()}-${file.name}`;
+    const { error } = await supabase.storage.from('content-files').upload(path, file);
+    if (error) { toast.error('Erro'); setUploading(false); return; }
+    const { data: { publicUrl } } = supabase.storage.from('content-files').getPublicUrl(path);
+    setForm(f => ({ ...f, cover_url: publicUrl }));
+    setUploading(false);
+    e.target.value = '';
+  };
+
+  const uploadFiles = async (e: React.ChangeEvent<HTMLInputElement>, fileType: 'image' | 'file') => {
+    if (!e.target.files?.length || !id) return;
+    setUploading(true);
+    for (const file of Array.from(e.target.files)) {
+      const path = `${id}/${fileType}/${Date.now()}-${file.name}`;
+      const { error } = await supabase.storage.from('content-files').upload(path, file);
+      if (error) { toast.error(`Erro: ${file.name}`); continue; }
+      const { data: { publicUrl } } = supabase.storage.from('content-files').getPublicUrl(path);
+      await supabase.from('content_attachments').insert({
+        content_id: id, file_url: publicUrl, file_name: file.name, file_type: fileType,
+      } as any);
+    }
+    queryClient.invalidateQueries({ queryKey: ['content-attachments', id] });
+    setUploading(false);
+    toast.success('Carregado');
+    e.target.value = '';
+  };
+
+  const deleteAttachment = async (attId: string) => {
+    await supabase.from('content_attachments').delete().eq('id', attId);
+    queryClient.invalidateQueries({ queryKey: ['content-attachments', id] });
+  };
+
+  const images = attachments.filter(a => a.file_type === 'image');
+  const files = attachments.filter(a => a.file_type === 'file');
+  const statusOpt = STATUS_OPTIONS.find(s => s.value === form.status);
+
+  if (isLoading) return (
+    <AppLayout><div className="flex items-center justify-center min-h-screen"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div></AppLayout>
+  );
+  if (!item) return (
+    <AppLayout><div className="p-10 text-center text-muted-foreground">Conteúdo não encontrado.</div></AppLayout>
+  );
+
+  const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+    <div className="space-y-1"><label className="text-xs text-muted-foreground font-medium">{label}</label>{children}</div>
+  );
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date) return;
+    const existing = form.scheduled_at ? new Date(form.scheduled_at) : new Date();
+    date.setHours(existing.getHours(), existing.getMinutes());
+    setForm(f => ({ ...f, scheduled_at: date.toISOString() }));
+  };
+
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const [h, m] = e.target.value.split(':').map(Number);
+    const date = form.scheduled_at ? new Date(form.scheduled_at) : new Date();
+    date.setHours(h || 0, m || 0);
+    setForm(f => ({ ...f, scheduled_at: date.toISOString() }));
+  };
+
+  return (
+    <AppLayout>
+      <div className="flex flex-col min-h-screen">
+        <div className="w-full py-8 px-6 flex flex-col items-center gap-1" style={{ background: 'hsl(var(--primary))' }}>
+          <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>Conteúdo</p>
+          {statusOpt && <Badge className={cn("text-xs", statusOpt.color)}>{statusOpt.label}</Badge>}
+        </div>
+
+        <div className="max-w-6xl mx-auto w-full px-4 py-6">
+          <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate('/hub/marketing')}>
+            <ChevronLeft className="h-4 w-4 mr-1" />Marketing
+          </Button>
+
+          {/* Title */}
+          <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+            className="text-2xl font-bold border-0 px-0 h-auto focus-visible:ring-0 mb-6" placeholder="Título do conteúdo" />
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Cover */}
+              <div className="aspect-video bg-muted/30 rounded-lg overflow-hidden relative flex items-center justify-center">
+                {form.cover_url ? (
+                  <img src={form.cover_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="text-center text-muted-foreground/40">
+                    <ImageIcon className="h-12 w-12 mx-auto mb-2" /><p className="text-xs">Sem capa</p>
+                  </div>
+                )}
+                <label className="absolute bottom-3 right-3 bg-background/90 backdrop-blur rounded-md px-3 py-1.5 text-xs font-medium cursor-pointer hover:bg-background hq-transition border shadow-sm">
+                  <Upload className="h-3.5 w-3.5 inline mr-1" />Capa
+                  <input type="file" accept="image/*" className="hidden" onChange={uploadCover} disabled={uploading} />
+                </label>
+              </div>
+
+              <Separator />
+
+              {/* Copy / Guião */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-foreground">Copy / Guião</h3>
+                <RichTextEditor content={form.copy_content} onChange={v => setForm(f => ({ ...f, copy_content: v }))} editable />
+              </div>
+
+              <Separator />
+
+              {/* Attachments */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-foreground">Anexos</h3>
+                  <label className="cursor-pointer">
+                    <Button variant="outline" size="sm" asChild><span><ImageIcon className="h-3.5 w-3.5 mr-1" />Imagens</span></Button>
+                    <input type="file" accept="image/*" multiple className="hidden" onChange={e => uploadFiles(e, 'image')} disabled={uploading} />
+                  </label>
+                  <label className="cursor-pointer">
+                    <Button variant="outline" size="sm" asChild><span><FileText className="h-3.5 w-3.5 mr-1" />Ficheiros</span></Button>
+                    <input type="file" multiple className="hidden" onChange={e => uploadFiles(e, 'file')} disabled={uploading} />
+                  </label>
+                </div>
+                {images.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {images.map(img => (
+                      <div key={img.id} className="relative group rounded-lg overflow-hidden border">
+                        <img src={img.file_url} alt={img.file_name} className="w-full aspect-square object-cover" />
+                        <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100"
+                          onClick={() => deleteAttachment(img.id)}><Trash2 className="h-3 w-3" /></Button>
+                        <p className="text-[10px] text-muted-foreground p-1 truncate">{img.file_name}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {files.length > 0 && (
+                  <div className="space-y-1.5">
+                    {files.map(f => (
+                      <div key={f.id} className="flex items-center gap-2 group">
+                        <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline flex-1 truncate">
+                          <FileText className="h-3.5 w-3.5 shrink-0" />{f.file_name}
+                        </a>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => deleteAttachment(f.id)}>
+                          <Trash2 className="h-3 w-3 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {attachments.length === 0 && <p className="text-xs text-muted-foreground italic">Nenhum anexo.</p>}
+              </div>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-4">
+              <Button className="w-full" onClick={handleSave} disabled={saving}>
+                <Check className="h-3.5 w-3.5 mr-1" />{saving ? 'A guardar...' : 'Guardar'}
+              </Button>
+
+              <Card>
+                <CardContent className="p-4 space-y-4">
+                  <Field label="Status">
+                    <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+                      <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field label="Data e Hora">
+                    <div className="flex gap-2">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className="flex-1 justify-start text-xs">
+                            <CalendarIcon className="h-3.5 w-3.5 mr-1" />
+                            {form.scheduled_at ? format(new Date(form.scheduled_at), 'dd/MM/yyyy', { locale: pt }) : 'Data'}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar mode="single" selected={form.scheduled_at ? new Date(form.scheduled_at) : undefined}
+                            onSelect={handleDateSelect} className="p-3 pointer-events-auto" />
+                        </PopoverContent>
+                      </Popover>
+                      <Input type="time" className="h-9 w-24"
+                        value={form.scheduled_at ? format(new Date(form.scheduled_at), 'HH:mm') : ''}
+                        onChange={handleTimeChange} />
+                    </div>
+                  </Field>
+
+                  <Field label="Canais">
+                    <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                      {channels.filter(c => c.is_active).map(ch => (
+                        <label key={ch.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                          <Checkbox checked={selectedChannels.includes(ch.id)}
+                            onCheckedChange={checked => setSelectedChannels(prev =>
+                              checked ? [...prev, ch.id] : prev.filter(i => i !== ch.id)
+                            )} />
+                          {ch.name}
+                        </label>
+                      ))}
+                    </div>
+                  </Field>
+
+                  <Field label="Etapa de Funil">
+                    <Select value={form.funnel_stage} onValueChange={v => setForm(f => ({ ...f, funnel_stage: v }))}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                      <SelectContent>
+                        {FUNNEL_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field label="Tipo de Conteúdo">
+                    <Select value={form.content_type} onValueChange={v => setForm(f => ({ ...f, content_type: v }))}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                      <SelectContent>
+                        {CONTENT_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field label="Formato">
+                    <Select value={form.format} onValueChange={v => setForm(f => ({ ...f, format: v }))}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                      <SelectContent>
+                        {FORMAT_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field label="Objetivo">
+                    <Select value={form.objective} onValueChange={v => setForm(f => ({ ...f, objective: v }))}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                      <SelectContent>
+                        {OBJECTIVE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field label="Produto associado">
+                    <Input value={form.product_name} onChange={e => setForm(f => ({ ...f, product_name: e.target.value }))}
+                      className="h-9" placeholder="Nome do produto" />
+                  </Field>
+
+                  <Field label="Projeto">
+                    <Select value={form.project_id} onValueChange={v => setForm(f => ({ ...f, project_id: v }))}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                      <SelectContent>
+                        {projects.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  <Field label="Responsável">
+                    <Select value={form.assigned_to} onValueChange={v => setForm(f => ({ ...f, assigned_to: v }))}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Ninguém" /></SelectTrigger>
+                      <SelectContent>
+                        {profiles.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+    </AppLayout>
+  );
+}
