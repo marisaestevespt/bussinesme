@@ -63,6 +63,16 @@ const TASK_PRIORITIES = [
 function getPriorityInfo(v: string) { return TASK_PRIORITIES.find(p => p.value === v) || TASK_PRIORITIES[1]; }
 function getTaskStatusInfo(v: string) { return TASK_STATUSES.find(s => s.value === v) || TASK_STATUSES[0]; }
 
+function ProjectTimeDisplay({ taskIds }: { taskIds: string[] }) {
+  const { data: totalMinutes = 0 } = useTaskTimeTotals(taskIds);
+  if (totalMinutes === 0) return null;
+  return (
+    <Badge variant="secondary" className="gap-1 text-xs">
+      <Clock className="h-3 w-3" /> {formatDuration(totalMinutes)} investidas
+    </Badge>
+  );
+}
+
 // ─── Entregáveis Sub-Page Component ─────────────────────────────
 
 function EntregaveisSubPage({ projectId, entregaveisText, onTextChange, onSave, saving, dirty, onBack }: { projectId: string; entregaveisText: string; onTextChange: (v: string) => void; onSave: () => void; saving: boolean; dirty: boolean; onBack: () => void }) {
