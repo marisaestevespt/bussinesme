@@ -177,6 +177,7 @@ export default function TarefasPage() {
     setEditingTask(null);
     setName(''); setStatus('por_comecar'); setPriority('alta');
     setDeadline(undefined); setAssignedTo(''); setDepartment(''); setProjectId(''); setNotes('');
+    setParentTaskId(''); setDependsOnIds([]);
     setDialogOpen(true);
   }
 
@@ -186,6 +187,10 @@ export default function TarefasPage() {
     setDeadline(task.deadline ? parseISO(task.deadline) : undefined);
     setAssignedTo(task.assigned_to || ''); setDepartment(task.department || '');
     setProjectId(task.project_id || ''); setNotes(task.notes || '');
+    setParentTaskId(task.parent_task_id || '');
+    // Load dependencies for this task
+    const deps = taskDependencies.filter(d => d.task_id === task.id).map(d => d.depends_on_task_id);
+    setDependsOnIds(deps);
     setDialogOpen(true);
   }
 
