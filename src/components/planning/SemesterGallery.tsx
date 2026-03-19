@@ -434,18 +434,6 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
           </div>
         </div>
 
-        {semesterGoals.length > 0 && (
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground">Em detalhe</p>
-            <div className="flex flex-wrap gap-1.5">
-              {semesterGoals.map((g: any) => (
-                <Badge key={g.id} variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">
-                  {g.name || g.period}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div className="space-y-1">
           <div className="flex items-center justify-between">

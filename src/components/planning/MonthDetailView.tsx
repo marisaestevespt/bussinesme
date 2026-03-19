@@ -265,14 +265,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
 
         {/* Goals summary */}
         {monthGoals.length > 0 && (
-          <div className="bg-muted/30 rounded-lg p-3 space-y-2">
-            <p className="text-xs font-medium text-muted-foreground">Em detalhe</p>
-            <div className="flex flex-wrap gap-1">
-              {monthGoals.map((g: any) => {
-                const obj = objectives.find((o: any) => o.id === g.objective_id);
-                return <Badge key={g.id} variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{obj?.title || g.period}</Badge>;
-              })}
-            </div>
+          <div className="bg-muted/30 rounded-lg p-3 space-y-1">
             <div className="flex items-center gap-3">
               <span className="text-xs text-muted-foreground">Progresso: {progress}%</span>
               <Progress value={progress} className="h-2 flex-1" />
