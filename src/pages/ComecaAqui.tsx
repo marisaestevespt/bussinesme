@@ -22,7 +22,7 @@ function useTeamMembers() {
       const { data } = await supabase
         .from('team_members')
         .select('id, full_name, role_title, email, whatsapp, work_schedule, member_type, profile_id, status')
-        .eq('status', 'active')
+        .eq('status', 'ativo')
         .order('full_name');
       
       if (!data?.length) return [];
