@@ -12,8 +12,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText, LayoutDashboard, AlertTriangle, Clock, CreditCard } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
@@ -21,9 +22,36 @@ import {
   PAYMENT_TYPES, PAYMENT_STATUSES, FEEDBACK_TYPES, PERFORMANCE_STATUSES, labelFor,
 } from '@/hooks/useTeamData';
 import { getMonthName } from '@/hooks/useExecutiveData';
+import { DEPARTMENTS, getDept } from '@/lib/departments';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 const currentYear = new Date().getFullYear();
 const currentMonth = new Date().getMonth() + 1;
+
+// Department color mapping for badges (consistent across app)
+const DEPT_COLORS: Record<string, string> = {
+  administrativo: 'bg-slate-600 text-white',
+  marketing: 'bg-pink-600 text-white',
+  comercial: 'bg-amber-600 text-white',
+  clientes: 'bg-cyan-600 text-white',
+  financeiro: 'bg-emerald-600 text-white',
+  operacao: 'bg-violet-600 text-white',
+  produtos: 'bg-indigo-600 text-white',
+  'customer-success': 'bg-teal-600 text-white',
+  'recursos-humanos': 'bg-rose-600 text-white',
+};
+
+function DeptBadge({ dept }: { dept: string | null }) {
+  if (!dept) return null;
+  const d = getDept(dept);
+  const colorClass = DEPT_COLORS[dept] || 'bg-muted text-muted-foreground';
+  return <Badge className={`${colorClass} text-[10px] border-0`}>{d?.label || dept}</Badge>;
+}
+
+function getInitials(name: string) {
+  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
 
 // ─── Helper: Member Select ──────
 function MemberSelect({ value, onChange, members }: { value: string; onChange: (v: string) => void; members: any[] }) {
@@ -53,7 +81,7 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
   const isEdit = !!initial?.id;
   const [f, setF] = useState(initial || {
     full_name: '', role_title: '', email: '', whatsapp: '', work_schedule: '',
-    identification: '', status: 'ativo', member_type: 'colaborador_fixo',
+    identification: '', status: 'ativo', member_type: 'colaborador_fixo', department: '',
     start_date: '', presentation: '', responsibilities: '',
   });
   const [contract, setContract] = useState({
@@ -69,7 +97,6 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
   const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
   const setC = (k: string, v: any) => setContract((p: any) => ({ ...p, [k]: v }));
 
-  // Auto-calculate end_date from start_date + duration
   const calcEndDate = (start: string, dur: string) => {
     if (!start || dur === 'indefinido' || dur === 'unica') return '';
     const d = new Date(start);
@@ -93,7 +120,6 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{isEdit ? 'Editar Membro' : 'Novo Membro'}</DialogTitle></DialogHeader>
         <div className="space-y-4">
-          {/* Basic Info */}
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Informação Pessoal</h3>
           <Input placeholder="Nome completo *" value={f.full_name} onChange={e => set('full_name', e.target.value)} />
           <Input placeholder="Função" value={f.role_title || ''} onChange={e => set('role_title', e.target.value)} />
@@ -105,7 +131,7 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
             <Input placeholder="Horário de trabalho" value={f.work_schedule || ''} onChange={e => set('work_schedule', e.target.value)} />
             <Input placeholder="Identificação (BI/NIF)" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <div>
               <label className="text-xs text-muted-foreground">Tipo</label>
               <Select value={f.member_type} onValueChange={v => set('member_type', v)}>
@@ -114,6 +140,16 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
                   <SelectItem value="colaborador_fixo">Equipa Interna</SelectItem>
                   <SelectItem value="prestador_servicos">Freelancer</SelectItem>
                   <SelectItem value="socio">Sócio</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Departamento</label>
+              <Select value={f.department || '_none'} onValueChange={v => set('department', v === '_none' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none">Sem departamento</SelectItem>
+                  {DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -207,6 +243,7 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
             <Badge variant={member.status === 'ativo' ? 'default' : 'secondary'}>{labelFor(MEMBER_STATUSES, member.status)}</Badge>
             <Badge variant="outline">{labelFor(MEMBER_TYPES, member.member_type)}</Badge>
             {member.role_title && <Badge variant="outline">{member.role_title}</Badge>}
+            <DeptBadge dept={member.department} />
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm">
             {member.email && <div><span className="text-muted-foreground text-xs">Email</span><p>{member.email}</p></div>}
@@ -217,10 +254,6 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
           </div>
           {member.presentation && <div><span className="text-xs text-muted-foreground">Apresentação</span><p className="text-sm mt-1">{member.presentation}</p></div>}
           {member.responsibilities && <div><span className="text-xs text-muted-foreground">Responsabilidades</span><p className="text-sm mt-1 whitespace-pre-wrap">{member.responsibilities}</p></div>}
-
-          <Separator />
-          <h3 className="text-sm font-semibold">Digital Desk</h3>
-          <p className="text-xs text-muted-foreground">Link para o espaço individual do membro na Secretária.</p>
 
           <Separator />
           <h3 className="text-sm font-semibold">Onboarding</h3>
@@ -242,7 +275,7 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
             })}
           </div>
           <div className="flex gap-2 mt-2">
-            <Input placeholder="Novo item de checklist..." value={newTask} onChange={e => setNewTask(e.target.value)}
+            <Input placeholder="Novo item..." value={newTask} onChange={e => setNewTask(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && newTask.trim()) { team.addOnboardingItem.mutate({ member_id: member.id, task: newTask.trim() }); setNewTask(''); }}} className="h-8 text-sm" />
             <Button size="sm" variant="ghost" className="h-8" onClick={() => { if (newTask.trim()) { team.addOnboardingItem.mutate({ member_id: member.id, task: newTask.trim() }); setNewTask(''); }}}><Plus className="h-4 w-4" /></Button>
           </div>
@@ -266,7 +299,7 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
   );
 }
 
-// ─── Generic Form Dialog for records ──────
+// ─── Generic Form Dialog ──────
 function RecordDialog({ open, onClose, title, fields, initial, onSave }: any) {
   const [f, setF] = useState(initial || {});
   const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
@@ -318,7 +351,313 @@ function RecordDialog({ open, onClose, title, fields, initial, onSave }: any) {
   );
 }
 
-// ─── Tab: Equipa ──────
+// ─── Dashboard Overview ──────
+function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
+  const allMembers = (team.members.data || []).filter((m: any) => m.status === 'ativo');
+  const allPayments = team.payments.data || [];
+  const allContracts = team.contracts.data || [];
+  const [selected, setSelected] = useState<any>(null);
+  const [dialog, setDialog] = useState<any>(null);
+  const qc = useQueryClient();
+
+  // Fetch time entries for current month
+  const timeEntries = useQuery({
+    queryKey: ['team-dashboard-time', currentYear, currentMonth],
+    queryFn: async () => {
+      const { data } = await supabase.from('time_entries').select('*')
+        .eq('entry_year', currentYear).eq('entry_month', currentMonth);
+      return (data || []) as any[];
+    },
+  });
+
+  // Total hours this month
+  const totalHoursMonth = useMemo(() =>
+    (timeEntries.data || []).reduce((s: number, e: any) => s + Number(e.duration || 0), 0),
+    [timeEntries.data]
+  );
+
+  // Hours per member for chart
+  const hoursPerMember = useMemo(() => {
+    const map: Record<string, number> = {};
+    (timeEntries.data || []).forEach((e: any) => {
+      if (e.member_id) map[e.member_id] = (map[e.member_id] || 0) + Number(e.duration || 0);
+    });
+    return allMembers.map((m: any) => ({
+      name: m.full_name?.split(' ')[0] || '?',
+      hours: Math.round((map[m.id] || 0) * 100) / 100,
+      memberId: m.id,
+    })).sort((a: any, b: any) => b.hours - a.hours);
+  }, [timeEntries.data, allMembers]);
+
+  // Overload warnings: members who worked more than contracted hours
+  const overloadWarnings = useMemo(() => {
+    const warnings: { member: any; worked: number; contracted: number }[] = [];
+    allMembers.forEach((m: any) => {
+      const contract = allContracts.find((c: any) => c.member_id === m.id && c.status === 'ativo');
+      if (!contract?.contracted_hours) return;
+      const contractedNum = parseFloat(contract.contracted_hours);
+      if (isNaN(contractedNum) || contractedNum <= 0) return;
+      const worked = (timeEntries.data || [])
+        .filter((e: any) => e.member_id === m.id)
+        .reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
+      if (worked > contractedNum) {
+        warnings.push({ member: m, worked: Math.round(worked * 100) / 100, contracted: contractedNum });
+      }
+    });
+    return warnings;
+  }, [allMembers, allContracts, timeEntries.data]);
+
+  // Payment warnings: overdue payments (status 'por_pagar' and month/year already passed)
+  const overduePayments = useMemo(() => {
+    return allPayments.filter((p: any) => {
+      if (p.status !== 'por_pagar') return false;
+      if (p.year < currentYear) return true;
+      if (p.year === currentYear && p.month < currentMonth) return true;
+      return false;
+    });
+  }, [allPayments]);
+
+  const overdueByMember = useMemo(() => {
+    const map: Record<string, number> = {};
+    overduePayments.forEach((p: any) => {
+      map[p.member_id] = (map[p.member_id] || 0) + 1;
+    });
+    return map;
+  }, [overduePayments]);
+
+  // Save handler for new members
+  const handleSave = async ({ member, contract: contractData }: any) => {
+    try {
+      const isNew = !member.id;
+      let memberId = member.id;
+      if (isNew) {
+        const payload = { ...member };
+        delete payload.id;
+        const { data, error } = await supabase.from('team_members').insert(payload).select('id').single();
+        if (error) throw error;
+        memberId = data.id;
+      } else {
+        const { error } = await supabase.from('team_members').update(member).eq('id', member.id);
+        if (error) throw error;
+      }
+      if (isNew && contractData && memberId) {
+        const monthlyVal = parseFloat(contractData.monthly_value) || 0;
+        const paymentDay = parseInt(contractData.payment_day) || 1;
+        await supabase.from('member_contracts').insert({
+          member_id: memberId, contract_type: contractData.contract_type,
+          start_date: contractData.start_date || null, end_date: contractData.end_date || null,
+          status: contractData.status, monthly_value: monthlyVal,
+          contracted_hours: contractData.contracted_hours || null, payment_day: paymentDay,
+        });
+        let numPayments = 0;
+        if (contractData.duration === 'unica') numPayments = 1;
+        else if (contractData.duration === 'indefinido') numPayments = 12;
+        else numPayments = parseInt(contractData.duration) || 0;
+        if (numPayments > 0 && contractData.start_date) {
+          const startDate = new Date(contractData.start_date);
+          const payments = [];
+          for (let i = 0; i < numPayments; i++) {
+            const payMonth = ((startDate.getMonth() + i) % 12) + 1;
+            const payYear = startDate.getFullYear() + Math.floor((startDate.getMonth() + i) / 12);
+            payments.push({
+              member_id: memberId, month: payMonth, year: payYear,
+              gross_value: monthlyVal, net_value: monthlyVal,
+              payment_type: contractData.contract_type === 'contrato_prestacao' ? 'prestacao' : 'salario',
+              status: 'por_pagar',
+            });
+          }
+          await supabase.from('member_payments').insert(payments);
+        }
+      }
+      qc.invalidateQueries({ queryKey: ['team'] });
+      toast.success(isNew ? 'Membro criado com contrato e pagamentos!' : 'Membro atualizado');
+    } catch (err: any) {
+      toast.error('Erro ao guardar: ' + (err.message || err));
+    }
+  };
+
+  const memberName = (id: string) => allMembers.find((m: any) => m.id === id)?.full_name || (team.members.data || []).find((m: any) => m.id === id)?.full_name || '—';
+
+  const chartConfig = { hours: { label: 'Horas', color: 'hsl(var(--primary))' } };
+
+  // Current month payments for table
+  const monthPayments = useMemo(() => {
+    return allPayments
+      .filter(p => p.year === currentYear)
+      .sort((a, b) => a.month - b.month || (a.member_id > b.member_id ? 1 : -1));
+  }, [allPayments]);
+
+  const [paymentDialog, setPaymentDialog] = useState<any>(null);
+  const paymentFields = [
+    { key: 'member_id', label: 'Membro', type: 'select', options: (team.members.data || []).map((m: any) => ({ value: m.id, label: m.full_name })) },
+    { key: 'month', label: 'Mês', type: 'number' },
+    { key: 'year', label: 'Ano', type: 'number' },
+    { key: 'payment_type', label: 'Tipo', type: 'select', options: PAYMENT_TYPES },
+    { key: 'gross_value', label: 'Valor Bruto (€)', type: 'number' },
+    { key: 'net_value', label: 'Valor Líquido (€)', type: 'number' },
+    { key: 'status', label: 'Status', type: 'select', options: PAYMENT_STATUSES },
+    { key: 'document_url', label: 'Documentos (URL)', type: 'text' },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Team Gallery */}
+      <div className="space-y-3">
+        <div className="flex justify-between items-center">
+          <h2 className="text-base font-semibold">Equipa</h2>
+          <Button size="sm" onClick={() => setDialog({})}><Plus className="h-4 w-4 mr-1" /> Novo Membro</Button>
+        </div>
+        {allMembers.length === 0 ? (
+          <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">Sem membros ativos.</CardContent></Card>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {allMembers.map((m: any) => {
+              const hasOverdue = !!overdueByMember[m.id];
+              return (
+                <Card key={m.id} className={`cursor-pointer hover:shadow-md transition-shadow ${hasOverdue ? 'border-destructive/50' : ''}`} onClick={() => setSelected(m)}>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="text-xs font-semibold">{getInitials(m.full_name)}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm truncate">{m.full_name}</p>
+                        {m.role_title && <p className="text-xs text-muted-foreground truncate">{m.role_title}</p>}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      <DeptBadge dept={m.department} />
+                      <Badge variant="outline" className="text-[10px]">{labelFor(MEMBER_TYPES, m.member_type)}</Badge>
+                    </div>
+                    {hasOverdue && (
+                      <div className="flex items-center gap-1.5 text-destructive">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        <span className="text-xs font-medium">{overdueByMember[m.id]} pagamento(s) em atraso</span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"><Clock className="h-5 w-5 text-primary" /></div>
+            <div>
+              <p className="text-xs text-muted-foreground">Horas trabalhadas (mês)</p>
+              <p className="text-lg font-bold">{totalHoursMonth.toFixed(1)}h</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"><Users className="h-5 w-5 text-primary" /></div>
+            <div>
+              <p className="text-xs text-muted-foreground">Membros ativos</p>
+              <p className="text-lg font-bold">{allMembers.length}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-destructive/10 flex items-center justify-center"><AlertTriangle className="h-5 w-5 text-destructive" /></div>
+            <div>
+              <p className="text-xs text-muted-foreground">Pagamentos em atraso</p>
+              <p className="text-lg font-bold">{overduePayments.length}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Overload Warnings */}
+      {overloadWarnings.length > 0 && (
+        <Card className="border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20">
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+              <AlertTriangle className="h-4 w-4" />
+              <h3 className="text-sm font-semibold">Membros sobrecarregados este mês</h3>
+            </div>
+            {overloadWarnings.map(w => (
+              <div key={w.member.id} className="flex items-center justify-between text-sm">
+                <span className="font-medium">{w.member.full_name}</span>
+                <span className="text-xs text-muted-foreground">{w.worked}h trabalhadas / {w.contracted}h contratadas</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Hours Chart */}
+      {hoursPerMember.length > 0 && (
+        <Card>
+          <CardContent className="p-4 space-y-3">
+            <h3 className="text-sm font-semibold">Horas por membro — {getMonthName(currentMonth)} {currentYear}</h3>
+            <ChartContainer config={chartConfig} className="h-[250px] w-full">
+              <BarChart data={hoursPerMember}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="hours" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Payments Table */}
+      <div className="space-y-3">
+        <div className="flex justify-between items-center">
+          <h3 className="text-sm font-semibold flex items-center gap-2"><CreditCard className="h-4 w-4" /> Pagamentos de Equipa — {currentYear}</h3>
+          <Button size="sm" onClick={() => setPaymentDialog({ month: currentMonth, year: currentYear })}><Plus className="h-4 w-4 mr-1" /> Novo</Button>
+        </div>
+        <Card><div className="overflow-x-auto">
+          <Table>
+            <TableHeader><TableRow>
+              <TableHead>Membro</TableHead><TableHead>Mês</TableHead><TableHead>Tipo</TableHead><TableHead>Bruto</TableHead><TableHead>Líquido</TableHead><TableHead>Status</TableHead><TableHead>Doc</TableHead><TableHead></TableHead>
+            </TableRow></TableHeader>
+            <TableBody>
+              {monthPayments.length === 0 ? (
+                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Sem pagamentos</TableCell></TableRow>
+              ) : monthPayments.map(p => {
+                const isOverdue = p.status === 'por_pagar' && (p.year < currentYear || (p.year === currentYear && p.month < currentMonth));
+                return (
+                  <TableRow key={p.id} className={isOverdue ? 'bg-destructive/5' : ''}>
+                    <TableCell className="text-sm">{memberName(p.member_id)}</TableCell>
+                    <TableCell className="text-xs">{p.month && p.year ? `${getMonthName(p.month)} ${p.year}` : '—'}</TableCell>
+                    <TableCell className="text-xs">{labelFor(PAYMENT_TYPES, p.payment_type)}</TableCell>
+                    <TableCell className="text-xs">€{Number(p.gross_value).toLocaleString()}</TableCell>
+                    <TableCell className="text-xs">€{Number(p.net_value).toLocaleString()}</TableCell>
+                    <TableCell>
+                      <Badge variant={p.status === 'pago' ? 'default' : isOverdue ? 'destructive' : 'secondary'} className="text-[10px]">
+                        {isOverdue ? 'Em atraso' : labelFor(PAYMENT_STATUSES, p.status)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{p.document_url ? <a href={p.document_url} target="_blank" rel="noopener" className="text-xs text-primary underline">Ver</a> : '—'}</TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); setPaymentDialog(p); }}>Editar</Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div></Card>
+        {paymentDialog !== null && <RecordDialog open onClose={() => setPaymentDialog(null)} title={paymentDialog.id ? 'Editar Pagamento' : 'Novo Pagamento'} fields={paymentFields} initial={paymentDialog} onSave={(r: any) => team.upsertPayment.mutate(r)} />}
+      </div>
+
+      {dialog !== null && <MemberDialog open onClose={() => setDialog(null)} initial={dialog} onSave={handleSave} />}
+      {selected && <MemberDetailSheet open onClose={() => setSelected(null)} member={selected} team={team} />}
+    </div>
+  );
+}
+
+// ─── Tab: Equipa (list) ──────
 function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
   const [dialog, setDialog] = useState<any>(null);
   const [selected, setSelected] = useState<any>(null);
@@ -329,46 +668,29 @@ function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
     try {
       const isNew = !member.id;
       let memberId = member.id;
-
       if (isNew) {
-        const memberPayload = { ...member };
-        delete memberPayload.id;
-        const { data, error } = await supabase.from('team_members').insert(memberPayload).select('id').single();
+        const payload = { ...member };
+        delete payload.id;
+        const { data, error } = await supabase.from('team_members').insert(payload).select('id').single();
         if (error) throw error;
         memberId = data.id;
       } else {
         const { error } = await supabase.from('team_members').update(member).eq('id', member.id);
         if (error) throw error;
       }
-
-      // Auto-create contract + payments for new members
       if (isNew && contractData && memberId) {
         const monthlyVal = parseFloat(contractData.monthly_value) || 0;
         const paymentDay = parseInt(contractData.payment_day) || 1;
-
-        // Create contract
         await supabase.from('member_contracts').insert({
-          member_id: memberId,
-          contract_type: contractData.contract_type,
-          start_date: contractData.start_date || null,
-          end_date: contractData.end_date || null,
-          status: contractData.status,
-          monthly_value: monthlyVal,
-          contracted_hours: contractData.contracted_hours || null,
-          payment_day: paymentDay,
+          member_id: memberId, contract_type: contractData.contract_type,
+          start_date: contractData.start_date || null, end_date: contractData.end_date || null,
+          status: contractData.status, monthly_value: monthlyVal,
+          contracted_hours: contractData.contracted_hours || null, payment_day: paymentDay,
         });
-
-        // Calculate number of payments
         let numPayments = 0;
-        if (contractData.duration === 'unica') {
-          numPayments = 1;
-        } else if (contractData.duration === 'indefinido') {
-          numPayments = 12;
-        } else {
-          numPayments = parseInt(contractData.duration) || 0;
-        }
-
-        // Create payment entries
+        if (contractData.duration === 'unica') numPayments = 1;
+        else if (contractData.duration === 'indefinido') numPayments = 12;
+        else numPayments = parseInt(contractData.duration) || 0;
         if (numPayments > 0 && contractData.start_date) {
           const startDate = new Date(contractData.start_date);
           const payments = [];
@@ -376,11 +698,8 @@ function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
             const payMonth = ((startDate.getMonth() + i) % 12) + 1;
             const payYear = startDate.getFullYear() + Math.floor((startDate.getMonth() + i) / 12);
             payments.push({
-              member_id: memberId,
-              month: payMonth,
-              year: payYear,
-              gross_value: monthlyVal,
-              net_value: monthlyVal,
+              member_id: memberId, month: payMonth, year: payYear,
+              gross_value: monthlyVal, net_value: monthlyVal,
               payment_type: contractData.contract_type === 'contrato_prestacao' ? 'prestacao' : 'salario',
               status: 'por_pagar',
             });
@@ -388,11 +707,10 @@ function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
           await supabase.from('member_payments').insert(payments);
         }
       }
-
       qc.invalidateQueries({ queryKey: ['team'] });
-      toast.success(isNew ? 'Membro criado com contrato e pagamentos!' : 'Membro atualizado');
+      toast.success(isNew ? 'Membro criado!' : 'Membro atualizado');
     } catch (err: any) {
-      toast.error('Erro ao guardar: ' + (err.message || err));
+      toast.error('Erro: ' + (err.message || err));
     }
   };
 
@@ -403,7 +721,7 @@ function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
         <Button size="sm" onClick={() => setDialog({})}><Plus className="h-4 w-4 mr-1" /> Novo Membro</Button>
       </div>
       {allMembers.length === 0 ? (
-        <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">Sem membros. Adiciona o primeiro!</CardContent></Card>
+        <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">Sem membros.</CardContent></Card>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {allMembers.map(m => (
@@ -418,8 +736,10 @@ function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
                     {labelFor(MEMBER_STATUSES, m.status)}
                   </Badge>
                 </div>
+                <div className="flex flex-wrap gap-1">
+                  <DeptBadge dept={m.department} />
+                </div>
                 {m.email && <p className="text-xs text-muted-foreground">{m.email}</p>}
-                {m.whatsapp && <p className="text-xs text-muted-foreground">{m.whatsapp}</p>}
                 <div className="flex gap-1 pt-1">
                   <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={e => { e.stopPropagation(); setDialog(m); }}>Editar</Button>
                   <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive" onClick={e => { e.stopPropagation(); team.deleteMember.mutate(m.id); }}>Apagar</Button>
@@ -487,10 +807,8 @@ function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> }) {
         <h2 className="text-base font-semibold">Performance</h2>
         <div className="w-48"><MemberSelect value={filterMember} onChange={setFilterMember} members={allMembers} /></div>
       </div>
-
       <Tabs defaultValue="semanal">
         <TabsList><TabsTrigger value="semanal">Semanal</TabsTrigger><TabsTrigger value="mensal">Mensal</TabsTrigger></TabsList>
-
         <TabsContent value="semanal" className="space-y-3">
           <div className="flex justify-end"><Button size="sm" onClick={() => setWeeklyDialog({})}><Plus className="h-4 w-4 mr-1" /> Novo Registo</Button></div>
           <Card><div className="overflow-x-auto">
@@ -521,7 +839,6 @@ function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> }) {
           </div></Card>
           {weeklyDialog !== null && <RecordDialog open onClose={() => setWeeklyDialog(null)} title={weeklyDialog.id ? 'Editar Registo Semanal' : 'Novo Registo Semanal'} fields={weeklyFields} initial={weeklyDialog} onSave={(r: any) => team.upsertPerfWeekly.mutate(r)} />}
         </TabsContent>
-
         <TabsContent value="mensal" className="space-y-3">
           <div className="flex justify-end"><Button size="sm" onClick={() => setMonthlyDialog({ month: currentMonth, year: currentYear })}><Plus className="h-4 w-4 mr-1" /> Novo Registo</Button></div>
           <Card><div className="overflow-x-auto">
@@ -596,7 +913,7 @@ function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) {
             <TableHead>Data</TableHead><TableHead>Membro</TableHead><TableHead>Tipo</TableHead><TableHead>O que correu bem</TableHead><TableHead>O que melhorar</TableHead><TableHead>Acordos</TableHead><TableHead>Próxima</TableHead><TableHead></TableHead>
           </TableRow></TableHeader>
           <TableBody>
-            {data.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Sem sessões de feedback</TableCell></TableRow> :
+            {data.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Sem sessões</TableCell></TableRow> :
               data.map(r => (
                 <TableRow key={r.id}>
                   <TableCell className="text-xs">{r.session_date}</TableCell>
@@ -681,8 +998,6 @@ function TabContracts({ team }: { team: ReturnType<typeof useTeamData> }) {
         <h2 className="text-base font-semibold">Contratos & Pagamentos</h2>
         <div className="w-48"><MemberSelect value={filterMember} onChange={setFilterMember} members={allMembers} /></div>
       </div>
-
-      {/* Summary */}
       <div className="flex gap-4">
         <Card className="flex-1"><CardContent className="p-4 text-center">
           <p className="text-xs text-muted-foreground">Pago este mês</p>
@@ -693,8 +1008,6 @@ function TabContracts({ team }: { team: ReturnType<typeof useTeamData> }) {
           <p className="text-lg font-bold">€{paidThisYear.toLocaleString()}</p>
         </CardContent></Card>
       </div>
-
-      {/* Contracts */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <h3 className="text-sm font-semibold">/ Contratos</h3>
@@ -727,10 +1040,7 @@ function TabContracts({ team }: { team: ReturnType<typeof useTeamData> }) {
         </div></Card>
         {contractDialog !== null && <RecordDialog open onClose={() => setContractDialog(null)} title={contractDialog.id ? 'Editar Contrato' : 'Novo Contrato'} fields={contractFields} initial={contractDialog} onSave={(r: any) => team.upsertContract.mutate(r)} />}
       </div>
-
       <Separator />
-
-      {/* Payments */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <h3 className="text-sm font-semibold">/ Pagamentos</h3>
@@ -780,14 +1090,16 @@ export default function ExecutiveGestaoEquipa() {
           <p className="text-sm text-muted-foreground mt-1">Central de gestão de todos os membros do negócio</p>
         </div>
 
-        <Tabs defaultValue="equipa">
+        <Tabs defaultValue="dashboard">
           <TabsList>
+            <TabsTrigger value="dashboard" className="gap-1"><LayoutDashboard className="h-4 w-4" /> Dashboard</TabsTrigger>
             <TabsTrigger value="equipa" className="gap-1"><Users className="h-4 w-4" /> Equipa</TabsTrigger>
             <TabsTrigger value="performance" className="gap-1"><BarChart3 className="h-4 w-4" /> Performance</TabsTrigger>
             <TabsTrigger value="feedback" className="gap-1"><MessageSquare className="h-4 w-4" /> Feedback</TabsTrigger>
             <TabsTrigger value="contratos" className="gap-1"><FileText className="h-4 w-4" /> Contratos & Pagamentos</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="dashboard"><TabDashboard team={team} /></TabsContent>
           <TabsContent value="equipa"><TabEquipa team={team} /></TabsContent>
           <TabsContent value="performance"><TabPerformance team={team} /></TabsContent>
           <TabsContent value="feedback"><TabFeedback team={team} /></TabsContent>
