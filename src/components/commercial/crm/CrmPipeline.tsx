@@ -105,7 +105,6 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus }: CrmPipelinePr
                         <span className="text-muted-foreground">Valor:</span> <span className="font-semibold text-primary">{Number(lead.estimated_value || 0).toLocaleString('pt-PT')}€</span>
                       </div>
                     </div>
-                    )}
                   </Card>
                 );
               })}
