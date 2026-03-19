@@ -652,10 +652,9 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-sm">Checklists do Mês — Hábitos Mensais</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          {!hasHabitsSeeded && checklist.length === 0 && (
-            <div className="text-center py-6 space-y-2">
-              <p className="text-sm text-muted-foreground">Os hábitos mensais ainda não foram criados para {monthName}.</p>
-              <Button size="sm" onClick={() => seedHabits.mutate()} disabled={seedHabits.isPending}>Criar hábitos padrão</Button>
+          {checklist.length === 0 && (
+            <div className="text-center py-6">
+              <p className="text-sm text-muted-foreground">A criar checklists para {monthName}…</p>
             </div>
           )}
 
