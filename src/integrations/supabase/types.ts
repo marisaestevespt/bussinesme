@@ -1592,6 +1592,7 @@ export type Database = {
           created_by: string | null
           documents: Json | null
           id: string
+          includes_vat: boolean
           location: string
           monthly_equivalent: number
           notes: string | null
@@ -1602,6 +1603,7 @@ export type Database = {
           status: string
           updated_at: string
           value: number
+          vat_rate: number
         }
         Insert: {
           category?: string
@@ -1609,6 +1611,7 @@ export type Database = {
           created_by?: string | null
           documents?: Json | null
           id?: string
+          includes_vat?: boolean
           location?: string
           monthly_equivalent?: number
           notes?: string | null
@@ -1619,6 +1622,7 @@ export type Database = {
           status?: string
           updated_at?: string
           value?: number
+          vat_rate?: number
         }
         Update: {
           category?: string
@@ -1626,6 +1630,7 @@ export type Database = {
           created_by?: string | null
           documents?: Json | null
           id?: string
+          includes_vat?: boolean
           location?: string
           monthly_equivalent?: number
           notes?: string | null
@@ -1636,6 +1641,7 @@ export type Database = {
           status?: string
           updated_at?: string
           value?: number
+          vat_rate?: number
         }
         Relationships: []
       }
