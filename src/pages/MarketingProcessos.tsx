@@ -173,10 +173,7 @@ export default function MarketingProcessos() {
   return (
     <AppLayout>
       <div className="flex flex-col min-h-screen">
-        <div className="w-full py-10 px-6 flex flex-col items-center gap-2" style={{ background: 'hsl(var(--primary))' }}>
-          <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>Marketing 360</p>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight" style={{ color: 'hsl(var(--primary-foreground))' }}>Processos de Marketing</h1>
-        </div>
+        <PageHeader title="Processos de Marketing" subtitle="Marketing 360" />
 
         <div className="max-w-6xl mx-auto w-full px-4 py-8 space-y-6">
           <div className="flex items-center justify-between">
