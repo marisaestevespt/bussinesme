@@ -637,15 +637,9 @@ export default function TarefasPage() {
             </Button>
             <Button
               onClick={async () => {
-                if (timerPromptTaskId && user) {
-                  await supabase.from('task_time_entries').insert({
-                    task_id: timerPromptTaskId,
-                    user_id: user.id,
-                    started_at: new Date().toISOString(),
-                    duration_minutes: 0,
-                    is_manual: false,
-                  });
-                  queryClient.invalidateQueries({ queryKey: ['task-time-entries', timerPromptTaskId] });
+                if (timerPromptTaskId) {
+                  const taskName = tasks.find(t => t.id === timerPromptTaskId)?.name || 'Tarefa';
+                  await globalStartTimer(timerPromptTaskId, taskName);
                   toast.success('Timer iniciado! ▶️');
                 }
                 setTimerPromptTaskId(null);
