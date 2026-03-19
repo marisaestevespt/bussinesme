@@ -208,7 +208,7 @@ export default function ProjetosPage() {
     queryKey: ['clients-for-progress'],
     queryFn: async () => {
       const { data } = await supabase.from('clients' as any).select('id,full_name');
-      return (data || []) as { id: string; full_name: string }[];
+      return (data || []) as unknown as { id: string; full_name: string }[];
     },
   });
 
