@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import { calcMonthlyEquivalent, type Expense, type Subscription } from '@/hooks/useFinancialData';
+import { InvoiceUpload, type DocEntry } from './InvoiceUpload';
 
 const EXP_CATEGORIES = [
   { value: 'pessoal', label: 'Pessoal' },
@@ -134,6 +135,7 @@ export function FinSaidas({ fin }: Props) {
       renewal_date: subForm.renewal_date ? (typeof subForm.renewal_date === 'string' ? subForm.renewal_date : format(subForm.renewal_date, 'yyyy-MM-dd')) : null,
       status: subForm.status,
       notes: subForm.notes || null,
+      documents: subForm.documents || [],
     });
     setSubOpen(false);
     toast.success('Subscrição guardada');
@@ -347,6 +349,10 @@ export function FinSaidas({ fin }: Props) {
                 <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            <InvoiceUpload
+              documents={Array.isArray(expForm.documents) ? expForm.documents : []}
+              onChange={docs => setExpForm((f: any) => ({ ...f, documents: docs }))}
+            />
             <div className="flex gap-2">
               <Button className="flex-1" onClick={saveExpense}>Guardar</Button>
               {expForm.id && <Button variant="destructive" size="icon" onClick={async () => { await fin.deleteExpense.mutateAsync(expForm.id); setExpOpen(false); toast.success('Eliminada'); }}><Trash2 className="h-4 w-4" /></Button>}
@@ -417,6 +423,10 @@ export function FinSaidas({ fin }: Props) {
               </Select>
             </div>
             <div><Label>Notas</Label><Input value={subForm.notes || ''} onChange={e => setSubForm((f: any) => ({ ...f, notes: e.target.value }))} /></div>
+            <InvoiceUpload
+              documents={Array.isArray(subForm.documents) ? subForm.documents : []}
+              onChange={docs => setSubForm((f: any) => ({ ...f, documents: docs }))}
+            />
             <div className="flex gap-2">
               <Button className="flex-1" onClick={saveSub}>Guardar</Button>
               {subForm.id && <Button variant="destructive" size="icon" onClick={async () => { await fin.deleteSubscription.mutateAsync(subForm.id); setSubOpen(false); toast.success('Eliminada'); }}><Trash2 className="h-4 w-4" /></Button>}

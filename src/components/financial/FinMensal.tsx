@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import type { Expense, Subscription, PayrollEntry, ContractorEntry, FinancialDocument } from '@/hooks/useFinancialData';
+import { InvoiceUpload } from './InvoiceUpload';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -101,7 +102,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 
   // Expense dialog
   const [expOpen, setExpOpen] = useState(false);
-  const [expForm, setExpForm] = useState<any>({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal' });
+  const [expForm, setExpForm] = useState<any>({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [] });
 
   const saveExpense = async () => {
     if (!expForm.base_value) { toast.error('Valor base é obrigatório'); return; }
@@ -116,6 +117,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
       vat_rate: vat,
       total_with_vat: total,
       location: expForm.location,
+      documents: expForm.documents || [],
       expense_date: dateStr,
       expense_month: m,
       expense_quarter: Math.ceil(m / 3),
@@ -124,7 +126,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
     } as any);
     toast.success('Saída adicionada');
     setExpOpen(false);
-    setExpForm({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal' });
+    setExpForm({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [] });
   };
 
   return (
@@ -288,6 +290,10 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                 <SelectContent>{LOCATIONS.map(l => <SelectItem key={l} value={l}>{LOC_LABELS[l]}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            <InvoiceUpload
+              documents={Array.isArray(expForm.documents) ? expForm.documents : []}
+              onChange={docs => setExpForm((f: any) => ({ ...f, documents: docs }))}
+            />
             <Button className="w-full" onClick={saveExpense}>Guardar</Button>
           </div>
         </DialogContent>

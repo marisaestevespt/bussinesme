@@ -1563,6 +1563,7 @@ export type Database = {
           category: string
           created_at: string
           created_by: string | null
+          documents: Json | null
           id: string
           location: string
           monthly_equivalent: number
@@ -1579,6 +1580,7 @@ export type Database = {
           category?: string
           created_at?: string
           created_by?: string | null
+          documents?: Json | null
           id?: string
           location?: string
           monthly_equivalent?: number
@@ -1595,6 +1597,7 @@ export type Database = {
           category?: string
           created_at?: string
           created_by?: string | null
+          documents?: Json | null
           id?: string
           location?: string
           monthly_equivalent?: number
