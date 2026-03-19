@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { startOfWeek, endOfWeek, format, subDays, addDays, parseISO, differenceInDays } from 'date-fns';
 import { useTeamData } from '@/hooks/useTeamData';
 import { cn } from '@/lib/utils';
+import { WeeklyAlignDetailSheet, type DetailField } from '@/components/executive/WeeklyAlignDetailSheet';
 
 const now = new Date();
 const currentMonth = now.getMonth() + 1;
@@ -27,6 +28,19 @@ export default function ExecutiveWeeklyAlign() {
   const exec = useExecutiveData(currentYear);
   const monthGoals = exec.goalsForMonth(currentMonth);
   const monthProg = exec.monthProgress(currentMonth);
+
+  // Detail sheet state
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailTitle, setDetailTitle] = useState('');
+  const [detailSubtitle, setDetailSubtitle] = useState('');
+  const [detailFields, setDetailFields] = useState<DetailField[]>([]);
+
+  const openDetail = (title: string, subtitle: string, fields: DetailField[]) => {
+    setDetailTitle(title);
+    setDetailSubtitle(subtitle);
+    setDetailFields(fields);
+    setDetailOpen(true);
+  };
 
   // Events this month
   const events = useQuery({
@@ -192,6 +206,142 @@ export default function ExecutiveWeeklyAlign() {
 
   const routineMap = Object.fromEntries((exec.weeklyRoutines.data || []).map(r => [r.routine_key, r.completed]));
 
+  // --- Detail openers for each section ---
+  const openGoalDetail = (g: any) => openDetail(g.meta, 'Meta', [
+    { label: 'Status', value: statusLabel(g.status), badge: true, badgeVariant: g.status === 'atingido' ? 'default' : 'secondary' },
+    { label: 'Área', value: areaLabel(g.area) },
+    { label: 'Data meta', value: g.target_date },
+    { label: 'Data atingida', value: g.achieved_date },
+    { label: 'Mês', value: g.month ? getMonthName(g.month) : null },
+    { label: 'Trimestre', value: g.quarter ? `T${g.quarter}` : null },
+    { label: 'Objetivo', value: exec.allObjectives.find(o => o.id === g.objective_id)?.title },
+  ]);
+
+  const openEventDetail = (e: any) => openDetail(e.title, 'Evento', [
+    { label: 'Data início', value: e.start_date?.slice(0, 10) },
+    { label: 'Data fim', value: e.end_date?.slice(0, 10) },
+    { label: 'Departamento', value: e.department },
+    { label: 'Cliente', value: e.client_name },
+    { label: 'Produto', value: e.product_name },
+    { label: 'URL reunião', value: e.meeting_url },
+    { label: 'Notas', value: e.notes },
+  ]);
+
+  const openSaleDetail = (s: any) => openDetail(`Venda ${s.sale_id}`, s.client || 'Venda', [
+    { label: 'Status', value: s.status, badge: true },
+    { label: 'Cliente', value: s.client },
+    { label: 'Produto', value: s.product },
+    { label: 'Valor base', value: s.base_value ? `€${Number(s.base_value).toLocaleString()}` : null },
+    { label: 'Total fatura', value: `€${Number(s.invoice_total).toLocaleString()}` },
+    { label: 'Data pagamento', value: s.payment_date },
+    { label: 'Origem', value: s.source },
+    { label: 'Descrição', value: s.description },
+  ]);
+
+  const openSaleActionDetail = (a: any) => openDetail(a.action_name, 'Ação de venda', [
+    { label: 'Status', value: a.status, badge: true },
+    { label: 'Tipo', value: a.action_type },
+    { label: 'Produto', value: a.product },
+    { label: 'Objetivo', value: a.objective },
+    { label: 'Data início', value: a.start_date },
+    { label: 'Data fim', value: a.end_date },
+    { label: 'Resultado', value: a.result },
+  ]);
+
+  const openLeadDetail = (l: any) => openDetail(l.name, 'Lead', [
+    { label: 'Status', value: l.status, badge: true },
+    { label: 'Valor estimado', value: l.estimated_value ? `€${Number(l.estimated_value).toLocaleString()}` : null },
+    { label: 'Telefone', value: l.phone },
+    { label: 'Email', value: l.email },
+    { label: 'Origem', value: l.source },
+    { label: 'Produto potencial', value: l.potential_product },
+    { label: 'Contexto', value: l.context },
+    { label: 'Próximo follow-up', value: l.next_followup },
+    { label: 'Notas follow-up', value: l.followup_notes },
+    { label: 'Data entrada', value: l.added_at },
+    { label: 'Documentos', value: l.documents },
+  ]);
+
+  const openClientDetail = (c: any) => openDetail(c.full_name, 'Cliente', [
+    { label: 'ID', value: c.client_id },
+    { label: 'Status', value: c.status, badge: true },
+    { label: 'Email', value: c.email },
+    { label: 'Whatsapp', value: c.whatsapp },
+    { label: 'Produto atual', value: c.current_product },
+    { label: 'Data início', value: c.start_date },
+    { label: 'Fim de ciclo', value: c.end_of_cycle },
+    { label: 'NIF', value: c.nif },
+    { label: 'Morada fiscal', value: c.fiscal_address },
+    { label: 'Observações', value: c.observations },
+    { label: 'Link Drive', value: c.drive_folder_url },
+  ]);
+
+  const openNpsDetail = (r: any) => {
+    const status = autoNpsStatus(r.expected_date, r.status);
+    openDetail(r.clients?.full_name || 'NPS', 'Recolha NPS', [
+      { label: 'Cliente', value: r.clients?.full_name },
+      { label: 'Produto', value: r.clients?.current_product },
+      { label: 'Data prevista', value: format(parseISO(r.expected_date), 'dd/MM/yyyy') },
+      { label: 'Status', value: status === 'feito' ? 'Feito' : status === 'em_atraso' ? 'Em atraso' : 'Por fazer', badge: true, badgeVariant: status === 'feito' ? 'default' : status === 'em_atraso' ? 'destructive' : 'secondary' },
+      { label: 'Score NPS', value: r.nps_score },
+      { label: 'Data real', value: r.actual_date },
+      { label: 'Notas', value: r.notes },
+    ]);
+  };
+
+  const openMilestoneDetail = (m: any) => {
+    const status = autoNpsStatus(m.expected_date, m.status);
+    openDetail(m.milestone || 'Marco', 'Marco de acompanhamento', [
+      { label: 'Cliente', value: m.clients?.full_name },
+      { label: 'Produto', value: m.clients?.current_product },
+      { label: 'Marco', value: m.milestone },
+      { label: 'Tipo', value: MILESTONE_TYPE_LABELS[m.milestone_type] || m.milestone_type },
+      { label: 'Data prevista', value: format(parseISO(m.expected_date), 'dd/MM/yyyy') },
+      { label: 'Responsável', value: getMemberName(m.responsible_id) },
+      { label: 'Status', value: status === 'feito' ? 'Feito' : status === 'em_atraso' ? 'Em atraso' : 'Por fazer', badge: true, badgeVariant: status === 'feito' ? 'default' : status === 'em_atraso' ? 'destructive' : 'secondary' },
+      { label: 'Notas', value: m.notes },
+    ]);
+  };
+
+  const openProjectDetail = (p: any) => openDetail(p.name, 'Projeto', [
+    { label: 'Status', value: p.status, badge: true },
+    { label: 'Departamento', value: p.department },
+    { label: 'Deadline', value: p.deadline },
+    { label: 'Descrição', value: p.description },
+    { label: 'Responsável', value: p.responsible },
+  ]);
+
+  const openTaskDetail = (t: any) => openDetail(t.name, 'Tarefa', [
+    { label: 'Status', value: t.status, badge: true },
+    { label: 'Deadline', value: t.deadline },
+    { label: 'Departamento', value: t.department },
+    { label: 'Descrição', value: t.description },
+    { label: 'Prioridade', value: t.priority },
+  ]);
+
+  const openMeetingDetail = (m: any) => openDetail(m.title, 'Reunião', [
+    { label: 'Data início', value: m.start_date?.slice(0, 16)?.replace('T', ' ') },
+    { label: 'Data fim', value: m.end_date?.slice(0, 16)?.replace('T', ' ') },
+    { label: 'Departamento', value: m.department },
+    { label: 'Cliente', value: m.client_name },
+    { label: 'Produto', value: m.product_name },
+    { label: 'URL reunião', value: m.meeting_url },
+    { label: 'Notas', value: m.notes },
+  ]);
+
+  const openContentDetail = (c: any) => openDetail(c.title, 'Conteúdo', [
+    { label: 'Status', value: c.status, badge: true },
+    { label: 'Formato', value: c.format },
+    { label: 'Tipo', value: c.content_type },
+    { label: 'Fase do funil', value: c.funnel_stage },
+    { label: 'Produto', value: c.product_name },
+    { label: 'Objetivo', value: c.objective },
+    { label: 'Data agendada', value: c.scheduled_at?.slice(0, 10) },
+    { label: 'Copy', value: c.copy_content },
+  ]);
+
+  const clickableRow = "cursor-pointer hover:bg-muted/70 transition-colors";
+
   return (
     <AppLayout>
       <div className="space-y-8">
@@ -214,7 +364,7 @@ export default function ExecutiveWeeklyAlign() {
                   <TableBody>
                     {monthGoals.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Sem metas este mês</TableCell></TableRow> :
                       monthGoals.map(g => (
-                        <TableRow key={g.id}>
+                        <TableRow key={g.id} className={clickableRow} onClick={() => openGoalDetail(g)}>
                           <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{statusLabel(g.status)}</Badge></TableCell>
                           <TableCell className="text-sm">{g.meta}</TableCell>
                           <TableCell className="text-xs">{areaLabel(g.area)}</TableCell>
@@ -237,7 +387,9 @@ export default function ExecutiveWeeklyAlign() {
                   <TableBody>
                     {(events.data || []).length === 0 ? <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground text-sm py-6">Sem eventos</TableCell></TableRow> :
                       (events.data || []).map(e => (
-                        <TableRow key={e.id}><TableCell className="text-xs">{e.start_date?.slice(0, 10)}</TableCell><TableCell className="text-sm">{e.title}</TableCell></TableRow>
+                        <TableRow key={e.id} className={clickableRow} onClick={() => openEventDetail(e)}>
+                          <TableCell className="text-xs">{e.start_date?.slice(0, 10)}</TableCell><TableCell className="text-sm">{e.title}</TableCell>
+                        </TableRow>
                       ))
                     }
                   </TableBody>
@@ -253,7 +405,6 @@ export default function ExecutiveWeeklyAlign() {
         <section className="space-y-4">
           <h2 className="text-base font-semibold">2 // Vendas & Faturação</h2>
           <div className="grid gap-4 md:grid-cols-2">
-            {/* Billing status */}
             <Card><CardContent className="p-4 space-y-2">
               <h3 className="text-sm font-medium">Status faturação — {getMonthName(currentMonth)}</h3>
               <div className="text-xs text-muted-foreground space-y-1">
@@ -262,7 +413,6 @@ export default function ExecutiveWeeklyAlign() {
               </div>
             </CardContent></Card>
 
-            {/* Routines */}
             <Card><CardContent className="p-4 space-y-2">
               <h3 className="text-sm font-medium">Rotinas de Vendas</h3>
               {SALES_ROUTINES.map(r => (
@@ -274,25 +424,27 @@ export default function ExecutiveWeeklyAlign() {
             </CardContent></Card>
           </div>
 
-          {/* Sales this week */}
           <Card><CardContent className="p-4">
             <h3 className="text-sm font-medium mb-2">Vendas esta semana</h3>
             {(salesWeek.data || []).length === 0 ? <p className="text-xs text-muted-foreground">Sem vendas esta semana</p> :
               <Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Total</TableHead></TableRow></TableHeader>
                 <TableBody>{(salesWeek.data || []).map(s => (
-                  <TableRow key={s.id}><TableCell className="text-xs">{s.sale_id}</TableCell><TableCell className="text-xs">{s.client}</TableCell><TableCell className="text-xs">{s.product}</TableCell><TableCell className="text-xs">€{Number(s.invoice_total).toLocaleString()}</TableCell></TableRow>
+                  <TableRow key={s.id} className={clickableRow} onClick={() => openSaleDetail(s)}>
+                    <TableCell className="text-xs">{s.sale_id}</TableCell><TableCell className="text-xs">{s.client}</TableCell><TableCell className="text-xs">{s.product}</TableCell><TableCell className="text-xs">€{Number(s.invoice_total).toLocaleString()}</TableCell>
+                  </TableRow>
                 ))}</TableBody>
               </Table>
             }
           </CardContent></Card>
 
-          {/* Sales actions */}
           <Card><CardContent className="p-4">
             <h3 className="text-sm font-medium mb-2">Ações de venda</h3>
             {(salesActions.data || []).length === 0 ? <p className="text-xs text-muted-foreground">Sem ações ativas</p> :
               <Table><TableHeader><TableRow><TableHead>Ação</TableHead><TableHead>Tipo</TableHead><TableHead>Status</TableHead><TableHead>Produto</TableHead></TableRow></TableHeader>
                 <TableBody>{(salesActions.data || []).map(a => (
-                  <TableRow key={a.id}><TableCell className="text-xs">{a.action_name}</TableCell><TableCell className="text-xs">{a.action_type}</TableCell><TableCell><Badge variant="secondary" className="text-[10px]">{a.status}</Badge></TableCell><TableCell className="text-xs">{a.product}</TableCell></TableRow>
+                  <TableRow key={a.id} className={clickableRow} onClick={() => openSaleActionDetail(a)}>
+                    <TableCell className="text-xs">{a.action_name}</TableCell><TableCell className="text-xs">{a.action_type}</TableCell><TableCell><Badge variant="secondary" className="text-[10px]">{a.status}</Badge></TableCell><TableCell className="text-xs">{a.product}</TableCell>
+                  </TableRow>
                 ))}</TableBody>
               </Table>
             }
@@ -314,7 +466,7 @@ export default function ExecutiveWeeklyAlign() {
                 <TableBody>
                   {(leads.data || []).length === 0 ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground text-sm py-6">Sem leads</TableCell></TableRow> :
                     (leads.data || []).map(l => (
-                      <TableRow key={l.id}>
+                      <TableRow key={l.id} className={clickableRow} onClick={() => openLeadDetail(l)}>
                         <TableCell className="text-sm font-medium">{l.name}</TableCell>
                         <TableCell><Badge variant="secondary" className="text-[10px]">{l.status}</Badge></TableCell>
                         <TableCell className="text-xs">{l.estimated_value ? `€${Number(l.estimated_value).toLocaleString()}` : '—'}</TableCell>
@@ -336,7 +488,7 @@ export default function ExecutiveWeeklyAlign() {
                 <TableBody>
                   {followUps.length === 0 ? <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground text-sm py-6">Sem follow-ups pendentes</TableCell></TableRow> :
                     followUps.map(l => (
-                      <TableRow key={l.id}>
+                      <TableRow key={l.id} className={clickableRow} onClick={() => openLeadDetail(l)}>
                         <TableCell className="text-sm font-medium">{l.name}</TableCell>
                         <TableCell><Badge variant="secondary" className="text-[10px]">{l.status}</Badge></TableCell>
                         <TableCell className="text-xs">{l.estimated_value ? `€${Number(l.estimated_value).toLocaleString()}` : '—'}</TableCell>
@@ -368,7 +520,7 @@ export default function ExecutiveWeeklyAlign() {
                 <TableBody>
                   {onboardingClients.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Nenhum</TableCell></TableRow> :
                     onboardingClients.map(c => (
-                      <TableRow key={c.id}>
+                      <TableRow key={c.id} className={clickableRow} onClick={() => openClientDetail(c)}>
                         <TableCell className="text-xs">{c.client_id}</TableCell>
                         <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
                         <TableCell><Badge variant="secondary" className="text-[10px]">{c.status}</Badge></TableCell>
@@ -391,7 +543,7 @@ export default function ExecutiveWeeklyAlign() {
                 <TableBody>
                   {renewalClients.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Nenhum</TableCell></TableRow> :
                     renewalClients.map(c => (
-                      <TableRow key={c.id}>
+                      <TableRow key={c.id} className={clickableRow} onClick={() => openClientDetail(c)}>
                         <TableCell className="text-xs">{c.client_id}</TableCell>
                         <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
                         <TableCell><Badge variant="secondary" className="text-[10px]">{c.status}</Badge></TableCell>
@@ -416,7 +568,6 @@ export default function ExecutiveWeeklyAlign() {
           <h2 className="text-base font-semibold">4.1 // NPS desta semana</h2>
           <p className="text-xs text-muted-foreground">Acompanhamento de NPS e marcos de Customer Success da semana corrente.</p>
 
-          {/* NPS this week */}
           <Card><CardContent className="p-4">
             <h3 className="text-sm font-medium mb-2">Recolhas de NPS previstas esta semana</h3>
             {(npsWeek.data || []).length === 0 ? <p className="text-xs text-muted-foreground">Sem recolhas previstas esta semana</p> :
@@ -427,7 +578,7 @@ export default function ExecutiveWeeklyAlign() {
                 <TableBody>{(npsWeek.data || []).map((r: any) => {
                   const status = autoNpsStatus(r.expected_date, r.status);
                   return (
-                    <TableRow key={r.id} className={getNpsRowColor(r.expected_date, status)}>
+                    <TableRow key={r.id} className={cn(getNpsRowColor(r.expected_date, status), clickableRow)} onClick={() => openNpsDetail(r)}>
                       <TableCell className="text-sm font-medium">{r.clients?.full_name || '—'}</TableCell>
                       <TableCell className="text-xs">{r.clients?.current_product || '—'}</TableCell>
                       <TableCell className="text-xs">{format(parseISO(r.expected_date), 'dd/MM/yyyy')}</TableCell>
@@ -441,7 +592,6 @@ export default function ExecutiveWeeklyAlign() {
             }
           </CardContent></Card>
 
-          {/* NPS overdue */}
           <Card><CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <h3 className="text-sm font-medium">Recolhas em atraso</h3>
@@ -453,7 +603,7 @@ export default function ExecutiveWeeklyAlign() {
                   <TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Data prevista</TableHead><TableHead>Dias em atraso</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>{(npsOverdue.data || []).map((r: any) => (
-                  <TableRow key={r.id} className="bg-red-50 border-l-4 border-l-red-500">
+                  <TableRow key={r.id} className={cn("bg-red-50 border-l-4 border-l-red-500", clickableRow)} onClick={() => openNpsDetail(r)}>
                     <TableCell className="text-sm font-medium">{r.clients?.full_name || '—'}</TableCell>
                     <TableCell className="text-xs">{r.clients?.current_product || '—'}</TableCell>
                     <TableCell className="text-xs">{format(parseISO(r.expected_date), 'dd/MM/yyyy')}</TableCell>
@@ -464,7 +614,6 @@ export default function ExecutiveWeeklyAlign() {
             }
           </CardContent></Card>
 
-          {/* Milestones this week */}
           <Card><CardContent className="p-4">
             <h3 className="text-sm font-medium mb-2">Marcos de acompanhamento desta semana</h3>
             {(milestonesWeek.data || []).length === 0 ? <p className="text-xs text-muted-foreground">Sem marcos previstos esta semana</p> :
@@ -475,7 +624,7 @@ export default function ExecutiveWeeklyAlign() {
                 <TableBody>{(milestonesWeek.data || []).map((m: any) => {
                   const status = autoNpsStatus(m.expected_date, m.status);
                   return (
-                    <TableRow key={m.id} className={getNpsRowColor(m.expected_date, status)}>
+                    <TableRow key={m.id} className={cn(getNpsRowColor(m.expected_date, status), clickableRow)} onClick={() => openMilestoneDetail(m)}>
                       <TableCell className="text-sm font-medium">{m.clients?.full_name || '—'}</TableCell>
                       <TableCell className="text-xs">{m.clients?.current_product || '—'}</TableCell>
                       <TableCell className="text-xs">{m.milestone || '—'}</TableCell>
@@ -497,7 +646,6 @@ export default function ExecutiveWeeklyAlign() {
         <section className="space-y-4">
           <h2 className="text-base font-semibold">5 // Operação & Esta semana</h2>
 
-          {/* Projects */}
           <Card><CardContent className="p-4">
             <h3 className="text-sm font-medium mb-2">Projetos a acontecer</h3>
             {(projects.data || []).length === 0 ? <p className="text-xs text-muted-foreground">Sem projetos ativos</p> :
@@ -506,7 +654,7 @@ export default function ExecutiveWeeklyAlign() {
                   <TableHead>Status</TableHead><TableHead>Projeto</TableHead><TableHead>Departamento</TableHead><TableHead>Deadline</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>{(projects.data || []).slice(0, 10).map(p => (
-                  <TableRow key={p.id}>
+                  <TableRow key={p.id} className={clickableRow} onClick={() => openProjectDetail(p)}>
                     <TableCell><Badge variant="secondary" className="text-[10px]">{p.status}</Badge></TableCell>
                     <TableCell className="text-sm">{p.name}</TableCell>
                     <TableCell className="text-xs">{p.department || '—'}</TableCell>
@@ -517,13 +665,12 @@ export default function ExecutiveWeeklyAlign() {
             }
           </CardContent></Card>
 
-          {/* Tasks / Meetings / Content */}
           <div className="grid gap-4 md:grid-cols-3">
             <Card><CardContent className="p-4">
               <h3 className="text-sm font-medium mb-2">Tarefas planeadas</h3>
               {(tasks.data || []).length === 0 ? <p className="text-xs text-muted-foreground">Sem tarefas</p> :
                 (tasks.data || []).map(t => (
-                  <div key={t.id} className="flex items-center gap-2 py-1">
+                  <div key={t.id} className={cn("flex items-center gap-2 py-1 px-1 rounded", clickableRow)} onClick={() => openTaskDetail(t)}>
                     <div className={`h-2 w-2 rounded-full shrink-0 ${t.status === 'concluida' ? 'bg-green-500' : 'bg-yellow-500'}`} />
                     <span className="text-xs">{t.name}</span>
                   </div>
@@ -535,7 +682,7 @@ export default function ExecutiveWeeklyAlign() {
               <h3 className="text-sm font-medium mb-2">Reuniões marcadas</h3>
               {(meetings.data || []).length === 0 ? <p className="text-xs text-muted-foreground">Sem reuniões</p> :
                 (meetings.data || []).map(m => (
-                  <div key={m.id} className="text-xs py-1 flex justify-between">
+                  <div key={m.id} className={cn("text-xs py-1 px-1 flex justify-between rounded", clickableRow)} onClick={() => openMeetingDetail(m)}>
                     <span>{m.title}</span><span className="text-muted-foreground">{m.start_date?.slice(0, 10)}</span>
                   </div>
                 ))
@@ -546,7 +693,7 @@ export default function ExecutiveWeeklyAlign() {
               <h3 className="text-sm font-medium mb-2">Conteúdos desta semana</h3>
               {(contents.data || []).length === 0 ? <p className="text-xs text-muted-foreground">Sem conteúdos</p> :
                 (contents.data || []).map(c => (
-                  <div key={c.id} className="py-1">
+                  <div key={c.id} className={cn("py-1 px-1 rounded", clickableRow)} onClick={() => openContentDetail(c)}>
                     <p className="text-xs font-medium">{c.title}</p>
                     <div className="flex gap-1 mt-0.5">
                       <Badge variant="outline" className="text-[9px]">{c.status}</Badge>
@@ -559,6 +706,14 @@ export default function ExecutiveWeeklyAlign() {
           </div>
         </section>
       </div>
+
+      <WeeklyAlignDetailSheet
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        title={detailTitle}
+        subtitle={detailSubtitle}
+        fields={detailFields}
+      />
     </AppLayout>
   );
 }
