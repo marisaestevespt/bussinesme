@@ -242,11 +242,27 @@ export function SettingsIdentity() {
         }
       }
 
+      // Upload login bg if changed
+      let loginBgUrl = (settings as any).login_bg_url || null;
+      if (bgFile) {
+        const ext = bgFile.name.split('.').pop();
+        const { data: { user } } = await supabase.auth.getUser();
+        const path = `${user?.id}/login-bg.${ext}`;
+        const { error: bgErr } = await supabase.storage.from('logos').upload(path, bgFile, { upsert: true });
+        if (!bgErr) {
+          const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path);
+          loginBgUrl = publicUrl;
+        }
+      } else if (!bgPreview) {
+        loginBgUrl = null;
+      }
+
       const { error } = await supabase
         .from('business_settings')
         .update({
           business_name: businessName.trim(),
           logo_url: logoUrl,
+          login_bg_url: loginBgUrl,
           primary_color: hexToHsl(colors.primary),
           secondary_color: hexToHsl(colors.secondary),
           background_color: hexToHsl(colors.background),
