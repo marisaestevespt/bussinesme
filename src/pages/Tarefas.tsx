@@ -378,6 +378,74 @@ export default function TarefasPage() {
           onDelete={(id) => { if (view.startsWith('custom_')) setView('todo'); deleteView(id); }}
         />
 
+        {/* Dynamic filters */}
+        {(() => {
+          const activeFilterCount = [filterDept, filterResponsible, filterPriority, filterProject].filter(Boolean).length;
+          return (
+            <div className="flex items-center gap-2 flex-wrap">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5">
+                    <Filter className="h-3.5 w-3.5" /> Filtros
+                    {activeFilterCount > 0 && <Badge variant="secondary" className="h-4 min-w-4 px-1 flex items-center justify-center text-[9px] rounded-full">{activeFilterCount}</Badge>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 space-y-3" align="start">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Departamento</Label>
+                    <Select value={filterDept} onValueChange={v => setFilterDept(v === '_all' ? '' : v)}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_all">Todos</SelectItem>
+                        {TASK_DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Responsável</Label>
+                    <Select value={filterResponsible} onValueChange={v => setFilterResponsible(v === '_all' ? '' : v)}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_all">Todos</SelectItem>
+                        {profiles.filter(p => p.full_name).map(p => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Prioridade</Label>
+                    <Select value={filterPriority} onValueChange={v => setFilterPriority(v === '_all' ? '' : v)}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Todas" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_all">Todas</SelectItem>
+                        {PRIORITIES.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Projeto</Label>
+                    <Select value={filterProject} onValueChange={v => setFilterProject(v === '_all' ? '' : v)}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_all">Todos</SelectItem>
+                        {projects.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {activeFilterCount > 0 && (
+                    <Button size="sm" variant="ghost" className="w-full h-7 text-xs" onClick={() => { setFilterDept(''); setFilterResponsible(''); setFilterPriority(''); setFilterProject(''); }}>
+                      <X className="h-3 w-3 mr-1" /> Limpar filtros
+                    </Button>
+                  )}
+                </PopoverContent>
+              </Popover>
+              {filterDept && <Badge variant="secondary" className="text-xs gap-1">{TASK_DEPARTMENTS.find(d => d.value === filterDept)?.label} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterDept('')} /></Badge>}
+              {filterResponsible && <Badge variant="secondary" className="text-xs gap-1">{profiles.find(p => p.id === filterResponsible)?.full_name} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterResponsible('')} /></Badge>}
+              {filterPriority && <Badge variant="secondary" className="text-xs gap-1">{PRIORITIES.find(p => p.value === filterPriority)?.label} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterPriority('')} /></Badge>}
+              {filterProject && <Badge variant="secondary" className="text-xs gap-1">{projects.find(p => p.id === filterProject)?.name} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterProject('')} /></Badge>}
+            </div>
+          );
+        })()}
+
         {/* Content */}
         {view === 'calendario' ? (
           <CalendarView
