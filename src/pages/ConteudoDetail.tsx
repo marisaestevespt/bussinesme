@@ -38,6 +38,7 @@ export default function ConteudoDetailPage() {
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showResponsibleReminder, setShowResponsibleReminder] = useState(false);
 
   const { data: item, isLoading } = useQuery({
     queryKey: ['content-item', id],
