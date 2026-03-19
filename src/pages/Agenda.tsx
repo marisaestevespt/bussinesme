@@ -634,7 +634,7 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
       </div>
       <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden">
         {WEEKDAYS.map(d => (
-          <div key={d} className="bg-muted px-2 py-2 text-xs font-medium text-muted-foreground text-center">{d}</div>
+          <div key={d} className="bg-primary px-2 py-2 text-xs font-medium text-primary-foreground text-center">{d}</div>
         ))}
         {paddedDays.map((day, i) => (
           <div key={i} className={cn('bg-card min-h-[90px] p-1.5 text-sm', day && isSameDay(day, new Date()) && 'ring-1 ring-inset ring-primary/30', !day && 'bg-muted/30')}>
@@ -668,7 +668,7 @@ function ListView({ events, types, onEventClick }: { events: EventRow[]; types: 
   if (events.length === 0) return <p className="text-center text-muted-foreground py-12">Nenhum evento registado.</p>;
   return (
     <div className="border rounded-lg overflow-hidden divide-y divide-border">
-      <div className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-muted text-xs font-medium text-muted-foreground">
+      <div className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-primary text-xs font-medium text-primary-foreground rounded-t-lg">
         <div className="col-span-3">Evento</div>
         <div className="col-span-2">Tipo</div>
         <div className="col-span-2">Data</div>

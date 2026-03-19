@@ -427,7 +427,7 @@ export default function HubEquipaPage() {
                   Ver todas <ArrowRight className="h-3 w-3" />
                 </Button>
               </div>
-              <div className="flex items-center gap-1 bg-muted rounded-lg p-1 w-fit">
+              <div className="flex items-center gap-1 w-fit">
                 {([
                   { key: 'inbox' as const, label: 'Caixa de Entrada', icon: Inbox },
                   { key: 'today' as const, label: 'Para Hoje', icon: Sun },
@@ -436,10 +436,10 @@ export default function HubEquipaPage() {
                   <button
                     key={tab.key}
                     onClick={() => setTaskView(tab.key)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-medium transition-all border ${
                       taskView === tab.key
-                        ? 'bg-background text-foreground shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
+                        ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                        : 'bg-background text-secondary-foreground border-secondary'
                     }`}
                   >
                     <tab.icon className="h-3.5 w-3.5" />

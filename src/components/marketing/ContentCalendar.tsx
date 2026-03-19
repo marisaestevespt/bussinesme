@@ -75,10 +75,10 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
       </div>
       <div className="grid grid-cols-7 gap-px">
         {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(d => (
-          <div key={d} className="text-[10px] text-center font-medium text-muted-foreground py-1.5">{d}</div>
+          <div key={d} className="text-[10px] text-center font-medium text-primary-foreground bg-primary py-1.5">{d}</div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-px border rounded-lg overflow-hidden bg-border">
+      <div className="grid grid-cols-7 gap-px border rounded-lg overflow-hidden bg-border/50">
         {days.map(day => {
           const dayItems = datedItems.filter(i => isSameDay(new Date(i.scheduled_at!), day));
           const isCurrentMonth = isSameMonth(day, currentMonth);
