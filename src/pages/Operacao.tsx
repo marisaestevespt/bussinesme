@@ -25,7 +25,7 @@ type Project = {
 };
 type Task = {
   id: string; name: string; status: string; priority: string; deadline: string | null;
-  assigned_to: string | null; project_id: string | null;
+  assigned_to: string | null; project_id: string | null; department: string | null;
 };
 type Client = {
   id: string; client_id: string; full_name: string; status: string; current_product: string | null;
