@@ -204,22 +204,41 @@ export default function MarketingDashboard() {
                 </CardContent>
               </Card>
 
-              {/* Right: Active channels */}
+              {/* Right: Active channels as filter buttons */}
               <Card>
                 <CardContent className="p-5 space-y-3">
                   <h3 className="text-sm font-semibold text-foreground mb-2">Canais Ativos</h3>
                   <div className="space-y-2">
-                    {channels.map(ch => (
-                      <div key={ch.id} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className={cn("h-2 w-2 rounded-full", ch.is_active ? "bg-green-500" : "bg-muted-foreground/30")} />
-                          <span className={cn("text-sm", ch.is_active ? "text-foreground font-medium" : "text-muted-foreground")}>{ch.name}</span>
-                        </div>
-                        {isOwner && (
-                          <Switch checked={ch.is_active} onCheckedChange={v => toggleChannel(ch.id, v)} />
-                        )}
+                    {channels.filter(ch => ch.is_active).map(ch => {
+                      const count = contentChannelLinks.filter(l => l.channel_id === ch.id).length;
+                      return (
+                        <Link key={ch.id} to={`/hub/marketing?canal=${ch.id}`}>
+                          <div className="flex items-center justify-between p-2 rounded-md hq-transition hover:bg-muted/60 cursor-pointer group">
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 w-2 rounded-full bg-green-500" />
+                              <span className="text-sm text-foreground font-medium group-hover:text-primary">{ch.name}</span>
+                            </div>
+                            <Badge variant="secondary" className="text-[10px] h-5">{count}</Badge>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                    {channels.filter(ch => !ch.is_active).length > 0 && (
+                      <div className="pt-2 border-t border-border/50">
+                        <p className="text-[11px] text-muted-foreground mb-1.5">Inativos</p>
+                        {channels.filter(ch => !ch.is_active).map(ch => (
+                          <div key={ch.id} className="flex items-center justify-between py-1">
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 w-2 rounded-full bg-muted-foreground/30" />
+                              <span className="text-sm text-muted-foreground">{ch.name}</span>
+                            </div>
+                            {isOwner && (
+                              <Switch checked={false} onCheckedChange={v => toggleChannel(ch.id, v)} />
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
                 </CardContent>
               </Card>
