@@ -135,7 +135,7 @@ export default function ExecutiveRecommendations() {
                     <span className="text-xs text-muted-foreground">Status:</span>
                     <Select
                       value={r.status || 'pending'}
-                      onValueChange={(val) => updateStatus.mutate({ id: r.id, status: val })}
+                      onValueChange={(val) => updateStatus.mutate({ id: r.id, status: val, userId: r.user_id })}
                     >
                       <SelectTrigger className="h-7 w-36 text-xs">
                         <Badge variant={statusVariant(r.status || 'pending')} className="text-[10px]">
