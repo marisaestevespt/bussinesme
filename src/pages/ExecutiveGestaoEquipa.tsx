@@ -320,6 +320,78 @@ function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
   const [dialog, setDialog] = useState<any>(null);
   const [selected, setSelected] = useState<any>(null);
   const allMembers = team.members.data || [];
+  const qc = useQueryClient();
+
+  const handleSave = async ({ member, contract: contractData }: any) => {
+    try {
+      const isNew = !member.id;
+      let memberId = member.id;
+
+      if (isNew) {
+        const memberPayload = { ...member };
+        delete memberPayload.id;
+        const { data, error } = await supabase.from('team_members').insert(memberPayload).select('id').single();
+        if (error) throw error;
+        memberId = data.id;
+      } else {
+        const { error } = await supabase.from('team_members').update(member).eq('id', member.id);
+        if (error) throw error;
+      }
+
+      // Auto-create contract + payments for new members
+      if (isNew && contractData && memberId) {
+        const monthlyVal = parseFloat(contractData.monthly_value) || 0;
+        const paymentDay = parseInt(contractData.payment_day) || 1;
+
+        // Create contract
+        await supabase.from('member_contracts').insert({
+          member_id: memberId,
+          contract_type: contractData.contract_type,
+          start_date: contractData.start_date || null,
+          end_date: contractData.end_date || null,
+          status: contractData.status,
+          monthly_value: monthlyVal,
+          contracted_hours: contractData.contracted_hours || null,
+          payment_day: paymentDay,
+        });
+
+        // Calculate number of payments
+        let numPayments = 0;
+        if (contractData.duration === 'unica') {
+          numPayments = 1;
+        } else if (contractData.duration === 'indefinido') {
+          numPayments = 12;
+        } else {
+          numPayments = parseInt(contractData.duration) || 0;
+        }
+
+        // Create payment entries
+        if (numPayments > 0 && contractData.start_date) {
+          const startDate = new Date(contractData.start_date);
+          const payments = [];
+          for (let i = 0; i < numPayments; i++) {
+            const payMonth = ((startDate.getMonth() + i) % 12) + 1;
+            const payYear = startDate.getFullYear() + Math.floor((startDate.getMonth() + i) / 12);
+            payments.push({
+              member_id: memberId,
+              month: payMonth,
+              year: payYear,
+              gross_value: monthlyVal,
+              net_value: monthlyVal,
+              payment_type: contractData.contract_type === 'contrato_prestacao' ? 'prestacao' : 'salario',
+              status: 'por_pagar',
+            });
+          }
+          await supabase.from('member_payments').insert(payments);
+        }
+      }
+
+      qc.invalidateQueries({ queryKey: ['team'] });
+      toast.success(isNew ? 'Membro criado com contrato e pagamentos!' : 'Membro atualizado');
+    } catch (err: any) {
+      toast.error('Erro ao guardar: ' + (err.message || err));
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -354,7 +426,7 @@ function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
           ))}
         </div>
       )}
-      {dialog !== null && <MemberDialog open onClose={() => setDialog(null)} initial={dialog} onSave={(m: any) => team.upsertMember.mutate(m)} />}
+      {dialog !== null && <MemberDialog open onClose={() => setDialog(null)} initial={dialog} onSave={handleSave} />}
       {selected && <MemberDetailSheet open onClose={() => setSelected(null)} member={selected} team={team} />}
     </div>
   );
