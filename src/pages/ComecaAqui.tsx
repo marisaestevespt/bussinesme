@@ -218,12 +218,19 @@ export default function ComecaAquiPage() {
                   return (
                     <Card key={m.id} className="overflow-hidden hover:shadow-md transition-shadow">
                       <CardContent className="p-5 flex flex-col items-center text-center space-y-2">
-                        <Avatar className="h-16 w-16">
-                          <AvatarImage src={m.photo_url || ''} />
-                          <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                            {getInitials(m.full_name)}
-                          </AvatarFallback>
-                        </Avatar>
+                        <div className="relative">
+                          <Avatar className="h-16 w-16">
+                            <AvatarImage src={m.photo_url || ''} />
+                            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                              {getInitials(m.full_name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span
+                            className={`absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-background ${
+                              isWithinSchedule(m.work_schedule) ? 'bg-green-500' : 'bg-yellow-500'
+                            }`}
+                          />
+                        </div>
                         <p className="font-semibold text-foreground truncate max-w-full">{m.full_name}</p>
                         {m.role_title && (
                           <Badge variant="secondary" className="text-[10px]">{m.role_title}</Badge>
