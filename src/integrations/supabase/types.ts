@@ -432,6 +432,53 @@ export type Database = {
           },
         ]
       }
+      client_offboarding: {
+        Row: {
+          activity: string
+          client_id: string
+          completed: boolean | null
+          created_at: string | null
+          documents_links: string | null
+          id: string
+          phase: string | null
+          responsible: string | null
+          rule: string | null
+          sort_order: number | null
+        }
+        Insert: {
+          activity?: string
+          client_id: string
+          completed?: boolean | null
+          created_at?: string | null
+          documents_links?: string | null
+          id?: string
+          phase?: string | null
+          responsible?: string | null
+          rule?: string | null
+          sort_order?: number | null
+        }
+        Update: {
+          activity?: string
+          client_id?: string
+          completed?: boolean | null
+          created_at?: string | null
+          documents_links?: string | null
+          id?: string
+          phase?: string | null
+          responsible?: string | null
+          rule?: string | null
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_offboarding_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_onboarding: {
         Row: {
           activity: string
@@ -2382,6 +2429,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "product_kpi_reports_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_offboarding_templates: {
+        Row: {
+          activity: string
+          created_at: string | null
+          documents_links: string | null
+          id: string
+          phase: string | null
+          product_id: string
+          responsible: string | null
+          rule: string | null
+          sort_order: number | null
+        }
+        Insert: {
+          activity?: string
+          created_at?: string | null
+          documents_links?: string | null
+          id?: string
+          phase?: string | null
+          product_id: string
+          responsible?: string | null
+          rule?: string | null
+          sort_order?: number | null
+        }
+        Update: {
+          activity?: string
+          created_at?: string | null
+          documents_links?: string | null
+          id?: string
+          phase?: string | null
+          product_id?: string
+          responsible?: string | null
+          rule?: string | null
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_offboarding_templates_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"

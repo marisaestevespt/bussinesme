@@ -189,13 +189,53 @@ export default function ProjetosPage() {
     },
   });
 
+  // Fetch onboarding & offboarding items for client-project progress
+  const { data: allOnboarding = [] } = useQuery({
+    queryKey: ['all-client-onboarding-progress'],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_onboarding' as any).select('client_id,completed');
+      return (data || []) as unknown as { client_id: string; completed: boolean }[];
+    },
+  });
+  const { data: allOffboarding = [] } = useQuery({
+    queryKey: ['all-client-offboarding-progress'],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_offboarding' as any).select('client_id,completed');
+      return (data || []) as unknown as { client_id: string; completed: boolean }[];
+    },
+  });
+  const { data: allClients = [] } = useQuery({
+    queryKey: ['clients-for-progress'],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients' as any).select('id,full_name');
+      return (data || []) as unknown as { id: string; full_name: string }[];
+    },
+  });
+
   const profileMap = new Map(profiles.map(p => [p.id, p]));
+  const clientNameToId = new Map(allClients.map(c => [c.full_name, c.id]));
 
   function getTaskProgress(projectId: string) {
+    const project = projects.find(p => p.id === projectId);
     const projectTasks = allTasks.filter(t => t.project_id === projectId);
-    if (projectTasks.length === 0) return 0;
-    const done = projectTasks.filter(t => t.status === 'concluida').length;
-    return Math.round((done / projectTasks.length) * 100);
+    const tasksDone = projectTasks.filter(t => t.status === 'concluida').length;
+
+    // For client projects, include onboarding/offboarding items
+    let boardingTotal = 0;
+    let boardingDone = 0;
+    if (project?.type === 'clientes' && project.client_name) {
+      const clientId = clientNameToId.get(project.client_name);
+      if (clientId) {
+        const onb = allOnboarding.filter(o => o.client_id === clientId);
+        const offb = allOffboarding.filter(o => o.client_id === clientId);
+        boardingTotal = onb.length + offb.length;
+        boardingDone = onb.filter(o => o.completed).length + offb.filter(o => o.completed).length;
+      }
+    }
+
+    const total = projectTasks.length + boardingTotal;
+    if (total === 0) return 0;
+    return Math.round(((tasksDone + boardingDone) / total) * 100);
   }
 
   const createMutation = useMutation({

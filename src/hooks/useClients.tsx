@@ -58,6 +58,8 @@ export type ClientOnboarding = {
   created_at: string;
 };
 
+export type ClientOffboarding = ClientOnboarding;
+
 export const CLIENT_STATUS_OPTIONS = [
   { value: 'em_onboarding', label: 'Em onboarding' },
   { value: 'ativo', label: 'Ativo' },
@@ -70,6 +72,7 @@ const sb = () => supabase.from('clients' as any) as any;
 const sbHistory = () => supabase.from('client_history' as any) as any;
 const sbActivities = () => supabase.from('client_activities' as any) as any;
 const sbOnboarding = () => supabase.from('client_onboarding' as any) as any;
+const sbOffboarding = () => supabase.from('client_offboarding' as any) as any;
 
 export function useClients() {
   const qc = useQueryClient();
@@ -255,4 +258,46 @@ export function useClientOnboarding(clientId: string | undefined) {
   });
 
   return { onboarding, addEntry, updateEntry, deleteEntry };
+}
+
+export function useClientOffboarding(clientId: string | undefined) {
+  const qc = useQueryClient();
+  const key = ['client_offboarding', clientId];
+
+  const offboarding = useQuery({
+    queryKey: key,
+    queryFn: async () => {
+      if (!clientId) return [];
+      const { data, error } = await sbOffboarding().select('*').eq('client_id', clientId).order('sort_order', { ascending: true });
+      if (error) throw error;
+      return (data || []) as ClientOffboarding[];
+    },
+    enabled: !!clientId,
+  });
+
+  const addEntry = useMutation({
+    mutationFn: async (entry: Partial<ClientOffboarding> & { client_id: string }) => {
+      const { error } = await sbOffboarding().insert(entry);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
+  });
+
+  const updateEntry = useMutation({
+    mutationFn: async ({ id, ...fields }: Partial<ClientOffboarding> & { id: string }) => {
+      const { error } = await sbOffboarding().update(fields).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
+  });
+
+  const deleteEntry = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await sbOffboarding().delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
+  });
+
+  return { offboarding, addEntry, updateEntry, deleteEntry };
 }
