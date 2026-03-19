@@ -185,7 +185,7 @@ export default function ClienteDetailPage() {
           payment_date: payDateStr,
           description: `${product} - Pagamento ${i + 1}/${numPayments}`,
           base_value: installmentRounded,
-          invoice_total: installmentRounded,
+          invoice_total: Math.round(installmentRounded * 1.23 * 100) / 100,
           product,
           client,
           source: null,
@@ -275,7 +275,7 @@ export default function ClienteDetailPage() {
               <Input type="number" step="0.01" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="Ex: 900" />
               {totalValue && form.payment_method && parseInt(form.payment_method) > 1 && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  = {(parseFloat(totalValue) / parseInt(form.payment_method)).toFixed(2)}€ × {form.payment_method}
+                  = {(parseFloat(totalValue) / parseInt(form.payment_method)).toFixed(2)}€ + IVA × {form.payment_method} ({(parseFloat(totalValue) / parseInt(form.payment_method) * 1.23).toFixed(2)}€ c/ IVA)
                 </p>
               )}
             </div>
