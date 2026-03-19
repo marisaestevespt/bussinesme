@@ -281,7 +281,7 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
                     const dev = target > 0 ? actual - target : null;
                     const obj = objectives.find((o: any) => o.id === g.objective_id);
                     return (
-                      <TableRow key={g.id}>
+                      <TableRow key={g.id} className="cursor-pointer hover:bg-muted/60" onClick={() => { const obj = objectives.find((o: any) => o.id === g.objective_id); if (obj) setSelectedObjective(obj); }}>
                         <TableCell>
                           <Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">
                             {planStatusLabel(g.status)}
