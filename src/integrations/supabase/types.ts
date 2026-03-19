@@ -1648,40 +1648,59 @@ export type Database = {
         Row: {
           agreements: string | null
           created_at: string
+          event_id: string | null
           feedback_type: string
           id: string
           member_id: string
           next_session: string | null
           session_date: string
+          session_time: string | null
+          summary: string | null
           to_improve: string | null
+          transcript_url: string | null
           updated_at: string
           went_well: string | null
         }
         Insert: {
           agreements?: string | null
           created_at?: string
+          event_id?: string | null
           feedback_type?: string
           id?: string
           member_id: string
           next_session?: string | null
           session_date: string
+          session_time?: string | null
+          summary?: string | null
           to_improve?: string | null
+          transcript_url?: string | null
           updated_at?: string
           went_well?: string | null
         }
         Update: {
           agreements?: string | null
           created_at?: string
+          event_id?: string | null
           feedback_type?: string
           id?: string
           member_id?: string
           next_session?: string | null
           session_date?: string
+          session_time?: string | null
+          summary?: string | null
           to_improve?: string | null
+          transcript_url?: string | null
           updated_at?: string
           went_well?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "feedback_sessions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "feedback_sessions_member_id_fkey"
             columns: ["member_id"]
