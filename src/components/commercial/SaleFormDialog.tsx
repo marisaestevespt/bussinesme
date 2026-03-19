@@ -118,7 +118,7 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
       product: form.product || null,
       client: form.client || null,
       source: form.source || null,
-      documents: form.documents || null,
+      documents: form.documents ? [{ type: 'link', url: form.documents, name: form.documents }] : [],
     });
   };
 
