@@ -746,6 +746,39 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_ideas: {
+        Row: {
+          category: string
+          channel: string | null
+          content_type: string | null
+          created_at: string
+          created_by: string | null
+          format: string | null
+          id: string
+          idea: string
+        }
+        Insert: {
+          category?: string
+          channel?: string | null
+          content_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          format?: string | null
+          id?: string
+          idea: string
+        }
+        Update: {
+          category?: string
+          channel?: string | null
+          content_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          format?: string | null
+          id?: string
+          idea?: string
+        }
+        Relationships: []
+      }
       marketing_pages: {
         Row: {
           content: string | null
@@ -770,6 +803,33 @@ export type Database = {
           page_key?: string
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      marketing_resource_links: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          label: string
+          sort_order: number
+          url: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          label?: string
+          sort_order?: number
+          url?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          label?: string
+          sort_order?: number
+          url?: string
         }
         Relationships: []
       }
