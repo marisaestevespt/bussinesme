@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { planStatusLabel, planAreaLabel } from '@/hooks/usePlanningData';
-import { format, parseISO, endOfMonth, startOfMonth, getDay, getDaysInMonth } from 'date-fns';
+import { format, parseISO, endOfMonth, startOfMonth, getDay, getDaysInMonth, addMonths, subMonths } from 'date-fns';
+import { pt } from 'date-fns/locale';
 import { MonthDetailView } from './MonthDetailView';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
 import { ObjectiveDialog } from './ObjectiveDialog';
@@ -108,7 +109,7 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
 
   // State
   const [metasView, setMetasView] = useState<'metas' | 'objetivos'>('metas');
-  const [calendarMonthOffset, setCalendarMonthOffset] = useState(0);
+  const [calMonth, setCalMonth] = useState(new Date(year, q.months[0], 1));
   const [selectedMonthIdx, setSelectedMonthIdx] = useState<number | null>(null);
   const [selectedObjective, setSelectedObjective] = useState<any>(null);
   const [objDialogOpen, setObjDialogOpen] = useState(false);
@@ -190,16 +191,47 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
   }, [goals, q]);
 
   // Calendar logic
-  const calendarMonthIdx = q.months[calendarMonthOffset];
-  const calendarDate = new Date(year, calendarMonthIdx, 1);
-  const daysInMonth = getDaysInMonth(calendarDate);
-  const firstDayOfWeek = (getDay(startOfMonth(calendarDate)) + 6) % 7; // Monday = 0
   const allEvents = eventsQ.data || [];
-  const calendarEvents = allEvents.filter((e: any) => {
-    if (!e.start_date) return false;
-    const d = parseISO(e.start_date);
-    return d.getMonth() === calendarMonthIdx && d.getFullYear() === year;
-  });
+
+  function renderCalendarGrid() {
+    const dm = getDaysInMonth(calMonth);
+    const firstDay = (getDay(startOfMonth(calMonth)) + 6) % 7;
+    const dayNames = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+    const monthEvents = allEvents.filter((e: any) => {
+      if (!e.start_date) return false;
+      const d = parseISO(e.start_date);
+      return d.getMonth() === calMonth.getMonth() && d.getFullYear() === calMonth.getFullYear();
+    });
+    const cells: React.ReactNode[] = [];
+    for (let i = 0; i < firstDay; i++) cells.push(<div key={`e-${i}`} />);
+    for (let d = 1; d <= dm; d++) {
+      const dayItems = monthEvents.filter((e: any) => parseISO(e.start_date).getDate() === d);
+      const isToday = d === new Date().getDate() && calMonth.getMonth() === new Date().getMonth() && calMonth.getFullYear() === new Date().getFullYear();
+      cells.push(
+        <div key={d} className={cn('min-h-[60px] border border-border/30 rounded p-1', isToday && 'bg-primary/5 ring-1 ring-primary')}>
+          <span className="text-[10px] font-medium text-muted-foreground">{d}</span>
+          <div className="space-y-0.5 mt-0.5">
+            {dayItems.map((e: any) => (
+              <div key={e.id} className="text-[9px] bg-accent/50 rounded px-1 py-0.5 truncate cursor-pointer hover:bg-accent" onClick={() => navigate('/hub/agenda')}>{e.title}</div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <Button variant="ghost" size="sm" className="h-7" onClick={() => setCalMonth(subMonths(calMonth, 1))}><ChevronLeft className="h-3.5 w-3.5" /></Button>
+          <span className="text-xs font-medium">{format(calMonth, 'MMMM yyyy', { locale: pt })}</span>
+          <Button variant="ghost" size="sm" className="h-7" onClick={() => setCalMonth(addMonths(calMonth, 1))}><ChevronRight className="h-3.5 w-3.5" /></Button>
+        </div>
+        <div className="grid grid-cols-7 gap-0.5">
+          {dayNames.map(dn => <div key={dn} className="text-center text-[10px] font-medium text-muted-foreground py-1">{dn}</div>)}
+          {cells}
+        </div>
+      </div>
+    );
+  }
 
   // If a month is selected, show MonthDetailView
   if (selectedMonthIdx !== null) {
@@ -351,70 +383,15 @@ function QuarterDetail({ qIdx, year, planning, onBack }: { qIdx: number; year: n
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm">Agenda ME & Calendários</CardTitle>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="h-7 w-7" disabled={calendarMonthOffset === 0} onClick={() => setCalendarMonthOffset(v => v - 1)}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="text-sm font-medium min-w-[90px] text-center">{MONTHS[calendarMonthIdx]}</span>
-              <Button variant="ghost" size="icon" className="h-7 w-7" disabled={calendarMonthOffset === 2} onClick={() => setCalendarMonthOffset(v => v + 1)}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
+            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/hub/agenda')}><Plus className="h-3 w-3" /> Novo Evento</Button>
           </div>
         </CardHeader>
         <CardContent>
-          {/* Mini calendar grid */}
-          <div className="grid grid-cols-7 gap-px text-center text-[10px] text-muted-foreground mb-1">
-            {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(d => <div key={d} className="py-1 font-medium">{d}</div>)}
-          </div>
-          <div className="grid grid-cols-7 gap-px">
-            {Array.from({ length: firstDayOfWeek }).map((_, i) => <div key={`e-${i}`} />)}
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const day = i + 1;
-              const dayEvents = calendarEvents.filter((e: any) => parseISO(e.start_date).getDate() === day);
-              const isToday = new Date().getDate() === day && new Date().getMonth() === calendarMonthIdx && new Date().getFullYear() === year;
-              return (
-                <div
-                  key={day}
-                  className={cn(
-                    'h-10 rounded-md text-xs flex flex-col items-center justify-center relative',
-                    isToday && 'bg-primary/10 font-bold',
-                    dayEvents.length > 0 && 'bg-muted/50'
-                  )}
-                >
-                  <span>{day}</span>
-                  {dayEvents.length > 0 && (
-                    <div className="flex gap-0.5 mt-0.5">
-                      {dayEvents.slice(0, 3).map((_, ei) => (
-                        <div key={ei} className="h-1 w-1 rounded-full bg-primary" />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Events list for current calendar month */}
-          {calendarEvents.length > 0 && (
-            <div className="mt-3 space-y-1">
-              {calendarEvents.slice(0, 8).map((e: any) => (
-                <div key={e.id} className="flex items-center gap-2 text-xs py-1 px-2 rounded bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => navigate('/hub/agenda')}>
-                  <Calendar className="h-3 w-3 text-muted-foreground shrink-0" />
-                  <span className="text-muted-foreground">{format(parseISO(e.start_date), 'dd/MM')}</span>
-                  <span className="truncate">{e.title}</span>
-                </div>
-              ))}
-              {calendarEvents.length > 8 && (
-                <p className="text-[10px] text-muted-foreground text-center">+{calendarEvents.length - 8} mais</p>
-              )}
-            </div>
-          )}
-          {calendarEvents.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-2">Sem eventos em {MONTHS[calendarMonthIdx]}.</p>
-          )}
+          {renderCalendarGrid()}
         </CardContent>
       </Card>
+
+
 
       {/* ─── 3. MESES DO NEGÓCIO ─── */}
       <Card>
