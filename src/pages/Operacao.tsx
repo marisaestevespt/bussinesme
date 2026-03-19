@@ -129,6 +129,15 @@ export default function OperacaoPage() {
     },
   });
 
+  // Onboarding items for all clients (for the popup)
+  const { data: allOnboarding = [] } = useQuery({
+    queryKey: ['op-all-onboarding'],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_onboarding' as any).select('client_id,activity,completed,phase').eq('completed', false);
+      return (data || []) as { client_id: string; activity: string; completed: boolean; phase: string | null }[];
+    },
+  });
+
   const { data: projectMembers = [] } = useQuery({
     queryKey: ['op-project-members'],
     queryFn: async () => {
