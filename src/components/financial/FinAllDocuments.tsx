@@ -67,7 +67,7 @@ export function FinAllDocuments() {
       if (!a.date && !b.date) return 0;
       if (!a.date) return 1;
       if (!b.date) return -1;
-      return b.date.localeCompare(a.date);
+      return a.date.localeCompare(b.date);
     });
   }, [com.sales.data, fin.expenses.data]);
 
