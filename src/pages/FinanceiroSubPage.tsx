@@ -50,7 +50,7 @@ export default function FinanceiroSubPage() {
   const renderContent = () => {
     switch (section) {
       case 'mensal':
-        return <FinMensal sales={sales} expenses={expenses} subscriptions={subscriptions} payrollData={payrollData} contractorsData={contractorsData} documents={documents} currentYear={currentYear} />;
+        return <FinMensal sales={sales} expenses={expenses} subscriptions={subscriptions} payrollData={payrollData} contractorsData={contractorsData} documents={documents} currentYear={currentYear} fin={fin} />;
       case 'trimestral':
         return <FinTrimestral sales={sales} expenses={expenses} currentYear={currentYear} />;
       case 'entradas':
