@@ -690,7 +690,12 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
 
       {/* ═══ SECTION 7: Pagamentos ═══ */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Pagamentos de Clientes</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm">Pagamentos de Clientes</CardTitle>
+            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1" onClick={() => navigate('/comercial/vendas')}><Plus className="h-3 w-3" /> Nova Venda</Button>
+          </div>
+        </CardHeader>
         <CardContent>
           <p className="text-[10px] text-muted-foreground mb-2">Recebimentos este mês</p>
           <Table>
