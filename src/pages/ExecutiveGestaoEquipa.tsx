@@ -333,6 +333,7 @@ const DEFAULT_MEMBER_FORM = {
 function MemberDialog({ open, onClose, initial, onSave }: any) {
   const isEdit = !!initial?.id;
   const [f, setF] = useState({ ...DEFAULT_MEMBER_FORM, ...(initial || {}) });
+  const [uploading, setUploading] = useState(false);
   const [contract, setContract] = useState({
     contract_type: 'contrato_trabalho',
     duration: '12',
