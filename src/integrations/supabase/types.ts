@@ -436,6 +436,7 @@ export type Database = {
         Row: {
           activity: string
           client_id: string
+          completed: boolean
           created_at: string
           id: string
           phase: string | null
@@ -446,6 +447,7 @@ export type Database = {
         Insert: {
           activity?: string
           client_id: string
+          completed?: boolean
           created_at?: string
           id?: string
           phase?: string | null
@@ -456,6 +458,7 @@ export type Database = {
         Update: {
           activity?: string
           client_id?: string
+          completed?: boolean
           created_at?: string
           id?: string
           phase?: string | null

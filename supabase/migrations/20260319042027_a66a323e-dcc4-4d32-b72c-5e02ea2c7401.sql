@@ -1,0 +1,1 @@
+ALTER TABLE public.client_onboarding ADD COLUMN completed boolean NOT NULL DEFAULT false;
