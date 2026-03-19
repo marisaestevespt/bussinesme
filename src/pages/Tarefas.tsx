@@ -325,6 +325,7 @@ export default function TarefasPage() {
     return null;
   }, [assignedTo, estimatedTime, deadline, tasks, teamMembers, profiles, editingTask]);
 
+  function closeDialog() {
     setDialogOpen(false);
     setEditingTask(null);
   }
