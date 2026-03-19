@@ -618,7 +618,10 @@ export default function ProjetoDetailPage() {
         {/* Section 2: Estado e Prioridades */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Estado e Prioridades</h3>
+            <div className="flex items-center gap-3">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Estado e Prioridades</h3>
+              <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
+            </div>
             <div className="flex gap-2">
               <Button size="sm" variant="outline" className="gap-1.5 h-8" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
               <Button size="sm" variant="outline" className="gap-1.5 h-8" onClick={() => setMeetingDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Reunião</Button>
