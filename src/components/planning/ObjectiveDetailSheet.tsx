@@ -209,27 +209,6 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
 
-  const monthlyGoals = goals.filter((g: any) => MONTHS.includes(g.period));
-
-  const quarterlyRows = Object.entries(QUARTER_MAP).map(([quarter, months]) => {
-    const monthGoals = monthlyGoals.filter((g: any) => months.includes(g.period));
-    if (monthGoals.length === 0) return null;
-    const targetSum = monthGoals.reduce((s: number, g: any) => s + Number(g.target_value || 0), 0);
-    const actualSum = monthGoals.reduce((s: number, g: any) => s + Number(g.actual_value || 0), 0);
-    const allDone = monthGoals.length === 3 && monthGoals.every((g: any) => g.status === 'atingido');
-    const anyStarted = monthGoals.some((g: any) => g.status === 'em_curso' || g.status === 'atingido');
-    return {
-      period: quarter, target_value: targetSum, actual_value: actualSum, deviation: actualSum - targetSum,
-      status: allDone ? 'atingido' : anyStarted ? 'em_curso' : 'por_iniciar', isQuarter: true, count: monthGoals.length,
-    };
-  }).filter(Boolean);
-
-  const handleSave = () => {
-    planning.upsertGoal.mutate({ ...form, objective_id: objectiveId });
-    setDialogOpen(false);
-    setForm({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
-  };
-
   const [editGoal, setEditGoal] = useState<any>(null);
   const [editForm, setEditForm] = useState({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
 
