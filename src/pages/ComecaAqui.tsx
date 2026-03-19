@@ -97,11 +97,7 @@ export default function ComecaAquiPage() {
     <AppLayout>
       <div className="flex flex-col min-h-screen">
         {/* Cover */}
-        <div className="w-full py-16 px-6 flex items-center justify-center" style={{ background: `hsl(var(--primary))` }}>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: `hsl(var(--primary-foreground))` }}>
-            Começa Aqui
-          </h1>
-        </div>
+        <PageHeader title="Começa Aqui" />
 
         <div className="max-w-4xl mx-auto w-full px-4 py-10 space-y-12">
           {/* Welcome text */}
