@@ -316,6 +316,7 @@ const DEFAULT_MEMBER_FORM = {
   full_name: '',
   role_title: '',
   role_color: '#6366f1',
+  photo_url: '',
   email: '',
   whatsapp: '',
   work_schedule: '',
@@ -332,6 +333,7 @@ const DEFAULT_MEMBER_FORM = {
 function MemberDialog({ open, onClose, initial, onSave }: any) {
   const isEdit = !!initial?.id;
   const [f, setF] = useState({ ...DEFAULT_MEMBER_FORM, ...(initial || {}) });
+  const [uploading, setUploading] = useState(false);
   const [contract, setContract] = useState({
     contract_type: 'contrato_trabalho',
     duration: '12',
@@ -373,8 +375,39 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{isEdit ? 'Editar Membro' : 'Novo Membro'}</DialogTitle></DialogHeader>
         <div className="space-y-4">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Informação Pessoal</h3>
-          <Input placeholder="Nome completo *" value={f.full_name} onChange={e => set('full_name', e.target.value)} />
+          {/* Photo upload */}
+          <div className="flex items-center gap-4">
+            <div className="relative group">
+              <Avatar className="h-16 w-16">
+                <AvatarImage src={f.photo_url || undefined} />
+                <AvatarFallback className="text-lg">{f.full_name ? f.full_name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() : '?'}</AvatarFallback>
+              </Avatar>
+              <label className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                <Upload className="h-4 w-4 text-white" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setUploading(true);
+                    const ext = file.name.split('.').pop();
+                    const path = `team/${Date.now()}.${ext}`;
+                    const { error } = await supabase.storage.from('personal-images').upload(path, file);
+                    if (error) { toast.error('Erro ao carregar foto'); setUploading(false); return; }
+                    const { data: urlData } = supabase.storage.from('personal-images').getPublicUrl(path);
+                    set('photo_url', urlData.publicUrl);
+                    setUploading(false);
+                  }}
+                />
+              </label>
+              {uploading && <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full"><span className="text-[10px] text-white">...</span></div>}
+            </div>
+            <div className="flex-1">
+              <Input placeholder="Nome completo *" value={f.full_name} onChange={e => set('full_name', e.target.value)} />
+            </div>
+          </div>
           <div className="space-y-1.5">
             <span className="text-xs text-muted-foreground font-medium">Função</span>
             <div className="flex gap-2 items-center">
@@ -547,7 +580,15 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
   return (
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
-        <SheetHeader><SheetTitle>{member.full_name}</SheetTitle></SheetHeader>
+        <SheetHeader>
+          <div className="flex items-center gap-3">
+            <Avatar className="h-12 w-12">
+              <AvatarImage src={(member as any).photo_url || undefined} />
+              <AvatarFallback>{member.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <SheetTitle>{member.full_name}</SheetTitle>
+          </div>
+        </SheetHeader>
         <div className="space-y-4 mt-4">
           {/* Header badges */}
           <div className="flex gap-2 flex-wrap">
@@ -984,6 +1025,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
                   <CardContent className="p-4 space-y-3">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
+                        <AvatarImage src={m.photo_url || undefined} />
                         <AvatarFallback className="text-xs font-semibold">{getInitials(m.full_name)}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">

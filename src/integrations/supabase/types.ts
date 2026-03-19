@@ -4740,6 +4740,7 @@ export type Database = {
           id: string
           identification: string | null
           member_type: string
+          photo_url: string | null
           presentation: string | null
           profile_id: string | null
           responsibilities: string | null
@@ -4760,6 +4761,7 @@ export type Database = {
           id?: string
           identification?: string | null
           member_type?: string
+          photo_url?: string | null
           presentation?: string | null
           profile_id?: string | null
           responsibilities?: string | null
@@ -4780,6 +4782,7 @@ export type Database = {
           id?: string
           identification?: string | null
           member_type?: string
+          photo_url?: string | null
           presentation?: string | null
           profile_id?: string | null
           responsibilities?: string | null
