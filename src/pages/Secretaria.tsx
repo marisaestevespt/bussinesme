@@ -312,47 +312,6 @@ export default function SecretariaPage() {
   );
 }
 
-          {/* TAB 2 — AS MINHAS TAREFAS */}
-          <TabsContent value="tarefas">
-            <MinhasTarefasTab tasks={tasks.data || []} getProjectName={getProjectName} qc={qc} userId={user?.id} />
-          </TabsContent>
-
-          {/* TAB 3 — OS MEUS PROJETOS */}
-          <TabsContent value="projetos">
-            <MeusProjetosTab projects={projects.data || []} />
-          </TabsContent>
-
-          {/* TAB 4 — AS MINHAS REUNIÕES */}
-          <TabsContent value="reunioes">
-            <MinhasReunioesTab meetings={meetings.data || []} profiles={allProfiles.data || []} />
-          </TabsContent>
-
-          {/* TAB 5 — A MINHA PRODUTIVIDADE */}
-          <TabsContent value="produtividade">
-            <MinhaProdutividadeTab
-              tasks={tasks.data || []}
-              timeEntries={timeEntries.data || []}
-              teamMember={teamMember.data}
-              allProjects={allProjects.data || []}
-              qc={qc}
-              userId={user?.id}
-            />
-          </TabsContent>
-
-          {/* TAB 6 — O MEU CONTRATO & PAGAMENTOS */}
-          <TabsContent value="contrato">
-            <MeuContratoTab teamMember={teamMember.data} />
-          </TabsContent>
-
-          {/* TAB 7 — O MEU ESPAÇO */}
-          <TabsContent value="espaco">
-            <MeuEspacoTab userId={user?.id} teamMember={teamMember.data} />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </AppLayout>
-  );
-}
 
 // ═══════════════════════════════════════════════════════════════
 // TAB 1 — O MEU DIA
