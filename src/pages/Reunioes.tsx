@@ -378,7 +378,7 @@ export default function ReunioesPage() {
           </p>
         ) : (
           <div className="border rounded-lg overflow-hidden divide-y divide-border">
-            <div className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-muted text-xs font-medium text-muted-foreground">
+            <div className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-primary text-xs font-medium text-primary-foreground rounded-t-lg">
               <div className="col-span-4">Reunião</div>
               <div className="col-span-3">Data / Hora</div>
               <div className="col-span-2">Status</div>
