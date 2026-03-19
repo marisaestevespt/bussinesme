@@ -363,7 +363,7 @@ export default function ProjetosPage() {
 
 // ─── Table View ─────────────────────────────────────────────────
 
-function TableView({ projects, getMembersForProject, onOpen, onStatusChange }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; onStatusChange: (id: string, status: string) => void }) {
+function TableView({ projects, getMembersForProject, onOpen, onStatusChange, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; onStatusChange: (id: string, status: string) => void; getTaskProgress: (id: string) => number }) {
   return (
     <div className="rounded-lg border">
       <Table>
