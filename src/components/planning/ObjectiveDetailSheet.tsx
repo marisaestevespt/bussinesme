@@ -332,13 +332,19 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
   const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60' });
   const [recordForm, setRecordForm] = useState({ value: '', notes: '', recorded_at: format(new Date(), 'yyyy-MM-dd') });
 
-  const handleSave = () => {
-    planning.upsertMetric.mutate({ ...form, target_value: form.target_value ? Number(form.target_value) : null, green_threshold: Number(form.green_threshold), yellow_threshold: Number(form.yellow_threshold), objective_id: objectiveId });
-    setDialogOpen(false);
-    setForm({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60' });
-  };
+  const [editMetric, setEditMetric] = useState<any>(null);
+  const [editMetricForm, setEditMetricForm] = useState<any>({});
 
-  const getMetricStatus = (m: any) => {
+  useEffect(() => {
+    if (editMetric) {
+      setEditMetricForm({
+        name: editMetric.name || '', cadence: editMetric.cadence || 'mensal', source: editMetric.source || 'manual',
+        current_value: editMetric.current_value || '', target_value: editMetric.target_value || '',
+        target_unit: editMetric.target_unit || '', green_threshold: editMetric.green_threshold ?? 90,
+        yellow_threshold: editMetric.yellow_threshold ?? 60,
+      });
+    }
+  }, [editMetric]);
     const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source) : null;
     const current = m.source === 'manual' ? Number(m.current_value || 0) : Number(autoVal || 0);
     const target = Number(m.target_value || 0);
