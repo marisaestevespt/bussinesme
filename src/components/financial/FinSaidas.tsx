@@ -377,8 +377,18 @@ export function FinSaidas({ fin }: Props) {
             <div><Label>Categoria</Label>
               <CategorySelect type="subscription" value={subForm.category || 'outro'} onValueChange={v => setSubForm((f: any) => ({ ...f, category: v }))} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label>Valor (€)</Label><Input type="number" step="0.01" value={subForm.value || ''} onChange={e => setSubForm((f: any) => ({ ...f, value: e.target.value }))} /></div>
+            <div className="flex items-center gap-2 py-1">
+              <Switch checked={subForm.includes_vat || false} onCheckedChange={v => setSubForm((f: any) => ({ ...f, includes_vat: v }))} />
+              <Label className="text-sm font-normal">Valor inclui IVA</Label>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div><Label>{subForm.includes_vat ? 'Valor c/ IVA (€)' : 'Valor (€)'}</Label><Input type="number" step="0.01" value={subForm.value || ''} onChange={e => setSubForm((f: any) => ({ ...f, value: e.target.value }))} /></div>
+              <div><Label>IVA (%)</Label>
+                <Select value={String(subForm.vat_rate ?? 0)} onValueChange={v => setSubForm((f: any) => ({ ...f, vat_rate: parseInt(v) }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{VAT_OPTIONS.map(v => <SelectItem key={v} value={String(v)}>{v}%</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
               <div><Label>Periodicidade</Label>
                 <Select value={subForm.periodicity || 'mensal'} onValueChange={v => setSubForm((f: any) => ({ ...f, periodicity: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -386,6 +396,14 @@ export function FinSaidas({ fin }: Props) {
                 </Select>
               </div>
             </div>
+            {subForm.value && parseFloat(subForm.value) > 0 && (subForm.vat_rate ?? 0) > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {subForm.includes_vat
+                  ? `Base: ${(parseFloat(subForm.value) / (1 + (subForm.vat_rate ?? 0) / 100)).toFixed(2)} € · IVA: ${(parseFloat(subForm.value) - parseFloat(subForm.value) / (1 + (subForm.vat_rate ?? 0) / 100)).toFixed(2)} €`
+                  : `Total c/ IVA: ${(parseFloat(subForm.value) * (1 + (subForm.vat_rate ?? 0) / 100)).toFixed(2)} € · IVA: ${(parseFloat(subForm.value) * (subForm.vat_rate ?? 0) / 100).toFixed(2)} €`
+                }
+              </p>
+            )}
             <div><Label>Localização</Label>
               <Select value={subForm.location || 'portugal'} onValueChange={v => setSubForm((f: any) => ({ ...f, location: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
