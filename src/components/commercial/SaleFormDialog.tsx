@@ -77,6 +77,33 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
     enabled: !!clientName && open,
   });
 
+  // Fetch product VAT rate
+  const productName = form.product;
+  const productInfo = useQuery({
+    queryKey: ['product-vat', productName],
+    queryFn: async () => {
+      if (!productName) return null;
+      const { data } = await supabase.from('products').select('vat_rate').eq('name', productName).maybeSingle();
+      return data;
+    },
+    enabled: !!productName && open,
+  });
+
+  const getVatMultiplier = () => {
+    const rate = productInfo.data?.vat_rate;
+    if (!rate || rate === 'isento') return 1;
+    return 1 + parseFloat(rate) / 100;
+  };
+
+  // Auto-calculate invoice_total when base_value or product VAT changes
+  useEffect(() => {
+    if (form.base_value) {
+      const base = parseFloat(form.base_value) || 0;
+      const total = Math.round(base * getVatMultiplier() * 100) / 100;
+      setForm(f => ({ ...f, invoice_total: total.toString() }));
+    }
+  }, [form.base_value, productInfo.data?.vat_rate]);
+
   const handleSave = () => {
     onSave({
       ...(form.id ? { id: form.id } : {}),
