@@ -158,49 +158,6 @@ export default function HubEquipaPage() {
   );
 }
 
-// ─── Quick Links ──────────────────────────────────────────────────
-
-function QuickLinks() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
-  // Mural novelty count (last 30 days)
-  const { data: muralCount } = useQuery({
-    queryKey: ['mural-novelty-count'],
-    queryFn: async () => {
-      const since = subDays(new Date(), 30).toISOString();
-      const { count } = await supabase
-        .from('mural_posts')
-        .select('id', { count: 'exact', head: true })
-        .gte('created_at', since);
-      return count || 0;
-    },
-  });
-
-  const shortcuts = [
-    { label: 'Secretária', action: () => navigate('/secretaria') },
-    {
-      label: 'Mural',
-      badge: muralCount && muralCount > 0 ? `${muralCount} novidade${muralCount > 1 ? 's' : ''}` : undefined,
-      action: () => navigate('/hub/mural'),
-    },
-    { label: 'Nova Tarefa', icon: Plus, action: () => navigate('/hub/tarefas') },
-    { label: 'Nova Reunião', icon: Plus, action: () => navigate('/hub/reunioes') },
-    { label: 'Novo Projeto', icon: Plus, action: () => navigate('/hub/projetos') },
-  ];
-
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      {shortcuts.map(s => (
-        <Button key={s.label} variant="outline" size="sm" className="gap-1.5" onClick={s.action}>
-          {s.icon && <s.icon className="h-3.5 w-3.5" />}
-          {s.label}
-          {s.badge && <Badge variant="secondary" className="ml-1 text-[10px]">{s.badge}</Badge>}
-        </Button>
-      ))}
-    </div>
-  );
-}
 
 // ─── Quick Summary ──────────────────────────────────────────────────
 
