@@ -175,6 +175,14 @@ export default function TarefasPage() {
       toast.error('Preenche o nome e o prazo');
       return;
     }
+    // Block saving "Done" after deadline without notes
+    const isChangingToDone = status === 'done' && editingTask?.status !== 'done';
+    const deadlineDate = startOfDay(deadline);
+    const now = new Date();
+    if (isChangingToDone && isBefore(deadlineDate, startOfDay(now)) && !notes?.trim()) {
+      toast.error('Esta tarefa está atrasada. Indica nas notas o motivo do atraso antes de concluir.');
+      return;
+    }
     const payload: any = {
       name: name.trim(),
       status,
@@ -185,8 +193,7 @@ export default function TarefasPage() {
       project_id: projectId && projectId !== 'none' ? projectId : null,
       notes: notes || null,
     };
-    // When changing to done, store completion time in updated_at
-    if (status === 'done' && editingTask?.status !== 'done') {
+    if (isChangingToDone) {
       payload.updated_at = new Date().toISOString();
     }
     upsertTask.mutate(payload);
