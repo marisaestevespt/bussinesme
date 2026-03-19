@@ -6,7 +6,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useExecutiveData, SALES_ROUTINES, getMonthName, areaLabel, statusLabel } from '@/hooks/useExecutiveData';
+import { useExecutiveData, SALES_ROUTINES, getMonthName } from '@/hooks/useExecutiveData';
+import { usePlanningData, planStatusLabel, CADENCES } from '@/hooks/usePlanningData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfWeek, endOfWeek, format, subDays, addDays, parseISO, differenceInDays } from 'date-fns';
@@ -24,10 +25,11 @@ const weekEndStr = format(weekEnd, 'yyyy-MM-dd');
 const monthStart = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
 const monthEnd = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${new Date(currentYear, currentMonth, 0).getDate()}`;
 
+const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
 export default function ExecutiveWeeklyAlign() {
   const exec = useExecutiveData(currentYear);
-  const monthGoals = exec.goalsForMonth(currentMonth);
-  const monthProg = exec.monthProgress(currentMonth);
+  const planning = usePlanningData(currentYear);
 
   // Detail sheet state
   const [detailOpen, setDetailOpen] = useState(false);
