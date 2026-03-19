@@ -530,23 +530,43 @@ function ActionsSection({ objectiveId, actions, planning }: any) {
           <TableHeader><TableRow>
             <TableHead>Descrição</TableHead><TableHead>Tipo</TableHead><TableHead>Status</TableHead><TableHead>Deadline</TableHead><TableHead></TableHead>
           </TableRow></TableHeader>
-          <TableBody>{actions.map((a: any) => (
-            <TableRow key={a.id}>
-              <TableCell className="text-sm">{a.description}</TableCell>
-              <TableCell className="text-xs">{a.action_type === 'tarefa' ? 'Tarefa' : 'Ação Simples'}</TableCell>
-              <TableCell><Badge variant={a.status === 'feito' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(a.status)}</Badge></TableCell>
-              <TableCell className="text-xs">{a.deadline || '—'}</TableCell>
-              <TableCell className="flex gap-1">
-                {a.action_type !== 'tarefa' && !a.task_id && (
-                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => planning.convertActionToTask.mutate(a)}>
-                    <ListTodo className="h-3 w-3 mr-1" /> Converter em Tarefa
-                  </Button>
-                )}
-                {a.task_id && <Badge variant="outline" className="text-[10px]">Tarefa criada</Badge>}
-                <button onClick={() => planning.deleteAction.mutate(a.id)}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
-              </TableCell>
-            </TableRow>
-          ))}</TableBody>
+          <TableBody>{actions.map((a: any) => {
+            const updateAction = (field: string, value: any) => planning.upsertAction.mutate({ id: a.id, objective_id: objectiveId, [field]: value });
+            return (
+              <TableRow key={a.id}>
+                <TableCell>
+                  <Input className="h-7 w-full text-xs" defaultValue={a.description} onBlur={e => { if (e.target.value !== a.description) updateAction('description', e.target.value); }} />
+                </TableCell>
+                <TableCell>
+                  <Select defaultValue={a.action_type} onValueChange={v => updateAction('action_type', v)}>
+                    <SelectTrigger className="h-7 w-[110px] text-[10px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="simples">Ação Simples</SelectItem>
+                      <SelectItem value="tarefa">Tarefa</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell>
+                  <Select defaultValue={a.status} onValueChange={v => updateAction('status', v)}>
+                    <SelectTrigger className="h-7 w-[100px] text-[10px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>{ACTION_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell>
+                  <Input type="date" className="h-7 w-[130px] text-xs" defaultValue={a.deadline || ''} onBlur={e => { if (e.target.value !== (a.deadline || '')) updateAction('deadline', e.target.value); }} />
+                </TableCell>
+                <TableCell className="flex gap-1">
+                  {a.action_type !== 'tarefa' && !a.task_id && (
+                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => planning.convertActionToTask.mutate(a)}>
+                      <ListTodo className="h-3 w-3 mr-1" /> Tarefa
+                    </Button>
+                  )}
+                  {a.task_id && <Badge variant="outline" className="text-[10px]">Tarefa criada</Badge>}
+                  <button onClick={() => planning.deleteAction.mutate(a.id)}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
+                </TableCell>
+              </TableRow>
+            );
+          })}</TableBody>
         </Table>
       )}
 
