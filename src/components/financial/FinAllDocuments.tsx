@@ -143,37 +143,6 @@ export function FinAllDocuments() {
         </div>
       </Card>
 
-      {/* Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Card className="p-4 flex items-center gap-3">
-          <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-            <ArrowDownLeft className="h-4 w-4 text-emerald-600" />
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Entradas ({filtered.filter(d => d.type === 'entrada').length})</p>
-            <p className="text-sm font-bold text-emerald-600">{fmt(totalEntradas)}</p>
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center gap-3">
-          <div className="h-9 w-9 rounded-lg bg-red-500/10 flex items-center justify-center">
-            <ArrowUpRight className="h-4 w-4 text-red-600" />
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Saídas ({filtered.filter(d => d.type === 'saida').length})</p>
-            <p className="text-sm font-bold text-red-600">{fmt(totalSaidas)}</p>
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center gap-3">
-          <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-            <span className="text-xs font-bold text-primary">Σ</span>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Total documentos</p>
-            <p className="text-sm font-bold">{filtered.length}</p>
-          </div>
-        </Card>
-      </div>
-
       {/* Table */}
       <Card>
         <div className="overflow-x-auto">
