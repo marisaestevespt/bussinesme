@@ -185,7 +185,66 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
         </CardContent>
       </Card>
 
-      {/* New Sale Dialog */}
+      {/* IVA Balance */}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Balanço IVA — {MONTHS[m - 1]}</CardTitle></CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4 text-sm">
+            <div><p className="text-muted-foreground">IVA Cobrado (vendas)</p><p className="font-semibold">{fmt(ivaCobrado)}</p></div>
+            <div><p className="text-muted-foreground">IVA Pago (despesas)</p><p className="font-semibold">{fmt(ivaPago)}</p></div>
+            <div>
+              <p className="text-muted-foreground">Balanço</p>
+              <p className={`font-semibold ${ivaBalanco > 0 ? 'text-amber-600' : ivaBalanco < 0 ? 'text-green-600' : ''}`}>
+                {fmt(ivaBalanco)}
+                {ivaBalanco > 0 && <Badge variant="outline" className="ml-2 bg-amber-100 text-amber-800 text-[10px]">A entregar</Badge>}
+                {ivaBalanco < 0 && <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 text-[10px]">A recuperar</Badge>}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Segurança Social */}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Segurança Social — {MONTHS[m - 1]}</CardTitle></CardHeader>
+        <CardContent>
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <Label className="text-xs text-muted-foreground">Valor pago de SS neste mês (€)</Label>
+              <Input
+                type="number"
+                placeholder="0.00"
+                value={ssValue}
+                onChange={e => setSsValue(e.target.value)}
+              />
+            </div>
+            <Button size="sm" onClick={async () => {
+              const val = parseFloat(ssValue) || 0;
+              const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-15`;
+              if (ssExpense) {
+                await fin.upsertExpense.mutateAsync({ id: ssExpense.id, total_with_vat: val, base_value: val, description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}` } as any);
+              } else if (val > 0) {
+                await fin.upsertExpense.mutateAsync({
+                  description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}`,
+                  category: 'seguranca_social',
+                  base_value: val,
+                  vat_rate: 0,
+                  total_with_vat: val,
+                  location: 'portugal',
+                  expense_date: dateStr,
+                  expense_month: m,
+                  expense_quarter: Math.ceil(m / 3),
+                  expense_year: currentYear,
+                  status: 'pago',
+                } as any);
+              }
+              toast.success('Segurança Social guardada');
+            }}>Guardar</Button>
+          </div>
+          {ssExpense && <p className="text-xs text-muted-foreground mt-2">Registado: {fmt(ssExpense.total_with_vat)}</p>}
+        </CardContent>
+      </Card>
+
       <Dialog open={saleOpen} onOpenChange={setSaleOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Nova Entrada — {MONTHS[m - 1]} {currentYear}</DialogTitle></DialogHeader>
