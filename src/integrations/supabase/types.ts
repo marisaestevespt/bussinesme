@@ -4943,6 +4943,62 @@ export type Database = {
           },
         ]
       }
+      training_courses: {
+        Row: {
+          contract_url: string | null
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          contract_url?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          contract_url?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      training_doubts: {
+        Row: {
+          course_id: string
+          created_at: string
+          doubt: string
+          doubt_date: string
+          id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          doubt: string
+          doubt_date?: string
+          id?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          doubt?: string
+          doubt_date?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_doubts_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string

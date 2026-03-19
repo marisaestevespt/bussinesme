@@ -9,12 +9,15 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, BookOpen, Lightbulb, Link2 } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Textarea } from '@/components/ui/textarea';
+import { Plus, Trash2, BookOpen, Lightbulb, Link2, ExternalLink, ChevronRight } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { format } from 'date-fns';
+import { pt } from 'date-fns/locale';
 
 const CONTEXTS = [
   { value: 'conteudos', label: 'Conteúdos' },
@@ -47,7 +50,7 @@ export default function ExecutiveInnovation() {
           </TabsList>
 
           <TabsContent value="estudos">
-            <DocEditor docKey="estudos" placeholder="Regista formações em curso, livros, cursos, aprendizagens..." />
+            <TrainingCoursesTable />
           </TabsContent>
 
           <TabsContent value="implementar">
@@ -62,6 +65,190 @@ export default function ExecutiveInnovation() {
     </AppLayout>
   );
 }
+
+/* ─── Estudos & Formações ─── */
+
+function TrainingCoursesTable() {
+  const qc = useQueryClient();
+  const [newName, setNewName] = useState('');
+  const [newContract, setNewContract] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
+
+  const courses = useQuery({
+    queryKey: ['training_courses'],
+    queryFn: async () => {
+      const { data } = await supabase.from('training_courses').select('*').order('created_at', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const addCourse = useMutation({
+    mutationFn: async () => {
+      if (!newName.trim()) return;
+      await supabase.from('training_courses').insert({ name: newName.trim(), contract_url: newContract.trim() || null });
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['training_courses'] }); setNewName(''); setNewContract(''); toast.success('Formação adicionada'); },
+  });
+
+  const deleteCourse = useMutation({
+    mutationFn: async (id: string) => { await supabase.from('training_courses').delete().eq('id', id); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['training_courses'] }); toast.success('Removida'); },
+  });
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex gap-2 items-end flex-wrap">
+            <div className="flex-1 min-w-[200px]">
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Nome da formação</label>
+              <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Ex: Curso de Marketing Digital" className="h-8 text-sm" onKeyDown={e => e.key === 'Enter' && addCourse.mutate()} />
+            </div>
+            <div className="flex-1 min-w-[200px]">
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Contrato (URL)</label>
+              <Input value={newContract} onChange={e => setNewContract(e.target.value)} placeholder="https://..." className="h-8 text-sm" />
+            </div>
+            <Button size="sm" onClick={() => addCourse.mutate()} disabled={!newName.trim()} className="h-8"><Plus className="h-3 w-3 mr-1" /> Adicionar</Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome da formação</TableHead>
+                <TableHead className="w-32">Contrato</TableHead>
+                <TableHead className="w-10"></TableHead>
+                <TableHead className="w-10"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(courses.data || []).length === 0 ? (
+                <TableRow><TableCell colSpan={4} className="text-center text-sm text-muted-foreground py-8">Sem formações registadas</TableCell></TableRow>
+              ) : (courses.data || []).map((c: any) => (
+                <TableRow key={c.id} className="cursor-pointer hover:bg-accent/50" onClick={() => setSelectedCourse(c)}>
+                  <TableCell className="text-sm font-medium">{c.name}</TableCell>
+                  <TableCell>
+                    {c.contract_url ? (
+                      <a href={c.contract_url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-primary hover:underline inline-flex items-center gap-1 text-xs">
+                        <ExternalLink className="h-3 w-3" /> Ver
+                      </a>
+                    ) : <span className="text-xs text-muted-foreground">—</span>}
+                  </TableCell>
+                  <TableCell>
+                    <button onClick={e => { e.stopPropagation(); deleteCourse.mutate(c.id); }} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
+                  </TableCell>
+                  <TableCell><ChevronRight className="h-4 w-4 text-muted-foreground" /></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {selectedCourse && (
+        <CourseDetailSheet course={selectedCourse} open onClose={() => setSelectedCourse(null)} />
+      )}
+    </div>
+  );
+}
+
+/* ─── Course Detail Sheet (Dúvidas) ─── */
+
+function CourseDetailSheet({ course, open, onClose }: { course: any; open: boolean; onClose: () => void }) {
+  const qc = useQueryClient();
+  const [newDoubt, setNewDoubt] = useState('');
+  const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
+
+  const doubts = useQuery({
+    queryKey: ['training_doubts', course.id],
+    queryFn: async () => {
+      const { data } = await supabase.from('training_doubts').select('*').eq('course_id', course.id).order('doubt_date', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const addDoubt = useMutation({
+    mutationFn: async () => {
+      if (!newDoubt.trim()) return;
+      await supabase.from('training_doubts').insert({ course_id: course.id, doubt: newDoubt.trim(), doubt_date: newDate });
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['training_doubts', course.id] }); setNewDoubt(''); toast.success('Dúvida adicionada'); },
+  });
+
+  const deleteDoubt = useMutation({
+    mutationFn: async (id: string) => { await supabase.from('training_doubts').delete().eq('id', id); },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['training_doubts', course.id] }),
+  });
+
+  // Group doubts by date
+  const groupedByDate = (doubts.data || []).reduce((acc: Record<string, any[]>, d: any) => {
+    const key = d.doubt_date;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(d);
+    return acc;
+  }, {});
+
+  const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
+
+  return (
+    <Sheet open={open} onOpenChange={v => !v && onClose()}>
+      <SheetContent className="sm:max-w-lg overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle className="text-lg">{course.name}</SheetTitle>
+          {course.contract_url && (
+            <a href={course.contract_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline inline-flex items-center gap-1">
+              <ExternalLink className="h-3 w-3" /> Ver contrato
+            </a>
+          )}
+        </SheetHeader>
+
+        <div className="mt-6 space-y-6">
+          {/* Add doubt */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold">Adicionar dúvida</h3>
+            <Input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="h-8 text-sm w-40" />
+            <Textarea value={newDoubt} onChange={e => setNewDoubt(e.target.value)} placeholder="Escreve a dúvida..." className="min-h-[60px] text-sm" />
+            <Button size="sm" onClick={() => addDoubt.mutate()} disabled={!newDoubt.trim()} className="gap-1.5">
+              <Plus className="h-3 w-3" /> Adicionar
+            </Button>
+          </div>
+
+          {/* Doubts grouped by date */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold">Dúvidas</h3>
+            {sortedDates.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-4">Sem dúvidas registadas</p>
+            ) : sortedDates.map(date => (
+              <Card key={date}>
+                <CardContent className="p-4 space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {format(new Date(date + 'T00:00:00'), "d 'de' MMMM yyyy", { locale: pt })}
+                  </p>
+                  <ul className="space-y-1.5">
+                    {groupedByDate[date].map((d: any) => (
+                      <li key={d.id} className="flex items-start gap-2 group text-sm">
+                        <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                        <span className="flex-1">{d.doubt}</span>
+                        <button onClick={() => deleteDoubt.mutate(d.id)} className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-0.5">
+                          <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+/* ─── DocEditor (unchanged) ─── */
 
 function DocEditor({ docKey, placeholder }: { docKey: string; placeholder: string }) {
   const qc = useQueryClient();
@@ -98,6 +285,8 @@ function DocEditor({ docKey, placeholder }: { docKey: string; placeholder: strin
     </Card>
   );
 }
+
+/* ─── IdeasTable (unchanged) ─── */
 
 function IdeasTable() {
   const qc = useQueryClient();
@@ -150,7 +339,6 @@ function IdeasTable() {
 
   return (
     <div className="space-y-4">
-      {/* Add new idea */}
       <Card>
         <CardContent className="p-4">
           <div className="flex gap-2 items-end flex-wrap">
@@ -177,7 +365,6 @@ function IdeasTable() {
         </CardContent>
       </Card>
 
-      {/* Ideas table */}
       <Card>
         <CardContent className="p-0">
           <Table>
