@@ -178,7 +178,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
       {/* Entradas */}
       <Card>
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-sm">Entradas — {MONTHS[m - 1]}</CardTitle>
+          <CardTitle className="text-sm">Entradas</CardTitle>
           <Button size="sm" variant="outline" onClick={() => setSaleOpen(true)}><Plus className="h-3.5 w-3.5 mr-1" /> Nova Entrada</Button>
         </CardHeader>
         <CardContent className="p-0">
