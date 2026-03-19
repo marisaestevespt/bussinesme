@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Plus, CalendarIcon, Check, FileText } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -122,13 +123,20 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
 
   // Expense dialog
   const [expOpen, setExpOpen] = useState(false);
-  const [expForm, setExpForm] = useState<any>({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [] });
+  const [expForm, setExpForm] = useState<any>({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [], includes_vat: false });
 
   const saveExpense = async () => {
-    if (!expForm.base_value) { toast.error('Valor base é obrigatório'); return; }
-    const base = parseFloat(expForm.base_value) || 0;
+    if (!expForm.base_value) { toast.error('Valor é obrigatório'); return; }
+    const inputValue = parseFloat(expForm.base_value) || 0;
     const vat = parseInt(expForm.vat_rate) || 0;
-    const total = Math.round(base * (1 + vat / 100) * 100) / 100;
+    let base: number, total: number;
+    if (expForm.includes_vat) {
+      total = inputValue;
+      base = Math.round(inputValue / (1 + vat / 100) * 100) / 100;
+    } else {
+      base = inputValue;
+      total = Math.round(base * (1 + vat / 100) * 100) / 100;
+    }
     const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-15`;
     await fin.upsertExpense.mutateAsync({
       description: expForm.description || null,
@@ -146,7 +154,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
     } as any);
     toast.success('Saída adicionada');
     setExpOpen(false);
-    setExpForm({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [] });
+    setExpForm({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [], includes_vat: false });
   };
 
   return (
@@ -336,8 +344,12 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
             <div><Label>Categoria</Label>
               <CategorySelect type="expense" value={expForm.category} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))} />
             </div>
+            <div className="flex items-center gap-2 py-1">
+              <Switch checked={expForm.includes_vat || false} onCheckedChange={v => setExpForm((f: any) => ({ ...f, includes_vat: v }))} />
+              <Label className="text-sm font-normal">Valor inclui IVA</Label>
+            </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Valor Base (€)</Label><Input type="number" value={expForm.base_value} onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))} /></div>
+              <div><Label>{expForm.includes_vat ? 'Valor Total c/ IVA (€)' : 'Valor Base (€)'}</Label><Input type="number" value={expForm.base_value} onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))} /></div>
               <div><Label>IVA (%)</Label>
                 <Select value={expForm.vat_rate} onValueChange={v => setExpForm((f: any) => ({ ...f, vat_rate: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -345,6 +357,14 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
                 </Select>
               </div>
             </div>
+            {expForm.base_value && parseFloat(expForm.base_value) > 0 && parseInt(expForm.vat_rate) > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {expForm.includes_vat
+                  ? `Base: ${(parseFloat(expForm.base_value) / (1 + parseInt(expForm.vat_rate) / 100)).toFixed(2)} € · IVA: ${(parseFloat(expForm.base_value) - parseFloat(expForm.base_value) / (1 + parseInt(expForm.vat_rate) / 100)).toFixed(2)} €`
+                  : `Total c/ IVA: ${(parseFloat(expForm.base_value) * (1 + parseInt(expForm.vat_rate) / 100)).toFixed(2)} € · IVA: ${(parseFloat(expForm.base_value) * parseInt(expForm.vat_rate) / 100).toFixed(2)} €`
+                }
+              </p>
+            )}
             <div><Label>Localização</Label>
               <Select value={expForm.location} onValueChange={v => setExpForm((f: any) => ({ ...f, location: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>

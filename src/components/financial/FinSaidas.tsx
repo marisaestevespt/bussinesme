@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Plus, CalendarIcon, Trash2, AlertTriangle } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -64,14 +65,21 @@ export function FinSaidas({ fin }: Props) {
   const [expForm, setExpForm] = useState<any>({});
 
   const openNewExpense = () => {
-    setExpForm({ status: 'por_pagar', category: 'outro', vat_rate: 23, location: 'portugal', base_value: '', description: '' });
+    setExpForm({ status: 'por_pagar', category: 'outro', vat_rate: 23, location: 'portugal', base_value: '', description: '', includes_vat: false });
     setExpOpen(true);
   };
 
   const saveExpense = async () => {
-    const base = parseFloat(expForm.base_value) || 0;
+    const inputValue = parseFloat(expForm.base_value) || 0;
     const vat = parseFloat(expForm.vat_rate) || 0;
-    const total = Math.round(base * (1 + vat / 100) * 100) / 100;
+    let base: number, total: number;
+    if (expForm.includes_vat) {
+      total = inputValue;
+      base = Math.round(inputValue / (1 + vat / 100) * 100) / 100;
+    } else {
+      base = inputValue;
+      total = Math.round(base * (1 + vat / 100) * 100) / 100;
+    }
     const d = expForm.expense_date;
     const date = d ? (typeof d === 'string' ? d : format(d, 'yyyy-MM-dd')) : null;
     const month = date ? parseInt(date.slice(5, 7)) : null;
@@ -315,8 +323,12 @@ export function FinSaidas({ fin }: Props) {
             <div><Label>Categoria</Label>
               <CategorySelect type="expense" value={expForm.category || 'outro'} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))} />
             </div>
+            <div className="flex items-center gap-2 py-1">
+              <Switch checked={expForm.includes_vat || false} onCheckedChange={v => setExpForm((f: any) => ({ ...f, includes_vat: v }))} />
+              <Label className="text-sm font-normal">Valor inclui IVA</Label>
+            </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Valor Base (€)</Label><Input type="number" step="0.01" value={expForm.base_value || ''} onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))} /></div>
+              <div><Label>{expForm.includes_vat ? 'Valor Total c/ IVA (€)' : 'Valor Base (€)'}</Label><Input type="number" step="0.01" value={expForm.base_value || ''} onChange={e => setExpForm((f: any) => ({ ...f, base_value: e.target.value }))} /></div>
               <div><Label>IVA (%)</Label>
                 <Select value={String(expForm.vat_rate ?? 23)} onValueChange={v => setExpForm((f: any) => ({ ...f, vat_rate: parseInt(v) }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -324,6 +336,14 @@ export function FinSaidas({ fin }: Props) {
                 </Select>
               </div>
             </div>
+            {expForm.base_value && parseFloat(expForm.base_value) > 0 && (expForm.vat_rate ?? 23) > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {expForm.includes_vat
+                  ? `Base: ${(parseFloat(expForm.base_value) / (1 + (expForm.vat_rate ?? 23) / 100)).toFixed(2)} € · IVA: ${(parseFloat(expForm.base_value) - parseFloat(expForm.base_value) / (1 + (expForm.vat_rate ?? 23) / 100)).toFixed(2)} €`
+                  : `Total c/ IVA: ${(parseFloat(expForm.base_value) * (1 + (expForm.vat_rate ?? 23) / 100)).toFixed(2)} € · IVA: ${(parseFloat(expForm.base_value) * (expForm.vat_rate ?? 23) / 100).toFixed(2)} €`
+                }
+              </p>
+            )}
             <div><Label>Localização</Label>
               <Select value={expForm.location || 'portugal'} onValueChange={v => setExpForm((f: any) => ({ ...f, location: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
