@@ -277,8 +277,8 @@ export default function ProjetosPage() {
           </div>
         ) : (
           <>
-            {view === 'table' && <TableView projects={projects} getMembersForProject={getMembersForProject} onOpen={id => navigate(`/hub/projetos/${id}`)} onStatusChange={(id, s) => updateStatusMutation.mutate({ projectId: id, status: s })} />}
-            {view === 'gallery' && <GalleryView projects={projects} getMembersForProject={getMembersForProject} onOpen={id => navigate(`/hub/projetos/${id}`)} />}
+            {view === 'table' && <TableView projects={projects} getMembersForProject={getMembersForProject} onOpen={id => navigate(`/hub/projetos/${id}`)} onStatusChange={(id, s) => updateStatusMutation.mutate({ projectId: id, status: s })} getTaskProgress={getTaskProgress} />}
+            {view === 'gallery' && <GalleryView projects={projects} getMembersForProject={getMembersForProject} onOpen={id => navigate(`/hub/projetos/${id}`)} getTaskProgress={getTaskProgress} />}
             {view === 'calendar' && <CalendarView projects={projects} month={calMonth} onMonthChange={setCalMonth} onOpen={id => navigate(`/hub/projetos/${id}`)} />}
           </>
         )}
