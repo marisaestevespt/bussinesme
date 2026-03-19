@@ -185,7 +185,7 @@ export default function ClienteDetailPage() {
           payment_date: payDateStr,
           description: `${product} - Pagamento ${i + 1}/${numPayments}`,
           base_value: installmentRounded,
-          invoice_total: installmentRounded,
+          invoice_total: Math.round(installmentRounded * 1.23 * 100) / 100,
           product,
           client,
           source: null,
