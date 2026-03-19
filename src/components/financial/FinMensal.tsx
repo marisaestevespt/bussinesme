@@ -290,6 +290,10 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                 <SelectContent>{LOCATIONS.map(l => <SelectItem key={l} value={l}>{LOC_LABELS[l]}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            <InvoiceUpload
+              documents={Array.isArray(expForm.documents) ? expForm.documents : []}
+              onChange={docs => setExpForm((f: any) => ({ ...f, documents: docs }))}
+            />
             <Button className="w-full" onClick={saveExpense}>Guardar</Button>
           </div>
         </DialogContent>
