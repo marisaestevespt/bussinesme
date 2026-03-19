@@ -198,7 +198,7 @@ export default function ClienteDetailPage() {
           product,
           client,
           source: null,
-          documents: null,
+          documents: [],
           sale_month: payMonth,
           sale_quarter: payQuarter,
           sale_year: payYear,
