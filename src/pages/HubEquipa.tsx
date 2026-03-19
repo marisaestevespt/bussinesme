@@ -199,13 +199,11 @@ function QuickLinks() {
   );
 }
 
-// ─── Column 2: Transversais ──────────────────────────────────────────
+// ─── Quick Summary ──────────────────────────────────────────────────
 
-function TransversaisColumn() {
-  const navigate = useNavigate();
+function QuickSummary() {
   const { user } = useAuth();
 
-  // Get profile id for filtering
   const { data: profile } = useQuery({
     queryKey: ['my-profile-id', user?.id],
     queryFn: async () => {
@@ -215,7 +213,6 @@ function TransversaisColumn() {
     enabled: !!user,
   });
 
-  // Overdue tasks count
   const { data: overdueTasks = 0 } = useQuery({
     queryKey: ['hub-overdue-tasks', profile?.id],
     queryFn: async () => {
@@ -231,7 +228,6 @@ function TransversaisColumn() {
     enabled: !!profile,
   });
 
-  // Next 2 meetings
   const { data: nextMeetings = [] } = useQuery({
     queryKey: ['hub-next-meetings', profile?.id],
     queryFn: async () => {
@@ -247,7 +243,6 @@ function TransversaisColumn() {
     enabled: !!profile,
   });
 
-  // Active projects count
   const { data: activeProjects = 0 } = useQuery({
     queryKey: ['hub-active-projects', profile?.id],
     queryFn: async () => {
@@ -261,69 +256,36 @@ function TransversaisColumn() {
   });
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm uppercase tracking-wide text-muted-foreground">Transversais</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-1">
-          {TRANSVERSAIS_LINKS.map(l => (
-            <button
-              key={l.path}
-              onClick={() => navigate(l.path)}
-              className="block text-sm font-semibold hover:text-primary transition-colors text-left py-1"
-            >
-              {l.label}
-            </button>
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* Quick summary */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Resumo rápido</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {/* Overdue tasks */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground flex items-center gap-2">
-              <AlertTriangle className="h-3.5 w-3.5" /> Tarefas em atraso
-            </span>
-            <Badge variant={overdueTasks > 0 ? 'destructive' : 'secondary'} className="text-xs">
-              {overdueTasks}
-            </Badge>
-          </div>
-
-          {/* Next meetings */}
-          <div className="space-y-1.5">
-            <span className="text-sm text-muted-foreground flex items-center gap-2">
-              <Calendar className="h-3.5 w-3.5" /> Próximas reuniões
-            </span>
-            {nextMeetings.length === 0 ? (
-              <p className="text-xs text-muted-foreground pl-6">Nenhuma agendada</p>
-            ) : (
-              nextMeetings.map((m: any) => (
-                <div key={m.id} className="flex items-center justify-between pl-6">
-                  <span className="text-xs truncate">{m.title}</span>
-                  <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
-                    {format(new Date(m.start_date), "d MMM, HH:mm", { locale: pt })}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Active projects */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground flex items-center gap-2">
-              <FolderKanban className="h-3.5 w-3.5" /> Projetos ativos
-            </span>
-            <Badge variant="secondary" className="text-xs">{activeProjects}</Badge>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm">Resumo rápido</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-wrap gap-6">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Tarefas em atraso</span>
+          <Badge variant={overdueTasks > 0 ? 'destructive' : 'secondary'} className="text-xs">{overdueTasks}</Badge>
+        </div>
+        <div className="flex items-center gap-2">
+          <FolderKanban className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Projetos ativos</span>
+          <Badge variant="secondary" className="text-xs">{activeProjects}</Badge>
+        </div>
+        <div className="flex items-center gap-2">
+          <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Próximas reuniões:</span>
+          {nextMeetings.length === 0 ? (
+            <span className="text-xs text-muted-foreground">Nenhuma agendada</span>
+          ) : (
+            nextMeetings.map((m: any) => (
+              <span key={m.id} className="text-xs">
+                {m.title} <span className="text-muted-foreground">({format(new Date(m.start_date), "d MMM, HH:mm", { locale: pt })})</span>
+              </span>
+            ))
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
