@@ -189,6 +189,7 @@ function useProfiles() {
 
 export default function SecretariaPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const profile = useMyProfile();
   const teamMember = useMyTeamMember();
   const tasks = useMyTasks();
