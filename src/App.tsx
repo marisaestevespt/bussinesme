@@ -16,6 +16,7 @@ import HubPage from "./pages/Hub";
 import ExecutiveDashboard from "./pages/ExecutiveDashboard";
 import ExecutivePlaneamento from "./pages/ExecutivePlaneamento";
 import ExecutiveWeeklyAlign from "./pages/ExecutiveWeeklyAlign";
+import ExecutiveGestaoEquipa from "./pages/ExecutiveGestaoEquipa";
 import ExecutivePage from "./pages/Executive";
 import DefinicoesPage from "./pages/Definicoes";
 import AgendaPage from "./pages/Agenda";
