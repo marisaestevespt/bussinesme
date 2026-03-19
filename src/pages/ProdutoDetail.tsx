@@ -409,9 +409,10 @@ export default function ProdutoDetailPage() {
         {/* Content tabs - 4 blocks */}
         {!isNew && (
           <Tabs defaultValue="produto" className="space-y-4">
-            <TabsList className="grid grid-cols-4 w-full">
+            <TabsList className="grid grid-cols-5 w-full">
               <TabsTrigger value="produto">Produto</TabsTrigger>
               <TabsTrigger value="comercial">Comercial & Marketing</TabsTrigger>
+              <TabsTrigger value="contabilidade">Contabilidade</TabsTrigger>
               <TabsTrigger value="backoffice">Backoffice</TabsTrigger>
               <TabsTrigger value="arquivo">Arquivo</TabsTrigger>
             </TabsList>
@@ -1040,6 +1041,48 @@ export default function ProdutoDetailPage() {
                       ))}
                     </TableBody>
                   </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* ===== CONTABILIDADE ===== */}
+            <TabsContent value="contabilidade" className="space-y-6">
+              <Card>
+                <CardHeader><CardTitle className="text-base">Dados de Faturação</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Taxa de IVA</Label>
+                      <Select value={(form as any).vat_rate || '23'} onValueChange={v => update('vat_rate', v)} disabled={!isOwner}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="isento">Isento</SelectItem>
+                          <SelectItem value="6">6%</SelectItem>
+                          <SelectItem value="13">13%</SelectItem>
+                          <SelectItem value="23">23%</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Denominação para Faturas</Label>
+                      <Input
+                        value={(form as any).invoice_denomination || ''}
+                        onChange={e => update('invoice_denomination', e.target.value)}
+                        placeholder="Ex: Serviço de Consultoria de Marketing Digital"
+                        readOnly={!isOwner}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Notas de Contabilidade</Label>
+                    <Textarea
+                      value={(form as any).accounting_notes || ''}
+                      onChange={e => update('accounting_notes', e.target.value)}
+                      placeholder="Notas adicionais sobre faturação, isenções, etc."
+                      className="min-h-[100px]"
+                      readOnly={!isOwner}
+                    />
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

@@ -23,6 +23,9 @@ export type Product = {
   brainstorming_content: string | null;
   logo_url: string | null;
   cover_url: string | null;
+  vat_rate: string | null;
+  invoice_denomination: string | null;
+  accounting_notes: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
