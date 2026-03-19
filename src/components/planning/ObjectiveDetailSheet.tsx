@@ -14,14 +14,22 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, Save, ListTodo, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { planAreaLabel, planStatusLabel, PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES, CADENCES, ACTION_STATUSES, GOAL_STATUSES } from '@/hooks/usePlanningData';
 import { useTeamData } from '@/hooks/useTeamData';
+import { useProducts } from '@/hooks/useProducts';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 
 export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<any>({});
+  const { products } = useProducts();
+  const productsList = products.data || [];
 
   const obj = objective ? (planning.allObjectives.find((o: any) => o.id === objective.id) || objective) : null;
+
+  const getProductName = (productId: string | null) => {
+    if (!productId) return null;
+    return productsList.find((p: any) => p.id === productId)?.name || null;
+  };
 
   useEffect(() => {
     if (obj) {
@@ -30,7 +38,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
         status: obj.status || 'por_iniciar', deadline: obj.deadline || '',
         objective_type: obj.objective_type || 'quantitativo', target_value: obj.target_value || '',
         target_unit: obj.target_unit || '€', current_value: obj.current_value || '',
-        value_source: obj.value_source || 'manual',
+        value_source: obj.value_source || 'manual', product_id: obj.product_id || '',
       });
       setEditing(false);
     }
@@ -38,8 +46,9 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
 
   if (!obj) return null;
 
-  const prog = planning.objectiveProgress(obj);
-  const currentVal = planning.objectiveCurrentValue(obj);
+  const objProductName = getProductName(obj.product_id);
+  const prog = planning.objectiveProgress({ ...obj, product_name: objProductName });
+  const currentVal = planning.objectiveCurrentValue({ ...obj, product_name: objProductName });
   const objCriteria = (planning.criteria.data || []).filter((c: any) => c.objective_id === obj.id);
   const objGoals = planning.allGoals.filter((g: any) => g.objective_id === obj.id);
   const objMetrics = planning.allMetrics.filter((m: any) => m.objective_id === obj.id);
@@ -118,6 +127,17 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                   {form.value_source === 'manual' && (
                     <div><Label>Valor atual</Label><Input type="number" value={form.current_value} onChange={e => set('current_value', e.target.value)} /></div>
                   )}
+                  {(form.value_source === 'bd_vendas' || form.value_source === 'bd_crm') && (
+                    <div><Label>Produto associado</Label>
+                      <Select value={form.product_id || 'none'} onValueChange={v => set('product_id', v === 'none' ? '' : v)}>
+                        <SelectTrigger><SelectValue placeholder="Todos os produtos" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Todos os produtos</SelectItem>
+                          {productsList.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -152,6 +172,9 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
               <div className="rounded-lg border p-3">
                 <p className="text-xs text-muted-foreground">Fonte</p>
                 <p className="text-sm font-medium">{VALUE_SOURCES.find(s => s.value === obj.value_source)?.label || 'Manual'}</p>
+                {obj.product_id && objProductName && (
+                  <p className="text-xs text-muted-foreground mt-1">Produto: {objProductName}</p>
+                )}
               </div>
             </div>
           )}
@@ -164,7 +187,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
           <Separator />
           <GoalsSection objectiveId={obj.id} goals={objGoals} planning={planning} />
           <Separator />
-          <MetricsSection objectiveId={obj.id} metrics={objMetrics} planning={planning} />
+          <MetricsSection objectiveId={obj.id} metrics={objMetrics} planning={planning} productsList={productsList} getProductName={getProductName} />
           <Separator />
           <ActionsSection objectiveId={obj.id} actions={objActions} planning={planning} />
         </div>
@@ -325,12 +348,12 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
 }
 
 // ─── Metrics ─────────────
-function MetricsSection({ objectiveId, metrics, planning }: any) {
+function MetricsSection({ objectiveId, metrics, planning, productsList, getProductName }: any) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [historyMetric, setHistoryMetric] = useState<any>(null);
   const [recordDialog, setRecordDialog] = useState(false);
   const [editMetric, setEditMetric] = useState<any>(null);
-  const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60' });
+  const [form, setForm] = useState({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60', product_id: '' });
   const [editForm, setEditForm] = useState<any>({});
   const [recordForm, setRecordForm] = useState({ value: '', notes: '', recorded_at: format(new Date(), 'yyyy-MM-dd') });
 
@@ -340,13 +363,14 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
         name: editMetric.name || '', cadence: editMetric.cadence || 'mensal', source: editMetric.source || 'manual',
         current_value: editMetric.current_value || '', target_value: editMetric.target_value || '',
         target_unit: editMetric.target_unit || '', green_threshold: editMetric.green_threshold ?? 90,
-        yellow_threshold: editMetric.yellow_threshold ?? 60,
+        yellow_threshold: editMetric.yellow_threshold ?? 60, product_id: editMetric.product_id || '',
       });
     }
   }, [editMetric]);
 
   const getMetricStatus = (m: any) => {
-    const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source) : null;
+    const metricProductName = getProductName(m.product_id);
+    const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source, metricProductName) : null;
     const current = m.source === 'manual' ? Number(m.current_value || 0) : Number(autoVal || 0);
     const target = Number(m.target_value || 0);
     if (!target) return 'neutral';
@@ -357,15 +381,16 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
   };
 
   const handleSaveNew = () => {
-    planning.upsertMetric.mutate({ ...form, target_value: form.target_value ? Number(form.target_value) : null, green_threshold: Number(form.green_threshold), yellow_threshold: Number(form.yellow_threshold), objective_id: objectiveId });
+    planning.upsertMetric.mutate({ ...form, product_id: form.product_id || null, target_value: form.target_value ? Number(form.target_value) : null, green_threshold: Number(form.green_threshold), yellow_threshold: Number(form.yellow_threshold), objective_id: objectiveId });
     setDialogOpen(false);
-    setForm({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60' });
+    setForm({ name: '', cadence: 'mensal', source: 'manual', target_value: '', target_unit: '', green_threshold: '90', yellow_threshold: '60', product_id: '' });
   };
 
   const handleSaveEdit = () => {
     if (!editMetric) return;
     planning.upsertMetric.mutate({
       id: editMetric.id, objective_id: objectiveId, ...editForm,
+      product_id: editForm.product_id || null,
       target_value: editForm.target_value ? Number(editForm.target_value) : null,
       green_threshold: Number(editForm.green_threshold), yellow_threshold: Number(editForm.yellow_threshold),
     });
@@ -397,7 +422,8 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
           <TableBody>{metrics.map((m: any) => {
             const overdue = planning.isMetricOverdue(m);
             const dueToday = planning.isMetricDueToday(m);
-            const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source) : null;
+            const metricProductName = getProductName(m.product_id);
+            const autoVal = m.source !== 'manual' ? planning.getAutoValue(m.source, metricProductName) : null;
             const displayVal = m.source === 'manual' ? m.current_value : autoVal;
             const status = getMetricStatus(m);
             return (
@@ -470,6 +496,17 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
                 <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            {(form.source === 'bd_vendas' || form.source === 'bd_crm') && (
+              <div><Label>Produto associado</Label>
+                <Select value={form.product_id || 'none'} onValueChange={v => setForm(p => ({ ...p, product_id: v === 'none' ? '' : v }))}>
+                  <SelectTrigger><SelectValue placeholder="Todos os produtos" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Todos os produtos</SelectItem>
+                    {productsList.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <Button className="w-full" onClick={handleSaveNew} disabled={!form.name.trim()}>Guardar</Button>
           </div>
         </DialogContent>
@@ -504,6 +541,17 @@ function MetricsSection({ objectiveId, metrics, planning }: any) {
                 <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            {(editForm.source === 'bd_vendas' || editForm.source === 'bd_crm') && (
+              <div><Label>Produto associado</Label>
+                <Select value={editForm.product_id || 'none'} onValueChange={v => setEditForm((p: any) => ({ ...p, product_id: v === 'none' ? '' : v }))}>
+                  <SelectTrigger><SelectValue placeholder="Todos os produtos" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Todos os produtos</SelectItem>
+                    {productsList.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <Button className="w-full" onClick={handleSaveEdit}>Guardar</Button>
           </div>
         </DialogContent>

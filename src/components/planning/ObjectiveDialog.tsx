@@ -5,16 +5,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES } from '@/hooks/usePlanningData';
+import { useProducts } from '@/hooks/useProducts';
 import { Label } from '@/components/ui/label';
 
 const DEFAULTS = {
   title: '', description: '', area: 'outro', status: 'por_iniciar', deadline: '',
-  objective_type: 'quantitativo', target_value: '', target_unit: '€', current_value: '', value_source: 'manual',
+  objective_type: 'quantitativo', target_value: '', target_unit: '€', current_value: '', value_source: 'manual', product_id: '',
 };
 
 export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
   const [form, setForm] = useState({ ...DEFAULTS });
   const set = (k: string, v: any) => setForm(p => ({ ...p, [k]: v }));
+  const { products } = useProducts();
+  const productsList = products.data || [];
 
   useEffect(() => {
     setForm({ ...DEFAULTS, ...(initial || {}) });
@@ -69,10 +72,21 @@ export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
               {form.value_source === 'manual' && (
                 <div><Label>Valor atual (manual)</Label><Input type="number" value={form.current_value || ''} onChange={e => set('current_value', e.target.value)} /></div>
               )}
+              {(form.value_source === 'bd_vendas' || form.value_source === 'bd_crm') && (
+                <div><Label>Produto associado</Label>
+                  <Select value={form.product_id || 'none'} onValueChange={v => set('product_id', v === 'none' ? '' : v)}>
+                    <SelectTrigger><SelectValue placeholder="Todos os produtos" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Todos os produtos</SelectItem>
+                      {productsList.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </>
           )}
 
-          <Button className="w-full" onClick={() => onSave({ ...initial, ...form })} disabled={!form.title?.toString().trim()}>
+          <Button className="w-full" onClick={() => onSave({ ...initial, ...form, product_id: form.product_id || null })} disabled={!form.title?.toString().trim()}>
             Guardar
           </Button>
         </div>
