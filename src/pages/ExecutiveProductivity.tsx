@@ -100,7 +100,7 @@ export default function ExecutiveProductivity() {
   const tasks = useQuery({
     queryKey: ['tasks_list'],
     queryFn: async () => {
-      const { data } = await supabase.from('tasks').select('id, name, assigned_to, project_id, department');
+      const { data } = await supabase.from('tasks').select('id, name, assigned_to, project_id, department, estimated_time, deadline, status');
       return (data || []) as any[];
     },
   });
