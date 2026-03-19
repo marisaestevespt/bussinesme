@@ -128,7 +128,7 @@ export default function OperacaoPage() {
   const { data: tasks = [] } = useQuery({
     queryKey: ['op-tasks'],
     queryFn: async () => {
-      const { data } = await supabase.from('tasks').select('id,name,status,priority,deadline,assigned_to,project_id').order('deadline', { ascending: true });
+      const { data } = await supabase.from('tasks').select('id,name,status,priority,deadline,assigned_to,project_id,department').order('deadline', { ascending: true });
       return (data || []) as Task[];
     },
   });
