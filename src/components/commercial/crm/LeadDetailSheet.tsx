@@ -24,11 +24,12 @@ interface LeadDetailSheetProps {
   onOpenChange: (v: boolean) => void;
   lead: any | null;
   products: string[];
+  profiles: { id: string; full_name: string | null }[];
   onSave: (lead: any) => void;
   onDelete?: (id: string) => void;
 }
 
-export function LeadDetailSheet({ open, onOpenChange, lead, products, onSave, onDelete }: LeadDetailSheetProps) {
+export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, onSave, onDelete }: LeadDetailSheetProps) {
   const { useLeadInteractions, upsertInteraction, deleteInteraction, useLeadActions, upsertLeadAction, deleteLeadAction } = useCrmData();
 
   const [form, setForm] = useState<any>({});
