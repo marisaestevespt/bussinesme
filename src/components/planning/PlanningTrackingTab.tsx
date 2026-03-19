@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrendingUp, TrendingDown, Minus, AlertTriangle } from 'lucide-react';
 import { VALUE_SOURCES, CADENCES } from '@/hooks/usePlanningData';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -14,7 +16,6 @@ export function PlanningTrackingTab({ planning }: { planning: any }) {
   const getObjectiveName = (id: string) => objectives.find((o: any) => o.id === id)?.title || '—';
   const getObjectiveArea = (id: string) => objectives.find((o: any) => o.id === id)?.area || '';
 
-  // Overdue alerts
   const overdueMetrics = useMemo(() =>
     allMetrics.filter((m: any) => planning.isMetricOverdue(m)),
     [allMetrics]
@@ -31,7 +32,6 @@ export function PlanningTrackingTab({ planning }: { planning: any }) {
     return diff;
   };
 
-  // Group metrics by area
   const metricsByArea = useMemo(() => {
     const map: Record<string, any[]> = {};
     allMetrics.forEach((m: any) => {
@@ -47,6 +47,10 @@ export function PlanningTrackingTab({ planning }: { planning: any }) {
     if (trend === 'up') return <TrendingUp className="h-4 w-4 text-green-600" />;
     if (trend === 'down') return <TrendingDown className="h-4 w-4 text-destructive" />;
     return <Minus className="h-4 w-4 text-muted-foreground" />;
+  };
+
+  const updateMetric = (m: any, field: string, value: any) => {
+    planning.upsertMetric.mutate({ id: m.id, objective_id: m.objective_id, [field]: value });
   };
 
   return (
@@ -90,7 +94,7 @@ export function PlanningTrackingTab({ planning }: { planning: any }) {
             <h3 className="text-sm font-semibold mb-3">Métricas Ativas</h3>
             <Table>
               <TableHeader><TableRow>
-                <TableHead>Objetivo</TableHead><TableHead>Métrica</TableHead><TableHead>Cadência</TableHead><TableHead>Valor atual</TableHead><TableHead>Última atualiz.</TableHead><TableHead>Tendência</TableHead>
+                <TableHead>Objetivo</TableHead><TableHead>Métrica</TableHead><TableHead>Cadência</TableHead><TableHead>Valor atual</TableHead><TableHead>Objetivo</TableHead><TableHead>Última atualiz.</TableHead><TableHead>Tendência</TableHead>
               </TableRow></TableHeader>
               <TableBody>{allMetrics.map((m: any) => {
                 const overdue = planning.isMetricOverdue(m);
@@ -99,9 +103,25 @@ export function PlanningTrackingTab({ planning }: { planning: any }) {
                 return (
                   <TableRow key={m.id} className={overdue ? 'bg-red-50' : ''}>
                     <TableCell className="text-xs">{getObjectiveName(m.objective_id)}</TableCell>
-                    <TableCell className="text-sm font-medium">{m.name}</TableCell>
-                    <TableCell className="text-xs">{CADENCES.find(c => c.value === m.cadence)?.label || m.cadence}</TableCell>
-                    <TableCell className="text-xs">{displayVal != null ? Number(displayVal).toLocaleString() : '—'}</TableCell>
+                    <TableCell>
+                      <Input className="h-7 w-32 text-xs font-medium" defaultValue={m.name} onBlur={e => { if (e.target.value !== m.name) updateMetric(m, 'name', e.target.value); }} />
+                    </TableCell>
+                    <TableCell>
+                      <Select defaultValue={m.cadence} onValueChange={v => updateMetric(m, 'cadence', v)}>
+                        <SelectTrigger className="h-7 w-[90px] text-[10px]"><SelectValue /></SelectTrigger>
+                        <SelectContent>{CADENCES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      {m.source === 'manual' ? (
+                        <Input className="h-7 w-24 text-xs" defaultValue={m.current_value || ''} onBlur={e => { if (e.target.value !== (m.current_value || '')) updateMetric(m, 'current_value', e.target.value); }} />
+                      ) : (
+                        <span className="text-xs">{displayVal != null ? Number(displayVal).toLocaleString() : '—'}</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Input className="h-7 w-24 text-xs" defaultValue={m.target_value || ''} onBlur={e => { if (e.target.value !== String(m.target_value || '')) updateMetric(m, 'target_value', e.target.value ? Number(e.target.value) : null); }} />
+                    </TableCell>
                     <TableCell className="text-xs">{m.last_updated_at ? new Date(m.last_updated_at).toLocaleDateString('pt-PT') : '—'}</TableCell>
                     <TableCell><TrendIcon metricId={m.id} /></TableCell>
                   </TableRow>
