@@ -120,9 +120,38 @@ function CriteriaSection({ objectiveId, criteria, planning }: any) {
 }
 
 // ─── Goals ─────────────
+const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+const QUARTER_MAP: Record<string, string[]> = {
+  'T1': ['Janeiro', 'Fevereiro', 'Março'],
+  'T2': ['Abril', 'Maio', 'Junho'],
+  'T3': ['Julho', 'Agosto', 'Setembro'],
+  'T4': ['Outubro', 'Novembro', 'Dezembro'],
+};
+
 function GoalsSection({ objectiveId, goals, planning }: any) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
+
+  const monthlyGoals = goals.filter((g: any) => MONTHS.includes(g.period));
+
+  // Auto-compute quarterly summaries from monthly goals
+  const quarterlyRows = Object.entries(QUARTER_MAP).map(([quarter, months]) => {
+    const monthGoals = monthlyGoals.filter((g: any) => months.includes(g.period));
+    if (monthGoals.length === 0) return null;
+    const targetSum = monthGoals.reduce((s: number, g: any) => s + Number(g.target_value || 0), 0);
+    const actualSum = monthGoals.reduce((s: number, g: any) => s + Number(g.actual_value || 0), 0);
+    const allDone = monthGoals.length === 3 && monthGoals.every((g: any) => g.status === 'atingido');
+    const anyStarted = monthGoals.some((g: any) => g.status === 'em_curso' || g.status === 'atingido');
+    return {
+      period: quarter,
+      target_value: targetSum,
+      actual_value: actualSum,
+      deviation: actualSum - targetSum,
+      status: allDone ? 'atingido' : anyStarted ? 'em_curso' : 'por_iniciar',
+      isQuarter: true,
+      count: monthGoals.length,
+    };
+  }).filter(Boolean);
 
   const handleSave = () => {
     planning.upsertGoal.mutate({ ...form, objective_id: objectiveId });
@@ -130,26 +159,51 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
     setForm({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
   };
 
+  // Sort monthly + quarterly together
+  const periodOrder = [...MONTHS, 'T1', 'T2', 'T3', 'T4'];
+  const allRows = [
+    ...monthlyGoals.map((g: any) => ({ ...g, isQuarter: false })),
+    ...quarterlyRows,
+  ].sort((a: any, b: any) => {
+    // Show Q after its months: T1 after Março, T2 after Junho, etc
+    const idxA = a.isQuarter
+      ? MONTHS.indexOf(QUARTER_MAP[a.period]?.[2] || '') + 0.5
+      : MONTHS.indexOf(a.period);
+    const idxB = b.isQuarter
+      ? MONTHS.indexOf(QUARTER_MAP[b.period]?.[2] || '') + 0.5
+      : MONTHS.indexOf(b.period);
+    return idxA - idxB;
+  });
+
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-semibold">Desdobramento em Metas</h3>
-        <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}><Plus className="h-3 w-3 mr-1" /> Nova Meta</Button>
+        <Button size="sm" variant="outline" onClick={() => setDialogOpen(true)}><Plus className="h-3 w-3 mr-1" /> Nova Meta Mensal</Button>
       </div>
-      {goals.length === 0 ? <p className="text-xs text-muted-foreground">Sem metas associadas</p> : (
+      {allRows.length === 0 ? <p className="text-xs text-muted-foreground">Sem metas associadas. Defina metas mensais e os trimestres serão calculados automaticamente.</p> : (
         <Table>
           <TableHeader><TableRow>
-            <TableHead>Período</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead>
+            <TableHead>Período</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead><TableHead></TableHead>
           </TableRow></TableHeader>
-          <TableBody>{goals.map((g: any) => {
-            const dev = g.actual_value && g.target_value ? (Number(g.actual_value) - Number(g.target_value)) : null;
+          <TableBody>{allRows.map((g: any) => {
+            const dev = g.isQuarter ? g.deviation : (g.actual_value && g.target_value ? (Number(g.actual_value) - Number(g.target_value)) : null);
+            const hasDeviation = dev !== null && dev < 0;
             return (
-              <TableRow key={g.id}>
-                <TableCell className="text-sm">{g.period}</TableCell>
+              <TableRow key={g.isQuarter ? g.period : g.id} className={`${g.isQuarter ? 'bg-muted/40 font-medium' : ''} ${hasDeviation ? 'bg-red-50/50' : ''}`}>
+                <TableCell className="text-sm">
+                  {g.isQuarter && <Badge variant="outline" className="text-[10px] mr-1">Auto</Badge>}
+                  {g.period}
+                </TableCell>
                 <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
                 <TableCell className="text-xs">{g.actual_value || '—'}</TableCell>
-                <TableCell className="text-xs">{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
+                <TableCell className={`text-xs ${hasDeviation ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
                 <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(g.status)}</Badge></TableCell>
+                <TableCell>
+                  {!g.isQuarter && (
+                    <button onClick={(e) => { e.stopPropagation(); planning.deleteGoal.mutate(g.id); }}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
+                  )}
+                </TableCell>
               </TableRow>
             );
           })}</TableBody>
@@ -158,16 +212,18 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Nova Meta</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Nova Meta Mensal</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <div><Label>Período</Label>
+            <div><Label>Mês</Label>
               <Select value={form.period} onValueChange={v => setForm(p => ({ ...p, period: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{PERIODS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                <SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div><Label>Valor alvo</Label><Input value={form.target_value} onChange={e => setForm(p => ({ ...p, target_value: e.target.value }))} /></div>
-            <div><Label>Valor real</Label><Input value={form.actual_value} onChange={e => setForm(p => ({ ...p, actual_value: e.target.value }))} /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Valor alvo</Label><Input value={form.target_value} onChange={e => setForm(p => ({ ...p, target_value: e.target.value }))} /></div>
+              <div><Label>Valor real</Label><Input value={form.actual_value} onChange={e => setForm(p => ({ ...p, actual_value: e.target.value }))} /></div>
+            </div>
             <Button className="w-full" onClick={handleSave}>Guardar</Button>
           </div>
         </DialogContent>
