@@ -21,6 +21,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { OfferCalculator } from '@/components/product/OfferCalculator';
+import { ProductCustomerSuccess } from '@/components/product/ProductCustomerSuccess';
 import { format } from 'date-fns';
 
 const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -441,11 +442,12 @@ export default function ProdutoDetailPage() {
         {/* Content tabs - 4 blocks */}
         {!isNew && (
           <Tabs defaultValue="produto" className="space-y-4">
-            <TabsList className="grid grid-cols-5 w-full">
+            <TabsList className="grid grid-cols-6 w-full">
               <TabsTrigger value="produto">Produto</TabsTrigger>
               <TabsTrigger value="comercial">Comercial & Marketing</TabsTrigger>
               <TabsTrigger value="contabilidade">Contabilidade & Precificação</TabsTrigger>
               <TabsTrigger value="backoffice">Backoffice</TabsTrigger>
+              <TabsTrigger value="customer-success">Customer Success</TabsTrigger>
               <TabsTrigger value="arquivo">Arquivo</TabsTrigger>
             </TabsList>
 
@@ -1264,6 +1266,11 @@ export default function ProdutoDetailPage() {
 
               {/* Calculadora de Oferta */}
               <OfferCalculator vatRate={(form as any).vat_rate || '23'} />
+            </TabsContent>
+
+            {/* ===== CUSTOMER SUCCESS ===== */}
+            <TabsContent value="customer-success" className="space-y-6">
+              <ProductCustomerSuccess productId={id!} isOwner={isOwner} />
             </TabsContent>
 
             {/* ===== ARQUIVO ===== */}
