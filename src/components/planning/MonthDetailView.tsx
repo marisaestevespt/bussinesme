@@ -794,8 +794,6 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                 </div>
               ))}
             </>
-              ))}
-            </>
           )}
 
           {/* Team capacity warnings */}
