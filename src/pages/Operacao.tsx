@@ -20,7 +20,7 @@ import { pt } from 'date-fns/locale';
 type Project = {
   id: string; name: string; type: string; status: string; department: string | null;
   client_name: string | null; deadline: string | null; progress: number;
-  start_date: string | null; created_at: string;
+  start_date: string | null; created_at: string; cover_url: string | null;
 };
 type Task = {
   id: string; name: string; status: string; priority: string; deadline: string | null;
@@ -100,7 +100,7 @@ export default function OperacaoPage() {
   const { data: projects = [] } = useQuery({
     queryKey: ['op-projects'],
     queryFn: async () => {
-      const { data } = await supabase.from('projects').select('id,name,type,status,department,client_name,deadline,progress,start_date,created_at').order('deadline', { ascending: true });
+      const { data } = await supabase.from('projects').select('id,name,type,status,department,client_name,deadline,progress,start_date,created_at,cover_url').order('deadline', { ascending: true });
       return (data || []) as Project[];
     },
   });
@@ -435,22 +435,56 @@ export default function OperacaoPage() {
               </CardContent>
             </Card>
 
-            {/* Projetos de cliente */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <FolderOpen className="h-4 w-4" /> Projetos de Clientes
-                  <Badge variant="outline" className="ml-auto text-[10px]">{activeClientProjects.length}</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0 space-y-0.5 max-h-[300px] overflow-y-auto">
-                {activeClientProjects.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-3">Nenhum projeto de cliente ativo</p>
-                ) : (
-                  activeClientProjects.map(p => renderProjectRow(p, true))
-                )}
-              </CardContent>
-            </Card>
+            {/* Projetos de cliente — Gallery */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <FolderOpen className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-semibold">Projetos de Clientes</span>
+                <Badge variant="outline" className="text-[10px]">{activeClientProjects.length}</Badge>
+              </div>
+              {activeClientProjects.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-3">Nenhum projeto de cliente ativo</p>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {activeClientProjects.map(p => {
+                    const prog = projectProgress.get(p.id) ?? p.progress;
+                    const members = projectMembersMap.get(p.id) || [];
+                    return (
+                      <Link key={p.id} to={`/hub/projetos/${p.id}`} className="group rounded-xl border bg-card overflow-hidden hover:shadow-md transition-shadow">
+                        <div className="aspect-[16/9] bg-muted relative overflow-hidden">
+                          {p.cover_url ? (
+                            <img src={p.cover_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+                              <FolderOpen className="h-8 w-8 text-muted-foreground/40" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-3 space-y-2">
+                          <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{p.name}</p>
+                          {p.client_name && <p className="text-xs text-muted-foreground truncate">{p.client_name}</p>}
+                          <div className="flex items-center gap-2">
+                            <Progress value={prog} className="h-1.5 flex-1" />
+                            <span className="text-[10px] text-muted-foreground">{prog}%</span>
+                          </div>
+                          {members.length > 0 && (
+                            <div className="flex -space-x-1.5">
+                              {members.slice(0, 3).map(m => (
+                                <Avatar key={m.id} className="h-5 w-5 border-2 border-background">
+                                  <AvatarImage src={m.avatar_url || ''} />
+                                  <AvatarFallback className="text-[8px]">{getInitials(m.full_name)}</AvatarFallback>
+                                </Avatar>
+                              ))}
+                              {members.length > 3 && <span className="text-[9px] text-muted-foreground ml-1">+{members.length - 3}</span>}
+                            </div>
+                          )}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             {/* Tarefas de cliente */}
             <Card>
