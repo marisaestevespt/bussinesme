@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -144,14 +144,25 @@ const CONTRACT_DURATIONS = [
   { value: 'indefinido', label: 'Indefinido' },
 ];
 
+const DEFAULT_MEMBER_FORM = {
+  full_name: '',
+  role_title: '',
+  email: '',
+  whatsapp: '',
+  work_schedule: '',
+  identification: '',
+  status: 'ativo',
+  member_type: 'colaborador_fixo',
+  department: '',
+  start_date: '',
+  presentation: '',
+  responsibilities: '',
+};
+
 // ─── Member Form Dialog ──────
 function MemberDialog({ open, onClose, initial, onSave }: any) {
   const isEdit = !!initial?.id;
-  const [f, setF] = useState(initial || {
-    full_name: '', role_title: '', email: '', whatsapp: '', work_schedule: '',
-    identification: '', status: 'ativo', member_type: 'colaborador_fixo', department: '',
-    start_date: '', presentation: '', responsibilities: '',
-  });
+  const [f, setF] = useState({ ...DEFAULT_MEMBER_FORM, ...(initial || {}) });
   const [contract, setContract] = useState({
     contract_type: 'contrato_trabalho',
     duration: '12',
@@ -162,6 +173,11 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
     end_date: '',
     status: 'ativo',
   });
+
+  useEffect(() => {
+    setF({ ...DEFAULT_MEMBER_FORM, ...(initial || {}) });
+  }, [initial]);
+
   const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
   const setC = (k: string, v: any) => setContract((p: any) => ({ ...p, [k]: v }));
 
