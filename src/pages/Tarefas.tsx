@@ -599,7 +599,23 @@ export default function TarefasPage() {
           <div className="space-y-4 mt-2">
             <div>
               <Label>Nome da tarefa *</Label>
-              <Input value={name} onChange={e => setName(e.target.value)} placeholder="Nome da tarefa" />
+              <Input value={name} onChange={e => handleNameChange(e.target.value)} placeholder="Nome da tarefa" />
+              {/* Similarity suggestion */}
+              {!editingTask && suggestion && !suggestionDismissed && (
+                <div className="mt-2 rounded-md border border-border bg-muted/30 p-3 space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    Tarefa similar encontrada: <strong className="text-foreground">{suggestion.taskName}</strong>. Tempo médio registado: <strong className="text-foreground">{suggestion.avgHours}h</strong>. Aplicar?
+                  </p>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="secondary" className="h-7 text-xs" onClick={() => { setEstimatedTime(String(suggestion.avgHours)); setSuggestionDismissed(true); }}>
+                      Aplicar
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setSuggestionDismissed(true)}>
+                      Ignorar
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
