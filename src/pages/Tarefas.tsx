@@ -226,6 +226,7 @@ export default function TarefasPage() {
     setName(''); setStatus('por_comecar'); setPriority('alta');
     setDeadline(undefined); setAssignedTo(''); setDepartment(''); setProjectId(''); setNotes('');
     setParentTaskId(''); setDependsOnIds([]); setRecurrenceType(''); setRecurrenceEnd(undefined);
+    setEstimatedTime(''); setSuggestion(null); setSuggestionDismissed(false);
     setDialogOpen(true);
   }
 
