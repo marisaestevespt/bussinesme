@@ -4000,6 +4000,7 @@ export type Database = {
         Row: {
           created_at: string
           email: string | null
+          expected_weekly_hours: number
           full_name: string
           id: string
           identification: string | null
@@ -4017,6 +4018,7 @@ export type Database = {
         Insert: {
           created_at?: string
           email?: string | null
+          expected_weekly_hours?: number
           full_name: string
           id?: string
           identification?: string | null
@@ -4034,6 +4036,7 @@ export type Database = {
         Update: {
           created_at?: string
           email?: string | null
+          expected_weekly_hours?: number
           full_name?: string
           id?: string
           identification?: string | null
@@ -4054,6 +4057,71 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_entries: {
+        Row: {
+          category: string
+          client_id: string | null
+          created_at: string
+          description: string | null
+          duration: number
+          entry_date: string
+          entry_id: string
+          entry_month: number | null
+          entry_quarter: number | null
+          entry_week: number | null
+          entry_year: number | null
+          id: string
+          member_id: string | null
+          project_id: string | null
+          task_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          duration?: number
+          entry_date?: string
+          entry_id?: string
+          entry_month?: number | null
+          entry_quarter?: number | null
+          entry_week?: number | null
+          entry_year?: number | null
+          id?: string
+          member_id?: string | null
+          project_id?: string | null
+          task_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          duration?: number
+          entry_date?: string
+          entry_id?: string
+          entry_month?: number | null
+          entry_quarter?: number | null
+          entry_week?: number | null
+          entry_year?: number | null
+          id?: string
+          member_id?: string | null
+          project_id?: string | null
+          task_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
             referencedColumns: ["id"]
           },
         ]

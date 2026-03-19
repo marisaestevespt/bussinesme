@@ -71,9 +71,9 @@ export default function ExecutiveDashboard() {
               <Link to="/executive/innovation" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
                 <Lightbulb className="h-4 w-4 text-muted-foreground" /> Desenvolvimento & Inovação
               </Link>
-              <div className="flex items-center gap-2 rounded-md p-2 text-sm text-muted-foreground cursor-default">
-                <Clock className="h-4 w-4" /> Gestão de Produtividade & Tempo <Badge variant="secondary" className="text-[10px] ml-auto">Em breve</Badge>
-              </div>
+              <Link to="/executive/productivity" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
+                <Clock className="h-4 w-4 text-muted-foreground" /> Gestão de Produtividade & Tempo
+              </Link>
             </CardContent>
           </Card>
 
