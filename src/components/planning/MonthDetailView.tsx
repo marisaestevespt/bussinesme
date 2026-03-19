@@ -1,15 +1,17 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertTriangle, ArrowLeft, Calendar, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, Plus, Trash2 } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Calendar, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, Plus, Trash2, UserPlus } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -20,6 +22,7 @@ import { pt } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
 import { ObjectiveDialog } from './ObjectiveDialog';
+import { CLIENT_STATUS_OPTIONS } from '@/hooks/useClients';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
@@ -76,6 +79,8 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const [goalEditValue, setGoalEditValue] = useState('');
   const navigate = useNavigate();
   const [expandedClient, setExpandedClient] = useState<{ clientId: string; clientName: string; clientCode: string; estimated: number; realHours: number; deviation: number; productName: string } | null>(null);
+  const [convertLead, setConvertLead] = useState<any>(null);
+  const [convertForm, setConvertForm] = useState<Record<string, string>>({});
 
   // ── Data queries ──
   const salesQ = useQuery({ queryKey: ['md-sales', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales').select('*').eq('sale_year', year).eq('sale_month', monthNum); return data || []; }});
@@ -134,6 +139,40 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['md-comm-goal', year, monthNum] }); setGoalEditOpen(false); toast.success('Meta atualizada'); },
     onError: () => toast.error('Erro ao guardar meta'),
+  });
+
+  const createClientFromLead = useMutation({
+    mutationFn: async (form: Record<string, string>) => {
+      const { data, error } = await (supabase.from('clients' as any) as any).insert({
+        full_name: form.full_name,
+        email: form.email || null,
+        whatsapp: form.whatsapp || null,
+        current_product: form.current_product || null,
+        status: 'em_onboarding',
+        start_date: form.start_date || new Date().toISOString().slice(0, 10),
+        nif: form.nif || null,
+        fiscal_address: form.fiscal_address || null,
+        birthday: form.birthday || null,
+        observations: form.observations || null,
+        payment_method: form.payment_method || null,
+        dp: form.dp || null,
+      }).select('id').single();
+      if (error) throw error;
+      // Update lead status to ganho if not already
+      if (form._lead_id) {
+        await supabase.from('crm_leads').update({ status: 'ganho' } as any).eq('id', form._lead_id);
+      }
+      return data;
+    },
+    onSuccess: (data: any) => {
+      qc.invalidateQueries({ queryKey: ['clients'] });
+      qc.invalidateQueries({ queryKey: ['md-clients'] });
+      qc.invalidateQueries({ queryKey: ['md-leads'] });
+      setConvertLead(null);
+      toast.success('Cliente criado com sucesso!');
+      navigate(`/clientes/${data.id}`);
+    },
+    onError: () => toast.error('Erro ao criar cliente'),
   });
 
   // ── Derived data ──
@@ -595,7 +634,20 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                               </div>
                             )}
                             {l.status === 'ganho' && (
-                              <Button variant="outline" size="sm" className="h-5 text-[9px] w-full mt-1">Add como cliente</Button>
+                              <Button variant="outline" size="sm" className="h-5 text-[9px] w-full mt-1 gap-1" onClick={(e) => {
+                                e.stopPropagation();
+                                const form: Record<string, string> = {
+                                  full_name: l.name || '',
+                                  email: l.email || '',
+                                  whatsapp: l.phone || '',
+                                  current_product: l.closed_product || '',
+                                  start_date: new Date().toISOString().slice(0, 10),
+                                  _lead_id: l.id,
+                                  nif: '', fiscal_address: '', birthday: '', observations: '', payment_method: '', dp: '',
+                                };
+                                setConvertForm(form);
+                                setConvertLead(l);
+                              }}><UserPlus className="h-3 w-3" /> Tornar Cliente</Button>
                             )}
                           </div>
                         );
@@ -965,6 +1017,52 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           })()}
         </DialogContent>
       </Dialog>
+
+      {/* ═══ Convert Lead to Client Sheet ═══ */}
+      <Sheet open={!!convertLead} onOpenChange={(v) => { if (!v) setConvertLead(null); }}>
+        <SheetContent side="right" className="overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Tornar Cliente</SheetTitle>
+            <SheetDescription>Preenche os dados em falta para criar a ficha de cliente.</SheetDescription>
+          </SheetHeader>
+          <Separator className="my-4" />
+          <div className="space-y-4">
+            {[
+              { key: 'full_name', label: 'Nome completo' },
+              { key: 'email', label: 'Email' },
+              { key: 'whatsapp', label: 'Whatsapp / Telefone' },
+              { key: 'current_product', label: 'Produto' },
+              { key: 'start_date', label: 'Data de início', type: 'date' },
+              { key: 'nif', label: 'NIF' },
+              { key: 'fiscal_address', label: 'Morada fiscal' },
+              { key: 'birthday', label: 'Data de nascimento', type: 'date' },
+              { key: 'payment_method', label: 'Método de pagamento' },
+              { key: 'dp', label: 'Data de pagamento' },
+              { key: 'observations', label: 'Observações' },
+            ].map(f => (
+              <div key={f.key}>
+                <label className="text-xs font-medium text-muted-foreground">{f.label}</label>
+                <Input
+                  type={f.type || 'text'}
+                  value={convertForm[f.key] || ''}
+                  onChange={e => setConvertForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+            ))}
+            <Button
+              className="w-full"
+              onClick={() => {
+                if (!convertForm.full_name?.trim()) { toast.error('Nome é obrigatório'); return; }
+                createClientFromLead.mutate(convertForm);
+              }}
+              disabled={createClientFromLead.isPending}
+            >
+              {createClientFromLead.isPending ? 'A criar...' : 'Criar Cliente'}
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
