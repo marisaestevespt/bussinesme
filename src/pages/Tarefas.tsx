@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, CalendarIcon, ListTodo, AlertTriangle, Clock, CalendarDays, List, Users, Link2, GitBranch, ChevronRight, Play } from 'lucide-react';
+import { Plus, CalendarIcon, ListTodo, AlertTriangle, Clock, CalendarDays, List, Users, Link2, GitBranch, ChevronRight, Play, Repeat } from 'lucide-react';
 import { TaskTimeTracker } from '@/components/TaskTimeTracker';
 import { useActiveTimer } from '@/hooks/useActiveTimer';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { format, isPast, isToday, startOfDay, isBefore, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths } from 'date-fns';
+import { format, isPast, isToday, startOfDay, isBefore, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, addDays, addWeeks, isSameDay, setDate as setDateFns } from 'date-fns';
 import { pt } from 'date-fns/locale';
 
 // ─── Constants ──────────────────────────────────────────────────
@@ -48,6 +48,16 @@ const TASK_DEPARTMENTS = [
   { value: 'clientes', label: 'Clientes', color: 'bg-cyan-100 text-cyan-700 border-cyan-200' },
   { value: 'equipa', label: 'Equipa', color: 'bg-rose-100 text-rose-700 border-rose-200' },
   { value: 'operacao', label: 'Operação', color: 'bg-violet-100 text-violet-700 border-violet-200' },
+];
+
+type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'diario';
+const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
+  { value: '', label: 'Não se repete' },
+  { value: 'diario', label: 'Todos os dias' },
+  { value: 'semanal', label: 'Todas as semanas' },
+  { value: 'quinzenal', label: 'A cada 2 semanas' },
+  { value: 'mensal', label: 'Todos os meses (mesmo dia)' },
+  { value: 'mensal_primeiro', label: '1º dia de cada mês' },
 ];
 
 type View = 'todo' | 'atrasadas' | 'proximas' | 'calendario' | 'responsavel' | 'todas';
@@ -95,6 +105,8 @@ export default function TarefasPage() {
   const [notes, setNotes] = useState('');
   const [parentTaskId, setParentTaskId] = useState('');
   const [dependsOnIds, setDependsOnIds] = useState<string[]>([]);
+  const [recurrenceType, setRecurrenceType] = useState('');
+  const [recurrenceEnd, setRecurrenceEnd] = useState<Date | undefined>();
 
   // Queries
   const { data: tasks = [] } = useQuery({
@@ -186,7 +198,7 @@ export default function TarefasPage() {
     setEditingTask(null);
     setName(''); setStatus('por_comecar'); setPriority('alta');
     setDeadline(undefined); setAssignedTo(''); setDepartment(''); setProjectId(''); setNotes('');
-    setParentTaskId(''); setDependsOnIds([]);
+    setParentTaskId(''); setDependsOnIds([]); setRecurrenceType(''); setRecurrenceEnd(undefined);
     setDialogOpen(true);
   }
 
@@ -197,6 +209,8 @@ export default function TarefasPage() {
     setAssignedTo(task.assigned_to || ''); setDepartment(task.department || '');
     setProjectId(task.project_id || ''); setNotes(task.notes || '');
     setParentTaskId(task.parent_task_id || '');
+    setRecurrenceType(task.recurrence_type || '');
+    setRecurrenceEnd(task.recurrence_end ? parseISO(task.recurrence_end) : undefined);
     // Load dependencies for this task
     const deps = taskDependencies.filter(d => d.task_id === task.id).map(d => d.depends_on_task_id);
     setDependsOnIds(deps);
@@ -231,6 +245,8 @@ export default function TarefasPage() {
       project_id: projectId && projectId !== 'none' ? projectId : null,
       parent_task_id: parentTaskId && parentTaskId !== 'none' ? parentTaskId : null,
       notes: notes || null,
+      recurrence_type: recurrenceType || null,
+      recurrence_end: recurrenceEnd ? format(recurrenceEnd, 'yyyy-MM-dd') : null,
       _dependsOnIds: dependsOnIds,
       _prevStatus: editingTask?.status || null,
     };
@@ -283,16 +299,52 @@ export default function TarefasPage() {
   const calDays = eachDayOfInterval({ start: calStart, end: calEnd });
   const firstDayOffset = (getDay(calStart) + 6) % 7; // Monday-first
 
+  const expandedCalendarTasks = useMemo(() => {
+    const result: any[] = [];
+    for (const t of tasks) {
+      if (!t.deadline) continue;
+      const start = parseISO(t.deadline);
+      if (!t.recurrence_type) {
+        result.push(t);
+        continue;
+      }
+      const recEnd = t.recurrence_end ? parseISO(t.recurrence_end) : calEnd;
+      let cursor = new Date(start);
+      let count = 0;
+      while (cursor <= recEnd && cursor <= calEnd && count < 366) {
+        if (cursor >= calStart || isSameDay(cursor, calStart)) {
+          result.push({
+            ...t,
+            id: `${t.id}_${format(cursor, 'yyyy-MM-dd')}`,
+            deadline: format(cursor, 'yyyy-MM-dd'),
+            _isOccurrence: true,
+            _originalId: t.id,
+          });
+        }
+        count++;
+        switch (t.recurrence_type) {
+          case 'diario': cursor = addDays(cursor, 1); break;
+          case 'semanal': cursor = addWeeks(cursor, 1); break;
+          case 'quinzenal': cursor = addWeeks(cursor, 2); break;
+          case 'mensal': cursor = addMonths(cursor, 1); break;
+          case 'mensal_primeiro': cursor = addMonths(cursor, 1); cursor = setDateFns(cursor, 1); break;
+          default: count = 366;
+        }
+      }
+    }
+    return result;
+  }, [tasks, calStart, calEnd]);
+
   const tasksByDate = useMemo(() => {
     const map: Record<string, any[]> = {};
-    tasks.forEach(t => {
+    expandedCalendarTasks.forEach(t => {
       if (!t.deadline) return;
       const key = t.deadline;
       if (!map[key]) map[key] = [];
       map[key].push(t);
     });
     return map;
-  }, [tasks]);
+  }, [expandedCalendarTasks]);
 
   // ─── Render ───────────────────────────────────────────────────
   return (
@@ -323,7 +375,12 @@ export default function TarefasPage() {
             firstDayOffset={firstDayOffset}
             tasksByDate={tasksByDate}
             isOverdue={isOverdue}
-            onTaskClick={openEdit}
+            onTaskClick={(t) => {
+              // For recurring occurrences, open the original task
+              const originalId = t._originalId || t.id;
+              const original = tasks.find(tk => tk.id === originalId) || t;
+              openEdit(original);
+            }}
           />
         ) : view === 'responsavel' ? (
           <ResponsavelView
@@ -400,6 +457,37 @@ export default function TarefasPage() {
                   <Calendar mode="single" selected={deadline} onSelect={setDeadline} initialFocus className="p-3 pointer-events-auto" />
                 </PopoverContent>
               </Popover>
+            </div>
+
+            {/* Recurrence */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="flex items-center gap-1.5"><Repeat className="h-3.5 w-3.5" /> Recorrência</Label>
+                <Select value={recurrenceType || 'none'} onValueChange={(v) => setRecurrenceType(v === 'none' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="Não se repete" /></SelectTrigger>
+                  <SelectContent>
+                    {RECURRENCE_OPTIONS.map(o => (
+                      <SelectItem key={o.value || 'none'} value={o.value || 'none'}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {recurrenceType && (
+                <div>
+                  <Label>Repetir até</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !recurrenceEnd && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {recurrenceEnd ? format(recurrenceEnd, 'PPP', { locale: pt }) : 'Sem limite'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={recurrenceEnd} onSelect={setRecurrenceEnd} initialFocus className="p-3 pointer-events-auto" />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -718,6 +806,7 @@ function TaskTable({
                         <GitBranch className="h-2.5 w-2.5" />{subtaskCount}
                       </Badge>
                     )}
+                    {task.recurrence_type && <Repeat className="h-3 w-3 text-muted-foreground" />}
                     {hasBlockingDeps && <Link2 className="h-3.5 w-3.5 text-amber-500" />}
                     {overdue && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
                     {lateComplete && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
@@ -812,7 +901,7 @@ function CalendarView({
                           : 'bg-primary/10 text-primary'
                     )}
                   >
-                    {t.name}
+                    {t.recurrence_type && '🔁 '}{t.name}
                   </div>
                 ))}
                 {dayTasks.length > 3 && (

@@ -3120,6 +3120,8 @@ export type Database = {
           parent_task_id: string | null
           priority: string
           project_id: string | null
+          recurrence_end: string | null
+          recurrence_type: string | null
           status: string
           updated_at: string
         }
@@ -3135,6 +3137,8 @@ export type Database = {
           parent_task_id?: string | null
           priority?: string
           project_id?: string | null
+          recurrence_end?: string | null
+          recurrence_type?: string | null
           status?: string
           updated_at?: string
         }
@@ -3150,6 +3154,8 @@ export type Database = {
           parent_task_id?: string | null
           priority?: string
           project_id?: string | null
+          recurrence_end?: string | null
+          recurrence_type?: string | null
           status?: string
           updated_at?: string
         }
