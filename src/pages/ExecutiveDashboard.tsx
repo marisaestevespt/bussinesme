@@ -65,12 +65,12 @@ export default function ExecutiveDashboard() {
               <CardTitle className="text-base flex items-center gap-2"><Lightbulb className="h-4 w-4" /> Business</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="flex items-center gap-2 rounded-md p-2 text-sm text-muted-foreground cursor-default">
-                <Rocket className="h-4 w-4" /> Plano & Modelo de Negócio <Badge variant="secondary" className="text-[10px] ml-auto">Em breve</Badge>
-              </div>
-              <div className="flex items-center gap-2 rounded-md p-2 text-sm text-muted-foreground cursor-default">
-                <Lightbulb className="h-4 w-4" /> Desenvolvimento & Inovação <Badge variant="secondary" className="text-[10px] ml-auto">Em breve</Badge>
-              </div>
+              <Link to="/executive/business-plan" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
+                <Rocket className="h-4 w-4 text-muted-foreground" /> Plano & Modelo de Negócio
+              </Link>
+              <Link to="/executive/innovation" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
+                <Lightbulb className="h-4 w-4 text-muted-foreground" /> Desenvolvimento & Inovação
+              </Link>
               <div className="flex items-center gap-2 rounded-md p-2 text-sm text-muted-foreground cursor-default">
                 <Clock className="h-4 w-4" /> Gestão de Produtividade & Tempo <Badge variant="secondary" className="text-[10px] ml-auto">Em breve</Badge>
               </div>
