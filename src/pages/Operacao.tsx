@@ -314,11 +314,27 @@ export default function OperacaoPage() {
                   { value: 'pausado', label: 'Pausados', className: 'bg-amber-100 text-amber-800' },
                   { value: 'altura_renovacao', label: 'Altura de renovação', className: 'bg-purple-100 text-purple-800' },
                 ].map(s => {
-                  const count = clients.filter(c => c.status === s.value).length;
+                  const statusClients = clients.filter(c => c.status === s.value);
+                  const isExpanded = expandedStatus === s.value;
                   return (
-                    <div key={s.value} className="flex items-center justify-between">
-                      <Badge variant="outline" className={`${s.className} border-0 text-xs`}>{s.label}</Badge>
-                      <span className="text-sm font-semibold">{count}</span>
+                    <div key={s.value}>
+                      <button
+                        onClick={() => setExpandedStatus(isExpanded ? null : s.value)}
+                        className="flex items-center justify-between w-full py-1 rounded hover:bg-muted/50 transition-colors"
+                      >
+                        <Badge variant="outline" className={`${s.className} border-0 text-xs`}>{s.label}</Badge>
+                        <span className="text-sm font-semibold">{statusClients.length}</span>
+                      </button>
+                      {isExpanded && statusClients.length > 0 && (
+                        <div className="ml-1 mt-1 mb-2 space-y-0.5">
+                          {statusClients.map(c => (
+                            <Link key={c.id} to={`/hub/clientes/${c.id}`} className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-muted/50 transition-colors text-sm text-muted-foreground hover:text-foreground">
+                              <span className="truncate">{c.full_name}</span>
+                              {c.current_product && <span className="text-[10px] ml-auto shrink-0 opacity-60">{c.current_product}</span>}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
