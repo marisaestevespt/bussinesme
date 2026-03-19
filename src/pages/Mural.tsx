@@ -179,6 +179,8 @@ export default function MuralPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mural-posts'] });
       toast.success('Publicação criada');
+      // Notify mentioned users
+      if (user) notifyMentions(formBody, user.id, formTitle, '/mural');
       resetForm();
     },
     onError: (e: Error) => toast.error(e.message),
