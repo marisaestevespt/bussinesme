@@ -166,6 +166,7 @@ const WEEK_DAYS = [
   { key: 'qui', label: 'Qui' },
   { key: 'sex', label: 'Sex' },
   { key: 'sab', label: 'Sáb' },
+  { key: 'dom', label: 'Dom' },
 ];
 
 const PERIODS = [
