@@ -49,9 +49,28 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   const monthExpenses = useMemo(() => expenses.filter(e => e.expense_year === currentYear && e.expense_month === m), [expenses, currentYear, m]);
 
   const totalEntradas = monthSales.reduce((s, v) => s + v.invoice_total, 0);
+  const totalBaseEntradas = monthSales.reduce((s, v) => s + v.base_value, 0);
+  const ivaCobrado = totalEntradas - totalBaseEntradas;
+
   const totalSaidas = monthExpenses.reduce((s, v) => s + v.total_with_vat, 0);
+  const totalBaseSaidas = monthExpenses.reduce((s, v) => s + v.base_value, 0);
+  const ivaPago = totalSaidas - totalBaseSaidas;
+
+  const ivaBalanco = ivaCobrado - ivaPago;
+
   const resultado = totalEntradas - totalSaidas;
   const margem = totalEntradas > 0 ? Math.round(resultado / totalEntradas * 10000) / 100 : 0;
+
+  // SS value for this month (stored as expense with category 'seguranca_social')
+  const ssExpense = useMemo(() => monthExpenses.find(e => e.category === 'seguranca_social'), [monthExpenses]);
+  const [ssValue, setSsValue] = useState('');
+  const [ssLoaded, setSsLoaded] = useState(false);
+  
+  // Sync SS value when month changes
+  useMemo(() => {
+    setSsValue(ssExpense ? String(ssExpense.total_with_vat) : '');
+    setSsLoaded(true);
+  }, [ssExpense, m]);
 
   // Sale dialog
   const [saleOpen, setSaleOpen] = useState(false);
