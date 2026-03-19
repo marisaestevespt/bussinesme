@@ -32,7 +32,7 @@ export function CommercialMetas() {
 
   // Product goals
   const productGoalsSum = (data.productGoals.data || []).reduce((s, p) => s + Number(p.goal_amount || 0), 0);
-  const productMismatch = data.annualGoalAmount > 0 && Math.abs(productGoalsSum - data.annualGoalAmount) > 0.01;
+  const productMismatch = data.annualGoalAmount > 0 && productGoalsSum < data.annualGoalAmount - 0.01;
 
   // Quarterly
   const qGoals = [1, 2, 3, 4].map(q => {
