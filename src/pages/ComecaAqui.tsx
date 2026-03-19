@@ -142,72 +142,35 @@ export default function ComecaAquiPage() {
               <p className="text-sm text-muted-foreground">Ainda não há membros na equipa.</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {(teamMembers.data || []).map((m: any) => (
-                  <Card key={m.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                    <CardContent className="p-5 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src={m.avatar_url || ''} />
-                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                            {getInitials(m.full_name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <p className="font-semibold text-foreground truncate">{m.full_name}</p>
-                          {m.role_title && <Badge className="text-[10px] text-white mt-0.5" style={{ backgroundColor: (m as any).role_color || '#6366f1' }}>{m.role_title}</Badge>}
+                {(teamMembers.data || []).map((m: any) => {
+                  const schedule = formatScheduleSummary(m.work_schedule);
+                  return (
+                    <Card key={m.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                      <CardContent className="p-5 space-y-3">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-14 w-14">
+                            <AvatarImage src={m.photo_url || ''} />
+                            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                              {getInitials(m.full_name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0 space-y-1">
+                            <p className="font-semibold text-foreground truncate">{m.full_name}</p>
+                            {m.role_title && (
+                              <Badge variant="secondary" className="text-[10px]">{m.role_title}</Badge>
+                            )}
+                          </div>
                         </div>
-                      </div>
-
-                      <div className="space-y-1.5 text-xs">
-                        {m.member_type && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Users className="h-3 w-3 shrink-0" />
-                            <span>{MEMBER_TYPE_LABELS[m.member_type] || m.member_type}</span>
+                        {schedule && (
+                          <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                            <Clock className="h-3 w-3 shrink-0" />
+                            <span className="leading-tight">{schedule}</span>
                           </div>
                         )}
-                        {m.email && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Mail className="h-3 w-3 shrink-0" />
-                            <a href={`mailto:${m.email}`} className="hover:text-primary truncate">{m.email}</a>
-                          </div>
-                        )}
-                        {m.whatsapp && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Phone className="h-3 w-3 shrink-0" />
-                            <span>{m.whatsapp}</span>
-                          </div>
-                        )}
-                        {m.work_schedule && (() => {
-                          const scheduleToDisplay = (raw: string | null) => {
-                            if (!raw) return '';
-                            try {
-                              const s = JSON.parse(raw);
-                              const DAYS = [{key:'seg',label:'Seg'},{key:'ter',label:'Ter'},{key:'qua',label:'Qua'},{key:'qui',label:'Qui'},{key:'sex',label:'Sex'},{key:'sab',label:'Sáb'}];
-                              return DAYS.filter(d => s[d.key] && (typeof s[d.key] === 'object' ? (s[d.key].manha || s[d.key].tarde) : (s[d.key]||[]).length > 0)).map(d => {
-                                const val = s[d.key];
-                                if (Array.isArray(val)) {
-                                  const suffix = val.length === 2 ? '' : val.includes('manha') ? ' (M)' : ' (T)';
-                                  return `${d.label}${suffix}`;
-                                }
-                                const parts: string[] = [];
-                                if (val.manha) parts.push(val.manha);
-                                if (val.tarde) parts.push(val.tarde);
-                                return `${d.label} ${parts.join(' / ')}`;
-                              }).join(' · ');
-                            } catch { return raw; }
-                          };
-                          const display = scheduleToDisplay(m.work_schedule);
-                          return display ? (
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <Clock className="h-3 w-3 shrink-0" />
-                              <span className="text-[10px] leading-tight">{display}</span>
-                            </div>
-                          ) : null;
-                        })()}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </section>
