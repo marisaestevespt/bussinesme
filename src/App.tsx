@@ -40,6 +40,9 @@ import MarketingEstrategia from "./pages/MarketingEstrategia";
 import MarketingChannelStrategy from "./pages/MarketingChannelStrategy";
 import MarketingFunis from "./pages/MarketingFunis";
 import MarketingFunilDetail from "./pages/MarketingFunilDetail";
+import MarketingTrafegoPago from "./pages/MarketingTrafegoPago";
+import TrafegoReportDetail from "./pages/TrafegoReportDetail";
+import TrafegoCriativoDetail from "./pages/TrafegoCriativoDetail";
 
 const queryClient = new QueryClient();
 
