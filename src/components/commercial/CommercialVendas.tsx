@@ -16,6 +16,8 @@ import { useAuth } from '@/hooks/useAuth';
 
 const STATUS_MAP: Record<string, { label: string; className: string }> = {
   na: { label: 'N.A.', className: 'bg-muted text-muted-foreground' },
+  aguarda_pagamento: { label: 'Aguarda Pagamento', className: 'bg-orange-100 text-orange-800 border-orange-200' },
+  em_atraso: { label: 'Em Atraso', className: 'bg-red-100 text-red-800 border-red-200' },
   fatura_emitida: { label: 'Fatura Emitida', className: 'bg-amber-100 text-amber-800 border-amber-200' },
   pagamento_ok: { label: 'Pagamento OK', className: 'bg-green-100 text-green-800 border-green-200' },
   recibo_enviado: { label: 'Recibo Enviado', className: 'bg-blue-100 text-blue-800 border-blue-200' },
@@ -72,7 +74,7 @@ export function CommercialVendas() {
 
     // Default view filters
     if (activeView === 'overdue') {
-      result = result.filter(s => ['na', 'fatura_emitida'].includes(s.status) && s.payment_date && s.payment_date < todayStr);
+      result = result.filter(s => s.status === 'em_atraso' || (['na', 'aguarda_pagamento', 'fatura_emitida'].includes(s.status) && s.payment_date && s.payment_date < todayStr));
     }
 
     // Search text (across description, client, product, sale_id)

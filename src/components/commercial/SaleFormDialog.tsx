@@ -14,6 +14,8 @@ import { supabase } from '@/integrations/supabase/client';
 
 const STATUS_OPTIONS = [
   { value: 'na', label: 'N.A.' },
+  { value: 'aguarda_pagamento', label: 'Aguarda Pagamento' },
+  { value: 'em_atraso', label: 'Em Atraso' },
   { value: 'fatura_emitida', label: 'Fatura Emitida' },
   { value: 'pagamento_ok', label: 'Pagamento OK' },
   { value: 'recibo_enviado', label: 'Recibo Enviado' },
