@@ -41,7 +41,7 @@ export default function ExecutiveRecommendations() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
-        <BackNavigation to="/executive" label="Executive Room" />
+        <BackNavigation parentRoute="/executive" parentLabel="Executive Room" />
 
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3">
