@@ -58,7 +58,7 @@ export default function FinanceiroSubPage() {
       case 'saidas':
         return <FinSaidas fin={fin} />;
       case 'iva':
-        return <FinIVA sales={sales} expenses={expenses} currentYear={currentYear} />;
+        return <FinIVA sales={sales} expenses={expenses} currentYear={currentYear} fin={fin} />;
       case 'seguranca-social':
         return <FinSegurancaSocial fin={fin} expenses={expenses} currentYear={currentYear} sales={sales} />;
       default:
