@@ -4,11 +4,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { planStatusLabel, PERIODS, GOAL_STATUSES } from '@/hooks/usePlanningData';
 
 export function PlanningGoalsTab({ planning }: { planning: any }) {
@@ -36,7 +35,6 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
 
   const getObjectiveName = (id: string) => objectives.find((o: any) => o.id === id)?.title || '—';
 
-  // Group goals
   const grouped = useMemo(() => {
     if (view === 'por_objetivo') {
       const map: Record<string, any[]> = {};
@@ -51,7 +49,6 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
   }, [filteredGoals, view]);
 
   const monthOrder = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro', 'T1', 'T2', 'T3', 'T4'];
-
   const sortByPeriod = (a: any, b: any) => monthOrder.indexOf(a.period) - monthOrder.indexOf(b.period);
 
   const getObjectiveArea = (id: string) => {
@@ -62,6 +59,10 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
   };
 
   const getObjectiveDeadline = (id: string) => objectives.find((o: any) => o.id === id)?.deadline || null;
+
+  const updateGoal = (g: any, field: string, value: any) => {
+    planning.upsertGoal.mutate({ id: g.id, objective_id: g.objective_id, [field]: value });
+  };
 
   const renderGoalRow = (g: any, showObjective: boolean) => {
     const dev = g.actual_value && g.target_value ? (Number(g.actual_value) - Number(g.target_value)) : null;
@@ -74,14 +75,21 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
         <TableCell className="text-sm">{g.period}</TableCell>
         <TableCell className="text-xs">{area ? <Badge variant="outline" className="text-[10px]">{area}</Badge> : '—'}</TableCell>
         <TableCell className="text-xs">{deadline || '—'}</TableCell>
-        <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
-        <TableCell className="text-xs">{g.actual_value || '—'}</TableCell>
+        <TableCell>
+          <Input className="h-7 w-24 text-xs" defaultValue={g.target_value || ''} onBlur={e => { if (e.target.value !== (g.target_value || '')) updateGoal(g, 'target_value', e.target.value); }} />
+        </TableCell>
+        <TableCell>
+          <Input className="h-7 w-24 text-xs" defaultValue={g.actual_value || ''} onBlur={e => { if (e.target.value !== (g.actual_value || '')) updateGoal(g, 'actual_value', e.target.value); }} />
+        </TableCell>
         <TableCell className={`text-xs ${hasDeviation ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
         <TableCell>
-          <Badge variant={g.status === 'atingido' ? 'default' : g.status === 'nao_atingido' ? 'destructive' : 'secondary'} className="text-[10px]">
-            {planStatusLabel(g.status)}
-          </Badge>
-          {hasDeviation && g.status !== 'atingido' && <Badge variant="destructive" className="text-[9px] ml-1">Desvio</Badge>}
+          <Select defaultValue={g.status} onValueChange={v => updateGoal(g, 'status', v)}>
+            <SelectTrigger className="h-7 w-[110px] text-[10px]"><SelectValue /></SelectTrigger>
+            <SelectContent>{GOAL_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+          </Select>
+        </TableCell>
+        <TableCell>
+          <button onClick={() => planning.deleteGoal.mutate(g.id)}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>
         </TableCell>
       </TableRow>
     );
@@ -121,7 +129,7 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
               <h3 className="text-sm font-semibold mb-2">{objId === 'sem_objetivo' ? 'Sem objetivo' : getObjectiveName(objId)}</h3>
               <Table>
                 <TableHeader><TableRow>
-                   <TableHead>Período</TableHead><TableHead>Área</TableHead><TableHead>Prazo</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead>
+                   <TableHead>Período</TableHead><TableHead>Área</TableHead><TableHead>Prazo</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead><TableHead></TableHead>
                 </TableRow></TableHeader>
                 <TableBody>{(goals as any[]).sort(sortByPeriod).map(g => renderGoalRow(g, false))}</TableBody>
               </Table>
@@ -133,7 +141,7 @@ export function PlanningGoalsTab({ planning }: { planning: any }) {
           <CardContent className="p-4">
             <Table>
               <TableHeader><TableRow>
-                 <TableHead>Objetivo</TableHead><TableHead>Período</TableHead><TableHead>Área</TableHead><TableHead>Prazo</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead>
+                 <TableHead>Objetivo</TableHead><TableHead>Período</TableHead><TableHead>Área</TableHead><TableHead>Prazo</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead><TableHead></TableHead>
               </TableRow></TableHeader>
               <TableBody>
                 {filteredGoals
