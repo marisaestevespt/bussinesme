@@ -235,15 +235,7 @@ export default function ConteudoDetailPage() {
 
               <Separator />
 
-              {/* Copy / Guião */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-foreground">Copy / Guião</h3>
-                <RichTextEditor content={form.copy_content} onChange={v => setForm(f => ({ ...f, copy_content: v }))} editable />
-              </div>
-
-              <Separator />
-
-              {/* Attachments */}
+              {/* Anexos (attachments - moved up) */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-semibold text-foreground">Anexos</h3>
@@ -283,6 +275,22 @@ export default function ConteudoDetailPage() {
                   </div>
                 )}
                 {attachments.length === 0 && <p className="text-xs text-muted-foreground italic">Nenhum anexo.</p>}
+              </div>
+
+              <Separator />
+
+              {/* Copy / Guião */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-foreground">Copy / Guião</h3>
+                <RichTextEditor content={form.copy_content} onChange={v => setForm(f => ({ ...f, copy_content: v }))} editable />
+              </div>
+
+              <Separator />
+
+              {/* Designs Finais */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-foreground">Designs Finais</h3>
+                <p className="text-xs text-muted-foreground italic">Em breve — secção para designs finais aprovados.</p>
               </div>
             </div>
 
@@ -387,7 +395,7 @@ export default function ConteudoDetailPage() {
                     </Select>
                   </Field>
 
-                  <Field label="Responsável">
+                  <Field label="Responsável de Fase">
                     <Select value={form.assigned_to} onValueChange={v => setForm(f => ({ ...f, assigned_to: v }))}>
                       <SelectTrigger className="h-9"><SelectValue placeholder="Ninguém" /></SelectTrigger>
                       <SelectContent>
