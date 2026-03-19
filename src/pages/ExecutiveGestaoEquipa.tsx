@@ -694,7 +694,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
         memberId = data.id;
       } else {
         const payload = cleanPayload(member);
-        const { error } = await supabase.from('team_members').update(payload).eq('id', member.id);
+        const { error } = await supabase.from('team_members').update(payload as any).eq('id', member.id);
         if (error) throw error;
       }
       // Auto-assign permissions based on department
