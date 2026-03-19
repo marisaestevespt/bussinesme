@@ -132,9 +132,7 @@ export default function MarketingChannelStrategy() {
         </div>
 
         <div className="max-w-5xl mx-auto w-full px-4 py-8 space-y-10">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/marketing/estrategia')}>
-            <ChevronLeft className="h-4 w-4 mr-1" />Voltar à Estratégia
-          </Button>
+          <BackNavigation parentRoute="/hub/marketing/estrategia" parentLabel="Estratégia" />
 
           {/* Callout - Posicionamento do Canal */}
           <Card className="border-primary/20 bg-primary/5">
