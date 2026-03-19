@@ -333,6 +333,7 @@ export default function OperacaoPage() {
                   { value: 'ativo', label: 'Ativos', className: 'bg-green-100 text-green-800' },
                   { value: 'pausado', label: 'Pausados', className: 'bg-amber-100 text-amber-800' },
                   { value: 'altura_renovacao', label: 'Altura de renovação', className: 'bg-purple-100 text-purple-800' },
+                  { value: 'em_offboarding', label: 'Em offboarding', className: 'bg-orange-100 text-orange-800' },
                 ].map(s => {
                   const count = clients.filter(c => c.status === s.value).length;
                   return (

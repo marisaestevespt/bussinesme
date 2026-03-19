@@ -276,7 +276,7 @@ export default function ClienteDetailPage() {
             <DateField label="Fim de Ciclo" value={form.end_of_cycle || null} onChange={v => update('end_of_cycle', v)} />
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Produto Atual</Label>
-              <Select value={form.current_product || ''} onValueChange={v => {
+              <Select value={form.current_product || ''} onValueChange={async (v) => {
                 update('current_product', v);
                 // Auto-calculate end_of_cycle if start_date exists and product has cycle_duration
                 if (form.start_date) {
@@ -286,6 +286,34 @@ export default function ClienteDetailPage() {
                     const end = new Date(start);
                     end.setDate(end.getDate() + prod.cycle_duration);
                     update('end_of_cycle', format(end, 'yyyy-MM-dd'));
+                  }
+                }
+                // Auto-copy onboarding & offboarding templates from product
+                if (!isNew && id) {
+                  const prod = productList.find(p => p.name === v);
+                  if (prod) {
+                    // Only copy if client has no existing onboarding entries
+                    const currentOnb = onboarding.data || [];
+                    if (currentOnb.length === 0) {
+                      const { data: onbTemplate } = await supabase.from('product_onboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
+                      if (onbTemplate && onbTemplate.length > 0) {
+                        for (const t of onbTemplate as any[]) {
+                          await addOnboarding.mutateAsync({ client_id: id, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
+                        }
+                        toast.success('Checklist de onboarding copiada automaticamente');
+                      }
+                    }
+                    // Only copy if client has no existing offboarding entries
+                    const currentOffb = offboarding.data || [];
+                    if (currentOffb.length === 0) {
+                      const { data: offbTemplate } = await supabase.from('product_offboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
+                      if (offbTemplate && offbTemplate.length > 0) {
+                        for (const t of offbTemplate as any[]) {
+                          await addOffboarding.mutateAsync({ client_id: id, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
+                        }
+                        toast.success('Checklist de offboarding copiada automaticamente');
+                      }
+                    }
                   }
                 }
               }}>
