@@ -68,6 +68,9 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const [clientTab, setClientTab] = useState<'ativos'|'terminar'>('ativos');
   const [contentTab, setContentTab] = useState('calendario');
   const [calMonth, setCalMonth] = useState(new Date(year, monthIdx, 1));
+  const [selectedObjective, setSelectedObjective] = useState<any>(null);
+  const [objDialogOpen, setObjDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   // ── Data queries ──
   const salesQ = useQuery({ queryKey: ['md-sales', year, monthNum], queryFn: async () => { const { data } = await supabase.from('commercial_sales').select('*').eq('sale_year', year).eq('sale_month', monthNum); return data || []; }});
