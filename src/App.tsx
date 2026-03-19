@@ -113,6 +113,7 @@ function AppRoutes() {
       <Route path="/hub/clientes/:id" element={<ClienteDetailPage />} />
       <Route path="/hub/financeiro" element={<FinanceiroPage />} />
       <Route path="/hub/financeiro/:section" element={<FinanceiroSubPage />} />
+      <Route path="/hub/operacao" element={<OperacaoPage />} />
         <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
       <Route path="/definicoes" element={<DefinicoesPage />} />
