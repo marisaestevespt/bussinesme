@@ -23,6 +23,7 @@ import ProjetoDetailPage from "./pages/ProjetoDetail";
 import ProcessosPage from "./pages/Processos";
 import SopDetailPage from "./pages/SopDetail";
 import BibliotecaPage from "./pages/Biblioteca";
+import TarefasPage from "./pages/Tarefas";
 
 const queryClient = new QueryClient();
 
