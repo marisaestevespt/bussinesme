@@ -230,6 +230,7 @@ export default function TarefasPage() {
       parent_task_id: parentTaskId && parentTaskId !== 'none' ? parentTaskId : null,
       notes: notes || null,
       _dependsOnIds: dependsOnIds,
+      _prevStatus: editingTask?.status || null,
     };
     if (isChangingToDone) {
       payload.updated_at = new Date().toISOString();
