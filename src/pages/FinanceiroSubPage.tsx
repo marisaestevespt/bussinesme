@@ -22,6 +22,7 @@ const TITLES: Record<string, string> = {
   saidas: 'Saídas',
   iva: 'IVA',
   'seguranca-social': 'Segurança Social',
+  documentos: 'Documentos',
 };
 
 export default function FinanceiroSubPage() {
