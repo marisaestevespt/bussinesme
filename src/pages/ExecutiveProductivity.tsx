@@ -123,7 +123,7 @@ export default function ExecutiveProductivity() {
           </TabsList>
 
           <TabsContent value="overview">
-            <OverviewTab entries={entries.data || []} members={members.data || []} clients={clients.data || []} products={productsQ.data || []} />
+            <OverviewTab entries={entries.data || []} members={members.data || []} clients={clients.data || []} products={productsQ.data || []} tasks={tasks.data || []} />
           </TabsContent>
           <TabsContent value="by-client">
             <ByClientTab entries={entries.data || []} clients={clients.data || []} />
