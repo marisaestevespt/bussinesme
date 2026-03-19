@@ -126,10 +126,17 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
   const [expForm, setExpForm] = useState<any>({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [], includes_vat: false });
 
   const saveExpense = async () => {
-    if (!expForm.base_value) { toast.error('Valor base é obrigatório'); return; }
-    const base = parseFloat(expForm.base_value) || 0;
+    if (!expForm.base_value) { toast.error('Valor é obrigatório'); return; }
+    const inputValue = parseFloat(expForm.base_value) || 0;
     const vat = parseInt(expForm.vat_rate) || 0;
-    const total = Math.round(base * (1 + vat / 100) * 100) / 100;
+    let base: number, total: number;
+    if (expForm.includes_vat) {
+      total = inputValue;
+      base = Math.round(inputValue / (1 + vat / 100) * 100) / 100;
+    } else {
+      base = inputValue;
+      total = Math.round(base * (1 + vat / 100) * 100) / 100;
+    }
     const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-15`;
     await fin.upsertExpense.mutateAsync({
       description: expForm.description || null,
