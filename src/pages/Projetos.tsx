@@ -30,7 +30,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 const PROJECT_TYPES = [
   { value: 'interno', label: 'Interno', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
-  { value: 'servico', label: 'Serviço', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+  { value: 'clientes', label: 'Clientes', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
 ];
 
 const PROJECT_STATUSES = [
