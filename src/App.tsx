@@ -28,6 +28,9 @@ import BibliotecaPage from "./pages/Biblioteca";
 import TarefasPage from "./pages/Tarefas";
 import HubEquipaPage from "./pages/HubEquipa";
 import GestaoMarcaPage from "./pages/GestaoMarca";
+import MarketingDashboard from "./pages/MarketingDashboard";
+import MarketingSubPage from "./pages/MarketingSubPage";
+import ConteudoDetailPage from "./pages/ConteudoDetail";
 
 const queryClient = new QueryClient();
 
