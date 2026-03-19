@@ -420,7 +420,7 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
 
 // ─── Gallery View ───────────────────────────────────────────────
 
-function GalleryView({ projects, getMembersForProject, onOpen }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void }) {
+function GalleryView({ projects, getMembersForProject, onOpen, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; getTaskProgress: (id: string) => number }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {projects.map(p => {
