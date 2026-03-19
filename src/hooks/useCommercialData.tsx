@@ -174,36 +174,33 @@ export function useCommercialData(year = currentYear) {
     onSuccess: invalidateAll,
   });
 
-  // Computed values — only count sales with status past payment
-  const COUNTED_STATUSES = ['pagamento_ok', 'recibo_enviado', 'contabilidade_ok'];
+  // Computed values — all sales count for commercial goals/charts
   const annualGoalAmount = Number(annualGoal.data?.goal_amount || 0);
   const yearSales = sales.data || [];
-  const countedSales = yearSales.filter(v => COUNTED_STATUSES.includes(v.status));
-  const totalInvoiced = countedSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+  const totalInvoiced = yearSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
   const progressPct = annualGoalAmount > 0 ? (totalInvoiced / annualGoalAmount) * 100 : 0;
   const currentMonthSales = yearSales.filter(v => v.sale_month === currentMonth);
-  const currentMonthCounted = currentMonthSales.filter(v => COUNTED_STATUSES.includes(v.status));
-  const currentMonthTotal = currentMonthCounted.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+  const currentMonthTotal = currentMonthSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
 
-  // Monthly totals for charts (only counted statuses)
+  // Monthly totals for charts
   const monthlyTotals = Array.from({ length: 12 }, (_, i) => {
     const m = i + 1;
-    return countedSales.filter(v => v.sale_month === m).reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+    return yearSales.filter(v => v.sale_month === m).reduce((s, v) => s + Number(v.invoice_total || 0), 0);
   });
 
   // Validation: monthly goals sum vs annual
   const monthlyGoalsSum = (monthlyGoals.data || []).reduce((s, m) => s + Number(m.goal_amount || 0), 0);
   const monthlyMismatch = annualGoalAmount > 0 && monthlyGoalsSum < annualGoalAmount - 0.01;
 
-  // Quarter totals from sales (only counted statuses)
+  // Quarter totals from sales
   const quarterTotals = [1, 2, 3, 4].map(q =>
-    countedSales.filter(v => v.sale_quarter === q).reduce((s, v) => s + Number(v.invoice_total || 0), 0)
+    yearSales.filter(v => v.sale_quarter === q).reduce((s, v) => s + Number(v.invoice_total || 0), 0)
   );
 
-  // Product totals from sales (only counted statuses)
+  // Product totals from sales
   const productTotals = (productGoals.data || []).map(pg => ({
     ...pg,
-    totalInvoiced: countedSales.filter(v => v.product === pg.product_name).reduce((s, v) => s + Number(v.invoice_total || 0), 0),
+    totalInvoiced: yearSales.filter(v => v.product === pg.product_name).reduce((s, v) => s + Number(v.invoice_total || 0), 0),
   }));
 
   return {
