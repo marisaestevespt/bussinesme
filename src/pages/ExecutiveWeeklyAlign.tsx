@@ -138,6 +138,58 @@ export default function ExecutiveWeeklyAlign() {
     },
   });
 
+  // NPS records this week & overdue
+  const npsWeek = useQuery({
+    queryKey: ['wa-nps-week', weekStartStr, weekEndStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_nps_records').select('*, clients!client_nps_records_client_id_fkey(full_name, current_product)').gte('expected_date', weekStartStr).lte('expected_date', weekEndStr).order('expected_date');
+      return (data || []) as any[];
+    },
+  });
+
+  const npsOverdue = useQuery({
+    queryKey: ['wa-nps-overdue', weekStartStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_nps_records').select('*, clients!client_nps_records_client_id_fkey(full_name, current_product)').lt('expected_date', weekStartStr).neq('status', 'feito').order('expected_date');
+      return (data || []) as any[];
+    },
+  });
+
+  // Milestones this week
+  const milestonesWeek = useQuery({
+    queryKey: ['wa-milestones-week', weekStartStr, weekEndStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_milestones').select('*, clients!client_milestones_client_id_fkey(full_name, current_product)').gte('expected_date', weekStartStr).lte('expected_date', weekEndStr).order('expected_date');
+      return (data || []) as any[];
+    },
+  });
+
+  const { members } = useTeamData();
+  const teamMembers = members.data || [];
+  const getMemberName = (id: string | null) => {
+    if (!id) return '—';
+    return teamMembers.find((t: any) => t.id === id)?.full_name || '—';
+  };
+
+  const overdueCount = (npsOverdue.data || []).length;
+
+  const getNpsRowColor = (expectedDate: string, status: string) => {
+    if (status === 'feito') return 'bg-emerald-50 border-l-4 border-l-emerald-500';
+    const diff = differenceInDays(parseISO(expectedDate), now);
+    if (diff < 0) return 'bg-red-50 border-l-4 border-l-red-500';
+    return 'bg-amber-50 border-l-4 border-l-amber-500';
+  };
+
+  const autoNpsStatus = (expectedDate: string, currentStatus: string) => {
+    if (currentStatus === 'feito') return 'feito';
+    if (differenceInDays(parseISO(expectedDate), now) < 0) return 'em_atraso';
+    return 'por_fazer';
+  };
+
+  const MILESTONE_TYPE_LABELS: Record<string, string> = {
+    check_in: 'Check-in', feedback: 'Recolha de Feedback', reuniao: 'Reunião', email: 'Email', outro: 'Outro',
+  };
+
   const routineMap = Object.fromEntries((exec.weeklyRoutines.data || []).map(r => [r.routine_key, r.completed]));
 
   return (
