@@ -210,7 +210,7 @@ function MeetingFormDialog({
   const [title, setTitle] = useState('');
   const [dateTime, setDateTime] = useState<Date | undefined>();
   const [status, setStatus] = useState<MeetingStatus>('por_confirmar');
-  const [clientName, setClientName] = useState('');
+  const [clientId, setClientId] = useState('');
   const [projectId, setProjectId] = useState('');
   const [department, setDepartment] = useState('');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
