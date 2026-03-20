@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { BackNavigation } from '@/components/BackNavigation';
 import { useNavigate } from 'react-router-dom';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
