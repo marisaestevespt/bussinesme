@@ -6386,6 +6386,16 @@ export type Database = {
           id: string
         }[]
       }
+      get_portal_payments: {
+        Args: { _token: string }
+        Returns: {
+          documents: Json
+          id: string
+          payment_date: string
+          sale_month: number
+          status: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
