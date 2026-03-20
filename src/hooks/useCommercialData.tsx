@@ -238,6 +238,7 @@ export function useCommercialData(year = currentYear) {
         const { error } = await supabase.from('commercial_monthly_goals').insert({ year, month: mg.month, goal_amount: mg.goal_amount });
         if (error) throw error;
       }
+      await syncMonthlyToPlanning(mg.month, mg.goal_amount);
     },
     onSuccess: invalidateAll,
   });
