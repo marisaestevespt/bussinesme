@@ -163,6 +163,20 @@ const ROLE_COLORS = [
   { value: '#64748b', label: 'Cinza' },
 ];
 
+const PRESET_ROLES = [
+  { label: 'Owner', color: '#6366f1' },
+  { label: 'Designer', color: '#ec4899' },
+  { label: 'Copywriter', color: '#f59e0b' },
+  { label: 'Gestora', color: '#3b82f6' },
+  { label: 'Gestora de Redes', color: '#14b8a6' },
+  { label: 'Analista', color: '#8b5cf6' },
+  { label: 'Estratega', color: '#10b981' },
+  { label: 'Contabilista', color: '#64748b' },
+  { label: 'Advogada', color: '#ef4444' },
+  { label: 'Assistente Virtual', color: '#f97316' },
+  { label: 'Administrativa', color: '#3b82f6' },
+];
+
 const WEEK_DAYS = [
   { key: 'seg', label: 'Seg' },
   { key: 'ter', label: 'Ter' },
@@ -441,23 +455,46 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
           {/* Função + Departamento + Tipo */}
           <div className="space-y-1.5">
             <span className="text-xs text-muted-foreground font-medium">Função</span>
-            <div className="flex gap-2 items-center">
-              <Input placeholder="Ex: Designer, Gestor..." className="flex-1" value={f.role_title || ''} onChange={e => set('role_title', e.target.value)} />
-              <div className="flex gap-1">
-                {ROLE_COLORS.map(c => (
+            <div className="flex flex-wrap gap-1.5">
+              {PRESET_ROLES.map(r => {
+                const isSelected = f.role_title === r.label;
+                return (
                   <button
-                    key={c.value}
+                    key={r.label}
                     type="button"
-                    onClick={() => set('role_color', c.value)}
-                    className={`h-6 w-6 rounded-full border-2 transition-all shrink-0 ${f.role_color === c.value ? 'border-foreground scale-110' : 'border-transparent'}`}
-                    style={{ backgroundColor: c.value }}
-                    title={c.label}
-                  />
-                ))}
-              </div>
+                    onClick={() => { set('role_title', isSelected ? '' : r.label); set('role_color', r.color); }}
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${isSelected ? 'text-white border-transparent ring-2 ring-offset-1 ring-foreground/20' : 'text-foreground/70 border-border hover:border-foreground/30'}`}
+                    style={isSelected ? { backgroundColor: r.color } : {}}
+                  >
+                    {r.label}
+                  </button>
+                );
+              })}
             </div>
+            {/* Custom role input */}
+            {!PRESET_ROLES.some(r => r.label === f.role_title) && f.role_title ? (
+              <div className="flex gap-2 items-center mt-2">
+                <Input className="flex-1 h-8 text-xs" value={f.role_title} onChange={e => set('role_title', e.target.value)} />
+                <div className="flex gap-1">
+                  {ROLE_COLORS.map(c => (
+                    <button key={c.value} type="button" onClick={() => set('role_color', c.value)}
+                      className={`h-5 w-5 rounded-full border-2 transition-all shrink-0 ${f.role_color === c.value ? 'border-foreground scale-110' : 'border-transparent'}`}
+                      style={{ backgroundColor: c.value }} title={c.label} />
+                  ))}
+                </div>
+                <button type="button" className="text-xs text-destructive hover:underline" onClick={() => { set('role_title', ''); set('role_color', '#6366f1'); }}>Limpar</button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="mt-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                onClick={() => { set('role_title', 'Nova função'); set('role_color', '#6366f1'); }}
+              >
+                <Plus className="h-3 w-3" /> Adicionar outra função
+              </button>
+            )}
             {f.role_title && (
-              <Badge className="text-xs text-white" style={{ backgroundColor: f.role_color || '#6366f1' }}>{f.role_title}</Badge>
+              <Badge className="text-xs text-white mt-1" style={{ backgroundColor: f.role_color || '#6366f1' }}>{f.role_title}</Badge>
             )}
           </div>
           <div className="grid grid-cols-2 gap-2">
