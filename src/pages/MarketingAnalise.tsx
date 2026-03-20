@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { YearSelector } from '@/components/YearSelector';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { supabase } from '@/integrations/supabase/client';
@@ -348,7 +349,7 @@ export default function MarketingAnalisePage() {
   const [year, setYear] = useState(now.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
 
-  // Content items for the year (for gallery summaries)
+  // Content items for the year
   const { data: yearContent = [] } = useQuery({
     queryKey: ['content-items-year', year],
     queryFn: async () => {
@@ -357,6 +358,84 @@ export default function MarketingAnalisePage() {
       return (data || []) as Pick<ContentItem, 'id' | 'status' | 'scheduled_at'>[];
     },
   });
+
+  // Channels for annual growth
+  const { data: channels = [] } = useQuery({
+    queryKey: ['marketing-channels'],
+    queryFn: async () => {
+      const { data } = await supabase.from('marketing_channels').select('*').order('sort_order');
+      return (data || []) as MarketingChannel[];
+    },
+  });
+  const activeChannels = channels.filter(c => c.is_active && c.name.toLowerCase() !== 'website');
+
+  // Channel metrics for Jan and Dec (or latest) of this year
+  const { data: janMetrics = [] } = useQuery({
+    queryKey: ['channel-metrics-jan', year],
+    queryFn: async () => {
+      const { data } = await supabase.from('channel_monthly_metrics').select('*').eq('month', 1).eq('year', year);
+      return data || [];
+    },
+  });
+  const { data: latestMetrics = [] } = useQuery({
+    queryKey: ['channel-metrics-latest', year],
+    queryFn: async () => {
+      const currentMonth = now.getFullYear() === year ? now.getMonth() + 1 : 12;
+      const { data } = await supabase.from('channel_monthly_metrics').select('*').eq('month', currentMonth).eq('year', year);
+      return data || [];
+    },
+  });
+
+  // Funnels & automations
+  const { data: funnels = [] } = useQuery({
+    queryKey: ['marketing-funnels-active'],
+    queryFn: async () => {
+      const { data } = await supabase.from('marketing_funnels').select('id, status');
+      return data || [];
+    },
+  });
+  const activeFunnels = funnels.filter((f: any) => f.status === 'ativo' || f.status === 'active').length;
+
+  const { data: automations = [] } = useQuery({
+    queryKey: ['marketing-automations-active'],
+    queryFn: async () => {
+      const { data } = await supabase.from('marketing_automations').select('id, status');
+      return data || [];
+    },
+  });
+  const activeAutomations = automations.filter((a: any) => a.status === 'ativa' || a.status === 'active' || a.status === 'ativo').length;
+
+  // Marketing objectives for the year
+  const { data: yearObjectives = [] } = useQuery({
+    queryKey: ['marketing-objectives-year', year],
+    queryFn: async () => {
+      const { data } = await supabase.from('executive_goals').select('*').eq('area', 'marketing').eq('year', year);
+      return data || [];
+    },
+  });
+
+  // ─── Annual summary ───
+  const annualSummary = useMemo(() => {
+    const totalPlanned = yearContent.length;
+    const totalPublished = yearContent.filter(c => c.status === 'publicado').length;
+    const executionRate = totalPlanned > 0 ? Math.round((totalPublished / totalPlanned) * 100) : 0;
+
+    // Channel growth
+    const channelGrowth = activeChannels.map(ch => {
+      const jan = (janMetrics as any[]).find(m => m.channel_id === ch.id);
+      const latest = (latestMetrics as any[]).find(m => m.channel_id === ch.id);
+      const startFollowers = jan?.followers ?? null;
+      const currentFollowers = latest?.followers ?? null;
+      const growth = startFollowers != null && currentFollowers != null ? currentFollowers - startFollowers : null;
+      const growthPct = startFollowers && growth != null ? Math.round((growth / startFollowers) * 100) : null;
+      return { id: ch.id, name: ch.name, startFollowers, currentFollowers, growth, growthPct };
+    });
+
+    // Objectives
+    const objectivesAchieved = yearObjectives.filter((o: any) => o.status === 'concluido' || o.status === 'achieved').length;
+
+    return { totalPublished, totalPlanned, executionRate, channelGrowth, activeFunnels, activeAutomations, objectivesAchieved, objectivesTotal: yearObjectives.length };
+  }, [yearContent, activeChannels, janMetrics, latestMetrics, yearObjectives, activeFunnels, activeAutomations]);
 
   const monthSummaries = useMemo(() => {
     return MONTHS.map((name, idx) => {
@@ -393,11 +472,71 @@ export default function MarketingAnalisePage() {
         <div className="max-w-5xl mx-auto w-full px-4 py-8 space-y-6">
           <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
 
-          <div className="flex items-center justify-center gap-4">
-            <Button variant="outline" size="icon" onClick={() => setYear(y => y - 1)}><ChevronLeft className="h-4 w-4" /></Button>
-            <span className="text-lg font-semibold">{year}</span>
-            <Button variant="outline" size="icon" onClick={() => setYear(y => y + 1)}><ChevronRight className="h-4 w-4" /></Button>
+          <YearSelector year={year} onChange={setYear} />
+
+          {/* ─── Annual Summary ─── */}
+          <div className="space-y-4">
+            <h3 className="text-base font-semibold">Resumo {year}</h3>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              <Card className="border-secondary bg-background">
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-foreground">{annualSummary.totalPublished} / {annualSummary.totalPlanned}</p>
+                  <p className="text-xs text-muted-foreground">Publicados / Planeados</p>
+                </CardContent>
+              </Card>
+              <Card className="border-secondary bg-background">
+                <CardContent className="p-4 text-center">
+                  <p className={cn("text-2xl font-bold", annualSummary.executionRate >= 80 ? 'text-emerald-600' : annualSummary.executionRate >= 50 ? 'text-amber-600' : 'text-destructive')}>{annualSummary.executionRate}%</p>
+                  <p className="text-xs text-muted-foreground">Taxa de execução anual</p>
+                </CardContent>
+              </Card>
+              <Card className="border-secondary bg-background">
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-foreground">{annualSummary.activeFunnels}</p>
+                  <p className="text-xs text-muted-foreground">Funis ativos</p>
+                </CardContent>
+              </Card>
+              <Card className="border-secondary bg-background">
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-foreground">{annualSummary.activeAutomations}</p>
+                  <p className="text-xs text-muted-foreground">Automações ativas</p>
+                </CardContent>
+              </Card>
+              <Card className="border-secondary bg-background">
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-foreground">{annualSummary.objectivesAchieved} / {annualSummary.objectivesTotal}</p>
+                  <p className="text-xs text-muted-foreground">Objetivos atingidos</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Channel growth */}
+            {annualSummary.channelGrowth.length > 0 && (
+              <Card className="border-secondary bg-background">
+                <CardContent className="p-0">
+                  <div className="px-4 py-2 bg-muted/30 text-xs font-medium grid grid-cols-5 gap-2 border-b">
+                    <span>Canal</span><span className="text-right">Início do ano</span><span className="text-right">Atual</span><span className="text-right">Crescimento</span><span className="text-right">%</span>
+                  </div>
+                  {annualSummary.channelGrowth.map(ch => (
+                    <div key={ch.id} className="px-4 py-2.5 text-sm grid grid-cols-5 gap-2 border-b last:border-0">
+                      <span className="font-medium">{ch.name}</span>
+                      <span className="text-right text-muted-foreground">{ch.startFollowers?.toLocaleString() ?? '—'}</span>
+                      <span className="text-right text-muted-foreground">{ch.currentFollowers?.toLocaleString() ?? '—'}</span>
+                      <span className={cn("text-right font-medium", ch.growth != null && ch.growth >= 0 ? 'text-emerald-600' : 'text-destructive')}>
+                        {ch.growth != null ? `${ch.growth >= 0 ? '+' : ''}${ch.growth.toLocaleString()}` : '—'}
+                      </span>
+                      <span className={cn("text-right font-medium", ch.growthPct != null && ch.growthPct >= 0 ? 'text-emerald-600' : 'text-destructive')}>
+                        {ch.growthPct != null ? `${ch.growthPct >= 0 ? '+' : ''}${ch.growthPct}%` : '—'}
+                      </span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
           </div>
+
+          <Separator />
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {monthSummaries.map((m, idx) => {
@@ -420,7 +559,7 @@ export default function MarketingAnalisePage() {
                       {m.published} publicados / {m.planned} planeados
                     </div>
                     {m.planned > 0 && (
-                      <p className={cn("text-sm font-bold", m.rate >= 80 ? 'text-emerald-600' : m.rate >= 50 ? 'text-amber-600' : 'text-red-500')}>
+                      <p className={cn("text-sm font-bold", m.rate >= 80 ? 'text-emerald-600' : m.rate >= 50 ? 'text-amber-600' : 'text-destructive')}>
                         {m.rate}% execução
                       </p>
                     )}

@@ -454,7 +454,7 @@ export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
   const [year, setYear] = useState(now.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
 
-  // Sales for gallery summary
+  // Sales for gallery summary + annual
   const { data: salesData = [] } = useQuery({
     queryKey: ['product-metrics-sales', productName, year],
     queryFn: async () => {
@@ -463,6 +463,97 @@ export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
     },
     enabled: !!productName,
   });
+
+  const { data: clientsData = [] } = useQuery({
+    queryKey: ['product-metrics-clients', productName],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients').select('*').eq('current_product', productName);
+      return data || [];
+    },
+    enabled: !!productName,
+  });
+
+  const { data: npsRecords = [] } = useQuery({
+    queryKey: ['product-metrics-nps', productName],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_nps_records')
+        .select('*, clients!client_nps_records_client_id_fkey(full_name, current_product, id)')
+        .order('actual_date', { ascending: false });
+      return (data || []).filter((n: any) => n.clients?.current_product === productName) as any[];
+    },
+    enabled: !!productName,
+  });
+
+  // KPIs + values for annual
+  const { data: kpis = [] } = useQuery({
+    queryKey: ['product-kpis', productId],
+    queryFn: async () => {
+      const { data } = await supabase.from('product_kpis' as any).select('*').eq('product_id', productId).eq('active', true).order('sort_order');
+      return (data || []) as any[];
+    },
+  });
+
+  const { data: allKpiValues = [] } = useQuery({
+    queryKey: ['product-kpi-values-year', productId, year],
+    queryFn: async () => {
+      const { data } = await supabase.from('product_kpi_values' as any).select('*').eq('product_id', productId).eq('year', year);
+      return (data || []) as any[];
+    },
+  });
+
+  // ─── Annual summary ───
+  const annualSummary = useMemo(() => {
+    const totalRevenue = salesData.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+    const totalSales = salesData.length;
+    const ticketMedio = totalSales > 0 ? Math.round(totalRevenue / totalSales) : 0;
+
+    const newClients = clientsData.filter(c => {
+      if (!c.start_date) return false;
+      return new Date(c.start_date).getFullYear() === year;
+    }).length;
+
+    const churn = clientsData.filter(c => {
+      if (!c.updated_at || c.status !== 'terminado') return false;
+      return new Date(c.updated_at).getFullYear() === year;
+    }).length;
+
+    const renewalClients = clientsData.filter(c => {
+      if (!c.updated_at) return false;
+      return new Date(c.updated_at).getFullYear() === year;
+    });
+    const renewed = renewalClients.filter(c => c.status === 'ativo').length;
+    const renewalBase = renewalClients.filter(c => ['ativo', 'altura_renovacao', 'terminado'].includes(c.status)).length;
+    const renewalRate = renewalBase > 0 ? Math.round((renewed / renewalBase) * 100) : 0;
+
+    // NPS
+    const activeClients = clientsData.filter(c => c.status === 'ativo' || c.status === 'em_onboarding');
+    const activeIds = new Set(activeClients.map(c => c.id));
+    const npsMap = new Map<string, number>();
+    for (const n of npsRecords) {
+      if (n.nps_score != null && n.clients?.id && !npsMap.has(n.clients.id) && activeIds.has(n.clients.id)) {
+        npsMap.set(n.clients.id, n.nps_score);
+      }
+    }
+    const npsScores = Array.from(npsMap.values());
+    const avgNps = npsScores.length > 0 ? (npsScores.reduce((a, b) => a + b, 0) / npsScores.length).toFixed(1) : '—';
+
+    // Custom KPI annual aggregation
+    const kpiAnnual = kpis.map((kpi: any) => {
+      const vals = allKpiValues.filter((v: any) => v.kpi_id === kpi.id && v.value != null).map((v: any) => Number(v.value));
+      let annualValue: number | null = null;
+      if (vals.length > 0) {
+        annualValue = kpi.kpi_type === 'percentagem'
+          ? parseFloat((vals.reduce((a: number, b: number) => a + b, 0) / vals.length).toFixed(1))
+          : vals.reduce((a: number, b: number) => a + b, 0);
+      }
+      const annualGoal = kpi.monthly_goal != null
+        ? kpi.kpi_type === 'percentagem' ? Number(kpi.monthly_goal) : Number(kpi.monthly_goal) * 12
+        : null;
+      return { name: kpi.name, kpiType: kpi.kpi_type, value: annualValue, goal: annualGoal };
+    });
+
+    return { totalRevenue, totalSales, ticketMedio, newClients, churn, renewalRate, avgNps, kpiAnnual };
+  }, [salesData, clientsData, year, npsRecords, kpis, allKpiValues]);
 
   const monthSummaries = useMemo(() => {
     return MONTH_NAMES.map((name, idx) => {
@@ -474,6 +565,7 @@ export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
   }, [salesData]);
 
   const fmt = (n: number) => n.toLocaleString('pt-PT', { maximumFractionDigits: 0 });
+  const fmtEur = (n: number) => `${fmt(n)} €`;
 
   if (selectedMonth !== null) {
     return (
@@ -492,6 +584,46 @@ export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
   return (
     <div className="space-y-4">
       <YearSelector year={year} onChange={setYear} />
+
+      {/* ─── Annual Summary ─── */}
+      <div className="space-y-4">
+        <h3 className="text-base font-semibold">Resumo {year}</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <AutoKpiCard label="Receita total" value={fmtEur(annualSummary.totalRevenue)} icon={DollarSign} />
+          <AutoKpiCard label="Total de vendas" value={annualSummary.totalSales} icon={BarChart3} />
+          <AutoKpiCard label="Ticket médio anual" value={fmtEur(annualSummary.ticketMedio)} icon={DollarSign} />
+          <AutoKpiCard label="Novos clientes" value={annualSummary.newClients} icon={UserPlus} />
+          <AutoKpiCard label="Churn total" value={annualSummary.churn} icon={UserMinus} color={annualSummary.churn > 0 ? 'text-destructive' : undefined} />
+          <AutoKpiCard label="Taxa de renovação" value={`${annualSummary.renewalRate}%`} icon={RefreshCw} />
+          <AutoKpiCard label="NPS médio atual" value={annualSummary.avgNps} icon={Star} />
+        </div>
+
+        {/* Custom KPI annual */}
+        {annualSummary.kpiAnnual.length > 0 && (
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-sm font-semibold">KPIs Personalizados — Anual</CardTitle></CardHeader>
+            <CardContent className="px-4 pb-4 space-y-2">
+              {annualSummary.kpiAnnual.map((k, i) => (
+                <div key={i} className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{k.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">
+                      {k.value != null ? (
+                        k.kpiType === 'monetario' ? fmtEur(k.value) : k.kpiType === 'percentagem' ? `${k.value}%` : fmt(k.value)
+                      ) : '—'}
+                    </span>
+                    {k.goal != null && (
+                      <span className="text-xs text-muted-foreground">/ {k.kpiType === 'monetario' ? fmtEur(k.goal) : k.kpiType === 'percentagem' ? `${k.goal}%` : fmt(k.goal)}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      <Separator />
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {monthSummaries.map((m, idx) => {

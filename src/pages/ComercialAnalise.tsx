@@ -476,8 +476,83 @@ export default function ComercialAnalisePage() {
   const [year, setYear] = useState(now.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
 
-  const { sales: salesQ, monthlyGoals } = useCommercialData(year);
+  const { sales: salesQ, monthlyGoals, annualGoalAmount, totalInvoiced } = useCommercialData(year);
   const salesData = salesQ.data || [];
+  const { clients: clientsQ } = useClients();
+  const clientsData = clientsQ.data || [];
+  const { allLeads } = useCrmData();
+  const leads = allLeads || [];
+
+  // NPS for annual summary
+  const npsAnnualQ = useQuery({
+    queryKey: ['all-nps-annual'],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_nps_records').select('client_id, nps_score, actual_date').order('actual_date', { ascending: false });
+      return data || [];
+    },
+  });
+
+  // Products for annual comparative
+  const productsQ = useQuery({
+    queryKey: ['products-active'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('id, name').eq('status', 'vendas_ativas');
+      return data || [];
+    },
+  });
+
+  // ─── Annual summary ───
+  const annualSummary = useMemo(() => {
+    const totalSales = salesData.length;
+    const totalRevenue = salesData.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+    const ticketMedio = totalSales > 0 ? Math.round(totalRevenue / totalSales) : 0;
+
+    const newClients = clientsData.filter(c => {
+      if (!c.start_date) return false;
+      const d = new Date(c.start_date);
+      return d.getFullYear() === year;
+    }).length;
+
+    const churn = clientsData.filter(c => {
+      if (!c.updated_at || c.status !== 'terminado') return false;
+      const d = new Date(c.updated_at);
+      return d.getFullYear() === year;
+    }).length;
+
+    const renewalClients = clientsData.filter(c => {
+      if (!c.updated_at) return false;
+      const d = new Date(c.updated_at);
+      return d.getFullYear() === year;
+    });
+    const renewed = renewalClients.filter(c => c.status === 'ativo').length;
+    const renewalBase = renewalClients.filter(c => ['ativo', 'altura_renovacao', 'terminado'].includes(c.status)).length;
+    const renewalRate = renewalBase > 0 ? Math.round((renewed / renewalBase) * 100) : 0;
+
+    // NPS - latest per active client
+    const activeClients = clientsData.filter(c => c.status === 'ativo' || c.status === 'em_onboarding');
+    const activeIds = new Set(activeClients.map(c => c.id));
+    const npsMap = new Map<string, number>();
+    for (const n of (npsAnnualQ.data || []) as any[]) {
+      if (n.nps_score != null && !npsMap.has(n.client_id) && activeIds.has(n.client_id)) {
+        npsMap.set(n.client_id, n.nps_score);
+      }
+    }
+    const npsScores = Array.from(npsMap.values());
+    const avgNps = npsScores.length > 0 ? (npsScores.reduce((a, b) => a + b, 0) / npsScores.length).toFixed(1) : '—';
+
+    // Leads
+    const yearLeads = leads.filter(l => new Date(l.created_at).getFullYear() === year);
+    const yearWins = yearLeads.filter(l => l.status === 'ganho');
+    const conversionRate = yearLeads.length > 0 ? Math.round((yearWins.length / yearLeads.length) * 100) : 0;
+
+    // Revenue by product
+    const revenueByProduct: { name: string; revenue: number }[] = [];
+    const prodMap: Record<string, number> = {};
+    salesData.forEach(s => { const p = s.product || 'Sem produto'; prodMap[p] = (prodMap[p] || 0) + Number(s.invoice_total || 0); });
+    Object.entries(prodMap).sort((a, b) => b[1] - a[1]).forEach(([name, revenue]) => revenueByProduct.push({ name, revenue }));
+
+    return { totalRevenue, totalSales, ticketMedio, newClients, churn, renewalRate, avgNps, leadsCount: yearLeads.length, conversionRate, revenueByProduct };
+  }, [salesData, clientsData, leads, year, npsAnnualQ.data]);
 
   // Summary per month for gallery cards
   const monthSummaries = useMemo(() => {
@@ -492,6 +567,8 @@ export default function ComercialAnalisePage() {
   }, [salesData, monthlyGoals.data]);
 
   const fmt = (n: number) => n.toLocaleString('pt-PT', { maximumFractionDigits: 0 });
+  const fmtEur = (n: number) => `${fmt(n)} €`;
+  const yearProgressPct = annualGoalAmount > 0 ? Math.min(Math.round((annualSummary.totalRevenue / annualGoalAmount) * 100), 100) : 0;
 
   if (selectedMonth !== null) {
     return (
@@ -513,6 +590,54 @@ export default function ComercialAnalisePage() {
 
         {/* Year selector */}
         <YearSelector year={year} onChange={setYear} />
+
+        {/* ─── Annual Summary ─── */}
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold">Resumo {year}</h3>
+
+          {/* Revenue vs goal */}
+          {annualGoalAmount > 0 && (
+            <Card className="border-secondary bg-background">
+              <CardContent className="p-4 space-y-2">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-sm text-muted-foreground">Receita total vs meta anual</span>
+                  <span className="text-lg font-bold">{fmtEur(annualSummary.totalRevenue)} / {fmtEur(annualGoalAmount)}</span>
+                </div>
+                <Progress value={yearProgressPct} className="h-2" />
+                <p className="text-xs text-muted-foreground text-right">{yearProgressPct}%</p>
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            <KpiCard label="Receita total" value={fmtEur(annualSummary.totalRevenue)} icon={DollarSign} />
+            <KpiCard label="Total de vendas" value={annualSummary.totalSales} icon={TrendingUp} />
+            <KpiCard label="Ticket médio anual" value={fmtEur(annualSummary.ticketMedio)} icon={DollarSign} />
+            <KpiCard label="Novos clientes" value={annualSummary.newClients} icon={UserPlus} />
+            <KpiCard label="Churn total" value={annualSummary.churn} icon={UserMinus} color={annualSummary.churn > 0 ? 'text-destructive' : undefined} />
+            <KpiCard label="Taxa de renovação" value={`${annualSummary.renewalRate}%`} icon={RefreshCw} />
+            <KpiCard label="NPS médio atual" value={annualSummary.avgNps} icon={AlertTriangle} />
+            <KpiCard label="Leads novas" value={annualSummary.leadsCount} icon={Users} />
+            <KpiCard label="Taxa de conversão" value={`${annualSummary.conversionRate}%`} icon={TrendingUp} />
+          </div>
+
+          {/* Revenue by product */}
+          {annualSummary.revenueByProduct.length > 0 && (
+            <Card className="border-secondary bg-background">
+              <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-sm font-semibold">Receita por Produto — {year}</CardTitle></CardHeader>
+              <CardContent className="px-4 pb-4 space-y-2">
+                {annualSummary.revenueByProduct.map(p => (
+                  <div key={p.name} className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">{p.name}</span>
+                    <span className="font-medium">{fmtEur(p.revenue)}</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        <Separator />
 
         {/* Month gallery */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
