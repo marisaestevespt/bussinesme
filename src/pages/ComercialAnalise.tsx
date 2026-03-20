@@ -40,14 +40,17 @@ function KpiCard({ label, value, icon: Icon, color }: { label: string; value: st
 function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: number; year: number; onBack: () => void; onChangeMonth: (m: number, y: number) => void }) {
   const month = monthIdx + 1;
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const { allLeads } = useCrmData();
   const { sales: salesQ, annualGoalAmount, totalInvoiced, monthlyGoals } = useCommercialData(year);
   const { clients: clientsQ } = useClients();
+  const { sales: prevYearSalesQ } = useCommercialData(year - 1);
 
   const leads = allLeads || [];
   const salesData = salesQ.data || [];
   const clientsData = clientsQ.data || [];
+  const prevYearSalesData = prevYearSalesQ.data || [];
 
   // Qualitative analysis
   const analysisQ = useQuery({
