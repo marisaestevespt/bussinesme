@@ -363,7 +363,6 @@ function MeuDiaTab({ todayTasks, todayMeetings, timeEntries, getProjectName, qc 
 // ═══════════════════════════════════════════════════════════════
 
 function MinhaSemanaTab({ allTasks, allMeetings, timeEntries, getProjectName, qc }: any) {
-  const weekTasks = useMemo(() => allTasks.filter((t: any) => t.deadline && isWithinInterval(parseISO(t.deadline), { start: weekStart, end: weekEnd })), [allTasks]);
   const weekMeetings = useMemo(() => allMeetings.filter((m: any) => isWithinInterval(parseISO(m.date_time), { start: weekStart, end: weekEnd })), [allMeetings]);
   const weekTime = useMemo(() => (timeEntries || []).filter((e: any) => {
     if (!e.entry_date) return false;
@@ -374,17 +373,13 @@ function MinhaSemanaTab({ allTasks, allMeetings, timeEntries, getProjectName, qc
 
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
-  const markDone = async (taskId: string) => {
-    await supabase.from('tasks').update({ status: 'done', updated_at: new Date().toISOString() }).eq('id', taskId);
-    qc.invalidateQueries({ queryKey: ['my-tasks'] });
-    toast.success('Tarefa concluída');
-  };
+  const unified = useUnifiedResponsibilities();
 
   return (
     <div className="space-y-6">
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas esta semana</p><p className="text-2xl font-bold">{weekTasks.length}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Responsabilidades esta semana</p><p className="text-2xl font-bold">{unified.weekItems.length}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Reuniões esta semana</p><p className="text-2xl font-bold">{weekMeetings.length}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Horas registadas</p><p className="text-2xl font-bold">{weekHours.toFixed(1)}h</p></CardContent></Card>
       </div>
@@ -396,13 +391,16 @@ function MinhaSemanaTab({ allTasks, allMeetings, timeEntries, getProjectName, qc
           <div className="grid grid-cols-7 gap-2">
             {weekDays.map(day => {
               const dayKey = format(day, 'yyyy-MM-dd');
-              const dayTasks = weekTasks.filter((t: any) => t.deadline === dayKey);
-              const dayMeetings = weekMeetings.filter((m: any) => format(parseISO(m.date_time), 'yyyy-MM-dd') === dayKey);
+              const dayItems = unified.weekItems.filter(i => i.date && i.date.startsWith(dayKey));
               return (
                 <div key={dayKey} className={cn('rounded-lg border p-2 min-h-[80px]', isToday(day) && 'border-primary bg-primary/5')}>
                   <p className="text-xs font-medium mb-1">{format(day, 'EEE d', { locale: pt })}</p>
-                  {dayTasks.map((t: any) => <p key={t.id} className="text-[10px] truncate text-foreground">📋 {t.name}</p>)}
-                  {dayMeetings.map((m: any) => <p key={m.id} className="text-[10px] truncate text-primary">📅 {format(parseISO(m.date_time), 'HH:mm')} {m.title}</p>)}
+                  {dayItems.slice(0, 4).map(i => (
+                    <p key={i.id} className="text-[10px] truncate text-foreground">
+                      {i.source === 'reuniao' ? '📅' : i.source === 'projeto' ? '📦' : '📋'} {i.title.length > 20 ? i.title.slice(0, 20) + '…' : i.title}
+                    </p>
+                  ))}
+                  {dayItems.length > 4 && <p className="text-[10px] text-muted-foreground">+{dayItems.length - 4} mais</p>}
                 </div>
               );
             })}
@@ -410,52 +408,13 @@ function MinhaSemanaTab({ allTasks, allMeetings, timeEntries, getProjectName, qc
         </CardContent>
       </Card>
 
-      {/* Week tasks list */}
-      <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Tarefas da Semana</CardTitle></CardHeader>
-        <CardContent>
-          <ScrollArea className="max-h-[300px] overflow-auto pr-2">
-            <div className="space-y-2">
-              {weekTasks.length === 0 && <p className="text-sm text-muted-foreground">Sem tarefas esta semana.</p>}
-              {weekTasks.map((t: any) => (
-                <div key={t.id} className="flex items-center gap-3 p-2 rounded-lg border">
-                  <Checkbox checked={t.status === 'done'} onCheckedChange={() => t.status !== 'done' && markDone(t.id)} />
-                  <div className="flex-1 min-w-0">
-                    <p className={cn('text-sm font-medium truncate', t.status === 'done' && 'line-through text-muted-foreground')}>{t.name}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      {t.deadline && <span className="text-[10px] text-muted-foreground">{format(parseISO(t.deadline), 'EEE d', { locale: pt })}</span>}
-                      {t.project_id && <span className="text-[10px] text-muted-foreground">· {getProjectName(t.project_id)}</span>}
-                    </div>
-                  </div>
-                  <Badge className={cn('text-[10px]', STATUS_COLORS[t.status])}>{STATUS_LABELS[t.status] || t.status}</Badge>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Reuniões da Semana</CardTitle></CardHeader>
-        <CardContent>
-          <ScrollArea className="max-h-[300px] overflow-auto pr-2">
-            <div className="space-y-2">
-              {weekMeetings.length === 0 && <p className="text-sm text-muted-foreground">Sem reuniões esta semana.</p>}
-              {weekMeetings.map((m: any) => (
-                <div key={m.id} className="flex items-center justify-between p-2 rounded-lg border">
-                  <div>
-                    <p className="text-sm font-medium">{m.title}</p>
-                    <p className="text-xs text-muted-foreground">{format(parseISO(m.date_time), "EEE d, HH:mm", { locale: pt })}</p>
-                  </div>
-                  {m.transcript_url && (
-                    <Button variant="ghost" size="sm" asChild><a href={m.transcript_url} target="_blank" rel="noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a></Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
+      {/* Unified week responsibilities */}
+      <UnifiedResponsibilitiesList
+        items={unified.weekItems}
+        onComplete={(item) => unified.completeItem.mutate(item)}
+        onUndo={(item) => unified.uncompleteItem.mutate(item)}
+        title="Esta Semana — Todas as Responsabilidades"
+      />
     </div>
   );
 }
