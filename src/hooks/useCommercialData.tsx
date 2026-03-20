@@ -107,6 +107,65 @@ export function useCommercialData(year = currentYear) {
 
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ['commercial'] });
+    qc.invalidateQueries({ queryKey: ['planning'] });
+  };
+
+  const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+  // Helper: find or create the commercial objective in planning
+  const getOrCreateCommercialObjective = async (): Promise<string> => {
+    const { data: existing } = await supabase
+      .from('executive_objectives')
+      .select('id')
+      .eq('year', year)
+      .eq('area', 'comercial')
+      .eq('value_source', 'commercial')
+      .maybeSingle();
+    if (existing) return existing.id;
+    const { data: created, error } = await supabase
+      .from('executive_objectives')
+      .insert({
+        year, title: 'Meta Comercial Anual', area: 'comercial',
+        objective_type: 'quantitativo', measurement_type: 'acumulativo',
+        target_unit: '€', value_source: 'commercial', status: 'em_curso',
+      } as any)
+      .select('id')
+      .single();
+    if (error) throw error;
+    return created.id;
+  };
+
+  // Sync annual goal → planning objective
+  const syncAnnualToPlanning = async (goalAmount: number) => {
+    try {
+      const objId = await getOrCreateCommercialObjective();
+      await supabase.from('executive_objectives')
+        .update({ target_value: goalAmount } as any)
+        .eq('id', objId);
+    } catch (e) { console.error('Sync annual→planning failed', e); }
+  };
+
+  // Sync monthly goal → planning goal
+  const syncMonthlyToPlanning = async (month: number, goalAmount: number) => {
+    try {
+      const objId = await getOrCreateCommercialObjective();
+      const period = MONTH_NAMES[month - 1];
+      const { data: existing } = await supabase
+        .from('planning_goals')
+        .select('id')
+        .eq('objective_id', objId)
+        .eq('period', period)
+        .eq('year', year)
+        .maybeSingle();
+      if (existing) {
+        await supabase.from('planning_goals').update({ target_value: String(goalAmount) } as any).eq('id', existing.id);
+      } else {
+        await supabase.from('planning_goals').insert({
+          objective_id: objId, period, period_type: 'mensal', year,
+          target_value: String(goalAmount), status: 'por_iniciar',
+        } as any);
+      }
+    } catch (e) { console.error('Sync monthly→planning failed', e); }
   };
 
   // Upsert annual goal
@@ -120,6 +179,7 @@ export function useCommercialData(year = currentYear) {
         const { error } = await supabase.from('commercial_annual_goals').insert({ year, goal_amount: goalAmount });
         if (error) throw error;
       }
+      await syncAnnualToPlanning(goalAmount);
     },
     onSuccess: invalidateAll,
     onError: () => toast.error('Erro ao guardar meta anual'),
@@ -178,6 +238,7 @@ export function useCommercialData(year = currentYear) {
         const { error } = await supabase.from('commercial_monthly_goals').insert({ year, month: mg.month, goal_amount: mg.goal_amount });
         if (error) throw error;
       }
+      await syncMonthlyToPlanning(mg.month, mg.goal_amount);
     },
     onSuccess: invalidateAll,
   });
