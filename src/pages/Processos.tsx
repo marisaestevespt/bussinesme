@@ -197,7 +197,10 @@ export default function ProcessosPage() {
         frequency: newRoutineFreq,
         assigned_to: newRoutineAssignee || null,
         sop_id: sopId,
-      }).eq('id', editingRoutine.id);
+        monthly_day: newRoutineFreq === 'dia_x_mes' && newRoutineMonthlyDay ? Number(newRoutineMonthlyDay) : null,
+        start_date: newRoutineFreq === 'dia_x_mes' && newRoutineStartDate ? newRoutineStartDate : null,
+        end_date: newRoutineFreq === 'dia_x_mes' && newRoutineEndDate ? newRoutineEndDate : null,
+      } as any).eq('id', editingRoutine.id);
       if (error) throw error;
     },
     onSuccess: () => {
