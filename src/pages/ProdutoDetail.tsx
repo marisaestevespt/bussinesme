@@ -541,45 +541,6 @@ export default function ProdutoDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Datas Importantes — from Agenda */}
-        {!isNew && (
-          <Card className="bg-background border-secondary">
-            <CardHeader><CardTitle className="text-base">Datas Importantes</CardTitle></CardHeader>
-            <CardContent>
-              {productEvents.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">Sem datas importantes associadas a este produto na Agenda.</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Evento</TableHead>
-                      <TableHead>Data / Hora</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {productEvents.map((ev: any) => {
-                      const st = getEventStatus(ev);
-                      return (
-                        <TableRow key={ev.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate('/hub/agenda')}>
-                          <TableCell className="font-medium">{ev.title}</TableCell>
-                          <TableCell className="text-sm">
-                            {format(parseISO(ev.start_date), 'dd/MM/yyyy HH:mm')}
-                            {ev.end_date && ` — ${format(parseISO(ev.end_date), 'dd/MM/yyyy HH:mm')}`}
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={cn('text-xs', st.color)}>{st.label}</Badge>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
         {/* Feedbacks */}
         {!isNew && (
           <Card>
@@ -669,9 +630,53 @@ export default function ProdutoDetailPage() {
           </Card>
         )}
 
+        {/* Datas Importantes — from Agenda */}
+        {!isNew && (
+          <Card className="bg-background border-secondary">
+            <CardHeader><CardTitle className="text-base">Datas Importantes</CardTitle></CardHeader>
+            <CardContent>
+              {productEvents.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Sem datas importantes associadas a este produto na Agenda.</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Evento</TableHead>
+                      <TableHead>Data / Hora</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {productEvents.map((ev: any) => {
+                      const st = getEventStatus(ev);
+                      return (
+                        <TableRow key={ev.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate('/hub/agenda')}>
+                          <TableCell className="font-medium">{ev.title}</TableCell>
+                          <TableCell className="text-sm">
+                            {format(parseISO(ev.start_date), 'dd/MM/yyyy HH:mm')}
+                            {ev.end_date && ` — ${format(parseISO(ev.end_date), 'dd/MM/yyyy HH:mm')}`}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={cn('text-xs', st.color)}>{st.label}</Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Processos (SOPs) */}
         {!isNew && id && (
-          <LinkedSopsSection entityType="produto" entityId={id} />
+          <Card>
+            <CardHeader><CardTitle className="text-base">Processos</CardTitle></CardHeader>
+            <CardContent>
+              <LinkedSopsSection entityType="produto" entityId={id} title="" />
+            </CardContent>
+          </Card>
         )}
 
         {/* ═══════ SECTION BUTTONS ═══════ */}
