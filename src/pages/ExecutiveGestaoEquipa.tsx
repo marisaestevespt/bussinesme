@@ -905,7 +905,7 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
               {/* Business days taken this year */}
               {(() => {
                 const yearStart = new Date(new Date().getFullYear(), 0, 1);
-                const today = new Date();
+                const yearEnd = new Date(new Date().getFullYear(), 11, 31);
                 const vacations = (memberVacations.data || []) as any[];
                 let businessDays = 0;
                 vacations.forEach((v: any) => {
@@ -913,7 +913,7 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
                     let s = parseISO(v.start_date);
                     let e = parseISO(v.end_date);
                     if (s < yearStart) s = yearStart;
-                    if (e > today) e = today;
+                    if (e > yearEnd) e = yearEnd;
                     const current = new Date(s);
                     while (current <= e) {
                       const day = current.getDay();
@@ -926,7 +926,7 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
                   <div className="flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-2.5">
                     <CalendarDays className="h-4 w-4 text-primary" />
                     <span className="text-sm font-medium">{businessDays} dias úteis</span>
-                    <span className="text-xs text-muted-foreground">de férias tirados desde o início de {new Date().getFullYear()}</span>
+                    <span className="text-xs text-muted-foreground">de férias marcados em {new Date().getFullYear()}</span>
                   </div>
                 );
               })()}
