@@ -269,7 +269,7 @@ export default function MarketingDashboard() {
                 <Plus className="h-3.5 w-3.5 mr-1" />Novo Conteúdo
               </Button>
             </div>
-            <ContentCalendar items={contentItems} channels={channels} contentChannelLinks={contentChannelLinks} />
+            <ContentCalendar items={contentItems} channels={channels} contentChannelLinks={contentChannelLinks} profiles={profiles} attachments={contentAttachments} />
           </section>
         </div>
       </div>
