@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils';
 import { MentionTextarea } from '@/components/MentionTextarea';
 import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 import { PROJECT_TYPES, PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel, getDeptInfo, getInitials } from './Projetos';
+import { LaunchDashboard } from '@/components/launch/LaunchDashboard';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -541,6 +542,48 @@ export default function ProjetoDetailPage() {
             placeholder="Escreve aqui... usa @ para mencionar membros"
           />
           {dirty && <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>}
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // ─── Launch project ────────────────────────────────────────────
+  if (local.type === 'lancamento') {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <BackNavigation />
+            {dirty && <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} size="sm" className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>}
+          </div>
+
+          {/* Header */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
+              <Select value={local.status} onValueChange={v => updateField('status', v)}><SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger><SelectContent>{PROJECT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent></Select>
+              {local.department && <span className="text-sm text-muted-foreground">{getDeptLabel(local.department)}</span>}
+            </div>
+            <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-xl font-bold border-none px-0 focus-visible:ring-0" />
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs text-muted-foreground">Prazo:</Label>
+                <Popover><PopoverTrigger asChild><Button variant="outline" size="sm" className={cn("h-7 text-xs", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-1 h-3 w-3" />{local.deadline ? format(new Date(local.deadline), 'd MMM yyyy', { locale: pt }) : '—'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+              </div>
+              <div className="flex -space-x-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-6 w-6 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Launch Dashboard */}
+          <LaunchDashboard projectId={id!} projectName={local.name} profiles={profiles} />
+
+          <Separator />
+          <AlertDialog>
+            <AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="text-destructive hover:text-destructive gap-1.5"><Trash2 className="h-4 w-4" /> Eliminar projeto</Button></AlertDialogTrigger>
+            <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar projeto?</AlertDialogTitle><AlertDialogDescription>Esta ação é irreversível.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+          </AlertDialog>
         </div>
       </AppLayout>
     );

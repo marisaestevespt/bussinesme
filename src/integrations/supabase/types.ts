@@ -2682,6 +2682,159 @@ export type Database = {
           },
         ]
       }
+      launch_data: {
+        Row: {
+          analise_publico_descricao: string | null
+          analise_publico_dores: Json | null
+          brainstorming: string | null
+          created_at: string
+          cronograma: Json | null
+          estrategia_indicadores: Json | null
+          estrategia_macro_fases: Json | null
+          estrategia_objetivo: string | null
+          estrategia_pilares: Json | null
+          id: string
+          links_uteis: Json | null
+          mapa_objeccoes: Json | null
+          materiais_antecipacao: Json | null
+          materiais_venda: Json | null
+          objetivo_geral: string | null
+          produto_cliente_ideal: string | null
+          produto_faqs: string | null
+          produto_feedbacks: string | null
+          produto_oferta: string | null
+          produto_por_dentro: string | null
+          project_id: string
+          sobre_lancamento: string | null
+          tracking_performance_diaria: Json | null
+          tracking_resultados_globais: Json | null
+          tracking_trafego: Json | null
+        }
+        Insert: {
+          analise_publico_descricao?: string | null
+          analise_publico_dores?: Json | null
+          brainstorming?: string | null
+          created_at?: string
+          cronograma?: Json | null
+          estrategia_indicadores?: Json | null
+          estrategia_macro_fases?: Json | null
+          estrategia_objetivo?: string | null
+          estrategia_pilares?: Json | null
+          id?: string
+          links_uteis?: Json | null
+          mapa_objeccoes?: Json | null
+          materiais_antecipacao?: Json | null
+          materiais_venda?: Json | null
+          objetivo_geral?: string | null
+          produto_cliente_ideal?: string | null
+          produto_faqs?: string | null
+          produto_feedbacks?: string | null
+          produto_oferta?: string | null
+          produto_por_dentro?: string | null
+          project_id: string
+          sobre_lancamento?: string | null
+          tracking_performance_diaria?: Json | null
+          tracking_resultados_globais?: Json | null
+          tracking_trafego?: Json | null
+        }
+        Update: {
+          analise_publico_descricao?: string | null
+          analise_publico_dores?: Json | null
+          brainstorming?: string | null
+          created_at?: string
+          cronograma?: Json | null
+          estrategia_indicadores?: Json | null
+          estrategia_macro_fases?: Json | null
+          estrategia_objetivo?: string | null
+          estrategia_pilares?: Json | null
+          id?: string
+          links_uteis?: Json | null
+          mapa_objeccoes?: Json | null
+          materiais_antecipacao?: Json | null
+          materiais_venda?: Json | null
+          objetivo_geral?: string | null
+          produto_cliente_ideal?: string | null
+          produto_faqs?: string | null
+          produto_feedbacks?: string | null
+          produto_oferta?: string | null
+          produto_por_dentro?: string | null
+          project_id?: string
+          sobre_lancamento?: string | null
+          tracking_performance_diaria?: Json | null
+          tracking_resultados_globais?: Json | null
+          tracking_trafego?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "launch_data_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      launch_tasks: {
+        Row: {
+          created_at: string
+          due_date: string | null
+          id: string
+          phase: Database["public"]["Enums"]["launch_phase"]
+          project_id: string
+          responsible_id: string | null
+          sector_area: string | null
+          status: Database["public"]["Enums"]["launch_task_status"]
+          task_id: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          phase?: Database["public"]["Enums"]["launch_phase"]
+          project_id: string
+          responsible_id?: string | null
+          sector_area?: string | null
+          status?: Database["public"]["Enums"]["launch_task_status"]
+          task_id?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          phase?: Database["public"]["Enums"]["launch_phase"]
+          project_id?: string
+          responsible_id?: string | null
+          sector_area?: string | null
+          status?: Database["public"]["Enums"]["launch_task_status"]
+          task_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "launch_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "launch_tasks_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "launch_tasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketing_automations: {
         Row: {
           condicoes: Json | null
@@ -5879,6 +6032,14 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "member"
+      launch_phase:
+        | "estrategia"
+        | "antecipacao"
+        | "captacao"
+        | "produto_servico"
+        | "venda"
+        | "debriefing_pos_fecho"
+      launch_task_status: "por_comecar" | "em_curso" | "concluido" | "bloqueado"
       meeting_status: "por_confirmar" | "marcada" | "terminada"
     }
     CompositeTypes: {
@@ -6008,6 +6169,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "member"],
+      launch_phase: [
+        "estrategia",
+        "antecipacao",
+        "captacao",
+        "produto_servico",
+        "venda",
+        "debriefing_pos_fecho",
+      ],
+      launch_task_status: ["por_comecar", "em_curso", "concluido", "bloqueado"],
       meeting_status: ["por_confirmar", "marcada", "terminada"],
     },
   },
