@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText, LayoutDashboard, AlertTriangle, Clock, CreditCard, Upload, ExternalLink, CheckSquare, ListTodo, CalendarIcon, Palmtree } from 'lucide-react';
+import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText, LayoutDashboard, AlertTriangle, Clock, CreditCard, Upload, ExternalLink, CheckSquare, ListTodo, CalendarIcon, Palmtree, CalendarDays } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { format, parseISO } from 'date-fns';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
