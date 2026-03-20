@@ -1042,6 +1042,39 @@ export type Database = {
         }
         Relationships: []
       }
+      commercial_monthly_analysis: {
+        Row: {
+          active_actions_results: string | null
+          created_at: string
+          id: string
+          main_objections: string | null
+          month: number
+          what_went_well: string | null
+          what_went_wrong: string | null
+          year: number
+        }
+        Insert: {
+          active_actions_results?: string | null
+          created_at?: string
+          id?: string
+          main_objections?: string | null
+          month: number
+          what_went_well?: string | null
+          what_went_wrong?: string | null
+          year: number
+        }
+        Update: {
+          active_actions_results?: string | null
+          created_at?: string
+          id?: string
+          main_objections?: string | null
+          month?: number
+          what_went_well?: string | null
+          what_went_wrong?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
       commercial_monthly_goals: {
         Row: {
           created_at: string
