@@ -199,17 +199,31 @@ export default function PortalViewPage() {
 
       <div className="max-w-6xl mx-auto flex">
         {/* Sidebar nav */}
-        <nav className="w-56 shrink-0 border-r min-h-[calc(100vh-65px)] p-4 space-y-1 hidden md:block">
-          {navItems.map(item => (
-            <button
-              key={item.key}
-              onClick={() => setActiveSection(item.key)}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${activeSection === item.key ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted'}`}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </button>
-          ))}
+        <nav className="w-56 shrink-0 border-r min-h-[calc(100vh-65px)] p-4 hidden md:flex md:flex-col md:justify-between">
+          <div className="space-y-1">
+            {navItems.map(item => (
+              <button
+                key={item.key}
+                onClick={() => setActiveSection(item.key)}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${activeSection === item.key ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted'}`}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          {(settings as any)?.support_hours && (
+            <div className="border-t pt-4 mt-4">
+              <div className="flex items-center gap-2 px-3 text-muted-foreground">
+                <Clock className="h-4 w-4 shrink-0" />
+                <div>
+                  <p className="text-[10px] font-medium uppercase tracking-wide">Horário de atendimento</p>
+                  <p className="text-xs font-medium text-foreground">{(settings as any).support_hours}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </nav>
 
         {/* Main content */}
