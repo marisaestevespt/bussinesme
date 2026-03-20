@@ -652,6 +652,7 @@ export default function ProdutoDetailPage() {
 
         {/* Datas Importantes — from Agenda */}
         {!isNew && (
+          <>
           <Card className="bg-background border-secondary">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base">Datas Importantes</CardTitle>
@@ -695,7 +696,6 @@ export default function ProdutoDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Dialog para criar evento */}
           <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
             <DialogContent>
               <DialogHeader>
@@ -723,6 +723,7 @@ export default function ProdutoDetailPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </>
         )}
 
         {/* Processos (SOPs) */}
