@@ -15,11 +15,13 @@ import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/hooks/useAuth';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useFavorites } from '@/hooks/useFavorites';
 import {
   Rocket, Calendar, Users, GitBranch, FolderKanban, CheckSquare,
   Key, MessageSquare, Building2, Megaphone, DollarSign, ShoppingCart,
   UserCheck, UsersRound, Headphones, Target, CalendarCheck, Crown,
-  LayoutDashboard, Settings, LogOut, Package, Heart, BookOpen,
+  LayoutDashboard, Settings, LogOut, Package, Heart, BookOpen, Star,
+  Clock, Lightbulb, MessageSquareHeart,
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, any> = {
