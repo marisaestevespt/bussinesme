@@ -1,7 +1,7 @@
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { BackNavigation } from '@/components/BackNavigation';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useTeamData } from '@/hooks/useTeamData';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 import { TabEscala } from '@/components/hr/TabEscala';
