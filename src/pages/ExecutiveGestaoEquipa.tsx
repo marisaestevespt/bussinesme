@@ -1587,9 +1587,10 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
     <div className="space-y-6">
       <h2 className="text-base font-semibold">Performance</h2>
 
-      {/* Registos Semanais — above tabs */}
+      {/* Overview de Membros */}
       <Card>
         <CardContent className="pt-5 space-y-4">
+          <h3 className="text-sm font-semibold">Overview de Membros</h3>
           <div className="flex justify-end items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-1.5">
