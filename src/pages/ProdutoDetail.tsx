@@ -21,6 +21,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { OfferCalculator } from '@/components/product/OfferCalculator';
+import { ProductKPIsTab } from '@/components/product/ProductKPIsTab';
+import { ProductMetricsTab } from '@/components/product/ProductMetricsTab';
 import { ProductCustomerSuccess } from '@/components/product/ProductCustomerSuccess';
 import { format } from 'date-fns';
 import { BackNavigation } from '@/components/BackNavigation';
