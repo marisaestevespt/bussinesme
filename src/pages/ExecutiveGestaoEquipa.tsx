@@ -1675,8 +1675,8 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
 
       {/* Tarefas por Membro — above tabs */}
       <Card>
-        <CardContent className="pt-5">
-          <TasksByMemberKanban />
+        <CardContent className="pt-5 space-y-4">
+          <h3 className="text-sm font-semibold">Tarefas por Membro</h3>
         </CardContent>
       </Card>
 
