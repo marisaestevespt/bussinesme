@@ -161,6 +161,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
+        <NavSection label="Pessoal" items={pessoalItems} collapsed={collapsed} canAccess={() => true} />
         {favorites.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/70 font-medium">
@@ -190,7 +191,6 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-        <NavSection label="Pessoal" items={pessoalItems} collapsed={collapsed} canAccess={() => true} />
         <NavSection label="Hall" items={hallItems} collapsed={collapsed} canAccess={canAccess} />
         <NavSection label="Transversais" items={transversaisItems} collapsed={collapsed} canAccess={canAccess} />
         <NavSection label="Departamentos" items={departamentosItems} collapsed={collapsed} canAccess={canAccess} />
