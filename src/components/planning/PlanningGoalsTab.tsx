@@ -50,6 +50,8 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
         target_value: editGoal.target_value || '',
         actual_value: editGoal.actual_value || '',
         status: editGoal.status || 'por_iniciar',
+        objective_type: editGoal.objective_type || 'quantitativo',
+        measurement_type: editGoal.measurement_type || 'acumulativo',
       });
     }
   }, [editGoal]);
