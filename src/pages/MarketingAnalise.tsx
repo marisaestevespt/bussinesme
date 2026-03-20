@@ -494,22 +494,57 @@ export default function MarketingAnalisePage() {
     },
   });
 
+  // Content metrics for the year (for top 3 publications)
+  const { data: yearContentMetrics = [] } = useQuery({
+    queryKey: ['content-metrics-year', year],
+    queryFn: async () => {
+      const { data } = await supabase.from('content_metrics').select('*').eq('year', year);
+      return data || [];
+    },
+  });
+
+  // Full content items for the year (need title, format)
+  const { data: yearContentFull = [] } = useQuery({
+    queryKey: ['content-items-year-full', year],
+    queryFn: async () => {
+      const { data } = await supabase.from('content_items').select('id, title, format, status, scheduled_at')
+        .gte('scheduled_at', `${year}-01-01`).lt('scheduled_at', `${year + 1}-01-01`);
+      return (data || []) as any[];
+    },
+  });
+
+  const { data: contentLinks = [] } = useQuery({
+    queryKey: ['content-channels'],
+    queryFn: async () => {
+      const { data } = await supabase.from('content_channels').select('*');
+      return (data || []) as ContentChannelLink[];
+    },
+  });
+
+  // Traffic creatives for the year
+  const { data: trafficCreatives = [] } = useQuery({
+    queryKey: ['traffic-creatives-year', year],
+    queryFn: async () => {
+      const { data } = await supabase.from('traffic_creatives').select('id, status, created_at')
+        .gte('created_at', `${year}-01-01`).lt('created_at', `${year + 1}-01-01`);
+      return data || [];
+    },
+  });
+
   // ─── Annual summary ───
   const annualSummary = useMemo(() => {
     const totalPlanned = yearContent.length;
     const totalPublished = yearContent.filter(c => c.status === 'publicado').length;
     const executionRate = totalPlanned > 0 ? Math.round((totalPublished / totalPlanned) * 100) : 0;
 
-    // Channel growth — find first and latest month with data per channel
+    // Channel growth
     const channelGrowth = activeChannels.map(ch => {
       const chMetrics = (yearChannelMetrics as any[])
         .filter(m => m.channel_id === ch.id && m.followers != null)
         .sort((a, b) => a.month - b.month);
-      
       if (chMetrics.length === 0) {
         return { id: ch.id, name: ch.name, startFollowers: null, currentFollowers: null, growth: null, growthPct: null };
       }
-
       const startFollowers = chMetrics[0].followers;
       const currentFollowers = chMetrics[chMetrics.length - 1].followers;
       const growth = currentFollowers - startFollowers;
@@ -517,10 +552,73 @@ export default function MarketingAnalisePage() {
       return { id: ch.id, name: ch.name, startFollowers, currentFollowers, growth, growthPct };
     });
 
-    const objectivesAchieved = yearObjectives.filter((o: any) => o.status === 'concluido' || o.status === 'achieved').length;
+    // Top 3 publications of the year
+    const top3Year = yearContentFull
+      .filter(c => c.status === 'publicado')
+      .map(item => {
+        const metric = yearContentMetrics.find((m: any) => m.content_id === item.id) as any;
+        const primaryField = getPrimaryMetricField(item.format || 'estatico');
+        const primaryValue = metric?.[primaryField] ?? null;
+        const channelId = metric?.channel_id;
+        const channelName = channels.find(ch => ch.id === channelId)?.name || '';
+        return { ...item, primaryValue, primaryField, channelName };
+      })
+      .filter(i => i.primaryValue !== null)
+      .sort((a, b) => (b.primaryValue ?? 0) - (a.primaryValue ?? 0))
+      .slice(0, 3);
 
-    return { totalPublished, totalPlanned, executionRate, channelGrowth, activeFunnels, activeAutomations, objectivesAchieved, objectivesTotal: yearObjectives.length };
-  }, [yearContent, activeChannels, yearChannelMetrics, yearObjectives, activeFunnels, activeAutomations]);
+    // Best growth channel
+    const bestGrowth = channelGrowth
+      .filter(c => c.growthPct != null)
+      .sort((a, b) => (b.growthPct ?? 0) - (a.growthPct ?? 0))[0] || null;
+
+    // Best avg engagement (Instagram only)
+    const igChannels = activeChannels.filter(ch => detectPlatform(ch.name) === 'instagram');
+    let bestEngagement: { name: string; avgEngagement: number } | null = null;
+    if (igChannels.length > 0) {
+      const engagements = igChannels.map(ch => {
+        const chMetrics = (yearChannelMetrics as any[])
+          .filter(m => m.channel_id === ch.id && m.ig_engagement_rate != null);
+        if (chMetrics.length === 0) return null;
+        const avg = chMetrics.reduce((s: number, m: any) => s + Number(m.ig_engagement_rate), 0) / chMetrics.length;
+        return { name: ch.name, avgEngagement: avg };
+      }).filter(Boolean) as { name: string; avgEngagement: number }[];
+      if (engagements.length > 0) bestEngagement = engagements.sort((a, b) => b.avgEngagement - a.avgEngagement)[0];
+    }
+
+    // Traffic creatives
+    const totalCreatives = trafficCreatives.length;
+    const creativesInCampaign = trafficCreatives.filter((c: any) => c.status === 'em_campanha').length;
+
+    // Objectives classification
+    const objectivesClassified = yearObjectives.map((o: any) => {
+      const target = Number(o.target_value) || 0;
+      const current = Number(o.current_value);
+      let classification: 'superado' | 'atingido' | 'proximo' | 'nao_atingido' | 'sem_dados';
+      if (o.current_value == null || o.current_value === '') {
+        classification = 'sem_dados';
+      } else if (target === 0) {
+        classification = 'sem_dados';
+      } else if (current > target) {
+        classification = 'superado';
+      } else if (current === target) {
+        classification = 'atingido';
+      } else if (current >= target * 0.7) {
+        classification = 'proximo';
+      } else {
+        classification = 'nao_atingido';
+      }
+      return { ...o, classification, target, current };
+    });
+    const objectivesAchievedOrSurpassed = objectivesClassified.filter(o => o.classification === 'atingido' || o.classification === 'superado').length;
+
+    return {
+      totalPublished, totalPlanned, executionRate, channelGrowth,
+      activeFunnels, activeAutomations,
+      objectivesAchieved: objectivesAchievedOrSurpassed, objectivesTotal: yearObjectives.length,
+      top3Year, bestGrowth, bestEngagement, totalCreatives, creativesInCampaign, objectivesClassified,
+    };
+  }, [yearContent, activeChannels, yearChannelMetrics, yearObjectives, activeFunnels, activeAutomations, yearContentFull, yearContentMetrics, channels, trafficCreatives]);
 
   const monthSummaries = useMemo(() => {
     return MONTHS.map((name, idx) => {
@@ -619,6 +717,124 @@ export default function MarketingAnalisePage() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Top 3 publications of the year */}
+            <Card className="border-secondary bg-background">
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-center gap-2"><Trophy className="h-4 w-4 text-amber-500" /><h3 className="text-sm font-semibold">Top 3 Publicações do Ano</h3></div>
+                {annualSummary.top3Year.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">Sem dados de performance suficientes para este ano.</p>
+                ) : annualSummary.top3Year.map((item: any, i: number) => (
+                  <Link key={item.id} to={`/hub/marketing/conteudos/${item.id}`} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/40 transition-colors">
+                    <span className="text-lg font-bold text-muted-foreground/50 w-6">{i + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
+                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                        <span>{item.channelName || '—'}</span>
+                        <span>·</span>
+                        <span className="capitalize">{FORMAT_OPTIONS.find((f: any) => f.value === item.format)?.label || item.format}</span>
+                      </div>
+                    </div>
+                    <span className="text-sm font-semibold">{item.primaryValue?.toLocaleString('pt-PT')}</span>
+                  </Link>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Best performing channels */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Card className="border-secondary bg-background">
+                <CardContent className="p-4 text-center space-y-1">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">Maior crescimento %</p>
+                  {annualSummary.bestGrowth ? (
+                    <>
+                      <p className="text-lg font-bold text-foreground">{annualSummary.bestGrowth.name}</p>
+                      <p className="text-emerald-600 font-semibold">+{annualSummary.bestGrowth.growthPct}%</p>
+                    </>
+                  ) : (
+                    <p className="text-muted-foreground">—</p>
+                  )}
+                </CardContent>
+              </Card>
+              <Card className="border-secondary bg-background">
+                <CardContent className="p-4 text-center space-y-1">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">Maior engagement médio (IG)</p>
+                  {annualSummary.bestEngagement ? (
+                    <>
+                      <p className="text-lg font-bold text-foreground">{annualSummary.bestEngagement.name}</p>
+                      <p className="text-primary font-semibold">{annualSummary.bestEngagement.avgEngagement.toFixed(1)}%</p>
+                    </>
+                  ) : (
+                    <p className="text-muted-foreground">—</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Traffic creatives */}
+            <div className="grid grid-cols-2 gap-3">
+              <Card className="border-secondary bg-background">
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-foreground">{annualSummary.totalCreatives}</p>
+                  <p className="text-xs text-muted-foreground">Criativos criados</p>
+                </CardContent>
+              </Card>
+              <Card className="border-secondary bg-background">
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-foreground">{annualSummary.creativesInCampaign}</p>
+                  <p className="text-xs text-muted-foreground">Em campanha</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Marketing objectives analysis */}
+            <Card className="border-secondary bg-background">
+              <CardContent className="p-5 space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold mb-1">Como correu o marketing em {year}</h3>
+                  {annualSummary.objectivesClassified.length > 0 ? (
+                    <>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-emerald-500 transition-all"
+                            style={{ width: `${annualSummary.objectivesTotal > 0 ? (annualSummary.objectivesAchieved / annualSummary.objectivesTotal) * 100 : 0}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-medium text-muted-foreground shrink-0">
+                          {annualSummary.objectivesAchieved} de {annualSummary.objectivesTotal} atingidos ou superados
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        {annualSummary.objectivesClassified.map((o: any) => {
+                          const badges: Record<string, { label: string; cls: string }> = {
+                            superado: { label: 'Superado', cls: 'bg-emerald-700 text-white' },
+                            atingido: { label: 'Atingido', cls: 'bg-emerald-500 text-white' },
+                            proximo: { label: 'Próximo', cls: 'bg-amber-500 text-white' },
+                            nao_atingido: { label: 'Não atingido', cls: 'bg-destructive text-destructive-foreground' },
+                            sem_dados: { label: 'Sem dados', cls: 'bg-muted text-muted-foreground' },
+                          };
+                          const b = badges[o.classification] || badges.sem_dados;
+                          return (
+                            <div key={o.id} className="flex items-center gap-3 py-1.5 border-b last:border-0">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">{o.meta}</p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  Alvo: {o.target} · Real: {o.current_value != null && o.current_value !== '' ? o.current : '—'}
+                                </p>
+                              </div>
+                              <Badge className={cn('text-[10px] shrink-0', b.cls)}>{b.label}</Badge>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic py-2">Sem objetivos de marketing definidos para {year}.</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           <Separator />
