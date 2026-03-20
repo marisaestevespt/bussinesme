@@ -30,31 +30,7 @@ export default function ProdutosPage() {
   const [view, setView] = useState<'gallery' | 'list'>('gallery');
   const navigate = useNavigate();
   const { products } = useProducts();
-  const commercialData = useCommercialData();
-
   const items = products.data || [];
-  const activeProducts = items.filter(p => p.status === 'vendas_ativas');
-
-  const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth() + 1;
-  const yearSales = commercialData.sales.data || [];
-
-  // Monthly sales count for line chart
-  const lineData = MONTH_LABELS.map((name, i) => ({
-    name,
-    vendas: yearSales.filter(s => s.sale_month === i + 1).length,
-  }));
-
-  // Current month base value total for donut
-  const monthSales = yearSales.filter(s => s.sale_month === currentMonth);
-  const monthBaseTotal = monthSales.reduce((s, v) => s + Number(v.base_value || 0), 0);
-  const donutData = [
-    { name: 'Faturado', value: monthBaseTotal },
-    { name: 'Restante', value: Math.max(0, (commercialData.annualGoalAmount / 12) - monthBaseTotal) },
-  ];
-  const COLORS = ['hsl(var(--primary))', 'hsl(var(--muted))'];
-
-  const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
     <AppLayout>
