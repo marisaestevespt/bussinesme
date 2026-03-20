@@ -83,6 +83,22 @@ export default function MarketingDashboard() {
     },
   });
 
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['profiles-list'],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id, full_name, avatar_url');
+      return data || [];
+    },
+  });
+
+  const { data: contentAttachments = [] } = useQuery({
+    queryKey: ['content-attachments-all'],
+    queryFn: async () => {
+      const { data } = await supabase.from('content_attachments').select('*');
+      return (data || []) as { id: string; content_id: string; file_url: string; file_name: string; file_type: string }[];
+    },
+  });
+
   // Week content
   const now = new Date();
   const weekStart = startOfWeek(now, { weekStartsOn: 1 });
