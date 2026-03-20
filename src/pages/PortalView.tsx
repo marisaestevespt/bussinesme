@@ -230,6 +230,19 @@ export default function PortalViewPage() {
                 <p className="text-muted-foreground">Este é o teu espaço de acompanhamento.</p>
               </div>
 
+              {/* Business hours */}
+              {(settings as any)?.support_hours && (
+                <Card>
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <Clock className="h-5 w-5 text-primary shrink-0" />
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Horário de atendimento</p>
+                      <p className="text-sm font-medium">{(settings as any).support_hours}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Action cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {portal.show_onboarding && onboarding.length > 0 && (
