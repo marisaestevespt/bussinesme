@@ -26,6 +26,7 @@ import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { MentionTextarea } from '@/components/MentionTextarea';
+import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 import { PROJECT_TYPES, PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel, getDeptInfo, getInitials } from './Projetos';
 
 // ─── Types ──────────────────────────────────────────────────────
@@ -723,6 +724,9 @@ export default function ProjetoDetailPage() {
             ))}
           </div>
         </div>
+
+        {/* Linked SOPs */}
+        {id && <LinkedSopsSection entityType="projeto" entityId={id} />}
 
         {/* Section 4: Fecho de Projeto */}
         <div>

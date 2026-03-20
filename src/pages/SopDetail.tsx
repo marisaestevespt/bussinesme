@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ArrowLeft, Plus, Trash2, Save } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -189,6 +190,23 @@ export default function SopDetailPage() {
   const [decisoes, setDecisoes] = useState<string[]>(['']);
   const [outputs, setOutputs] = useState<ListItem[]>([{ text: '', checked: false }]);
   const [notas, setNotas] = useState<string[]>(['']);
+  const [linkedEntityType, setLinkedEntityType] = useState('geral');
+  const [linkedEntityId, setLinkedEntityId] = useState<string>('');
+  const [applyToAllActiveClients, setApplyToAllActiveClients] = useState(false);
+
+  // Entity lists for selects
+  const { data: productsList = [] } = useQuery({
+    queryKey: ['products-list'],
+    queryFn: async () => { const { data } = await supabase.from('products').select('id, name'); return data || []; },
+  });
+  const { data: clientsList = [] } = useQuery({
+    queryKey: ['clients-list'],
+    queryFn: async () => { const { data } = await supabase.from('clients').select('id, full_name'); return data || []; },
+  });
+  const { data: projectsList = [] } = useQuery({
+    queryKey: ['projects-list'],
+    queryFn: async () => { const { data } = await supabase.from('projects').select('id, name'); return data || []; },
+  });
 
   useEffect(() => {
     if (!sop) return;
@@ -207,6 +225,9 @@ export default function SopDetailPage() {
     setDecisoes(parseJsonList(sop.decisoes).length ? parseJsonList(sop.decisoes) : ['']);
     setOutputs(parseCheckList(sop.outputs).length ? parseCheckList(sop.outputs) : [{ text: '', checked: false }]);
     setNotas(parseJsonList(sop.notas).length ? parseJsonList(sop.notas) : ['']);
+    setLinkedEntityType((sop as any).linked_entity_type || 'geral');
+    setLinkedEntityId((sop as any).linked_entity_id || '');
+    setApplyToAllActiveClients((sop as any).apply_to_all_active_clients || false);
   }, [sop]);
 
   // ─── Save ───────────────────────────────────────────────────
@@ -227,7 +248,10 @@ export default function SopDetailPage() {
         decisoes: decisoes as any,
         outputs: outputs as any,
         notas: notas as any,
-      }).eq('id', id!);
+        linked_entity_type: linkedEntityType,
+        linked_entity_id: linkedEntityId || null,
+        apply_to_all_active_clients: applyToAllActiveClients,
+      } as any).eq('id', id!);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -336,7 +360,61 @@ export default function SopDetailPage() {
           </div>
         </div>
 
-        {/* 1. Objetivo */}
+        {/* Linked entity */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <Label className="text-xs text-muted-foreground">Tipo de ligação</Label>
+            <Select value={linkedEntityType} onValueChange={v => { setLinkedEntityType(v); setLinkedEntityId(''); setApplyToAllActiveClients(false); }}>
+              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="geral">Geral</SelectItem>
+                <SelectItem value="produto">Produto</SelectItem>
+                <SelectItem value="cliente">Cliente</SelectItem>
+                <SelectItem value="projeto">Projeto</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {linkedEntityType === 'produto' && (
+            <>
+              <div>
+                <Label className="text-xs text-muted-foreground">Produto</Label>
+                <Select value={linkedEntityId} onValueChange={setLinkedEntityId}>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                  <SelectContent>
+                    {productsList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end gap-2 pb-1">
+                <Switch checked={applyToAllActiveClients} onCheckedChange={setApplyToAllActiveClients} id="apply-all-clients" />
+                <Label htmlFor="apply-all-clients" className="text-xs cursor-pointer">Aplicar a todos os clientes ativos</Label>
+              </div>
+            </>
+          )}
+          {linkedEntityType === 'cliente' && (
+            <div>
+              <Label className="text-xs text-muted-foreground">Cliente</Label>
+              <Select value={linkedEntityId} onValueChange={setLinkedEntityId}>
+                <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                <SelectContent>
+                  {clientsList.map(c => <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {linkedEntityType === 'projeto' && (
+            <div>
+              <Label className="text-xs text-muted-foreground">Projeto</Label>
+              <Select value={linkedEntityId} onValueChange={setLinkedEntityId}>
+                <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                <SelectContent>
+                  {projectsList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+
         <section>
           <h3 className="text-lg font-semibold mb-2">1. Objetivo</h3>
           <Textarea value={objetivo} onChange={e => setObjetivo(e.target.value)} placeholder="Descrever o objetivo deste SOP..." rows={3} />
