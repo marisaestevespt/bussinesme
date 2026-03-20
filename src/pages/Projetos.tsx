@@ -296,6 +296,47 @@ export default function ProjetosPage() {
       <div className="space-y-6">
         {/* Header */}
         <PageHeader title="Projetos" />
+
+        {/* Metrics strip */}
+        {(() => {
+          const now = new Date();
+          const monthStart = startOfMonth(now);
+          const monthEnd = endOfMonth(now);
+          const active = projects.filter(p => p.status === 'em_curso' || p.status === 'em_revisao');
+          const overdue = projects.filter(p => p.deadline && parseISO(p.deadline) < now && p.status !== 'concluido' && p.status !== 'cancelado' && p.status !== 'arquivo');
+          const completedThisMonth = projects.filter(p => {
+            if (p.status !== 'concluido') return false;
+            // Use deadline as proxy for completion date
+            if (!p.deadline) return false;
+            const d = parseISO(p.deadline);
+            return d >= monthStart && d <= monthEnd;
+          });
+          const completed = projects.filter(p => p.status === 'concluido' && p.start_date && p.deadline);
+          const avgDays = completed.length > 0
+            ? Math.round(completed.reduce((sum, p) => sum + differenceInDays(parseISO(p.deadline!), parseISO(p.start_date!)), 0) / completed.length)
+            : null;
+
+          const metrics = [
+            { label: 'Projetos em curso', value: active.length, color: 'text-foreground' },
+            { label: 'Projetos em atraso', value: overdue.length, color: overdue.length > 0 ? 'text-red-500' : 'text-muted-foreground' },
+            { label: 'Concluídos este mês', value: completedThisMonth.length, color: 'text-foreground' },
+            { label: 'Tempo médio de entrega', value: avgDays !== null ? `${avgDays}d` : '—', color: 'text-foreground' },
+          ];
+
+          return (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {metrics.map(m => (
+                <Card key={m.label} className="border-secondary bg-background">
+                  <CardContent className="p-4 text-center">
+                    <p className={cn("text-2xl font-bold", m.color)}>{m.value}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{m.label}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          );
+        })()}
+
         <div className="flex items-center justify-between">
           <div />
           <div className="flex items-center gap-2">
