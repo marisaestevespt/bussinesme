@@ -20,10 +20,10 @@ import {
   type ContentItem, type MarketingChannel, type ContentChannelLink, type ContentAttachment,
 } from '@/lib/marketing-constants';
 import { toast } from 'sonner';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle } from 'lucide-react';
+import { Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 
 export default function ConteudoDetailPage() {
@@ -35,7 +35,7 @@ export default function ConteudoDetailPage() {
   const [form, setForm] = useState({
     title: '', scheduled_at: null as string | null, status: 'por_planear',
     funnel_stage: '', content_type: '', format: '', objective: '',
-    product_name: '', project_id: '', assigned_to: '', copy_content: '', cover_url: '',
+    product_name: '', project_id: '', assigned_to: '', copy_content: '',
   });
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -101,7 +101,6 @@ export default function ConteudoDetailPage() {
         format: item.format || '', objective: item.objective || '',
         product_name: item.product_name || '', project_id: item.project_id || '',
         assigned_to: item.assigned_to || '', copy_content: item.copy_content || '',
-        cover_url: item.cover_url || '',
       });
     }
   }, [item]);
@@ -113,15 +112,16 @@ export default function ConteudoDetailPage() {
   const handleSave = async () => {
     if (!id) return;
     setSaving(true);
+    const firstImage = attachments.find(a => a.file_type === 'image');
+    const autoCover = firstImage?.file_url || null;
     await supabase.from('content_items').update({
       title: form.title, scheduled_at: form.scheduled_at, status: form.status,
       funnel_stage: form.funnel_stage || null, content_type: form.content_type || null,
       format: form.format || null, objective: form.objective || null,
       product_name: form.product_name || null, project_id: form.project_id || null,
       assigned_to: form.assigned_to || null, copy_content: form.copy_content || null,
-      cover_url: form.cover_url || null,
+      cover_url: autoCover,
     } as any).eq('id', id);
-    // Sync channels
     await supabase.from('content_channels').delete().eq('content_id', id);
     if (selectedChannels.length > 0) {
       await supabase.from('content_channels').insert(
@@ -134,19 +134,6 @@ export default function ConteudoDetailPage() {
     queryClient.invalidateQueries({ queryKey: ['content-channels'] });
     toast.success('Guardado');
     setSaving(false);
-  };
-
-  const uploadCover = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.[0] || !id) return;
-    setUploading(true);
-    const file = e.target.files[0];
-    const path = `${id}/cover/${Date.now()}-${file.name}`;
-    const { error } = await supabase.storage.from('content-files').upload(path, file);
-    if (error) { toast.error('Erro'); setUploading(false); return; }
-    const { data: { publicUrl } } = supabase.storage.from('content-files').getPublicUrl(path);
-    setForm(f => ({ ...f, cover_url: publicUrl }));
-    setUploading(false);
-    e.target.value = '';
   };
 
   const uploadFiles = async (e: React.ChangeEvent<HTMLInputElement>, fileType: 'image' | 'file') => {
@@ -212,47 +199,28 @@ export default function ConteudoDetailPage() {
         <div className="max-w-6xl mx-auto w-full px-4 py-6">
           <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
 
-          {/* Title */}
           <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
             className="text-2xl font-bold border-0 px-0 h-auto focus-visible:ring-0 mb-6" placeholder="Título do conteúdo" />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Cover */}
-              <div className="aspect-video bg-muted/30 rounded-lg overflow-hidden relative flex items-center justify-center">
-                {form.cover_url ? (
-                  <img src={form.cover_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="text-center text-muted-foreground/40">
-                    <ImageIcon className="h-12 w-12 mx-auto mb-2" /><p className="text-xs">Sem capa</p>
-                  </div>
-                )}
-                <label className="absolute bottom-3 right-3 bg-background/90 backdrop-blur rounded-md px-3 py-1.5 text-xs font-medium cursor-pointer hover:bg-background hq-transition border shadow-sm">
-                  <Upload className="h-3.5 w-3.5 inline mr-1" />Capa
-                  <input type="file" accept="image/*" className="hidden" onChange={uploadCover} disabled={uploading} />
-                </label>
-              </div>
-
-              <Separator />
-
-              {/* Anexos (attachments - moved up) */}
+              {/* Designs Finais */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-foreground">Anexos</h3>
+                  <h3 className="text-sm font-semibold text-foreground">Designs Finais</h3>
                   <label className="cursor-pointer">
-                    <Button variant="outline" size="sm" asChild><span><ImageIcon className="h-3.5 w-3.5 mr-1" />Imagens</span></Button>
+                    <Button variant="outline" size="sm" asChild><span><ImageIcon className="h-3.5 w-3.5 mr-1" />Adicionar</span></Button>
                     <input type="file" accept="image/*" multiple className="hidden" onChange={e => uploadFiles(e, 'image')} disabled={uploading} />
                   </label>
-                  <label className="cursor-pointer">
-                    <Button variant="outline" size="sm" asChild><span><FileText className="h-3.5 w-3.5 mr-1" />Ficheiros</span></Button>
-                    <input type="file" multiple className="hidden" onChange={e => uploadFiles(e, 'file')} disabled={uploading} />
-                  </label>
                 </div>
-                {images.length > 0 && (
+                {images.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {images.map(img => (
+                    {images.map((img, idx) => (
                       <div key={img.id} className="relative group rounded-lg overflow-hidden border">
+                        {idx === 0 && (
+                          <Badge className="absolute top-2 left-2 z-10 text-[9px] bg-primary text-primary-foreground">Capa</Badge>
+                        )}
                         <img src={img.file_url} alt={img.file_name} className="w-full aspect-square object-cover" />
                         <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100"
                           onClick={() => deleteAttachment(img.id)}><Trash2 className="h-3 w-3" /></Button>
@@ -260,8 +228,29 @@ export default function ConteudoDetailPage() {
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <div className="aspect-video bg-muted/30 rounded-lg flex items-center justify-center">
+                    <div className="text-center text-muted-foreground/40">
+                      <ImageIcon className="h-10 w-10 mx-auto mb-2" />
+                      <p className="text-xs">Nenhum design carregado</p>
+                      <p className="text-[10px]">A 1ª imagem será usada como capa</p>
+                    </div>
+                  </div>
                 )}
-                {files.length > 0 && (
+              </div>
+
+              <Separator />
+
+              {/* Ficheiros */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-foreground">Ficheiros</h3>
+                  <label className="cursor-pointer">
+                    <Button variant="outline" size="sm" asChild><span><FileText className="h-3.5 w-3.5 mr-1" />Adicionar</span></Button>
+                    <input type="file" multiple className="hidden" onChange={e => uploadFiles(e, 'file')} disabled={uploading} />
+                  </label>
+                </div>
+                {files.length > 0 ? (
                   <div className="space-y-1.5">
                     {files.map(f => (
                       <div key={f.id} className="flex items-center gap-2 group">
@@ -274,8 +263,9 @@ export default function ConteudoDetailPage() {
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground italic">Nenhum ficheiro.</p>
                 )}
-                {attachments.length === 0 && <p className="text-xs text-muted-foreground italic">Nenhum anexo.</p>}
               </div>
 
               <Separator />
@@ -284,14 +274,6 @@ export default function ConteudoDetailPage() {
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-foreground">Copy / Guião</h3>
                 <RichTextEditor content={form.copy_content} onChange={v => setForm(f => ({ ...f, copy_content: v }))} editable />
-              </div>
-
-              <Separator />
-
-              {/* Designs Finais */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-foreground">Designs Finais</h3>
-                <p className="text-xs text-muted-foreground italic">Em breve — secção para designs finais aprovados.</p>
               </div>
             </div>
 
