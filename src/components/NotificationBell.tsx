@@ -13,6 +13,7 @@ const TYPE_ICONS: Record<string, string> = {
   task: '✅',
   recommendation: '💡',
   deadline: '⏰',
+  birthday: '🎂',
   info: 'ℹ️',
 };
 
