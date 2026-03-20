@@ -309,12 +309,23 @@ export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
   return (
     <div className="space-y-6">
       {/* Month/Year nav */}
-      <MonthNavHeader
-        monthIdx={monthIdx}
-        year={year}
-        onBack={() => {}}
-        onChangeMonth={handleChangeMonth}
-      />
+      <div className="flex items-center justify-center gap-4">
+        <Button variant="outline" size="icon" onClick={() => {
+          if (monthIdx === 0) { setMonthIdx(11); setYear(y => y - 1); }
+          else setMonthIdx(m => m - 1);
+        }}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <h2 className="text-xl font-bold min-w-[200px] text-center">
+          {MONTH_NAMES[monthIdx]} {year}
+        </h2>
+        <Button variant="outline" size="icon" onClick={() => {
+          if (monthIdx === 11) { setMonthIdx(0); setYear(y => y + 1); }
+          else setMonthIdx(m => m + 1);
+        }}>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
 
       {/* ─── Auto KPI cards ─── */}
       <div>
