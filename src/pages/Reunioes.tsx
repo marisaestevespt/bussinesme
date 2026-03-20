@@ -250,7 +250,7 @@ function MeetingFormDialog({
         title: title.trim(),
         start_date: dateTime.toISOString(),
         event_type_id: eventTypeId,
-        client_name: clientName.trim() || null,
+        client_name: selectedClient?.full_name || null,
         department: department || null,
         created_by: user?.id ?? null,
       });
