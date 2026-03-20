@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { TasksByMemberKanban, TasksByPriority, OverdueTasks } from '@/components/hr/PerformanceTaskViews';
+import { ByMemberTabShared, OverloadTabShared } from '@/components/hr/SharedProductivityViews';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
