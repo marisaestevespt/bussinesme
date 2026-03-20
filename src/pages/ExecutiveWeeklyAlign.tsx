@@ -21,6 +21,25 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 export default function ExecutiveWeeklyAlign() {
+  const now = new Date();
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const weekStart = useMemo(() => {
+    const base = startOfWeek(now, { weekStartsOn: 1 });
+    return weekOffset === 0 ? base : addWeeks(base, weekOffset);
+  }, [weekOffset]);
+
+  const weekEnd = useMemo(() => endOfWeek(weekStart, { weekStartsOn: 1 }), [weekStart]);
+  const weekStartStr = format(weekStart, 'yyyy-MM-dd');
+  const weekEndStr = format(weekEnd, 'yyyy-MM-dd');
+
+  const currentYear = weekStart.getFullYear();
+  const currentMonth = weekStart.getMonth() + 1;
+  const monthStart = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+  const monthEnd = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${new Date(currentYear, currentMonth, 0).getDate()}`;
+
+  const isCurrentWeek = weekOffset === 0;
+
   const exec = useExecutiveData(currentYear);
   const planning = usePlanningData(currentYear);
 
