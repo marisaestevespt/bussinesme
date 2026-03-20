@@ -68,8 +68,6 @@ const departamentosItems: NavItem[] = [
 
 const executiveItems: NavItem[] = [
   { title: 'Executive Room', url: '/executive', icon: 'Crown', moduleKey: 'executive-room' },
-  { title: 'Planeamento de Negócio', url: '/executive/planeamento', icon: 'Target', moduleKey: 'planeamento' },
-  { title: 'Weekly Align', url: '/executive/weekly-align', icon: 'CalendarCheck', moduleKey: 'weekly-align' },
 ];
 
 function getIcon(name: string) {
