@@ -308,6 +308,11 @@ export function SettingsIdentity() {
             <div className="text-xs text-muted-foreground">
               <p>Arrasta ou clica para carregar</p>
               <p className="mt-0.5">PNG, JPG ou SVG</p>
+              {logoPreview && (
+                <button type="button" className="mt-1 text-destructive hover:underline text-xs" onClick={() => { setLogoFile(null); setLogoPreview(null); }}>
+                  Remover logo
+                </button>
+              )}
             </div>
           </div>
         </div>
