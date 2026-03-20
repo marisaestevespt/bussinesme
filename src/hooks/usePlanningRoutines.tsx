@@ -158,6 +158,7 @@ export function usePlanningRoutines() {
       weekday?: number | null;
       month_day?: number | null;
       adjust_to_business_day?: boolean;
+      hour_time?: string;
       created_by?: string;
     }) => {
       const { data, error } = await supabase
