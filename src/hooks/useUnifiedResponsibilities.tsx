@@ -50,7 +50,7 @@ export { SOURCE_LABELS };
 export function useUnifiedResponsibilities(userId?: string) {
   const { user } = useAuth();
   const uid = userId || user?.id;
-  const qc = useQueryClient();
+  
   const today = startOfDay(new Date());
   const weekStart_ = startOfWeek(today, { weekStartsOn: 1 });
   const weekEnd_ = endOfWeek(today, { weekStartsOn: 1 });
