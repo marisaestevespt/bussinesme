@@ -16,6 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock } from 'lucide-react';
+import { BackNavigation } from '@/components/BackNavigation';
 import { useTaskTimeTotals, formatDuration } from '@/components/TaskTimeTracker';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -550,7 +551,7 @@ export default function ProjetoDetailPage() {
     return (
       <AppLayout>
         <div className="space-y-6 max-w-3xl">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/projetos')} className="gap-1"><ArrowLeft className="h-4 w-4" /> Projetos</Button>
+          <BackNavigation />
 
           {/* Cover image */}
           {local.cover_url ? (
@@ -604,7 +605,7 @@ export default function ProjetoDetailPage() {
     <AppLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/projetos')} className="gap-1"><ArrowLeft className="h-4 w-4" /> Projetos</Button>
+          <BackNavigation />
           {dirty && <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} size="sm" className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>}
         </div>
 

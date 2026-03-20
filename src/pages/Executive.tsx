@@ -1,6 +1,7 @@
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 import { AppLayout } from '@/components/AppLayout';
 import { useParams } from 'react-router-dom';
+import { BackNavigation } from '@/components/BackNavigation';
 
 const EXECUTIVE_LABELS: Record<string, string> = {
   planeamento: 'Planeamento',
@@ -14,10 +15,13 @@ export default function ExecutivePage() {
 
   return (
     <AppLayout>
-      <EmptyModulePage
-        title={label || 'Executive Room'}
-        description="Área exclusiva do Owner para planeamento estratégico."
-      />
+      <div className="space-y-6">
+        <BackNavigation />
+        <EmptyModulePage
+          title={label || 'Executive Room'}
+          description="Área exclusiva do Owner para planeamento estratégico."
+        />
+      </div>
     </AppLayout>
   );
 }

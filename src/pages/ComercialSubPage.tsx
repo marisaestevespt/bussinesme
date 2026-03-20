@@ -1,8 +1,7 @@
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { BackNavigation } from '@/components/BackNavigation';
+import { useParams } from 'react-router-dom';
 import { CommercialMetas } from '@/components/commercial/CommercialMetas';
 import { CommercialVendas } from '@/components/commercial/CommercialVendas';
 import { CommercialProcessos } from '@/components/commercial/CommercialProcessos';
@@ -24,7 +23,7 @@ const TITLES: Record<string, string> = {
 
 export default function ComercialSubPage() {
   const { section } = useParams<{ section: string }>();
-  const navigate = useNavigate();
+  
   const title = TITLES[section || ''] || section || '';
 
   const renderContent = () => {
@@ -43,11 +42,7 @@ export default function ComercialSubPage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/comercial')}>
-            <ArrowLeft className="h-4 w-4 mr-1" /> Comercial
-          </Button>
-        </div>
+        <BackNavigation />
         <PageHeader title={title} />
         {renderContent()}
       </div>

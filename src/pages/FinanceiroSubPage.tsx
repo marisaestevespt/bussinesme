@@ -1,8 +1,7 @@
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { excludeCancelled } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { BackNavigation } from '@/components/BackNavigation';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useState } from 'react';
 import { useFinancialData } from '@/hooks/useFinancialData';
@@ -80,10 +79,7 @@ export default function FinanceiroSubPage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-4">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/hub/financeiro')}><ArrowLeft className="h-4 w-4" /></Button>
-          <span className="text-sm text-muted-foreground">Contabilidade</span>
-        </div>
+        <BackNavigation />
         <PageHeader title={title} />
         {showYearSelector && <YearSelector year={year} onChange={setYear} />}
         {renderContent()}

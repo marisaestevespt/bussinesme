@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BackNavigation } from '@/components/BackNavigation';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
@@ -40,6 +41,7 @@ export default function ExecutiveInnovation() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <BackNavigation />
         <PageHeader title="Desenvolvimento & Inovação" subtitle="Aprendizagens, ideias e referências para o negócio" />
 
         <Tabs defaultValue="estudos">

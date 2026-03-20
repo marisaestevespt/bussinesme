@@ -1,8 +1,7 @@
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { BackNavigation } from '@/components/BackNavigation';
+import { useParams } from 'react-router-dom';
 import { useTeamData } from '@/hooks/useTeamData';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 import { TabEscala } from '@/components/hr/TabEscala';
@@ -24,7 +23,7 @@ const TITLES: Record<string, string> = {
 
 export default function RecursosHumanosSubPage() {
   const { section } = useParams<{ section: string }>();
-  const navigate = useNavigate();
+  
   const team = useTeamData();
   const title = TITLES[section || ''] || section || '';
 
@@ -42,11 +41,7 @@ export default function RecursosHumanosSubPage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/recursos-humanos')}>
-            <ArrowLeft className="h-4 w-4 mr-1" /> Recursos Humanos
-          </Button>
-        </div>
+        <BackNavigation />
         <PageHeader title={title} />
         {renderContent()}
       </div>

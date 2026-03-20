@@ -3,6 +3,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { usePlanningData } from '@/hooks/usePlanningData';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
+import { BackNavigation } from '@/components/BackNavigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { PlanningGoalsTab, type GoalsViewMode } from '@/components/planning/PlanningGoalsTab';
@@ -36,6 +37,7 @@ export default function ExecutivePlaneamento() {
   return (
     <AppLayout>
       <div className="space-y-10">
+        <BackNavigation />
         <PageHeader title="Planeamento Anual" subtitle={String(year)} />
 
         <YearSelector year={year} onChange={setYear} />

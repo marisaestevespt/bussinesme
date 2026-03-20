@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { BackNavigation } from '@/components/BackNavigation';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
@@ -361,6 +362,7 @@ export default function ExecutiveWeeklyAlign() {
   return (
     <AppLayout>
       <div className="space-y-8">
+        <BackNavigation />
         <PageHeader title="Weekly Align" subtitle={`Semana ${format(weekStart, 'dd/MM')} — ${format(weekEnd, 'dd/MM/yyyy')}`} />
 
         {/* Week navigation */}

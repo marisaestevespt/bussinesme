@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BackNavigation } from '@/components/BackNavigation';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -112,6 +113,7 @@ export default function ExecutiveBusinessPlan() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <BackNavigation />
         <PageHeader title="Plano & Modelo de Negócio" subtitle="Visão estratégica do modelo de negócio" />
 
         {/* Value Proposition Callout */}
