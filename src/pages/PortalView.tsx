@@ -11,7 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare, MessageSquare, Star, Send, ClipboardList, BarChart3 } from 'lucide-react';
+import { FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare, MessageSquare, Star, Send, ClipboardList, BarChart3, Clock } from 'lucide-react';
 import type { Portal } from '@/hooks/usePortalData';
 
 const sb = (table: string) => supabase.from(table as any) as any;
