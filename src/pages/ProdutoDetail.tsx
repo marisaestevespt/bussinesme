@@ -653,7 +653,14 @@ export default function ProdutoDetailPage() {
         {/* Datas Importantes — from Agenda */}
         {!isNew && (
           <Card className="bg-background border-secondary">
-            <CardHeader><CardTitle className="text-base">Datas Importantes</CardTitle></CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base">Datas Importantes</CardTitle>
+              {isOwner && (
+                <Button size="sm" variant="outline" onClick={() => setShowEventDialog(true)}>
+                  <Plus className="h-3.5 w-3.5 mr-1" />Adicionar Evento
+                </Button>
+              )}
+            </CardHeader>
             <CardContent>
               {productEvents.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Sem datas importantes associadas a este produto na Agenda.</p>
@@ -687,6 +694,35 @@ export default function ProdutoDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Dialog para criar evento */}
+          <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Novo Evento — {form.name}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label>Título</Label>
+                  <Input value={newEvent.title} onChange={e => setNewEvent(p => ({ ...p, title: e.target.value }))} placeholder="Ex: Lançamento do produto" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label>Data / Hora Início</Label>
+                    <Input type="datetime-local" value={newEvent.start_date} onChange={e => setNewEvent(p => ({ ...p, start_date: e.target.value }))} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Data / Hora Fim (opcional)</Label>
+                    <Input type="datetime-local" value={newEvent.end_date} onChange={e => setNewEvent(p => ({ ...p, end_date: e.target.value }))} />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowEventDialog(false)}>Cancelar</Button>
+                <Button onClick={createProductEvent}>Criar Evento</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         )}
 
         {/* Processos (SOPs) */}
