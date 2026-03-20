@@ -399,53 +399,53 @@ export default function PortalViewPage() {
           {activeSection === 'meetings' && (
             <div className="space-y-4">
               <h2 className="text-lg font-bold">Reuniões</h2>
-              {upcomingMeetings.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-2"><CardTitle className="text-sm">Próximas Reuniões</CardTitle></CardHeader>
-                  <CardContent className="space-y-2">
-                    {upcomingMeetings.map((m: any) => (
-                      <div key={m.id} className="flex items-center justify-between py-2 border-b last:border-0">
-                        <div>
-                          <p className="text-sm font-medium">{m.title}</p>
-                          <p className="text-xs text-muted-foreground">{m.date_time ? format(parseISO(m.date_time), 'dd MMM yyyy, HH:mm', { locale: pt }) : '—'}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {m.meeting_url && (
-                            <Button size="sm" variant="outline" asChild>
+              <Card>
+                <CardContent className="p-0">
+                  <div className="bg-muted px-4 py-2 font-medium text-xs grid grid-cols-4 gap-2">
+                    <span>Título</span><span>Data / Hora</span><span>Link</span><span>Status</span>
+                  </div>
+                  {meetings.length === 0 ? (
+                    <p className="text-sm text-muted-foreground p-4">Sem reuniões registadas.</p>
+                  ) : (
+                    meetings.map((m: any) => (
+                      <div key={m.id} className="grid grid-cols-4 gap-2 items-center px-4 py-3 border-b last:border-0 text-sm">
+                        <span className="font-medium truncate">{m.title}</span>
+                        <span className="text-muted-foreground text-xs">
+                          {m.date_time ? format(parseISO(m.date_time), "dd MMM yyyy, HH:mm", { locale: pt }) : '—'}
+                        </span>
+                        <span>
+                          {m.meeting_url ? (
+                            <Button size="sm" variant="outline" className="h-7 text-xs" asChild>
                               <a href={m.meeting_url} target="_blank" rel="noopener noreferrer">Entrar</a>
                             </Button>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
                           )}
-                          {m.status === 'agendada' && (
-                            <Button size="sm" onClick={async () => {
-                              await supabase.from('meetings').update({ status: 'confirmada' as any }).eq('id', m.id);
-                              setMeetings(prev => prev.map(x => x.id === m.id ? { ...x, status: 'confirmada' } : x));
-                              toast.success('Presença confirmada');
-                            }}>Confirmar presença</Button>
+                        </span>
+                        <div className="flex items-center gap-2">
+                          {m.status === 'agendada' ? (
+                            <Button size="sm" className="h-7 text-xs" onClick={async () => {
+                              const { data } = await (supabase as any).rpc('portal_confirm_meeting', { _token: token, _meeting_id: m.id });
+                              if (data) {
+                                setMeetings(prev => prev.map(x => x.id === m.id ? { ...x, status: 'confirmada' } : x));
+                                toast.success('Presença confirmada');
+                              } else {
+                                toast.error('Não foi possível confirmar');
+                              }
+                            }}>Confirmar</Button>
+                          ) : (
+                            <Badge variant="outline" className={
+                              m.status === 'confirmada' ? 'bg-green-100 text-green-800 border-green-200' :
+                              m.status === 'realizada' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                              ''
+                            }>{m.status}</Badge>
                           )}
-                          {m.status === 'confirmada' && <Badge className="bg-green-100 text-green-800">Confirmada</Badge>}
                         </div>
                       </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
-              {pastMeetings.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-2"><CardTitle className="text-sm">Reuniões Passadas</CardTitle></CardHeader>
-                  <CardContent className="space-y-2">
-                    {pastMeetings.map((m: any) => (
-                      <div key={m.id} className="flex items-center justify-between py-2 border-b last:border-0 opacity-60">
-                        <div>
-                          <p className="text-sm">{m.title}</p>
-                          <p className="text-xs text-muted-foreground">{m.date_time ? format(parseISO(m.date_time), 'dd MMM yyyy, HH:mm', { locale: pt }) : '—'}</p>
-                        </div>
-                        <Badge variant="outline" className="text-[10px]">{m.status}</Badge>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
-              {meetings.length === 0 && <p className="text-sm text-muted-foreground">Sem reuniões registadas.</p>}
+                    ))
+                  )}
+                </CardContent>
+              </Card>
             </div>
           )}
 
