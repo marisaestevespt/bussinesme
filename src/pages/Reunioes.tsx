@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { BackNavigation } from '@/components/BackNavigation';
 import { useNavigate } from 'react-router-dom';
 import { ViewTabs } from '@/components/ViewTabs';
@@ -56,6 +56,10 @@ interface MeetingRow {
 interface ProjectOption {
   id: string;
   name: string;
+  client_id: string | null;
+  client_name: string | null;
+  department: string | null;
+  type: string | null;
 }
 
 interface Profile {
@@ -89,9 +93,9 @@ function useProjects() {
   return useQuery({
     queryKey: ['projects_list'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('projects').select('id, name').order('name');
+      const { data, error } = await supabase.from('projects').select('id, name, client_id, client_name, department, type').order('name');
       if (error) throw error;
-      return data as ProjectOption[];
+      return (data || []) as ProjectOption[];
     },
   });
 }
@@ -207,6 +211,44 @@ function MemberPicker({ selectedIds, onChange, profiles }: { selectedIds: string
   );
 }
 
+// ─── Project Picker Dialog (multi-select) ───────────────────────
+
+function ProjectPickerDialog({
+  open, onOpenChange, projects, onConfirm,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  projects: ProjectOption[];
+  onConfirm: (ids: string[]) => void;
+}) {
+  const [selected, setSelected] = useState<string[]>([]);
+
+  useEffect(() => { if (open) setSelected([]); }, [open]);
+
+  const toggle = (id: string) => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader><DialogTitle>Selecionar projeto(s)</DialogTitle></DialogHeader>
+        <p className="text-sm text-muted-foreground">Este cliente tem vários projetos. Selecione o(s) que pretende associar:</p>
+        <div className="space-y-2 mt-2">
+          {projects.map(p => (
+            <label key={p.id} className="flex items-center gap-2 cursor-pointer text-sm hover:bg-muted/50 rounded px-2 py-1.5">
+              <Checkbox checked={selected.includes(p.id)} onCheckedChange={() => toggle(p.id)} />
+              <span className="text-foreground">{p.name}</span>
+              {p.type && <span className="text-xs text-muted-foreground">({p.type})</span>}
+            </label>
+          ))}
+        </div>
+        <Button className="w-full mt-2" onClick={() => { onConfirm(selected); onOpenChange(false); }} disabled={selected.length === 0}>
+          Confirmar ({selected.length})
+        </Button>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── New Meeting Dialog ─────────────────────────────────────────
 
 function MeetingFormDialog({
@@ -222,16 +264,88 @@ function MeetingFormDialog({
   const [dateTime, setDateTime] = useState<Date | undefined>();
   const [status, setStatus] = useState<MeetingStatus>('por_confirmar');
   const [clientId, setClientId] = useState('');
-  const [projectId, setProjectId] = useState('');
+  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
   const [department, setDepartment] = useState('');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [projectPickerOpen, setProjectPickerOpen] = useState(false);
+  const [pendingClientProjects, setPendingClientProjects] = useState<ProjectOption[]>([]);
 
-  const resetForm = () => { setTitle(''); setDateTime(undefined); setStatus('por_confirmar'); setClientId(''); setProjectId(''); setDepartment(''); setSelectedMembers([]); };
+  // Suppress auto-fill side-effects during programmatic changes
+  const skipAutoFillRef = useRef(false);
+
+  const resetForm = () => {
+    setTitle(''); setDateTime(undefined); setStatus('por_confirmar');
+    setClientId(''); setSelectedProjectIds([]); setDepartment('');
+    setSelectedMembers([]); skipAutoFillRef.current = false;
+  };
+
+  // Projects for selected client
+  const clientProjects = useMemo(() => {
+    if (!clientId) return [];
+    return projects.filter(p => p.client_id === clientId);
+  }, [clientId, projects]);
+
+  // ─── Auto-fill: when CLIENT changes ───
+  const handleClientChange = (newClientId: string) => {
+    const actualId = newClientId === '__none' ? '' : newClientId;
+    skipAutoFillRef.current = true;
+    setClientId(actualId);
+
+    if (actualId) {
+      // Auto-set department to "clientes"
+      setDepartment('clientes');
+
+      // Find projects for this client
+      const cProjects = projects.filter(p => p.client_id === actualId);
+      if (cProjects.length === 1) {
+        setSelectedProjectIds([cProjects[0].id]);
+      } else if (cProjects.length > 1) {
+        // Show picker dialog
+        setPendingClientProjects(cProjects);
+        setProjectPickerOpen(true);
+      } else {
+        setSelectedProjectIds([]);
+      }
+    } else {
+      setDepartment('');
+      setSelectedProjectIds([]);
+    }
+    setTimeout(() => { skipAutoFillRef.current = false; }, 0);
+  };
+
+  // ─── Auto-fill: when PROJECT changes (single select for quick add) ───
+  const handleProjectToggle = (projId: string) => {
+    const isAdding = !selectedProjectIds.includes(projId);
+    const newIds = isAdding
+      ? [...selectedProjectIds, projId]
+      : selectedProjectIds.filter(x => x !== projId);
+    setSelectedProjectIds(newIds);
+
+    if (isAdding && !skipAutoFillRef.current) {
+      const proj = projects.find(p => p.id === projId);
+      if (proj) {
+        // Auto-set department from project
+        if (proj.department) setDepartment(proj.department);
+        // Auto-set client if project has one
+        if (proj.client_id && !clientId) {
+          skipAutoFillRef.current = true;
+          setClientId(proj.client_id);
+          if (!department) setDepartment('clientes');
+          setTimeout(() => { skipAutoFillRef.current = false; }, 0);
+        }
+      }
+    }
+  };
+
+  const handleProjectPickerConfirm = (ids: string[]) => {
+    setSelectedProjectIds(ids);
+  };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!title.trim() || !dateTime) throw new Error('Nome e data/hora são obrigatórios');
-      const selectedProject = projects.find(p => p.id === projectId);
+      const primaryProjectId = selectedProjectIds[0] || null;
+      const primaryProject = primaryProjectId ? projects.find(p => p.id === primaryProjectId) : null;
       const selectedClient = clients.find((c: any) => c.id === clientId);
       const isClientMeeting = !!clientId;
       const { data, error } = await supabase.from('meetings').insert({
@@ -240,12 +354,19 @@ function MeetingFormDialog({
         status,
         client_id: clientId || null,
         client_name: selectedClient?.full_name || null,
-        project_id: projectId || null,
-        project_name: selectedProject?.name || null,
+        project_id: primaryProjectId,
+        project_name: primaryProject?.name || null,
         department: department || null,
         created_by: user?.id ?? null,
       }).select('id').single();
       if (error) throw error;
+
+      // Insert all project links into junction table
+      if (selectedProjectIds.length > 0) {
+        const projRows = selectedProjectIds.map(pid => ({ meeting_id: data.id, project_id: pid }));
+        await supabase.from('meeting_projects').insert(projRows);
+      }
+
       // Insert participants
       if (selectedMembers.length > 0) {
         const rows = selectedMembers.map(pid => ({ meeting_id: data.id, profile_id: pid }));
@@ -279,74 +400,88 @@ function MeetingFormDialog({
   });
 
   return (
-    <Dialog open={open} onOpenChange={o => { if (!o) resetForm(); onOpenChange(o); }}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>Nova Reunião</DialogTitle></DialogHeader>
-        <div className="space-y-4">
-          <div>
-            <Label>Nome da reunião *</Label>
-            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Reunião de Alinhamento Semanal" />
-          </div>
-          <div>
-            <Label>Data e hora *</Label>
-            <DateTimePickerField date={dateTime} onSelect={setDateTime} placeholder="Selecionar data" />
-          </div>
-          <div>
-            <Label>Status</Label>
-            <Select value={status} onValueChange={v => setStatus(v as MeetingStatus)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {STATUSES.map(s => (
-                  <SelectItem key={s.value} value={s.value}>
-                    <span className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
-                      {s.label}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <MemberPicker selectedIds={selectedMembers} onChange={setSelectedMembers} profiles={profiles} />
-          <div>
-            <Label>Cliente associado</Label>
-            <Select value={clientId} onValueChange={setClientId}>
-              <SelectTrigger><SelectValue placeholder="Selecionar cliente..." /></SelectTrigger>
-              <SelectContent>
-                {clients.map((c: any) => (
-                  <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Departamento</Label>
-            <Select value={department} onValueChange={setDepartment}>
-              <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
-              <SelectContent>
-                {DEPARTMENTS.map(d => (
-                  <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Projeto associado</Label>
-            <Select value={projectId} onValueChange={setProjectId}>
-              <SelectTrigger><SelectValue placeholder="Selecionar projeto..." /></SelectTrigger>
-              <SelectContent>
+    <>
+      <ProjectPickerDialog
+        open={projectPickerOpen}
+        onOpenChange={setProjectPickerOpen}
+        projects={pendingClientProjects}
+        onConfirm={handleProjectPickerConfirm}
+      />
+      <Dialog open={open} onOpenChange={o => { if (!o) resetForm(); onOpenChange(o); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Nova Reunião</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Nome da reunião *</Label>
+              <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Reunião de Alinhamento Semanal" />
+            </div>
+            <div>
+              <Label>Data e hora *</Label>
+              <DateTimePickerField date={dateTime} onSelect={setDateTime} placeholder="Selecionar data" />
+            </div>
+            <div>
+              <Label>Status</Label>
+              <Select value={status} onValueChange={v => setStatus(v as MeetingStatus)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {STATUSES.map(s => (
+                    <SelectItem key={s.value} value={s.value}>
+                      <span className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
+                        {s.label}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <MemberPicker selectedIds={selectedMembers} onChange={setSelectedMembers} profiles={profiles} />
+            <div>
+              <Label>Cliente associado</Label>
+              <Select value={clientId} onValueChange={handleClientChange}>
+                <SelectTrigger><SelectValue placeholder="Selecionar cliente..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none">Nenhum</SelectItem>
+                  {clients.map((c: any) => (
+                    <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Departamento</Label>
+              <Select value={department} onValueChange={setDepartment}>
+                <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
+                <SelectContent>
+                  {DEPARTMENTS.map(d => (
+                    <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Projeto(s) associado(s)</Label>
+              <div className="space-y-1.5 mt-1">
                 {projects.map(p => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  <label key={p.id} className="flex items-center gap-2 cursor-pointer text-sm hover:bg-muted/50 rounded px-2 py-1">
+                    <Checkbox
+                      checked={selectedProjectIds.includes(p.id)}
+                      onCheckedChange={() => handleProjectToggle(p.id)}
+                    />
+                    <span className="text-foreground">{p.name}</span>
+                    {p.type && <span className="text-xs text-muted-foreground">({p.type})</span>}
+                  </label>
                 ))}
-              </SelectContent>
-            </Select>
+                {projects.length === 0 && <p className="text-sm text-muted-foreground">Nenhum projeto disponível</p>}
+              </div>
+            </div>
+            <Button className="w-full" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? 'A criar...' : 'Criar reunião'}
+            </Button>
           </div>
-          <Button className="w-full" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
-            {saveMutation.isPending ? 'A criar...' : 'Criar reunião'}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

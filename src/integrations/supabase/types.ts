@@ -3262,6 +3262,42 @@ export type Database = {
           },
         ]
       }
+      meeting_projects: {
+        Row: {
+          created_at: string
+          id: string
+          meeting_id: string
+          project_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meeting_id: string
+          project_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meeting_id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_projects_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_projects_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meetings: {
         Row: {
           client_actions: Json | null
@@ -5237,6 +5273,7 @@ export type Database = {
       }
       projects: {
         Row: {
+          client_id: string | null
           client_name: string | null
           closure_bad: string | null
           closure_good: string | null
@@ -5264,6 +5301,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          client_id?: string | null
           client_name?: string | null
           closure_bad?: string | null
           closure_good?: string | null
@@ -5291,6 +5329,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          client_id?: string | null
           client_name?: string | null
           closure_bad?: string | null
           closure_good?: string | null
@@ -5317,7 +5356,15 @@ export type Database = {
           type?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recommendations: {
         Row: {
