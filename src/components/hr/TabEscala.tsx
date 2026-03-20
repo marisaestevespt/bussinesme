@@ -88,7 +88,7 @@ function useEscalaData() {
     queryFn: async () => {
       const { data } = await supabase
         .from('team_members')
-        .select('id, full_name, photo_url, role_title, work_schedule, works_holidays, custom_holidays, status')
+        .select('id, full_name, photo_url, role_title, work_schedule, works_holidays, custom_holidays, status, profile_id')
         .eq('status', 'ativo')
         .order('full_name');
       return (data || []) as TeamMember[];
