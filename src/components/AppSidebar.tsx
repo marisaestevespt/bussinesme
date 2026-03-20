@@ -74,9 +74,7 @@ const executiveItems: NavItem[] = [
 ];
 
 function getIcon(name: string) {
-  if (name === 'LayoutDashboard') return LayoutDashboard;
-  if (name === 'Settings') return Settings;
-  return ICON_MAP[name] || Rocket;
+  return ICON_MAP[name] || Star;
 }
 
 function NavSection({
