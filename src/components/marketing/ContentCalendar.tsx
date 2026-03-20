@@ -109,7 +109,7 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
   );
 }
 
-export function ContentCalendar({ items, channels, contentChannelLinks, calendarOnly }: Props) {
+export function ContentCalendar({ items, channels, contentChannelLinks, calendarOnly, profiles, attachments }: Props) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const monthStart = startOfMonth(currentMonth);
