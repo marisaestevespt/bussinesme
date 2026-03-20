@@ -167,6 +167,104 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
   const clientsRenewal = clientsData.filter(c => c.status === 'altura_renovacao').length;
   const churnMonth = renewalClients.filter(c => c.status === 'terminado').length;
 
+  // ─── Products query ───
+  const productsQ = useQuery({
+    queryKey: ['products-active'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('*').eq('status', 'vendas_ativas');
+      return data || [];
+    },
+  });
+  const npsQ = useQuery({
+    queryKey: ['all-nps-records'],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_nps_records').select('*, clients!client_nps_records_client_id_fkey(full_name, current_product, id)').order('actual_date', { ascending: false });
+      return data || [];
+    },
+  });
+
+  // ─── Product comparative data ───
+  type SortKey = 'revenue' | 'sales' | 'ticket' | 'active' | 'new' | 'churn' | 'renewal' | 'nps' | 'product';
+  const [sortKey, setSortKey] = useState<SortKey>('revenue');
+  const [sortAsc, setSortAsc] = useState(false);
+
+  const productRows = useMemo(() => {
+    const activeProducts = productsQ.data || [];
+    if (activeProducts.length === 0) return [];
+
+    return activeProducts.map(p => {
+      const pSales = monthSales.filter(s => s.product === p.name);
+      const pRevenue = pSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+      const pCount = pSales.length;
+      const pTicket = pCount > 0 ? Math.round(pRevenue / pCount) : 0;
+
+      const pClients = clientsData.filter(c => c.current_product === p.name);
+      const pActive = pClients.filter(c => c.status === 'ativo' || c.status === 'em_onboarding').length;
+      const pNew = pClients.filter(c => {
+        if (!c.start_date) return false;
+        const d = new Date(c.start_date);
+        return d.getMonth() + 1 === month && d.getFullYear() === year;
+      }).length;
+      const pChurn = pClients.filter(c => {
+        if (!c.updated_at || c.status !== 'terminado') return false;
+        const d = new Date(c.updated_at);
+        return d.getMonth() + 1 === month && d.getFullYear() === year;
+      }).length;
+
+      // Renewal rate
+      const pRenewals = pClients.filter(c => {
+        if (!c.updated_at) return false;
+        const d = new Date(c.updated_at);
+        return d.getMonth() + 1 === month && d.getFullYear() === year;
+      });
+      const pRenewed = pRenewals.filter(c => c.status === 'ativo').length;
+      const pRenBase = pRenewals.filter(c => ['ativo', 'altura_renovacao', 'terminado'].includes(c.status)).length;
+      const pRenRate = pRenBase > 0 ? Math.round((pRenewed / pRenBase) * 100) : null;
+
+      // NPS - latest per client for this product
+      const allNps = (npsQ.data || []) as any[];
+      const seen = new Set<string>();
+      const scores: number[] = [];
+      for (const n of allNps) {
+        if (n.nps_score != null && n.clients?.current_product === p.name && n.clients?.id && !seen.has(n.clients.id)) {
+          seen.add(n.clients.id);
+          scores.push(n.nps_score);
+        }
+      }
+      const pNps = scores.length > 0 ? parseFloat((scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)) : null;
+
+      // Trend vs same month last year
+      const prevRevenue = prevYearSalesData.filter(s => s.product === p.name && s.sale_month === month).reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+      const hasPrev = prevYearSalesData.some(s => s.product === p.name && s.sale_month === month);
+      const trend: 'up' | 'down' | 'none' = !hasPrev ? 'none' : pRevenue > prevRevenue ? 'up' : pRevenue < prevRevenue ? 'down' : 'none';
+
+      return { id: p.id, product: p.name, revenue: pRevenue, sales: pCount, ticket: pTicket, active: pActive, new: pNew, churn: pChurn, renewal: pRenRate, nps: pNps, trend };
+    });
+  }, [productsQ.data, monthSales, clientsData, month, year, npsQ.data, prevYearSalesData]);
+
+  const sortedRows = useMemo(() => {
+    const rows = [...productRows];
+    rows.sort((a, b) => {
+      const av = sortKey === 'product' ? a.product : (a[sortKey] ?? -1);
+      const bv = sortKey === 'product' ? b.product : (b[sortKey] ?? -1);
+      if (typeof av === 'string' && typeof bv === 'string') return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+      return sortAsc ? (av as number) - (bv as number) : (bv as number) - (av as number);
+    });
+    return rows;
+  }, [productRows, sortKey, sortAsc]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortAsc(v => !v);
+    else { setSortKey(key); setSortAsc(false); }
+  };
+
+  const totals = useMemo(() => ({
+    revenue: productRows.reduce((s, r) => s + r.revenue, 0),
+    sales: productRows.reduce((s, r) => s + r.sales, 0),
+    new: productRows.reduce((s, r) => s + r.new, 0),
+    churn: productRows.reduce((s, r) => s + r.churn, 0),
+  }), [productRows]);
+
   const fmt = (n: number) => n.toLocaleString('pt-PT', { maximumFractionDigits: 0 });
   const fmtEur = (n: number) => `${fmt(n)} €`;
 
