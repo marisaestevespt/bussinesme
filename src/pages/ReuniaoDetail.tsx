@@ -278,6 +278,7 @@ export default function ReuniaoDetailPage() {
         title: m.title,
         date_time: m.date_time,
         status: m.status,
+        client_id: m.client_id,
         client_name: m.client_name,
         project_id: m.project_id,
         project_name: m.project_name,
