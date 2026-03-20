@@ -219,6 +219,19 @@ function scheduleToDisplay(raw: string | null): string {
     .join(' · ') || '';
 }
 
+function scheduleToLines(raw: string | null): string[] {
+  const s = parseSchedule(raw);
+  return WEEK_DAYS
+    .filter(d => s[d.key] && (s[d.key].manha || s[d.key].tarde))
+    .map(d => {
+      const ds = s[d.key];
+      const parts: string[] = [];
+      if (ds.manha) parts.push(ds.manha);
+      if (ds.tarde) parts.push(ds.tarde);
+      return `${d.label} ${parts.join(' / ')}`;
+    });
+}
+
 const TIME_OPTIONS = [
   '07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
   '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
