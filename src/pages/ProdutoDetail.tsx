@@ -1281,6 +1281,16 @@ export default function ProdutoDetailPage() {
               <ProductCustomerSuccess productId={id!} isOwner={isOwner} />
             </TabsContent>
 
+            {/* ===== KPIs DO PRODUTO ===== */}
+            <TabsContent value="kpis" className="space-y-6">
+              <ProductKPIsTab productId={id!} productName={form.name || ''} isOwner={isOwner} />
+            </TabsContent>
+
+            {/* ===== MÉTRICAS DO PRODUTO ===== */}
+            <TabsContent value="metricas" className="space-y-6">
+              <ProductMetricsTab productId={id!} productName={form.name || ''} isOwner={isOwner} />
+            </TabsContent>
+
             {/* ===== ARQUIVO ===== */}
             <TabsContent value="arquivo" className="space-y-6">
               <Card>
