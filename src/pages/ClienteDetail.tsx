@@ -520,6 +520,9 @@ export default function ClienteDetailPage() {
 
           {/* ─── Úteis ─────────────────────────────────── */}
           <TabsContent value="uteis" className="space-y-6 mt-4">
+            {/* Additional Contacts */}
+            {!isNew && id && <ClientContactsSection clientId={id} />}
+
             {/* Linked SOPs */}
             {!isNew && id && (
               <LinkedSopsSection
