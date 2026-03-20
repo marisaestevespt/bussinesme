@@ -41,11 +41,7 @@ export default function RecursosHumanosSubPage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/recursos-humanos')}>
-            <ArrowLeft className="h-4 w-4 mr-1" /> Recursos Humanos
-          </Button>
-        </div>
+        <BackNavigation />
         <PageHeader title={title} />
         {renderContent()}
       </div>
