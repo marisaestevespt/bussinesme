@@ -57,19 +57,23 @@ function CalendarDayItem({ item, channels, links }: { item: ContentItem; channel
 
   return (
     <Link to={`/hub/marketing/conteudos/${item.id}`}
-      className="block rounded border bg-muted/30 hover:bg-muted/60 transition-colors p-2 h-full flex flex-col">
-      {/* Title */}
-      <p className="text-xs font-medium truncate leading-tight text-foreground">{item.title}</p>
-      {/* Meta tags */}
-      <div className="flex items-center gap-1 mt-1 flex-wrap">
-        {time && <span className="text-[10px] px-1.5 py-0.5 rounded-sm leading-none font-medium bg-primary/10 text-primary tabular-nums">{time}</span>}
-        {status && <span className={cn("text-[10px] px-1.5 py-0.5 rounded-sm leading-none font-medium", status.color)}>{status.label}</span>}
-        {itemChannels.slice(0, 1).map(ch => (
-          <span key={ch.id} className="text-[10px] px-1.5 py-0.5 rounded-sm leading-none bg-secondary text-secondary-foreground">{ch.name}</span>
-        ))}
-        {formatLabel && <span className="text-[10px] px-1.5 py-0.5 rounded-sm leading-none bg-accent text-accent-foreground">{formatLabel}</span>}
-        {typeLabel && <span className="text-[10px] px-1.5 py-0.5 rounded-sm leading-none bg-muted text-muted-foreground">{typeLabel}</span>}
+      className="block rounded border bg-muted/30 hover:bg-muted/60 transition-colors p-1.5 h-full flex flex-col gap-0.5">
+      {/* Row 1: Title + time */}
+      <div className="flex items-center justify-between gap-1">
+        <p className="text-[11px] font-medium truncate leading-tight text-foreground">{item.title}</p>
+        {time && <span className="text-[10px] text-muted-foreground shrink-0 tabular-nums">{time}</span>}
       </div>
+      {/* Row 2: Status full width */}
+      {status && <span className={cn("text-[9px] px-1.5 py-0.5 rounded-sm leading-none font-medium text-center w-full block", status.color)}>{status.label}</span>}
+      {/* Row 3: Canal + Formato */}
+      <div className="flex items-center gap-1">
+        {itemChannels.slice(0, 1).map(ch => (
+          <span key={ch.id} className="text-[9px] px-1 py-0.5 rounded-sm leading-none bg-secondary text-secondary-foreground">{ch.name}</span>
+        ))}
+        {formatLabel && <span className="text-[9px] px-1 py-0.5 rounded-sm leading-none bg-accent text-accent-foreground">{formatLabel}</span>}
+      </div>
+      {/* Row 4: Tipo de conteúdo full width */}
+      {typeLabel && <span className="text-[9px] px-1.5 py-0.5 rounded-sm leading-none bg-muted text-muted-foreground text-center w-full block">{typeLabel}</span>}
     </Link>
   );
 }
@@ -109,7 +113,7 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
           const dayItems = datedItems.filter(i => isSameDay(new Date(i.scheduled_at!), day));
           const isCurrentMonth = isSameMonth(day, currentMonth);
           return (
-            <div key={day.toISOString()} className={cn("min-h-[170px] p-1.5 bg-card flex flex-col", !isCurrentMonth && "opacity-40")}>
+            <div key={day.toISOString()} className={cn("min-h-[150px] p-1.5 bg-card flex flex-col", !isCurrentMonth && "opacity-40")}>
               <p className={cn("text-xs font-medium mb-1 shrink-0", isSameDay(day, new Date()) && "text-primary font-bold")}>{format(day, 'd')}</p>
               <div className="flex flex-col gap-1 flex-1">
                 {dayItems.slice(0, 4).map(item => (
