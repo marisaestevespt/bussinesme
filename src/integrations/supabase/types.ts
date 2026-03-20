@@ -4094,6 +4094,7 @@ export type Database = {
           monthly_hours_per_client: number | null
           name: string
           product_type: string | null
+          renewal_advance_days: number | null
           sales_page_url: string | null
           sales_type: string | null
           status: string
@@ -4124,6 +4125,7 @@ export type Database = {
           monthly_hours_per_client?: number | null
           name: string
           product_type?: string | null
+          renewal_advance_days?: number | null
           sales_page_url?: string | null
           sales_type?: string | null
           status?: string
@@ -4154,6 +4156,7 @@ export type Database = {
           monthly_hours_per_client?: number | null
           name?: string
           product_type?: string | null
+          renewal_advance_days?: number | null
           sales_page_url?: string | null
           sales_type?: string | null
           status?: string
