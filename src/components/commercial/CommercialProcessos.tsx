@@ -89,9 +89,10 @@ export function CommercialProcessos() {
               )}
               {routinesData.map((pr: any) => {
                 const assignee = pr.profiles;
+                const hourLabel = pr.hour_time ? ` às ${pr.hour_time.slice(0, 5)}` : '';
                 const recLabel = pr.recurrence_type === 'semanal'
-                  ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][pr.weekday || 0]} feira`
-                  : `Mensal — dia ${pr.month_day}`;
+                  ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][pr.weekday || 0]} feira${hourLabel}`
+                  : `Mensal — dia ${pr.month_day}${hourLabel}`;
                 return (
                   <TableRow key={pr.id}>
                     <TableCell className="font-medium">{pr.title}</TableCell>

@@ -59,6 +59,7 @@ export default function ProcessosPage() {
   const [prWeekday, setPrWeekday] = useState('1');
   const [prMonthDay, setPrMonthDay] = useState('1');
   const [prAdjustBiz, setPrAdjustBiz] = useState(true);
+  const [prHour, setPrHour] = useState('09:00');
 
   const { allViews, addView, renameView, deleteView } = useUserViews('processos', PROCESSOS_DEFAULT_VIEWS);
   const [selectedDept, setSelectedDept] = useState<string | null>(null);
@@ -110,7 +111,7 @@ export default function ProcessosPage() {
   });
 
   function resetRoutineDialog() {
-    setPrTitle(''); setPrResponsible(''); setPrRecurrence('semanal'); setPrWeekday('1'); setPrMonthDay('1'); setPrAdjustBiz(true);
+    setPrTitle(''); setPrResponsible(''); setPrRecurrence('semanal'); setPrWeekday('1'); setPrMonthDay('1'); setPrAdjustBiz(true); setPrHour('09:00');
   }
 
   // ─── Derived data ────────────────────────────────────────────
@@ -234,9 +235,10 @@ export default function ProcessosPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                   {routinesData.map((pr: any) => {
                     const assignee = pr.profiles;
+                    const hourLabel = pr.hour_time ? ` às ${pr.hour_time.slice(0, 5)}` : '';
                     const recLabel = pr.recurrence_type === 'semanal'
-                      ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][pr.weekday || 0]} feira`
-                      : `Mensal — dia ${pr.month_day}${pr.adjust_to_business_day ? ' (ajuste dia útil)' : ''}`;
+                      ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][pr.weekday || 0]} feira${hourLabel}`
+                      : `Mensal — dia ${pr.month_day}${hourLabel}${pr.adjust_to_business_day ? ' (ajuste dia útil)' : ''}`;
                     return (
                       <Card key={pr.id} className="p-3">
                         <div className="flex items-start justify-between gap-2">
@@ -394,6 +396,10 @@ export default function ProcessosPage() {
                 </div>
               </>
             )}
+            <div>
+              <Label>Hora</Label>
+              <Input type="time" value={prHour} onChange={e => setPrHour(e.target.value)} className="w-32" />
+            </div>
             <Button
               className="w-full"
               disabled={!prTitle.trim() || planningRoutines.createRoutine.isPending}
@@ -405,6 +411,7 @@ export default function ProcessosPage() {
                   weekday: prRecurrence === 'semanal' ? Number(prWeekday) : null,
                   month_day: prRecurrence === 'mensal' ? Number(prMonthDay) : null,
                   adjust_to_business_day: prRecurrence === 'mensal' ? prAdjustBiz : true,
+                  hour_time: prHour || '09:00',
                   created_by: user?.id,
                 }, {
                   onSuccess: () => {
