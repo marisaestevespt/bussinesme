@@ -62,10 +62,10 @@ export default function ClientesPage() {
         <PageHeader title="Clientes" />
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate('/hub/clientes/analise')} className="gap-1.5">
+            <Button onClick={() => navigate('/hub/clientes/analise')} className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 px-5 py-2.5 text-sm font-medium shadow-sm">
               <BarChart3 className="h-4 w-4" /> Análise de Clientes
             </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate('/hub/clientes/portais')} className="gap-1.5">
+            <Button onClick={() => navigate('/hub/clientes/portais')} className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90 px-5 py-2.5 text-sm font-medium shadow-sm">
               <Globe className="h-4 w-4" /> Portal de Clientes
             </Button>
           </div>
