@@ -46,10 +46,47 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
 
   const portalUrl = portalData ? `${window.location.origin}/portal/${portalData.token}` : '';
 
-  const createPortal = () => {
+  const createPortal = async () => {
     if (!portalType) { toast.error('Este tipo de produto não gera portal'); return; }
-    upsertPortal.mutate({ client_id: clientId, portal_type: portalType });
+    await upsertPortal.mutateAsync({ client_id: clientId, portal_type: portalType });
+    // After portal is created, seed FAQs from product
     toast.success('Portal criado');
+    // We need to wait for portal data to be available, so seed FAQs after invalidation
+    setTimeout(() => seedFaqsFromProduct(), 1500);
+  };
+
+  const seedFaqsFromProduct = async () => {
+    const portalRes = await supabase.from('client_portals' as any).select('id').eq('client_id', clientId).maybeSingle();
+    const pid = (portalRes.data as any)?.id;
+    if (!pid || !product) return;
+    const productFaqs: { question: string; answer: string }[] = Array.isArray(product.faqs) ? product.faqs : [];
+    const validFaqs = productFaqs.filter(f => f.question?.trim());
+    if (validFaqs.length === 0) return;
+    const rows = validFaqs.map((f, i) => ({
+      portal_id: pid,
+      question: f.question,
+      answer: f.answer || '',
+      sort_order: i,
+    }));
+    await supabase.from('portal_faqs' as any).insert(rows);
+    faqs.refetch();
+  };
+
+  const importFaqsFromProduct = async () => {
+    if (!portalId || !product) { toast.error('Sem produto associado'); return; }
+    const productFaqs: { question: string; answer: string }[] = Array.isArray(product.faqs) ? product.faqs : [];
+    const validFaqs = productFaqs.filter(f => f.question?.trim());
+    if (validFaqs.length === 0) { toast.info('O produto não tem FAQ\'s definidas'); return; }
+    const existingCount = faqs.data?.length || 0;
+    const rows = validFaqs.map((f, i) => ({
+      portal_id: portalId,
+      question: f.question,
+      answer: f.answer || '',
+      sort_order: existingCount + i,
+    }));
+    await supabase.from('portal_faqs' as any).insert(rows);
+    faqs.refetch();
+    toast.success(`${validFaqs.length} FAQ's importadas do produto`);
   };
 
   if (!portalType) {
