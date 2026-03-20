@@ -12,6 +12,7 @@ function formatTimer(totalSeconds: number): string {
 
 export function FloatingTimer() {
   const { activeTimer, elapsed, pauseTimer, resumeTimer, stopTimer } = useActiveTimer();
+  const navigate = useNavigate();
 
   if (!activeTimer) return null;
 
