@@ -1,6 +1,7 @@
 import { useActiveTimer } from '@/hooks/useActiveTimer';
 import { Button } from '@/components/ui/button';
 import { Pause, Play, Square } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 function formatTimer(totalSeconds: number): string {
   const h = Math.floor(totalSeconds / 3600);
