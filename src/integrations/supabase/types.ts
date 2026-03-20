@@ -419,32 +419,98 @@ export type Database = {
         Row: {
           channel_id: string
           created_at: string
+          em_avg_click_rate: number | null
+          em_avg_open_rate: number | null
+          em_list_growth: number | null
+          em_list_total: number | null
           followers: number | null
           followers_growth: number | null
           id: string
+          ig_accounts_reached: number | null
+          ig_avg_comments: number | null
+          ig_avg_likes: number | null
+          ig_avg_saves: number | null
+          ig_bio_link_clicks: number | null
+          ig_engagement_rate: number | null
+          ig_profile_visits: number | null
+          ig_total_impressions: number | null
+          li_page_visits: number | null
+          li_total_impressions: number | null
           month: number
           notes: string | null
+          pt_monthly_impressions: number | null
+          pt_total_clicks: number | null
+          tt_total_likes: number | null
+          tt_total_shares: number | null
+          tt_total_views: number | null
           year: number
+          yt_new_subscribers: number | null
+          yt_total_views: number | null
+          yt_watch_hours: number | null
         }
         Insert: {
           channel_id: string
           created_at?: string
+          em_avg_click_rate?: number | null
+          em_avg_open_rate?: number | null
+          em_list_growth?: number | null
+          em_list_total?: number | null
           followers?: number | null
           followers_growth?: number | null
           id?: string
+          ig_accounts_reached?: number | null
+          ig_avg_comments?: number | null
+          ig_avg_likes?: number | null
+          ig_avg_saves?: number | null
+          ig_bio_link_clicks?: number | null
+          ig_engagement_rate?: number | null
+          ig_profile_visits?: number | null
+          ig_total_impressions?: number | null
+          li_page_visits?: number | null
+          li_total_impressions?: number | null
           month: number
           notes?: string | null
+          pt_monthly_impressions?: number | null
+          pt_total_clicks?: number | null
+          tt_total_likes?: number | null
+          tt_total_shares?: number | null
+          tt_total_views?: number | null
           year: number
+          yt_new_subscribers?: number | null
+          yt_total_views?: number | null
+          yt_watch_hours?: number | null
         }
         Update: {
           channel_id?: string
           created_at?: string
+          em_avg_click_rate?: number | null
+          em_avg_open_rate?: number | null
+          em_list_growth?: number | null
+          em_list_total?: number | null
           followers?: number | null
           followers_growth?: number | null
           id?: string
+          ig_accounts_reached?: number | null
+          ig_avg_comments?: number | null
+          ig_avg_likes?: number | null
+          ig_avg_saves?: number | null
+          ig_bio_link_clicks?: number | null
+          ig_engagement_rate?: number | null
+          ig_profile_visits?: number | null
+          ig_total_impressions?: number | null
+          li_page_visits?: number | null
+          li_total_impressions?: number | null
           month?: number
           notes?: string | null
+          pt_monthly_impressions?: number | null
+          pt_total_clicks?: number | null
+          tt_total_likes?: number | null
+          tt_total_shares?: number | null
+          tt_total_views?: number | null
           year?: number
+          yt_new_subscribers?: number | null
+          yt_total_views?: number | null
+          yt_watch_hours?: number | null
         }
         Relationships: [
           {
