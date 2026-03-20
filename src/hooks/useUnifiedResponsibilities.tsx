@@ -370,8 +370,6 @@ export function useUnifiedResponsibilities(userId?: string) {
     items,
     todayItems,
     weekItems,
-    completeItem,
-    uncompleteItem,
     getItemHours,
     isLoading: tasksQ.isLoading || leadsQ.isLoading || contentQ.isLoading || meetingsQ.isLoading,
   };
