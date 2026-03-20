@@ -170,8 +170,10 @@ const App = () => (
         <AuthProvider>
           <BusinessSettingsProvider>
             <ActiveTimerProvider>
-              <FloatingTimer />
-              <AppRoutes />
+              <KpiSettingsProvider>
+                <FloatingTimer />
+                <AppRoutes />
+              </KpiSettingsProvider>
             </ActiveTimerProvider>
           </BusinessSettingsProvider>
         </AuthProvider>
