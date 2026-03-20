@@ -99,6 +99,7 @@ function getPlatformMetrics(platform: string, metrics: any): { label: string; va
 function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; year: number; onBack: () => void; onChangeMonth: (m: number, y: number) => void }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { isKpiEnabled, isAreaEnabled } = useKpiSettings();
 
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
   const endMonth = month === 12 ? 1 : month + 1;
