@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, Fragment } from 'react';
 import { YearSelector } from '@/components/YearSelector';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { ChevronLeft, ChevronRight, Users, Phone, CalendarCheck, FileText, TrendingUp, Clock, UserMinus, DollarSign, UserPlus, RefreshCw, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Users, Phone, CalendarCheck, FileText, TrendingUp, Clock, UserMinus, DollarSign, UserPlus, RefreshCw, AlertTriangle, ArrowLeft, ArrowUp, ArrowDown, Minus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { MonthNavHeader } from '@/components/MonthNavHeader';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,14 +40,17 @@ function KpiCard({ label, value, icon: Icon, color }: { label: string; value: st
 function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: number; year: number; onBack: () => void; onChangeMonth: (m: number, y: number) => void }) {
   const month = monthIdx + 1;
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const { allLeads } = useCrmData();
   const { sales: salesQ, annualGoalAmount, totalInvoiced, monthlyGoals } = useCommercialData(year);
   const { clients: clientsQ } = useClients();
+  const { sales: prevYearSalesQ } = useCommercialData(year - 1);
 
   const leads = allLeads || [];
   const salesData = salesQ.data || [];
   const clientsData = clientsQ.data || [];
+  const prevYearSalesData = prevYearSalesQ.data || [];
 
   // Qualitative analysis
   const analysisQ = useQuery({
@@ -163,6 +167,104 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
   const clientsRenewal = clientsData.filter(c => c.status === 'altura_renovacao').length;
   const churnMonth = renewalClients.filter(c => c.status === 'terminado').length;
 
+  // ─── Products query ───
+  const productsQ = useQuery({
+    queryKey: ['products-active'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('*').eq('status', 'vendas_ativas');
+      return data || [];
+    },
+  });
+  const npsQ = useQuery({
+    queryKey: ['all-nps-records'],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_nps_records').select('*, clients!client_nps_records_client_id_fkey(full_name, current_product, id)').order('actual_date', { ascending: false });
+      return data || [];
+    },
+  });
+
+  // ─── Product comparative data ───
+  type SortKey = 'revenue' | 'sales' | 'ticket' | 'active' | 'new' | 'churn' | 'renewal' | 'nps' | 'product';
+  const [sortKey, setSortKey] = useState<SortKey>('revenue');
+  const [sortAsc, setSortAsc] = useState(false);
+
+  const productRows = useMemo(() => {
+    const activeProducts = productsQ.data || [];
+    if (activeProducts.length === 0) return [];
+
+    return activeProducts.map(p => {
+      const pSales = monthSales.filter(s => s.product === p.name);
+      const pRevenue = pSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+      const pCount = pSales.length;
+      const pTicket = pCount > 0 ? Math.round(pRevenue / pCount) : 0;
+
+      const pClients = clientsData.filter(c => c.current_product === p.name);
+      const pActive = pClients.filter(c => c.status === 'ativo' || c.status === 'em_onboarding').length;
+      const pNew = pClients.filter(c => {
+        if (!c.start_date) return false;
+        const d = new Date(c.start_date);
+        return d.getMonth() + 1 === month && d.getFullYear() === year;
+      }).length;
+      const pChurn = pClients.filter(c => {
+        if (!c.updated_at || c.status !== 'terminado') return false;
+        const d = new Date(c.updated_at);
+        return d.getMonth() + 1 === month && d.getFullYear() === year;
+      }).length;
+
+      // Renewal rate
+      const pRenewals = pClients.filter(c => {
+        if (!c.updated_at) return false;
+        const d = new Date(c.updated_at);
+        return d.getMonth() + 1 === month && d.getFullYear() === year;
+      });
+      const pRenewed = pRenewals.filter(c => c.status === 'ativo').length;
+      const pRenBase = pRenewals.filter(c => ['ativo', 'altura_renovacao', 'terminado'].includes(c.status)).length;
+      const pRenRate = pRenBase > 0 ? Math.round((pRenewed / pRenBase) * 100) : null;
+
+      // NPS - latest per client for this product
+      const allNps = (npsQ.data || []) as any[];
+      const seen = new Set<string>();
+      const scores: number[] = [];
+      for (const n of allNps) {
+        if (n.nps_score != null && n.clients?.current_product === p.name && n.clients?.id && !seen.has(n.clients.id)) {
+          seen.add(n.clients.id);
+          scores.push(n.nps_score);
+        }
+      }
+      const pNps = scores.length > 0 ? parseFloat((scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)) : null;
+
+      // Trend vs same month last year
+      const prevRevenue = prevYearSalesData.filter(s => s.product === p.name && s.sale_month === month).reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+      const hasPrev = prevYearSalesData.some(s => s.product === p.name && s.sale_month === month);
+      const trend: 'up' | 'down' | 'none' = !hasPrev ? 'none' : pRevenue > prevRevenue ? 'up' : pRevenue < prevRevenue ? 'down' : 'none';
+
+      return { id: p.id, product: p.name, revenue: pRevenue, sales: pCount, ticket: pTicket, active: pActive, new: pNew, churn: pChurn, renewal: pRenRate, nps: pNps, trend };
+    });
+  }, [productsQ.data, monthSales, clientsData, month, year, npsQ.data, prevYearSalesData]);
+
+  const sortedRows = useMemo(() => {
+    const rows = [...productRows];
+    rows.sort((a, b) => {
+      const av = sortKey === 'product' ? a.product : (a[sortKey] ?? -1);
+      const bv = sortKey === 'product' ? b.product : (b[sortKey] ?? -1);
+      if (typeof av === 'string' && typeof bv === 'string') return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+      return sortAsc ? (av as number) - (bv as number) : (bv as number) - (av as number);
+    });
+    return rows;
+  }, [productRows, sortKey, sortAsc]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortAsc(v => !v);
+    else { setSortKey(key); setSortAsc(false); }
+  };
+
+  const totals = useMemo(() => ({
+    revenue: productRows.reduce((s, r) => s + r.revenue, 0),
+    sales: productRows.reduce((s, r) => s + r.sales, 0),
+    new: productRows.reduce((s, r) => s + r.new, 0),
+    churn: productRows.reduce((s, r) => s + r.churn, 0),
+  }), [productRows]);
+
   const fmt = (n: number) => n.toLocaleString('pt-PT', { maximumFractionDigits: 0 });
   const fmtEur = (n: number) => `${fmt(n)} €`;
 
@@ -258,6 +360,85 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
           <KpiCard label="Renovações perdidas" value={churnMonth} icon={UserMinus} color={churnMonth > 0 ? 'text-destructive' : undefined} />
           <KpiCard label="Churn do mês" value={churnMonth} icon={AlertTriangle} color={churnMonth > 0 ? 'text-destructive' : undefined} />
         </div>
+      </div>
+
+      {/* Product Comparative */}
+      <div>
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Comparativo de Produtos</h3>
+        {sortedRows.length === 0 ? (
+          <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">Sem produtos com vendas ativas.</CardContent></Card>
+        ) : (
+          <Card>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/30">
+                    {([
+                      { key: 'product' as SortKey, label: 'Produto' },
+                      { key: 'revenue' as SortKey, label: 'Receita' },
+                      { key: 'sales' as SortKey, label: 'Vendas' },
+                      { key: 'ticket' as SortKey, label: 'Ticket médio' },
+                      { key: 'active' as SortKey, label: 'Ativos' },
+                      { key: 'new' as SortKey, label: 'Novos' },
+                      { key: 'churn' as SortKey, label: 'Churn' },
+                      { key: 'renewal' as SortKey, label: 'Renovação' },
+                      { key: 'nps' as SortKey, label: 'NPS' },
+                    ]).map(col => (
+                      <th
+                        key={col.key}
+                        className={cn(
+                          'p-3 font-medium text-muted-foreground cursor-pointer hover:text-foreground select-none whitespace-nowrap',
+                          col.key === 'product' ? 'text-left' : 'text-right'
+                        )}
+                        onClick={() => toggleSort(col.key)}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          {col.label}
+                          {sortKey === col.key && (sortAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
+                        </span>
+                      </th>
+                    ))}
+                    <th className="p-3 font-medium text-muted-foreground text-center whitespace-nowrap">Tendência</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedRows.map(r => (
+                    <tr key={r.id} className="border-b last:border-0 hover:bg-muted/50 cursor-pointer" onClick={() => navigate(`/hub/produtos/${r.id}`)}>
+                      <td className="p-3 font-medium text-primary hover:underline">{r.product}</td>
+                      <td className="p-3 text-right">{fmtEur(r.revenue)}</td>
+                      <td className="p-3 text-right">{r.sales}</td>
+                      <td className="p-3 text-right">{fmtEur(r.ticket)}</td>
+                      <td className="p-3 text-right">{r.active}</td>
+                      <td className="p-3 text-right">{r.new}</td>
+                      <td className="p-3 text-right">{r.churn > 0 ? <span className="text-destructive">{r.churn}</span> : r.churn}</td>
+                      <td className="p-3 text-right">{r.renewal != null ? `${r.renewal}%` : '—'}</td>
+                      <td className="p-3 text-right">{r.nps != null ? r.nps : '—'}</td>
+                      <td className="p-3 text-center">
+                        {r.trend === 'up' && <ArrowUp className="h-4 w-4 text-emerald-600 inline" />}
+                        {r.trend === 'down' && <ArrowDown className="h-4 w-4 text-destructive inline" />}
+                        {r.trend === 'none' && <Minus className="h-4 w-4 text-muted-foreground inline" />}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t bg-muted/30 font-semibold">
+                    <td className="p-3">Total</td>
+                    <td className="p-3 text-right">{fmtEur(totals.revenue)}</td>
+                    <td className="p-3 text-right">{totals.sales}</td>
+                    <td className="p-3 text-right" />
+                    <td className="p-3 text-right" />
+                    <td className="p-3 text-right">{totals.new}</td>
+                    <td className="p-3 text-right">{totals.churn}</td>
+                    <td className="p-3 text-right" />
+                    <td className="p-3 text-right" />
+                    <td className="p-3" />
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </Card>
+        )}
       </div>
 
       <Separator />
