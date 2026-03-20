@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,10 +18,11 @@ import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import {
-  ChevronLeft, Plus, FileText, Trash2, ExternalLink,
-  Upload, Check, X, Image as ImageIcon,
+  Plus, FileText, Trash2,
+  Check, Image as ImageIcon,
 } from 'lucide-react';
 import { WebsiteChannelContent } from '@/components/marketing/WebsiteChannelContent';
+import { ChannelMonthGallery } from '@/components/marketing/ChannelMonthGallery';
 import { ChannelMonthlyAnalysis } from '@/components/marketing/ChannelMonthlyAnalysis';
 import { BackNavigation } from '@/components/BackNavigation';
 
@@ -31,14 +32,13 @@ export default function ChannelPage() {
   const { isOwner } = useAuth();
   const queryClient = useQueryClient();
 
-  const [showUploadReport, setShowUploadReport] = useState(false);
-  const [reportTitle, setReportTitle] = useState('');
-  const [reportFile, setReportFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<{ month: number; year: number } | null>(null);
   const [showNewPage, setShowNewPage] = useState(false);
   const [newPageTitle, setNewPageTitle] = useState('');
   const [editingPageId, setEditingPageId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
+
+  const currentYear = new Date().getFullYear();
 
   // Fetch channel
   const { data: channel } = useQuery({
@@ -57,20 +57,6 @@ export default function ChannelPage() {
       const { data } = await supabase.from('marketing_channels').select('*').order('sort_order');
       return (data || []) as MarketingChannel[];
     },
-  });
-
-  // Fetch reports
-  const { data: reports = [] } = useQuery({
-    queryKey: ['channel-reports', channelId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('channel_reports')
-        .select('*')
-        .eq('channel_id', channelId!)
-        .order('created_at', { ascending: false }) as { data: any[] | null };
-      return data || [];
-    },
-    enabled: !!channelId,
   });
 
   // Fetch channel pages
@@ -109,32 +95,6 @@ export default function ChannelPage() {
     .filter(l => l.channel_id === channelId)
     .map(l => l.content_id);
   const channelContent = allContentItems.filter(i => channelContentIds.includes(i.id));
-
-  // Upload report
-  const uploadReport = async () => {
-    if (!reportFile || !reportTitle.trim() || !channelId) return;
-    setUploading(true);
-    const ext = reportFile.name.split('.').pop();
-    const path = `reports/${channelId}/${Date.now()}.${ext}`;
-    const { error: uploadError } = await supabase.storage.from('content-files').upload(path, reportFile);
-    if (uploadError) { toast.error('Erro no upload'); setUploading(false); return; }
-    const { data: urlData } = supabase.storage.from('content-files').getPublicUrl(path);
-    await supabase.from('channel_reports').insert({
-      channel_id: channelId, title: reportTitle, file_url: urlData.publicUrl, file_name: reportFile.name,
-    } as any);
-    queryClient.invalidateQueries({ queryKey: ['channel-reports', channelId] });
-    setShowUploadReport(false);
-    setReportTitle('');
-    setReportFile(null);
-    setUploading(false);
-    toast.success('Relatório adicionado');
-  };
-
-  const deleteReport = async (id: string) => {
-    await supabase.from('channel_reports').delete().eq('id', id);
-    queryClient.invalidateQueries({ queryKey: ['channel-reports', channelId] });
-    toast.success('Relatório removido');
-  };
 
   // Channel pages
   const createPage = async () => {
@@ -196,42 +156,59 @@ export default function ChannelPage() {
             <WebsiteChannelContent channelId={channelId!} channelName={channel.name} />
           ) : (
             <>
-              {/* Section 1: Monthly Analysis */}
-              <ChannelMonthlyAnalysis channelId={channelId!} channelName={channel.name} />
+              {/* Section 1: Month Gallery or Month Detail */}
+              {selectedMonth ? (
+                <ChannelMonthlyAnalysis
+                  channelId={channelId!}
+                  channelName={channel.name}
+                  month={selectedMonth.month}
+                  year={selectedMonth.year}
+                  onBack={() => setSelectedMonth(null)}
+                />
+              ) : (
+                <ChannelMonthGallery
+                  channelId={channelId!}
+                  year={currentYear}
+                  onSelectMonth={(month) => setSelectedMonth({ month, year: currentYear })}
+                />
+              )}
 
               <Separator />
 
-              {/* Section 2: Reports (PDFs) */}
+              {/* Section 2: Custom Pages */}
               <section className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-foreground">Relatórios PDF</h2>
+                  <h2 className="text-lg font-semibold text-foreground">Páginas</h2>
                   {isOwner && (
-                    <Button size="sm" onClick={() => setShowUploadReport(true)}>
-                      <Upload className="h-3.5 w-3.5 mr-1" />Carregar PDF
+                    <Button size="sm" variant="outline" onClick={() => setShowNewPage(true)}>
+                      <Plus className="h-3.5 w-3.5 mr-1" />Nova Página
                     </Button>
                   )}
                 </div>
-                {reports.length === 0 ? (
-                  <Card><CardContent className="p-8 text-center text-sm text-muted-foreground italic">Nenhum relatório carregado.</CardContent></Card>
+                {pages.length === 0 ? (
+                  <Card><CardContent className="p-6 text-center text-sm text-muted-foreground italic">Nenhuma página criada.</CardContent></Card>
                 ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {reports.map((r: any) => (
-                      <Card key={r.id} className="group relative">
-                        <CardContent className="p-4 flex flex-col items-center text-center gap-2">
-                          <a href={r.file_url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-2 hover:opacity-80">
-                            <div className="rounded-lg bg-destructive/10 p-3">
-                              <FileText className="h-6 w-6 text-destructive" />
-                            </div>
-                            <p className="text-sm font-medium text-foreground">{r.title}</p>
-                            <p className="text-[10px] text-muted-foreground">{r.file_name}</p>
-                          </a>
-                          {isOwner && (
-                            <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
-                              onClick={() => deleteReport(r.id)}>
-                              <Trash2 className="h-3 w-3 text-destructive" />
-                            </Button>
-                          )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {pages.map((p: any) => (
+                      <Card key={p.id} className="hq-transition hover:shadow-md cursor-pointer group relative"
+                        onClick={() => { setEditingPageId(p.id); setEditingContent(p.content || ''); }}>
+                        <CardContent className="p-5 flex items-center gap-3">
+                          <div className="rounded-full bg-primary/10 p-2.5">
+                            <FileText className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{p.title}</p>
+                            <p className="text-[11px] text-muted-foreground">
+                              {p.updated_at && format(new Date(p.updated_at), 'dd MMM yyyy', { locale: pt })}
+                            </p>
+                          </div>
                         </CardContent>
+                        {isOwner && (
+                          <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
+                            onClick={(e) => { e.stopPropagation(); deletePage(p.id); }}>
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        )}
                       </Card>
                     ))}
                   </div>
@@ -240,7 +217,18 @@ export default function ChannelPage() {
 
               <Separator />
 
-              {/* Section 3: Custom Pages */}
+              {/* Section 3: Calendar filtered to this channel */}
+              <section className="space-y-4">
+                <h2 className="text-lg font-semibold text-foreground">Calendário — {channel.name}</h2>
+                <ContentCalendar
+                  items={channelContent}
+                  channels={allChannels}
+                  contentChannelLinks={contentChannelLinks}
+                  calendarOnly
+                />
+              </section>
+
+              <Separator />
 
               {/* Section 4: Content Table */}
               <section className="space-y-4 pb-10">
@@ -297,20 +285,6 @@ export default function ChannelPage() {
           )}
         </div>
       </div>
-
-      {/* Upload Report Dialog */}
-      <Dialog open={showUploadReport} onOpenChange={setShowUploadReport}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader><DialogTitle>Carregar Relatório</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <Input value={reportTitle} onChange={e => setReportTitle(e.target.value)} placeholder="Título do relatório" />
-            <Input type="file" accept=".pdf" onChange={e => setReportFile(e.target.files?.[0] || null)} />
-            <Button className="w-full" disabled={!reportTitle.trim() || !reportFile || uploading} onClick={uploadReport}>
-              {uploading ? 'A carregar...' : 'Carregar'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* New Page Dialog */}
       <Dialog open={showNewPage} onOpenChange={setShowNewPage}>
