@@ -2,7 +2,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { Target, ShoppingCart, Zap, Users, Lightbulb, BookOpen, UserCheck, Package, GitBranch, ArrowRight } from 'lucide-react';
+import { Target, ShoppingCart, Zap, Users, Lightbulb, BookOpen, UserCheck, Package, GitBranch, ArrowRight, BarChart3 } from 'lucide-react';
 import { CommercialOverview } from '@/components/commercial/CommercialOverview';
 import { Separator } from '@/components/ui/separator';
 
