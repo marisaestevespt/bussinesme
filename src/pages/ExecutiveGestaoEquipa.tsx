@@ -1591,24 +1591,24 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
       <Card>
         <CardContent className="pt-5 space-y-4">
           <h3 className="text-sm font-semibold">Overview de Membros</h3>
-          <div className="flex justify-end items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex items-center gap-1.5">
-                <label className="text-xs text-muted-foreground whitespace-nowrap">De</label>
-                <Input type="date" className="h-8 w-36 text-xs" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
-              </div>
-              <div className="flex items-center gap-1.5">
-                <label className="text-xs text-muted-foreground whitespace-nowrap">Até</label>
-                <Input type="date" className="h-8 w-36 text-xs" value={dateTo} onChange={e => setDateTo(e.target.value)} />
-              </div>
-              {(dateFrom || dateTo) && (
-                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => { setDateFrom(''); setDateTo(''); }}>Limpar</Button>
-              )}
-              <div className="w-44"><MemberSelect value={filterMember} onChange={setFilterMember} members={allMembers} /></div>
-            </div>
-          </div>
           <Tabs defaultValue="semanal">
-            <TabsList><TabsTrigger value="semanal">Semanal</TabsTrigger><TabsTrigger value="mensal">Mensal</TabsTrigger></TabsList>
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <TabsList><TabsTrigger value="semanal">Semanal</TabsTrigger><TabsTrigger value="mensal">Mensal</TabsTrigger></TabsList>
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <label className="text-xs text-muted-foreground whitespace-nowrap">De</label>
+                  <Input type="date" className="h-8 w-36 text-xs" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <label className="text-xs text-muted-foreground whitespace-nowrap">Até</label>
+                  <Input type="date" className="h-8 w-36 text-xs" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+                </div>
+                {(dateFrom || dateTo) && (
+                  <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => { setDateFrom(''); setDateTo(''); }}>Limpar</Button>
+                )}
+                <div className="w-44"><MemberSelect value={filterMember} onChange={setFilterMember} members={allMembers} /></div>
+              </div>
+            </div>
             <TabsContent value="semanal" className="space-y-3">
               <div className="flex justify-end"><Button size="sm" onClick={() => setWeeklyDialog({})}><Plus className="h-4 w-4 mr-1" /> Novo Registo</Button></div>
               <div className="overflow-x-auto">
