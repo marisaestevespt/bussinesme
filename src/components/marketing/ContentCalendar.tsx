@@ -57,7 +57,7 @@ function CalendarDayItem({ item, channels, links }: { item: ContentItem; channel
 
   return (
     <Link to={`/hub/marketing/conteudos/${item.id}`}
-      className="block rounded border bg-muted/30 hover:bg-muted/60 transition-colors p-1.5 mb-1 last:mb-0">
+      className="block rounded border bg-muted/30 hover:bg-muted/60 transition-colors p-1.5 h-full flex flex-col justify-between">
       {/* Title + time */}
       <div className="flex items-center justify-between gap-1">
         <p className="text-[10px] font-medium truncate leading-tight text-foreground">{item.title}</p>
@@ -111,12 +111,16 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
           const dayItems = datedItems.filter(i => isSameDay(new Date(i.scheduled_at!), day));
           const isCurrentMonth = isSameMonth(day, currentMonth);
           return (
-            <div key={day.toISOString()} className={cn("min-h-[200px] p-2 bg-card", !isCurrentMonth && "opacity-40")}>
-              <p className={cn("text-xs font-medium mb-1", isSameDay(day, new Date()) && "text-primary font-bold")}>{format(day, 'd')}</p>
-              {dayItems.slice(0, 4).map(item => (
-                <CalendarDayItem key={item.id} item={item} channels={channels} links={contentChannelLinks} />
-              ))}
-              {dayItems.length > 4 && <p className="text-[9px] text-muted-foreground pl-1">+{dayItems.length - 4}</p>}
+            <div key={day.toISOString()} className={cn("min-h-[200px] p-1.5 bg-card flex flex-col", !isCurrentMonth && "opacity-40")}>
+              <p className={cn("text-xs font-medium mb-1 shrink-0", isSameDay(day, new Date()) && "text-primary font-bold")}>{format(day, 'd')}</p>
+              <div className="flex flex-col gap-1 flex-1">
+                {dayItems.slice(0, 4).map(item => (
+                  <div key={item.id} className="flex-1 min-h-0">
+                    <CalendarDayItem key={item.id} item={item} channels={channels} links={contentChannelLinks} />
+                  </div>
+                ))}
+              </div>
+              {dayItems.length > 4 && <p className="text-[9px] text-muted-foreground pl-1 shrink-0">+{dayItems.length - 4}</p>}
             </div>
           );
         })}
