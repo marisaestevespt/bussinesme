@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,23 +7,23 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Trophy, ThumbsDown } from 'lucide-react';
+import { ChevronLeft, TrendingUp, TrendingDown, Trophy, ThumbsDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { STATUS_OPTIONS, FORMAT_OPTIONS, type ContentItem, type ContentChannelLink } from '@/lib/marketing-constants';
+import { FORMAT_OPTIONS, type ContentItem, type ContentChannelLink } from '@/lib/marketing-constants';
 import { Link } from 'react-router-dom';
 
-// Format-to-metric-fields mapping
 const FORMAT_FIELDS: Record<string, string[]> = {
   reels: ['views', 'reach', 'likes', 'comments', 'shares', 'saves', 'avg_watch_time'],
   carrossel: ['reach', 'impressions', 'likes', 'comments', 'shares', 'saves'],
   estatico: ['reach', 'impressions', 'likes', 'comments', 'shares', 'saves'],
   stories: ['impressions', 'story_replies', 'story_link_clicks', 'story_exits'],
-  longo_youtube: ['views', 'reach', 'likes', 'comments', 'shares', 'saves', 'avg_watch_time', 'watch_hours', 'new_subscribers', 'ctr'],
-  vlog: ['views', 'reach', 'likes', 'comments', 'shares', 'avg_watch_time'],
+  longo_youtube: ['views', 'watch_hours', 'likes', 'comments', 'shares', 'new_subscribers', 'ctr'],
+  vlog: ['views', 'reach', 'likes', 'comments', 'shares', 'saves', 'avg_watch_time'],
   short_tiktok: ['views', 'reach', 'likes', 'comments', 'shares', 'saves', 'avg_watch_time'],
   post_linkedin: ['reach', 'impressions', 'likes', 'comments', 'shares', 'saves'],
-  pin: ['reach', 'impressions', 'likes', 'comments', 'saves', 'pin_link_clicks'],
+  pin: ['reach', 'impressions', 'likes', 'shares', 'saves', 'pin_link_clicks'],
   email: ['email_sent', 'email_open_rate', 'email_click_rate', 'email_unsubscribes'],
+  outro: ['reach', 'likes', 'comments', 'shares'],
 };
 
 const FIELD_LABELS: Record<string, string> = {
@@ -35,7 +35,6 @@ const FIELD_LABELS: Record<string, string> = {
   email_click_rate: 'Taxa clique (%)', email_unsubscribes: 'Unsubscribes',
 };
 
-// Which field to use for ranking
 function getPrimaryMetricField(format: string): string {
   const videoFormats = ['reels', 'short_tiktok', 'vlog', 'longo_youtube'];
   return videoFormats.includes(format) ? 'views' : 'reach';
@@ -46,22 +45,13 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
 interface Props {
   channelId: string;
   channelName: string;
+  month: number;
+  year: number;
+  onBack: () => void;
 }
 
-export function ChannelMonthlyAnalysis({ channelId, channelName }: Props) {
-  const now = new Date();
-  const [month, setMonth] = useState(now.getMonth() + 1);
-  const [year, setYear] = useState(now.getFullYear());
+export function ChannelMonthlyAnalysis({ channelId, channelName, month, year, onBack }: Props) {
   const queryClient = useQueryClient();
-
-  const prev = () => {
-    if (month === 1) { setMonth(12); setYear(y => y - 1); }
-    else setMonth(m => m - 1);
-  };
-  const next = () => {
-    if (month === 12) { setMonth(1); setYear(y => y + 1); }
-    else setMonth(m => m + 1);
-  };
 
   // Channel metrics
   const { data: channelMetrics } = useQuery({
@@ -112,7 +102,7 @@ export function ChannelMonthlyAnalysis({ channelId, channelName }: Props) {
     },
   });
 
-  // Save channel metrics (auto-save on blur)
+  // Save channel metrics
   const saveChannelMetrics = useCallback(async (field: string, value: any) => {
     if (channelMetrics?.id) {
       await supabase.from('channel_monthly_metrics').update({ [field]: value } as any).eq('id', channelMetrics.id);
@@ -153,19 +143,18 @@ export function ChannelMonthlyAnalysis({ channelId, channelName }: Props) {
 
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-foreground">Análise Mensal</h2>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={prev}><ChevronLeft className="h-4 w-4" /></Button>
-          <span className="text-sm font-semibold capitalize min-w-[140px] text-center">{MONTHS[month - 1]} {year}</span>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={next}><ChevronRight className="h-4 w-4" /></Button>
-        </div>
+      {/* Header with back */}
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onBack}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <h2 className="text-lg font-semibold text-foreground">{MONTHS[month - 1]} {year} — {channelName}</h2>
       </div>
 
       {/* Channel Metrics Card */}
-      <Card className="border-secondary">
+      <Card className="border-secondary bg-background">
         <CardContent className="p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground">Métricas do Canal — {channelName}</h3>
+          <h3 className="text-sm font-semibold text-foreground">Métricas do Canal</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-muted-foreground">Seguidores / Subscritores</label>
@@ -219,7 +208,7 @@ export function ChannelMonthlyAnalysis({ channelId, channelName }: Props) {
               <h3 className="text-sm font-semibold text-foreground">Top 3 Publicações</h3>
             </div>
             {top3.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic">Sem dados suficientes.</p>
+              <p className="text-xs text-muted-foreground italic">Sem métricas registadas este mês.</p>
             ) : top3.map((item, i) => (
               <Link key={item.id} to={`/hub/marketing/conteudos/${item.id}`} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/40 hq-transition">
                 <span className="text-lg font-bold text-muted-foreground/50 w-6">{i + 1}</span>
@@ -239,7 +228,7 @@ export function ChannelMonthlyAnalysis({ channelId, channelName }: Props) {
               <h3 className="text-sm font-semibold text-foreground">3 Piores Publicações</h3>
             </div>
             {worst3.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic">Sem dados suficientes.</p>
+              <p className="text-xs text-muted-foreground italic">Sem métricas registadas este mês.</p>
             ) : worst3.map((item, i) => (
               <Link key={item.id} to={`/hub/marketing/conteudos/${item.id}`} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/40 hq-transition">
                 <span className="text-lg font-bold text-muted-foreground/50 w-6">{i + 1}</span>
@@ -264,7 +253,7 @@ export function ChannelMonthlyAnalysis({ channelId, channelName }: Props) {
             <div className="space-y-6">
               {publishedContent.map(item => {
                 const format = item.format || 'estatico';
-                const fields = FORMAT_FIELDS[format] || FORMAT_FIELDS['estatico'];
+                const fields = FORMAT_FIELDS[format] || FORMAT_FIELDS['outro'];
                 const metric = contentMetrics.find((m: any) => m.content_id === item.id) as any;
                 return (
                   <div key={item.id} className="space-y-2">
