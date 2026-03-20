@@ -196,10 +196,15 @@ export default function ChannelPage() {
             <WebsiteChannelContent channelId={channelId!} channelName={channel.name} />
           ) : (
             <>
-              {/* Section 1: Reports & Analyses */}
+              {/* Section 1: Monthly Analysis */}
+              <ChannelMonthlyAnalysis channelId={channelId!} channelName={channel.name} />
+
+              <Separator />
+
+              {/* Section 2: Reports (PDFs) */}
               <section className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-foreground">Relatórios & Análises Mensais</h2>
+                  <h2 className="text-lg font-semibold text-foreground">Relatórios PDF</h2>
                   {isOwner && (
                     <Button size="sm" onClick={() => setShowUploadReport(true)}>
                       <Upload className="h-3.5 w-3.5 mr-1" />Carregar PDF
@@ -235,65 +240,7 @@ export default function ChannelPage() {
 
               <Separator />
 
-              {/* Section 2: Custom Pages */}
-              <section className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-foreground">Páginas</h2>
-                  {isOwner && (
-                    <Button size="sm" variant="outline" onClick={() => setShowNewPage(true)}>
-                      <Plus className="h-3.5 w-3.5 mr-1" />Nova Página
-                    </Button>
-                  )}
-                </div>
-                {pages.length === 0 ? (
-                  <Card><CardContent className="p-6 text-center text-sm text-muted-foreground italic">Nenhuma página criada.</CardContent></Card>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {pages.map((p: any) => (
-                      <Card key={p.id} className="hq-transition hover:shadow-md cursor-pointer group relative"
-                        onClick={() => { setEditingPageId(p.id); setEditingContent(p.content || ''); }}>
-                        <CardContent className="p-5 flex items-center gap-3">
-                          <div className="rounded-full bg-primary/10 p-2.5">
-                            <FileText className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{p.title}</p>
-                            <p className="text-[11px] text-muted-foreground">
-                              {p.updated_at && format(new Date(p.updated_at), 'dd MMM yyyy', { locale: pt })}
-                            </p>
-                          </div>
-                        </CardContent>
-                        {isOwner && (
-                          <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100"
-                            onClick={(e) => { e.stopPropagation(); deletePage(p.id); }}>
-                            <Trash2 className="h-3 w-3 text-destructive" />
-                          </Button>
-                        )}
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </section>
-
-              <Separator />
-
-              {/* Section 3: Calendar filtered to this channel */}
-              <section className="space-y-4">
-                <h2 className="text-lg font-semibold text-foreground">Calendário — {channel.name}</h2>
-                <ContentCalendar
-                  items={channelContent}
-                  channels={allChannels}
-                  contentChannelLinks={contentChannelLinks}
-                  calendarOnly
-                />
-              </section>
-
-              <Separator />
-
-              {/* Section 3b: Monthly Analysis */}
-              <ChannelMonthlyAnalysis channelId={channelId!} channelName={channel.name} />
-
-              <Separator />
+              {/* Section 3: Custom Pages */}
 
               {/* Section 4: Content Table */}
               <section className="space-y-4 pb-10">
