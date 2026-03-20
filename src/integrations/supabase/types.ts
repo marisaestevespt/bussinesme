@@ -958,6 +958,36 @@ export type Database = {
         }
         Relationships: []
       }
+      clients_monthly_analysis: {
+        Row: {
+          created_at: string
+          id: string
+          month: number
+          portfolio_notes: string | null
+          what_went_well: string | null
+          what_went_wrong: string | null
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          month: number
+          portfolio_notes?: string | null
+          what_went_well?: string | null
+          what_went_wrong?: string | null
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          month?: number
+          portfolio_notes?: string | null
+          what_went_well?: string | null
+          what_went_wrong?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
       commercial_annual_goals: {
         Row: {
           created_at: string
