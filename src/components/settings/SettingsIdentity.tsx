@@ -230,7 +230,7 @@ export function SettingsIdentity() {
     if (!settings || !businessName.trim()) return;
     setSaving(true);
     try {
-      let logoUrl = settings.logo_url;
+      let logoUrl: string | null = settings.logo_url;
       if (logoFile) {
         const ext = logoFile.name.split('.').pop();
         const { data: { user } } = await supabase.auth.getUser();
@@ -240,6 +240,8 @@ export function SettingsIdentity() {
           const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path);
           logoUrl = `${publicUrl}?t=${Date.now()}`;
         }
+      } else if (!logoPreview) {
+        logoUrl = null;
       }
 
       // Upload login bg if changed
