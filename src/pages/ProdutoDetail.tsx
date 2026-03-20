@@ -1292,6 +1292,11 @@ export default function ProdutoDetailPage() {
           </Tabs>
         )}
 
+        {/* Linked SOPs */}
+        {!isNew && id && (
+          <LinkedSopsSection entityType="produto" entityId={id} />
+        )}
+
         {/* Sales section */}
         {!isNew && form.name && (
           <div className="space-y-4">
