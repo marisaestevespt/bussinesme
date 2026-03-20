@@ -992,8 +992,8 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
             </TabsContent>
           </Tabs>
         </div>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
 
