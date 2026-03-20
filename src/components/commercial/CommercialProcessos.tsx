@@ -104,7 +104,7 @@ export function CommercialProcessos() {
               {(routines.data || []).map(r => (
                 <TableRow key={r.id}>
                   <TableCell className="font-medium">{r.name}</TableCell>
-                  <TableCell>{FREQ_MAP[r.frequency] || r.frequency}</TableCell>
+                  <TableCell>{r.frequency === 'dia_x_mes' ? `Dia ${r.monthly_day || '?'} do mês` : (FREQ_MAP[r.frequency] || r.frequency)}</TableCell>
                   <TableCell>{(r.profiles as any)?.full_name || '—'}</TableCell>
                 </TableRow>
               ))}
