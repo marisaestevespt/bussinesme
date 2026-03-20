@@ -119,6 +119,7 @@ export default function ExecutiveProductivity() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <BackNavigation />
         <PageHeader title="Gestão de Produtividade & Tempo" subtitle="Controlo de tempo, ocupação e análise de produtividade" />
 
         <Tabs defaultValue="overview">

@@ -362,6 +362,7 @@ export default function ExecutiveWeeklyAlign() {
   return (
     <AppLayout>
       <div className="space-y-8">
+        <BackNavigation />
         <PageHeader title="Weekly Align" subtitle={`Semana ${format(weekStart, 'dd/MM')} — ${format(weekEnd, 'dd/MM/yyyy')}`} />
 
         {/* Week navigation */}
