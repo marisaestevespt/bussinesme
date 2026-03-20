@@ -4,14 +4,14 @@ import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { BackNavigation } from '@/components/BackNavigation';
-import { ChevronLeft, ChevronRight, Trophy, ThumbsDown, TrendingUp, TrendingDown, Target, BarChart3, Filter, Zap, ArrowLeft } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Trophy, ThumbsDown, TrendingUp, TrendingDown, Target, BarChart3, Filter, Zap, ArrowLeft, Pencil } from 'lucide-react';
 import { MonthNavHeader } from '@/components/MonthNavHeader';
 import { cn } from '@/lib/utils';
 import { FORMAT_OPTIONS, type ContentItem, type MarketingChannel, type ContentChannelLink } from '@/lib/marketing-constants';
@@ -23,9 +23,81 @@ function getPrimaryMetricField(format: string): string {
   return videoFormats.includes(format) ? 'views' : 'reach';
 }
 
+// Platform detection from channel name
+function detectPlatform(name: string): string {
+  const n = name.toLowerCase();
+  if (n.includes('instagram')) return 'instagram';
+  if (n.includes('youtube')) return 'youtube';
+  if (n.includes('tiktok')) return 'tiktok';
+  if (n.includes('linkedin')) return 'linkedin';
+  if (n.includes('pinterest')) return 'pinterest';
+  if (n.includes('email') || n.includes('newsletter')) return 'email';
+  return 'generic';
+}
+
+// Platform-specific metric columns
+function getPlatformMetrics(platform: string, metrics: any): { label: string; value: any }[] {
+  if (!metrics) return [];
+  const fmt = (v: any) => v != null ? Number(v).toLocaleString('pt-PT') : null;
+  const fmtPct = (v: any) => v != null ? `${Number(v).toFixed(1)}%` : null;
+
+  switch (platform) {
+    case 'instagram':
+      return [
+        { label: 'Seguidores', value: fmt(metrics.followers) },
+        { label: 'Crescimento', value: metrics.followers_growth != null ? `${metrics.followers_growth >= 0 ? '+' : ''}${metrics.followers_growth}` : null },
+        { label: 'Impressões', value: fmt(metrics.ig_total_impressions) },
+        { label: 'Engagement', value: fmtPct(metrics.ig_engagement_rate) },
+        { label: 'Visitas perfil', value: fmt(metrics.ig_profile_visits) },
+      ];
+    case 'youtube':
+      return [
+        { label: 'Subscritores', value: fmt(metrics.followers) },
+        { label: 'Crescimento', value: metrics.followers_growth != null ? `${metrics.followers_growth >= 0 ? '+' : ''}${metrics.followers_growth}` : null },
+        { label: 'Visualizações', value: fmt(metrics.yt_total_views) },
+        { label: 'Horas visualização', value: metrics.yt_watch_hours != null ? Number(metrics.yt_watch_hours).toLocaleString('pt-PT') : null },
+        { label: 'Novos subs', value: fmt(metrics.yt_new_subscribers) },
+      ];
+    case 'tiktok':
+      return [
+        { label: 'Seguidores', value: fmt(metrics.followers) },
+        { label: 'Crescimento', value: metrics.followers_growth != null ? `${metrics.followers_growth >= 0 ? '+' : ''}${metrics.followers_growth}` : null },
+        { label: 'Visualizações', value: fmt(metrics.tt_total_views) },
+        { label: 'Likes totais', value: fmt(metrics.tt_total_likes) },
+      ];
+    case 'linkedin':
+      return [
+        { label: 'Seguidores', value: fmt(metrics.followers) },
+        { label: 'Crescimento', value: metrics.followers_growth != null ? `${metrics.followers_growth >= 0 ? '+' : ''}${metrics.followers_growth}` : null },
+        { label: 'Impressões', value: fmt(metrics.li_total_impressions) },
+        { label: 'Visitas página', value: fmt(metrics.li_page_visits) },
+      ];
+    case 'pinterest':
+      return [
+        { label: 'Seguidores', value: fmt(metrics.followers) },
+        { label: 'Crescimento', value: metrics.followers_growth != null ? `${metrics.followers_growth >= 0 ? '+' : ''}${metrics.followers_growth}` : null },
+        { label: 'Impressões', value: fmt(metrics.pt_monthly_impressions) },
+        { label: 'Cliques', value: fmt(metrics.pt_total_clicks) },
+      ];
+    case 'email':
+      return [
+        { label: 'Total lista', value: fmt(metrics.em_list_total) },
+        { label: 'Crescimento', value: fmt(metrics.em_list_growth) },
+        { label: 'Taxa abertura', value: fmtPct(metrics.em_avg_open_rate) },
+        { label: 'Taxa cliques', value: fmtPct(metrics.em_avg_click_rate) },
+      ];
+    default:
+      return [
+        { label: 'Seguidores', value: fmt(metrics.followers) },
+        { label: 'Crescimento', value: metrics.followers_growth != null ? `${metrics.followers_growth >= 0 ? '+' : ''}${metrics.followers_growth}` : null },
+      ];
+  }
+}
+
 // ─── Month Detail ───
 function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; year: number; onBack: () => void; onChangeMonth: (m: number, y: number) => void }) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
   const endMonth = month === 12 ? 1 : month + 1;
@@ -137,11 +209,15 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
   const top3 = rankedContent.slice(0, 3);
   const worst3 = rankedContent.length >= 3 ? rankedContent.slice(-3).reverse() : [];
 
+  // Build rich channel summary with platform-specific metrics
   const channelSummary = activeChannels.map(ch => {
     const metrics = channelMetrics.find((m: any) => m.channel_id === ch.id) as any;
+    const platform = detectPlatform(ch.name);
     const chContentIds = contentLinks.filter(l => l.channel_id === ch.id).map(l => l.content_id);
     const pubCount = publishedContent.filter(c => chContentIds.includes(c.id)).length;
-    return { id: ch.id, name: ch.name, followers: metrics?.followers ?? null, growth: metrics?.followers_growth ?? null, published: pubCount };
+    const platformMetrics = getPlatformMetrics(platform, metrics);
+    const hasData = metrics != null;
+    return { id: ch.id, name: ch.name, platform, published: pubCount, platformMetrics, hasData };
   });
 
   return (
@@ -246,41 +322,57 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
 
       <Separator />
 
-      {/* 4. Channel Summary */}
+      {/* 4. Channel Summary — platform-specific metrics */}
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-foreground">Resumo por Canal</h2>
-        <Card>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/30">
-                  <th className="text-left p-3 font-medium text-muted-foreground">Canal</th>
-                  <th className="text-right p-3 font-medium text-muted-foreground">Seguidores</th>
-                  <th className="text-right p-3 font-medium text-muted-foreground">Crescimento</th>
-                  <th className="text-right p-3 font-medium text-muted-foreground">Publicações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {channelSummary.map(ch => (
-                  <tr key={ch.id} className="border-b last:border-0 hover:bg-muted/20">
-                    <td className="p-3 font-medium text-foreground">{ch.name}</td>
-                    <td className="p-3 text-right text-foreground">{ch.followers?.toLocaleString() ?? '—'}</td>
-                    <td className="p-3 text-right">
-                      {ch.growth != null ? (
-                        <span className={cn("flex items-center justify-end gap-1 font-medium",
-                          ch.growth >= 0 ? 'text-emerald-600' : 'text-red-500')}>
-                          {ch.growth >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                          {ch.growth >= 0 ? '+' : ''}{ch.growth}
-                        </span>
-                      ) : '—'}
-                    </td>
-                    <td className="p-3 text-right text-foreground">{ch.published}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+        <div className="space-y-3">
+          {channelSummary.map(ch => (
+            <Card
+              key={ch.id}
+              className="cursor-pointer hover:shadow-md transition-all"
+              onClick={() => navigate(`/hub/marketing/canais/${ch.id}?month=${month}&year=${year}`)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold text-sm text-foreground">{ch.name}</span>
+                  <span className="text-xs text-muted-foreground">{ch.published} publicações</span>
+                </div>
+                {ch.hasData ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    {ch.platformMetrics.map((pm, i) => (
+                      <div key={i} className="text-center">
+                        <p className={cn(
+                          "text-sm font-bold",
+                          pm.label === 'Crescimento' && pm.value
+                            ? (pm.value.startsWith('+') ? 'text-emerald-600' : pm.value.startsWith('-') ? 'text-destructive' : 'text-foreground')
+                            : 'text-foreground'
+                        )}>
+                          {pm.value ?? '—'}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">{pm.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 py-1">
+                    <span className="text-xs text-muted-foreground">Sem métricas para este mês</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-xs text-primary gap-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/hub/marketing/canais/${ch.id}?month=${month}&year=${year}`);
+                      }}
+                    >
+                      <Pencil className="h-3 w-3" /> Preencher métricas
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </section>
 
       <Separator />
@@ -349,7 +441,6 @@ export default function MarketingAnalisePage() {
   const [year, setYear] = useState(now.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
 
-  // Content items for the year
   const { data: yearContent = [] } = useQuery({
     queryKey: ['content-items-year', year],
     queryFn: async () => {
@@ -359,7 +450,6 @@ export default function MarketingAnalisePage() {
     },
   });
 
-  // Channels for annual growth
   const { data: channels = [] } = useQuery({
     queryKey: ['marketing-channels'],
     queryFn: async () => {
@@ -369,24 +459,15 @@ export default function MarketingAnalisePage() {
   });
   const activeChannels = channels.filter(c => c.is_active && c.name.toLowerCase() !== 'website');
 
-  // Channel metrics for Jan and Dec (or latest) of this year
-  const { data: janMetrics = [] } = useQuery({
-    queryKey: ['channel-metrics-jan', year],
+  // All channel metrics for the year (to find first + latest months with data)
+  const { data: yearChannelMetrics = [] } = useQuery({
+    queryKey: ['channel-metrics-year', year],
     queryFn: async () => {
-      const { data } = await supabase.from('channel_monthly_metrics').select('*').eq('month', 1).eq('year', year);
-      return data || [];
-    },
-  });
-  const { data: latestMetrics = [] } = useQuery({
-    queryKey: ['channel-metrics-latest', year],
-    queryFn: async () => {
-      const currentMonth = now.getFullYear() === year ? now.getMonth() + 1 : 12;
-      const { data } = await supabase.from('channel_monthly_metrics').select('*').eq('month', currentMonth).eq('year', year);
+      const { data } = await supabase.from('channel_monthly_metrics').select('*').eq('year', year).order('month');
       return data || [];
     },
   });
 
-  // Funnels & automations
   const { data: funnels = [] } = useQuery({
     queryKey: ['marketing-funnels-active'],
     queryFn: async () => {
@@ -405,7 +486,6 @@ export default function MarketingAnalisePage() {
   });
   const activeAutomations = automations.filter((a: any) => a.status === 'ativa' || a.status === 'active' || a.status === 'ativo').length;
 
-  // Marketing objectives for the year
   const { data: yearObjectives = [] } = useQuery({
     queryKey: ['marketing-objectives-year', year],
     queryFn: async () => {
@@ -420,22 +500,27 @@ export default function MarketingAnalisePage() {
     const totalPublished = yearContent.filter(c => c.status === 'publicado').length;
     const executionRate = totalPlanned > 0 ? Math.round((totalPublished / totalPlanned) * 100) : 0;
 
-    // Channel growth
+    // Channel growth — find first and latest month with data per channel
     const channelGrowth = activeChannels.map(ch => {
-      const jan = (janMetrics as any[]).find(m => m.channel_id === ch.id);
-      const latest = (latestMetrics as any[]).find(m => m.channel_id === ch.id);
-      const startFollowers = jan?.followers ?? null;
-      const currentFollowers = latest?.followers ?? null;
-      const growth = startFollowers != null && currentFollowers != null ? currentFollowers - startFollowers : null;
-      const growthPct = startFollowers && growth != null ? Math.round((growth / startFollowers) * 100) : null;
+      const chMetrics = (yearChannelMetrics as any[])
+        .filter(m => m.channel_id === ch.id && m.followers != null)
+        .sort((a, b) => a.month - b.month);
+      
+      if (chMetrics.length === 0) {
+        return { id: ch.id, name: ch.name, startFollowers: null, currentFollowers: null, growth: null, growthPct: null };
+      }
+
+      const startFollowers = chMetrics[0].followers;
+      const currentFollowers = chMetrics[chMetrics.length - 1].followers;
+      const growth = currentFollowers - startFollowers;
+      const growthPct = startFollowers > 0 ? Math.round((growth / startFollowers) * 100) : null;
       return { id: ch.id, name: ch.name, startFollowers, currentFollowers, growth, growthPct };
     });
 
-    // Objectives
     const objectivesAchieved = yearObjectives.filter((o: any) => o.status === 'concluido' || o.status === 'achieved').length;
 
     return { totalPublished, totalPlanned, executionRate, channelGrowth, activeFunnels, activeAutomations, objectivesAchieved, objectivesTotal: yearObjectives.length };
-  }, [yearContent, activeChannels, janMetrics, latestMetrics, yearObjectives, activeFunnels, activeAutomations]);
+  }, [yearContent, activeChannels, yearChannelMetrics, yearObjectives, activeFunnels, activeAutomations]);
 
   const monthSummaries = useMemo(() => {
     return MONTHS.map((name, idx) => {
@@ -511,7 +596,7 @@ export default function MarketingAnalisePage() {
               </Card>
             </div>
 
-            {/* Channel growth */}
+            {/* Channel growth — real data */}
             {annualSummary.channelGrowth.length > 0 && (
               <Card className="border-secondary bg-background">
                 <CardContent className="p-0">
