@@ -61,7 +61,9 @@ export default function ClientesPage() {
       <div className="p-6 space-y-6">
         <PageHeader title="Clientes" />
         <div className="flex items-center justify-between">
-          <div />
+          <Button variant="outline" size="sm" onClick={() => navigate('/hub/clientes/analise')} className="gap-1.5">
+            <BarChart3 className="h-4 w-4" /> Análise de Clientes
+          </Button>
           <Button size="sm" onClick={() => navigate('/hub/clientes/novo')}>
             <Plus className="h-4 w-4 mr-1" /> Novo Cliente
           </Button>
