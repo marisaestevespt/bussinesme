@@ -230,6 +230,9 @@ export default function ProcessosPage() {
     setNewRoutineFreq('todos_os_dias');
     setNewRoutineAssignee('');
     setRoutineSteps('');
+    setNewRoutineMonthlyDay('');
+    setNewRoutineStartDate('');
+    setNewRoutineEndDate('');
   }
 
   function openEditRoutine(routine: any) {
