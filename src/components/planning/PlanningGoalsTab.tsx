@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2 } from 'lucide-react';
-import { planStatusLabel, PERIODS, GOAL_STATUSES } from '@/hooks/usePlanningData';
+import { planStatusLabel, PERIODS, GOAL_STATUSES, MEASUREMENT_TYPES } from '@/hooks/usePlanningData';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -37,7 +37,7 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editGoal, setEditGoal] = useState<any>(null);
   const [filter, setFilter] = useState('todos');
-  const [form, setForm] = useState({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
+  const [form, setForm] = useState({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar', objective_type: 'quantitativo', measurement_type: 'acumulativo' });
 
   const allGoals = planning.allGoals;
   const objectives = planning.allObjectives;
@@ -50,6 +50,8 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
         target_value: editGoal.target_value || '',
         actual_value: editGoal.actual_value || '',
         status: editGoal.status || 'por_iniciar',
+        objective_type: editGoal.objective_type || 'quantitativo',
+        measurement_type: editGoal.measurement_type || 'acumulativo',
       });
     }
   }, [editGoal]);
@@ -58,12 +60,12 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
     planning.upsertGoal.mutate(editGoal ? { id: editGoal.id, ...form } : form);
     setDialogOpen(false);
     setEditGoal(null);
-    setForm({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
+    setForm({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar', objective_type: 'quantitativo', measurement_type: 'acumulativo' });
   };
 
   const openNew = () => {
     setEditGoal(null);
-    setForm({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
+    setForm({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar', objective_type: 'quantitativo', measurement_type: 'acumulativo' });
     setDialogOpen(true);
   };
 
@@ -267,9 +269,30 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Valor alvo</Label><Input value={form.target_value} onChange={e => setForm(p => ({ ...p, target_value: e.target.value }))} /></div>
-              <div><Label>Valor real</Label><Input value={form.actual_value} onChange={e => setForm(p => ({ ...p, actual_value: e.target.value }))} /></div>
+              <div><Label>Tipo</Label>
+                <Select value={form.objective_type} onValueChange={v => setForm(p => ({ ...p, objective_type: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="quantitativo">Quantitativo</SelectItem>
+                    <SelectItem value="qualitativo">Qualitativo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {form.objective_type === 'quantitativo' && (
+                <div><Label>Medição</Label>
+                  <Select value={form.measurement_type} onValueChange={v => setForm(p => ({ ...p, measurement_type: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{MEASUREMENT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
+            {form.objective_type === 'quantitativo' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div><Label>Valor alvo</Label><Input value={form.target_value} onChange={e => setForm(p => ({ ...p, target_value: e.target.value }))} /></div>
+                <div><Label>Valor real</Label><Input value={form.actual_value} onChange={e => setForm(p => ({ ...p, actual_value: e.target.value }))} /></div>
+              </div>
+            )}
             <div><Label>Status</Label>
               <Select value={form.status} onValueChange={v => setForm(p => ({ ...p, status: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
