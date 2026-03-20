@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { AbsenceCoverageTable } from '@/components/hr/AbsenceCoverageTable';
+import { NewAbsenceDialog } from '@/components/hr/NewAbsenceDialog';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -70,6 +71,7 @@ type TeamMember = {
   works_holidays: boolean;
   custom_holidays: any;
   status: string;
+  profile_id: string | null;
 };
 
 type Vacation = {
@@ -86,7 +88,7 @@ function useEscalaData() {
     queryFn: async () => {
       const { data } = await supabase
         .from('team_members')
-        .select('id, full_name, photo_url, role_title, work_schedule, works_holidays, custom_holidays, status')
+        .select('id, full_name, photo_url, role_title, work_schedule, works_holidays, custom_holidays, status, profile_id')
         .eq('status', 'ativo')
         .order('full_name');
       return (data || []) as TeamMember[];
@@ -292,6 +294,7 @@ export function TabEscala() {
   const { members, vacations, isLoading } = useEscalaData();
   const [viewMonth, setViewMonth] = useState(() => new Date());
   const [vacationMember, setVacationMember] = useState<TeamMember | null>(null);
+  const [absenceDialogOpen, setAbsenceDialogOpen] = useState(false);
 
   const year = viewMonth.getFullYear();
   const month = viewMonth.getMonth();
@@ -404,9 +407,21 @@ export function TabEscala() {
         />
       )}
 
-      {/* Absence Coverage Table */}
+      {/* Ausências */}
       <Separator className="my-6" />
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-foreground">Ausências</h2>
+        <Button size="sm" onClick={() => setAbsenceDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-1" /> Nova Ausência
+        </Button>
+      </div>
       <AbsenceCoverageTable />
+
+      <NewAbsenceDialog
+        open={absenceDialogOpen}
+        onClose={() => setAbsenceDialogOpen(false)}
+        members={members.map(m => ({ id: m.id, full_name: m.full_name, profile_id: m.profile_id, role_title: m.role_title }))}
+      />
     </div>
   );
 }
