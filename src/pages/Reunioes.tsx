@@ -93,9 +93,9 @@ function useProjects() {
   return useQuery({
     queryKey: ['projects_list'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('projects').select('id, name').order('name');
+      const { data, error } = await supabase.from('projects').select('id, name, client_id, client_name, department, type').order('name');
       if (error) throw error;
-      return data as ProjectOption[];
+      return (data || []) as ProjectOption[];
     },
   });
 }
