@@ -267,6 +267,7 @@ export function SettingsIdentity() {
           business_name: businessName.trim(),
           logo_url: logoUrl,
           login_bg_url: loginBgUrl,
+          support_hours: supportHours.trim() || null,
           primary_color: hexToHsl(colors.primary),
           secondary_color: hexToHsl(colors.secondary),
           background_color: hexToHsl(colors.background),
