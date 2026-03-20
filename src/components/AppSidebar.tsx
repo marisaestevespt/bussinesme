@@ -128,6 +128,7 @@ export function AppSidebar() {
   const { isOwner, signOut } = useAuth();
   const { settings } = useBusinessSettings();
   const { canAccess } = usePermissions();
+  const { favorites } = useFavorites();
 
   return (
     <Sidebar collapsible="icon">
