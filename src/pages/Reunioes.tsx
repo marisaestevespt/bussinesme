@@ -96,6 +96,17 @@ function useProjects() {
   });
 }
 
+function useClientsList() {
+  return useQuery({
+    queryKey: ['clients_list'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('clients').select('id, full_name').order('full_name');
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
 function useProfiles() {
   return useQuery({
     queryKey: ['profiles'],
