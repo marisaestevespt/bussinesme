@@ -81,6 +81,14 @@ function AppRoutes() {
 
   if (!user) return <AuthPage />;
   if (!isSetupComplete) return <SetupPage />;
+  // Ensure routine tasks exist for current year on boot
+  const routineBootRef = useRef(false);
+  useEffect(() => {
+    if (user && !routineBootRef.current) {
+      routineBootRef.current = true;
+      ensureYearRoutineTasks();
+    }
+  }, [user]);
 
   return (
     <Routes>
