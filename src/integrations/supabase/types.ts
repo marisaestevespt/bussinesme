@@ -4027,6 +4027,142 @@ export type Database = {
           },
         ]
       }
+      product_kpi_values: {
+        Row: {
+          created_at: string
+          id: string
+          kpi_id: string
+          month: number
+          notes: string | null
+          product_id: string
+          value: number | null
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kpi_id: string
+          month: number
+          notes?: string | null
+          product_id: string
+          value?: number | null
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kpi_id?: string
+          month?: number
+          notes?: string | null
+          product_id?: string
+          value?: number | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_kpi_values_kpi_id_fkey"
+            columns: ["kpi_id"]
+            isOneToOne: false
+            referencedRelation: "product_kpis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_kpi_values_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_kpis: {
+        Row: {
+          active: boolean
+          auto_source: string | null
+          created_at: string
+          id: string
+          kpi_type: string
+          monthly_goal: number | null
+          name: string
+          product_id: string
+          sort_order: number
+          source: string
+        }
+        Insert: {
+          active?: boolean
+          auto_source?: string | null
+          created_at?: string
+          id?: string
+          kpi_type?: string
+          monthly_goal?: number | null
+          name: string
+          product_id: string
+          sort_order?: number
+          source?: string
+        }
+        Update: {
+          active?: boolean
+          auto_source?: string | null
+          created_at?: string
+          id?: string
+          kpi_type?: string
+          monthly_goal?: number | null
+          name?: string
+          product_id?: string
+          sort_order?: number
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_kpis_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_metrics_analysis: {
+        Row: {
+          created_at: string
+          id: string
+          month: number
+          notes: string | null
+          product_id: string
+          what_went_well: string | null
+          what_went_wrong: string | null
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          month: number
+          notes?: string | null
+          product_id: string
+          what_went_well?: string | null
+          what_went_wrong?: string | null
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          month?: number
+          notes?: string | null
+          product_id?: string
+          what_went_well?: string | null
+          what_went_wrong?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_metrics_analysis_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_milestones: {
         Row: {
           created_at: string
