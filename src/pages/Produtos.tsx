@@ -103,7 +103,7 @@ export default function ProdutosPage() {
                     <span className="text-3xl font-bold text-muted-foreground/20">{p.name?.charAt(0)}</span>
                   )}
                 </div>
-                <CardContent className="p-4 space-y-2.5">
+                <CardContent className="p-4 space-y-3">
                   <h3 className="font-semibold text-base leading-snug">{p.name}</h3>
                   {p.sales_page_url && (
                     <a
@@ -116,16 +116,14 @@ export default function ProdutosPage() {
                       <ExternalLink className="h-3 w-3" /> Landing Page
                     </a>
                   )}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {p.ticket != null && (
-                      <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">
-                        {Number(p.ticket).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
-                      </Badge>
-                    )}
-                    {p.escada && (
-                      <Badge variant="outline" className="text-xs">{getEscadaLabel(p.escada)}</Badge>
-                    )}
-                  </div>
+                  {p.ticket != null && (
+                    <p className="text-sm font-semibold text-accent-foreground">
+                      {Number(p.ticket).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
+                    </p>
+                  )}
+                  {p.escada && (
+                    <p className="text-xs text-muted-foreground">{getEscadaLabel(p.escada)}</p>
+                  )}
                 </CardContent>
               </Card>
             ))}
