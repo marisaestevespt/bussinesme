@@ -3274,6 +3274,7 @@ export type Database = {
           duration_minutes: number | null
           final_notes: Json | null
           id: string
+          meeting_url: string | null
           owner_actions: Json | null
           priorities: Json | null
           project_id: string | null
@@ -3294,6 +3295,7 @@ export type Database = {
           duration_minutes?: number | null
           final_notes?: Json | null
           id?: string
+          meeting_url?: string | null
           owner_actions?: Json | null
           priorities?: Json | null
           project_id?: string | null
@@ -3314,6 +3316,7 @@ export type Database = {
           duration_minutes?: number | null
           final_notes?: Json | null
           id?: string
+          meeting_url?: string | null
           owner_actions?: Json | null
           priorities?: Json | null
           project_id?: string | null
