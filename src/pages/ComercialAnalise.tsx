@@ -199,7 +199,7 @@ export default function ComercialAnalisePage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
-        <BackNavigation to="/hub/comercial" label="Comercial" />
+        <BackNavigation parentRoute="/hub/comercial" parentLabel="Comercial" />
         <PageHeader title="Análise Comercial" subtitle="Análise mensal do desempenho comercial." />
 
         {/* Month navigator */}

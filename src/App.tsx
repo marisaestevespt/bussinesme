@@ -54,6 +54,7 @@ import TrafegoReportDetail from "./pages/TrafegoReportDetail";
 import TrafegoCriativoDetail from "./pages/TrafegoCriativoDetail";
 import ComercialPage from "./pages/Comercial";
 import ComercialSubPage from "./pages/ComercialSubPage";
+import ComercialAnalisePage from "./pages/ComercialAnalise";
 import ProdutosPage from "./pages/Produtos";
 import ProdutoDetailPage from "./pages/ProdutoDetail";
 import ClientesPage from "./pages/Clientes";
