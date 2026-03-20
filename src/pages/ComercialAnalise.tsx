@@ -42,6 +42,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
   const month = monthIdx + 1;
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const { isKpiEnabled, isAreaEnabled } = useKpiSettings();
 
   const { allLeads } = useCrmData();
   const { sales: salesQ, annualGoalAmount, totalInvoiced, monthlyGoals } = useCommercialData(year);
