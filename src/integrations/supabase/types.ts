@@ -3434,6 +3434,7 @@ export type Database = {
           adjust_to_business_day: boolean
           created_at: string
           created_by: string | null
+          hour_time: string | null
           id: string
           month_day: number | null
           recurrence_type: string
@@ -3446,6 +3447,7 @@ export type Database = {
           adjust_to_business_day?: boolean
           created_at?: string
           created_by?: string | null
+          hour_time?: string | null
           id?: string
           month_day?: number | null
           recurrence_type?: string
@@ -3458,6 +3460,7 @@ export type Database = {
           adjust_to_business_day?: boolean
           created_at?: string
           created_by?: string | null
+          hour_time?: string | null
           id?: string
           month_day?: number | null
           recurrence_type?: string
