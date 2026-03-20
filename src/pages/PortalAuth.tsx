@@ -17,9 +17,7 @@ export default function PortalAuthPage() {
   const [client, setClient] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
-  const [step, setStep] = useState<'email' | 'code'>('email');
-  const [code, setCode] = useState('');
-  const [sending, setSending] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [settings, setSettings] = useState<any>(null);
 
   useEffect(() => {
@@ -61,53 +59,14 @@ export default function PortalAuthPage() {
     setLoading(false);
   };
 
-  const handleEmailSubmit = async () => {
+  const handleSubmit = async () => {
     if (!email.trim()) return;
     if (!client || client.email?.toLowerCase() !== email.trim().toLowerCase()) {
       toast.error('Email não reconhecido.');
       return;
     }
 
-    setSending(true);
-    // Generate OTP
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-
-    await sb('portal_otp').insert({
-      client_id: client.id,
-      email: email.trim().toLowerCase(),
-      code: otpCode,
-      expires_at: expiresAt,
-    });
-
-    // For now, since Twilio isn't configured, show a toast with the code for testing
-    // In production, this would send an SMS via edge function
-    toast.success(`Código de acesso enviado! (Teste: ${otpCode})`, { duration: 15000 });
-
-    setStep('code');
-    setSending(false);
-  };
-
-  const handleCodeSubmit = async () => {
-    if (!code.trim() || code.length !== 6) { toast.error('Introduz o código de 6 dígitos'); return; }
-
-    const { data: otpRecord } = await sb('portal_otp')
-      .select('*')
-      .eq('client_id', client.id)
-      .eq('code', code.trim())
-      .eq('used', false)
-      .gte('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (!otpRecord) {
-      toast.error('Código inválido ou expirado.');
-      return;
-    }
-
-    // Mark as used
-    await sb('portal_otp').update({ used: true }).eq('id', otpRecord.id);
+    setSubmitting(true);
 
     // Update last visit
     await sb('client_portals').update({ last_visit_at: new Date().toISOString() }).eq('id', portal!.id);
@@ -154,7 +113,6 @@ export default function PortalAuthPage() {
     );
   }
 
-  const primaryColor = settings?.primary_color || 'hsl(var(--primary))';
   const logoUrl = settings?.logo_url;
 
   return (
@@ -166,45 +124,19 @@ export default function PortalAuthPage() {
           <p className="text-sm text-muted-foreground">Introduz o teu email para acederes ao teu espaço.</p>
         </CardHeader>
         <CardContent className="space-y-4">
-          {step === 'email' ? (
-            <>
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input
-                  type="email"
-                  placeholder="o.teu@email.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleEmailSubmit()}
-                />
-              </div>
-              <Button className="w-full" disabled={sending} onClick={handleEmailSubmit}>
-                {sending ? 'A enviar...' : 'Enviar código de acesso'}
-              </Button>
-            </>
-          ) : (
-            <>
-              <p className="text-sm text-muted-foreground text-center">
-                Enviámos um código para o teu telemóvel. Introduz abaixo:
-              </p>
-              <div className="space-y-2">
-                <Label>Código de acesso</Label>
-                <Input
-                  type="text"
-                  maxLength={6}
-                  placeholder="000000"
-                  value={code}
-                  onChange={e => setCode(e.target.value.replace(/\D/g, ''))}
-                  onKeyDown={e => e.key === 'Enter' && handleCodeSubmit()}
-                  className="text-center text-2xl tracking-[0.5em] font-mono"
-                />
-              </div>
-              <Button className="w-full" onClick={handleCodeSubmit}>Validar</Button>
-              <Button variant="ghost" className="w-full text-xs" onClick={() => { setStep('email'); setCode(''); }}>
-                Voltar
-              </Button>
-            </>
-          )}
+          <div className="space-y-2">
+            <Label>Email</Label>
+            <Input
+              type="email"
+              placeholder="o.teu@email.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+            />
+          </div>
+          <Button className="w-full" disabled={submitting} onClick={handleSubmit}>
+            {submitting ? 'A aceder...' : 'Aceder'}
+          </Button>
         </CardContent>
       </Card>
     </div>
