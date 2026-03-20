@@ -366,6 +366,7 @@ export default function ReunioesPage() {
   const { data: meetings = [], isLoading } = useMeetings();
   const { data: profiles = [] } = useProfiles();
   const { data: projects = [] } = useProjects();
+  const { data: clients = [] } = useClientsList();
 
   const filteredMeetings = view === 'proximas'
     ? meetings.filter(m => m.status === 'por_confirmar' || m.status === 'marcada')
