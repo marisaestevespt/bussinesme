@@ -1614,7 +1614,49 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
 
   return (
     <div className="space-y-6">
-      
+      {/* Custom views bar */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Button
+          size="sm"
+          variant={activeViewId === null ? 'default' : 'outline'}
+          className="h-7 text-xs"
+          onClick={() => { setActiveViewId(null); setFilterMember(''); setDateFrom(''); setDateTo(''); setPerfTab('prioridade'); }}
+        >
+          <Eye className="h-3 w-3 mr-1" /> Vista padrão
+        </Button>
+        {views.map(v => (
+          <div key={v.id} className="flex items-center gap-0.5">
+            <Button
+              size="sm"
+              variant={activeViewId === v.id ? 'default' : 'outline'}
+              className="h-7 text-xs"
+              onClick={() => loadView(v.id)}
+            >
+              {v.view_name}
+            </Button>
+            <button className="p-0.5 rounded hover:bg-destructive/10" onClick={() => { deleteView.mutate(v.id); if (activeViewId === v.id) setActiveViewId(null); }}>
+              <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+            </button>
+          </div>
+        ))}
+        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setShowSaveDialog(true)}>
+          <Save className="h-3 w-3 mr-1" /> Guardar vista
+        </Button>
+      </div>
+
+      {/* Save view dialog */}
+      {showSaveDialog && (
+        <Dialog open onOpenChange={() => setShowSaveDialog(false)}>
+          <DialogContent className="max-w-xs">
+            <DialogHeader><DialogTitle>Guardar Vista</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <Input placeholder="Nome da vista" value={saveViewName} onChange={e => setSaveViewName(e.target.value)} autoFocus />
+              <p className="text-xs text-muted-foreground">Guarda os filtros atuais (membro, datas, tab) como uma vista reutilizável.</p>
+              <Button className="w-full" disabled={!saveViewName.trim()} onClick={handleSaveView}>Guardar</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Overview de Membros */}
       <Card>
