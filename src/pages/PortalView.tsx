@@ -101,7 +101,7 @@ export default function PortalViewPage() {
       sb('portal_comments').select('*').eq('portal_id', pid).order('created_at', { ascending: true }),
       sb('portal_feedback').select('*').eq('portal_id', pid).order('submitted_at', { ascending: false }),
       cname ? supabase.from('meetings').select('*').eq('client_name', cname).order('date_time', { ascending: false }) : { data: [] },
-      cname ? supabase.from('commercial_sales').select('*').eq('client', cname).order('payment_date', { ascending: false }) : { data: [] },
+      (supabase as any).rpc('get_portal_payments', { _token: token }),
       sb('client_onboarding').select('*').eq('client_id', cid).order('sort_order'),
       supabase.from('tasks').select('*').eq('visible_in_portal', true),
       sb('portal_timeline_phases').select('*').eq('portal_id', pid).order('sort_order'),
