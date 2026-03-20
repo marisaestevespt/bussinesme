@@ -192,7 +192,7 @@ function useProfiles() {
 // ─── Main Page ──────────────────────────────────────────────
 
 export default function SecretariaPage() {
-  const { user } = useAuth();
+  const { user, isOwner } = useAuth();
   const navigate = useNavigate();
   const profile = useMyProfile();
   const teamMember = useMyTeamMember();
@@ -205,6 +205,56 @@ export default function SecretariaPage() {
   const qc = useQueryClient();
 
   const firstName = profile.data?.full_name?.split(' ')[0] || 'Utilizador';
+
+  // Absence conflict alerts (owner only)
+  const absenceAlerts = useQuery({
+    queryKey: ['absence-alerts'],
+    enabled: isOwner,
+    queryFn: async () => {
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
+      // Get active/upcoming absences
+      const { data: absences } = await supabase
+        .from('absence_coverage')
+        .select('member_id, start_date, end_date')
+        .gte('end_date', todayStr);
+      if (!absences?.length) return [];
+
+      // Get team member names + profile_ids
+      const memberIds = [...new Set(absences.map(a => a.member_id))];
+      const { data: members } = await supabase
+        .from('team_members')
+        .select('id, full_name, profile_id')
+        .in('id', memberIds);
+      if (!members?.length) return [];
+
+      const alerts: { memberName: string; startDate: string; endDate: string; taskName: string; taskId: string }[] = [];
+
+      for (const absence of absences) {
+        const member = members.find(m => m.id === absence.member_id);
+        if (!member?.profile_id) continue;
+
+        const { data: tasks } = await supabase
+          .from('tasks')
+          .select('id, name')
+          .eq('assigned_to', member.profile_id)
+          .neq('status', 'done')
+          .neq('status', 'concluida')
+          .gte('deadline', absence.start_date)
+          .lte('deadline', absence.end_date);
+
+        for (const task of tasks || []) {
+          alerts.push({
+            memberName: member.full_name,
+            startDate: absence.start_date,
+            endDate: absence.end_date,
+            taskName: task.name,
+            taskId: task.id,
+          });
+        }
+      }
+      return alerts;
+    },
+  });
 
   // Task counts
   const todayTasks = useMemo(() => (tasks.data || []).filter(t => t.deadline && isToday(parseISO(t.deadline)) && t.status !== 'done'), [tasks.data]);
@@ -283,6 +333,34 @@ export default function SecretariaPage() {
               <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Reuniões hoje</p><p className="text-2xl font-bold">{todayMeetings.length}</p></CardContent></Card>
               <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Projetos ativos</p><p className="text-2xl font-bold">{activeProjects.length}</p></CardContent></Card>
             </div>
+
+            {/* Absence conflict alerts for owner */}
+            {isOwner && (absenceAlerts.data || []).length > 0 && (
+              <Card className="border-destructive/30 bg-destructive/5">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2 text-destructive">
+                    <AlertTriangle className="h-4 w-4" /> Alertas de Ausência
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {(absenceAlerts.data || []).map((alert, i) => (
+                    <div
+                      key={i}
+                      className="flex items-start gap-3 p-3 rounded-lg bg-background border cursor-pointer hover:shadow-sm transition-shadow"
+                      onClick={() => navigate('/tarefas')}
+                    >
+                      <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                      <p className="text-sm text-foreground">
+                        <strong>{alert.memberName}</strong> está ausente de{' '}
+                        {format(parseISO(alert.startDate), 'dd/MM')} a {format(parseISO(alert.endDate), 'dd/MM')}.
+                        A tarefa <strong>"{alert.taskName}"</strong> precisa de ser realocada.
+                      </p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
             <DashboardPersonalWidgets userId={user?.id} teamMember={teamMember.data} />
             <RecommendationWidget memberName={firstName} />
           </>
