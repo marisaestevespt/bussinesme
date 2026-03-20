@@ -711,11 +711,15 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
         </DialogHeader>
         <div className="space-y-4 mt-4">
           {/* Header badges */}
-          <div className="flex gap-2 flex-wrap">
-            <Badge variant={member.status === 'ativo' ? 'default' : 'secondary'}>{labelFor(MEMBER_STATUSES, member.status)}</Badge>
-            <Badge variant="outline">{labelFor(MEMBER_TYPES, member.member_type)}</Badge>
-            {member.role_title && <Badge className="text-xs text-white" style={{ backgroundColor: (member as any).role_color || '#6366f1' }}>{member.role_title}</Badge>}
-            <DeptBadge dept={member.department} />
+          <div className="space-y-1.5">
+            <div className="flex gap-2 flex-wrap">
+              <Badge variant={member.status === 'ativo' ? 'default' : 'secondary'}>{labelFor(MEMBER_STATUSES, member.status)}</Badge>
+              <Badge variant="outline">{labelFor(MEMBER_TYPES, member.member_type)}</Badge>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {member.role_title && <Badge className="text-xs text-white" style={{ backgroundColor: (member as any).role_color || '#6366f1' }}>{member.role_title}</Badge>}
+              <DeptBadge dept={member.department} />
+            </div>
           </div>
 
           {/* Quick stats */}
