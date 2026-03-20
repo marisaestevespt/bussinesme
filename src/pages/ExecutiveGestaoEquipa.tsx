@@ -682,8 +682,8 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
   const feedbackSessions = memberFeedback.data || [];
 
   return (
-    <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <SheetHeader>
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12">
