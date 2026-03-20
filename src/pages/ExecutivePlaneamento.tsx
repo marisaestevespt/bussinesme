@@ -4,6 +4,8 @@ import { PageHeader } from '@/components/PageHeader';
 import { usePlanningData } from '@/hooks/usePlanningData';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
 import { BackNavigation } from '@/components/BackNavigation';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 import { PlanningGoalsTab, type GoalsViewMode } from '@/components/planning/PlanningGoalsTab';
 import { PlanningTrackingTab } from '@/components/planning/PlanningTrackingTab';
 import { MonthlyGallery } from '@/components/planning/MonthlyGallery';
