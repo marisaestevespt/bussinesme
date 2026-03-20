@@ -664,6 +664,87 @@ export default function ProcessosPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* ═══ Dialog: Nova Rotina Recorrente ═══ */}
+      <Dialog open={showNewPlanningRoutine} onOpenChange={v => { if (!v) { setShowNewPlanningRoutine(false); setPrTitle(''); setPrResponsible(''); setPrRecurrence('semanal'); setPrWeekday('1'); setPrMonthDay('1'); setPrAdjustBiz(true); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Nova Rotina Recorrente</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Título *</Label>
+              <Input value={prTitle} onChange={e => setPrTitle(e.target.value)} placeholder="Ex: Revisão semanal de KPIs" />
+            </div>
+            <div>
+              <Label>Responsável</Label>
+              <Select value={prResponsible} onValueChange={setPrResponsible}>
+                <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                <SelectContent>{profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Tipo de recorrência</Label>
+              <Select value={prRecurrence} onValueChange={v => setPrRecurrence(v as any)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="semanal">Semanal</SelectItem>
+                  <SelectItem value="mensal">Mensal</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {prRecurrence === 'semanal' && (
+              <div>
+                <Label>Dia da semana</Label>
+                <Select value={prWeekday} onValueChange={setPrWeekday}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Segunda-feira</SelectItem>
+                    <SelectItem value="2">Terça-feira</SelectItem>
+                    <SelectItem value="3">Quarta-feira</SelectItem>
+                    <SelectItem value="4">Quinta-feira</SelectItem>
+                    <SelectItem value="5">Sexta-feira</SelectItem>
+                    <SelectItem value="6">Sábado</SelectItem>
+                    <SelectItem value="7">Domingo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {prRecurrence === 'mensal' && (
+              <>
+                <div>
+                  <Label>Dia do mês</Label>
+                  <Input type="number" min={1} max={31} value={prMonthDay} onChange={e => setPrMonthDay(e.target.value)} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch checked={prAdjustBiz} onCheckedChange={setPrAdjustBiz} />
+                  <Label className="text-sm">Ajustar para dia útil anterior (se cair em fim de semana)</Label>
+                </div>
+              </>
+            )}
+            <Button
+              className="w-full"
+              disabled={!prTitle.trim() || planningRoutines.createRoutine.isPending}
+              onClick={() => {
+                planningRoutines.createRoutine.mutate({
+                  title: prTitle,
+                  responsible: prResponsible || null,
+                  recurrence_type: prRecurrence,
+                  weekday: prRecurrence === 'semanal' ? Number(prWeekday) : null,
+                  month_day: prRecurrence === 'mensal' ? Number(prMonthDay) : null,
+                  adjust_to_business_day: prRecurrence === 'mensal' ? prAdjustBiz : true,
+                  created_by: user?.id,
+                }, {
+                  onSuccess: () => {
+                    setShowNewPlanningRoutine(false);
+                    setPrTitle(''); setPrResponsible(''); setPrRecurrence('semanal');
+                  },
+                });
+              }}
+            >
+              {planningRoutines.createRoutine.isPending ? 'A criar...' : 'Criar Rotina'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
