@@ -76,11 +76,13 @@ export default function FinanceiroPage() {
         <Separator />
 
         {/* Summary cards */}
+        {isAreaEnabled('financeiro') && isKpiEnabled('financeiro', 'entradas_vs_saidas') && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Entradas ({currentYear})</p><p className="text-xl font-bold text-green-600">{fmt(totalEntradas)}</p></CardContent></Card>
           <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Saídas ({currentYear})</p><p className="text-xl font-bold text-red-600">{fmt(totalSaidas)}</p></CardContent></Card>
           <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Balanço ({currentYear})</p><p className={`text-xl font-bold ${resultado >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(resultado)}</p></CardContent></Card>
         </div>
+        )}
 
         {/* Margin chart */}
         <Card>
