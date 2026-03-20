@@ -28,11 +28,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import {
   CheckSquare, AlertTriangle, Users, FolderKanban, Play, Square, Clock,
   Plus, CalendarIcon, Link2, ImageIcon, FileText, ExternalLink, Trash2,
-  BarChart3, ListTodo, ChevronRight, ArrowLeft, Building2,
+  BarChart3, ListTodo, ChevronRight, ChevronLeft, ArrowLeft, Building2,
 } from 'lucide-react';
-import { format, parseISO, isToday, isBefore, startOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, differenceInSeconds, eachDayOfInterval, addDays, addMonths, subMonths, isSameMonth, getDaysInMonth, getDay, isSameDay } from 'date-fns';
+import { format, parseISO, isToday, isBefore, startOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, differenceInSeconds, eachDayOfInterval, addDays, addMonths, subMonths, getDaysInMonth, getDay, isSameDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { RichTextEditor } from '@/components/RichTextEditor';
