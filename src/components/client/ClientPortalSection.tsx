@@ -250,43 +250,6 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
         </CardContent>
       </Card>
 
-      {/* Comments thread */}
-      <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Comentários do Portal</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {(comments.data || []).map(c => (
-              <div key={c.id} className={`flex ${c.author === 'client' ? 'justify-start' : 'justify-end'}`}>
-                <div className={`max-w-[70%] rounded-lg p-2 text-xs ${c.author === 'client' ? 'bg-muted' : 'bg-primary/10'}`}>
-                  <p className="font-medium text-[10px] text-muted-foreground">{c.author_name}</p>
-                  <p>{c.content}</p>
-                </div>
-              </div>
-            ))}
-            {(comments.data || []).length === 0 && <p className="text-xs text-muted-foreground text-center">Sem comentários</p>}
-          </div>
-          <div className="flex gap-2">
-            <Input
-              className="text-xs"
-              placeholder="Responder ao cliente..."
-              value={replyText}
-              onChange={e => setReplyText(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && replyText.trim()) {
-                  addComment.mutate({ portal_id: portalId!, content: replyText.trim(), author: 'team', author_name: 'Equipa' });
-                  setReplyText('');
-                }
-              }}
-            />
-            <Button size="sm" variant="outline" disabled={!replyText.trim()} onClick={() => {
-              addComment.mutate({ portal_id: portalId!, content: replyText.trim(), author: 'team', author_name: 'Equipa' });
-              setReplyText('');
-            }}>
-              <MessageSquare className="h-3 w-3" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Timeline phases (projeto_unico) */}
       {portalData.portal_type === 'projeto_unico' && portalData.show_timeline && (
