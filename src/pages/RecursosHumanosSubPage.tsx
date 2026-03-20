@@ -16,7 +16,7 @@ import {
 const TITLES: Record<string, string> = {
   equipa: 'Equipa',
   escala: 'Escala',
-  performance: 'Performance',
+  performance: 'Gestão de Equipa',
   feedback: 'Feedback',
   'contratos-pagamentos': 'Contratos & Pagamentos',
 };
