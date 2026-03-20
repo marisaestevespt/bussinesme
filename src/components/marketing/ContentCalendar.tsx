@@ -111,7 +111,7 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
           const dayItems = datedItems.filter(i => isSameDay(new Date(i.scheduled_at!), day));
           const isCurrentMonth = isSameMonth(day, currentMonth);
           return (
-            <div key={day.toISOString()} className={cn("min-h-[160px] p-1.5 bg-card", !isCurrentMonth && "opacity-40")}>
+            <div key={day.toISOString()} className={cn("min-h-[200px] p-2 bg-card", !isCurrentMonth && "opacity-40")}>
               <p className={cn("text-xs font-medium mb-1", isSameDay(day, new Date()) && "text-primary font-bold")}>{format(day, 'd')}</p>
               {dayItems.slice(0, 4).map(item => (
                 <CalendarDayItem key={item.id} item={item} channels={channels} links={contentChannelLinks} />
