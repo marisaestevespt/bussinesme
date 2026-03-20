@@ -247,7 +247,7 @@ export function useUnifiedResponsibilities(userId?: string) {
         deadline: m.date_time?.split('T')[0],
         isInfoOnly: true,
         completed: false,
-        estimatedHours: m.duration ? Number(m.duration) : DEFAULT_MEETING_HOURS,
+        estimatedHours: DEFAULT_MEETING_HOURS,
       });
     });
 
