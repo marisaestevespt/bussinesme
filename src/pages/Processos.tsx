@@ -74,6 +74,9 @@ export default function ProcessosPage() {
   const [newRoutineFreq, setNewRoutineFreq] = useState('todos_os_dias');
   const [newRoutineAssignee, setNewRoutineAssignee] = useState<string>('');
   const [routineSteps, setRoutineSteps] = useState('');
+  const [newRoutineMonthlyDay, setNewRoutineMonthlyDay] = useState('');
+  const [newRoutineStartDate, setNewRoutineStartDate] = useState('');
+  const [newRoutineEndDate, setNewRoutineEndDate] = useState('');
   const [activeTab, setActiveTab] = useState('galeria');
 
   // ─── Queries ──────────────────────────────────────────────────
