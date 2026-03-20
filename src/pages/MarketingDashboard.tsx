@@ -17,7 +17,7 @@ import { startOfWeek, endOfWeek, isWithinInterval, format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import {
-  Palette, Target, GitBranch, Package, Zap, Filter, TrendingUp,
+  Palette, Target, GitBranch, Package, Zap, Filter, TrendingUp, BarChart3,
   Plus, Pencil, Check, X, ExternalLink, Image as ImageIcon,
 } from 'lucide-react';
 
