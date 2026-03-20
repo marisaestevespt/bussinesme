@@ -1584,104 +1584,104 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <h2 className="text-base font-semibold">Performance</h2>
 
-      {/* Top-level navigation tabs */}
+      {/* Registos Semanais — above tabs */}
+      <Card>
+        <CardContent className="pt-5 space-y-4">
+          <div className="flex justify-between items-center gap-3 flex-wrap">
+            <h3 className="text-sm font-semibold">Registos Semanais</h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5">
+                <label className="text-xs text-muted-foreground whitespace-nowrap">De</label>
+                <Input type="date" className="h-8 w-36 text-xs" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <label className="text-xs text-muted-foreground whitespace-nowrap">Até</label>
+                <Input type="date" className="h-8 w-36 text-xs" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+              </div>
+              {(dateFrom || dateTo) && (
+                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => { setDateFrom(''); setDateTo(''); }}>Limpar</Button>
+              )}
+              <div className="w-44"><MemberSelect value={filterMember} onChange={setFilterMember} members={allMembers} /></div>
+            </div>
+          </div>
+          <Tabs defaultValue="semanal">
+            <TabsList><TabsTrigger value="semanal">Semanal</TabsTrigger><TabsTrigger value="mensal">Mensal</TabsTrigger></TabsList>
+            <TabsContent value="semanal" className="space-y-3">
+              <div className="flex justify-end"><Button size="sm" onClick={() => setWeeklyDialog({})}><Plus className="h-4 w-4 mr-1" /> Novo Registo</Button></div>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader><TableRow>
+                    <TableHead>Membro</TableHead><TableHead>Semana</TableHead><TableHead>Concluídas</TableHead><TableHead>Atraso</TableHead><TableHead>Projetos</TableHead><TableHead>Status</TableHead><TableHead>Notas</TableHead><TableHead></TableHead>
+                  </TableRow></TableHeader>
+                  <TableBody>
+                    {weeklyData.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Sem registos</TableCell></TableRow> :
+                      weeklyData.map(r => (
+                        <TableRow key={r.id}>
+                          <TableCell className="text-sm">{memberName(r.member_id)}</TableCell>
+                          <TableCell className="text-xs">{r.week_start} → {r.week_end}</TableCell>
+                          <TableCell className="text-xs">{r.tasks_completed}</TableCell>
+                          <TableCell className="text-xs">{r.tasks_overdue}</TableCell>
+                          <TableCell className="text-xs">{r.projects_active}</TableCell>
+                          <TableCell><Badge variant="secondary" className="text-[10px]">{labelFor(PERFORMANCE_STATUSES, r.overall_status)}</Badge></TableCell>
+                          <TableCell className="text-xs max-w-[150px] truncate">{r.notes || '—'}</TableCell>
+                          <TableCell><div className="flex gap-1">
+                            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setWeeklyDialog(r)}>Editar</Button>
+                            <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive" onClick={() => team.deletePerfWeekly.mutate(r.id)}><Trash2 className="h-3 w-3" /></Button>
+                          </div></TableCell>
+                        </TableRow>
+                      ))
+                    }
+                  </TableBody>
+                </Table>
+              </div>
+              {weeklyDialog !== null && <RecordDialog open onClose={() => setWeeklyDialog(null)} title={weeklyDialog.id ? 'Editar Registo Semanal' : 'Novo Registo Semanal'} fields={weeklyFields} initial={weeklyDialog} onSave={(r: any) => team.upsertPerfWeekly.mutate(r)} />}
+            </TabsContent>
+            <TabsContent value="mensal" className="space-y-3">
+              <div className="flex justify-end"><Button size="sm" onClick={() => setMonthlyDialog({ month: currentMonth, year: currentYear })}><Plus className="h-4 w-4 mr-1" /> Novo Registo</Button></div>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader><TableRow>
+                    <TableHead>Membro</TableHead><TableHead>Mês</TableHead><TableHead>Concluídas</TableHead><TableHead>Atraso</TableHead><TableHead>Horas</TableHead><TableHead>Avaliação</TableHead><TableHead>Status</TableHead><TableHead></TableHead>
+                  </TableRow></TableHeader>
+                  <TableBody>
+                    {monthlyData.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Sem registos</TableCell></TableRow> :
+                      monthlyData.map(r => (
+                        <TableRow key={r.id}>
+                          <TableCell className="text-sm">{memberName(r.member_id)}</TableCell>
+                          <TableCell className="text-xs">{r.month && r.year ? `${getMonthName(r.month)} ${r.year}` : '—'}</TableCell>
+                          <TableCell className="text-xs">{r.tasks_completed}</TableCell>
+                          <TableCell className="text-xs">{r.tasks_overdue}</TableCell>
+                          <TableCell className="text-xs">{r.hours_worked || '—'}</TableCell>
+                          <TableCell>{r.rating ? <div className="flex gap-0.5">{Array.from({ length: 5 }).map((_, i) => <Star key={i} className={`h-3 w-3 ${i < (r.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground/30'}`} />)}</div> : '—'}</TableCell>
+                          <TableCell><Badge variant="secondary" className="text-[10px]">{labelFor(PERFORMANCE_STATUSES, r.overall_status)}</Badge></TableCell>
+                          <TableCell><div className="flex gap-1">
+                            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setMonthlyDialog(r)}>Editar</Button>
+                            <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive" onClick={() => team.deletePerfMonthly.mutate(r.id)}><Trash2 className="h-3 w-3" /></Button>
+                          </div></TableCell>
+                        </TableRow>
+                      ))
+                    }
+                  </TableBody>
+                </Table>
+              </div>
+              {monthlyDialog !== null && <RecordDialog open onClose={() => setMonthlyDialog(null)} title={monthlyDialog.id ? 'Editar Registo Mensal' : 'Novo Registo Mensal'} fields={monthlyFields} initial={monthlyDialog} onSave={(r: any) => team.upsertPerfMonthly.mutate(r)} />}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* Task views tabs */}
       <Tabs value={perfTab} onValueChange={setPerfTab}>
         <TabsList className="flex-wrap">
-          <TabsTrigger value="registos"><ListTodo className="h-3.5 w-3.5 mr-1" />Registos Semanais</TabsTrigger>
           <TabsTrigger value="tarefas-membro"><Users className="h-3.5 w-3.5 mr-1" />Tarefas por Membro</TabsTrigger>
           <TabsTrigger value="prioridade"><AlertTriangle className="h-3.5 w-3.5 mr-1" />Por Prioridade</TabsTrigger>
           <TabsTrigger value="atraso"><Clock className="h-3.5 w-3.5 mr-1" />Em Atraso</TabsTrigger>
           <TabsTrigger value="tempo-membro"><BarChart3 className="h-3.5 w-3.5 mr-1" />Tempo por Membro</TabsTrigger>
           <TabsTrigger value="sobrecarga"><AlertTriangle className="h-3.5 w-3.5 mr-1" />Tarefas & Sobrecarga</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="registos">
-          {/* Original weekly/monthly records */}
-          <div className="space-y-4">
-            <div className="flex justify-between items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="flex items-center gap-1.5">
-                  <label className="text-xs text-muted-foreground whitespace-nowrap">De</label>
-                  <Input type="date" className="h-8 w-36 text-xs" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <label className="text-xs text-muted-foreground whitespace-nowrap">Até</label>
-                  <Input type="date" className="h-8 w-36 text-xs" value={dateTo} onChange={e => setDateTo(e.target.value)} />
-                </div>
-                {(dateFrom || dateTo) && (
-                  <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => { setDateFrom(''); setDateTo(''); }}>Limpar</Button>
-                )}
-                <div className="w-44"><MemberSelect value={filterMember} onChange={setFilterMember} members={allMembers} /></div>
-              </div>
-            </div>
-            <Tabs defaultValue="semanal">
-              <TabsList><TabsTrigger value="semanal">Semanal</TabsTrigger><TabsTrigger value="mensal">Mensal</TabsTrigger></TabsList>
-              <TabsContent value="semanal" className="space-y-3">
-                <div className="flex justify-end"><Button size="sm" onClick={() => setWeeklyDialog({})}><Plus className="h-4 w-4 mr-1" /> Novo Registo</Button></div>
-                <Card><div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader><TableRow>
-                      <TableHead>Membro</TableHead><TableHead>Semana</TableHead><TableHead>Concluídas</TableHead><TableHead>Atraso</TableHead><TableHead>Projetos</TableHead><TableHead>Status</TableHead><TableHead>Notas</TableHead><TableHead></TableHead>
-                    </TableRow></TableHeader>
-                    <TableBody>
-                      {weeklyData.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Sem registos</TableCell></TableRow> :
-                        weeklyData.map(r => (
-                          <TableRow key={r.id}>
-                            <TableCell className="text-sm">{memberName(r.member_id)}</TableCell>
-                            <TableCell className="text-xs">{r.week_start} → {r.week_end}</TableCell>
-                            <TableCell className="text-xs">{r.tasks_completed}</TableCell>
-                            <TableCell className="text-xs">{r.tasks_overdue}</TableCell>
-                            <TableCell className="text-xs">{r.projects_active}</TableCell>
-                            <TableCell><Badge variant="secondary" className="text-[10px]">{labelFor(PERFORMANCE_STATUSES, r.overall_status)}</Badge></TableCell>
-                            <TableCell className="text-xs max-w-[150px] truncate">{r.notes || '—'}</TableCell>
-                            <TableCell><div className="flex gap-1">
-                              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setWeeklyDialog(r)}>Editar</Button>
-                              <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive" onClick={() => team.deletePerfWeekly.mutate(r.id)}><Trash2 className="h-3 w-3" /></Button>
-                            </div></TableCell>
-                          </TableRow>
-                        ))
-                      }
-                    </TableBody>
-                  </Table>
-                </div></Card>
-                {weeklyDialog !== null && <RecordDialog open onClose={() => setWeeklyDialog(null)} title={weeklyDialog.id ? 'Editar Registo Semanal' : 'Novo Registo Semanal'} fields={weeklyFields} initial={weeklyDialog} onSave={(r: any) => team.upsertPerfWeekly.mutate(r)} />}
-              </TabsContent>
-              <TabsContent value="mensal" className="space-y-3">
-                <div className="flex justify-end"><Button size="sm" onClick={() => setMonthlyDialog({ month: currentMonth, year: currentYear })}><Plus className="h-4 w-4 mr-1" /> Novo Registo</Button></div>
-                <Card><div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader><TableRow>
-                      <TableHead>Membro</TableHead><TableHead>Mês</TableHead><TableHead>Concluídas</TableHead><TableHead>Atraso</TableHead><TableHead>Horas</TableHead><TableHead>Avaliação</TableHead><TableHead>Status</TableHead><TableHead></TableHead>
-                    </TableRow></TableHeader>
-                    <TableBody>
-                      {monthlyData.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Sem registos</TableCell></TableRow> :
-                        monthlyData.map(r => (
-                          <TableRow key={r.id}>
-                            <TableCell className="text-sm">{memberName(r.member_id)}</TableCell>
-                            <TableCell className="text-xs">{r.month && r.year ? `${getMonthName(r.month)} ${r.year}` : '—'}</TableCell>
-                            <TableCell className="text-xs">{r.tasks_completed}</TableCell>
-                            <TableCell className="text-xs">{r.tasks_overdue}</TableCell>
-                            <TableCell className="text-xs">{r.hours_worked || '—'}</TableCell>
-                            <TableCell>{r.rating ? <div className="flex gap-0.5">{Array.from({ length: 5 }).map((_, i) => <Star key={i} className={`h-3 w-3 ${i < (r.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground/30'}`} />)}</div> : '—'}</TableCell>
-                            <TableCell><Badge variant="secondary" className="text-[10px]">{labelFor(PERFORMANCE_STATUSES, r.overall_status)}</Badge></TableCell>
-                            <TableCell><div className="flex gap-1">
-                              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setMonthlyDialog(r)}>Editar</Button>
-                              <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive" onClick={() => team.deletePerfMonthly.mutate(r.id)}><Trash2 className="h-3 w-3" /></Button>
-                            </div></TableCell>
-                          </TableRow>
-                        ))
-                      }
-                    </TableBody>
-                  </Table>
-                </div></Card>
-                {monthlyDialog !== null && <RecordDialog open onClose={() => setMonthlyDialog(null)} title={monthlyDialog.id ? 'Editar Registo Mensal' : 'Novo Registo Mensal'} fields={monthlyFields} initial={monthlyDialog} onSave={(r: any) => team.upsertPerfMonthly.mutate(r)} />}
-              </TabsContent>
-            </Tabs>
-          </div>
-        </TabsContent>
 
         <TabsContent value="tarefas-membro">
           <TasksByMemberKanban />
