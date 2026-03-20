@@ -889,6 +889,65 @@ export type Database = {
           },
         ]
       }
+      client_portals: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          last_visit_at: string | null
+          portal_type: Database["public"]["Enums"]["portal_type"]
+          show_faqs: boolean
+          show_meetings: boolean
+          show_monthly_summary: boolean
+          show_onboarding: boolean
+          show_payments: boolean
+          show_timeline: boolean
+          show_workspace: boolean
+          token: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_visit_at?: string | null
+          portal_type: Database["public"]["Enums"]["portal_type"]
+          show_faqs?: boolean
+          show_meetings?: boolean
+          show_monthly_summary?: boolean
+          show_onboarding?: boolean
+          show_payments?: boolean
+          show_timeline?: boolean
+          show_workspace?: boolean
+          token?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_visit_at?: string | null
+          portal_type?: Database["public"]["Enums"]["portal_type"]
+          show_faqs?: boolean
+          show_meetings?: boolean
+          show_monthly_summary?: boolean
+          show_onboarding?: boolean
+          show_payments?: boolean
+          show_timeline?: boolean
+          show_workspace?: boolean
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_portals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           birthday: string | null
@@ -4046,6 +4105,254 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_comments: {
+        Row: {
+          author: Database["public"]["Enums"]["portal_comment_author"]
+          author_name: string
+          content: string
+          created_at: string
+          id: string
+          portal_id: string
+        }
+        Insert: {
+          author: Database["public"]["Enums"]["portal_comment_author"]
+          author_name: string
+          content: string
+          created_at?: string
+          id?: string
+          portal_id: string
+        }
+        Update: {
+          author?: Database["public"]["Enums"]["portal_comment_author"]
+          author_name?: string
+          content?: string
+          created_at?: string
+          id?: string
+          portal_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_comments_portal_id_fkey"
+            columns: ["portal_id"]
+            isOneToOne: false
+            referencedRelation: "client_portals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_faqs: {
+        Row: {
+          answer: string | null
+          created_at: string
+          id: string
+          portal_id: string
+          question: string
+          sort_order: number
+        }
+        Insert: {
+          answer?: string | null
+          created_at?: string
+          id?: string
+          portal_id: string
+          question: string
+          sort_order?: number
+        }
+        Update: {
+          answer?: string | null
+          created_at?: string
+          id?: string
+          portal_id?: string
+          question?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_faqs_portal_id_fkey"
+            columns: ["portal_id"]
+            isOneToOne: false
+            referencedRelation: "client_portals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_feedback: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          portal_id: string
+          submitted_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          portal_id: string
+          submitted_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          portal_id?: string
+          submitted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_feedback_portal_id_fkey"
+            columns: ["portal_id"]
+            isOneToOne: false
+            referencedRelation: "client_portals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_initial_questions: {
+        Row: {
+          answer: string | null
+          answered_at: string | null
+          created_at: string
+          id: string
+          portal_id: string
+          question: string
+          sort_order: number
+        }
+        Insert: {
+          answer?: string | null
+          answered_at?: string | null
+          created_at?: string
+          id?: string
+          portal_id: string
+          question: string
+          sort_order?: number
+        }
+        Update: {
+          answer?: string | null
+          answered_at?: string | null
+          created_at?: string
+          id?: string
+          portal_id?: string
+          question?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_initial_questions_portal_id_fkey"
+            columns: ["portal_id"]
+            isOneToOne: false
+            referencedRelation: "client_portals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_monthly_summaries: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          month: number
+          portal_id: string
+          year: number
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          month: number
+          portal_id: string
+          year: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          month?: number
+          portal_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_monthly_summaries_portal_id_fkey"
+            columns: ["portal_id"]
+            isOneToOne: false
+            referencedRelation: "client_portals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_otp: {
+        Row: {
+          client_id: string
+          code: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          used: boolean
+        }
+        Insert: {
+          client_id: string
+          code: string
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          used?: boolean
+        }
+        Update: {
+          client_id?: string
+          code?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          used?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_otp_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_timeline_phases: {
+        Row: {
+          created_at: string
+          id: string
+          portal_id: string
+          sort_order: number
+          status: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          portal_id: string
+          sort_order?: number
+          status?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          portal_id?: string
+          sort_order?: number
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_timeline_phases_portal_id_fkey"
+            columns: ["portal_id"]
+            isOneToOne: false
+            referencedRelation: "client_portals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_automations: {
         Row: {
           created_at: string
@@ -5488,6 +5795,7 @@ export type Database = {
           status: string
           tag: string | null
           updated_at: string
+          visible_in_portal: boolean
         }
         Insert: {
           assigned_to?: string | null
@@ -5509,6 +5817,7 @@ export type Database = {
           status?: string
           tag?: string | null
           updated_at?: string
+          visible_in_portal?: boolean
         }
         Update: {
           assigned_to?: string | null
@@ -5530,6 +5839,7 @@ export type Database = {
           status?: string
           tag?: string | null
           updated_at?: string
+          visible_in_portal?: boolean
         }
         Relationships: [
           {
@@ -6086,6 +6396,8 @@ export type Database = {
         | "debriefing_pos_fecho"
       launch_task_status: "por_comecar" | "em_curso" | "concluido" | "bloqueado"
       meeting_status: "por_confirmar" | "marcada" | "terminada"
+      portal_comment_author: "client" | "team"
+      portal_type: "projeto_unico" | "servico_mensal"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6224,6 +6536,8 @@ export const Constants = {
       ],
       launch_task_status: ["por_comecar", "em_curso", "concluido", "bloqueado"],
       meeting_status: ["por_confirmar", "marcada", "terminada"],
+      portal_comment_author: ["client", "team"],
+      portal_type: ["projeto_unico", "servico_mensal"],
     },
   },
 } as const
