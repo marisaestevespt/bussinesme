@@ -57,7 +57,7 @@ function CalendarDayItem({ item, channels, links }: { item: ContentItem; channel
 
   return (
     <Link to={`/hub/marketing/conteudos/${item.id}`}
-      className="block rounded border bg-muted/30 hover:bg-muted/60 transition-colors p-1.5 mb-1 last:mb-0">
+      className="block rounded border bg-muted/30 hover:bg-muted/60 transition-colors p-1.5 h-full flex flex-col justify-between">
       {/* Title + time */}
       <div className="flex items-center justify-between gap-1">
         <p className="text-[10px] font-medium truncate leading-tight text-foreground">{item.title}</p>
