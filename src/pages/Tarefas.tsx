@@ -173,6 +173,8 @@ export default function TarefasPage() {
     },
   });
 
+  const { coverages: absenceCoverages } = useAbsenceCoverage();
+
   // Mutations
   const upsertTask = useMutation({
     mutationFn: async (payload: any) => {
