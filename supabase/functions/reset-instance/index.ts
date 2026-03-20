@@ -12,7 +12,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify auth
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
@@ -24,7 +23,6 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Verify the user is owner
     const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -52,7 +50,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Verify confirmation
     const body = await req.json();
     if (body.confirmation !== "CONFIRMO") {
       return new Response(JSON.stringify({ error: "Confirmação inválida" }), {
@@ -61,9 +58,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Tables to delete - order matters for FK constraints (children first)
+    // Operational tables to delete — order: children first for FK constraints
+    // PRESERVED: business_settings, kpi_settings, profiles, user_roles, members,
+    // custom_roles, role_permissions, team_members, marketing_channels, channel_pages,
+    // routines, product_kpis, marketing_automations, marketing_funnels, sops,
+    // strategy_channel_details, strategy_channel_formats, strategy_channel_frames,
+    // strategy_editorial_lines, strategy_distribution_cards, strategy_settings,
+    // marketing_pages, internal_documents, business_plan_settings, business_plan_cards,
+    // business_plan_custom_columns, platform_accesses, brand_*, custom_fonts
     const tablesToDelete = [
-      // Content & metrics children
+      // Content children
       "content_attachments",
       "content_channels",
       "content_metrics",
@@ -87,14 +91,13 @@ Deno.serve(async (req) => {
       // Task children
       "task_dependencies",
       "task_time_entries",
-      // Product children
+      // Product children (values only, not definitions)
       "product_automations",
       "product_costs",
       "product_feedbacks",
       "product_funnels",
       "product_kpi_values",
       "product_kpi_reports",
-      "product_kpis",
       "product_metrics_analysis",
       "product_milestones",
       "product_nps_config",
@@ -108,7 +111,7 @@ Deno.serve(async (req) => {
       "objective_actions",
       "objective_criteria",
       "objective_metrics",
-      // Channel children
+      // Channel metrics (not channel config)
       "channel_monthly_metrics",
       "channel_reports",
       // Traffic
@@ -117,18 +120,12 @@ Deno.serve(async (req) => {
       "traffic_creatives",
       // Financial children
       "financial_documents",
-      // Strategy children
-      "strategy_channel_details",
-      "strategy_channel_formats",
-      "strategy_channel_frames",
-      "strategy_distribution_cards",
-      "strategy_editorial_lines",
       // Planning children
       "planning_routines",
       // Commercial children
       "commercial_library_entries",
       "commercial_sales_actions",
-      // Main tables
+      // Main operational tables
       "content_items",
       "crm_leads",
       "clients",
@@ -137,13 +134,6 @@ Deno.serve(async (req) => {
       "projects",
       "tasks",
       "products",
-      "sops",
-      "routines",
-      "marketing_automations",
-      "marketing_funnels",
-      "marketing_ideas",
-      "marketing_pages",
-      "marketing_resource_links",
       "commercial_sales",
       "commercial_strategy",
       "commercial_annual_goals",
@@ -160,8 +150,6 @@ Deno.serve(async (req) => {
       "executive_quarterly_analysis",
       "executive_weekly_routines",
       "planning_goals",
-      "internal_documents",
-      "platform_accesses",
       "time_entries",
       "notifications",
       "user_favorites",
@@ -180,7 +168,6 @@ Deno.serve(async (req) => {
       "financial_payroll",
       "financial_subscriptions",
       "financial_contractors",
-      "strategy_settings",
       "member_payments",
       "member_personal_images",
       "member_personal_links",
@@ -189,6 +176,8 @@ Deno.serve(async (req) => {
       "training_doubts",
       "website_page_files",
       "website_pages",
+      "marketing_ideas",
+      "marketing_resource_links",
     ];
 
     const errors: string[] = [];
@@ -196,7 +185,6 @@ Deno.serve(async (req) => {
     for (const table of tablesToDelete) {
       const { error } = await admin.from(table).delete().gte("created_at", "1970-01-01");
       if (error) {
-        // Try without filter for tables that might not have created_at
         const { error: err2 } = await admin.from(table).delete().not("id", "is", null);
         if (err2) {
           errors.push(`${table}: ${err2.message}`);

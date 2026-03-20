@@ -139,8 +139,8 @@ function ResetSection() {
               Tens a certeza?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm leading-relaxed">
-              Esta acção vai apagar todos os dados do sistema de forma permanente.
-              A estrutura, configurações e identidade visual serão mantidas.
+              Esta acção vai apagar todos os dados operacionais do sistema de forma permanente.
+              Toda a configuração, processos, automações e identidade visual serão mantidos.
               Esta acção não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
