@@ -287,8 +287,9 @@ function MeetingFormDialog({
 
   // ─── Auto-fill: when CLIENT changes ───
   const handleClientChange = (newClientId: string) => {
+    const actualId = newClientId === '__none' ? '' : newClientId;
     skipAutoFillRef.current = true;
-    setClientId(newClientId);
+    setClientId(actualId);
 
     if (newClientId) {
       // Auto-set department to "clientes"
