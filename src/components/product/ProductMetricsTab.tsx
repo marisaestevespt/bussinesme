@@ -6,8 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
-import { TrendingUp, TrendingDown, Users, UserPlus, UserMinus, DollarSign, RefreshCw, Star, BarChart3, Minus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { YearSelector } from '@/components/YearSelector';
+import { MonthNavHeader } from '@/components/MonthNavHeader';
+import { TrendingUp, TrendingDown, Users, UserPlus, UserMinus, DollarSign, RefreshCw, Star, BarChart3, Minus, ChevronRight } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -39,7 +41,7 @@ function AutoKpiCard({ label, value, prevValue, icon: Icon, suffix, color }: {
           <p className="text-xs text-muted-foreground truncate">{label}</p>
         </div>
         {diff != null && diff !== 0 && (
-          <div className={cn('flex items-center gap-0.5 text-xs font-medium', diff > 0 ? 'text-emerald-600' : 'text-red-500')}>
+          <div className={cn('flex items-center gap-0.5 text-xs font-medium', diff > 0 ? 'text-emerald-600' : 'text-destructive')}>
             {diff > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
             {diff > 0 ? '+' : ''}{diff.toLocaleString('pt-PT')}
           </div>
@@ -61,13 +63,15 @@ function goalColor(value: number | null, goal: number | null): string {
 
 type HealthColor = 'green' | 'yellow' | 'red';
 
-export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
-  const now = new Date();
+// ════════════════════════════════════════
+// Month Detail View
+// ════════════════════════════════════════
+function MonthDetail({ productId, productName, isOwner, monthIdx, year, onBack, onChangeMonth }: Props & {
+  monthIdx: number; year: number; onBack: () => void; onChangeMonth: (m: number, y: number) => void;
+}) {
+  const month = monthIdx + 1;
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [year, setYear] = useState(now.getFullYear());
-  const [monthIdx, setMonthIdx] = useState(now.getMonth()); // 0-based
-  const month = monthIdx + 1;
 
   // ─── Data queries ───
   const { data: salesData = [] } = useQuery({
@@ -299,33 +303,11 @@ export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
     red: 'bg-red-500',
   };
 
-  const handleChangeMonth = (m: number, y: number) => {
-    setMonthIdx(m);
-    setYear(y);
-  };
-
   const fmt = (n: number) => n.toLocaleString('pt-PT', { maximumFractionDigits: 0 });
 
   return (
     <div className="space-y-6">
-      {/* Month/Year nav */}
-      <div className="flex items-center justify-center gap-4">
-        <Button variant="outline" size="icon" onClick={() => {
-          if (monthIdx === 0) { setMonthIdx(11); setYear(y => y - 1); }
-          else setMonthIdx(m => m - 1);
-        }}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <h2 className="text-xl font-bold min-w-[200px] text-center">
-          {MONTH_NAMES[monthIdx]} {year}
-        </h2>
-        <Button variant="outline" size="icon" onClick={() => {
-          if (monthIdx === 11) { setMonthIdx(0); setYear(y => y + 1); }
-          else setMonthIdx(m => m + 1);
-        }}>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
+      <MonthNavHeader monthIdx={monthIdx} year={year} onBack={onBack} onChangeMonth={onChangeMonth} />
 
       {/* ─── Auto KPI cards ─── */}
       <div>
@@ -419,7 +401,7 @@ export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
             </div>
             {healthList.length === 0 ? (
               <p className="text-center text-muted-foreground py-8 text-sm">Nenhum cliente ativo com este produto.</p>
-            ) : healthList.map(({ client: c, color, lastNps, lastNpsDate }) => (
+            ) : healthList.map(({ client: c, color, lastNps }) => (
               <div
                 key={c.id}
                 className="px-4 py-2.5 text-sm grid grid-cols-5 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
@@ -459,6 +441,81 @@ export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════
+// Gallery (main export)
+// ════════════════════════════════════════
+export function ProductMetricsTab({ productId, productName, isOwner }: Props) {
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+
+  // Sales for gallery summary
+  const { data: salesData = [] } = useQuery({
+    queryKey: ['product-metrics-sales', productName, year],
+    queryFn: async () => {
+      const { data } = await supabase.from('commercial_sales').select('*').eq('product', productName).eq('sale_year', year);
+      return data || [];
+    },
+    enabled: !!productName,
+  });
+
+  const monthSummaries = useMemo(() => {
+    return MONTH_NAMES.map((name, idx) => {
+      const m = idx + 1;
+      const mSales = salesData.filter(s => s.sale_month === m);
+      const revenue = mSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+      return { name, revenue, salesCount: mSales.length };
+    });
+  }, [salesData]);
+
+  const fmt = (n: number) => n.toLocaleString('pt-PT', { maximumFractionDigits: 0 });
+
+  if (selectedMonth !== null) {
+    return (
+      <MonthDetail
+        productId={productId}
+        productName={productName}
+        isOwner={isOwner}
+        monthIdx={selectedMonth}
+        year={year}
+        onBack={() => setSelectedMonth(null)}
+        onChangeMonth={(m, y) => { setSelectedMonth(m); setYear(y); }}
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <YearSelector year={year} onChange={setYear} />
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        {monthSummaries.map((m, idx) => {
+          const isCurrent = now.getMonth() === idx && now.getFullYear() === year;
+          return (
+            <Card
+              key={idx}
+              className={cn(
+                'cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group',
+                isCurrent && 'ring-2 ring-primary'
+              )}
+              onClick={() => setSelectedMonth(idx)}
+            >
+              <CardContent className="p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-sm">{m.name}</span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <p className="text-lg font-bold">{fmt(m.revenue)} €</p>
+                <p className="text-[10px] text-muted-foreground">{m.salesCount} vendas</p>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
