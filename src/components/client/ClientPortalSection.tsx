@@ -183,9 +183,14 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
       <Card>
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
           <CardTitle className="text-sm">FAQ's do Portal</CardTitle>
-          <Button size="sm" variant="outline" onClick={() => addFaq.mutate({ portal_id: portalId!, question: '', sort_order: (faqs.data?.length || 0) })}>
-            <Plus className="h-3 w-3 mr-1" />Nova FAQ
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={importFaqsFromProduct}>
+              <RefreshCw className="h-3 w-3 mr-1" />Importar do Produto
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => addFaq.mutate({ portal_id: portalId!, question: '', sort_order: (faqs.data?.length || 0) })}>
+              <Plus className="h-3 w-3 mr-1" />Nova FAQ
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-2">
           {(faqs.data || []).map(f => (
