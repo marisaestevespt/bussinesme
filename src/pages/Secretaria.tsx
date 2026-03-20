@@ -519,9 +519,12 @@ function MinhaSemanaTab({ allTasks, allMeetings, timeEntries, getProjectName, qc
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
   const unified = useUnifiedResponsibilities();
+  const routineTasks = useMonthRoutineTasks();
 
   return (
     <div className="space-y-6">
+      {/* Rotinas do mês */}
+      <RoutineMonthCard tasks={routineTasks.data || []} />
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4">
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Responsabilidades esta semana</p><p className="text-2xl font-bold">{unified.weekItems.length}</p></CardContent></Card>
