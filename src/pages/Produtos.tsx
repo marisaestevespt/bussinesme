@@ -94,7 +94,7 @@ export default function ProdutosPage() {
                     </p>
                   )}
                   {p.escada && (
-                    <p className="text-xs text-muted-foreground">{getEscadaLabel(p.escada)}</p>
+                    <p className="text-xs font-medium text-accent">{getEscadaLabel(p.escada)}</p>
                   )}
                 </CardContent>
               </Card>
