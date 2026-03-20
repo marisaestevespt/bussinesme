@@ -94,11 +94,15 @@ export default function ProdutosPage() {
                 className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden"
                 onClick={() => navigate(`/hub/produtos/${p.id}`)}
               >
-                {p.cover_url && (
-                  <div className="w-full h-36 overflow-hidden">
+                <div className="w-full h-36 overflow-hidden bg-muted/30 flex items-center justify-center">
+                  {p.cover_url ? (
                     <img src={p.cover_url} alt={p.name} className="w-full h-full object-cover" />
-                  </div>
-                )}
+                  ) : p.logo_url ? (
+                    <img src={p.logo_url} alt={p.name} className="h-16 w-16 object-contain" />
+                  ) : (
+                    <span className="text-3xl font-bold text-muted-foreground/20">{p.name?.charAt(0)}</span>
+                  )}
+                </div>
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-semibold text-base leading-snug">{p.name}</h3>
