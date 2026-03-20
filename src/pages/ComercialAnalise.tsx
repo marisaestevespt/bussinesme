@@ -451,7 +451,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
           </Card>
         )}
       </div>
-
+      )}
       <Separator />
 
       {/* Qualitative */}
