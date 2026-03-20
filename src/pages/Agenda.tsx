@@ -848,6 +848,9 @@ function EventDetailDialog({
           {/* Attachments */}
           <AttachmentsSection eventId={event.id} />
 
+          {/* Add to Calendar */}
+          <AddToCalendarButtons event={event} />
+
           {isOwner && (
             <div className="flex gap-2 pt-2">
               <Button variant="outline" className="flex-1" onClick={onEdit}>Editar</Button>
