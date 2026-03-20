@@ -82,6 +82,7 @@ function useMeeting(id: string) {
         owner_actions: Array.isArray(raw.owner_actions) ? raw.owner_actions as CheckItem[] : [],
         client_actions: Array.isArray(raw.client_actions) ? raw.client_actions as CheckItem[] : [],
         final_notes: Array.isArray(raw.final_notes) ? raw.final_notes as string[] : [],
+        duration_minutes: raw.duration_minutes || 0,
       } as MeetingFull;
     },
   });
