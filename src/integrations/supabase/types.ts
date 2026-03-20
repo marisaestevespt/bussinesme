@@ -633,6 +633,7 @@ export type Database = {
           nps_score: number | null
           product_id: string | null
           status: string
+          task_id: string | null
           updated_at: string
         }
         Insert: {
@@ -646,6 +647,7 @@ export type Database = {
           nps_score?: number | null
           product_id?: string | null
           status?: string
+          task_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -659,6 +661,7 @@ export type Database = {
           nps_score?: number | null
           product_id?: string | null
           status?: string
+          task_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -674,6 +677,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_nps_records_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
         ]
