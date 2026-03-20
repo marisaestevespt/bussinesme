@@ -3265,6 +3265,7 @@ export type Database = {
       meetings: {
         Row: {
           client_actions: Json | null
+          client_id: string | null
           client_name: string | null
           created_at: string
           created_by: string | null
@@ -3286,6 +3287,7 @@ export type Database = {
         }
         Insert: {
           client_actions?: Json | null
+          client_id?: string | null
           client_name?: string | null
           created_at?: string
           created_by?: string | null
@@ -3307,6 +3309,7 @@ export type Database = {
         }
         Update: {
           client_actions?: Json | null
+          client_id?: string | null
           client_name?: string | null
           created_at?: string
           created_by?: string | null
@@ -3327,6 +3330,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "meetings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "meetings_project_id_fkey"
             columns: ["project_id"]
