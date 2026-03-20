@@ -149,6 +149,7 @@ export function usePlanningData(year = currentYear) {
         const { error } = await supabase.from('executive_objectives').insert({ ...obj, year } as any);
         if (error) throw error;
       }
+      await syncObjectiveToCommercial(obj);
     },
     onSuccess: invalidate,
     onError: (e: any) => toast.error('Erro ao guardar objetivo: ' + (e.message || e)),
