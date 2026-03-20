@@ -230,7 +230,7 @@ export function SettingsIdentity() {
     if (!settings || !businessName.trim()) return;
     setSaving(true);
     try {
-      let logoUrl = settings.logo_url;
+      let logoUrl: string | null = settings.logo_url;
       if (logoFile) {
         const ext = logoFile.name.split('.').pop();
         const { data: { user } } = await supabase.auth.getUser();
@@ -240,6 +240,8 @@ export function SettingsIdentity() {
           const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path);
           logoUrl = `${publicUrl}?t=${Date.now()}`;
         }
+      } else if (!logoPreview) {
+        logoUrl = null;
       }
 
       // Upload login bg if changed
@@ -308,6 +310,11 @@ export function SettingsIdentity() {
             <div className="text-xs text-muted-foreground">
               <p>Arrasta ou clica para carregar</p>
               <p className="mt-0.5">PNG, JPG ou SVG</p>
+              {logoPreview && (
+                <button type="button" className="mt-1 text-destructive hover:underline text-xs" onClick={() => { setLogoFile(null); setLogoPreview(null); }}>
+                  Remover logo
+                </button>
+              )}
             </div>
           </div>
         </div>
