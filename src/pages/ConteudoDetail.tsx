@@ -20,10 +20,10 @@ import {
   type ContentItem, type MarketingChannel, type ContentChannelLink, type ContentAttachment,
 } from '@/lib/marketing-constants';
 import { toast } from 'sonner';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle } from 'lucide-react';
+import { Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 
 export default function ConteudoDetailPage() {
@@ -35,7 +35,7 @@ export default function ConteudoDetailPage() {
   const [form, setForm] = useState({
     title: '', scheduled_at: null as string | null, status: 'por_planear',
     funnel_stage: '', content_type: '', format: '', objective: '',
-    product_name: '', project_id: '', assigned_to: '', copy_content: '', cover_url: '',
+    product_name: '', project_id: '', assigned_to: '', copy_content: '',
   });
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -101,7 +101,6 @@ export default function ConteudoDetailPage() {
         format: item.format || '', objective: item.objective || '',
         product_name: item.product_name || '', project_id: item.project_id || '',
         assigned_to: item.assigned_to || '', copy_content: item.copy_content || '',
-        cover_url: item.cover_url || '',
       });
     }
   }, [item]);
@@ -113,15 +112,16 @@ export default function ConteudoDetailPage() {
   const handleSave = async () => {
     if (!id) return;
     setSaving(true);
+    const firstImage = attachments.find(a => a.file_type === 'image');
+    const autoCover = firstImage?.file_url || null;
     await supabase.from('content_items').update({
       title: form.title, scheduled_at: form.scheduled_at, status: form.status,
       funnel_stage: form.funnel_stage || null, content_type: form.content_type || null,
       format: form.format || null, objective: form.objective || null,
       product_name: form.product_name || null, project_id: form.project_id || null,
       assigned_to: form.assigned_to || null, copy_content: form.copy_content || null,
-      cover_url: form.cover_url || null,
+      cover_url: autoCover,
     } as any).eq('id', id);
-    // Sync channels
     await supabase.from('content_channels').delete().eq('content_id', id);
     if (selectedChannels.length > 0) {
       await supabase.from('content_channels').insert(
@@ -134,19 +134,6 @@ export default function ConteudoDetailPage() {
     queryClient.invalidateQueries({ queryKey: ['content-channels'] });
     toast.success('Guardado');
     setSaving(false);
-  };
-
-  const uploadCover = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.[0] || !id) return;
-    setUploading(true);
-    const file = e.target.files[0];
-    const path = `${id}/cover/${Date.now()}-${file.name}`;
-    const { error } = await supabase.storage.from('content-files').upload(path, file);
-    if (error) { toast.error('Erro'); setUploading(false); return; }
-    const { data: { publicUrl } } = supabase.storage.from('content-files').getPublicUrl(path);
-    setForm(f => ({ ...f, cover_url: publicUrl }));
-    setUploading(false);
-    e.target.value = '';
   };
 
   const uploadFiles = async (e: React.ChangeEvent<HTMLInputElement>, fileType: 'image' | 'file') => {
@@ -212,7 +199,6 @@ export default function ConteudoDetailPage() {
         <div className="max-w-6xl mx-auto w-full px-4 py-6">
           <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
 
-          {/* Title */}
           <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
             className="text-2xl font-bold border-0 px-0 h-auto focus-visible:ring-0 mb-6" placeholder="Título do conteúdo" />
 
@@ -280,6 +266,15 @@ export default function ConteudoDetailPage() {
                 ) : (
                   <p className="text-xs text-muted-foreground italic">Nenhum ficheiro.</p>
                 )}
+              </div>
+
+              <Separator />
+
+              {/* Copy / Guião */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-foreground">Copy / Guião</h3>
+                <RichTextEditor content={form.copy_content} onChange={v => setForm(f => ({ ...f, copy_content: v }))} editable />
+              </div>
             </div>
 
             {/* Sidebar */}
