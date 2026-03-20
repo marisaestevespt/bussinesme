@@ -85,6 +85,7 @@ export default function FinanceiroPage() {
         )}
 
         {/* Margin chart */}
+        {isAreaEnabled('financeiro') && isKpiEnabled('financeiro', 'margem_lucro') && (
         <Card>
           <CardContent className="pt-4">
             <p className="text-xs text-muted-foreground mb-2">Margem de Lucro ao longo do ano — {currentYear}</p>

@@ -259,6 +259,8 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
         )}
       </section>
 
+      )}
+
       <Separator />
 
       {/* 2. Execution */}
