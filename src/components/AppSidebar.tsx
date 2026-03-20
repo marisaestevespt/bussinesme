@@ -146,6 +146,35 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
+        {favorites.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/70 font-medium">
+              Favoritos
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {favorites.map((fav) => {
+                  const Icon = getIcon(fav.page_icon);
+                  return (
+                    <SidebarMenuItem key={fav.id}>
+                      <SidebarMenuButton asChild>
+                        <NavLink
+                          to={fav.page_path}
+                          end
+                          className="hq-transition hover:bg-accent/50"
+                          activeClassName="bg-accent text-accent-foreground font-medium"
+                        >
+                          <Icon className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                          {!collapsed && <span className="text-sm">{fav.page_title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
         <NavSection label="Pessoal" items={pessoalItems} collapsed={collapsed} canAccess={() => true} />
         <NavSection label="Hall" items={hallItems} collapsed={collapsed} canAccess={canAccess} />
         <NavSection label="Transversais" items={transversaisItems} collapsed={collapsed} canAccess={canAccess} />
