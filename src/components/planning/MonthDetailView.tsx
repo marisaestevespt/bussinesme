@@ -104,6 +104,23 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const teamQ = useQuery({ queryKey: ['md-team'], queryFn: async () => { const { data } = await supabase.from('team_members').select('*').eq('status', 'ativo'); return data || []; }});
   const tasksQ = useQuery({ queryKey: ['md-tasks', year, monthNum], queryFn: async () => { const { data } = await supabase.from('tasks').select('*'); return data || []; }});
 
+  // Routine tasks for this month
+  const routineTasksQ = useQuery({
+    queryKey: ['md-routine-tasks', year, monthNum],
+    queryFn: async () => {
+      const mStart = format(new Date(year, monthIdx, 1), 'yyyy-MM-dd');
+      const mEnd = format(endOfMonth(new Date(year, monthIdx, 1)), 'yyyy-MM-dd');
+      const { data } = await supabase
+        .from('tasks')
+        .select('*, profiles:assigned_to(full_name)')
+        .eq('tag', 'Rotina')
+        .gte('deadline', mStart)
+        .lte('deadline', mEnd)
+        .order('deadline');
+      return data || [];
+    },
+  });
+
   // Checklists
   const checklistQ = useQuery({ queryKey: ['md-checklist', year, monthNum], queryFn: async () => { const { data } = await supabase.from('executive_monthly_checklists').select('*').eq('year', year).eq('month', monthNum).order('created_at'); return data || []; }});
 
