@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
+
 import {
   isToday, isBefore, isWithinInterval, parseISO, startOfDay, startOfWeek,
   endOfWeek, addDays, format,
@@ -50,7 +50,7 @@ export { SOURCE_LABELS };
 export function useUnifiedResponsibilities(userId?: string) {
   const { user } = useAuth();
   const uid = userId || user?.id;
-  const qc = useQueryClient();
+  
   const today = startOfDay(new Date());
   const weekStart_ = startOfWeek(today, { weekStartsOn: 1 });
   const weekEnd_ = endOfWeek(today, { weekStartsOn: 1 });
@@ -356,68 +356,7 @@ export function useUnifiedResponsibilities(userId?: string) {
     }),
   [items, weekStart_, weekEnd_, today]);
 
-  // ─── Complete action (bidirectional sync) ──────────────────
-
-  const completeItem = useMutation({
-    mutationFn: async (item: UnifiedItem) => {
-      const now = new Date().toISOString();
-      switch (item.source) {
-        case 'tarefa':
-          await supabase.from('tasks').update({ status: 'done', updated_at: now }).eq('id', item.sourceId);
-          break;
-        case 'crm':
-          await supabase.from('crm_leads').update({ next_followup: null, updated_at: now }).eq('id', item.sourceId);
-          break;
-        case 'conteudo':
-          await supabase.from('content_items').update({ status: 'publicado', updated_at: now }).eq('id', item.sourceId);
-          break;
-        case 'nps':
-          await supabase.from('client_nps_records').update({ status: 'feito', actual_date: format(today, 'yyyy-MM-dd'), updated_at: now }).eq('id', item.sourceId);
-          break;
-        case 'marco':
-          await supabase.from('client_milestones').update({ status: 'feito', updated_at: now }).eq('id', item.sourceId);
-          break;
-        case 'acao_venda':
-          await supabase.from('commercial_sales_actions').update({ status: 'concluida', updated_at: now }).eq('id', item.sourceId);
-          break;
-        case 'habito':
-          await supabase.from('executive_monthly_checklists').update({ completed: true }).eq('id', item.sourceId);
-          break;
-      }
-    },
-    onSuccess: () => {
-      // Invalidate all unified queries
-      qc.invalidateQueries({ queryKey: ['unified-tasks'] });
-      qc.invalidateQueries({ queryKey: ['unified-crm'] });
-      qc.invalidateQueries({ queryKey: ['unified-content'] });
-      qc.invalidateQueries({ queryKey: ['unified-nps'] });
-      qc.invalidateQueries({ queryKey: ['unified-milestones'] });
-      qc.invalidateQueries({ queryKey: ['unified-sales-actions'] });
-      qc.invalidateQueries({ queryKey: ['unified-habits'] });
-      qc.invalidateQueries({ queryKey: ['my-tasks'] });
-      toast.success('Concluído');
-    },
-    onError: () => toast.error('Erro ao concluir item'),
-  });
-
-  const uncompleteItem = useMutation({
-    mutationFn: async (item: UnifiedItem) => {
-      const now = new Date().toISOString();
-      switch (item.source) {
-        case 'tarefa':
-          await supabase.from('tasks').update({ status: 'a_fazer', updated_at: now }).eq('id', item.sourceId);
-          break;
-        case 'habito':
-          await supabase.from('executive_monthly_checklists').update({ completed: false }).eq('id', item.sourceId);
-          break;
-      }
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['unified-tasks'] });
-      qc.invalidateQueries({ queryKey: ['unified-habits'] });
-      qc.invalidateQueries({ queryKey: ['my-tasks'] });
-    },
-  });
+  // ─── No bidirectional sync — items are windows to their source ──
 
   // ─── Productivity helpers ──────────────────────────────────
 
@@ -431,8 +370,6 @@ export function useUnifiedResponsibilities(userId?: string) {
     items,
     todayItems,
     weekItems,
-    completeItem,
-    uncompleteItem,
     getItemHours,
     isLoading: tasksQ.isLoading || leadsQ.isLoading || contentQ.isLoading || meetingsQ.isLoading,
   };
