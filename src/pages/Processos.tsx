@@ -61,6 +61,16 @@ export default function ProcessosPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const planningRoutines = usePlanningRoutines();
+
+  // Planning routine form state
+  const [showNewPlanningRoutine, setShowNewPlanningRoutine] = useState(false);
+  const [prTitle, setPrTitle] = useState('');
+  const [prResponsible, setPrResponsible] = useState('');
+  const [prRecurrence, setPrRecurrence] = useState<'semanal' | 'mensal'>('semanal');
+  const [prWeekday, setPrWeekday] = useState('1');
+  const [prMonthDay, setPrMonthDay] = useState('1');
+  const [prAdjustBiz, setPrAdjustBiz] = useState(true);
 
   const { allViews, addView, renameView, deleteView } = useUserViews('processos', PROCESSOS_DEFAULT_VIEWS);
   const [selectedDept, setSelectedDept] = useState<string | null>(null);
