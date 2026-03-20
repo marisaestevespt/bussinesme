@@ -610,6 +610,10 @@ function EventFormDialog({
 
 const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
+function getType(types: EventType[], typeId: string | null) {
+  return types.find(t => t.id === typeId) ?? null;
+}
+
 function CalendarView({ events, types, onEventClick }: { events: EventRow[]; types: EventType[]; onEventClick: (e: EventRow) => void }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const monthStart = startOfMonth(currentMonth);
@@ -617,15 +621,41 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const startDayIdx = (getDay(monthStart) + 6) % 7;
   const paddedDays: (Date | null)[] = [...Array(startDayIdx).fill(null), ...days];
+  const totalCells = Math.ceil(paddedDays.length / 7) * 7;
+  while (paddedDays.length < totalCells) paddedDays.push(null);
+  const weeks: (Date | null)[][] = [];
+  for (let i = 0; i < paddedDays.length; i += 7) weeks.push(paddedDays.slice(i, i + 7));
 
   const expandedEvents = expandRecurringEvents(events, monthStart, monthEnd);
 
-  const eventsForDay = (day: Date) =>
-    expandedEvents.filter(ev => {
-      const start = parseISO(ev.start_date);
-      const end = ev.end_date ? parseISO(ev.end_date) : start;
-      return isSameDay(day, start) || isSameDay(day, end) || isWithinInterval(day, { start, end });
+  // For each week, compute which events span which columns
+  const getWeekBars = (week: (Date | null)[]) => {
+    const weekDays = week.map((d, i) => ({ day: d, col: i }));
+    const bars: { ev: EventRow; startCol: number; span: number; color: string }[] = [];
+
+    expandedEvents.forEach(ev => {
+      const evStart = parseISO(ev.start_date);
+      const evEnd = ev.end_date ? parseISO(ev.end_date) : evStart;
+      let firstCol = -1;
+      let lastCol = -1;
+
+      weekDays.forEach(({ day, col }) => {
+        if (!day) return;
+        if (isSameDay(day, evStart) || isSameDay(day, evEnd) || (day > evStart && day < evEnd)) {
+          if (firstCol === -1) firstCol = col;
+          lastCol = col;
+        }
+      });
+
+      if (firstCol !== -1) {
+        const t = getType(types, ev.event_type_id);
+        const color = t?.color ?? '#888';
+        bars.push({ ev, startCol: firstCol, span: lastCol - firstCol + 1, color });
+      }
     });
+
+    return bars;
+  };
 
   return (
     <div>
@@ -634,31 +664,68 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
         <h3 className="text-lg font-semibold capitalize text-foreground">{format(currentMonth, 'MMMM yyyy', { locale: pt })}</h3>
         <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(m => addMonths(m, 1))}><ChevronRight className="h-4 w-4" /></Button>
       </div>
-      <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden">
-        {WEEKDAYS.map(d => (
-          <div key={d} className="bg-primary px-2 py-2 text-xs font-medium text-primary-foreground text-center">{d}</div>
-        ))}
-        {paddedDays.map((day, i) => (
-          <div key={i} className={cn('bg-card min-h-[90px] p-1.5 text-sm', day && isSameDay(day, new Date()) && 'ring-1 ring-inset ring-primary/30', !day && 'bg-muted/30')}>
-            {day && (
-              <>
-                <span className={cn('text-xs font-medium', isSameDay(day, new Date()) ? 'text-primary font-bold' : 'text-foreground/70')}>{format(day, 'd')}</span>
-                <div className="mt-0.5 space-y-0.5">
-                  {eventsForDay(day).slice(0, 3).map(ev => {
-                    const t = getType(types, ev.event_type_id);
-                    const color = t?.color ?? '#888';
+      <div className="border rounded-lg overflow-hidden">
+        {/* Header */}
+        <div className="grid grid-cols-7 gap-px bg-border">
+          {WEEKDAYS.map(d => (
+            <div key={d} className="bg-primary px-2 py-2 text-xs font-medium text-primary-foreground text-center">{d}</div>
+          ))}
+        </div>
+        {/* Weeks */}
+        {weeks.map((week, wi) => {
+          const bars = getWeekBars(week);
+          // Assign rows to bars to avoid overlap
+          const barRows: number[] = [];
+          bars.forEach((bar, bi) => {
+            let row = 0;
+            while (bars.some((other, oi) => oi < bi && barRows[oi] === row && !(other.startCol + other.span - 1 < bar.startCol || bar.startCol + bar.span - 1 < other.startCol))) {
+              row++;
+            }
+            barRows.push(row);
+          });
+          const maxRow = barRows.length > 0 ? Math.max(...barRows) : -1;
+          const barSlotsHeight = (maxRow + 1) * 28;
+
+          return (
+            <div key={wi} className="grid grid-cols-7 gap-px bg-border">
+              {week.map((day, di) => (
+                <div key={di} className={cn('bg-card min-h-[110px] p-1.5', day && isSameDay(day, new Date()) && 'ring-1 ring-inset ring-primary/30', !day && 'bg-muted/30')}>
+                  {day && (
+                    <span className={cn('text-xs font-medium', isSameDay(day, new Date()) ? 'text-primary font-bold' : 'text-foreground/70')}>{format(day, 'd')}</span>
+                  )}
+                </div>
+              ))}
+              {/* Overlay bars for this week */}
+              {bars.length > 0 && (
+                <div className="col-span-7 relative" style={{ height: 0, marginTop: `-${barSlotsHeight + 8}px` }}>
+                  {bars.map((bar, bi) => {
+                    const leftPct = (bar.startCol / 7) * 100;
+                    const widthPct = (bar.span / 7) * 100;
+                    const topPx = 22 + barRows[bi] * 28;
                     return (
-                      <button key={ev.id} onClick={() => onEventClick(ev)} className="w-full text-left rounded px-1 py-0.5 text-[10px] leading-tight truncate transition-opacity hover:opacity-80" style={{ backgroundColor: `${color}20`, color }}>
-                        {ev.recurrence_type && '🔁 '}{ev.title}
+                      <button
+                        key={`${bar.ev.id}-${wi}`}
+                        onClick={() => onEventClick(bar.ev)}
+                        className="absolute rounded-md px-2 py-1 text-xs font-medium truncate transition-opacity hover:opacity-80 z-10"
+                        style={{
+                          left: `calc(${leftPct}% + 4px)`,
+                          width: `calc(${widthPct}% - 8px)`,
+                          top: `${topPx}px`,
+                          backgroundColor: `${bar.color}20`,
+                          color: bar.color,
+                          height: '24px',
+                          lineHeight: '16px',
+                        }}
+                      >
+                        {bar.ev.recurrence_type && '🔁 '}{bar.ev.title}
                       </button>
                     );
                   })}
-                  {eventsForDay(day).length > 3 && <span className="text-[10px] text-muted-foreground">+{eventsForDay(day).length - 3}</span>}
                 </div>
-              </>
-            )}
-          </div>
-        ))}
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
