@@ -169,6 +169,7 @@ export default function ChannelPage() {
                 <ChannelMonthGallery
                   channelId={channelId!}
                   year={currentYear}
+                  onYearChange={setCurrentYear}
                   onSelectMonth={(month) => setSelectedMonth({ month, year: currentYear })}
                 />
               )}
