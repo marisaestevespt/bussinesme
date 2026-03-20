@@ -227,6 +227,7 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
       <MonthNavHeader monthIdx={month - 1} year={year} onBack={onBack} onChangeMonth={(m, y) => onChangeMonth(m + 1, y)} />
 
       {/* 1. Objectives */}
+      {isAreaEnabled('marketing') && isKpiEnabled('marketing', 'objetivos_marketing') && (
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <Target className="h-4 w-4 text-primary" />
