@@ -459,12 +459,17 @@ export default function ReuniaoDetailPage() {
             )}
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Cliente</Label>
-              <Input
-                value={m.client_name ?? ''}
-                onChange={e => update({ client_name: e.target.value || null })}
-                placeholder="Sem cliente"
-                className="h-7 text-xs w-40"
-              />
+              <Select value={m.client_id ?? ''} onValueChange={v => {
+                const selected = clientsList.find((c: any) => c.id === v);
+                update({ client_id: v || null, client_name: selected?.full_name || null });
+              }}>
+                <SelectTrigger className="h-7 text-xs w-44"><SelectValue placeholder="Sem cliente" /></SelectTrigger>
+                <SelectContent>
+                  {clientsList.map((c: any) => (
+                    <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Departamento</Label>

@@ -35,20 +35,20 @@ import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 import { ClientContactsSection } from '@/components/client/ClientContactsSection';
 
 // ─── Meetings query for filtered view ───────────────────────────
-function useFilteredMeetings(clientName: string | undefined) {
+function useFilteredMeetings(clientId: string | undefined) {
   return useQuery({
-    queryKey: ['meetings', 'client', clientName],
+    queryKey: ['meetings', 'client', clientId],
     queryFn: async () => {
-      if (!clientName) return [];
+      if (!clientId) return [];
       const { data, error } = await supabase
         .from('meetings')
         .select('*, meeting_participants(profile_id, profiles:profiles(full_name))')
-        .eq('client_name', clientName)
+        .eq('client_id', clientId)
         .order('date_time', { ascending: false });
       if (error) throw error;
       return data || [];
     },
-    enabled: !!clientName,
+    enabled: !!clientId,
   });
 }
 
