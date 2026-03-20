@@ -542,6 +542,24 @@ export default function ProcessosPage() {
                 <SelectContent>{FREQUENCIES.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            {newRoutineFreq === 'dia_x_mes' && (
+              <>
+                <div>
+                  <Label>Dia do mês *</Label>
+                  <Input type="number" min={1} max={31} value={newRoutineMonthlyDay} onChange={e => setNewRoutineMonthlyDay(e.target.value)} placeholder="Ex: 15" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Data de início *</Label>
+                    <Input type="date" value={newRoutineStartDate} onChange={e => setNewRoutineStartDate(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Data de fim</Label>
+                    <Input type="date" value={newRoutineEndDate} onChange={e => setNewRoutineEndDate(e.target.value)} />
+                  </div>
+                </div>
+              </>
+            )}
             <div>
               <Label>Departamento</Label>
               <Select value={newRoutineDept} onValueChange={setNewRoutineDept}>
