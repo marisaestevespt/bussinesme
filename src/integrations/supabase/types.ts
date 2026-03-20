@@ -4280,44 +4280,6 @@ export type Database = {
           },
         ]
       }
-      portal_otp: {
-        Row: {
-          client_id: string
-          code: string
-          created_at: string
-          email: string
-          expires_at: string
-          id: string
-          used: boolean
-        }
-        Insert: {
-          client_id: string
-          code: string
-          created_at?: string
-          email: string
-          expires_at?: string
-          id?: string
-          used?: boolean
-        }
-        Update: {
-          client_id?: string
-          code?: string
-          created_at?: string
-          email?: string
-          expires_at?: string
-          id?: string
-          used?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "portal_otp_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       portal_timeline_phases: {
         Row: {
           created_at: string
