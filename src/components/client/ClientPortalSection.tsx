@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Copy, ExternalLink, Plus, Trash2, X, MessageSquare } from 'lucide-react';
+import { Copy, ExternalLink, Plus, Trash2, X, MessageSquare, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import {
@@ -46,10 +47,47 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
 
   const portalUrl = portalData ? `${window.location.origin}/portal/${portalData.token}` : '';
 
-  const createPortal = () => {
+  const createPortal = async () => {
     if (!portalType) { toast.error('Este tipo de produto não gera portal'); return; }
-    upsertPortal.mutate({ client_id: clientId, portal_type: portalType });
+    await upsertPortal.mutateAsync({ client_id: clientId, portal_type: portalType });
+    // After portal is created, seed FAQs from product
     toast.success('Portal criado');
+    // We need to wait for portal data to be available, so seed FAQs after invalidation
+    setTimeout(() => seedFaqsFromProduct(), 1500);
+  };
+
+  const seedFaqsFromProduct = async () => {
+    const portalRes = await supabase.from('client_portals' as any).select('id').eq('client_id', clientId).maybeSingle();
+    const pid = (portalRes.data as any)?.id;
+    if (!pid || !product) return;
+    const productFaqs: { question: string; answer: string }[] = Array.isArray(product.faqs) ? product.faqs : [];
+    const validFaqs = productFaqs.filter(f => f.question?.trim());
+    if (validFaqs.length === 0) return;
+    const rows = validFaqs.map((f, i) => ({
+      portal_id: pid,
+      question: f.question,
+      answer: f.answer || '',
+      sort_order: i,
+    }));
+    await supabase.from('portal_faqs' as any).insert(rows);
+    faqs.refetch();
+  };
+
+  const importFaqsFromProduct = async () => {
+    if (!portalId || !product) { toast.error('Sem produto associado'); return; }
+    const productFaqs: { question: string; answer: string }[] = Array.isArray(product.faqs) ? product.faqs : [];
+    const validFaqs = productFaqs.filter(f => f.question?.trim());
+    if (validFaqs.length === 0) { toast.info('O produto não tem FAQ\'s definidas'); return; }
+    const existingCount = faqs.data?.length || 0;
+    const rows = validFaqs.map((f, i) => ({
+      portal_id: portalId,
+      question: f.question,
+      answer: f.answer || '',
+      sort_order: existingCount + i,
+    }));
+    await supabase.from('portal_faqs' as any).insert(rows);
+    faqs.refetch();
+    toast.success(`${validFaqs.length} FAQ's importadas do produto`);
   };
 
   if (!portalType) {
@@ -146,9 +184,14 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
       <Card>
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
           <CardTitle className="text-sm">FAQ's do Portal</CardTitle>
-          <Button size="sm" variant="outline" onClick={() => addFaq.mutate({ portal_id: portalId!, question: '', sort_order: (faqs.data?.length || 0) })}>
-            <Plus className="h-3 w-3 mr-1" />Nova FAQ
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={importFaqsFromProduct}>
+              <RefreshCw className="h-3 w-3 mr-1" />Importar do Produto
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => addFaq.mutate({ portal_id: portalId!, question: '', sort_order: (faqs.data?.length || 0) })}>
+              <Plus className="h-3 w-3 mr-1" />Nova FAQ
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-2">
           {(faqs.data || []).map(f => (
