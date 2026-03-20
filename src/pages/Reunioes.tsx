@@ -210,9 +210,9 @@ function MemberPicker({ selectedIds, onChange, profiles }: { selectedIds: string
 // ─── New Meeting Dialog ─────────────────────────────────────────
 
 function MeetingFormDialog({
-  open, onOpenChange, profiles, projects,
+  open, onOpenChange, profiles, projects, clients,
 }: {
-  open: boolean; onOpenChange: (o: boolean) => void; profiles: Profile[]; projects: ProjectOption[];
+  open: boolean; onOpenChange: (o: boolean) => void; profiles: Profile[]; projects: ProjectOption[]; clients: { id: string; full_name: string }[];
 }) {
   const qc = useQueryClient();
   const { user } = useAuth();
