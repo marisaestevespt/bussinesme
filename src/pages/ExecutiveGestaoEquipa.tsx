@@ -683,7 +683,7 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl w-[95vw] max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12">
