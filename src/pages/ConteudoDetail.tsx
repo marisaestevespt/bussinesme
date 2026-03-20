@@ -383,7 +383,10 @@ export default function ConteudoDetailPage() {
                       <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
                       <SelectContent>
                         {getFormatsForChannels(
-                          selectedChannels.map(chId => channels.find(c => c.id === chId)?.name || '').filter(Boolean)
+                          (selectedChannels.length > 0
+                            ? selectedChannels.map(chId => channels.find(c => c.id === chId)?.name || '').filter(Boolean)
+                            : channels.filter(c => c.is_active).map(c => c.name)
+                          )
                         ).map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
