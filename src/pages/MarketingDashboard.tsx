@@ -48,7 +48,7 @@ const MARKETING_360 = [
   { title: 'Automações', desc: 'Automatizações e integrações', icon: Zap, url: '/hub/marketing/automacoes' },
   { title: 'Funis', desc: 'Funis de conversão', icon: Filter, url: '/hub/marketing/funis' },
   { title: 'Tráfego Pago', desc: 'Campanhas e ads', icon: TrendingUp, url: '/hub/marketing/trafego-pago' },
-  { title: 'Análise', desc: 'Análise mensal de marketing', icon: TrendingUp, url: '/hub/marketing/analise' },
+  { title: 'Análise', desc: 'Análise mensal de marketing', icon: BarChart3, url: '/hub/marketing/analise' },
 ];
 
 export default function MarketingDashboard() {
