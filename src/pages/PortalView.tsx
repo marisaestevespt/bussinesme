@@ -11,7 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare, MessageSquare, Star, Send, ClipboardList, BarChart3 } from 'lucide-react';
+import { FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare, MessageSquare, Star, Send, ClipboardList, BarChart3, Clock } from 'lucide-react';
 import type { Portal } from '@/hooks/usePortalData';
 
 const sb = (table: string) => supabase.from(table as any) as any;
@@ -229,6 +229,19 @@ export default function PortalViewPage() {
                 <h1 className="text-2xl font-bold">Bem-vinda, {client.full_name?.split(' ')[0]}!</h1>
                 <p className="text-muted-foreground">Este é o teu espaço de acompanhamento.</p>
               </div>
+
+              {/* Business hours */}
+              {(settings as any)?.support_hours && (
+                <Card>
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <Clock className="h-5 w-5 text-primary shrink-0" />
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Horário de atendimento</p>
+                      <p className="text-sm font-medium">{(settings as any).support_hours}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Action cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -531,34 +544,6 @@ export default function PortalViewPage() {
             </div>
           )}
 
-          {/* Comments section - always at bottom */}
-          <Card className="mt-8">
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Comunicação</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {comments.map((c: any) => (
-                  <div key={c.id} className={`flex ${c.author === 'client' ? 'justify-start' : 'justify-end'}`}>
-                    <div className={`max-w-[70%] rounded-lg p-2 text-sm ${c.author === 'client' ? 'bg-muted' : 'bg-primary/10'}`}>
-                      <p className="font-medium text-[10px] text-muted-foreground">{c.author_name}</p>
-                      <p>{c.content}</p>
-                    </div>
-                  </div>
-                ))}
-                {comments.length === 0 && <p className="text-xs text-muted-foreground text-center">Sem mensagens</p>}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Escreve uma mensagem..."
-                  value={commentText}
-                  onChange={e => setCommentText(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && sendComment()}
-                />
-                <Button size="sm" disabled={!commentText.trim()} onClick={sendComment}>
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </main>
       </div>
     </div>

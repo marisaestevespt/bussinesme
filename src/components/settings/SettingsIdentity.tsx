@@ -128,6 +128,7 @@ export function SettingsIdentity() {
   const qc = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [businessName, setBusinessName] = useState('');
+  const [supportHours, setSupportHours] = useState('');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bgFile, setBgFile] = useState<File | null>(null);
@@ -168,6 +169,7 @@ export function SettingsIdentity() {
   useEffect(() => {
     if (!settings) return;
     setBusinessName(settings.business_name);
+    setSupportHours((settings as any).support_hours || '');
     setLogoPreview(settings.logo_url);
     setBgPreview((settings as any).login_bg_url || null);
     setColors({
@@ -265,6 +267,7 @@ export function SettingsIdentity() {
           business_name: businessName.trim(),
           logo_url: logoUrl,
           login_bg_url: loginBgUrl,
+          support_hours: supportHours.trim() || null,
           primary_color: hexToHsl(colors.primary),
           secondary_color: hexToHsl(colors.secondary),
           background_color: hexToHsl(colors.background),
@@ -295,6 +298,11 @@ export function SettingsIdentity() {
         <div className="space-y-2">
           <Label htmlFor="settingsBusinessName" className="text-sm font-medium">Nome do negócio</Label>
           <Input id="settingsBusinessName" value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="O nome do teu negócio" required className="h-11" />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="supportHours" className="text-sm font-medium">Horário de atendimento</Label>
+          <Input id="supportHours" value={supportHours} onChange={(e) => setSupportHours(e.target.value)} placeholder="Ex: Seg a Sex, 10h – 18h" className="h-11" />
+          <p className="text-xs text-muted-foreground">Será visível no portal do cliente.</p>
         </div>
         <div className="space-y-2">
           <Label className="text-sm font-medium">Logo</Label>

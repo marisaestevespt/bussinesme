@@ -373,6 +373,7 @@ export type Database = {
           primary_color: string
           proposta_unica_valor: string | null
           secondary_color: string
+          support_hours: string | null
           text_color: string
           updated_at: string
           welcome_text: string | null
@@ -391,6 +392,7 @@ export type Database = {
           primary_color?: string
           proposta_unica_valor?: string | null
           secondary_color?: string
+          support_hours?: string | null
           text_color?: string
           updated_at?: string
           welcome_text?: string | null
@@ -409,6 +411,7 @@ export type Database = {
           primary_color?: string
           proposta_unica_valor?: string | null
           secondary_color?: string
+          support_hours?: string | null
           text_color?: string
           updated_at?: string
           welcome_text?: string | null
