@@ -4,6 +4,7 @@ import { excludeCancelled } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useState } from 'react';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { useQuery } from '@tanstack/react-query';
@@ -17,6 +18,7 @@ import { FinTrimestral } from '@/components/financial/FinTrimestral';
 import { FinSegurancaSocial } from '@/components/financial/FinSegurancaSocial';
 import { FinAllDocuments } from '@/components/financial/FinAllDocuments';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
+import { YearSelector } from '@/components/YearSelector';
 
 const TITLES: Record<string, string> = {
   mensal: 'Mensal',
@@ -28,12 +30,14 @@ const TITLES: Record<string, string> = {
   documentos: 'Documentos',
 };
 
+const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'iva', 'seguranca-social'];
+
 export default function FinanceiroSubPage() {
   const { section } = useParams<{ section: string }>();
   const navigate = useNavigate();
+  const [year, setYear] = useState(new Date().getFullYear());
   const fin = useFinancialData();
-  const com = useCommercialData();
-  const currentYear = new Date().getFullYear();
+  const com = useCommercialData(year);
   const sales = excludeCancelled(com.sales.data || []);
   const expenses = excludeCancelled(fin.expenses.data || []);
   const subscriptions = fin.subscriptions.data || [];
@@ -50,21 +54,22 @@ export default function FinanceiroSubPage() {
   });
 
   const title = TITLES[section || ''] || section || '';
+  const showYearSelector = YEAR_SECTIONS.includes(section || '');
 
   const renderContent = () => {
     switch (section) {
       case 'mensal':
-        return <FinMensal sales={sales} expenses={expenses} subscriptions={subscriptions} payrollData={payrollData} contractorsData={contractorsData} documents={documents} currentYear={currentYear} fin={fin} />;
+        return <FinMensal sales={sales} expenses={expenses} subscriptions={subscriptions} payrollData={payrollData} contractorsData={contractorsData} documents={documents} currentYear={year} fin={fin} />;
       case 'trimestral':
-        return <FinTrimestral sales={sales} expenses={expenses} currentYear={currentYear} />;
+        return <FinTrimestral sales={sales} expenses={expenses} currentYear={year} />;
       case 'entradas':
-        return <FinEntradas sales={sales} currentYear={currentYear} />;
+        return <FinEntradas sales={sales} currentYear={year} />;
       case 'saidas':
         return <FinSaidas fin={fin} />;
       case 'iva':
-        return <FinIVA sales={sales} expenses={expenses} currentYear={currentYear} fin={fin} />;
+        return <FinIVA sales={sales} expenses={expenses} currentYear={year} fin={fin} />;
       case 'seguranca-social':
-        return <FinSegurancaSocial fin={fin} expenses={expenses} currentYear={currentYear} sales={sales} />;
+        return <FinSegurancaSocial fin={fin} expenses={expenses} currentYear={year} sales={sales} />;
       case 'documentos':
         return <FinAllDocuments />;
       default:
@@ -80,6 +85,7 @@ export default function FinanceiroSubPage() {
           <span className="text-sm text-muted-foreground">Contabilidade</span>
         </div>
         <PageHeader title={title} />
+        {showYearSelector && <YearSelector year={year} onChange={setYear} />}
         {renderContent()}
       </div>
     </AppLayout>
