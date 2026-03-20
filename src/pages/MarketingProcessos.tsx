@@ -125,7 +125,10 @@ export default function MarketingProcessos() {
       const { error } = await supabase.from('routines').insert({
         name: newRoutineName, department: DEPT, frequency: newRoutineFreq,
         assigned_to: newRoutineAssignee || null, created_by: user?.id, sop_id: sopId,
-      });
+        monthly_day: newRoutineFreq === 'dia_x_mes' && newRoutineMonthlyDay ? Number(newRoutineMonthlyDay) : null,
+        start_date: newRoutineFreq === 'dia_x_mes' && newRoutineStartDate ? newRoutineStartDate : null,
+        end_date: newRoutineFreq === 'dia_x_mes' && newRoutineEndDate ? newRoutineEndDate : null,
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['routines', 'sops'] }); setShowNewRoutine(false); resetRoutineForm(); toast.success('Rotina criada'); },
