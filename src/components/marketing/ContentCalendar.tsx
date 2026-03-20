@@ -72,7 +72,7 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
           <img src={coverImage} alt="" className="w-full h-full object-cover" />
         </div>
       )}
-      <div className="p-1.5 flex flex-col gap-px flex-1">
+      <div className="p-1.5 flex flex-col gap-1 flex-1">
         {/* Title + time */}
         <div className="flex items-center justify-between gap-1">
           <p className="text-xs font-medium truncate leading-tight text-foreground">{item.title}</p>
