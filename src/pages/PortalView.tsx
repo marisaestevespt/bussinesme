@@ -101,7 +101,7 @@ export default function PortalViewPage() {
       sb('portal_comments').select('*').eq('portal_id', pid).order('created_at', { ascending: true }),
       sb('portal_feedback').select('*').eq('portal_id', pid).order('submitted_at', { ascending: false }),
       cname ? supabase.from('meetings').select('*').eq('client_name', cname).order('date_time', { ascending: false }) : { data: [] },
-      cname ? supabase.from('commercial_sales').select('*').eq('client', cname).order('payment_date', { ascending: false }) : { data: [] },
+      (supabase as any).rpc('get_portal_payments', { _token: token }),
       sb('client_onboarding').select('*').eq('client_id', cid).order('sort_order'),
       supabase.from('tasks').select('*').eq('visible_in_portal', true),
       sb('portal_timeline_phases').select('*').eq('portal_id', pid).order('sort_order'),
@@ -396,22 +396,33 @@ export default function PortalViewPage() {
               <Card>
                 <CardContent className="p-0">
                   <div className="bg-muted px-4 py-2 font-medium text-xs grid grid-cols-4 gap-2">
-                    <span>Data</span><span>Descrição</span><span>Valor</span><span>Estado</span>
+                    <span>Mês</span><span>Data</span><span>Documento</span><span>Status</span>
                   </div>
                   {payments.length === 0 ? (
                     <p className="text-center text-muted-foreground py-8 text-sm">Sem pagamentos registados.</p>
-                  ) : payments.map((p: any) => (
-                    <div key={p.id} className="px-4 py-2 text-sm grid grid-cols-4 gap-2 border-b">
-                      <span className="text-xs">{p.payment_date || '—'}</span>
-                      <span className="text-xs truncate">{p.description || '—'}</span>
-                      <span className="text-xs font-medium">{Number(p.invoice_total).toFixed(2)}€</span>
-                      <span>
-                        <Badge variant="outline" className={`text-[10px] ${p.status === 'pago' ? 'bg-green-100 text-green-800' : p.status === 'em_falta' ? 'bg-red-100 text-red-800' : ''}`}>
-                          {p.status}
-                        </Badge>
-                      </span>
-                    </div>
-                  ))}
+                  ) : payments.map((p: any) => {
+                    const docs = p.documents;
+                    const docList = Array.isArray(docs) ? docs : [];
+                    const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+                    return (
+                      <div key={p.id} className="px-4 py-2 text-sm grid grid-cols-4 gap-2 border-b items-center">
+                        <span className="text-xs">{p.sale_month ? monthNames[p.sale_month - 1] : '—'}</span>
+                        <span className="text-xs">{p.payment_date || '—'}</span>
+                        <span className="text-xs">
+                          {docList.length > 0 ? docList.map((d: any, i: number) => (
+                            <a key={i} href={d.url || d} target="_blank" rel="noopener noreferrer" className="text-primary underline block truncate max-w-[160px]">
+                              {d.name || d.file_name || `Documento ${i + 1}`}
+                            </a>
+                          )) : '—'}
+                        </span>
+                        <span>
+                          <Badge variant="outline" className={`text-[10px] ${p.status === 'pago' ? 'bg-green-100 text-green-800' : p.status === 'em_falta' ? 'bg-red-100 text-red-800' : ''}`}>
+                            {p.status === 'pago' ? 'Pago' : p.status === 'em_falta' ? 'Em falta' : p.status === 'pendente' ? 'Pendente' : p.status}
+                          </Badge>
+                        </span>
+                      </div>
+                    );
+                  })}
                 </CardContent>
               </Card>
             </div>
