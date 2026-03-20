@@ -189,6 +189,23 @@ export default function SopDetailPage() {
   const [decisoes, setDecisoes] = useState<string[]>(['']);
   const [outputs, setOutputs] = useState<ListItem[]>([{ text: '', checked: false }]);
   const [notas, setNotas] = useState<string[]>(['']);
+  const [linkedEntityType, setLinkedEntityType] = useState('geral');
+  const [linkedEntityId, setLinkedEntityId] = useState<string>('');
+  const [applyToAllActiveClients, setApplyToAllActiveClients] = useState(false);
+
+  // Entity lists for selects
+  const { data: productsList = [] } = useQuery({
+    queryKey: ['products-list'],
+    queryFn: async () => { const { data } = await supabase.from('products').select('id, name'); return data || []; },
+  });
+  const { data: clientsList = [] } = useQuery({
+    queryKey: ['clients-list'],
+    queryFn: async () => { const { data } = await supabase.from('clients').select('id, full_name'); return data || []; },
+  });
+  const { data: projectsList = [] } = useQuery({
+    queryKey: ['projects-list'],
+    queryFn: async () => { const { data } = await supabase.from('projects').select('id, name'); return data || []; },
+  });
 
   useEffect(() => {
     if (!sop) return;
