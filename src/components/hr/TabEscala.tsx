@@ -406,9 +406,21 @@ export function TabEscala() {
         />
       )}
 
-      {/* Absence Coverage Table */}
+      {/* Ausências */}
       <Separator className="my-6" />
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-foreground">Ausências</h2>
+        <Button size="sm" onClick={() => setAbsenceDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-1" /> Nova Ausência
+        </Button>
+      </div>
       <AbsenceCoverageTable />
+
+      <NewAbsenceDialog
+        open={absenceDialogOpen}
+        onClose={() => setAbsenceDialogOpen(false)}
+        members={members.map(m => ({ id: m.id, full_name: m.full_name, profile_id: null, role_title: m.role_title }))}
+      />
     </div>
   );
 }
