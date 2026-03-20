@@ -89,7 +89,7 @@ export default function ProdutosPage() {
                     </a>
                   )}
                   {p.ticket != null && (
-                    <p className="text-sm font-semibold text-accent">
+                    <p className="text-sm font-semibold text-primary">
                       {Number(p.ticket).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
                     </p>
                   )}
