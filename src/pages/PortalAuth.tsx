@@ -61,7 +61,16 @@ export default function PortalAuthPage() {
 
   const handleSubmit = async () => {
     if (!email.trim()) return;
-    if (!client || client.email?.toLowerCase() !== email.trim().toLowerCase()) {
+    const inputEmail = email.trim().toLowerCase();
+    const mainMatch = client?.email?.toLowerCase() === inputEmail;
+
+    let contactMatch = false;
+    if (!mainMatch && client) {
+      const { data: contacts } = await sb('client_contacts').select('email').eq('client_id', client.id);
+      contactMatch = (contacts || []).some((c: any) => c.email?.toLowerCase() === inputEmail);
+    }
+
+    if (!mainMatch && !contactMatch) {
       toast.error('Email não reconhecido.');
       return;
     }
