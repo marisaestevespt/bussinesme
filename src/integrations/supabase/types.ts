@@ -6502,7 +6502,7 @@ export type Database = {
         | "venda"
         | "debriefing_pos_fecho"
       launch_task_status: "por_comecar" | "em_curso" | "concluido" | "bloqueado"
-      meeting_status: "por_confirmar" | "marcada" | "terminada"
+      meeting_status: "por_confirmar" | "marcada" | "terminada" | "confirmada"
       portal_comment_author: "client" | "team"
       portal_type: "projeto_unico" | "servico_mensal"
     }
@@ -6642,7 +6642,7 @@ export const Constants = {
         "debriefing_pos_fecho",
       ],
       launch_task_status: ["por_comecar", "em_curso", "concluido", "bloqueado"],
-      meeting_status: ["por_confirmar", "marcada", "terminada"],
+      meeting_status: ["por_confirmar", "marcada", "terminada", "confirmada"],
       portal_comment_author: ["client", "team"],
       portal_type: ["projeto_unico", "servico_mensal"],
     },
