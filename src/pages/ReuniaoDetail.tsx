@@ -427,6 +427,17 @@ export default function ReuniaoDetailPage() {
                 ))}
               </SelectContent>
             </Select>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Duração (min)</Label>
+              <Input
+                type="number"
+                min={0}
+                value={m.duration_minutes || ''}
+                onChange={e => update({ duration_minutes: parseInt(e.target.value) || 0 })}
+                placeholder="Ex: 60"
+                className="h-7 w-24 text-xs"
+              />
+            </div>
           </div>
 
           {/* Meta info */}
