@@ -308,11 +308,11 @@ function LaunchTaskDialog({ open, onOpenChange, projectId, profiles, qc, userId 
       const { data: lt, error } = await supabase.from('launch_tasks').insert({
         project_id: projectId,
         title,
-        phase,
+        phase: phase as any,
         responsible_id: responsibleId || null,
         due_date: dueDate ? format(dueDate, 'yyyy-MM-dd') : null,
         sector_area: sector || null,
-      }).select().single();
+      } as any).select().single();
       if (error) throw error;
 
       // If responsible assigned, create task in main tasks table
