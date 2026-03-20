@@ -98,7 +98,19 @@ function AppRoutes() {
   }
 
   if (!user) return <AuthPage />;
-  if (!isSetupComplete) return <SetupPage />;
+
+  return (
+    <Routes>
+      {/* Public portal routes - outside auth */}
+      <Route path="/portal/:token" element={<PortalAuthPage />} />
+      <Route path="/portal/:token/view" element={<PortalViewPage />} />
+
+      {/* Auth-gated routes */}
+      {!isSetupComplete ? (
+        <Route path="*" element={<SetupPage />} />
+      ) : (
+        <>
+
 
   return (
     <Routes>
