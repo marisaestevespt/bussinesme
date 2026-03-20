@@ -163,6 +163,20 @@ const ROLE_COLORS = [
   { value: '#64748b', label: 'Cinza' },
 ];
 
+const PRESET_ROLES = [
+  { label: 'Owner', color: '#6366f1' },
+  { label: 'Designer', color: '#ec4899' },
+  { label: 'Copywriter', color: '#f59e0b' },
+  { label: 'Gestora', color: '#3b82f6' },
+  { label: 'Gestora de Redes', color: '#14b8a6' },
+  { label: 'Analista', color: '#8b5cf6' },
+  { label: 'Estratega', color: '#10b981' },
+  { label: 'Contabilista', color: '#64748b' },
+  { label: 'Advogada', color: '#ef4444' },
+  { label: 'Assistente Virtual', color: '#f97316' },
+  { label: 'Administrativa', color: '#3b82f6' },
+];
+
 const WEEK_DAYS = [
   { key: 'seg', label: 'Seg' },
   { key: 'ter', label: 'Ter' },
