@@ -277,7 +277,12 @@ export default function ClienteDetailPage() {
           <div className="flex items-center gap-3">
             <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
             <div>
-              <h1 className="text-xl font-bold">{form.full_name || 'Novo Cliente'}</h1>
+              <Input
+                value={form.full_name || ''}
+                onChange={e => update('full_name', e.target.value)}
+                placeholder="Nome do cliente"
+                className="text-xl font-bold border-none shadow-none px-0 h-auto focus-visible:ring-0 bg-transparent"
+              />
               {form.client_id && <p className="text-xs text-muted-foreground font-mono">{form.client_id}</p>}
             </div>
             <EndOfCycleBadge date={form.end_of_cycle || null} />
