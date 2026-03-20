@@ -332,8 +332,6 @@ function MeuDiaTab({ todayTasks, todayMeetings, timeEntries, getProjectName, qc 
       {/* Unified responsibilities */}
       <UnifiedResponsibilitiesList
         items={unified.todayItems}
-        onComplete={(item) => unified.completeItem.mutate(item)}
-        onUndo={(item) => unified.uncompleteItem.mutate(item)}
         title="Hoje — Todas as Responsabilidades"
       />
 
