@@ -102,7 +102,7 @@ function ResetSection() {
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || 'Erro ao resetar');
 
-      toast.success('O sistema foi resetado com sucesso. Podes começar a configurar o teu negócio.');
+      toast.success('O sistema foi resetado com sucesso. Podes começar a introduzir os dados do teu negócio.');
       setOpen(false);
       setConfirmation('');
       navigate('/hub/secretaria');
@@ -122,7 +122,7 @@ function ResetSection() {
             <h2 className="text-sm font-semibold text-destructive">Resetar para instância limpa</h2>
           </div>
           <p className="text-sm text-muted-foreground">
-            Apaga todos os dados operacionais do sistema (clientes, vendas, tarefas, conteúdos, etc.) mantendo a estrutura, configurações e identidade visual.
+            Apaga todos os dados operacionais do sistema (clientes, vendas, tarefas, conteúdos, etc.) mantendo toda a configuração, processos, automações e identidade visual.
             Esta acção é irreversível.
           </p>
           <Button variant="destructive" size="sm" onClick={() => setOpen(true)}>
@@ -139,8 +139,8 @@ function ResetSection() {
               Tens a certeza?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm leading-relaxed">
-              Esta acção vai apagar todos os dados do sistema de forma permanente.
-              A estrutura, configurações e identidade visual serão mantidas.
+              Esta acção vai apagar todos os dados operacionais do sistema de forma permanente.
+              Toda a configuração, processos, automações e identidade visual serão mantidos.
               Esta acção não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
