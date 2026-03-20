@@ -13,6 +13,7 @@ import { Pencil, AlertTriangle } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { sendNotification } from '@/hooks/useNotifications';
 
 type TeamMember = {
   id: string;
@@ -187,6 +188,46 @@ export function AbsenceCoverageTable() {
     setSosNotes(a.sos_notes || '');
   }
 
+  async function checkConflictingTasks(memberId: string, startDate: string, endDate: string) {
+    // Get the member's profile_id
+    const member = members.find(m => m.id === memberId);
+    if (!member?.profile_id) return;
+
+    // Find tasks assigned to this member with deadline in the absence period
+    const { data: tasks } = await supabase
+      .from('tasks')
+      .select('id, name, deadline, assigned_to')
+      .eq('assigned_to', member.profile_id)
+      .neq('status', 'concluida')
+      .gte('deadline', startDate)
+      .lte('deadline', endDate);
+
+    if (!tasks || tasks.length === 0) return;
+
+    // Find owner user_id
+    const { data: ownerRoles } = await supabase
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', 'owner')
+      .limit(1);
+
+    const ownerUserId = ownerRoles?.[0]?.user_id;
+    if (!ownerUserId) return;
+
+    const memberName = member.full_name;
+    const fmtStart = format(parseISO(startDate), 'dd/MM/yyyy');
+    const fmtEnd = format(parseISO(endDate), 'dd/MM/yyyy');
+
+    for (const task of tasks) {
+      await sendNotification({
+        userId: ownerUserId,
+        type: 'absence_conflict',
+        title: `${memberName} está ausente de ${fmtStart} a ${fmtEnd}. A tarefa '${task.name}' precisa de ser realocada.`,
+        link: '/tarefas',
+      });
+    }
+  }
+
   function handleSave() {
     if (!editingAbsence) return;
     const payload: any = {
@@ -202,6 +243,8 @@ export function AbsenceCoverageTable() {
     upsertCoverage.mutate(payload, {
       onSuccess: () => {
         toast.success('Cobertura atualizada');
+        // Check for conflicting tasks and notify owner
+        checkConflictingTasks(editingAbsence.member_id, editingAbsence.start_date, editingAbsence.end_date);
         setEditingAbsence(null);
       },
       onError: () => toast.error('Erro ao guardar'),
