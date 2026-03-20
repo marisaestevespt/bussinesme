@@ -76,7 +76,58 @@ export function planStatusLabel(v: string) {
 export function usePlanningData(year = currentYear) {
   const qc = useQueryClient();
   const key = ['planning', year];
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['planning'] });
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ['planning'] });
+    qc.invalidateQueries({ queryKey: ['commercial'] });
+  };
+
+  const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+  // Sync commercial objective → commercial_annual_goals
+  const syncObjectiveToCommercial = async (obj: any) => {
+    if (obj.value_source !== 'commercial' || obj.area !== 'comercial') return;
+    try {
+      const targetValue = Number(obj.target_value) || 0;
+      const { data: existing } = await supabase
+        .from('commercial_annual_goals')
+        .select('id')
+        .eq('year', year)
+        .maybeSingle();
+      if (existing) {
+        await supabase.from('commercial_annual_goals').update({ goal_amount: targetValue }).eq('id', existing.id);
+      } else {
+        await supabase.from('commercial_annual_goals').insert({ year, goal_amount: targetValue });
+      }
+    } catch (e) { console.error('Sync objective→commercial failed', e); }
+  };
+
+  // Sync planning goal → commercial_monthly_goals
+  const syncGoalToCommercial = async (rec: any) => {
+    if (!rec.objective_id) return;
+    try {
+      const { data: obj } = await supabase
+        .from('executive_objectives')
+        .select('value_source, area')
+        .eq('id', rec.objective_id)
+        .maybeSingle();
+      if (!obj || obj.value_source !== 'commercial' || obj.area !== 'comercial') return;
+      const monthIdx = MONTH_NAMES.indexOf(rec.period);
+      if (monthIdx === -1) return;
+      const month = monthIdx + 1;
+      const goalAmount = Number(rec.target_value) || 0;
+      const { data: existing } = await supabase
+        .from('commercial_monthly_goals')
+        .select('id')
+        .eq('year', year)
+        .eq('month', month)
+        .maybeSingle();
+      if (existing) {
+        await supabase.from('commercial_monthly_goals').update({ goal_amount: goalAmount }).eq('id', existing.id);
+      } else {
+        await supabase.from('commercial_monthly_goals').insert({ year, month, goal_amount: goalAmount });
+      }
+    } catch (e) { console.error('Sync goal→commercial failed', e); }
+  };
 
   // ─── Objectives ──────────────────
   const objectives = useQuery({
