@@ -197,7 +197,27 @@ export default function ConteudoDetailPage() {
         </div>
 
         <div className="max-w-6xl mx-auto w-full px-4 py-6">
-          <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
+          <div className="flex items-center justify-between mb-2">
+            <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5"
+              onClick={async () => {
+                if (!confirm('Eliminar este conteúdo permanentemente?')) return;
+                const { error: errChannels } = await supabase.from('content_channels').delete().eq('content_id', id!);
+                const { error: errMetrics } = await supabase.from('content_metrics').delete().eq('content_id', id!);
+                const { error: errAttach } = await supabase.from('content_attachments').delete().eq('content_id', id!);
+                const { error } = await supabase.from('content_items').delete().eq('id', id!);
+                if (error) { toast.error('Erro ao eliminar conteúdo'); return; }
+                queryClient.invalidateQueries({ queryKey: ['content-items'] });
+                toast.success('Conteúdo eliminado');
+                navigate('/hub/marketing');
+              }}
+            >
+              <Trash2 className="h-4 w-4" /> Eliminar
+            </Button>
+          </div>
 
           <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
             className="text-2xl font-bold border-0 px-0 h-auto focus-visible:ring-0 mb-6" placeholder="Título do conteúdo" />
