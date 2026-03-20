@@ -605,7 +605,7 @@ export default function ProjetoDetailPage() {
     <AppLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/projetos')} className="gap-1"><ArrowLeft className="h-4 w-4" /> Projetos</Button>
+          <BackNavigation />
           {dirty && <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} size="sm" className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>}
         </div>
 
