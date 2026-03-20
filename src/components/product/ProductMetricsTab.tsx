@@ -6,9 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { MonthNavHeader } from '@/components/MonthNavHeader';
-import { YearSelector } from '@/components/YearSelector';
-import { TrendingUp, TrendingDown, Users, UserPlus, UserMinus, DollarSign, RefreshCw, Star, BarChart3, Minus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { TrendingUp, TrendingDown, Users, UserPlus, UserMinus, DollarSign, RefreshCw, Star, BarChart3, Minus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 
