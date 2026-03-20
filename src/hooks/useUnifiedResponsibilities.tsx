@@ -1,0 +1,439 @@
+import { useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
+import {
+  isToday, isBefore, isWithinInterval, parseISO, startOfDay, startOfWeek,
+  endOfWeek, addDays, format,
+} from 'date-fns';
+
+// ─── Types ───────────────────────────────────────────────────
+
+export type ResponsibilitySource =
+  | 'tarefa' | 'crm' | 'conteudo' | 'reuniao'
+  | 'projeto' | 'nps' | 'marco' | 'acao_venda' | 'habito';
+
+export interface UnifiedItem {
+  id: string;
+  sourceId: string;
+  source: ResponsibilitySource;
+  title: string;
+  subtitle?: string;
+  date?: string;           // ISO date string for sorting
+  deadline?: string;
+  priority?: string;
+  isInfoOnly: boolean;     // meetings & projects — no checkbox
+  completed: boolean;
+  estimatedHours: number;  // 0 = use default weight
+}
+
+const DEFAULT_WEIGHT_HOURS = 0.25;
+const DEFAULT_MEETING_HOURS = 1;
+
+const SOURCE_LABELS: Record<ResponsibilitySource, string> = {
+  tarefa: 'Tarefas',
+  crm: 'CRM',
+  conteudo: 'Conteúdos',
+  reuniao: 'Reuniões',
+  projeto: 'Projetos',
+  nps: 'NPS',
+  marco: 'Marcos',
+  acao_venda: 'Ações de Venda',
+  habito: 'Hábitos',
+};
+
+export { SOURCE_LABELS };
+
+// ─── Hook ────────────────────────────────────────────────────
+
+export function useUnifiedResponsibilities(userId?: string) {
+  const { user } = useAuth();
+  const uid = userId || user?.id;
+  const qc = useQueryClient();
+  const today = startOfDay(new Date());
+  const weekStart_ = startOfWeek(today, { weekStartsOn: 1 });
+  const weekEnd_ = endOfWeek(today, { weekStartsOn: 1 });
+  const todayStr = format(today, 'yyyy-MM-dd');
+  const currentMonth = today.getMonth() + 1;
+  const currentYear = today.getFullYear();
+
+  // 1. Tasks
+  const tasksQ = useQuery({
+    queryKey: ['unified-tasks', uid],
+    enabled: !!uid,
+    queryFn: async () => {
+      const { data } = await supabase.from('tasks').select('*').eq('assigned_to', uid!).order('deadline');
+      return data || [];
+    },
+  });
+
+  // 2. CRM leads (follow-up needed)
+  const leadsQ = useQuery({
+    queryKey: ['unified-crm', uid],
+    enabled: !!uid,
+    queryFn: async () => {
+      const { data } = await supabase.from('crm_leads').select('*')
+        .not('status', 'in', '("ganho","perdido")')
+        .not('next_followup', 'is', null);
+      return data || [];
+    },
+  });
+
+  // 3. Content items
+  const contentQ = useQuery({
+    queryKey: ['unified-content', uid],
+    enabled: !!uid,
+    queryFn: async () => {
+      const { data } = await supabase.from('content_items').select('*')
+        .eq('assigned_to', uid!)
+        .not('status', 'eq', 'publicado');
+      return data || [];
+    },
+  });
+
+  // 4. Meetings (next 7 days)
+  const meetingsQ = useQuery({
+    queryKey: ['unified-meetings', uid],
+    enabled: !!uid,
+    queryFn: async () => {
+      const { data: partRows } = await supabase.from('meeting_participants').select('meeting_id').eq('profile_id', uid!);
+      if (!partRows?.length) return [];
+      const ids = partRows.map(r => r.meeting_id);
+      const { data } = await supabase.from('meetings').select('*').in('id', ids)
+        .gte('date_time', todayStr)
+        .lte('date_time', format(addDays(today, 7), 'yyyy-MM-dd\'T\'23:59:59'))
+        .order('date_time');
+      return data || [];
+    },
+  });
+
+  // 5. Projects (deadline in next 7 days)
+  const projectsQ = useQuery({
+    queryKey: ['unified-projects', uid],
+    enabled: !!uid,
+    queryFn: async () => {
+      const { data: memberRows } = await supabase.from('project_members').select('project_id').eq('profile_id', uid!);
+      if (!memberRows?.length) return [];
+      const ids = memberRows.map(r => r.project_id);
+      const { data } = await supabase.from('projects').select('*').in('id', ids)
+        .gte('deadline', todayStr)
+        .lte('deadline', format(addDays(today, 7), 'yyyy-MM-dd'))
+        .neq('status', 'concluido');
+      return data || [];
+    },
+  });
+
+  // 6. NPS records
+  const npsQ = useQuery({
+    queryKey: ['unified-nps', uid],
+    enabled: !!uid,
+    queryFn: async () => {
+      const { data } = await supabase.from('client_nps_records').select('*, clients(full_name)')
+        .lte('expected_date', todayStr)
+        .in('status', ['por_fazer', 'em_atraso']);
+      return data || [];
+    },
+  });
+
+  // 7. Client milestones
+  const milestonesQ = useQuery({
+    queryKey: ['unified-milestones', uid],
+    enabled: !!uid,
+    queryFn: async () => {
+      const { data } = await supabase.from('client_milestones').select('*, clients(full_name)')
+        .lte('expected_date', todayStr)
+        .in('status', ['por_fazer', 'em_atraso']);
+      return data || [];
+    },
+  });
+
+  // 8. Sales actions
+  const salesActionsQ = useQuery({
+    queryKey: ['unified-sales-actions', uid],
+    enabled: !!uid,
+    queryFn: async () => {
+      const { data } = await supabase.from('commercial_sales_actions').select('*')
+        .in('status', ['em_curso', 'por_comecar'])
+        .lte('start_date', todayStr);
+      return data || [];
+    },
+  });
+
+  // 9. Monthly habits (checklists)
+  const habitsQ = useQuery({
+    queryKey: ['unified-habits', currentYear, currentMonth],
+    enabled: !!uid,
+    queryFn: async () => {
+      const { data } = await supabase.from('executive_monthly_checklists').select('*')
+        .eq('year', currentYear)
+        .eq('month', currentMonth)
+        .eq('completed', false);
+      return data || [];
+    },
+  });
+
+  // ─── Aggregate ─────────────────────────────────────────────
+
+  const items: UnifiedItem[] = useMemo(() => {
+    const result: UnifiedItem[] = [];
+
+    // 1. Tasks
+    (tasksQ.data || []).forEach(t => {
+      if (t.status === 'done') return; // skip completed for "today" view
+      result.push({
+        id: `tarefa-${t.id}`,
+        sourceId: t.id,
+        source: 'tarefa',
+        title: t.name,
+        subtitle: t.project_id ? undefined : undefined,
+        date: t.deadline || t.created_at,
+        deadline: t.deadline || undefined,
+        priority: t.priority,
+        isInfoOnly: false,
+        completed: t.status === 'done',
+        estimatedHours: t.estimated_time ? Number(t.estimated_time) : 0,
+      });
+    });
+
+    // 2. CRM follow-ups
+    (leadsQ.data || []).forEach(l => {
+      if (!l.next_followup) return;
+      const followupDate = l.next_followup;
+      if (isBefore(parseISO(followupDate), addDays(today, 1)) || isToday(parseISO(followupDate))) {
+        // Only include if responsible matches or no responsible (owner default)
+        if (l.responsible_id && l.responsible_id !== uid) return;
+        result.push({
+          id: `crm-${l.id}`,
+          sourceId: l.id,
+          source: 'crm',
+          title: `Follow-up — ${l.name}`,
+          date: followupDate,
+          deadline: followupDate,
+          isInfoOnly: false,
+          completed: false,
+          estimatedHours: 0,
+        });
+      }
+    });
+
+    // 3. Content
+    (contentQ.data || []).forEach(c => {
+      if (!c.scheduled_at) return;
+      const schedDate = c.scheduled_at.split('T')[0];
+      if (isBefore(parseISO(schedDate), addDays(today, 1)) || isToday(parseISO(schedDate))) {
+        result.push({
+          id: `conteudo-${c.id}`,
+          sourceId: c.id,
+          source: 'conteudo',
+          title: `Publicar — ${c.title}`,
+          date: c.scheduled_at,
+          deadline: schedDate,
+          isInfoOnly: false,
+          completed: false,
+          estimatedHours: 0,
+        });
+      }
+    });
+
+    // 4. Meetings (info only)
+    (meetingsQ.data || []).forEach(m => {
+      result.push({
+        id: `reuniao-${m.id}`,
+        sourceId: m.id,
+        source: 'reuniao',
+        title: `Reunião — ${m.title}`,
+        date: m.date_time,
+        deadline: m.date_time?.split('T')[0],
+        isInfoOnly: true,
+        completed: false,
+        estimatedHours: DEFAULT_MEETING_HOURS,
+      });
+    });
+
+    // 5. Projects (info only)
+    (projectsQ.data || []).forEach(p => {
+      result.push({
+        id: `projeto-${p.id}`,
+        sourceId: p.id,
+        source: 'projeto',
+        title: `Entrega — ${p.name}`,
+        date: p.deadline,
+        deadline: p.deadline || undefined,
+        isInfoOnly: true,
+        completed: false,
+        estimatedHours: 0,
+      });
+    });
+
+    // 6. NPS
+    (npsQ.data || []).forEach(n => {
+      const clientName = (n as any).clients?.full_name || 'Cliente';
+      result.push({
+        id: `nps-${n.id}`,
+        sourceId: n.id,
+        source: 'nps',
+        title: `NPS — ${clientName}`,
+        date: n.expected_date,
+        deadline: n.expected_date,
+        isInfoOnly: false,
+        completed: false,
+        estimatedHours: 0,
+      });
+    });
+
+    // 7. Milestones
+    (milestonesQ.data || []).forEach(m => {
+      const clientName = (m as any).clients?.full_name || 'Cliente';
+      result.push({
+        id: `marco-${m.id}`,
+        sourceId: m.id,
+        source: 'marco',
+        title: `Marco — ${m.milestone} — ${clientName}`,
+        date: m.expected_date,
+        deadline: m.expected_date,
+        isInfoOnly: false,
+        completed: false,
+        estimatedHours: 0,
+      });
+    });
+
+    // 8. Sales actions
+    (salesActionsQ.data || []).forEach(a => {
+      result.push({
+        id: `acao_venda-${a.id}`,
+        sourceId: a.id,
+        source: 'acao_venda',
+        title: `Ação de Venda — ${a.action_name}`,
+        date: a.start_date || a.created_at,
+        deadline: a.end_date || undefined,
+        isInfoOnly: false,
+        completed: false,
+        estimatedHours: 0,
+      });
+    });
+
+    // 9. Habits
+    (habitsQ.data || []).forEach(h => {
+      const taskName = h.task.includes('::') ? h.task.split('::')[1] : h.task;
+      result.push({
+        id: `habito-${h.id}`,
+        sourceId: h.id,
+        source: 'habito',
+        title: `Hábito — ${taskName}`,
+        date: format(today, 'yyyy-MM-dd'),
+        isInfoOnly: false,
+        completed: false,
+        estimatedHours: 0,
+      });
+    });
+
+    // Sort by date
+    result.sort((a, b) => {
+      const da = a.date || '9999';
+      const db = b.date || '9999';
+      return da.localeCompare(db);
+    });
+
+    return result;
+  }, [tasksQ.data, leadsQ.data, contentQ.data, meetingsQ.data, projectsQ.data, npsQ.data, milestonesQ.data, salesActionsQ.data, habitsQ.data, uid, today]);
+
+  // ─── Filtered views ────────────────────────────────────────
+
+  const todayItems = useMemo(() =>
+    items.filter(i => {
+      if (!i.date) return true;
+      const d = parseISO(i.date.split('T')[0]);
+      return isToday(d) || isBefore(d, today);
+    }),
+  [items, today]);
+
+  const weekItems = useMemo(() =>
+    items.filter(i => {
+      if (!i.date) return true;
+      const d = parseISO(i.date.split('T')[0]);
+      return isWithinInterval(d, { start: weekStart_, end: weekEnd_ }) || isBefore(d, today);
+    }),
+  [items, weekStart_, weekEnd_, today]);
+
+  // ─── Complete action (bidirectional sync) ──────────────────
+
+  const completeItem = useMutation({
+    mutationFn: async (item: UnifiedItem) => {
+      const now = new Date().toISOString();
+      switch (item.source) {
+        case 'tarefa':
+          await supabase.from('tasks').update({ status: 'done', updated_at: now }).eq('id', item.sourceId);
+          break;
+        case 'crm':
+          await supabase.from('crm_leads').update({ next_followup: null, updated_at: now }).eq('id', item.sourceId);
+          break;
+        case 'conteudo':
+          await supabase.from('content_items').update({ status: 'publicado', updated_at: now }).eq('id', item.sourceId);
+          break;
+        case 'nps':
+          await supabase.from('client_nps_records').update({ status: 'feito', actual_date: format(today, 'yyyy-MM-dd'), updated_at: now }).eq('id', item.sourceId);
+          break;
+        case 'marco':
+          await supabase.from('client_milestones').update({ status: 'feito', updated_at: now }).eq('id', item.sourceId);
+          break;
+        case 'acao_venda':
+          await supabase.from('commercial_sales_actions').update({ status: 'concluida', updated_at: now }).eq('id', item.sourceId);
+          break;
+        case 'habito':
+          await supabase.from('executive_monthly_checklists').update({ completed: true }).eq('id', item.sourceId);
+          break;
+      }
+    },
+    onSuccess: () => {
+      // Invalidate all unified queries
+      qc.invalidateQueries({ queryKey: ['unified-tasks'] });
+      qc.invalidateQueries({ queryKey: ['unified-crm'] });
+      qc.invalidateQueries({ queryKey: ['unified-content'] });
+      qc.invalidateQueries({ queryKey: ['unified-nps'] });
+      qc.invalidateQueries({ queryKey: ['unified-milestones'] });
+      qc.invalidateQueries({ queryKey: ['unified-sales-actions'] });
+      qc.invalidateQueries({ queryKey: ['unified-habits'] });
+      qc.invalidateQueries({ queryKey: ['my-tasks'] });
+      toast.success('Concluído');
+    },
+    onError: () => toast.error('Erro ao concluir item'),
+  });
+
+  const uncompleteItem = useMutation({
+    mutationFn: async (item: UnifiedItem) => {
+      const now = new Date().toISOString();
+      switch (item.source) {
+        case 'tarefa':
+          await supabase.from('tasks').update({ status: 'a_fazer', updated_at: now }).eq('id', item.sourceId);
+          break;
+        case 'habito':
+          await supabase.from('executive_monthly_checklists').update({ completed: false }).eq('id', item.sourceId);
+          break;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['unified-tasks'] });
+      qc.invalidateQueries({ queryKey: ['unified-habits'] });
+      qc.invalidateQueries({ queryKey: ['my-tasks'] });
+    },
+  });
+
+  // ─── Productivity helpers ──────────────────────────────────
+
+  const getItemHours = (item: UnifiedItem) => {
+    if (item.estimatedHours > 0) return item.estimatedHours;
+    if (item.source === 'reuniao') return DEFAULT_MEETING_HOURS;
+    return DEFAULT_WEIGHT_HOURS;
+  };
+
+  return {
+    items,
+    todayItems,
+    weekItems,
+    completeItem,
+    uncompleteItem,
+    getItemHours,
+    isLoading: tasksQ.isLoading || leadsQ.isLoading || contentQ.isLoading || meetingsQ.isLoading,
+  };
+}
