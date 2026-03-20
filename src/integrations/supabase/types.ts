@@ -4337,10 +4337,13 @@ export type Database = {
           created_at: string
           created_by: string | null
           department: string
+          end_date: string | null
           frequency: string
           id: string
+          monthly_day: number | null
           name: string
           sop_id: string | null
+          start_date: string | null
           updated_at: string
         }
         Insert: {
@@ -4348,10 +4351,13 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           department?: string
+          end_date?: string | null
           frequency?: string
           id?: string
+          monthly_day?: number | null
           name: string
           sop_id?: string | null
+          start_date?: string | null
           updated_at?: string
         }
         Update: {
@@ -4359,10 +4365,13 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           department?: string
+          end_date?: string | null
           frequency?: string
           id?: string
+          monthly_day?: number | null
           name?: string
           sop_id?: string | null
+          start_date?: string | null
           updated_at?: string
         }
         Relationships: [
