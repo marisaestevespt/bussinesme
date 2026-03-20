@@ -338,12 +338,16 @@ export function TabEscala() {
                       </Avatar>
                       <div className="min-w-0">
                         <p className="text-xs font-medium truncate">{m.full_name}</p>
-                        <button
-                          onClick={() => setVacationMember(m)}
-                          className="text-[10px] text-primary hover:underline"
-                        >
-                          Férias
-                        </button>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="text-[10px] text-primary hover:underline">
+                              Férias
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-72 p-3 pointer-events-auto" align="start">
+                            <VacationPopoverContent member={m} vacations={vacations} onOpenDialog={() => setVacationMember(m)} />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     </div>
                   </TableCell>
