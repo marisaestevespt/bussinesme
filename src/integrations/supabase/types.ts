@@ -6384,6 +6384,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      portal_email_allowed: {
+        Args: { _email: string; _token: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "owner" | "admin" | "member"
