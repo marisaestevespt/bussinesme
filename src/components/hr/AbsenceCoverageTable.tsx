@@ -13,6 +13,7 @@ import { Pencil, AlertTriangle } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { sendNotification } from '@/hooks/useNotifications';
 
 type TeamMember = {
   id: string;
