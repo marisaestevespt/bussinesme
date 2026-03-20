@@ -248,6 +248,13 @@ export default function ReuniaoDetailPage() {
   const { settings } = useBusinessSettings();
 
   const { data: meeting, isLoading } = useMeeting(id!);
+  const { data: clientsList = [] } = useQuery({
+    queryKey: ['clients_list'],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients').select('id, full_name').order('full_name');
+      return data || [];
+    },
+  });
   const { data: participants = [] } = useMeetingParticipants(id!);
   const { data: profiles = [] } = useProfiles();
   const { data: ownerName } = useOwnerProfile();
