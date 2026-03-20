@@ -22,6 +22,7 @@ import {
   Upload, Check, X, Image as ImageIcon,
 } from 'lucide-react';
 import { WebsiteChannelContent } from '@/components/marketing/WebsiteChannelContent';
+import { ChannelMonthlyAnalysis } from '@/components/marketing/ChannelMonthlyAnalysis';
 import { BackNavigation } from '@/components/BackNavigation';
 
 export default function ChannelPage() {
@@ -286,6 +287,11 @@ export default function ChannelPage() {
                   calendarOnly
                 />
               </section>
+
+              <Separator />
+
+              {/* Section 3b: Monthly Analysis */}
+              <ChannelMonthlyAnalysis channelId={channelId!} channelName={channel.name} />
 
               <Separator />
 
