@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { BackNavigation } from '@/components/BackNavigation';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { ViewTabs } from '@/components/ViewTabs';
@@ -829,6 +830,7 @@ export default function AgendaPage() {
   return (
     <AppLayout>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+        <BackNavigation />
         <PageHeader title="Agenda do Negócio" />
         <div className="flex items-center justify-between">
           <div />

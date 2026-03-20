@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { BackNavigation } from '@/components/BackNavigation';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { ViewTabs } from '@/components/ViewTabs';
@@ -530,6 +531,7 @@ export default function TarefasPage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
+        <BackNavigation />
         {/* Header */}
         <PageHeader title="Tarefas" />
         <div className="flex items-center justify-end">

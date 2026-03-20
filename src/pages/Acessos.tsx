@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BackNavigation } from '@/components/BackNavigation';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -208,6 +209,7 @@ export default function AcessosPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <BackNavigation />
         <PageHeader title="Acessos" />
         <div className="flex items-center justify-between">
           <div />

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BackNavigation } from '@/components/BackNavigation';
 import { useNavigate } from 'react-router-dom';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
@@ -135,6 +136,7 @@ export default function ProcessosPage() {
 
   return (
     <AppLayout>
+      <BackNavigation />
       <PageHeader title="Processos (SOPs)" />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 mt-6">
         <div className="flex items-center justify-between">

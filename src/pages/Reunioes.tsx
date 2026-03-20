@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { BackNavigation } from '@/components/BackNavigation';
 import { useNavigate } from 'react-router-dom';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
@@ -352,6 +353,7 @@ export default function ReunioesPage() {
   return (
     <AppLayout>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+        <BackNavigation />
         {/* Header */}
         <PageHeader title="Reuniões" />
         <div className="flex items-center justify-between">

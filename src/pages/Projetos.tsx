@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BackNavigation } from '@/components/BackNavigation';
 import { useKpiSettings } from '@/hooks/useKpiSettings';
 import { useNavigate } from 'react-router-dom';
 import { ViewTabs } from '@/components/ViewTabs';
@@ -295,6 +296,7 @@ export default function ProjetosPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <BackNavigation />
         {/* Header */}
         <PageHeader title="Projetos" />
 
