@@ -318,68 +318,24 @@ function MeuDiaTab({ todayTasks, todayMeetings, timeEntries, getProjectName, qc 
   const todayTime = useMemo(() => (timeEntries || []).filter((e: any) => e.entry_date === todayStr), [timeEntries, todayStr]);
   const todayHours = useMemo(() => todayTime.reduce((sum: number, e: any) => sum + (e.duration || 0), 0), [todayTime]);
 
-  const markDone = async (taskId: string) => {
-    await supabase.from('tasks').update({ status: 'done', updated_at: new Date().toISOString() }).eq('id', taskId);
-    qc.invalidateQueries({ queryKey: ['my-tasks'] });
-    toast.success('Tarefa concluída');
-  };
+  const unified = useUnifiedResponsibilities();
 
   return (
     <div className="space-y-6">
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas hoje</p><p className="text-2xl font-bold">{todayTasks.length}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Responsabilidades hoje</p><p className="text-2xl font-bold">{unified.todayItems.length}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Reuniões hoje</p><p className="text-2xl font-bold">{todayMeetings.length}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tempo registado</p><p className="text-2xl font-bold">{todayHours.toFixed(1)}h</p></CardContent></Card>
       </div>
 
-      {/* Today tasks */}
-      <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Tarefas de Hoje</CardTitle></CardHeader>
-        <CardContent>
-          <ScrollArea className="max-h-[300px] overflow-auto pr-2">
-            <div className="space-y-2">
-              {todayTasks.length === 0 && <p className="text-sm text-muted-foreground">Sem tarefas para hoje.</p>}
-              {todayTasks.map((t: any) => (
-                <div key={t.id} className="flex items-center gap-3 p-2 rounded-lg border">
-                  <Checkbox checked={false} onCheckedChange={() => markDone(t.id)} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{t.name}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <Badge variant="outline" className="text-[10px]">{PRIORITY_LABELS[t.priority] || t.priority}</Badge>
-                      {t.project_id && <span className="text-[10px] text-muted-foreground truncate">{getProjectName(t.project_id)}</span>}
-                    </div>
-                  </div>
-                  <Badge className={cn('text-[10px]', STATUS_COLORS[t.status])}>{STATUS_LABELS[t.status] || t.status}</Badge>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
-
-      {/* Today meetings */}
-      <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Reuniões de Hoje</CardTitle></CardHeader>
-        <CardContent>
-          <ScrollArea className="max-h-[300px] overflow-auto pr-2">
-            <div className="space-y-2">
-              {todayMeetings.length === 0 && <p className="text-sm text-muted-foreground">Sem reuniões hoje.</p>}
-              {todayMeetings.map((m: any) => (
-                <div key={m.id} className="flex items-center justify-between p-2 rounded-lg border">
-                  <div>
-                    <p className="text-sm font-medium">{m.title}</p>
-                    <p className="text-xs text-muted-foreground">{format(parseISO(m.date_time), 'HH:mm')}</p>
-                  </div>
-                  {m.transcript_url && (
-                    <Button variant="ghost" size="sm" asChild><a href={m.transcript_url} target="_blank" rel="noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a></Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
+      {/* Unified responsibilities */}
+      <UnifiedResponsibilitiesList
+        items={unified.todayItems}
+        onComplete={(item) => unified.completeItem.mutate(item)}
+        onUndo={(item) => unified.uncompleteItem.mutate(item)}
+        title="Hoje — Todas as Responsabilidades"
+      />
 
       {/* Today time entries */}
       {todayTime.length > 0 && (
