@@ -54,6 +54,7 @@ interface MeetingFull {
   client_actions: CheckItem[];
   final_notes: string[];
   created_by: string | null;
+  duration_minutes: number;
 }
 
 interface ProjectOption { id: string; name: string; }
