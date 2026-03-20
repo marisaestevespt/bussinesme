@@ -181,8 +181,8 @@ export default function PortalViewPage() {
   const totalOnb = onboarding.length;
   const onbPercent = totalOnb > 0 ? Math.round((completedOnb / totalOnb) * 100) : 0;
 
-  const upcomingMeetings = meetings.filter((m: any) => m.status === 'agendada' || m.status === 'confirmada' || m.status === 'por_confirmar');
-  const pastMeetings = meetings.filter((m: any) => m.status !== 'agendada' && m.status !== 'confirmada' && m.status !== 'por_confirmar');
+  const upcomingMeetings = meetings.filter((m: any) => ['marcada', 'agendada', 'confirmada', 'por_confirmar'].includes(m.status));
+  const pastMeetings = meetings.filter((m: any) => !['marcada', 'agendada', 'confirmada', 'por_confirmar'].includes(m.status));
 
   return (
     <div className="min-h-screen bg-background">
