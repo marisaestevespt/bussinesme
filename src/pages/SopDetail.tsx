@@ -247,7 +247,10 @@ export default function SopDetailPage() {
         decisoes: decisoes as any,
         outputs: outputs as any,
         notas: notas as any,
-      }).eq('id', id!);
+        linked_entity_type: linkedEntityType,
+        linked_entity_id: linkedEntityId || null,
+        apply_to_all_active_clients: applyToAllActiveClients,
+      } as any).eq('id', id!);
       if (error) throw error;
     },
     onSuccess: () => {
