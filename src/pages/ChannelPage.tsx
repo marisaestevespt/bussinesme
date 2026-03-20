@@ -22,6 +22,7 @@ import {
   Upload, Check, X, Image as ImageIcon,
 } from 'lucide-react';
 import { WebsiteChannelContent } from '@/components/marketing/WebsiteChannelContent';
+import { ChannelMonthlyAnalysis } from '@/components/marketing/ChannelMonthlyAnalysis';
 import { BackNavigation } from '@/components/BackNavigation';
 
 export default function ChannelPage() {
