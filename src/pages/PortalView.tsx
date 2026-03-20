@@ -544,34 +544,6 @@ export default function PortalViewPage() {
             </div>
           )}
 
-          {/* Comments section - always at bottom */}
-          <Card className="mt-8">
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Comunicação</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {comments.map((c: any) => (
-                  <div key={c.id} className={`flex ${c.author === 'client' ? 'justify-start' : 'justify-end'}`}>
-                    <div className={`max-w-[70%] rounded-lg p-2 text-sm ${c.author === 'client' ? 'bg-muted' : 'bg-primary/10'}`}>
-                      <p className="font-medium text-[10px] text-muted-foreground">{c.author_name}</p>
-                      <p>{c.content}</p>
-                    </div>
-                  </div>
-                ))}
-                {comments.length === 0 && <p className="text-xs text-muted-foreground text-center">Sem mensagens</p>}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Escreve uma mensagem..."
-                  value={commentText}
-                  onChange={e => setCommentText(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && sendComment()}
-                />
-                <Button size="sm" disabled={!commentText.trim()} onClick={sendComment}>
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </main>
       </div>
     </div>
