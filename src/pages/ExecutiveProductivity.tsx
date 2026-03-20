@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subWeeks } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { MemberProductivityDetail } from '@/components/productivity/MemberProductivityDetail';
 
 const CATEGORIES = [
   { value: 'cliente', label: 'Cliente' },
