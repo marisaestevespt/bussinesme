@@ -463,9 +463,12 @@ function MeuDiaTab({ todayTasks, todayMeetings, timeEntries, getProjectName, qc 
   const todayHours = useMemo(() => todayTime.reduce((sum: number, e: any) => sum + (e.duration || 0), 0), [todayTime]);
 
   const unified = useUnifiedResponsibilities();
+  const routineTasks = useMonthRoutineTasks();
 
   return (
     <div className="space-y-6">
+      {/* Rotinas do mês */}
+      <RoutineMonthCard tasks={routineTasks.data || []} />
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4">
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Responsabilidades hoje</p><p className="text-2xl font-bold">{unified.todayItems.length}</p></CardContent></Card>
