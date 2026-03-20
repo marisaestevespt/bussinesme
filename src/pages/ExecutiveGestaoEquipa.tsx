@@ -1530,7 +1530,7 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
   const [dateTo, setDateTo] = useState('');
   const [weeklyDialog, setWeeklyDialog] = useState<any>(null);
   const [monthlyDialog, setMonthlyDialog] = useState<any>(null);
-  const [perfTab, setPerfTab] = useState('tarefas-membro');
+  const [perfTab, setPerfTab] = useState('prioridade');
 
   const weeklyData = useMemo(() => {
     let d = team.perfWeekly.data || [];
@@ -1672,19 +1672,21 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
         </CardContent>
       </Card>
 
-      {/* Task views tabs */}
+      {/* Tarefas por Membro — above tabs */}
+      <Card>
+        <CardContent className="pt-5">
+          <TasksByMemberKanban />
+        </CardContent>
+      </Card>
+
+      {/* Remaining task views tabs */}
       <Tabs value={perfTab} onValueChange={setPerfTab}>
         <TabsList className="flex-wrap">
-          <TabsTrigger value="tarefas-membro"><Users className="h-3.5 w-3.5 mr-1" />Tarefas por Membro</TabsTrigger>
           <TabsTrigger value="prioridade"><AlertTriangle className="h-3.5 w-3.5 mr-1" />Por Prioridade</TabsTrigger>
           <TabsTrigger value="atraso"><Clock className="h-3.5 w-3.5 mr-1" />Em Atraso</TabsTrigger>
           <TabsTrigger value="tempo-membro"><BarChart3 className="h-3.5 w-3.5 mr-1" />Tempo por Membro</TabsTrigger>
           <TabsTrigger value="sobrecarga"><AlertTriangle className="h-3.5 w-3.5 mr-1" />Tarefas & Sobrecarga</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="tarefas-membro">
-          <TasksByMemberKanban />
-        </TabsContent>
 
         <TabsContent value="prioridade">
           <TasksByPriority />
