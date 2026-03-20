@@ -261,6 +261,32 @@ function VacationDialog({ member, vacations, onClose }: { member: TeamMember; va
   );
 }
 
+// ─── Vacation Popover Content (inline list) ─────
+function VacationPopoverContent({ member, vacations, onOpenDialog }: { member: TeamMember; vacations: Vacation[]; onOpenDialog: () => void }) {
+  const memberVacations = vacations.filter(v => v.member_id === member.id);
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-medium text-foreground">Férias de {member.full_name}</p>
+      {memberVacations.length === 0 ? (
+        <p className="text-xs text-muted-foreground py-1">Sem férias registadas</p>
+      ) : (
+        <div className="space-y-1 max-h-[160px] overflow-y-auto">
+          {memberVacations.map(v => (
+            <div key={v.id} className="flex items-center gap-2 text-xs bg-muted/50 rounded px-2 py-1.5">
+              <Palmtree className="h-3 w-3 text-blue-500 shrink-0" />
+              <span>{format(parseISO(v.start_date), 'dd/MM/yyyy')} → {format(parseISO(v.end_date), 'dd/MM/yyyy')}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <Button size="sm" className="w-full text-xs h-7" onClick={onOpenDialog}>
+        <Plus className="h-3 w-3 mr-1" /> Adicionar período
+      </Button>
+    </div>
+  );
+}
+
 // ─── Main Escala Component ─────
 export function TabEscala() {
   const { members, vacations, isLoading } = useEscalaData();
@@ -338,12 +364,16 @@ export function TabEscala() {
                       </Avatar>
                       <div className="min-w-0">
                         <p className="text-xs font-medium truncate">{m.full_name}</p>
-                        <button
-                          onClick={() => setVacationMember(m)}
-                          className="text-[10px] text-primary hover:underline"
-                        >
-                          Férias
-                        </button>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="text-[10px] text-primary hover:underline">
+                              Férias
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-72 p-3 pointer-events-auto" align="start">
+                            <VacationPopoverContent member={m} vacations={vacations} onOpenDialog={() => setVacationMember(m)} />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     </div>
                   </TableCell>
