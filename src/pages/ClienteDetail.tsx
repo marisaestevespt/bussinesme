@@ -32,6 +32,7 @@ import { ClientCustomerSuccess } from '@/components/client/ClientCustomerSuccess
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { BackNavigation } from '@/components/BackNavigation';
 import { LinkedSopsSection } from '@/components/LinkedSopsSection';
+import { ClientContactsSection } from '@/components/client/ClientContactsSection';
 
 // ─── Meetings query for filtered view ───────────────────────────
 function useFilteredMeetings(clientName: string | undefined) {
