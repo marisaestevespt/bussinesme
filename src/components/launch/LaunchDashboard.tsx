@@ -395,7 +395,7 @@ function LaunchTaskDialog({ open, onOpenChange, projectId, profiles, qc, userId 
 
 function TaskStatusSelect({ task, qc, projectId, userId }: any) {
   const updateStatus = async (newStatus: string) => {
-    await supabase.from('launch_tasks').update({ status: newStatus }).eq('id', task.id);
+    await supabase.from('launch_tasks').update({ status: newStatus as any }).eq('id', task.id);
     // Sync with main task if linked
     if (task.task_id) {
       const mainStatus = newStatus === 'concluido' ? 'done' : newStatus === 'em_curso' ? 'a_fazer' : 'por_comecar';
