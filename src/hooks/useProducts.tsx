@@ -85,13 +85,15 @@ export function useProducts() {
   });
 
   const upsertProduct = useMutation({
-    mutationFn: async (product: Partial<Product> & { name: string }) => {
+    mutationFn: async (product: Partial<Product> & { name: string }): Promise<string | null> => {
       if (product.id) {
         const { error } = await supabase.from('products').update(product).eq('id', product.id);
         if (error) throw error;
+        return product.id;
       } else {
-        const { error } = await supabase.from('products').insert(product);
+        const { data, error } = await supabase.from('products').insert(product).select('id').single();
         if (error) throw error;
+        return data.id;
       }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['products'] }),

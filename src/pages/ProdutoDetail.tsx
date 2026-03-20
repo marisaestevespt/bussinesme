@@ -63,9 +63,9 @@ export default function ProdutoDetailPage() {
       return;
     }
     try {
-      await upsertProduct.mutateAsync(form as any);
+      const newId = await upsertProduct.mutateAsync(form as any);
       toast.success('Produto guardado');
-      if (isNew) navigate('/hub/produtos');
+      if (isNew && newId) navigate(`/hub/produtos/${newId}`, { replace: true });
     } catch { }
   };
 
