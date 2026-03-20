@@ -46,12 +46,20 @@ export default function PortalViewPage() {
 
   const init = async () => {
     if (!token) return;
+
     const { data: portalData } = await sb('client_portals').select('*').eq('token', token).maybeSingle();
-    if (!portalData || !portalData.is_active) { navigate(`/portal/${token}`, { replace: true }); return; }
+    if (!portalData || !portalData.is_active) {
+      navigate(`/portal/${token}`, { replace: true });
+      return;
+    }
 
     // Check session
     const session = localStorage.getItem(`portal_session_${portalData.id}`);
-    if (!session) { navigate(`/portal/${token}`, { replace: true }); return; }
+    if (!session) {
+      navigate(`/portal/${token}`, { replace: true });
+      return;
+    }
+
     try {
       const parsed = JSON.parse(session);
       if (Date.now() - parsed.timestamp > 24 * 60 * 60 * 1000) {
@@ -59,21 +67,33 @@ export default function PortalViewPage() {
         navigate(`/portal/${token}`, { replace: true });
         return;
       }
-    } catch { navigate(`/portal/${token}`, { replace: true }); return; }
+    } catch {
+      navigate(`/portal/${token}`, { replace: true });
+      return;
+    }
 
     setPortal(portalData);
 
-    const [clientRes, settingsRes] = await Promise.all([
-      sb('clients').select('*').eq('id', portalData.client_id).maybeSingle(),
+    const [clientCtxRes, settingsRes] = await Promise.all([
+      (supabase as any).rpc('get_portal_client_context', { _token: token }),
       supabase.from('business_settings').select('*').limit(1).maybeSingle(),
     ]);
-    setClient(clientRes.data);
+
+    const clientData = Array.isArray(clientCtxRes.data) ? clientCtxRes.data[0] : null;
+
+    if (clientCtxRes.error || !clientData) {
+      toast.error('Não foi possível carregar o portal.');
+      navigate(`/portal/${token}`, { replace: true });
+      return;
+    }
+
+    setClient(clientData);
     setSettings(settingsRes.data);
 
     // Load all portal data in parallel
     const pid = portalData.id;
     const cid = portalData.client_id;
-    const cname = clientRes.data?.full_name;
+    const cname = clientData.full_name;
 
     const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, summR] = await Promise.all([
       sb('portal_faqs').select('*').eq('portal_id', pid).order('sort_order'),
@@ -134,7 +154,18 @@ export default function PortalViewPage() {
     );
   }
 
-  if (!portal || !client) return null;
+  if (!portal || !client) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center space-y-4">
+            <p className="text-sm text-muted-foreground">Não foi possível carregar os dados do portal.</p>
+            <Button onClick={() => navigate(`/portal/${token}`, { replace: true })}>Voltar ao acesso</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const primaryColor = settings?.primary_color || 'hsl(var(--primary))';
   const logoUrl = settings?.logo_url;
