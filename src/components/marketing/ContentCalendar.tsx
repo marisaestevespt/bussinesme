@@ -81,11 +81,11 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
         {/* Status */}
         {status && <span className={cn("text-[10px] px-1.5 py-0.5 rounded-sm leading-none font-medium text-center w-full block", status.color)}>{status.label}</span>}
         {/* Canal + Formato */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 w-full">
           {itemChannels.slice(0, 1).map(ch => (
-            <span key={ch.id} className="text-[10px] px-1 py-0.5 rounded-sm leading-none bg-secondary text-secondary-foreground">{ch.name}</span>
+            <span key={ch.id} className="text-[10px] px-1 py-0.5 rounded-sm leading-none bg-secondary text-secondary-foreground flex-1 text-center">{ch.name}</span>
           ))}
-          {formatLabel && <span className="text-[10px] px-1 py-0.5 rounded-sm leading-none bg-accent text-accent-foreground">{formatLabel}</span>}
+          {formatLabel && <span className="text-[10px] px-1 py-0.5 rounded-sm leading-none bg-accent text-accent-foreground flex-1 text-center">{formatLabel}</span>}
         </div>
         {/* Tipo de conteúdo */}
         {typeLabel && <span className="text-[10px] px-1.5 py-0.5 rounded-sm leading-none bg-muted text-muted-foreground text-center w-full block">{typeLabel}</span>}
