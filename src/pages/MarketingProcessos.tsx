@@ -174,6 +174,9 @@ export default function MarketingProcessos() {
     setNewRoutineName(routine.name);
     setNewRoutineFreq(routine.frequency);
     setNewRoutineAssignee(routine.assigned_to || '');
+    setNewRoutineMonthlyDay(routine.monthly_day?.toString() || '');
+    setNewRoutineStartDate(routine.start_date || '');
+    setNewRoutineEndDate(routine.end_date || '');
     if (routine.sop_id) {
       const linked = sops.find(s => s.id === routine.sop_id);
       setRoutineSteps(linked && Array.isArray(linked.passos) ? (linked.passos as string[]).join('\n') : '');
