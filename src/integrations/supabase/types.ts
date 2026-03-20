@@ -3428,6 +3428,53 @@ export type Database = {
           },
         ]
       }
+      planning_routines: {
+        Row: {
+          active: boolean
+          adjust_to_business_day: boolean
+          created_at: string
+          created_by: string | null
+          id: string
+          month_day: number | null
+          recurrence_type: string
+          responsible: string | null
+          title: string
+          weekday: number | null
+        }
+        Insert: {
+          active?: boolean
+          adjust_to_business_day?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          month_day?: number | null
+          recurrence_type?: string
+          responsible?: string | null
+          title: string
+          weekday?: number | null
+        }
+        Update: {
+          active?: boolean
+          adjust_to_business_day?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          month_day?: number | null
+          recurrence_type?: string
+          responsible?: string | null
+          title?: string
+          weekday?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planning_routines_responsible_fkey"
+            columns: ["responsible"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_accesses: {
         Row: {
           created_at: string
@@ -4763,7 +4810,9 @@ export type Database = {
           project_id: string | null
           recurrence_end: string | null
           recurrence_type: string | null
+          routine_id: string | null
           status: string
+          tag: string | null
           updated_at: string
         }
         Insert: {
@@ -4782,7 +4831,9 @@ export type Database = {
           project_id?: string | null
           recurrence_end?: string | null
           recurrence_type?: string | null
+          routine_id?: string | null
           status?: string
+          tag?: string | null
           updated_at?: string
         }
         Update: {
@@ -4801,7 +4852,9 @@ export type Database = {
           project_id?: string | null
           recurrence_end?: string | null
           recurrence_type?: string | null
+          routine_id?: string | null
           status?: string
+          tag?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -4824,6 +4877,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_routine_id_fkey"
+            columns: ["routine_id"]
+            isOneToOne: false
+            referencedRelation: "planning_routines"
             referencedColumns: ["id"]
           },
         ]

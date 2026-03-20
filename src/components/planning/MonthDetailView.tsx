@@ -104,6 +104,23 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const teamQ = useQuery({ queryKey: ['md-team'], queryFn: async () => { const { data } = await supabase.from('team_members').select('*').eq('status', 'ativo'); return data || []; }});
   const tasksQ = useQuery({ queryKey: ['md-tasks', year, monthNum], queryFn: async () => { const { data } = await supabase.from('tasks').select('*'); return data || []; }});
 
+  // Routine tasks for this month
+  const routineTasksQ = useQuery({
+    queryKey: ['md-routine-tasks', year, monthNum],
+    queryFn: async () => {
+      const mStart = format(new Date(year, monthIdx, 1), 'yyyy-MM-dd');
+      const mEnd = format(endOfMonth(new Date(year, monthIdx, 1)), 'yyyy-MM-dd');
+      const { data } = await supabase
+        .from('tasks')
+        .select('*, profiles:assigned_to(full_name)')
+        .eq('tag', 'Rotina')
+        .gte('deadline', mStart)
+        .lte('deadline', mEnd)
+        .order('deadline');
+      return data || [];
+    },
+  });
+
   // Checklists
   const checklistQ = useQuery({ queryKey: ['md-checklist', year, monthNum], queryFn: async () => { const { data } = await supabase.from('executive_monthly_checklists').select('*').eq('year', year).eq('month', monthNum).order('created_at'); return data || []; }});
 
@@ -910,6 +927,39 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
               <p className="text-xs text-amber-800 dark:text-amber-300">Este mês <strong>{m.name}</strong> teve <strong>{m.committed}h</strong> comprometidas com <strong>{m.available}h</strong> disponíveis. Considera redistribuir clientes.</p>
             </div>
           ))}
+        </CardContent>
+      </Card>
+
+      {/* ═══ SECTION 8.5: Rotinas Semanais e Mensais ═══ */}
+      <Card className="border-secondary bg-background">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            Rotinas Semanais e Mensais
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {(routineTasksQ.data || []).length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">Sem rotinas configuradas para este mês.</p>
+          ) : (
+            <div className="space-y-1.5">
+              {(routineTasksQ.data || []).map((t: any) => (
+                <div
+                  key={t.id}
+                  className="flex items-center gap-2 p-2 rounded-md border cursor-pointer hover:shadow-sm transition-shadow"
+                  onClick={() => navigate('/tarefas')}
+                >
+                  {t.status === 'done' || t.status === 'concluida' ? (
+                    <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">Feita</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-[10px]">Por fazer</Badge>
+                  )}
+                  <span className={cn('text-sm flex-1 truncate', (t.status === 'done' || t.status === 'concluida') && 'line-through text-muted-foreground')}>{t.name}</span>
+                  <span className="text-[10px] text-muted-foreground shrink-0">{t.deadline ? format(parseISO(t.deadline), 'd MMM', { locale: pt }) : ''}</span>
+                  <span className="text-[10px] text-muted-foreground shrink-0">{(t.profiles as any)?.full_name || ''}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

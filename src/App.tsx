@@ -62,12 +62,23 @@ import FinanceiroPage from "./pages/Financeiro";
 import FinanceiroSubPage from "./pages/FinanceiroSubPage";
 import OperacaoPage from "./pages/Operacao";
 import RecursosHumanosSubPage from "./pages/RecursosHumanosSubPage";
+import { ensureYearRoutineTasks } from '@/hooks/usePlanningRoutines';
+import { useEffect, useRef } from 'react';
 
 const queryClient = new QueryClient();
 
 function AppRoutes() {
   const { user, loading: authLoading, isOwner } = useAuth();
   const { isSetupComplete, loading: settingsLoading } = useBusinessSettings();
+
+  // Ensure routine tasks exist for current year on boot
+  const routineBootRef = useRef(false);
+  useEffect(() => {
+    if (user && !routineBootRef.current) {
+      routineBootRef.current = true;
+      ensureYearRoutineTasks();
+    }
+  }, [user]);
 
   if (authLoading || settingsLoading) {
     return (

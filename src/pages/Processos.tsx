@@ -15,13 +15,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2, ArrowLeft, FileText, List } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, FileText, List, RotateCw, Power, PowerOff } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { DEPARTMENTS, getDept, getDeptLabel } from '@/lib/departments';
+import { usePlanningRoutines } from '@/hooks/usePlanningRoutines';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -59,6 +61,16 @@ export default function ProcessosPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const planningRoutines = usePlanningRoutines();
+
+  // Planning routine form state
+  const [showNewPlanningRoutine, setShowNewPlanningRoutine] = useState(false);
+  const [prTitle, setPrTitle] = useState('');
+  const [prResponsible, setPrResponsible] = useState('');
+  const [prRecurrence, setPrRecurrence] = useState<'semanal' | 'mensal'>('semanal');
+  const [prWeekday, setPrWeekday] = useState('1');
+  const [prMonthDay, setPrMonthDay] = useState('1');
+  const [prAdjustBiz, setPrAdjustBiz] = useState(true);
 
   const { allViews, addView, renameView, deleteView } = useUserViews('processos', PROCESSOS_DEFAULT_VIEWS);
   const [selectedDept, setSelectedDept] = useState<string | null>(null);
@@ -459,6 +471,64 @@ export default function ProcessosPage() {
               })}
             </section>
           )}
+
+          {/* ═══ Rotinas Recorrentes (Planning) ═══ */}
+          {!selectedDept && (
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+                  <RotateCw className="h-5 w-5 text-primary" /> Rotinas Recorrentes
+                </h2>
+                <Button onClick={() => setShowNewPlanningRoutine(true)} size="sm">
+                  <Plus className="h-4 w-4 mr-1" /> Nova Rotina Recorrente
+                </Button>
+              </div>
+              {(planningRoutines.routines.data || []).length === 0 ? (
+                <p className="text-muted-foreground text-sm">Nenhuma rotina recorrente configurada.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  {(planningRoutines.routines.data || []).map((pr: any) => {
+                    const assignee = pr.profiles;
+                    const recLabel = pr.recurrence_type === 'semanal'
+                      ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][pr.weekday || 0]} feira`
+                      : `Mensal — dia ${pr.month_day}${pr.adjust_to_business_day ? ' (ajuste dia útil)' : ''}`;
+                    return (
+                      <Card key={pr.id} className="p-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium line-clamp-2">{pr.title}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{recLabel}</p>
+                            <Badge variant={pr.active ? 'default' : 'secondary'} className="text-[10px] mt-1">
+                              {pr.active ? 'Ativa' : 'Inativa'}
+                            </Badge>
+                          </div>
+                          <div className="flex flex-col gap-1 items-end shrink-0">
+                            <Switch
+                              checked={pr.active}
+                              onCheckedChange={(v) => planningRoutines.toggleActive.mutate({ id: pr.id, active: v })}
+                              className="scale-75"
+                            />
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => planningRoutines.deleteRoutine.mutate(pr.id)}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        {assignee && (
+                          <div className="flex items-center gap-1.5 mt-2">
+                            <Avatar className="h-5 w-5">
+                              <AvatarImage src={assignee.avatar_url || ''} />
+                              <AvatarFallback className="text-[10px]">{(assignee.full_name || '?')[0]}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-xs text-muted-foreground truncate">{assignee.full_name}</span>
+                          </div>
+                        )}
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          )}
         </TabsContent>
 
         {/* ═══ TAB: Lista Total ═══ */}
@@ -590,6 +660,87 @@ export default function ProcessosPage() {
               onClick={() => editingRoutine ? updateRoutine.mutate() : createRoutine.mutate()}
             >
               {editingRoutine ? 'Guardar Alterações' : 'Criar Rotina'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══ Dialog: Nova Rotina Recorrente ═══ */}
+      <Dialog open={showNewPlanningRoutine} onOpenChange={v => { if (!v) { setShowNewPlanningRoutine(false); setPrTitle(''); setPrResponsible(''); setPrRecurrence('semanal'); setPrWeekday('1'); setPrMonthDay('1'); setPrAdjustBiz(true); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Nova Rotina Recorrente</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Título *</Label>
+              <Input value={prTitle} onChange={e => setPrTitle(e.target.value)} placeholder="Ex: Revisão semanal de KPIs" />
+            </div>
+            <div>
+              <Label>Responsável</Label>
+              <Select value={prResponsible} onValueChange={setPrResponsible}>
+                <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                <SelectContent>{profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Tipo de recorrência</Label>
+              <Select value={prRecurrence} onValueChange={v => setPrRecurrence(v as any)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="semanal">Semanal</SelectItem>
+                  <SelectItem value="mensal">Mensal</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {prRecurrence === 'semanal' && (
+              <div>
+                <Label>Dia da semana</Label>
+                <Select value={prWeekday} onValueChange={setPrWeekday}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Segunda-feira</SelectItem>
+                    <SelectItem value="2">Terça-feira</SelectItem>
+                    <SelectItem value="3">Quarta-feira</SelectItem>
+                    <SelectItem value="4">Quinta-feira</SelectItem>
+                    <SelectItem value="5">Sexta-feira</SelectItem>
+                    <SelectItem value="6">Sábado</SelectItem>
+                    <SelectItem value="7">Domingo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {prRecurrence === 'mensal' && (
+              <>
+                <div>
+                  <Label>Dia do mês</Label>
+                  <Input type="number" min={1} max={31} value={prMonthDay} onChange={e => setPrMonthDay(e.target.value)} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch checked={prAdjustBiz} onCheckedChange={setPrAdjustBiz} />
+                  <Label className="text-sm">Ajustar para dia útil anterior (se cair em fim de semana)</Label>
+                </div>
+              </>
+            )}
+            <Button
+              className="w-full"
+              disabled={!prTitle.trim() || planningRoutines.createRoutine.isPending}
+              onClick={() => {
+                planningRoutines.createRoutine.mutate({
+                  title: prTitle,
+                  responsible: prResponsible || null,
+                  recurrence_type: prRecurrence,
+                  weekday: prRecurrence === 'semanal' ? Number(prWeekday) : null,
+                  month_day: prRecurrence === 'mensal' ? Number(prMonthDay) : null,
+                  adjust_to_business_day: prRecurrence === 'mensal' ? prAdjustBiz : true,
+                  created_by: user?.id,
+                }, {
+                  onSuccess: () => {
+                    setShowNewPlanningRoutine(false);
+                    setPrTitle(''); setPrResponsible(''); setPrRecurrence('semanal');
+                  },
+                });
+              }}
+            >
+              {planningRoutines.createRoutine.isPending ? 'A criar...' : 'Criar Rotina'}
             </Button>
           </div>
         </DialogContent>
