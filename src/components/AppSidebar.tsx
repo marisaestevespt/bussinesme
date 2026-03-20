@@ -11,6 +11,7 @@ import {
   SidebarFooter,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/hooks/useAuth';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
@@ -92,33 +93,47 @@ function NavSection({
   if (filtered.length === 0) return null;
 
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/70 font-medium">
-        {label}
-      </SidebarGroupLabel>
-      <SidebarGroupContent>
-        <SidebarMenu>
-          {filtered.map((item) => {
-            const Icon = getIcon(item.icon);
-            return (
-              <SidebarMenuItem key={item.url}>
-                <SidebarMenuButton asChild>
-                  <NavLink
-                    to={item.url}
-                    end
-                    className="hq-transition hover:bg-accent/50"
-                    activeClassName="bg-accent text-accent-foreground font-medium"
-                  >
-                    <Icon className="mr-2 h-4 w-4" strokeWidth={1.5} />
-                    {!collapsed && <span className="text-sm">{item.title}</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+    <Collapsible defaultOpen className="group/collapsible">
+      <SidebarGroup>
+        <CollapsibleTrigger asChild>
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/70 font-medium cursor-pointer hover:text-muted-foreground transition-colors select-none">
+            {label}
+            {!collapsed && (
+              <svg
+                className="ml-auto h-3 w-3 shrink-0 text-muted-foreground/50 transition-transform group-data-[state=open]/collapsible:rotate-90"
+                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              >
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            )}
+          </SidebarGroupLabel>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {filtered.map((item) => {
+                const Icon = getIcon(item.icon);
+                return (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        end
+                        className="hq-transition hover:bg-accent/50"
+                        activeClassName="bg-accent text-accent-foreground font-medium"
+                      >
+                        <Icon className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                        {!collapsed && <span className="text-sm">{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </CollapsibleContent>
+      </SidebarGroup>
+    </Collapsible>
   );
 }
 
