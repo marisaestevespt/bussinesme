@@ -50,14 +50,14 @@ export const ESCADA_OPTIONS = [
 ] as const;
 
 export const PRODUCT_TYPE_OPTIONS = [
-  { value: 'acompanhamento', label: 'Acompanhamento' },
   { value: 'curso', label: 'Curso' },
-  { value: 'projeto', label: 'Projeto' },
-  { value: 'servico', label: 'Serviço' },
-  { value: 'sistema', label: 'Sistema' },
-  { value: 'bonus', label: 'Bónus' },
-  { value: 'lead_magnet', label: 'Lead Magnet' },
-  { value: 'sessao', label: 'Sessão' },
+  { value: 'projeto_1_1', label: 'Projeto 1:1' },
+  { value: 'consultoria_individual', label: 'Consultoria individual' },
+  { value: 'consultoria_grupo', label: 'Consultoria em grupo' },
+  { value: 'mentoria_individual', label: 'Mentoria individual' },
+  { value: 'mentoria_grupo', label: 'Mentoria em grupo' },
+  { value: 'servico_mensal', label: 'Serviço mensal' },
+  { value: 'template', label: 'Template' },
 ] as const;
 
 export const SALES_TYPE_OPTIONS = [

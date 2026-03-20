@@ -263,7 +263,7 @@ export default function OperacaoPage() {
   // ── Derived data ────────────────────────────────────────────
   const profileMap = useMemo(() => new Map(profiles.map(p => [p.id, p])), [profiles]);
 
-  const clientProjects = useMemo(() => projects.filter(p => p.type === 'clientes'), [projects]);
+  const clientProjects = useMemo(() => projects.filter(p => p.type === 'clientes' || p.type === 'cliente_projeto_unico' || p.type === 'cliente_servico_mensal'), [projects]);
   const internoProjects = useMemo(() => projects.filter(p => p.type === 'interno'), [projects]);
 
   const activeClientProjects = useMemo(() => clientProjects.filter(p => ACTIVE_STATUSES.includes(p.status)), [clientProjects]);

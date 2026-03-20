@@ -34,8 +34,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 const PROJECT_TYPES = [
   { value: 'interno', label: 'Interno', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
-  { value: 'clientes', label: 'Clientes', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
   { value: 'lancamento', label: 'Lançamento', color: 'bg-rose-100 text-rose-800 border-rose-200' },
+  { value: 'cliente_projeto_unico', label: 'Cliente Projeto Único', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+  { value: 'cliente_servico_mensal', label: 'Cliente Serviço Mensal', color: 'bg-teal-100 text-teal-800 border-teal-200' },
 ];
 
 const PROJECT_STATUSES = [
@@ -228,7 +229,7 @@ export default function ProjetosPage() {
     // For client projects, include onboarding/offboarding items
     let boardingTotal = 0;
     let boardingDone = 0;
-    if (project?.type === 'clientes' && project.client_name) {
+    if ((project?.type === 'clientes' || project?.type === 'cliente_projeto_unico' || project?.type === 'cliente_servico_mensal') && project.client_name) {
       const clientId = clientNameToId.get(project.client_name);
       if (clientId) {
         const onb = allOnboarding.filter(o => o.client_id === clientId);
@@ -441,7 +442,7 @@ export default function ProjetosPage() {
                   <Label>Data de Fim</Label>
                   <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !fDeadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{fDeadline ? format(fDeadline, 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={fDeadline} onSelect={setFDeadline} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
                 </div>
-                {fType === 'servico' && (
+                {(fType === 'servico' || fType === 'cliente_servico_mensal' || fType === 'cliente_projeto_unico') && (
                   <div className="space-y-1.5">
                     <Label>Cliente associado</Label>
                     <Input value={fClient} onChange={e => setFClient(e.target.value)} placeholder="Nome do cliente" />
