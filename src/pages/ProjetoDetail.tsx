@@ -705,6 +705,12 @@ export default function ProjetoDetailPage() {
               <span className="text-xs text-muted-foreground">{getProjectProgress()}%</span>
             </div>
             <div className="flex -space-x-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-6 w-6 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div>
+            <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
+            {local.status === 'concluido' && local.total_time_minutes != null && local.total_time_minutes > 0 && (
+              <Badge variant="outline" className="gap-1 text-xs">
+                <Clock className="h-3 w-3" /> Tempo total: {formatDuration(local.total_time_minutes)}
+              </Badge>
+            )}
           </div>
         </div>
 
