@@ -41,6 +41,7 @@ const FREQUENCIES = [
   { value: 'quinta', label: '5ª feira' },
   { value: 'sexta', label: '6ª feira' },
   { value: 'primeiro_dia_util', label: '1º dia útil do mês' },
+  { value: 'dia_x_mes', label: 'Dia X do mês' },
 ];
 
 function getStatusInfo(status: string) {
@@ -73,6 +74,9 @@ export default function ProcessosPage() {
   const [newRoutineFreq, setNewRoutineFreq] = useState('todos_os_dias');
   const [newRoutineAssignee, setNewRoutineAssignee] = useState<string>('');
   const [routineSteps, setRoutineSteps] = useState('');
+  const [newRoutineMonthlyDay, setNewRoutineMonthlyDay] = useState('');
+  const [newRoutineStartDate, setNewRoutineStartDate] = useState('');
+  const [newRoutineEndDate, setNewRoutineEndDate] = useState('');
   const [activeTab, setActiveTab] = useState('galeria');
 
   // ─── Queries ──────────────────────────────────────────────────
@@ -149,7 +153,10 @@ export default function ProcessosPage() {
         assigned_to: newRoutineAssignee || null,
         created_by: user?.id,
         sop_id: sopId,
-      });
+        monthly_day: newRoutineFreq === 'dia_x_mes' && newRoutineMonthlyDay ? Number(newRoutineMonthlyDay) : null,
+        start_date: newRoutineFreq === 'dia_x_mes' && newRoutineStartDate ? newRoutineStartDate : null,
+        end_date: newRoutineFreq === 'dia_x_mes' && newRoutineEndDate ? newRoutineEndDate : null,
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -190,7 +197,10 @@ export default function ProcessosPage() {
         frequency: newRoutineFreq,
         assigned_to: newRoutineAssignee || null,
         sop_id: sopId,
-      }).eq('id', editingRoutine.id);
+        monthly_day: newRoutineFreq === 'dia_x_mes' && newRoutineMonthlyDay ? Number(newRoutineMonthlyDay) : null,
+        start_date: newRoutineFreq === 'dia_x_mes' && newRoutineStartDate ? newRoutineStartDate : null,
+        end_date: newRoutineFreq === 'dia_x_mes' && newRoutineEndDate ? newRoutineEndDate : null,
+      } as any).eq('id', editingRoutine.id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -220,6 +230,9 @@ export default function ProcessosPage() {
     setNewRoutineFreq('todos_os_dias');
     setNewRoutineAssignee('');
     setRoutineSteps('');
+    setNewRoutineMonthlyDay('');
+    setNewRoutineStartDate('');
+    setNewRoutineEndDate('');
   }
 
   function openEditRoutine(routine: any) {
@@ -228,6 +241,9 @@ export default function ProcessosPage() {
     setNewRoutineDept(routine.department);
     setNewRoutineFreq(routine.frequency);
     setNewRoutineAssignee(routine.assigned_to || '');
+    setNewRoutineMonthlyDay(routine.monthly_day?.toString() || '');
+    setNewRoutineStartDate(routine.start_date || '');
+    setNewRoutineEndDate(routine.end_date || '');
     // Load SOP steps if linked
     if (routine.sop_id) {
       const linkedSop = sops.find(s => s.id === routine.sop_id);
@@ -526,6 +542,24 @@ export default function ProcessosPage() {
                 <SelectContent>{FREQUENCIES.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            {newRoutineFreq === 'dia_x_mes' && (
+              <>
+                <div>
+                  <Label>Dia do mês *</Label>
+                  <Input type="number" min={1} max={31} value={newRoutineMonthlyDay} onChange={e => setNewRoutineMonthlyDay(e.target.value)} placeholder="Ex: 15" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Data de início *</Label>
+                    <Input type="date" value={newRoutineStartDate} onChange={e => setNewRoutineStartDate(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Data de fim</Label>
+                    <Input type="date" value={newRoutineEndDate} onChange={e => setNewRoutineEndDate(e.target.value)} />
+                  </div>
+                </div>
+              </>
+            )}
             <div>
               <Label>Departamento</Label>
               <Select value={newRoutineDept} onValueChange={setNewRoutineDept}>
