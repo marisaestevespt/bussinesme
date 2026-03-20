@@ -335,6 +335,81 @@ export default function ClientesAnalisePage() {
   const { clients: clientsQ } = useClients();
   const clientsData = clientsQ.data || [];
 
+  // NPS for annual
+  const npsQ = useQuery({
+    queryKey: ['client_nps_all'],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_nps_records').select('*').order('actual_date', { ascending: false });
+      return data || [];
+    },
+  });
+  const allNps = npsQ.data || [];
+
+  // Milestones for health
+  const milestonesQ = useQuery({
+    queryKey: ['client_milestones_all'],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_milestones').select('*');
+      return data || [];
+    },
+  });
+  const allMilestones = milestonesQ.data || [];
+
+  // ─── Annual summary ───
+  const annualSummary = useMemo(() => {
+    const activeClients = clientsData.filter(c => c.status === 'ativo' || c.status === 'em_onboarding');
+    const newClients = clientsData.filter(c => {
+      if (!c.start_date) return false;
+      return new Date(c.start_date).getFullYear() === year;
+    }).length;
+    const churn = clientsData.filter(c => {
+      if (!c.updated_at || c.status !== 'terminado') return false;
+      return new Date(c.updated_at).getFullYear() === year;
+    }).length;
+
+    const renewalClients = clientsData.filter(c => {
+      if (!c.updated_at) return false;
+      return new Date(c.updated_at).getFullYear() === year;
+    });
+    const renewed = renewalClients.filter(c => c.status === 'ativo').length;
+    const renewalBase = renewalClients.filter(c => ['ativo', 'altura_renovacao', 'terminado'].includes(c.status)).length;
+    const renewalRate = renewalBase > 0 ? Math.round((renewed / renewalBase) * 100) : 0;
+
+    // NPS
+    const activeIds = new Set(activeClients.map(c => c.id));
+    const npsMap = new Map<string, number>();
+    for (const n of allNps) {
+      if (n.nps_score != null && !npsMap.has(n.client_id) && activeIds.has(n.client_id)) {
+        npsMap.set(n.client_id, n.nps_score);
+      }
+    }
+    const npsScores = Array.from(npsMap.values());
+    const avgNps = npsScores.length > 0 ? (npsScores.reduce((a, b) => a + b, 0) / npsScores.length).toFixed(1) : '—';
+
+    // Distribution by product
+    const byProduct: { name: string; count: number }[] = [];
+    const prodMap: Record<string, number> = {};
+    activeClients.forEach(c => { const p = c.current_product || 'Sem produto'; prodMap[p] = (prodMap[p] || 0) + 1; });
+    Object.entries(prodMap).sort((a, b) => b[1] - a[1]).forEach(([name, count]) => byProduct.push({ name, count }));
+
+    // Health semaphore counts
+    const today = new Date();
+    let green = 0, yellow = 0, red = 0;
+    activeClients.forEach(c => {
+      const clientNps = npsMap.get(c.id);
+      const lastNpsDate = allNps.find(n => n.client_id === c.id && n.nps_score != null)?.actual_date;
+      const daysSinceNps = lastNpsDate ? differenceInDays(today, parseISO(lastNpsDate)) : 999;
+      const overdue = allMilestones.filter(m => m.client_id === c.id && m.status !== 'concluido' && m.expected_date && parseISO(m.expected_date) < today);
+      const endCycleDays = c.end_of_cycle ? differenceInDays(parseISO(c.end_of_cycle), today) : 999;
+
+      if (endCycleDays <= 30 || (clientNps != null && clientNps <= 6)) red++;
+      else if (daysSinceNps > 90 || overdue.length > 0) yellow++;
+      else green++;
+    });
+
+    return { activeCount: activeClients.length, newClients, churn, renewalRate, avgNps, byProduct, green, yellow, red };
+  }, [clientsData, year, allNps, allMilestones]);
+
   const monthSummaries = useMemo(() => {
     return MONTH_NAMES.map((name, idx) => {
       const m = idx + 1;
@@ -373,6 +448,47 @@ export default function ClientesAnalisePage() {
 
         <YearSelector year={year} onChange={setYear} />
 
+        {/* ─── Annual Summary ─── */}
+        <div className="space-y-4">
+          <h3 className="text-base font-semibold">Resumo {year}</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            <KpiCard label="Clientes ativos" value={annualSummary.activeCount} icon={Users} />
+            <KpiCard label="Novos clientes" value={annualSummary.newClients} icon={UserPlus} />
+            <KpiCard label="Churn total" value={annualSummary.churn} icon={UserMinus} color={annualSummary.churn > 0 ? 'text-destructive' : undefined} />
+            <KpiCard label="Taxa de renovação" value={`${annualSummary.renewalRate}%`} icon={RefreshCw} />
+            <KpiCard label="NPS médio atual" value={annualSummary.avgNps} icon={Star} />
+          </div>
+
+          {/* Distribution by product */}
+          {annualSummary.byProduct.length > 0 && (
+            <Card className="border-secondary bg-background">
+              <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-sm font-semibold">Distribuição por Produto</CardTitle></CardHeader>
+              <CardContent className="px-4 pb-4 space-y-2">
+                {annualSummary.byProduct.map(p => (
+                  <div key={p.name} className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">{p.name}</span>
+                    <span className="font-medium">{p.count} clientes</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Health */}
+          <Card className="border-secondary bg-background">
+            <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-sm font-semibold">Saúde da Carteira Atual</CardTitle></CardHeader>
+            <CardContent className="px-4 pb-4">
+              <div className="flex gap-6 text-sm">
+                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-emerald-500" /><span className="font-medium">{annualSummary.green} Verde</span></div>
+                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-amber-500" /><span className="font-medium">{annualSummary.yellow} Amarelo</span></div>
+                <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-red-500" /><span className="font-medium">{annualSummary.red} Vermelho</span></div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Separator />
+
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {monthSummaries.map((m, idx) => {
             const isCurrent = now.getMonth() === idx && now.getFullYear() === year;
@@ -394,6 +510,15 @@ export default function ClientesAnalisePage() {
                     <span className="text-emerald-600 font-medium">+{m.newClients} novos</span>
                     {m.churn > 0 && <span className="text-destructive font-medium">-{m.churn} churn</span>}
                   </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+    </AppLayout>
+  );
+}
                 </CardContent>
               </Card>
             );

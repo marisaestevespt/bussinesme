@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { YearSelector } from '@/components/YearSelector';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { supabase } from '@/integrations/supabase/client';
