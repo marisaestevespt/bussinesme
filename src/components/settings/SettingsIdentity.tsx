@@ -300,6 +300,11 @@ export function SettingsIdentity() {
           <Input id="settingsBusinessName" value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="O nome do teu negócio" required className="h-11" />
         </div>
         <div className="space-y-2">
+          <Label htmlFor="supportHours" className="text-sm font-medium">Horário de atendimento</Label>
+          <Input id="supportHours" value={supportHours} onChange={(e) => setSupportHours(e.target.value)} placeholder="Ex: Seg a Sex, 10h – 18h" className="h-11" />
+          <p className="text-xs text-muted-foreground">Será visível no portal do cliente.</p>
+        </div>
+        <div className="space-y-2">
           <Label className="text-sm font-medium">Logo</Label>
           <div className="flex items-center gap-4">
             <label className="flex h-20 w-20 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/25 bg-muted/30 hover:border-muted-foreground/50 hover:bg-muted/50 overflow-hidden transition-colors">
