@@ -485,154 +485,12 @@ export default function ClienteDetailPage() {
         {/* Content tabs */}
         <Tabs defaultValue="jornada" className="w-full">
           <TabsList className="bg-transparent gap-2 flex-wrap">
-            <TabsTrigger value="jornada" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-sm bg-background border border-secondary text-secondary-foreground">Jornada</TabsTrigger>
-            <TabsTrigger value="gestao" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-sm bg-background border border-secondary text-secondary-foreground">Gestão do Cliente</TabsTrigger>
-            <TabsTrigger value="customer-success" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-sm bg-background border border-secondary text-secondary-foreground">Customer Success</TabsTrigger>
-            <TabsTrigger value="uteis" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-sm bg-background border border-secondary text-secondary-foreground">Úteis</TabsTrigger>
+            <TabsTrigger value="jornada">Jornada</TabsTrigger>
+            <TabsTrigger value="links">Links</TabsTrigger>
+            <TabsTrigger value="gestao">Gestão do Cliente</TabsTrigger>
+            <TabsTrigger value="customer-success">Customer Success</TabsTrigger>
+            <TabsTrigger value="uteis">Úteis</TabsTrigger>
           </TabsList>
-
-          {/* ─── Gestão do Cliente ───────────────────────── */}
-          <TabsContent value="gestao" className="space-y-6 mt-4">
-            {/* Portal de Cliente */}
-            {!isNew && id && (
-              <ClientPortalSection
-                clientId={id}
-                clientName={form.full_name || ''}
-                currentProduct={form.current_product || null}
-              />
-            )}
-            {/* Payments filtered view */}
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm">Gestão de Pagamentos</CardTitle>
-                <div className="flex items-center gap-2">
-                  {form.payment_method && parseInt(form.payment_method) > 1 && (
-                    <Button size="sm" variant="secondary" onClick={generateInstallments}>
-                      Gerar {form.payment_method} Pagamentos
-                    </Button>
-                  )}
-                  <Button size="sm" variant="outline" onClick={() => setSaleOpen(true)}><Plus className="h-3 w-3 mr-1" />Novo Pagamento</Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-9 gap-2">
-                  <span>Status</span><span>Data</span><span>Descrição</span><span>Valor Base</span><span>Fatura</span><span>Produto</span><span>Mês</span><span>Ano</span><span>Docs</span>
-                </div>
-                {clientSales.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8 text-sm">Sem pagamentos associados</p>
-                ) : clientSales.map(s => (
-                  <div key={s.id} className="px-4 py-2 text-xs grid grid-cols-9 gap-2 border-b items-center">
-                    <span>{s.status}</span>
-                    <span>{s.payment_date || '—'}</span>
-                    <span className="truncate">{s.description || '—'}</span>
-                    <span>{Number(s.base_value).toFixed(2)}€</span>
-                    <span>{Number(s.invoice_total).toFixed(2)}€</span>
-                    <span className="truncate">{s.product || '—'}</span>
-                    <span>{s.sale_month || '—'}</span>
-                    <span>{s.sale_year || '—'}</span>
-                    <span className="truncate">{Array.isArray(s.documents) && s.documents.length > 0 ? `${s.documents.length} doc(s)` : '—'}</span>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Meetings filtered view */}
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm">Reuniões</CardTitle>
-                <Button size="sm" variant="outline" onClick={() => setMeetingOpen(true)}><Plus className="h-3 w-3 mr-1" />Nova Reunião</Button>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-5 gap-2">
-                  <span>Status</span><span>Data & Hora</span><span>Reunião</span><span>Participantes</span><span>Link</span>
-                </div>
-                {clientMeetings.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8 text-sm">Sem reuniões associadas</p>
-                ) : clientMeetings.map((m: any) => (
-                  <div key={m.id} className="px-4 py-2 text-xs grid grid-cols-5 gap-2 border-b items-center">
-                    <span><Badge variant="outline">{m.status}</Badge></span>
-                    <span>{m.date_time ? format(parseISO(m.date_time), 'dd/MM/yyyy HH:mm') : '—'}</span>
-                    <span className="truncate">{m.title}</span>
-                    <span className="truncate">
-                      {m.meeting_participants?.map((p: any) => p.profiles?.full_name).filter(Boolean).join(', ') || '—'}
-                    </span>
-                    <span>
-                      {m.transcript_url ? <a href={m.transcript_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3 w-3" /></a> : '—'}
-                    </span>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* ─── Úteis ─────────────────────────────────── */}
-          <TabsContent value="uteis" className="space-y-6 mt-4">
-            {/* Additional Contacts */}
-            {!isNew && id && <ClientContactsSection clientId={id} />}
-
-            {/* Linked SOPs */}
-            {!isNew && id && (
-              <LinkedSopsSection
-                entityType="cliente"
-                entityId={id}
-                productId={productList.find(p => p.name === form.current_product)?.id}
-              />
-            )}
-            {/* Client history */}
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm">Histórico do Cliente</CardTitle>
-                {!isNew && (
-                  <Button size="sm" variant="outline" onClick={() => addHistory.mutateAsync({ client_id: id!, milestone: '', entry_date: format(new Date(), 'yyyy-MM-dd') })}>
-                    <Plus className="h-3 w-3 mr-1" />Nova Entrada
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2">
-                  <span>Data</span><span>Marco</span><span>Observações</span><span></span>
-                </div>
-                {(history.data || []).length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8 text-sm">Sem entradas</p>
-                ) : (history.data || []).map(h => (
-                  <div key={h.id} className="px-4 py-2 text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2 border-b items-center">
-                    <Input type="date" className="h-7 text-xs" defaultValue={h.entry_date} onBlur={e => updateHistory.mutate({ id: h.id, entry_date: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={h.milestone} placeholder="Marco" onBlur={e => updateHistory.mutate({ id: h.id, milestone: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={h.observations || ''} placeholder="Observações" onBlur={e => updateHistory.mutate({ id: h.id, observations: e.target.value })} />
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteHistory.mutate(h.id)}><X className="h-3 w-3" /></Button>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Activities map */}
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm">Mapa de Atividades Base</CardTitle>
-                {!isNew && (
-                  <Button size="sm" variant="outline" onClick={() => addActivity.mutateAsync({ client_id: id!, activity: '' })}>
-                    <Plus className="h-3 w-3 mr-1" />Nova Entrada
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[1fr_1fr_1fr_1fr_32px] gap-2">
-                  <span>Fase</span><span>Atividade</span><span>Responsável</span><span>Regra</span><span></span>
-                </div>
-                {(activities.data || []).length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8 text-sm">Sem entradas</p>
-                ) : (activities.data || []).map(a => (
-                  <div key={a.id} className="px-4 py-2 text-xs grid grid-cols-[1fr_1fr_1fr_1fr_32px] gap-2 border-b items-center">
-                    <Input className="h-7 text-xs" defaultValue={a.phase || ''} placeholder="Fase" onBlur={e => updateActivity.mutate({ id: a.id, phase: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={a.activity} placeholder="Atividade" onBlur={e => updateActivity.mutate({ id: a.id, activity: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={a.responsible || ''} placeholder="Responsável" onBlur={e => updateActivity.mutate({ id: a.id, responsible: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={a.rule || ''} placeholder="Regra" onBlur={e => updateActivity.mutate({ id: a.id, rule: e.target.value })} />
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteActivity.mutate(a.id)}><X className="h-3 w-3" /></Button>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* ─── Jornada ───────────────────────────────── */}
           <TabsContent value="jornada" className="space-y-6 mt-4">
@@ -706,51 +564,127 @@ export default function ClienteDetailPage() {
                 ))}
               </CardContent>
             </Card>
+          </TabsContent>
 
+          {/* ─── Links ─────────────────────────────────── */}
+          <TabsContent value="links" className="space-y-6 mt-4">
             {/* Drive folder */}
             <Card>
               <CardHeader className="pb-2"><CardTitle className="text-sm">Pasta Drive</CardTitle></CardHeader>
               <CardContent>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Link para pasta de Drive</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={form.drive_folder_url || ''}
-                      onChange={e => update('drive_folder_url', e.target.value)}
-                      placeholder="https://drive.google.com/..."
-                    />
-                    {form.drive_folder_url && (
-                      <Button variant="outline" size="icon" asChild>
-                        <a href={form.drive_folder_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
-                      </Button>
-                    )}
-                  </div>
+                <div className="flex gap-2">
+                  <Input
+                    value={form.drive_folder_url || ''}
+                    onChange={e => update('drive_folder_url', e.target.value)}
+                    placeholder="https://drive.google.com/..."
+                  />
+                  {form.drive_folder_url && (
+                    <Button variant="outline" size="icon" asChild>
+                      <a href={form.drive_folder_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             {/* WhatsApp group */}
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Link grupo WhatsApp</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">Link Grupo WhatsApp</CardTitle></CardHeader>
               <CardContent>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Link para grupo WhatsApp</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={(form as any).whatsapp_group_url || ''}
-                      onChange={e => update('whatsapp_group_url' as any, e.target.value)}
-                      placeholder="https://chat.whatsapp.com/..."
-                    />
-                    {(form as any).whatsapp_group_url && (
-                      <Button variant="outline" size="icon" asChild>
-                        <a href={(form as any).whatsapp_group_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
-                      </Button>
-                    )}
-                  </div>
+                <div className="flex gap-2">
+                  <Input
+                    value={(form as any).whatsapp_group_url || ''}
+                    onChange={e => update('whatsapp_group_url' as any, e.target.value)}
+                    placeholder="https://chat.whatsapp.com/..."
+                  />
+                  {(form as any).whatsapp_group_url && (
+                    <Button variant="outline" size="icon" asChild>
+                      <a href={(form as any).whatsapp_group_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
+
+            {/* Portal de Cliente */}
+            {!isNew && id && (
+              <ClientPortalSection
+                clientId={id}
+                clientName={form.full_name || ''}
+                currentProduct={form.current_product || null}
+              />
+            )}
           </TabsContent>
+
+          {/* ─── Gestão do Cliente ───────────────────────── */}
+          <TabsContent value="gestao" className="space-y-6 mt-4">
+            {/* Meetings filtered view */}
+            <Card>
+              <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm">Reuniões</CardTitle>
+                <Button size="sm" variant="outline" onClick={() => setMeetingOpen(true)}><Plus className="h-3 w-3 mr-1" />Nova Reunião</Button>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-5 gap-2">
+                  <span>Status</span><span>Data & Hora</span><span>Reunião</span><span>Participantes</span><span>Link</span>
+                </div>
+                {clientMeetings.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8 text-sm">Sem reuniões associadas</p>
+                ) : clientMeetings.map((m: any) => (
+                  <div key={m.id} className="px-4 py-2 text-xs grid grid-cols-5 gap-2 border-b items-center">
+                    <span><Badge variant="outline">{m.status}</Badge></span>
+                    <span>{m.date_time ? format(parseISO(m.date_time), 'dd/MM/yyyy HH:mm') : '—'}</span>
+                    <span className="truncate">{m.title}</span>
+                    <span className="truncate">
+                      {m.meeting_participants?.map((p: any) => p.profiles?.full_name).filter(Boolean).join(', ') || '—'}
+                    </span>
+                    <span>
+                      {m.transcript_url ? <a href={m.transcript_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3 w-3" /></a> : '—'}
+                    </span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Payments filtered view */}
+            <Card>
+              <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm">Pagamentos</CardTitle>
+                <div className="flex items-center gap-2">
+                  {form.payment_method && parseInt(form.payment_method) > 1 && (
+                    <Button size="sm" variant="secondary" onClick={generateInstallments}>
+                      Gerar {form.payment_method} Pagamentos
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" onClick={() => setSaleOpen(true)}><Plus className="h-3 w-3 mr-1" />Novo Pagamento</Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-9 gap-2">
+                  <span>Status</span><span>Data</span><span>Descrição</span><span>Valor Base</span><span>Fatura</span><span>Produto</span><span>Mês</span><span>Ano</span><span>Docs</span>
+                </div>
+                {clientSales.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8 text-sm">Sem pagamentos associados</p>
+                ) : clientSales.map(s => (
+                  <div key={s.id} className="px-4 py-2 text-xs grid grid-cols-9 gap-2 border-b items-center">
+                    <span>{s.status}</span>
+                    <span>{s.payment_date || '—'}</span>
+                    <span className="truncate">{s.description || '—'}</span>
+                    <span>{Number(s.base_value).toFixed(2)}€</span>
+                    <span>{Number(s.invoice_total).toFixed(2)}€</span>
+                    <span className="truncate">{s.product || '—'}</span>
+                    <span>{s.sale_month || '—'}</span>
+                    <span>{s.sale_year || '—'}</span>
+                    <span className="truncate">{Array.isArray(s.documents) && s.documents.length > 0 ? `${s.documents.length} doc(s)` : '—'}</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Feedback recebido */}
+            <ClientFeedbackSection clientId={isNew ? undefined : id} clientName={form.full_name || ''} />
+          </TabsContent>
+
           {/* ─── Customer Success ──────────────────────── */}
           <TabsContent value="customer-success" className="space-y-6 mt-4">
             {!isNew && (
@@ -761,6 +695,75 @@ export default function ClienteDetailPage() {
                 startDate={form.start_date || null}
               />
             )}
+          </TabsContent>
+
+          {/* ─── Úteis ─────────────────────────────────── */}
+          <TabsContent value="uteis" className="space-y-6 mt-4">
+            {/* Additional Contacts */}
+            {!isNew && id && <ClientContactsSection clientId={id} />}
+
+            {/* Linked SOPs */}
+            {!isNew && id && (
+              <LinkedSopsSection
+                entityType="cliente"
+                entityId={id}
+                productId={productList.find(p => p.name === form.current_product)?.id}
+              />
+            )}
+            {/* Client history */}
+            <Card>
+              <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm">Histórico do Cliente</CardTitle>
+                {!isNew && (
+                  <Button size="sm" variant="outline" onClick={() => addHistory.mutateAsync({ client_id: id!, milestone: '', entry_date: format(new Date(), 'yyyy-MM-dd') })}>
+                    <Plus className="h-3 w-3 mr-1" />Nova Entrada
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2">
+                  <span>Data</span><span>Marco</span><span>Observações</span><span></span>
+                </div>
+                {(history.data || []).length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8 text-sm">Sem entradas</p>
+                ) : (history.data || []).map(h => (
+                  <div key={h.id} className="px-4 py-2 text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2 border-b items-center">
+                    <Input type="date" className="h-7 text-xs" defaultValue={h.entry_date} onBlur={e => updateHistory.mutate({ id: h.id, entry_date: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={h.milestone} placeholder="Marco" onBlur={e => updateHistory.mutate({ id: h.id, milestone: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={h.observations || ''} placeholder="Observações" onBlur={e => updateHistory.mutate({ id: h.id, observations: e.target.value })} />
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteHistory.mutate(h.id)}><X className="h-3 w-3" /></Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Activities map */}
+            <Card>
+              <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm">Mapa de Atividades Base</CardTitle>
+                {!isNew && (
+                  <Button size="sm" variant="outline" onClick={() => addActivity.mutateAsync({ client_id: id!, activity: '' })}>
+                    <Plus className="h-3 w-3 mr-1" />Nova Entrada
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[1fr_1fr_1fr_1fr_32px] gap-2">
+                  <span>Fase</span><span>Atividade</span><span>Responsável</span><span>Regra</span><span></span>
+                </div>
+                {(activities.data || []).length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8 text-sm">Sem entradas</p>
+                ) : (activities.data || []).map(a => (
+                  <div key={a.id} className="px-4 py-2 text-xs grid grid-cols-[1fr_1fr_1fr_1fr_32px] gap-2 border-b items-center">
+                    <Input className="h-7 text-xs" defaultValue={a.phase || ''} placeholder="Fase" onBlur={e => updateActivity.mutate({ id: a.id, phase: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={a.activity} placeholder="Atividade" onBlur={e => updateActivity.mutate({ id: a.id, activity: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={a.responsible || ''} placeholder="Responsável" onBlur={e => updateActivity.mutate({ id: a.id, responsible: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={a.rule || ''} placeholder="Regra" onBlur={e => updateActivity.mutate({ id: a.id, rule: e.target.value })} />
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteActivity.mutate(a.id)}><X className="h-3 w-3" /></Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
