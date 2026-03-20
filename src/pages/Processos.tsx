@@ -396,6 +396,10 @@ export default function ProcessosPage() {
                 </div>
               </>
             )}
+            <div>
+              <Label>Hora</Label>
+              <Input type="time" value={prHour} onChange={e => setPrHour(e.target.value)} className="w-32" />
+            </div>
             <Button
               className="w-full"
               disabled={!prTitle.trim() || planningRoutines.createRoutine.isPending}
@@ -407,6 +411,7 @@ export default function ProcessosPage() {
                   weekday: prRecurrence === 'semanal' ? Number(prWeekday) : null,
                   month_day: prRecurrence === 'mensal' ? Number(prMonthDay) : null,
                   adjust_to_business_day: prRecurrence === 'mensal' ? prAdjustBiz : true,
+                  hour_time: prHour || '09:00',
                   created_by: user?.id,
                 }, {
                   onSuccess: () => {
