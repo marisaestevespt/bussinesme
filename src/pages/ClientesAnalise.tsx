@@ -45,6 +45,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
   const month = monthIdx + 1;
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { isKpiEnabled, isAreaEnabled } = useKpiSettings();
 
   const { clients: clientsQ } = useClients();
   const clientsData = clientsQ.data || [];
