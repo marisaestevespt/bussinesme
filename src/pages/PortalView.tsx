@@ -257,7 +257,7 @@ export default function PortalViewPage() {
                     </CardContent>
                   </Card>
                 )}
-                <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveSection('questions')}>
+                <Card className="cursor-pointer hover:shadow-md transition-shadow bg-primary/5 border-primary/20" onClick={() => setActiveSection('questions')}>
                   <CardContent className="p-4 flex items-center gap-3">
                     <ClipboardList className="h-8 w-8 text-primary" />
                     <div>
@@ -266,7 +266,7 @@ export default function PortalViewPage() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveSection('feedback')}>
+                <Card className="cursor-pointer hover:shadow-md transition-shadow bg-primary/5 border-primary/20" onClick={() => setActiveSection('feedback')}>
                   <CardContent className="p-4 flex items-center gap-3">
                     <MessageSquare className="h-8 w-8 text-primary" />
                     <div>
@@ -321,7 +321,7 @@ export default function PortalViewPage() {
                     .filter((m: any) => (m.status === 'agendada' || m.status === 'confirmada') && m.date_time)
                     .sort((a: any, b: any) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
                   return (
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveSection('meetings')}>
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-primary" onClick={() => setActiveSection('meetings')}>
                       <CardContent className="p-4 flex items-center gap-3">
                         <CalendarDays className="h-8 w-8 text-primary shrink-0" />
                         <div>
@@ -342,9 +342,9 @@ export default function PortalViewPage() {
                     .filter((p: any) => p.status === 'pendente' && p.payment_date)
                     .sort((a: any, b: any) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime())[0];
                   return (
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveSection('payments')}>
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-accent" onClick={() => setActiveSection('payments')}>
                       <CardContent className="p-4 flex items-center gap-3">
-                        <CreditCard className="h-8 w-8 text-primary shrink-0" />
+                        <CreditCard className="h-8 w-8 text-accent shrink-0" />
                         <div>
                           <p className="font-medium text-sm">Próximo Pagamento</p>
                           <p className="text-xs text-muted-foreground">
