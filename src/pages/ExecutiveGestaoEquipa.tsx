@@ -1590,8 +1590,7 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
       {/* Registos Semanais — above tabs */}
       <Card>
         <CardContent className="pt-5 space-y-4">
-          <div className="flex justify-between items-center gap-3 flex-wrap">
-            <h3 className="text-sm font-semibold">Registos Semanais</h3>
+          <div className="flex justify-end items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-1.5">
                 <label className="text-xs text-muted-foreground whitespace-nowrap">De</label>
