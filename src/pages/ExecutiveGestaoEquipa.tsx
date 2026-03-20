@@ -1686,8 +1686,6 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
         <TabsList className="flex-wrap">
           <TabsTrigger value="prioridade"><AlertTriangle className="h-3.5 w-3.5 mr-1" />Por Prioridade</TabsTrigger>
           <TabsTrigger value="atraso"><Clock className="h-3.5 w-3.5 mr-1" />Em Atraso</TabsTrigger>
-          <TabsTrigger value="tempo-membro"><BarChart3 className="h-3.5 w-3.5 mr-1" />Tempo por Membro</TabsTrigger>
-          <TabsTrigger value="sobrecarga"><AlertTriangle className="h-3.5 w-3.5 mr-1" />Tarefas & Sobrecarga</TabsTrigger>
         </TabsList>
 
         <TabsContent value="prioridade">
@@ -1697,15 +1695,23 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
         <TabsContent value="atraso">
           <OverdueTasks />
         </TabsContent>
-
-        <TabsContent value="tempo-membro">
-          <ByMemberTabShared />
-        </TabsContent>
-
-        <TabsContent value="sobrecarga">
-          <OverloadTabShared />
-        </TabsContent>
       </Tabs>
+
+      {/* Tempo por Membro */}
+      <Card>
+        <CardContent className="pt-5 space-y-4">
+          <h3 className="text-sm font-semibold">Tempo por Membro</h3>
+          <ByMemberTabShared />
+        </CardContent>
+      </Card>
+
+      {/* Tarefas & Sobrecarga */}
+      <Card>
+        <CardContent className="pt-5 space-y-4">
+          <h3 className="text-sm font-semibold">Tarefas & Sobrecarga</h3>
+          <OverloadTabShared />
+        </CardContent>
+      </Card>
     </div>
   );
 }
