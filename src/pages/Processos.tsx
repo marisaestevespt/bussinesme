@@ -471,6 +471,64 @@ export default function ProcessosPage() {
               })}
             </section>
           )}
+
+          {/* ═══ Rotinas Recorrentes (Planning) ═══ */}
+          {!selectedDept && (
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+                  <RotateCw className="h-5 w-5 text-primary" /> Rotinas Recorrentes
+                </h2>
+                <Button onClick={() => setShowNewPlanningRoutine(true)} size="sm">
+                  <Plus className="h-4 w-4 mr-1" /> Nova Rotina Recorrente
+                </Button>
+              </div>
+              {(planningRoutines.routines.data || []).length === 0 ? (
+                <p className="text-muted-foreground text-sm">Nenhuma rotina recorrente configurada.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  {(planningRoutines.routines.data || []).map((pr: any) => {
+                    const assignee = pr.profiles;
+                    const recLabel = pr.recurrence_type === 'semanal'
+                      ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][pr.weekday || 0]} feira`
+                      : `Mensal — dia ${pr.month_day}${pr.adjust_to_business_day ? ' (ajuste dia útil)' : ''}`;
+                    return (
+                      <Card key={pr.id} className="p-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium line-clamp-2">{pr.title}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{recLabel}</p>
+                            <Badge variant={pr.active ? 'default' : 'secondary'} className="text-[10px] mt-1">
+                              {pr.active ? 'Ativa' : 'Inativa'}
+                            </Badge>
+                          </div>
+                          <div className="flex flex-col gap-1 items-end shrink-0">
+                            <Switch
+                              checked={pr.active}
+                              onCheckedChange={(v) => planningRoutines.toggleActive.mutate({ id: pr.id, active: v })}
+                              className="scale-75"
+                            />
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => planningRoutines.deleteRoutine.mutate(pr.id)}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        {assignee && (
+                          <div className="flex items-center gap-1.5 mt-2">
+                            <Avatar className="h-5 w-5">
+                              <AvatarImage src={assignee.avatar_url || ''} />
+                              <AvatarFallback className="text-[10px]">{(assignee.full_name || '?')[0]}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-xs text-muted-foreground truncate">{assignee.full_name}</span>
+                          </div>
+                        )}
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          )}
         </TabsContent>
 
         {/* ═══ TAB: Lista Total ═══ */}
