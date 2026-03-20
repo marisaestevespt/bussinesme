@@ -35,6 +35,7 @@ import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { RichTextEditor } from '@/components/RichTextEditor';
+import { RotateCw } from 'lucide-react';
 
 // ─── Helpers ──────────────────────────────────────────────────
 
