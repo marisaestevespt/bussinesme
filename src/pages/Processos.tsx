@@ -41,6 +41,7 @@ const FREQUENCIES = [
   { value: 'quinta', label: '5ª feira' },
   { value: 'sexta', label: '6ª feira' },
   { value: 'primeiro_dia_util', label: '1º dia útil do mês' },
+  { value: 'dia_x_mes', label: 'Dia X do mês' },
 ];
 
 function getStatusInfo(status: string) {

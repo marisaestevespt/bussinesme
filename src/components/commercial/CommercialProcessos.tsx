@@ -20,6 +20,13 @@ const FREQ_MAP: Record<string, string> = {
   mensal: 'Mensal',
   trimestral: 'Trimestral',
   pontual: 'Pontual',
+  dia_x_mes: 'Dia X do mês',
+  segunda: '2ª feira',
+  terca: '3ª feira',
+  quarta: '4ª feira',
+  quinta: '5ª feira',
+  sexta: '6ª feira',
+  primeiro_dia_util: '1º dia útil do mês',
 };
 
 export function CommercialProcessos() {
