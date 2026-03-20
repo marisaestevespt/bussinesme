@@ -682,17 +682,17 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
   const feedbackSessions = memberFeedback.data || [];
 
   return (
-    <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
-        <SheetHeader>
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12">
               <AvatarImage src={(member as any).photo_url || undefined} />
               <AvatarFallback>{member.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
-            <SheetTitle>{member.full_name}</SheetTitle>
+            <DialogTitle>{member.full_name}</DialogTitle>
           </div>
-        </SheetHeader>
+        </DialogHeader>
         <div className="space-y-4 mt-4">
           {/* Header badges */}
           <div className="flex gap-2 flex-wrap">
@@ -992,8 +992,8 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
             </TabsContent>
           </Tabs>
         </div>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
 
