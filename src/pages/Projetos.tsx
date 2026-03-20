@@ -295,6 +295,7 @@ export default function ProjetosPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <BackNavigation />
         {/* Header */}
         <PageHeader title="Projetos" />
 

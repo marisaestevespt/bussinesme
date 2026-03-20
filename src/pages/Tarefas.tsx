@@ -530,6 +530,7 @@ export default function TarefasPage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
+        <BackNavigation />
         {/* Header */}
         <PageHeader title="Tarefas" />
         <div className="flex items-center justify-end">

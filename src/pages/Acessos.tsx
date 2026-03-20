@@ -208,6 +208,7 @@ export default function AcessosPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <BackNavigation />
         <PageHeader title="Acessos" />
         <div className="flex items-center justify-between">
           <div />
