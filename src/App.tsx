@@ -121,6 +121,7 @@ function AppRoutes() {
         <Route path="/hub/marketing/automacoes/:id" element={<MarketingAutomacaoDetail />} />
         <Route path="/hub/marketing/funis" element={<MarketingFunis />} />
         <Route path="/hub/marketing/funis/:id" element={<MarketingFunilDetail />} />
+        <Route path="/hub/marketing/analise" element={<MarketingAnalisePage />} />
         <Route path="/hub/marketing/trafego-pago" element={<MarketingTrafegoPago />} />
         <Route path="/hub/marketing/trafego-pago/report/:id" element={<TrafegoReportDetail />} />
         <Route path="/hub/marketing/trafego-pago/criativo/:id" element={<TrafegoCriativoDetail />} />

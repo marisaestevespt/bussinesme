@@ -290,6 +290,11 @@ export default function ChannelPage() {
 
               <Separator />
 
+              {/* Section 3b: Monthly Analysis */}
+              <ChannelMonthlyAnalysis channelId={channelId!} channelName={channel.name} />
+
+              <Separator />
+
               {/* Section 4: Content Table */}
               <section className="space-y-4 pb-10">
                 <h2 className="text-lg font-semibold text-foreground">Todos os Conteúdos — {channel.name}</h2>
