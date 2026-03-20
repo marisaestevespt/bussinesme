@@ -62,49 +62,45 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
   const time = item.scheduled_at ? format(new Date(item.scheduled_at), 'HH:mm') : null;
   const assignee = profiles?.find(p => p.id === item.assigned_to);
   const images = (attachments || []).filter(a => a.content_id === item.id && a.file_type.startsWith('image'));
-  // Use cover_url as primary image, then attachments
-  const displayImages = [
-    ...(item.cover_url ? [item.cover_url] : []),
-    ...images.map(i => i.file_url),
-  ].slice(0, 3);
+  const coverImage = item.cover_url || (images.length > 0 ? images[0].file_url : null);
 
   return (
     <Link to={`/hub/marketing/conteudos/${item.id}`}
-      className="block rounded border bg-muted/30 hover:bg-muted/60 transition-colors p-1.5 h-full flex flex-col gap-px overflow-hidden">
-      {/* Row 1: Title + time */}
-      <div className="flex items-center justify-between gap-1">
-        <p className="text-xs font-medium truncate leading-tight text-foreground">{item.title}</p>
-        {time && <span className="text-[11px] text-muted-foreground shrink-0 tabular-nums">{time}</span>}
-      </div>
-      {/* Row 2: Status full width */}
-      {status && <span className={cn("text-[10px] px-1.5 py-0.5 rounded-sm leading-none font-medium text-center w-full block", status.color)}>{status.label}</span>}
-      {/* Row 3: Canal + Formato */}
-      <div className="flex items-center gap-1">
-        {itemChannels.slice(0, 1).map(ch => (
-          <span key={ch.id} className="text-[10px] px-1 py-0.5 rounded-sm leading-none bg-secondary text-secondary-foreground">{ch.name}</span>
-        ))}
-        {formatLabel && <span className="text-[10px] px-1 py-0.5 rounded-sm leading-none bg-accent text-accent-foreground">{formatLabel}</span>}
-      </div>
-      {/* Row 4: Tipo de conteúdo */}
-      {typeLabel && <span className="text-[10px] px-1.5 py-0.5 rounded-sm leading-none bg-muted text-muted-foreground text-center w-full block">{typeLabel}</span>}
-      {/* Row 5: Assignee */}
-      {assignee && (
-        <div className="flex items-center gap-1 mt-px">
-          <Avatar className="h-4 w-4">
-            <AvatarImage src={assignee.avatar_url || undefined} />
-            <AvatarFallback className="text-[7px]">{assignee.full_name?.charAt(0) || '?'}</AvatarFallback>
-          </Avatar>
-          <span className="text-[10px] text-muted-foreground truncate">{assignee.full_name}</span>
+      className="block rounded border bg-muted/30 hover:bg-muted/60 transition-colors h-full flex flex-col overflow-hidden">
+      {/* Cover image */}
+      {coverImage && (
+        <div className="w-full aspect-[16/9] overflow-hidden shrink-0">
+          <img src={coverImage} alt="" className="w-full h-full object-cover" />
         </div>
       )}
-      {/* Row 6: Images */}
-      {displayImages.length > 0 && (
-        <div className="flex gap-0.5 mt-px overflow-hidden">
-          {displayImages.map((url, i) => (
-            <img key={i} src={url} alt="" className="h-6 w-6 rounded-sm object-cover shrink-0" />
+      <div className="p-1.5 flex flex-col gap-px flex-1">
+        {/* Title + time */}
+        <div className="flex items-center justify-between gap-1">
+          <p className="text-xs font-medium truncate leading-tight text-foreground">{item.title}</p>
+          {time && <span className="text-[11px] text-muted-foreground shrink-0 tabular-nums">{time}</span>}
+        </div>
+        {/* Status */}
+        {status && <span className={cn("text-[10px] px-1.5 py-0.5 rounded-sm leading-none font-medium text-center w-full block", status.color)}>{status.label}</span>}
+        {/* Canal + Formato */}
+        <div className="flex items-center gap-1">
+          {itemChannels.slice(0, 1).map(ch => (
+            <span key={ch.id} className="text-[10px] px-1 py-0.5 rounded-sm leading-none bg-secondary text-secondary-foreground">{ch.name}</span>
           ))}
+          {formatLabel && <span className="text-[10px] px-1 py-0.5 rounded-sm leading-none bg-accent text-accent-foreground">{formatLabel}</span>}
         </div>
-      )}
+        {/* Tipo de conteúdo */}
+        {typeLabel && <span className="text-[10px] px-1.5 py-0.5 rounded-sm leading-none bg-muted text-muted-foreground text-center w-full block">{typeLabel}</span>}
+        {/* Assignee */}
+        {assignee && (
+          <div className="flex items-center gap-1 mt-px">
+            <Avatar className="h-4 w-4">
+              <AvatarImage src={assignee.avatar_url || undefined} />
+              <AvatarFallback className="text-[7px]">{assignee.full_name?.charAt(0) || '?'}</AvatarFallback>
+            </Avatar>
+            <span className="text-[10px] text-muted-foreground truncate">{assignee.full_name}</span>
+          </div>
+        )}
+      </div>
     </Link>
   );
 }
