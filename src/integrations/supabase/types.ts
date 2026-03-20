@@ -415,6 +415,47 @@ export type Database = {
         }
         Relationships: []
       }
+      channel_monthly_metrics: {
+        Row: {
+          channel_id: string
+          created_at: string
+          followers: number | null
+          followers_growth: number | null
+          id: string
+          month: number
+          notes: string | null
+          year: number
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          followers?: number | null
+          followers_growth?: number | null
+          id?: string
+          month: number
+          notes?: string | null
+          year: number
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          followers?: number | null
+          followers_growth?: number | null
+          id?: string
+          month?: number
+          notes?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_monthly_metrics_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       channel_pages: {
         Row: {
           channel_id: string
@@ -1293,6 +1334,108 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_metrics: {
+        Row: {
+          avg_watch_time: number | null
+          channel_id: string
+          comments: number | null
+          content_id: string
+          created_at: string
+          ctr: number | null
+          email_click_rate: number | null
+          email_open_rate: number | null
+          email_sent: number | null
+          email_unsubscribes: number | null
+          format: string | null
+          id: string
+          impressions: number | null
+          likes: number | null
+          month: number
+          new_subscribers: number | null
+          pin_link_clicks: number | null
+          reach: number | null
+          saves: number | null
+          shares: number | null
+          story_exits: number | null
+          story_link_clicks: number | null
+          story_replies: number | null
+          views: number | null
+          watch_hours: number | null
+          year: number
+        }
+        Insert: {
+          avg_watch_time?: number | null
+          channel_id: string
+          comments?: number | null
+          content_id: string
+          created_at?: string
+          ctr?: number | null
+          email_click_rate?: number | null
+          email_open_rate?: number | null
+          email_sent?: number | null
+          email_unsubscribes?: number | null
+          format?: string | null
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          month: number
+          new_subscribers?: number | null
+          pin_link_clicks?: number | null
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          story_exits?: number | null
+          story_link_clicks?: number | null
+          story_replies?: number | null
+          views?: number | null
+          watch_hours?: number | null
+          year: number
+        }
+        Update: {
+          avg_watch_time?: number | null
+          channel_id?: string
+          comments?: number | null
+          content_id?: string
+          created_at?: string
+          ctr?: number | null
+          email_click_rate?: number | null
+          email_open_rate?: number | null
+          email_sent?: number | null
+          email_unsubscribes?: number | null
+          format?: string | null
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          month?: number
+          new_subscribers?: number | null
+          pin_link_clicks?: number | null
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          story_exits?: number | null
+          story_link_clicks?: number | null
+          story_replies?: number | null
+          views?: number | null
+          watch_hours?: number | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_metrics_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_metrics_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
             referencedColumns: ["id"]
           },
         ]
@@ -2540,6 +2683,33 @@ export type Database = {
           format?: string | null
           id?: string
           idea?: string
+        }
+        Relationships: []
+      }
+      marketing_monthly_analysis: {
+        Row: {
+          created_at: string
+          id: string
+          month: number
+          what_went_well: string | null
+          what_went_wrong: string | null
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          month: number
+          what_went_well?: string | null
+          what_went_wrong?: string | null
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          month?: number
+          what_went_well?: string | null
+          what_went_wrong?: string | null
+          year?: number
         }
         Relationships: []
       }
