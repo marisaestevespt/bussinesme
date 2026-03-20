@@ -680,7 +680,7 @@ export default function ProdutoDetailPage() {
         {/* ═══════ SECTION BUTTONS ═══════ */}
         {!isNew && (
           <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               <SectionButton sectionKey="comercial" label="Comercial & Mkt" />
               <SectionButton sectionKey="contabilidade" label="Contabilidade" />
               <SectionButton sectionKey="backoffice" label="Backoffice" />
