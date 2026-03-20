@@ -161,6 +161,49 @@ export default function HubEquipaPage() {
   );
 }
 
+// ─── Active Absence Alerts ──────────────────────────────────────────────────
+
+function ActiveAbsenceAlerts() {
+  const { data: coverages = [] } = useQuery({
+    queryKey: ['active-absences-hub'],
+    queryFn: async () => {
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const { data } = await supabase
+        .from('absence_coverage')
+        .select('*')
+        .lte('start_date', today)
+        .gte('end_date', today);
+      return data || [];
+    },
+  });
+
+  const { data: members = [] } = useQuery({
+    queryKey: ['team-members-hub-absence'],
+    queryFn: async () => {
+      const { data } = await supabase.from('team_members').select('id, full_name').eq('status', 'ativo');
+      return data || [];
+    },
+  });
+
+  if (coverages.length === 0) return null;
+
+  const getName = (id: string) => members.find(m => m.id === id)?.full_name || '—';
+
+  return (
+    <div className="space-y-2">
+      {coverages.map((c: any) => (
+        <div key={c.id} className="flex items-center gap-2 bg-destructive/10 border border-destructive/20 rounded-lg px-4 py-2.5 text-sm">
+          <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
+          <span>
+            <strong>{getName(c.member_id)}</strong> está ausente até {format(parseISO(c.end_date), 'dd/MM/yyyy')}.
+            {c.substitute_id ? <> Cobertura: <strong>{getName(c.substitute_id)}</strong>.</> : <span className="text-destructive"> Sem substituto definido.</span>}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Novidades do Mês ──────────────────────────────────────────────────
 
 function NovidadesMes() {
