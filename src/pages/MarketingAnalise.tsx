@@ -22,7 +22,7 @@ function getPrimaryMetricField(format: string): string {
 }
 
 // ─── Month Detail ───
-function MonthDetail({ month, year, onBack }: { month: number; year: number; onBack: () => void }) {
+function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; year: number; onBack: () => void; onChangeMonth: (m: number, y: number) => void }) {
   const queryClient = useQueryClient();
 
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`;

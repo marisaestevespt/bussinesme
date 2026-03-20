@@ -34,8 +34,7 @@ function KpiCard({ label, value, icon: Icon, color }: { label: string; value: st
   );
 }
 
-// ─── Month Detail ───
-function MonthDetail({ monthIdx, year, onBack }: { monthIdx: number; year: number; onBack: () => void }) {
+function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: number; year: number; onBack: () => void; onChangeMonth: (m: number, y: number) => void }) {
   const month = monthIdx + 1;
   const qc = useQueryClient();
 
