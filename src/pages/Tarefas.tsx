@@ -764,6 +764,12 @@ export default function TarefasPage() {
                   </SelectContent>
                 </Select>
               </div>
+              {/* Original assignee (read-only) */}
+              {editingTask?.original_assignee && (
+                <div className="text-xs text-muted-foreground mt-1">
+                  Responsável original: {profiles.find(p => p.id === editingTask.original_assignee)?.full_name || '—'}
+                </div>
+              )}
               <div>
                 <Label>Departamento</Label>
                 <Select value={department} onValueChange={setDepartment}>
