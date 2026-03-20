@@ -221,12 +221,14 @@ function MeetingFormDialog({
     mutationFn: async () => {
       if (!title.trim() || !dateTime) throw new Error('Nome e data/hora são obrigatórios');
       const selectedProject = projects.find(p => p.id === projectId);
-      const isClientMeeting = !!clientName.trim();
+      const selectedClient = clients.find((c: any) => c.id === clientId);
+      const isClientMeeting = !!clientId;
       const { data, error } = await supabase.from('meetings').insert({
         title: title.trim(),
         date_time: dateTime.toISOString(),
         status,
-        client_name: clientName.trim() || null,
+        client_id: clientId || null,
+        client_name: selectedClient?.full_name || null,
         project_id: projectId || null,
         project_name: selectedProject?.name || null,
         department: department || null,
