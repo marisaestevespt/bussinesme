@@ -29,6 +29,7 @@ import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ClientCustomerSuccess } from '@/components/client/ClientCustomerSuccess';
+import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { BackNavigation } from '@/components/BackNavigation';
 import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 
