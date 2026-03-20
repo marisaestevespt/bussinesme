@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ArrowLeft, Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, Product } from '@/hooks/useProducts';
@@ -30,7 +31,7 @@ export default function ProdutoDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { isOwner } = useAuth();
+  const { isOwner, user } = useAuth();
   const isNew = id === 'novo';
 
   const { data: product, isLoading } = useProduct(isNew ? undefined : id);
@@ -39,6 +40,8 @@ export default function ProdutoDetailPage() {
   const [form, setForm] = useState<Partial<Product>>({});
   const [initialized, setInitialized] = useState(false);
   const [openSection, setOpenSection] = useState<string | null>(null);
+  const [showEventDialog, setShowEventDialog] = useState(false);
+  const [newEvent, setNewEvent] = useState({ title: '', start_date: '', end_date: '' });
 
   if (product && !initialized) {
     setForm(product);
@@ -257,6 +260,25 @@ export default function ProdutoDetailPage() {
     if (isToday(start)) return { label: 'Hoje', color: 'bg-primary text-primary-foreground' };
     if (isFuture(start)) return { label: 'Futuro', color: 'bg-blue-100 text-blue-800 border-blue-200' };
     return { label: 'Passado', color: 'bg-muted text-muted-foreground' };
+  };
+
+  const createProductEvent = async () => {
+    if (!newEvent.title.trim() || !newEvent.start_date) {
+      toast.error('Título e data de início são obrigatórios');
+      return;
+    }
+    const { error } = await supabase.from('events').insert({
+      title: newEvent.title.trim(),
+      start_date: newEvent.start_date,
+      end_date: newEvent.end_date || null,
+      product_name: form.name,
+      created_by: user?.id,
+    } as any);
+    if (error) { toast.error('Erro ao criar evento'); return; }
+    qc.invalidateQueries({ queryKey: ['product-events', form.name] });
+    setShowEventDialog(false);
+    setNewEvent({ title: '', start_date: '', end_date: '' });
+    toast.success('Evento criado na Agenda');
   };
 
   // Section button component
@@ -630,8 +652,16 @@ export default function ProdutoDetailPage() {
 
         {/* Datas Importantes — from Agenda */}
         {!isNew && (
+          <>
           <Card className="bg-background border-secondary">
-            <CardHeader><CardTitle className="text-base">Datas Importantes</CardTitle></CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base">Datas Importantes</CardTitle>
+              {isOwner && (
+                <Button size="sm" variant="outline" onClick={() => setShowEventDialog(true)}>
+                  <Plus className="h-3.5 w-3.5 mr-1" />Adicionar Evento
+                </Button>
+              )}
+            </CardHeader>
             <CardContent>
               {productEvents.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">Sem datas importantes associadas a este produto na Agenda.</p>
@@ -665,6 +695,35 @@ export default function ProdutoDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Novo Evento — {form.name}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label>Título</Label>
+                  <Input value={newEvent.title} onChange={e => setNewEvent(p => ({ ...p, title: e.target.value }))} placeholder="Ex: Lançamento do produto" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label>Data / Hora Início</Label>
+                    <Input type="datetime-local" value={newEvent.start_date} onChange={e => setNewEvent(p => ({ ...p, start_date: e.target.value }))} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Data / Hora Fim (opcional)</Label>
+                    <Input type="datetime-local" value={newEvent.end_date} onChange={e => setNewEvent(p => ({ ...p, end_date: e.target.value }))} />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowEventDialog(false)}>Cancelar</Button>
+                <Button onClick={createProductEvent}>Criar Evento</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          </>
         )}
 
         {/* Processos (SOPs) */}
