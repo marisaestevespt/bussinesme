@@ -640,6 +640,13 @@ export default function TarefasPage() {
             getProjectName={getProjectName}
             onTaskClick={openEdit}
           />
+        ) : view === 'historico' ? (
+          <HistoricoView
+            tasks={tasks}
+            profiles={profiles}
+            projects={projects}
+            timeEntries={allTimeEntries}
+          />
         ) : (
           <TaskTable
             tasks={filteredTasks}
