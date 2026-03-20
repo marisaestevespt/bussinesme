@@ -29,7 +29,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   produtos: 'Produtos',
   equipa: 'Equipa',
   operacao: 'Operação',
-  'recursos-humanos': 'Recursos Humanos',
+  'recursos-humanos': 'Pessoas',
   'customer-success': 'Customer Success',
 
   // Marketing sub-sections
