@@ -717,6 +717,124 @@ export default function MarketingAnalisePage() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Top 3 publications of the year */}
+            <Card className="border-secondary bg-background">
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-center gap-2"><Trophy className="h-4 w-4 text-amber-500" /><h3 className="text-sm font-semibold">Top 3 Publicações do Ano</h3></div>
+                {annualSummary.top3Year.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">Sem dados de performance suficientes para este ano.</p>
+                ) : annualSummary.top3Year.map((item: any, i: number) => (
+                  <Link key={item.id} to={`/hub/marketing/conteudos/${item.id}`} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/40 transition-colors">
+                    <span className="text-lg font-bold text-muted-foreground/50 w-6">{i + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
+                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                        <span>{item.channelName || '—'}</span>
+                        <span>·</span>
+                        <span className="capitalize">{FORMAT_OPTIONS.find((f: any) => f.value === item.format)?.label || item.format}</span>
+                      </div>
+                    </div>
+                    <span className="text-sm font-semibold">{item.primaryValue?.toLocaleString('pt-PT')}</span>
+                  </Link>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Best performing channels */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Card className="border-secondary bg-background">
+                <CardContent className="p-4 text-center space-y-1">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">Maior crescimento %</p>
+                  {annualSummary.bestGrowth ? (
+                    <>
+                      <p className="text-lg font-bold text-foreground">{annualSummary.bestGrowth.name}</p>
+                      <p className="text-emerald-600 font-semibold">+{annualSummary.bestGrowth.growthPct}%</p>
+                    </>
+                  ) : (
+                    <p className="text-muted-foreground">—</p>
+                  )}
+                </CardContent>
+              </Card>
+              <Card className="border-secondary bg-background">
+                <CardContent className="p-4 text-center space-y-1">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">Maior engagement médio (IG)</p>
+                  {annualSummary.bestEngagement ? (
+                    <>
+                      <p className="text-lg font-bold text-foreground">{annualSummary.bestEngagement.name}</p>
+                      <p className="text-primary font-semibold">{annualSummary.bestEngagement.avgEngagement.toFixed(1)}%</p>
+                    </>
+                  ) : (
+                    <p className="text-muted-foreground">—</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Traffic creatives */}
+            <div className="grid grid-cols-2 gap-3">
+              <Card className="border-secondary bg-background">
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-foreground">{annualSummary.totalCreatives}</p>
+                  <p className="text-xs text-muted-foreground">Criativos criados</p>
+                </CardContent>
+              </Card>
+              <Card className="border-secondary bg-background">
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-foreground">{annualSummary.creativesInCampaign}</p>
+                  <p className="text-xs text-muted-foreground">Em campanha</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Marketing objectives analysis */}
+            <Card className="border-secondary bg-background">
+              <CardContent className="p-5 space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold mb-1">Como correu o marketing em {year}</h3>
+                  {annualSummary.objectivesClassified.length > 0 ? (
+                    <>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-emerald-500 transition-all"
+                            style={{ width: `${annualSummary.objectivesTotal > 0 ? (annualSummary.objectivesAchieved / annualSummary.objectivesTotal) * 100 : 0}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-medium text-muted-foreground shrink-0">
+                          {annualSummary.objectivesAchieved} de {annualSummary.objectivesTotal} atingidos ou superados
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        {annualSummary.objectivesClassified.map((o: any) => {
+                          const badges: Record<string, { label: string; cls: string }> = {
+                            superado: { label: 'Superado', cls: 'bg-emerald-700 text-white' },
+                            atingido: { label: 'Atingido', cls: 'bg-emerald-500 text-white' },
+                            proximo: { label: 'Próximo', cls: 'bg-amber-500 text-white' },
+                            nao_atingido: { label: 'Não atingido', cls: 'bg-destructive text-destructive-foreground' },
+                            sem_dados: { label: 'Sem dados', cls: 'bg-muted text-muted-foreground' },
+                          };
+                          const b = badges[o.classification] || badges.sem_dados;
+                          return (
+                            <div key={o.id} className="flex items-center gap-3 py-1.5 border-b last:border-0">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">{o.meta}</p>
+                                <p className="text-[10px] text-muted-foreground">
+                                  Alvo: {o.target} · Real: {o.current_value != null && o.current_value !== '' ? o.current : '—'}
+                                </p>
+                              </div>
+                              <Badge className={cn('text-[10px] shrink-0', b.cls)}>{b.label}</Badge>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic py-2">Sem objetivos de marketing definidos para {year}.</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           <Separator />
