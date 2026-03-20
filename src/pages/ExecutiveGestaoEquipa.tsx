@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText, LayoutDashboard, AlertTriangle, Clock, CreditCard, Upload, ExternalLink, CheckSquare, ListTodo, CalendarIcon, Palmtree } from 'lucide-react';
+import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText, LayoutDashboard, AlertTriangle, Clock, CreditCard, Upload, ExternalLink, CheckSquare, ListTodo, CalendarIcon, Palmtree, CalendarDays } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { format, parseISO } from 'date-fns';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
@@ -902,6 +902,35 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
 
             {/* Férias tab */}
             <TabsContent value="ferias" className="space-y-3 mt-3">
+              {/* Business days taken this year */}
+              {(() => {
+                const yearStart = new Date(new Date().getFullYear(), 0, 1);
+                const today = new Date();
+                const vacations = (memberVacations.data || []) as any[];
+                let businessDays = 0;
+                vacations.forEach((v: any) => {
+                  try {
+                    let s = parseISO(v.start_date);
+                    let e = parseISO(v.end_date);
+                    if (s < yearStart) s = yearStart;
+                    if (e > today) e = today;
+                    const current = new Date(s);
+                    while (current <= e) {
+                      const day = current.getDay();
+                      if (day !== 0 && day !== 6) businessDays++;
+                      current.setDate(current.getDate() + 1);
+                    }
+                  } catch {}
+                });
+                return (
+                  <div className="flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-2.5">
+                    <CalendarDays className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">{businessDays} dias úteis</span>
+                    <span className="text-xs text-muted-foreground">de férias tirados desde o início de {new Date().getFullYear()}</span>
+                  </div>
+                );
+              })()}
+
               {/* Holiday settings */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
