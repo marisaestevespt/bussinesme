@@ -192,7 +192,7 @@ function useProfiles() {
 // ─── Main Page ──────────────────────────────────────────────
 
 export default function SecretariaPage() {
-  const { user } = useAuth();
+  const { user, isOwner } = useAuth();
   const navigate = useNavigate();
   const profile = useMyProfile();
   const teamMember = useMyTeamMember();
