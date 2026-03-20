@@ -56,6 +56,10 @@ interface MeetingRow {
 interface ProjectOption {
   id: string;
   name: string;
+  client_id: string | null;
+  client_name: string | null;
+  department: string | null;
+  type: string | null;
 }
 
 interface Profile {
