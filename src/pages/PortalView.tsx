@@ -317,7 +317,7 @@ export default function PortalViewPage() {
               <div className="space-y-4">
                 {portal.show_meetings && (() => {
                   const nextMeeting = meetings
-                    .filter((m: any) => (m.status === 'agendada' || m.status === 'confirmada' || m.status === 'por_confirmar') && m.date_time)
+                    .filter((m: any) => ['marcada', 'agendada', 'confirmada', 'por_confirmar'].includes(m.status) && m.date_time)
                     .sort((a: any, b: any) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
                   return (
                     <Card className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-primary" onClick={() => setActiveSection('meetings')}>
