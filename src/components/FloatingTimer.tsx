@@ -1,6 +1,7 @@
 import { useActiveTimer } from '@/hooks/useActiveTimer';
 import { Button } from '@/components/ui/button';
 import { Pause, Play, Square } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 function formatTimer(totalSeconds: number): string {
   const h = Math.floor(totalSeconds / 3600);
@@ -11,6 +12,7 @@ function formatTimer(totalSeconds: number): string {
 
 export function FloatingTimer() {
   const { activeTimer, elapsed, pauseTimer, resumeTimer, stopTimer } = useActiveTimer();
+  const navigate = useNavigate();
 
   if (!activeTimer) return null;
 
@@ -30,7 +32,11 @@ export function FloatingTimer() {
           )}
         </span>
         <div className="flex flex-col">
-          <span className="text-[10px] text-muted-foreground leading-tight truncate max-w-[140px]">
+          <span
+            className="text-[10px] text-muted-foreground leading-tight truncate max-w-[140px] cursor-pointer hover:text-primary hover:underline transition-colors"
+            onClick={() => navigate('/tarefas')}
+            title="Ver tarefa"
+          >
             {activeTimer.taskName}
           </span>
           <span className="font-mono text-sm font-semibold text-foreground tabular-nums leading-tight">
