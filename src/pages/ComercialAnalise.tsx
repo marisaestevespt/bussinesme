@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, Fragment } from 'react';
+import { useKpiSettings } from '@/hooks/useKpiSettings';
 import { YearSelector } from '@/components/YearSelector';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';

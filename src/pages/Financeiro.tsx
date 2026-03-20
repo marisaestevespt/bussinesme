@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useKpiSettings } from '@/hooks/useKpiSettings';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { excludeCancelled } from '@/lib/utils';
