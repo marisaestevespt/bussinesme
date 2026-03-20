@@ -38,7 +38,7 @@ export default function ChannelPage() {
   const [editingPageId, setEditingPageId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
 
-  const currentYear = new Date().getFullYear();
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   // Fetch channel
   const { data: channel } = useQuery({
@@ -169,6 +169,7 @@ export default function ChannelPage() {
                 <ChannelMonthGallery
                   channelId={channelId!}
                   year={currentYear}
+                  onYearChange={setCurrentYear}
                   onSelectMonth={(month) => setSelectedMonth({ month, year: currentYear })}
                 />
               )}
