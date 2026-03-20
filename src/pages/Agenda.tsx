@@ -610,9 +610,6 @@ function EventFormDialog({
 
 const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
-function getType(types: EventType[], typeId: string | null) {
-  return types.find(t => t.id === typeId) ?? null;
-}
 
 function CalendarView({ events, types, onEventClick }: { events: EventRow[]; types: EventType[]; onEventClick: (e: EventRow) => void }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
