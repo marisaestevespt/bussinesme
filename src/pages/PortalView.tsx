@@ -257,7 +257,7 @@ export default function PortalViewPage() {
                     </CardContent>
                   </Card>
                 )}
-                <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveSection('questions')}>
+                <Card className="cursor-pointer hover:shadow-md transition-shadow bg-primary/5 border-primary/20" onClick={() => setActiveSection('questions')}>
                   <CardContent className="p-4 flex items-center gap-3">
                     <ClipboardList className="h-8 w-8 text-primary" />
                     <div>
@@ -266,7 +266,7 @@ export default function PortalViewPage() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveSection('feedback')}>
+                <Card className="cursor-pointer hover:shadow-md transition-shadow bg-primary/5 border-primary/20" onClick={() => setActiveSection('feedback')}>
                   <CardContent className="p-4 flex items-center gap-3">
                     <MessageSquare className="h-8 w-8 text-primary" />
                     <div>
