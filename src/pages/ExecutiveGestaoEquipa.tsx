@@ -1251,7 +1251,6 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
                     </div>
                     <div className="flex flex-wrap gap-1">
                       <DeptBadge dept={m.department} />
-                      <Badge variant="outline" className="text-[10px]">{labelFor(MEMBER_TYPES, m.member_type)}</Badge>
                     </div>
                     {hasOverdue && (
                       <div className="flex items-center gap-1.5 text-destructive">
