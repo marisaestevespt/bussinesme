@@ -37,7 +37,7 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editGoal, setEditGoal] = useState<any>(null);
   const [filter, setFilter] = useState('todos');
-  const [form, setForm] = useState({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
+  const [form, setForm] = useState({ objective_id: '', period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar', objective_type: 'quantitativo', measurement_type: 'acumulativo' });
 
   const allGoals = planning.allGoals;
   const objectives = planning.allObjectives;
