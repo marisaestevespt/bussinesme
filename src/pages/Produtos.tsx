@@ -89,12 +89,12 @@ export default function ProdutosPage() {
                     </a>
                   )}
                   {p.ticket != null && (
-                    <p className="text-sm font-semibold text-accent-foreground">
+                    <p className="text-sm font-semibold text-accent">
                       {Number(p.ticket).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
                     </p>
                   )}
                   {p.escada && (
-                    <p className="text-xs text-muted-foreground">{getEscadaLabel(p.escada)}</p>
+                    <p className="text-xs font-medium text-accent">{getEscadaLabel(p.escada)}</p>
                   )}
                 </CardContent>
               </Card>
