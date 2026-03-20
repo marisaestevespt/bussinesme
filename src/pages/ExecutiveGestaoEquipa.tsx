@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { TasksByMemberKanban, TasksByPriority, OverdueTasks } from '@/components/hr/PerformanceTaskViews';
 import { ByMemberTabShared, OverloadTabShared } from '@/components/hr/SharedProductivityViews';
+import { useCustomViews } from '@/hooks/useCustomViews';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
@@ -17,7 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText, LayoutDashboard, AlertTriangle, Clock, CreditCard, Upload, ExternalLink, CheckSquare, ListTodo, CalendarIcon, Palmtree, CalendarDays } from 'lucide-react';
+import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText, LayoutDashboard, AlertTriangle, Clock, CreditCard, Upload, ExternalLink, CheckSquare, ListTodo, CalendarIcon, Palmtree, CalendarDays, Save, Eye, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { format, parseISO } from 'date-fns';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
@@ -1531,6 +1532,34 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
   const [weeklyDialog, setWeeklyDialog] = useState<any>(null);
   const [monthlyDialog, setMonthlyDialog] = useState<any>(null);
   const [perfTab, setPerfTab] = useState('prioridade');
+  const { views, saveView, deleteView } = useCustomViews('gestao-equipa');
+  const [activeViewId, setActiveViewId] = useState<string | null>(null);
+  const [saveViewName, setSaveViewName] = useState('');
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+
+  function loadView(viewId: string) {
+    const v = views.find(x => x.id === viewId);
+    if (!v) return;
+    setActiveViewId(viewId);
+    setFilterMember(v.filters.member || '');
+    setDateFrom(v.filters.dateFrom || '');
+    setDateTo(v.filters.dateTo || '');
+    setPerfTab(v.filters.perfTab || 'prioridade');
+  }
+
+  function handleSaveView() {
+    if (!saveViewName.trim()) return;
+    saveView.mutate({
+      view_name: saveViewName,
+      filters: { member: filterMember, dateFrom, dateTo, perfTab },
+      visible_columns: [],
+      sort_config: {},
+      is_default: false,
+    });
+    setSaveViewName('');
+    setShowSaveDialog(false);
+    toast.success('Vista guardada');
+  }
 
   const weeklyData = useMemo(() => {
     let d = team.perfWeekly.data || [];
@@ -1585,7 +1614,49 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
 
   return (
     <div className="space-y-6">
-      
+      {/* Custom views bar */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Button
+          size="sm"
+          variant={activeViewId === null ? 'default' : 'outline'}
+          className="h-7 text-xs"
+          onClick={() => { setActiveViewId(null); setFilterMember(''); setDateFrom(''); setDateTo(''); setPerfTab('prioridade'); }}
+        >
+          <Eye className="h-3 w-3 mr-1" /> Vista padrão
+        </Button>
+        {views.map(v => (
+          <div key={v.id} className="flex items-center gap-0.5">
+            <Button
+              size="sm"
+              variant={activeViewId === v.id ? 'default' : 'outline'}
+              className="h-7 text-xs"
+              onClick={() => loadView(v.id)}
+            >
+              {v.view_name}
+            </Button>
+            <button className="p-0.5 rounded hover:bg-destructive/10" onClick={() => { deleteView.mutate(v.id); if (activeViewId === v.id) setActiveViewId(null); }}>
+              <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+            </button>
+          </div>
+        ))}
+        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setShowSaveDialog(true)}>
+          <Save className="h-3 w-3 mr-1" /> Guardar vista
+        </Button>
+      </div>
+
+      {/* Save view dialog */}
+      {showSaveDialog && (
+        <Dialog open onOpenChange={() => setShowSaveDialog(false)}>
+          <DialogContent className="max-w-xs">
+            <DialogHeader><DialogTitle>Guardar Vista</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <Input placeholder="Nome da vista" value={saveViewName} onChange={e => setSaveViewName(e.target.value)} autoFocus />
+              <p className="text-xs text-muted-foreground">Guarda os filtros atuais (membro, datas, tab) como uma vista reutilizável.</p>
+              <Button className="w-full" disabled={!saveViewName.trim()} onClick={handleSaveView}>Guardar</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Overview de Membros */}
       <Card>

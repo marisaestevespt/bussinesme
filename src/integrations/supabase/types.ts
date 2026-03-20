@@ -1767,6 +1767,45 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_views: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          filters: Json | null
+          id: string
+          is_default: boolean | null
+          page_key: string
+          sort_config: Json | null
+          updated_at: string
+          view_name: string
+          visible_columns: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          filters?: Json | null
+          id?: string
+          is_default?: boolean | null
+          page_key: string
+          sort_config?: Json | null
+          updated_at?: string
+          view_name: string
+          visible_columns?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          filters?: Json | null
+          id?: string
+          is_default?: boolean | null
+          page_key?: string
+          sort_config?: Json | null
+          updated_at?: string
+          view_name?: string
+          visible_columns?: string[] | null
+        }
+        Relationships: []
+      }
       event_attachments: {
         Row: {
           created_at: string
