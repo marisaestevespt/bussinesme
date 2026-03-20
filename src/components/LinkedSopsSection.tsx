@@ -31,28 +31,24 @@ export function LinkedSopsSection({ entityType, entityId, productId, title = 'Pr
       if (entityType === 'cliente') {
         // Client: direct + product with apply_to_all
         const queries = [];
-        queries.push(
-          supabase.from('sops').select('*')
-            .eq('linked_entity_type' as any, 'cliente')
-            .eq('linked_entity_id' as any, entityId)
-        );
+        const { data: directData } = await supabase.from('sops').select('*')
+          .eq('linked_entity_type', 'cliente')
+          .eq('linked_entity_id', entityId) as any;
+        const direct = directData || [];
         if (productId) {
-          queries.push(
-            supabase.from('sops').select('*')
-              .eq('linked_entity_type' as any, 'produto')
-              .eq('linked_entity_id' as any, productId)
-              .eq('apply_to_all_active_clients' as any, true)
-          );
+          const { data: prodData } = await supabase.from('sops').select('*')
+            .eq('linked_entity_type', 'produto')
+            .eq('linked_entity_id', productId)
+            .eq('apply_to_all_active_clients', true) as any;
+          const prodSops = prodData || [];
+          const map = new Map([...direct, ...prodSops].map((s: any) => [s.id, s]));
+          return Array.from(map.values());
         }
-        const results = await Promise.all(queries);
-        const all = results.flatMap(r => r.data || []);
-        // Dedupe by id
-        const map = new Map(all.map(s => [s.id, s]));
-        return Array.from(map.values());
+        return direct;
       }
       const { data } = await supabase.from('sops').select('*')
-        .eq('linked_entity_type' as any, entityType)
-        .eq('linked_entity_id' as any, entityId);
+        .eq('linked_entity_type', entityType)
+        .eq('linked_entity_id', entityId) as any;
       return data || [];
     },
     enabled: !!entityId,
