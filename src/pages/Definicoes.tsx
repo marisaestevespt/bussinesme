@@ -102,7 +102,7 @@ function ResetSection() {
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || 'Erro ao resetar');
 
-      toast.success('O sistema foi resetado com sucesso. Podes começar a configurar o teu negócio.');
+      toast.success('O sistema foi resetado com sucesso. Podes começar a introduzir os dados do teu negócio.');
       setOpen(false);
       setConfirmation('');
       navigate('/hub/secretaria');
