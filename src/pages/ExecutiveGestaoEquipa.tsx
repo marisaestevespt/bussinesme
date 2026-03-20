@@ -1615,6 +1615,9 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
 
   return (
     <div className="space-y-6">
+      {/* Summary Cards */}
+      <GestaoSummaryCards />
+
       {/* Custom views bar */}
       <div className="flex items-center gap-2 flex-wrap">
         <Button
