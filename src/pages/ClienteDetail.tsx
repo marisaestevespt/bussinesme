@@ -129,6 +129,7 @@ function AutoCopyOnboardingFromProduct({ clientId, isNew, currentProduct, produc
   return null;
 }
 
+export default function ClienteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isNew = id === 'novo';
