@@ -88,7 +88,47 @@ function EndOfCycleBadge({ date }: { date: string | null }) {
   return null;
 }
 
-export default function ClienteDetailPage() {
+// ─── Auto-copy onboarding/offboarding from product template ─────
+function AutoCopyOnboardingFromProduct({ clientId, isNew, currentProduct, productList, onboardingData, offboardingData, addOnboarding, addOffboarding }: {
+  clientId: string | undefined; isNew: boolean; currentProduct: string | null; productList: any[];
+  onboardingData: any[]; offboardingData: any[];
+  addOnboarding: { mutateAsync: (v: any) => Promise<any> };
+  addOffboarding: { mutateAsync: (v: any) => Promise<any> };
+}) {
+  const copiedRef = useRef<{ onboarding: boolean; offboarding: boolean }>({ onboarding: false, offboarding: false });
+
+  useEffect(() => {
+    if (isNew || !clientId || !currentProduct) return;
+    const prod = productList.find(p => p.name === currentProduct);
+    if (!prod) return;
+
+    const copyOnboarding = async () => {
+      if (copiedRef.current.onboarding || onboardingData.length > 0) return;
+      copiedRef.current.onboarding = true;
+      const { data: template } = await supabase.from('product_onboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
+      if (!template || template.length === 0) return;
+      for (const t of template as any[]) {
+        await addOnboarding.mutateAsync({ client_id: clientId, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
+      }
+    };
+
+    const copyOffboarding = async () => {
+      if (copiedRef.current.offboarding || offboardingData.length > 0) return;
+      copiedRef.current.offboarding = true;
+      const { data: template } = await supabase.from('product_offboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
+      if (!template || template.length === 0) return;
+      for (const t of template as any[]) {
+        await addOffboarding.mutateAsync({ client_id: clientId, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
+      }
+    };
+
+    copyOnboarding();
+    copyOffboarding();
+  }, [isNew, clientId, currentProduct, onboardingData.length, offboardingData.length]);
+
+  return null;
+}
+
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isNew = id === 'novo';
