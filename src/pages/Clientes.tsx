@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus } from 'lucide-react';
+import { Plus, BarChart3 } from 'lucide-react';
 import { useClients, CLIENT_STATUS_OPTIONS, Client } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
@@ -61,7 +61,9 @@ export default function ClientesPage() {
       <div className="p-6 space-y-6">
         <PageHeader title="Clientes" />
         <div className="flex items-center justify-between">
-          <div />
+          <Button variant="outline" size="sm" onClick={() => navigate('/hub/clientes/analise')} className="gap-1.5">
+            <BarChart3 className="h-4 w-4" /> Análise de Clientes
+          </Button>
           <Button size="sm" onClick={() => navigate('/hub/clientes/novo')}>
             <Plus className="h-4 w-4 mr-1" /> Novo Cliente
           </Button>

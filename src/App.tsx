@@ -59,6 +59,7 @@ import ProdutosPage from "./pages/Produtos";
 import ProdutoDetailPage from "./pages/ProdutoDetail";
 import ClientesPage from "./pages/Clientes";
 import ClienteDetailPage from "./pages/ClienteDetail";
+import ClientesAnalisePage from "./pages/ClientesAnalise";
 import VendaDetailPage from "./pages/VendaDetail";
 import FinanceiroPage from "./pages/Financeiro";
 import FinanceiroSubPage from "./pages/FinanceiroSubPage";
@@ -134,6 +135,7 @@ function AppRoutes() {
       <Route path="/hub/produtos" element={<ProdutosPage />} />
       <Route path="/hub/produtos/:id" element={<ProdutoDetailPage />} />
       <Route path="/hub/clientes" element={<ClientesPage />} />
+      <Route path="/hub/clientes/analise" element={<ClientesAnalisePage />} />
       <Route path="/hub/clientes/:id" element={<ClienteDetailPage />} />
       <Route path="/hub/financeiro" element={<FinanceiroPage />} />
       <Route path="/hub/financeiro/:section" element={<FinanceiroSubPage />} />
