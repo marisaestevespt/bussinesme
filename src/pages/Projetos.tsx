@@ -277,7 +277,18 @@ export default function ProjetosPage() {
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ projectId, status }: { projectId: string; status: string }) => {
-      const { error } = await supabase.from('projects').update({ status }).eq('id', projectId);
+      const payload: Record<string, any> = { status };
+      if (status === 'concluido') {
+        const { data: directTime } = await supabase.from('time_entries').select('duration').eq('project_id', projectId);
+        const { data: taskIds } = await supabase.from('tasks').select('id').eq('project_id', projectId);
+        let taskTime: { duration: number }[] = [];
+        if (taskIds && taskIds.length > 0) {
+          const { data } = await supabase.from('time_entries').select('duration').in('task_id', taskIds.map(t => t.id));
+          taskTime = (data || []) as { duration: number }[];
+        }
+        payload.total_time_minutes = [...(directTime || []), ...taskTime].reduce((sum, e) => sum + ((e as any).duration || 0), 0);
+      }
+      const { error } = await supabase.from('projects').update(payload as any).eq('id', projectId);
       if (error) throw error;
     },
     onSuccess: () => {

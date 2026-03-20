@@ -340,17 +340,36 @@ export default function ProjetoDetailPage() {
     setDirty(true);
   };
 
+  const calcTotalTime = async (projectId: string) => {
+    // Sum time from time_entries directly linked to project
+    const { data: directTime } = await supabase.from('time_entries').select('duration').eq('project_id', projectId);
+    // Sum time from time_entries linked to project tasks
+    const { data: taskIds } = await supabase.from('tasks').select('id').eq('project_id', projectId);
+    let taskTime: { duration: number }[] = [];
+    if (taskIds && taskIds.length > 0) {
+      const { data } = await supabase.from('time_entries').select('duration').in('task_id', taskIds.map(t => t.id));
+      taskTime = (data || []) as { duration: number }[];
+    }
+    const total = [...(directTime || []), ...taskTime].reduce((sum, e) => sum + (e.duration || 0), 0);
+    return total;
+  };
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!local) return;
-      const { error } = await supabase.from('projects').update({
+      const payload: Record<string, any> = {
         name: local.name, type: local.type, status: local.status, department: local.department,
         client_name: local.client_name, deadline: local.deadline, progress: local.progress, notes: local.notes,
         objetivo: local.objetivo, diretrizes: local.diretrizes, cronograma: local.cronograma, dependencias: local.dependencias,
         entregaveis: local.entregaveis, recursos: local.recursos, project_notes: local.project_notes,
         closure_good: local.closure_good, closure_bad: local.closure_bad, closure_lessons: local.closure_lessons,
         cover_url: local.cover_url,
-      }).eq('id', local.id);
+      };
+      // Auto-calculate total time when marking as concluded
+      if (local.status === 'concluido' && project?.status !== 'concluido') {
+        payload.total_time_minutes = await calcTotalTime(local.id);
+      }
+      const { error } = await supabase.from('projects').update(payload as any).eq('id', local.id);
       if (error) throw error;
     },
     onSuccess: () => { setDirty(false); queryClient.invalidateQueries({ queryKey: ['project', id] }); toast.success('Guardado'); },
