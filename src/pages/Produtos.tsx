@@ -91,17 +91,17 @@ export default function ProdutosPage() {
             {items.map(p => (
               <Card
                 key={p.id}
-                className="cursor-pointer hover:shadow-md transition-shadow"
+                className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden"
                 onClick={() => navigate(`/hub/produtos/${p.id}`)}
               >
                 {p.cover_url && (
-                  <div className="w-full h-32 -mx-4 -mt-4 mb-2 overflow-hidden rounded-t-lg">
+                  <div className="w-full h-36 overflow-hidden">
                     <img src={p.cover_url} alt={p.name} className="w-full h-full object-cover" />
                   </div>
                 )}
-                <CardContent className="p-4 pt-0 space-y-3">
+                <CardContent className="p-4 space-y-3">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-sm leading-tight">{p.name}</h3>
+                    <h3 className="font-semibold text-base leading-snug">{p.name}</h3>
                     {getStatusBadge(p.status)}
                   </div>
                   <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
