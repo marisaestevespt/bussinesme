@@ -613,7 +613,7 @@ export default function ProjetoDetailPage() {
   }
 
   // ─── Service project ──────────────────────────────────────────
-  if (local.type === 'servico') {
+  if (local.type === 'servico' || local.type === 'cliente_servico_mensal') {
     return (
       <AppLayout>
         <div className="space-y-6 max-w-3xl">
