@@ -1,12 +1,12 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   CheckSquare, PhoneCall, FileText, Users, FolderKanban,
-  Star, ShoppingCart, ListChecks, Undo2, Clock, Target,
+  Star, ShoppingCart, ListChecks, Clock, Target, ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
@@ -56,38 +56,42 @@ const FILTER_OPTIONS: { value: SourceFilter; label: string }[] = [
   { value: 'habito', label: 'Hábitos' },
 ];
 
+/** Maps a unified item to the route where its source detail lives */
+function getItemRoute(item: UnifiedItem): string | null {
+  switch (item.source) {
+    case 'tarefa': return `/tarefas`;
+    case 'crm': return `/comercial/crm`;
+    case 'conteudo': return `/conteudo/${item.sourceId}`;
+    case 'reuniao': return `/reunioes/${item.sourceId}`;
+    case 'projeto': return `/projetos/${item.sourceId}`;
+    case 'nps': return null; // opens inside client detail
+    case 'marco': return null;
+    case 'acao_venda': return `/comercial/acoes`;
+    case 'habito': return `/executive/planeamento`;
+    default: return null;
+  }
+}
+
 interface Props {
   items: UnifiedItem[];
-  onComplete: (item: UnifiedItem) => void;
-  onUndo?: (item: UnifiedItem) => void;
   title: string;
   maxHeight?: string;
 }
 
-export function UnifiedResponsibilitiesList({ items, onComplete, onUndo, title, maxHeight = '500px' }: Props) {
+export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px' }: Props) {
   const [filter, setFilter] = useState<SourceFilter>('todos');
-  const [recentlyCompleted, setRecentlyCompleted] = useState<string | null>(null);
-  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navigate = useNavigate();
 
   const filtered = filter === 'todos' ? items : items.filter(i => i.source === filter);
-
-  const handleComplete = useCallback((item: UnifiedItem) => {
-    setRecentlyCompleted(item.id);
-    undoTimerRef.current = setTimeout(() => {
-      onComplete(item);
-      setRecentlyCompleted(null);
-    }, 10000);
-  }, [onComplete]);
-
-  const handleUndo = useCallback((item: UnifiedItem) => {
-    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
-    setRecentlyCompleted(null);
-    onUndo?.(item);
-  }, [onUndo]);
 
   // Count per source for filter badges
   const countBySource: Partial<Record<ResponsibilitySource, number>> = {};
   items.forEach(i => { countBySource[i.source] = (countBySource[i.source] || 0) + 1; });
+
+  const handleClick = (item: UnifiedItem) => {
+    const route = getItemRoute(item);
+    if (route) navigate(route);
+  };
 
   return (
     <Card>
@@ -123,44 +127,26 @@ export function UnifiedResponsibilitiesList({ items, onComplete, onUndo, title, 
             )}
             {filtered.map(item => {
               const Icon = SOURCE_ICON[item.source];
-              const isJustCompleted = recentlyCompleted === item.id;
+              const route = getItemRoute(item);
 
               return (
                 <div
                   key={item.id}
                   className={cn(
                     'flex items-center gap-3 p-2.5 rounded-lg border transition-all',
-                    isJustCompleted && 'opacity-50 bg-muted',
+                    route && 'cursor-pointer hover:bg-accent/50',
                     item.isInfoOnly && 'bg-muted/30',
                   )}
+                  onClick={() => handleClick(item)}
                 >
-                  {/* Checkbox or info icon */}
-                  {item.isInfoOnly ? (
-                    <div className="h-5 w-5 flex items-center justify-center text-muted-foreground">
-                      <Icon className="h-4 w-4" />
-                    </div>
-                  ) : isJustCompleted ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-5 w-5 p-0"
-                      onClick={() => handleUndo(item)}
-                      title="Desfazer"
-                    >
-                      <Undo2 className="h-3.5 w-3.5 text-muted-foreground" />
-                    </Button>
-                  ) : (
-                    <Checkbox
-                      checked={false}
-                      onCheckedChange={() => handleComplete(item)}
-                    />
-                  )}
+                  {/* Source icon */}
+                  <div className="h-5 w-5 flex items-center justify-center text-muted-foreground shrink-0">
+                    <Icon className="h-4 w-4" />
+                  </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <p className={cn('text-sm font-medium truncate', isJustCompleted && 'line-through')}>
-                      {item.title}
-                    </p>
+                    <p className="text-sm font-medium truncate">{item.title}</p>
                     <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                       <Badge className={cn('text-[9px] font-normal border', SOURCE_COLOR[item.source])}>
                         {SOURCE_LABELS[item.source]}
@@ -181,6 +167,11 @@ export function UnifiedResponsibilitiesList({ items, onComplete, onUndo, title, 
                       )}
                     </div>
                   </div>
+
+                  {/* Navigate arrow */}
+                  {route && (
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                  )}
                 </div>
               );
             })}

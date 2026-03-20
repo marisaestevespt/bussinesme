@@ -409,8 +409,6 @@ function MinhaSemanaTab({ allTasks, allMeetings, timeEntries, getProjectName, qc
       {/* Unified week responsibilities */}
       <UnifiedResponsibilitiesList
         items={unified.weekItems}
-        onComplete={(item) => unified.completeItem.mutate(item)}
-        onUndo={(item) => unified.uncompleteItem.mutate(item)}
         title="Esta Semana — Todas as Responsabilidades"
       />
     </div>
