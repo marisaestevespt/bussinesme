@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { ChevronLeft, ChevronRight, Users, Phone, CalendarCheck, FileText, TrendingUp, Clock, UserMinus, DollarSign, UserPlus, RefreshCw, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { MonthNavHeader } from '@/components/MonthNavHeader';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCrmData } from '@/hooks/useCrmData';
@@ -34,8 +35,7 @@ function KpiCard({ label, value, icon: Icon, color }: { label: string; value: st
   );
 }
 
-// ─── Month Detail ───
-function MonthDetail({ monthIdx, year, onBack }: { monthIdx: number; year: number; onBack: () => void }) {
+function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: number; year: number; onBack: () => void; onChangeMonth: (m: number, y: number) => void }) {
   const month = monthIdx + 1;
   const qc = useQueryClient();
 
@@ -167,10 +167,7 @@ function MonthDetail({ monthIdx, year, onBack }: { monthIdx: number; year: numbe
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" size="sm" onClick={onBack} className="gap-1">
-        <ArrowLeft className="h-4 w-4" /> Voltar à galeria
-      </Button>
-      <h2 className="text-xl font-bold">{MONTH_NAMES[monthIdx]} {year}</h2>
+      <MonthNavHeader monthIdx={monthIdx} year={year} onBack={onBack} onChangeMonth={onChangeMonth} />
 
       {/* CRM Operational */}
       <div>
@@ -320,7 +317,7 @@ export default function ComercialAnalisePage() {
         <div className="p-6 space-y-6">
           <BackNavigation parentRoute="/hub/comercial" parentLabel="Comercial" />
           <PageHeader title="Análise Comercial" subtitle="Análise mensal do desempenho comercial." />
-          <MonthDetail monthIdx={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} />
+          <MonthDetail monthIdx={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} onChangeMonth={(m, y) => { setSelectedMonth(m); setYear(y); }} />
         </div>
       </AppLayout>
     );

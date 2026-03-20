@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { BackNavigation } from '@/components/BackNavigation';
 import { ChevronLeft, ChevronRight, Trophy, ThumbsDown, TrendingUp, TrendingDown, Target, BarChart3, Filter, Zap, ArrowLeft } from 'lucide-react';
+import { MonthNavHeader } from '@/components/MonthNavHeader';
 import { cn } from '@/lib/utils';
 import { FORMAT_OPTIONS, type ContentItem, type MarketingChannel, type ContentChannelLink } from '@/lib/marketing-constants';
 
@@ -22,7 +23,7 @@ function getPrimaryMetricField(format: string): string {
 }
 
 // ─── Month Detail ───
-function MonthDetail({ month, year, onBack }: { month: number; year: number; onBack: () => void }) {
+function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; year: number; onBack: () => void; onChangeMonth: (m: number, y: number) => void }) {
   const queryClient = useQueryClient();
 
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
@@ -144,10 +145,7 @@ function MonthDetail({ month, year, onBack }: { month: number; year: number; onB
 
   return (
     <div className="max-w-5xl mx-auto w-full space-y-8">
-      <Button variant="ghost" size="sm" onClick={onBack} className="gap-1">
-        <ArrowLeft className="h-4 w-4" /> Voltar à galeria
-      </Button>
-      <h2 className="text-xl font-bold">{MONTHS[month - 1]} {year}</h2>
+      <MonthNavHeader monthIdx={month - 1} year={year} onBack={onBack} onChangeMonth={(m, y) => onChangeMonth(m + 1, y)} />
 
       {/* 1. Objectives */}
       <section className="space-y-3">
@@ -381,7 +379,7 @@ export default function MarketingAnalisePage() {
           <PageHeader title="Análise de Marketing" />
           <div className="max-w-5xl mx-auto w-full px-4 py-8 space-y-6">
             <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
-            <MonthDetail month={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} />
+            <MonthDetail month={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} onChangeMonth={(m, y) => { setSelectedMonth(m); setYear(y); }} />
           </div>
         </div>
       </AppLayout>

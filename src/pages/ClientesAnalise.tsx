@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { ChevronLeft, ChevronRight, Users, UserPlus, UserMinus, Package, DollarSign, RefreshCw, Target, Star, ArrowLeft } from 'lucide-react';
+import { MonthNavHeader } from '@/components/MonthNavHeader';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useClients } from '@/hooks/useClients';
@@ -38,8 +39,7 @@ function KpiCard({ label, value, icon: Icon, color }: { label: string; value: st
 
 type HealthColor = 'green' | 'yellow' | 'red';
 
-// ─── Month Detail ───
-function MonthDetail({ monthIdx, year, onBack }: { monthIdx: number; year: number; onBack: () => void }) {
+function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: number; year: number; onBack: () => void; onChangeMonth: (m: number, y: number) => void }) {
   const month = monthIdx + 1;
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -218,10 +218,7 @@ function MonthDetail({ monthIdx, year, onBack }: { monthIdx: number; year: numbe
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" size="sm" onClick={onBack} className="gap-1">
-        <ArrowLeft className="h-4 w-4" /> Voltar à galeria
-      </Button>
-      <h2 className="text-xl font-bold">{MONTH_NAMES[monthIdx]} {year}</h2>
+      <MonthNavHeader monthIdx={monthIdx} year={year} onBack={onBack} onChangeMonth={onChangeMonth} />
 
       {/* KPIs */}
       <div>
@@ -361,7 +358,7 @@ export default function ClientesAnalisePage() {
         <div className="p-6 space-y-6">
           <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
           <PageHeader title="Análise de Clientes" subtitle="Análise mensal da carteira de clientes." />
-          <MonthDetail monthIdx={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} />
+          <MonthDetail monthIdx={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} onChangeMonth={(m, y) => { setSelectedMonth(m); setYear(y); }} />
         </div>
       </AppLayout>
     );

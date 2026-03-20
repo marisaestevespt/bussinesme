@@ -13,8 +13,7 @@ import { SemesterGallery } from '@/components/planning/SemesterGallery';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, BarChart3, PieChart, Target } from 'lucide-react';
-
-const currentYear = new Date().getFullYear();
+import { YearSelector } from '@/components/YearSelector';
 
 type ViewMode = 'mensal' | 'trimestral' | 'semestral' | 'metas' | null;
 
@@ -26,7 +25,8 @@ const VIEW_CARDS: { key: Exclude<ViewMode, null>; label: string; icon: typeof Ca
 ];
 
 export default function ExecutivePlaneamento() {
-  const planning = usePlanningData(currentYear);
+  const [year, setYear] = useState(new Date().getFullYear());
+  const planning = usePlanningData(year);
   const [viewMode, setViewMode] = useState<ViewMode>(null);
 
   const handleCardClick = (key: Exclude<ViewMode, null>) => {
@@ -36,7 +36,9 @@ export default function ExecutivePlaneamento() {
   return (
     <AppLayout>
       <div className="space-y-10">
-        <PageHeader title="Planeamento Anual" subtitle={String(currentYear)} />
+        <PageHeader title="Planeamento Anual" subtitle={String(year)} />
+
+        <YearSelector year={year} onChange={setYear} />
 
         {/* View mode cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -79,22 +81,18 @@ export default function ExecutivePlaneamento() {
           </>
         )}
 
-        {/* Mensal → gallery of 12 months */}
         {viewMode === 'mensal' && (
-          <MonthlyGallery planning={planning} year={currentYear} />
+          <MonthlyGallery planning={planning} year={year} />
         )}
 
-        {/* Trimestral → gallery of 4 quarters */}
         {viewMode === 'trimestral' && (
-          <QuarterlyGallery planning={planning} year={currentYear} />
+          <QuarterlyGallery planning={planning} year={year} />
         )}
 
-        {/* Semestral → gallery of 2 semesters */}
         {viewMode === 'semestral' && (
-          <SemesterGallery planning={planning} year={currentYear} />
+          <SemesterGallery planning={planning} year={year} />
         )}
 
-        {/* Metas → table list */}
         {viewMode === 'metas' && (
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">Metas</h2>

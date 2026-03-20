@@ -7,28 +7,39 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { useExecutiveData, SALES_ROUTINES, getMonthName } from '@/hooks/useExecutiveData';
 import { usePlanningData, planStatusLabel, CADENCES } from '@/hooks/usePlanningData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfWeek, endOfWeek, format, subDays, addDays, parseISO, differenceInDays } from 'date-fns';
+import { startOfWeek, endOfWeek, format, subDays, addDays, parseISO, differenceInDays, subWeeks, addWeeks } from 'date-fns';
 import { useTeamData } from '@/hooks/useTeamData';
 import { cn } from '@/lib/utils';
 import { WeeklyAlignDetailSheet, type DetailField } from '@/components/executive/WeeklyAlignDetailSheet';
-
-const now = new Date();
-const currentMonth = now.getMonth() + 1;
-const currentYear = now.getFullYear();
-const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
-const weekStartStr = format(weekStart, 'yyyy-MM-dd');
-const weekEndStr = format(weekEnd, 'yyyy-MM-dd');
-const monthStart = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
-const monthEnd = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${new Date(currentYear, currentMonth, 0).getDate()}`;
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 export default function ExecutiveWeeklyAlign() {
+  const now = new Date();
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const weekStart = useMemo(() => {
+    const base = startOfWeek(now, { weekStartsOn: 1 });
+    return weekOffset === 0 ? base : addWeeks(base, weekOffset);
+  }, [weekOffset]);
+
+  const weekEnd = useMemo(() => endOfWeek(weekStart, { weekStartsOn: 1 }), [weekStart]);
+  const weekStartStr = format(weekStart, 'yyyy-MM-dd');
+  const weekEndStr = format(weekEnd, 'yyyy-MM-dd');
+
+  const currentYear = weekStart.getFullYear();
+  const currentMonth = weekStart.getMonth() + 1;
+  const monthStart = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+  const monthEnd = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${new Date(currentYear, currentMonth, 0).getDate()}`;
+
+  const isCurrentWeek = weekOffset === 0;
+
   const exec = useExecutiveData(currentYear);
   const planning = usePlanningData(currentYear);
 
@@ -351,6 +362,27 @@ export default function ExecutiveWeeklyAlign() {
     <AppLayout>
       <div className="space-y-8">
         <PageHeader title="Weekly Align" subtitle={`Semana ${format(weekStart, 'dd/MM')} — ${format(weekEnd, 'dd/MM/yyyy')}`} />
+
+        {/* Week navigation */}
+        <div className="flex items-center justify-center gap-4 -mt-4">
+          <Button variant="outline" size="icon" onClick={() => setWeekOffset(w => w - 1)}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-medium">
+            {format(weekStart, 'dd/MM')} — {format(weekEnd, 'dd/MM/yyyy')}
+          </span>
+          <Button variant="outline" size="icon" onClick={() => setWeekOffset(w => w + 1)} disabled={weekOffset >= 0}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          {!isCurrentWeek && (
+            <Button variant="ghost" size="sm" onClick={() => setWeekOffset(0)} className="text-xs">
+              Semana atual
+            </Button>
+          )}
+        </div>
+        {!isCurrentWeek && (
+          <p className="text-xs text-muted-foreground text-center -mt-2">Dados de semanas anteriores são apenas de leitura.</p>
+        )}
 
         {/* 1 // Metas */}
         <section className="space-y-4">
