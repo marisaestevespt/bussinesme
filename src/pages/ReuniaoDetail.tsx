@@ -43,6 +43,7 @@ interface MeetingFull {
   title: string;
   date_time: string;
   status: MeetingStatus;
+  client_id: string | null;
   client_name: string | null;
   project_id: string | null;
   project_name: string | null;
@@ -247,6 +248,13 @@ export default function ReuniaoDetailPage() {
   const { settings } = useBusinessSettings();
 
   const { data: meeting, isLoading } = useMeeting(id!);
+  const { data: clientsList = [] } = useQuery({
+    queryKey: ['clients_list'],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients').select('id, full_name').order('full_name');
+      return data || [];
+    },
+  });
   const { data: participants = [] } = useMeetingParticipants(id!);
   const { data: profiles = [] } = useProfiles();
   const { data: ownerName } = useOwnerProfile();
@@ -277,6 +285,7 @@ export default function ReuniaoDetailPage() {
         title: m.title,
         date_time: m.date_time,
         status: m.status,
+        client_id: m.client_id,
         client_name: m.client_name,
         project_id: m.project_id,
         project_name: m.project_name,
@@ -457,12 +466,17 @@ export default function ReuniaoDetailPage() {
             )}
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Cliente</Label>
-              <Input
-                value={m.client_name ?? ''}
-                onChange={e => update({ client_name: e.target.value || null })}
-                placeholder="Sem cliente"
-                className="h-7 text-xs w-40"
-              />
+              <Select value={m.client_id ?? ''} onValueChange={v => {
+                const selected = clientsList.find((c: any) => c.id === v);
+                update({ client_id: v || null, client_name: selected?.full_name || null });
+              }}>
+                <SelectTrigger className="h-7 text-xs w-44"><SelectValue placeholder="Sem cliente" /></SelectTrigger>
+                <SelectContent>
+                  {clientsList.map((c: any) => (
+                    <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Departamento</Label>

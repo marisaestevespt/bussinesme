@@ -44,6 +44,7 @@ interface MeetingRow {
   title: string;
   date_time: string;
   status: MeetingStatus;
+  client_id: string | null;
   client_name: string | null;
   project_id: string | null;
   project_name: string | null;
@@ -77,7 +78,7 @@ function useMeetings() {
   return useQuery({
     queryKey: ['meetings'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('meetings').select('id, title, date_time, status, client_name, project_id, project_name, transcript_url, created_by').order('date_time', { ascending: false });
+      const { data, error } = await supabase.from('meetings').select('id, title, date_time, status, client_id, client_name, project_id, project_name, transcript_url, created_by').order('date_time', { ascending: false });
       if (error) throw error;
       return data as MeetingRow[];
     },
@@ -91,6 +92,17 @@ function useProjects() {
       const { data, error } = await supabase.from('projects').select('id, name').order('name');
       if (error) throw error;
       return data as ProjectOption[];
+    },
+  });
+}
+
+function useClientsList() {
+  return useQuery({
+    queryKey: ['clients_list'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('clients').select('id, full_name').order('full_name');
+      if (error) throw error;
+      return data || [];
     },
   });
 }
@@ -198,9 +210,9 @@ function MemberPicker({ selectedIds, onChange, profiles }: { selectedIds: string
 // ─── New Meeting Dialog ─────────────────────────────────────────
 
 function MeetingFormDialog({
-  open, onOpenChange, profiles, projects,
+  open, onOpenChange, profiles, projects, clients,
 }: {
-  open: boolean; onOpenChange: (o: boolean) => void; profiles: Profile[]; projects: ProjectOption[];
+  open: boolean; onOpenChange: (o: boolean) => void; profiles: Profile[]; projects: ProjectOption[]; clients: { id: string; full_name: string }[];
 }) {
   const qc = useQueryClient();
   const { user } = useAuth();
@@ -209,23 +221,25 @@ function MeetingFormDialog({
   const [title, setTitle] = useState('');
   const [dateTime, setDateTime] = useState<Date | undefined>();
   const [status, setStatus] = useState<MeetingStatus>('por_confirmar');
-  const [clientName, setClientName] = useState('');
+  const [clientId, setClientId] = useState('');
   const [projectId, setProjectId] = useState('');
   const [department, setDepartment] = useState('');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
-  const resetForm = () => { setTitle(''); setDateTime(undefined); setStatus('por_confirmar'); setClientName(''); setProjectId(''); setDepartment(''); setSelectedMembers([]); };
+  const resetForm = () => { setTitle(''); setDateTime(undefined); setStatus('por_confirmar'); setClientId(''); setProjectId(''); setDepartment(''); setSelectedMembers([]); };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!title.trim() || !dateTime) throw new Error('Nome e data/hora são obrigatórios');
       const selectedProject = projects.find(p => p.id === projectId);
-      const isClientMeeting = !!clientName.trim();
+      const selectedClient = clients.find((c: any) => c.id === clientId);
+      const isClientMeeting = !!clientId;
       const { data, error } = await supabase.from('meetings').insert({
         title: title.trim(),
         date_time: dateTime.toISOString(),
         status,
-        client_name: clientName.trim() || null,
+        client_id: clientId || null,
+        client_name: selectedClient?.full_name || null,
         project_id: projectId || null,
         project_name: selectedProject?.name || null,
         department: department || null,
@@ -247,7 +261,7 @@ function MeetingFormDialog({
         title: title.trim(),
         start_date: dateTime.toISOString(),
         event_type_id: eventTypeId,
-        client_name: clientName.trim() || null,
+        client_name: selectedClient?.full_name || null,
         department: department || null,
         created_by: user?.id ?? null,
       });
@@ -296,7 +310,14 @@ function MeetingFormDialog({
           <MemberPicker selectedIds={selectedMembers} onChange={setSelectedMembers} profiles={profiles} />
           <div>
             <Label>Cliente associado</Label>
-            <Input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Opcional" />
+            <Select value={clientId} onValueChange={setClientId}>
+              <SelectTrigger><SelectValue placeholder="Selecionar cliente..." /></SelectTrigger>
+              <SelectContent>
+                {clients.map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Departamento</Label>
@@ -345,6 +366,7 @@ export default function ReunioesPage() {
   const { data: meetings = [], isLoading } = useMeetings();
   const { data: profiles = [] } = useProfiles();
   const { data: projects = [] } = useProjects();
+  const { data: clients = [] } = useClientsList();
 
   const filteredMeetings = view === 'proximas'
     ? meetings.filter(m => m.status === 'por_confirmar' || m.status === 'marcada')
@@ -408,7 +430,7 @@ export default function ReunioesPage() {
         )}
       </div>
 
-      <MeetingFormDialog open={formOpen} onOpenChange={setFormOpen} profiles={profiles} projects={projects} />
+      <MeetingFormDialog open={formOpen} onOpenChange={setFormOpen} profiles={profiles} projects={projects} clients={clients} />
     </AppLayout>
   );
 }
