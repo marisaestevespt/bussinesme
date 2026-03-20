@@ -224,6 +224,9 @@ export default function SopDetailPage() {
     setDecisoes(parseJsonList(sop.decisoes).length ? parseJsonList(sop.decisoes) : ['']);
     setOutputs(parseCheckList(sop.outputs).length ? parseCheckList(sop.outputs) : [{ text: '', checked: false }]);
     setNotas(parseJsonList(sop.notas).length ? parseJsonList(sop.notas) : ['']);
+    setLinkedEntityType((sop as any).linked_entity_type || 'geral');
+    setLinkedEntityId((sop as any).linked_entity_id || '');
+    setApplyToAllActiveClients((sop as any).apply_to_all_active_clients || false);
   }, [sop]);
 
   // ─── Save ───────────────────────────────────────────────────
