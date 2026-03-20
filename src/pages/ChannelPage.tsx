@@ -38,7 +38,7 @@ export default function ChannelPage() {
   const [editingPageId, setEditingPageId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
 
-  const currentYear = new Date().getFullYear();
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   // Fetch channel
   const { data: channel } = useQuery({
