@@ -62,6 +62,8 @@ import FinanceiroPage from "./pages/Financeiro";
 import FinanceiroSubPage from "./pages/FinanceiroSubPage";
 import OperacaoPage from "./pages/Operacao";
 import RecursosHumanosSubPage from "./pages/RecursosHumanosSubPage";
+import { ensureYearRoutineTasks } from '@/hooks/usePlanningRoutines';
+import { useEffect, useRef } from 'react';
 
 const queryClient = new QueryClient();
 
