@@ -54,6 +54,7 @@ import TrafegoReportDetail from "./pages/TrafegoReportDetail";
 import TrafegoCriativoDetail from "./pages/TrafegoCriativoDetail";
 import ComercialPage from "./pages/Comercial";
 import ComercialSubPage from "./pages/ComercialSubPage";
+import ComercialAnalisePage from "./pages/ComercialAnalise";
 import ProdutosPage from "./pages/Produtos";
 import ProdutoDetailPage from "./pages/ProdutoDetail";
 import ClientesPage from "./pages/Clientes";
@@ -127,6 +128,7 @@ function AppRoutes() {
         <Route path="/hub/marketing/trafego-pago/criativo/:id" element={<TrafegoCriativoDetail />} />
         <Route path="/hub/marketing/:pageKey" element={<MarketingSubPage />} />
       <Route path="/hub/comercial" element={<ComercialPage />} />
+      <Route path="/hub/comercial/analise" element={<ComercialAnalisePage />} />
       <Route path="/hub/comercial/vendas/:id" element={<VendaDetailPage />} />
       <Route path="/hub/comercial/:section" element={<ComercialSubPage />} />
       <Route path="/hub/produtos" element={<ProdutosPage />} />
