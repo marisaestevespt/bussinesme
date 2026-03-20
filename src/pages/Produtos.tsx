@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -9,10 +9,6 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Plus, LayoutGrid, List, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, Product } from '@/hooks/useProducts';
-import { useCommercialData } from '@/hooks/useCommercialData';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-
-const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
   em_ideia: { label: 'Em Ideia', className: 'bg-muted text-muted-foreground' },
@@ -34,31 +30,7 @@ export default function ProdutosPage() {
   const [view, setView] = useState<'gallery' | 'list'>('gallery');
   const navigate = useNavigate();
   const { products } = useProducts();
-  const commercialData = useCommercialData();
-
   const items = products.data || [];
-  const activeProducts = items.filter(p => p.status === 'vendas_ativas');
-
-  const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth() + 1;
-  const yearSales = commercialData.sales.data || [];
-
-  // Monthly sales count for line chart
-  const lineData = MONTH_LABELS.map((name, i) => ({
-    name,
-    vendas: yearSales.filter(s => s.sale_month === i + 1).length,
-  }));
-
-  // Current month base value total for donut
-  const monthSales = yearSales.filter(s => s.sale_month === currentMonth);
-  const monthBaseTotal = monthSales.reduce((s, v) => s + Number(v.base_value || 0), 0);
-  const donutData = [
-    { name: 'Faturado', value: monthBaseTotal },
-    { name: 'Restante', value: Math.max(0, (commercialData.annualGoalAmount / 12) - monthBaseTotal) },
-  ];
-  const COLORS = ['hsl(var(--primary))', 'hsl(var(--muted))'];
-
-  const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
     <AppLayout>
@@ -171,62 +143,6 @@ export default function ProdutosPage() {
           </Card>
         )}
 
-        {/* Dashboard */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Active products */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center justify-between">
-                Ativos
-                <Badge variant="secondary">{activeProducts.length}</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {activeProducts.length === 0 && (
-                <p className="text-sm text-muted-foreground">Nenhum produto com vendas ativas.</p>
-              )}
-              {activeProducts.map(p => (
-                <div key={p.id} className="flex items-center justify-between py-2 border-b last:border-0">
-                  <span className="text-sm font-medium">{p.name}</span>
-                  <span className="text-sm text-muted-foreground">{p.ticket || '—'}</span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Sales flow */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Fluxo de Vendas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={lineData}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis dataKey="name" className="text-xs" />
-                      <YAxis className="text-xs" allowDecimals={false} />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="vendas" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="h-[200px] flex flex-col items-center justify-center">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={donutData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} dataKey="value" paddingAngle={2}>
-                        {donutData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
-                      </Pie>
-                      <Tooltip formatter={(v: number) => `€${fmt(v)}`} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <p className="text-xs text-muted-foreground mt-1">Valor Base este mês: €{fmt(monthBaseTotal)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </AppLayout>
   );
