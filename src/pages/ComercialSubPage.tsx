@@ -1,7 +1,6 @@
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { BackNavigation } from '@/components/BackNavigation';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CommercialMetas } from '@/components/commercial/CommercialMetas';
 import { CommercialVendas } from '@/components/commercial/CommercialVendas';
