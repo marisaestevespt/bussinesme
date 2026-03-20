@@ -97,23 +97,30 @@ function AppRoutes() {
     );
   }
 
-  if (!user) return <AuthPage />;
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="/portal/:token" element={<PortalAuthPage />} />
+        <Route path="/portal/:token/view" element={<PortalViewPage />} />
+        <Route path="*" element={<AuthPage />} />
+      </Routes>
+    );
+  }
+
+  if (!isSetupComplete) {
+    return (
+      <Routes>
+        <Route path="/portal/:token" element={<PortalAuthPage />} />
+        <Route path="/portal/:token/view" element={<PortalViewPage />} />
+        <Route path="*" element={<SetupPage />} />
+      </Routes>
+    );
+  }
 
   return (
     <Routes>
-      {/* Public portal routes - outside auth */}
       <Route path="/portal/:token" element={<PortalAuthPage />} />
       <Route path="/portal/:token/view" element={<PortalViewPage />} />
-
-      {/* Auth-gated routes */}
-      {!isSetupComplete ? (
-        <Route path="*" element={<SetupPage />} />
-      ) : (
-        <>
-
-
-  return (
-    <Routes>
       <Route path="/" element={<Navigate to="/secretaria" replace />} />
       <Route path="/secretaria" element={<SecretariaPage />} />
       <Route path="/hub-equipa" element={<HubEquipaPage />} />
@@ -129,23 +136,23 @@ function AppRoutes() {
       <Route path="/hub/processos/:id" element={<SopDetailPage />} />
       <Route path="/hub/biblioteca" element={<BibliotecaPage />} />
       <Route path="/hub/tarefas" element={<TarefasPage />} />
-        <Route path="/hub/marketing" element={<MarketingDashboard />} />
-        <Route path="/hub/marketing/gestao-marca" element={<GestaoMarcaPage />} />
-        <Route path="/hub/marketing/conteudos/:id" element={<ConteudoDetailPage />} />
-        <Route path="/hub/marketing/canal/:channelId" element={<ChannelPage />} />
-        <Route path="/hub/marketing/estrategia" element={<MarketingEstrategia />} />
-        <Route path="/hub/marketing/estrategia/canal/:channelId" element={<MarketingChannelStrategy />} />
-        <Route path="/hub/marketing/processos-mkt" element={<MarketingProcessos />} />
-        <Route path="/hub/marketing/recursos-mkt" element={<MarketingRecursos />} />
-        <Route path="/hub/marketing/automacoes" element={<MarketingAutomacoes />} />
-        <Route path="/hub/marketing/automacoes/:id" element={<MarketingAutomacaoDetail />} />
-        <Route path="/hub/marketing/funis" element={<MarketingFunis />} />
-        <Route path="/hub/marketing/funis/:id" element={<MarketingFunilDetail />} />
-        <Route path="/hub/marketing/analise" element={<MarketingAnalisePage />} />
-        <Route path="/hub/marketing/trafego-pago" element={<MarketingTrafegoPago />} />
-        <Route path="/hub/marketing/trafego-pago/report/:id" element={<TrafegoReportDetail />} />
-        <Route path="/hub/marketing/trafego-pago/criativo/:id" element={<TrafegoCriativoDetail />} />
-        <Route path="/hub/marketing/:pageKey" element={<MarketingSubPage />} />
+      <Route path="/hub/marketing" element={<MarketingDashboard />} />
+      <Route path="/hub/marketing/gestao-marca" element={<GestaoMarcaPage />} />
+      <Route path="/hub/marketing/conteudos/:id" element={<ConteudoDetailPage />} />
+      <Route path="/hub/marketing/canal/:channelId" element={<ChannelPage />} />
+      <Route path="/hub/marketing/estrategia" element={<MarketingEstrategia />} />
+      <Route path="/hub/marketing/estrategia/canal/:channelId" element={<MarketingChannelStrategy />} />
+      <Route path="/hub/marketing/processos-mkt" element={<MarketingProcessos />} />
+      <Route path="/hub/marketing/recursos-mkt" element={<MarketingRecursos />} />
+      <Route path="/hub/marketing/automacoes" element={<MarketingAutomacoes />} />
+      <Route path="/hub/marketing/automacoes/:id" element={<MarketingAutomacaoDetail />} />
+      <Route path="/hub/marketing/funis" element={<MarketingFunis />} />
+      <Route path="/hub/marketing/funis/:id" element={<MarketingFunilDetail />} />
+      <Route path="/hub/marketing/analise" element={<MarketingAnalisePage />} />
+      <Route path="/hub/marketing/trafego-pago" element={<MarketingTrafegoPago />} />
+      <Route path="/hub/marketing/trafego-pago/report/:id" element={<TrafegoReportDetail />} />
+      <Route path="/hub/marketing/trafego-pago/criativo/:id" element={<TrafegoCriativoDetail />} />
+      <Route path="/hub/marketing/:pageKey" element={<MarketingSubPage />} />
       <Route path="/hub/comercial" element={<ComercialPage />} />
       <Route path="/hub/comercial/analise" element={<ComercialAnalisePage />} />
       <Route path="/hub/comercial/vendas/:id" element={<VendaDetailPage />} />
@@ -154,17 +161,17 @@ function AppRoutes() {
       <Route path="/hub/produtos/:id" element={<ProdutoDetailPage />} />
       <Route path="/hub/clientes" element={<ClientesPage />} />
       <Route path="/hub/clientes/analise" element={<ClientesAnalisePage />} />
+      <Route path="/hub/clientes/portais" element={<PortalClientesPage />} />
       <Route path="/hub/clientes/:id" element={<ClienteDetailPage />} />
       <Route path="/hub/financeiro" element={<FinanceiroPage />} />
       <Route path="/hub/financeiro/:section" element={<FinanceiroSubPage />} />
       <Route path="/hub/operacao" element={<OperacaoPage />} />
       <Route path="/hub/recursos-humanos" element={<ExecutiveGestaoEquipa />} />
       <Route path="/hub/recursos-humanos/:section" element={<RecursosHumanosSubPage />} />
-        <Route path="/hub/:module" element={<HubPage />} />
+      <Route path="/hub/:module" element={<HubPage />} />
       <Route path="/executive" element={<ExecutiveDashboard />} />
       <Route path="/executive/planeamento" element={<ExecutivePlaneamento />} />
       <Route path="/executive/weekly-align" element={<ExecutiveWeeklyAlign />} />
-      
       <Route path="/executive/business-plan" element={<ExecutiveBusinessPlan />} />
       <Route path="/executive/innovation" element={<ExecutiveInnovation />} />
       <Route path="/executive/productivity" element={<ExecutiveProductivity />} />
