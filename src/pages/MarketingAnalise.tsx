@@ -494,22 +494,57 @@ export default function MarketingAnalisePage() {
     },
   });
 
+  // Content metrics for the year (for top 3 publications)
+  const { data: yearContentMetrics = [] } = useQuery({
+    queryKey: ['content-metrics-year', year],
+    queryFn: async () => {
+      const { data } = await supabase.from('content_metrics').select('*').eq('year', year);
+      return data || [];
+    },
+  });
+
+  // Full content items for the year (need title, format)
+  const { data: yearContentFull = [] } = useQuery({
+    queryKey: ['content-items-year-full', year],
+    queryFn: async () => {
+      const { data } = await supabase.from('content_items').select('id, title, format, status, scheduled_at')
+        .gte('scheduled_at', `${year}-01-01`).lt('scheduled_at', `${year + 1}-01-01`);
+      return (data || []) as any[];
+    },
+  });
+
+  const { data: contentLinks = [] } = useQuery({
+    queryKey: ['content-channels'],
+    queryFn: async () => {
+      const { data } = await supabase.from('content_channels').select('*');
+      return (data || []) as ContentChannelLink[];
+    },
+  });
+
+  // Traffic creatives for the year
+  const { data: trafficCreatives = [] } = useQuery({
+    queryKey: ['traffic-creatives-year', year],
+    queryFn: async () => {
+      const { data } = await supabase.from('traffic_creatives').select('id, status, created_at')
+        .gte('created_at', `${year}-01-01`).lt('created_at', `${year + 1}-01-01`);
+      return data || [];
+    },
+  });
+
   // ─── Annual summary ───
   const annualSummary = useMemo(() => {
     const totalPlanned = yearContent.length;
     const totalPublished = yearContent.filter(c => c.status === 'publicado').length;
     const executionRate = totalPlanned > 0 ? Math.round((totalPublished / totalPlanned) * 100) : 0;
 
-    // Channel growth — find first and latest month with data per channel
+    // Channel growth
     const channelGrowth = activeChannels.map(ch => {
       const chMetrics = (yearChannelMetrics as any[])
         .filter(m => m.channel_id === ch.id && m.followers != null)
         .sort((a, b) => a.month - b.month);
-      
       if (chMetrics.length === 0) {
         return { id: ch.id, name: ch.name, startFollowers: null, currentFollowers: null, growth: null, growthPct: null };
       }
-
       const startFollowers = chMetrics[0].followers;
       const currentFollowers = chMetrics[chMetrics.length - 1].followers;
       const growth = currentFollowers - startFollowers;
@@ -517,10 +552,73 @@ export default function MarketingAnalisePage() {
       return { id: ch.id, name: ch.name, startFollowers, currentFollowers, growth, growthPct };
     });
 
-    const objectivesAchieved = yearObjectives.filter((o: any) => o.status === 'concluido' || o.status === 'achieved').length;
+    // Top 3 publications of the year
+    const top3Year = yearContentFull
+      .filter(c => c.status === 'publicado')
+      .map(item => {
+        const metric = yearContentMetrics.find((m: any) => m.content_id === item.id) as any;
+        const primaryField = getPrimaryMetricField(item.format || 'estatico');
+        const primaryValue = metric?.[primaryField] ?? null;
+        const channelId = metric?.channel_id;
+        const channelName = channels.find(ch => ch.id === channelId)?.name || '';
+        return { ...item, primaryValue, primaryField, channelName };
+      })
+      .filter(i => i.primaryValue !== null)
+      .sort((a, b) => (b.primaryValue ?? 0) - (a.primaryValue ?? 0))
+      .slice(0, 3);
 
-    return { totalPublished, totalPlanned, executionRate, channelGrowth, activeFunnels, activeAutomations, objectivesAchieved, objectivesTotal: yearObjectives.length };
-  }, [yearContent, activeChannels, yearChannelMetrics, yearObjectives, activeFunnels, activeAutomations]);
+    // Best growth channel
+    const bestGrowth = channelGrowth
+      .filter(c => c.growthPct != null)
+      .sort((a, b) => (b.growthPct ?? 0) - (a.growthPct ?? 0))[0] || null;
+
+    // Best avg engagement (Instagram only)
+    const igChannels = activeChannels.filter(ch => detectPlatform(ch.name) === 'instagram');
+    let bestEngagement: { name: string; avgEngagement: number } | null = null;
+    if (igChannels.length > 0) {
+      const engagements = igChannels.map(ch => {
+        const chMetrics = (yearChannelMetrics as any[])
+          .filter(m => m.channel_id === ch.id && m.ig_engagement_rate != null);
+        if (chMetrics.length === 0) return null;
+        const avg = chMetrics.reduce((s: number, m: any) => s + Number(m.ig_engagement_rate), 0) / chMetrics.length;
+        return { name: ch.name, avgEngagement: avg };
+      }).filter(Boolean) as { name: string; avgEngagement: number }[];
+      if (engagements.length > 0) bestEngagement = engagements.sort((a, b) => b.avgEngagement - a.avgEngagement)[0];
+    }
+
+    // Traffic creatives
+    const totalCreatives = trafficCreatives.length;
+    const creativesInCampaign = trafficCreatives.filter((c: any) => c.status === 'em_campanha').length;
+
+    // Objectives classification
+    const objectivesClassified = yearObjectives.map((o: any) => {
+      const target = Number(o.target_value) || 0;
+      const current = Number(o.current_value);
+      let classification: 'superado' | 'atingido' | 'proximo' | 'nao_atingido' | 'sem_dados';
+      if (o.current_value == null || o.current_value === '') {
+        classification = 'sem_dados';
+      } else if (target === 0) {
+        classification = 'sem_dados';
+      } else if (current > target) {
+        classification = 'superado';
+      } else if (current === target) {
+        classification = 'atingido';
+      } else if (current >= target * 0.7) {
+        classification = 'proximo';
+      } else {
+        classification = 'nao_atingido';
+      }
+      return { ...o, classification, target, current };
+    });
+    const objectivesAchievedOrSurpassed = objectivesClassified.filter(o => o.classification === 'atingido' || o.classification === 'superado').length;
+
+    return {
+      totalPublished, totalPlanned, executionRate, channelGrowth,
+      activeFunnels, activeAutomations,
+      objectivesAchieved: objectivesAchievedOrSurpassed, objectivesTotal: yearObjectives.length,
+      top3Year, bestGrowth, bestEngagement, totalCreatives, creativesInCampaign, objectivesClassified,
+    };
+  }, [yearContent, activeChannels, yearChannelMetrics, yearObjectives, activeFunnels, activeAutomations, yearContentFull, yearContentMetrics, channels, trafficCreatives]);
 
   const monthSummaries = useMemo(() => {
     return MONTHS.map((name, idx) => {
