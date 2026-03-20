@@ -206,6 +206,56 @@ export default function SecretariaPage() {
 
   const firstName = profile.data?.full_name?.split(' ')[0] || 'Utilizador';
 
+  // Absence conflict alerts (owner only)
+  const absenceAlerts = useQuery({
+    queryKey: ['absence-alerts'],
+    enabled: isOwner,
+    queryFn: async () => {
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
+      // Get active/upcoming absences
+      const { data: absences } = await supabase
+        .from('absence_coverage')
+        .select('member_id, start_date, end_date')
+        .gte('end_date', todayStr);
+      if (!absences?.length) return [];
+
+      // Get team member names + profile_ids
+      const memberIds = [...new Set(absences.map(a => a.member_id))];
+      const { data: members } = await supabase
+        .from('team_members')
+        .select('id, full_name, profile_id')
+        .in('id', memberIds);
+      if (!members?.length) return [];
+
+      const alerts: { memberName: string; startDate: string; endDate: string; taskName: string; taskId: string }[] = [];
+
+      for (const absence of absences) {
+        const member = members.find(m => m.id === absence.member_id);
+        if (!member?.profile_id) continue;
+
+        const { data: tasks } = await supabase
+          .from('tasks')
+          .select('id, name')
+          .eq('assigned_to', member.profile_id)
+          .neq('status', 'done')
+          .neq('status', 'concluida')
+          .gte('deadline', absence.start_date)
+          .lte('deadline', absence.end_date);
+
+        for (const task of tasks || []) {
+          alerts.push({
+            memberName: member.full_name,
+            startDate: absence.start_date,
+            endDate: absence.end_date,
+            taskName: task.name,
+            taskId: task.id,
+          });
+        }
+      }
+      return alerts;
+    },
+  });
+
   // Task counts
   const todayTasks = useMemo(() => (tasks.data || []).filter(t => t.deadline && isToday(parseISO(t.deadline)) && t.status !== 'done'), [tasks.data]);
   const overdueTasks = useMemo(() => (tasks.data || []).filter(t => t.status !== 'done' && t.deadline && isBefore(parseISO(t.deadline), today)), [tasks.data]);
