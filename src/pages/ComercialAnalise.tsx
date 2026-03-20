@@ -362,6 +362,85 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
         </div>
       </div>
 
+      {/* Product Comparative */}
+      <div>
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Comparativo de Produtos</h3>
+        {sortedRows.length === 0 ? (
+          <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">Sem produtos com vendas ativas.</CardContent></Card>
+        ) : (
+          <Card>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/30">
+                    {([
+                      { key: 'product' as SortKey, label: 'Produto' },
+                      { key: 'revenue' as SortKey, label: 'Receita' },
+                      { key: 'sales' as SortKey, label: 'Vendas' },
+                      { key: 'ticket' as SortKey, label: 'Ticket médio' },
+                      { key: 'active' as SortKey, label: 'Ativos' },
+                      { key: 'new' as SortKey, label: 'Novos' },
+                      { key: 'churn' as SortKey, label: 'Churn' },
+                      { key: 'renewal' as SortKey, label: 'Renovação' },
+                      { key: 'nps' as SortKey, label: 'NPS' },
+                    ]).map(col => (
+                      <th
+                        key={col.key}
+                        className={cn(
+                          'p-3 font-medium text-muted-foreground cursor-pointer hover:text-foreground select-none whitespace-nowrap',
+                          col.key === 'product' ? 'text-left' : 'text-right'
+                        )}
+                        onClick={() => toggleSort(col.key)}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          {col.label}
+                          {sortKey === col.key && (sortAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}
+                        </span>
+                      </th>
+                    ))}
+                    <th className="p-3 font-medium text-muted-foreground text-center whitespace-nowrap">Tendência</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedRows.map(r => (
+                    <tr key={r.id} className="border-b last:border-0 hover:bg-muted/50 cursor-pointer" onClick={() => navigate(`/hub/produtos/${r.id}`)}>
+                      <td className="p-3 font-medium text-primary hover:underline">{r.product}</td>
+                      <td className="p-3 text-right">{fmtEur(r.revenue)}</td>
+                      <td className="p-3 text-right">{r.sales}</td>
+                      <td className="p-3 text-right">{fmtEur(r.ticket)}</td>
+                      <td className="p-3 text-right">{r.active}</td>
+                      <td className="p-3 text-right">{r.new}</td>
+                      <td className="p-3 text-right">{r.churn > 0 ? <span className="text-destructive">{r.churn}</span> : r.churn}</td>
+                      <td className="p-3 text-right">{r.renewal != null ? `${r.renewal}%` : '—'}</td>
+                      <td className="p-3 text-right">{r.nps != null ? r.nps : '—'}</td>
+                      <td className="p-3 text-center">
+                        {r.trend === 'up' && <ArrowUp className="h-4 w-4 text-emerald-600 inline" />}
+                        {r.trend === 'down' && <ArrowDown className="h-4 w-4 text-destructive inline" />}
+                        {r.trend === 'none' && <Minus className="h-4 w-4 text-muted-foreground inline" />}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t bg-muted/30 font-semibold">
+                    <td className="p-3">Total</td>
+                    <td className="p-3 text-right">{fmtEur(totals.revenue)}</td>
+                    <td className="p-3 text-right">{totals.sales}</td>
+                    <td className="p-3 text-right" />
+                    <td className="p-3 text-right" />
+                    <td className="p-3 text-right">{totals.new}</td>
+                    <td className="p-3 text-right">{totals.churn}</td>
+                    <td className="p-3 text-right" />
+                    <td className="p-3 text-right" />
+                    <td className="p-3" />
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </Card>
+        )}
+      </div>
+
       <Separator />
 
       {/* Qualitative */}
