@@ -363,6 +363,27 @@ export default function ExecutiveWeeklyAlign() {
       <div className="space-y-8">
         <PageHeader title="Weekly Align" subtitle={`Semana ${format(weekStart, 'dd/MM')} — ${format(weekEnd, 'dd/MM/yyyy')}`} />
 
+        {/* Week navigation */}
+        <div className="flex items-center justify-center gap-4 -mt-4">
+          <Button variant="outline" size="icon" onClick={() => setWeekOffset(w => w - 1)}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-medium">
+            {format(weekStart, 'dd/MM')} — {format(weekEnd, 'dd/MM/yyyy')}
+          </span>
+          <Button variant="outline" size="icon" onClick={() => setWeekOffset(w => w + 1)} disabled={weekOffset >= 0}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          {!isCurrentWeek && (
+            <Button variant="ghost" size="sm" onClick={() => setWeekOffset(0)} className="text-xs">
+              Semana atual
+            </Button>
+          )}
+        </div>
+        {!isCurrentWeek && (
+          <p className="text-xs text-muted-foreground text-center -mt-2">Dados de semanas anteriores são apenas de leitura.</p>
+        )}
+
         {/* 1 // Metas */}
         <section className="space-y-4">
           <h2 className="text-base font-semibold">1 // Metas</h2>
