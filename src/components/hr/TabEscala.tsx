@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { AbsenceCoverageTable } from '@/components/hr/AbsenceCoverageTable';
+import { NewAbsenceDialog } from '@/components/hr/NewAbsenceDialog';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
