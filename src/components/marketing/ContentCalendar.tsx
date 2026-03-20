@@ -149,7 +149,7 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
               <div className="flex flex-col gap-1 flex-1">
                 {dayItems.slice(0, 4).map(item => (
                   <div key={item.id} className="flex-1 min-h-0">
-                    <CalendarDayItem key={item.id} item={item} channels={channels} links={contentChannelLinks} />
+                    <CalendarDayItem key={item.id} item={item} channels={channels} links={contentChannelLinks} profiles={profiles} attachments={attachments} />
                   </div>
                 ))}
               </div>
