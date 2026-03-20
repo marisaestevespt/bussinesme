@@ -1531,6 +1531,34 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
   const [weeklyDialog, setWeeklyDialog] = useState<any>(null);
   const [monthlyDialog, setMonthlyDialog] = useState<any>(null);
   const [perfTab, setPerfTab] = useState('prioridade');
+  const { views, saveView, deleteView } = useCustomViews('gestao-equipa');
+  const [activeViewId, setActiveViewId] = useState<string | null>(null);
+  const [saveViewName, setSaveViewName] = useState('');
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+
+  function loadView(viewId: string) {
+    const v = views.find(x => x.id === viewId);
+    if (!v) return;
+    setActiveViewId(viewId);
+    setFilterMember(v.filters.member || '');
+    setDateFrom(v.filters.dateFrom || '');
+    setDateTo(v.filters.dateTo || '');
+    setPerfTab(v.filters.perfTab || 'prioridade');
+  }
+
+  function handleSaveView() {
+    if (!saveViewName.trim()) return;
+    saveView.mutate({
+      view_name: saveViewName,
+      filters: { member: filterMember, dateFrom, dateTo, perfTab },
+      visible_columns: [],
+      sort_config: {},
+      is_default: false,
+    });
+    setSaveViewName('');
+    setShowSaveDialog(false);
+    toast.success('Vista guardada');
+  }
 
   const weeklyData = useMemo(() => {
     let d = team.perfWeekly.data || [];
