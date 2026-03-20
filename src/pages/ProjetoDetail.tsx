@@ -40,6 +40,7 @@ interface ProjectFull {
   entregaveis: string | null; recursos: string | null; project_notes: string | null;
   closure_good: string | null; closure_bad: string | null; closure_lessons: string | null;
   created_by: string | null; created_at: string; cover_url: string | null;
+  total_time_minutes: number | null;
 }
 
 interface Profile { id: string; user_id: string; full_name: string | null; avatar_url: string | null; }
@@ -340,17 +341,36 @@ export default function ProjetoDetailPage() {
     setDirty(true);
   };
 
+  const calcTotalTime = async (projectId: string) => {
+    // Sum time from time_entries directly linked to project
+    const { data: directTime } = await supabase.from('time_entries').select('duration').eq('project_id', projectId);
+    // Sum time from time_entries linked to project tasks
+    const { data: taskIds } = await supabase.from('tasks').select('id').eq('project_id', projectId);
+    let taskTime: { duration: number }[] = [];
+    if (taskIds && taskIds.length > 0) {
+      const { data } = await supabase.from('time_entries').select('duration').in('task_id', taskIds.map(t => t.id));
+      taskTime = (data || []) as { duration: number }[];
+    }
+    const total = [...(directTime || []), ...taskTime].reduce((sum, e) => sum + (e.duration || 0), 0);
+    return total;
+  };
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!local) return;
-      const { error } = await supabase.from('projects').update({
+      const payload: Record<string, any> = {
         name: local.name, type: local.type, status: local.status, department: local.department,
         client_name: local.client_name, deadline: local.deadline, progress: local.progress, notes: local.notes,
         objetivo: local.objetivo, diretrizes: local.diretrizes, cronograma: local.cronograma, dependencias: local.dependencias,
         entregaveis: local.entregaveis, recursos: local.recursos, project_notes: local.project_notes,
         closure_good: local.closure_good, closure_bad: local.closure_bad, closure_lessons: local.closure_lessons,
         cover_url: local.cover_url,
-      }).eq('id', local.id);
+      };
+      // Auto-calculate total time when marking as concluded
+      if (local.status === 'concluido' && project?.status !== 'concluido') {
+        payload.total_time_minutes = await calcTotalTime(local.id);
+      }
+      const { error } = await supabase.from('projects').update(payload as any).eq('id', local.id);
       if (error) throw error;
     },
     onSuccess: () => { setDirty(false); queryClient.invalidateQueries({ queryKey: ['project', id] }); toast.success('Guardado'); },
@@ -685,6 +705,12 @@ export default function ProjetoDetailPage() {
               <span className="text-xs text-muted-foreground">{getProjectProgress()}%</span>
             </div>
             <div className="flex -space-x-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-6 w-6 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div>
+            <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
+            {local.status === 'concluido' && local.total_time_minutes != null && local.total_time_minutes > 0 && (
+              <Badge variant="outline" className="gap-1 text-xs">
+                <Clock className="h-3 w-3" /> Tempo total: {formatDuration(local.total_time_minutes)}
+              </Badge>
+            )}
           </div>
         </div>
 

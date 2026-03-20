@@ -4930,6 +4930,7 @@ export type Database = {
           recursos: string | null
           start_date: string | null
           status: string
+          total_time_minutes: number | null
           type: string
           updated_at: string
         }
@@ -4956,6 +4957,7 @@ export type Database = {
           recursos?: string | null
           start_date?: string | null
           status?: string
+          total_time_minutes?: number | null
           type?: string
           updated_at?: string
         }
@@ -4982,6 +4984,7 @@ export type Database = {
           recursos?: string | null
           start_date?: string | null
           status?: string
+          total_time_minutes?: number | null
           type?: string
           updated_at?: string
         }
