@@ -23,7 +23,7 @@ const TITLES: Record<string, string> = {
 
 export default function ComercialSubPage() {
   const { section } = useParams<{ section: string }>();
-  const navigate = useNavigate();
+  
   const title = TITLES[section || ''] || section || '';
 
   const renderContent = () => {

@@ -23,7 +23,7 @@ const TITLES: Record<string, string> = {
 
 export default function RecursosHumanosSubPage() {
   const { section } = useParams<{ section: string }>();
-  const navigate = useNavigate();
+  
   const team = useTeamData();
   const title = TITLES[section || ''] || section || '';
 
