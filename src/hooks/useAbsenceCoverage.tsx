@@ -31,13 +31,13 @@ export function useAbsenceCoverage() {
   });
 
   const upsertCoverage = useMutation({
-    mutationFn: async (payload: Partial<AbsenceCoverage> & { id?: string }) => {
+    mutationFn: async (payload: any) => {
       if (payload.id) {
         const { id, ...rest } = payload;
         const { error } = await supabase.from('absence_coverage').update(rest).eq('id', id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('absence_coverage').insert(payload);
+        const { error } = await supabase.from('absence_coverage').insert([payload]);
         if (error) throw error;
       }
     },
