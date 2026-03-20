@@ -127,6 +127,9 @@ export default function HubEquipaPage() {
           <AnalogClock />
         </div>
 
+        {/* Active absence alerts */}
+        <ActiveAbsenceAlerts />
+
         {/* Novidades do mês */}
         <NovidadesMes />
 
