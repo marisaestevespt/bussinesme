@@ -1,0 +1,1 @@
+ALTER TABLE public.meetings ADD COLUMN duration_minutes integer DEFAULT 0;
