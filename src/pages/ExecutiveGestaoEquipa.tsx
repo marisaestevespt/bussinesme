@@ -219,6 +219,19 @@ function scheduleToDisplay(raw: string | null): string {
     .join(' · ') || '';
 }
 
+function scheduleToLines(raw: string | null): string[] {
+  const s = parseSchedule(raw);
+  return WEEK_DAYS
+    .filter(d => s[d.key] && (s[d.key].manha || s[d.key].tarde))
+    .map(d => {
+      const ds = s[d.key];
+      const parts: string[] = [];
+      if (ds.manha) parts.push(ds.manha);
+      if (ds.tarde) parts.push(ds.tarde);
+      return `${d.label} ${parts.join(' / ')}`;
+    });
+}
+
 const TIME_OPTIONS = [
   '07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
   '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
@@ -743,7 +756,7 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 {member.email && <div><span className="text-muted-foreground text-xs">Email</span><p>{member.email}</p></div>}
                 {member.whatsapp && <div><span className="text-muted-foreground text-xs">Telefone</span><p>{member.whatsapp}</p></div>}
-                {member.work_schedule && <div><span className="text-muted-foreground text-xs">Horário</span><p>{scheduleToDisplay(member.work_schedule)}</p></div>}
+                {member.work_schedule && <div><span className="text-muted-foreground text-xs">Horário</span><div className="mt-0.5 space-y-0.5">{scheduleToLines(member.work_schedule).map((line, i) => <p key={i} className="text-sm">{line}</p>)}</div></div>}
                 {member.identification && <div><span className="text-muted-foreground text-xs">Identificação</span><p>{member.identification}</p></div>}
                 {member.start_date && <div><span className="text-muted-foreground text-xs">Data de início</span><p>{member.start_date}</p></div>}
               </div>
