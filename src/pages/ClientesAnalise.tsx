@@ -1,0 +1,411 @@
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AppLayout } from '@/components/AppLayout';
+import { PageHeader } from '@/components/PageHeader';
+import { BackNavigation } from '@/components/BackNavigation';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { ChevronLeft, ChevronRight, Users, UserPlus, UserMinus, Package, DollarSign, RefreshCw, Target, Star, ArrowLeft } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useClients } from '@/hooks/useClients';
+import { useCommercialData } from '@/hooks/useCommercialData';
+import { differenceInDays, parseISO } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
+const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+function KpiCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: any; color?: string }) {
+  return (
+    <Card className="border-secondary bg-background">
+      <CardContent className="p-4 flex items-center gap-3">
+        <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
+          <Icon className="h-4 w-4 text-muted-foreground" />
+        </div>
+        <div className="min-w-0">
+          <p className={`text-xl font-bold ${color || 'text-foreground'}`}>{value}</p>
+          <p className="text-xs text-muted-foreground truncate">{label}</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+type HealthColor = 'green' | 'yellow' | 'red';
+
+// ─── Month Detail ───
+function MonthDetail({ monthIdx, year, onBack }: { monthIdx: number; year: number; onBack: () => void }) {
+  const month = monthIdx + 1;
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+
+  const { clients: clientsQ } = useClients();
+  const clientsData = clientsQ.data || [];
+  const { sales: salesQ } = useCommercialData(year);
+  const salesData = salesQ.data || [];
+
+  // NPS records
+  const npsQ = useQuery({
+    queryKey: ['client_nps_all'],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_nps_records').select('*').order('actual_date', { ascending: false });
+      return data || [];
+    },
+  });
+  const allNps = npsQ.data || [];
+
+  // Milestones
+  const milestonesQ = useQuery({
+    queryKey: ['client_milestones_all'],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_milestones').select('*');
+      return data || [];
+    },
+  });
+  const allMilestones = milestonesQ.data || [];
+
+  // Qualitative
+  const analysisQ = useQuery({
+    queryKey: ['clients_analysis', month, year],
+    queryFn: async () => {
+      const { data } = await (supabase.from('clients_monthly_analysis' as any) as any)
+        .select('*').eq('month', month).eq('year', year).maybeSingle();
+      return data as any;
+    },
+  });
+
+  const [qualData, setQualData] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (analysisQ.data) {
+      setQualData({
+        portfolio_notes: analysisQ.data.portfolio_notes || '',
+        what_went_well: analysisQ.data.what_went_well || '',
+        what_went_wrong: analysisQ.data.what_went_wrong || '',
+      });
+    } else {
+      setQualData({ portfolio_notes: '', what_went_well: '', what_went_wrong: '' });
+    }
+  }, [analysisQ.data]);
+
+  const saveField = useCallback(async (field: string) => {
+    const value = qualData[field] ?? '';
+    const existing = analysisQ.data;
+    if (existing?.id) {
+      await (supabase.from('clients_monthly_analysis' as any) as any).update({ [field]: value || null }).eq('id', existing.id);
+    } else {
+      await (supabase.from('clients_monthly_analysis' as any) as any).insert({ month, year, [field]: value || null });
+    }
+    qc.invalidateQueries({ queryKey: ['clients_analysis', month, year] });
+  }, [qualData, analysisQ.data, month, year, qc]);
+
+  // ─── KPIs ───
+  const activeClients = clientsData.filter(c => c.status === 'ativo' || c.status === 'em_onboarding');
+  const newClients = clientsData.filter(c => {
+    if (!c.start_date) return false;
+    const d = new Date(c.start_date);
+    return d.getMonth() + 1 === month && d.getFullYear() === year;
+  });
+
+  const churnClients = clientsData.filter(c => {
+    if (!c.updated_at || c.status !== 'terminado') return false;
+    const d = new Date(c.updated_at);
+    return d.getMonth() + 1 === month && d.getFullYear() === year;
+  });
+
+  const onboardingClients = clientsData.filter(c => c.status === 'em_onboarding');
+
+  const monthSales = salesData.filter(s => s.sale_month === month);
+  const monthRevenue = monthSales.reduce((s, v) => s + Number(v.invoice_total || 0), 0);
+  const avgValuePerClient = activeClients.length > 0 ? Math.round(monthRevenue / activeClients.length) : 0;
+
+  const renewalClients = clientsData.filter(c => {
+    if (!c.updated_at) return false;
+    const d = new Date(c.updated_at);
+    return d.getMonth() + 1 === month && d.getFullYear() === year;
+  });
+  const renewedCount = renewalClients.filter(c => c.status === 'ativo').length;
+  const renewalBase = renewalClients.filter(c => c.status === 'ativo' || c.status === 'altura_renovacao' || c.status === 'terminado').length;
+  const renewalRate = renewalBase > 0 ? Math.round((renewedCount / renewalBase) * 100) : 0;
+
+  // Milestones in month
+  const monthMilestonesExpected = allMilestones.filter(m => {
+    if (!m.expected_date) return false;
+    const d = new Date(m.expected_date);
+    return d.getMonth() + 1 === month && d.getFullYear() === year;
+  });
+  const monthMilestonesDone = monthMilestonesExpected.filter(m => m.status === 'concluido');
+
+  // ─── NPS (global, not filtered by month) ───
+  const latestNpsByClient = useMemo(() => {
+    const map = new Map<string, number>();
+    // allNps already sorted by actual_date desc
+    for (const nps of allNps) {
+      if (nps.nps_score != null && !map.has(nps.client_id)) {
+        map.set(nps.client_id, nps.nps_score);
+      }
+    }
+    return map;
+  }, [allNps]);
+
+  const activeClientIds = new Set(activeClients.map(c => c.id));
+  const activeNps = useMemo(() => {
+    const entries: number[] = [];
+    latestNpsByClient.forEach((score, clientId) => {
+      if (activeClientIds.has(clientId)) entries.push(score);
+    });
+    return entries;
+  }, [latestNpsByClient, activeClientIds]);
+
+  const avgNps = activeNps.length > 0 ? (activeNps.reduce((a, b) => a + b, 0) / activeNps.length).toFixed(1) : '—';
+  const promoters = activeNps.filter(s => s >= 9).length;
+  const passives = activeNps.filter(s => s >= 7 && s <= 8).length;
+  const detractors = activeNps.filter(s => s <= 6).length;
+
+  // ─── Distribution by product ───
+  const byProduct = useMemo(() => {
+    const map: Record<string, number> = {};
+    activeClients.forEach(c => {
+      const p = c.current_product || 'Sem produto';
+      map[p] = (map[p] || 0) + 1;
+    });
+    return Object.entries(map).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+  }, [activeClients]);
+
+  // ─── Health semaphore ───
+  const today = new Date();
+  const healthList = useMemo(() => {
+    return activeClients.map(c => {
+      const clientNps = latestNpsByClient.get(c.id);
+      const lastNpsDate = allNps.find(n => n.client_id === c.id && n.nps_score != null)?.actual_date;
+      const daysSinceNps = lastNpsDate ? differenceInDays(today, parseISO(lastNpsDate)) : 999;
+      const overdueMilestones = allMilestones.filter(m => m.client_id === c.id && m.status !== 'concluido' && m.expected_date && parseISO(m.expected_date) < today);
+      const endCycleDays = c.end_of_cycle ? differenceInDays(parseISO(c.end_of_cycle), today) : 999;
+
+      let color: HealthColor = 'green';
+      if (endCycleDays <= 30 || (clientNps != null && clientNps <= 6)) {
+        color = 'red';
+      } else if (daysSinceNps > 90 || overdueMilestones.length > 0) {
+        color = 'yellow';
+      }
+
+      return { client: c, color, endCycleDays };
+    }).sort((a, b) => {
+      const order: Record<HealthColor, number> = { red: 0, yellow: 1, green: 2 };
+      return order[a.color] - order[b.color];
+    });
+  }, [activeClients, latestNpsByClient, allNps, allMilestones, today]);
+
+  const HEALTH_STYLES: Record<HealthColor, string> = {
+    green: 'bg-emerald-500',
+    yellow: 'bg-amber-500',
+    red: 'bg-red-500',
+  };
+
+  const STATUS_LABEL: Record<string, string> = {
+    em_onboarding: 'Onboarding',
+    ativo: 'Ativo',
+    pausado: 'Pausado',
+    altura_renovacao: 'Renovação',
+    terminado: 'Terminado',
+  };
+
+  const fmt = (n: number) => n.toLocaleString('pt-PT', { maximumFractionDigits: 0 });
+
+  return (
+    <div className="space-y-6">
+      <Button variant="ghost" size="sm" onClick={onBack} className="gap-1">
+        <ArrowLeft className="h-4 w-4" /> Voltar à galeria
+      </Button>
+      <h2 className="text-xl font-bold">{MONTH_NAMES[monthIdx]} {year}</h2>
+
+      {/* KPIs */}
+      <div>
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">KPIs do Mês</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <KpiCard label="Clientes ativos" value={activeClients.length} icon={Users} />
+          <KpiCard label="Novos clientes" value={newClients.length} icon={UserPlus} />
+          <KpiCard label="Churn" value={churnClients.length} icon={UserMinus} color={churnClients.length > 0 ? 'text-destructive' : undefined} />
+          <KpiCard label="Em onboarding" value={onboardingClients.length} icon={Users} />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
+          <KpiCard label="Valor médio / cliente" value={`${fmt(avgValuePerClient)} €`} icon={DollarSign} />
+          <KpiCard label="Taxa de renovação" value={`${renewalRate}%`} icon={RefreshCw} />
+          <KpiCard label="Marcos atingidos" value={`${monthMilestonesDone.length} / ${monthMilestonesExpected.length}`} icon={Target} />
+        </div>
+      </div>
+
+      {/* NPS */}
+      <Card className="border-secondary bg-background">
+        <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">NPS Médio Atual</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-baseline gap-3">
+            <span className="text-3xl font-bold">{avgNps}</span>
+            <span className="text-sm text-muted-foreground">{activeNps.length} / {activeClients.length} clientes com NPS</span>
+          </div>
+          <div className="flex gap-4 text-sm">
+            <span className="text-emerald-600 font-medium">Promotores (9-10): {promoters}</span>
+            <span className="text-amber-600 font-medium">Neutros (7-8): {passives}</span>
+            <span className="text-red-600 font-medium">Detratores (0-6): {detractors}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Distribution by product */}
+      {byProduct.length > 0 && (
+        <Card className="border-secondary bg-background">
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">Distribuição por Produto</CardTitle></CardHeader>
+          <CardContent className="h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={byProduct} layout="vertical" margin={{ left: 100 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                <XAxis type="number" allowDecimals={false} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={95} />
+                <Tooltip />
+                <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Health */}
+      <div>
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Saúde da Carteira</h3>
+        <Card className="border-secondary bg-background">
+          <CardContent className="p-0">
+            <div className="bg-muted px-4 py-2 text-xs font-medium grid grid-cols-5 gap-2">
+              <span>Cliente</span><span>Produto</span><span>Status</span><span>Saúde</span><span>Fim de Ciclo</span>
+            </div>
+            {healthList.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8 text-sm">Sem clientes ativos</p>
+            ) : healthList.map(({ client: c, color }) => (
+              <div
+                key={c.id}
+                className="px-4 py-2.5 text-sm grid grid-cols-5 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
+                onClick={() => navigate(`/hub/clientes/${c.id}`)}
+              >
+                <span className="truncate font-medium">{c.full_name}</span>
+                <span className="truncate text-muted-foreground">{c.current_product || '—'}</span>
+                <span className="text-muted-foreground">{STATUS_LABEL[c.status] || c.status}</span>
+                <span><div className={cn('h-3 w-3 rounded-full', HEALTH_STYLES[color])} /></span>
+                <span className="text-muted-foreground">{c.end_of_cycle ? new Date(c.end_of_cycle).toLocaleDateString('pt-PT') : '—'}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Separator />
+
+      {/* Qualitative */}
+      <div>
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Análise Qualitativa</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {([
+            { key: 'portfolio_notes', label: 'Notas sobre a carteira do mês' },
+            { key: 'what_went_well', label: 'O que correu bem' },
+            { key: 'what_went_wrong', label: 'O que correu mal' },
+          ] as const).map(f => (
+            <div key={f.key} className="space-y-1">
+              <label className="text-sm font-medium">{f.label}</label>
+              <Textarea
+                className="min-h-[100px]"
+                value={qualData[f.key] || ''}
+                onChange={e => setQualData(prev => ({ ...prev, [f.key]: e.target.value }))}
+                onBlur={() => saveField(f.key)}
+                placeholder={f.label}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Gallery ───
+export default function ClientesAnalisePage() {
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+
+  const { clients: clientsQ } = useClients();
+  const clientsData = clientsQ.data || [];
+
+  const monthSummaries = useMemo(() => {
+    return MONTH_NAMES.map((name, idx) => {
+      const m = idx + 1;
+      const newClients = clientsData.filter(c => {
+        if (!c.start_date) return false;
+        const d = new Date(c.start_date);
+        return d.getMonth() + 1 === m && d.getFullYear() === year;
+      }).length;
+      const churn = clientsData.filter(c => {
+        if (!c.updated_at || c.status !== 'terminado') return false;
+        const d = new Date(c.updated_at);
+        return d.getMonth() + 1 === m && d.getFullYear() === year;
+      }).length;
+      const active = clientsData.filter(c => c.status === 'ativo' || c.status === 'em_onboarding').length;
+      return { name, newClients, churn, active };
+    });
+  }, [clientsData, year]);
+
+  if (selectedMonth !== null) {
+    return (
+      <AppLayout>
+        <div className="p-6 space-y-6">
+          <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
+          <PageHeader title="Análise de Clientes" subtitle="Análise mensal da carteira de clientes." />
+          <MonthDetail monthIdx={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  return (
+    <AppLayout>
+      <div className="p-6 space-y-6">
+        <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
+        <PageHeader title="Análise de Clientes" subtitle="Análise mensal da carteira de clientes." />
+
+        <div className="flex items-center justify-center gap-4">
+          <Button variant="outline" size="icon" onClick={() => setYear(y => y - 1)}><ChevronLeft className="h-4 w-4" /></Button>
+          <span className="text-lg font-semibold">{year}</span>
+          <Button variant="outline" size="icon" onClick={() => setYear(y => y + 1)}><ChevronRight className="h-4 w-4" /></Button>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {monthSummaries.map((m, idx) => {
+            const isCurrent = now.getMonth() === idx && now.getFullYear() === year;
+            return (
+              <Card
+                key={idx}
+                className={cn(
+                  'cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group',
+                  isCurrent && 'ring-2 ring-primary'
+                )}
+                onClick={() => setSelectedMonth(idx)}
+              >
+                <CardContent className="p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-sm">{m.name}</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <div className="flex gap-3 text-xs text-muted-foreground">
+                    <span className="text-emerald-600 font-medium">+{m.newClients} novos</span>
+                    {m.churn > 0 && <span className="text-destructive font-medium">-{m.churn} churn</span>}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+    </AppLayout>
+  );
+}
