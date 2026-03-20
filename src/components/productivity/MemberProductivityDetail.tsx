@@ -527,8 +527,12 @@ function ReassignTab({ member, memberTasks, allMembers, allTasks, allEntries, pr
         }).eq('id', tid);
         if (error) throw error;
         // Notify
-        if (target.profile_id && userId) {
-          await sendNotification(target.profile_id, `Foi-te reatribuída a tarefa: ${task?.name || 'Tarefa'}`, userId);
+        if (target.profile_id) {
+          await sendNotification({
+            userId: target.profile_id,
+            type: 'task_reassigned',
+            title: `Foi-te reatribuída a tarefa: ${task?.name || 'Tarefa'}`,
+          });
         }
       }
     },
