@@ -150,7 +150,10 @@ export default function MarketingProcessos() {
       }
       await supabase.from('routines').update({
         name: newRoutineName, frequency: newRoutineFreq, assigned_to: newRoutineAssignee || null, sop_id: sopId,
-      }).eq('id', editingRoutine.id);
+        monthly_day: newRoutineFreq === 'dia_x_mes' && newRoutineMonthlyDay ? Number(newRoutineMonthlyDay) : null,
+        start_date: newRoutineFreq === 'dia_x_mes' && newRoutineStartDate ? newRoutineStartDate : null,
+        end_date: newRoutineFreq === 'dia_x_mes' && newRoutineEndDate ? newRoutineEndDate : null,
+      } as any).eq('id', editingRoutine.id);
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['routines', 'sops'] }); setEditingRoutine(null); resetRoutineForm(); toast.success('Rotina atualizada'); },
     onError: () => toast.error('Erro ao atualizar'),
