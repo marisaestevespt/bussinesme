@@ -423,7 +423,7 @@ export default function PortalViewPage() {
                           )}
                         </span>
                         <div className="flex items-center gap-2">
-                          {m.status === 'agendada' ? (
+                          {(m.status === 'agendada' || m.status === 'por_confirmar') ? (
                             <Button size="sm" className="h-7 text-xs" onClick={async () => {
                               const { data } = await (supabase as any).rpc('portal_confirm_meeting', { _token: token, _meeting_id: m.id });
                               if (data) {
