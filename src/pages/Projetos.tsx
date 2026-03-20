@@ -286,7 +286,9 @@ export default function ProjetosPage() {
           const { data } = await supabase.from('time_entries').select('duration').in('task_id', taskIds.map(t => t.id));
           taskTime = (data || []) as { duration: number }[];
         }
-        payload.total_time_minutes = [...(directTime || []), ...taskTime].reduce((sum, e) => sum + ((e as any).duration || 0), 0);
+        const { data: meetingDurations } = await supabase.from('meetings').select('duration_minutes').eq('project_id', projectId);
+        const meetingTime = (meetingDurations || []).reduce((sum, m) => sum + ((m as any).duration_minutes || 0), 0);
+        payload.total_time_minutes = [...(directTime || []), ...taskTime].reduce((sum, e) => sum + ((e as any).duration || 0), 0) + meetingTime;
       }
       const { error } = await supabase.from('projects').update(payload as any).eq('id', projectId);
       if (error) throw error;

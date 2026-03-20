@@ -351,8 +351,11 @@ export default function ProjetoDetailPage() {
       const { data } = await supabase.from('time_entries').select('duration').in('task_id', taskIds.map(t => t.id));
       taskTime = (data || []) as { duration: number }[];
     }
-    const total = [...(directTime || []), ...taskTime].reduce((sum, e) => sum + (e.duration || 0), 0);
-    return total;
+    // Sum meeting durations linked to project
+    const { data: meetingDurations } = await supabase.from('meetings').select('duration_minutes').eq('project_id', projectId);
+    const meetingTime = (meetingDurations || []).reduce((sum, m) => sum + ((m as any).duration_minutes || 0), 0);
+    const timeEntryTotal = [...(directTime || []), ...taskTime].reduce((sum, e) => sum + (e.duration || 0), 0);
+    return timeEntryTotal + meetingTime;
   };
 
   const saveMutation = useMutation({
