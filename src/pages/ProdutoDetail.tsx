@@ -31,7 +31,7 @@ export default function ProdutoDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { isOwner } = useAuth();
+  const { isOwner, user } = useAuth();
   const isNew = id === 'novo';
 
   const { data: product, isLoading } = useProduct(isNew ? undefined : id);
