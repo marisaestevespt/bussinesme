@@ -61,8 +61,7 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
   const typeLabel = CONTENT_TYPE_OPTIONS.find(t => t.value === item.content_type)?.label;
   const time = item.scheduled_at ? format(new Date(item.scheduled_at), 'HH:mm') : null;
   const assignee = profiles?.find(p => p.id === item.assigned_to);
-  const images = (attachments || []).filter(a => a.content_id === item.id && a.file_type.startsWith('image'));
-  const coverImage = item.cover_url || (images.length > 0 ? images[0].file_url : null);
+  const coverImage = item.cover_url;
 
   return (
     <Link to={`/hub/marketing/conteudos/${item.id}`}
