@@ -278,7 +278,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       )}
 
       {/* Health */}
-      <div>
+      {isAreaEnabled('clientes') && isKpiEnabled('clientes', 'saude_carteira') && (
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Saúde da Carteira</h3>
         <Card className="border-secondary bg-background">
           <CardContent className="p-0">
