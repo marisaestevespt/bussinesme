@@ -106,6 +106,16 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
               <Button variant="outline" size="icon" asChild>
                 <a href={portalUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
               </Button>
+              <Button variant="outline" size="sm" onClick={() => {
+                localStorage.setItem(`portal_session_${portalData.id}`, JSON.stringify({
+                  portal_id: portalData.id,
+                  client_id: clientId,
+                  timestamp: Date.now(),
+                }));
+                window.open(`${window.location.origin}/portal/${portalData.token}/view`, '_blank');
+              }}>
+                <ExternalLink className="h-3 w-3 mr-1" />Editar Portal
+              </Button>
             </div>
           </div>
 
