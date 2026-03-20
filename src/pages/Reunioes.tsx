@@ -44,6 +44,7 @@ interface MeetingRow {
   title: string;
   date_time: string;
   status: MeetingStatus;
+  client_id: string | null;
   client_name: string | null;
   project_id: string | null;
   project_name: string | null;
