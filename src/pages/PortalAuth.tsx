@@ -14,7 +14,6 @@ export default function PortalAuthPage() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const [portal, setPortal] = useState<Portal | null>(null);
-  const [client, setClient] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -51,26 +50,29 @@ export default function PortalAuthPage() {
   const loadPortal = async () => {
     if (!token) return;
     const { data: portalData } = await sb('client_portals').select('*').eq('token', token).maybeSingle();
-    if (!portalData) { setLoading(false); return; }
+    if (!portalData) {
+      setLoading(false);
+      return;
+    }
     setPortal(portalData);
-
-    const { data: clientData } = await sb('clients').select('*').eq('id', portalData.client_id).maybeSingle();
-    setClient(clientData);
     setLoading(false);
   };
 
   const handleSubmit = async () => {
-    if (!email.trim()) return;
+    if (!email.trim() || !token || !portal) return;
     const inputEmail = email.trim().toLowerCase();
-    const mainMatch = client?.email?.toLowerCase() === inputEmail;
 
-    let contactMatch = false;
-    if (!mainMatch && client) {
-      const { data: contacts } = await sb('client_contacts').select('email').eq('client_id', client.id);
-      contactMatch = (contacts || []).some((c: any) => c.email?.toLowerCase() === inputEmail);
+    const { data: emailAllowed, error: emailCheckError } = await (supabase as any).rpc('portal_email_allowed', {
+      _token: token,
+      _email: inputEmail,
+    });
+
+    if (emailCheckError) {
+      toast.error('Erro ao validar email. Tenta novamente.');
+      return;
     }
 
-    if (!mainMatch && !contactMatch) {
+    if (!emailAllowed) {
       toast.error('Email não reconhecido.');
       return;
     }
@@ -78,14 +80,17 @@ export default function PortalAuthPage() {
     setSubmitting(true);
 
     // Update last visit
-    await sb('client_portals').update({ last_visit_at: new Date().toISOString() }).eq('id', portal!.id);
+    await sb('client_portals').update({ last_visit_at: new Date().toISOString() }).eq('id', portal.id);
 
     // Create session
-    localStorage.setItem(`portal_session_${portal!.id}`, JSON.stringify({
-      portal_id: portal!.id,
-      client_id: client.id,
-      timestamp: Date.now(),
-    }));
+    localStorage.setItem(
+      `portal_session_${portal.id}`,
+      JSON.stringify({
+        portal_id: portal.id,
+        client_id: portal.client_id,
+        timestamp: Date.now(),
+      }),
+    );
 
     navigate(`/portal/${token}/view`, { replace: true });
   };
