@@ -102,6 +102,7 @@ export default function FinanceiroPage() {
             </div>
           </CardContent>
         </Card>
+        )}
       </div>
     </AppLayout>
   );
