@@ -685,12 +685,15 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl w-[95vw] max-h-[92vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12">
+          <div className="flex items-center gap-4">
+            <Avatar className="h-16 w-16 border-2 border-primary/20">
               <AvatarImage src={(member as any).photo_url || undefined} />
-              <AvatarFallback>{member.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarFallback className="text-lg">{member.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
-            <DialogTitle>{member.full_name}</DialogTitle>
+            <div>
+              <DialogTitle className="text-xl">{member.full_name}</DialogTitle>
+              {member.role_title && <p className="text-sm text-muted-foreground mt-0.5">{member.role_title}</p>}
+            </div>
           </div>
         </DialogHeader>
         <div className="space-y-4 mt-4">
