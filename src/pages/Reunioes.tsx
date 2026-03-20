@@ -299,7 +299,14 @@ function MeetingFormDialog({
           <MemberPicker selectedIds={selectedMembers} onChange={setSelectedMembers} profiles={profiles} />
           <div>
             <Label>Cliente associado</Label>
-            <Input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Opcional" />
+            <Select value={clientId} onValueChange={setClientId}>
+              <SelectTrigger><SelectValue placeholder="Selecionar cliente..." /></SelectTrigger>
+              <SelectContent>
+                {clients.map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Departamento</Label>
