@@ -379,7 +379,7 @@ export default function MarketingAnalisePage() {
           <PageHeader title="Análise de Marketing" />
           <div className="max-w-5xl mx-auto w-full px-4 py-8 space-y-6">
             <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
-            <MonthDetail month={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} />
+            <MonthDetail month={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} onChangeMonth={(m, y) => { setSelectedMonth(m); setYear(y); }} />
           </div>
         </div>
       </AppLayout>

@@ -317,7 +317,7 @@ export default function ComercialAnalisePage() {
         <div className="p-6 space-y-6">
           <BackNavigation parentRoute="/hub/comercial" parentLabel="Comercial" />
           <PageHeader title="Análise Comercial" subtitle="Análise mensal do desempenho comercial." />
-          <MonthDetail monthIdx={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} />
+          <MonthDetail monthIdx={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} onChangeMonth={(m, y) => { setSelectedMonth(m); setYear(y); }} />
         </div>
       </AppLayout>
     );

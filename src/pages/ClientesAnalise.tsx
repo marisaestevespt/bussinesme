@@ -358,7 +358,7 @@ export default function ClientesAnalisePage() {
         <div className="p-6 space-y-6">
           <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
           <PageHeader title="Análise de Clientes" subtitle="Análise mensal da carteira de clientes." />
-          <MonthDetail monthIdx={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} />
+          <MonthDetail monthIdx={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} onChangeMonth={(m, y) => { setSelectedMonth(m); setYear(y); }} />
         </div>
       </AppLayout>
     );
