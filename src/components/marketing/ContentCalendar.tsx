@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { STATUS_OPTIONS, type ContentItem, type MarketingChannel, type ContentChannelLink } from '@/lib/marketing-constants';
+import { STATUS_OPTIONS, FORMAT_OPTIONS, CONTENT_TYPE_OPTIONS, type ContentItem, type MarketingChannel, type ContentChannelLink } from '@/lib/marketing-constants';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -48,6 +48,34 @@ function ContentRow({ item, channels, links }: { item: ContentItem; channels: Ma
   );
 }
 
+function CalendarDayItem({ item, channels, links }: { item: ContentItem; channels: MarketingChannel[]; links: ContentChannelLink[] }) {
+  const status = STATUS_OPTIONS.find(s => s.value === item.status);
+  const itemChannels = getItemChannels(item.id, channels, links);
+  const formatLabel = FORMAT_OPTIONS.find(f => f.value === item.format)?.label;
+  const typeLabel = CONTENT_TYPE_OPTIONS.find(t => t.value === item.content_type)?.label;
+  const time = item.scheduled_at ? format(new Date(item.scheduled_at), 'HH:mm') : null;
+
+  return (
+    <Link to={`/hub/marketing/conteudos/${item.id}`}
+      className="block rounded border bg-muted/30 hover:bg-muted/60 transition-colors p-1.5 mb-1 last:mb-0">
+      {/* Title + time */}
+      <div className="flex items-center justify-between gap-1">
+        <p className="text-[10px] font-medium truncate leading-tight text-foreground">{item.title}</p>
+        {time && <span className="text-[9px] text-muted-foreground shrink-0 tabular-nums">{time}</span>}
+      </div>
+      {/* Meta tags */}
+      <div className="flex items-center gap-1 mt-1 flex-wrap">
+        {status && <span className={cn("text-[8px] px-1 py-px rounded-sm leading-none font-medium", status.color)}>{status.label}</span>}
+        {itemChannels.slice(0, 1).map(ch => (
+          <span key={ch.id} className="text-[8px] px-1 py-px rounded-sm leading-none bg-secondary text-secondary-foreground">{ch.name}</span>
+        ))}
+        {formatLabel && <span className="text-[8px] px-1 py-px rounded-sm leading-none bg-accent text-accent-foreground">{formatLabel}</span>}
+        {typeLabel && <span className="text-[8px] px-1 py-px rounded-sm leading-none bg-muted text-muted-foreground">{typeLabel}</span>}
+      </div>
+    </Link>
+  );
+}
+
 export function ContentCalendar({ items, channels, contentChannelLinks, calendarOnly }: Props) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -75,7 +103,7 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
       </div>
       <div className="grid grid-cols-7 gap-px">
         {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(d => (
-          <div key={d} className="text-[10px] text-center font-medium text-primary-foreground bg-primary py-1.5">{d}</div>
+          <div key={d} className="text-[11px] text-center font-medium text-primary-foreground bg-primary py-2">{d}</div>
         ))}
       </div>
       <div className="grid grid-cols-7 gap-px border rounded-lg overflow-hidden bg-border/50">
@@ -83,18 +111,12 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
           const dayItems = datedItems.filter(i => isSameDay(new Date(i.scheduled_at!), day));
           const isCurrentMonth = isSameMonth(day, currentMonth);
           return (
-            <div key={day.toISOString()} className={cn("min-h-[120px] p-1.5 bg-card", !isCurrentMonth && "opacity-40")}>
-              <p className={cn("text-[11px] font-medium mb-0.5", isSameDay(day, new Date()) && "text-primary font-bold")}>{format(day, 'd')}</p>
-              {dayItems.slice(0, 3).map(item => {
-                const status = STATUS_OPTIONS.find(s => s.value === item.status);
-                return (
-                  <Link key={item.id} to={`/hub/marketing/conteudos/${item.id}`}
-                    className={cn("block text-[9px] truncate px-1 py-0.5 rounded-sm mb-0.5 leading-tight", status?.color || 'bg-muted')}>
-                    {item.title}
-                  </Link>
-                );
-              })}
-              {dayItems.length > 3 && <p className="text-[9px] text-muted-foreground pl-1">+{dayItems.length - 3}</p>}
+            <div key={day.toISOString()} className={cn("min-h-[160px] p-1.5 bg-card", !isCurrentMonth && "opacity-40")}>
+              <p className={cn("text-xs font-medium mb-1", isSameDay(day, new Date()) && "text-primary font-bold")}>{format(day, 'd')}</p>
+              {dayItems.slice(0, 4).map(item => (
+                <CalendarDayItem key={item.id} item={item} channels={channels} links={contentChannelLinks} />
+              ))}
+              {dayItems.length > 4 && <p className="text-[9px] text-muted-foreground pl-1">+{dayItems.length - 4}</p>}
             </div>
           );
         })}
