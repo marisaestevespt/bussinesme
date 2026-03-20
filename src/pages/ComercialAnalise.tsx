@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { ChevronLeft, ChevronRight, Users, Phone, CalendarCheck, FileText, TrendingUp, Clock, UserMinus, DollarSign, UserPlus, RefreshCw, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { MonthNavHeader } from '@/components/MonthNavHeader';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCrmData } from '@/hooks/useCrmData';
