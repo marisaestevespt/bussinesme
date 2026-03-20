@@ -166,6 +166,7 @@ export default function MarketingProcessos() {
 
   function resetRoutineForm() {
     setNewRoutineName(''); setNewRoutineFreq('todos_os_dias'); setNewRoutineAssignee(''); setRoutineSteps('');
+    setNewRoutineMonthlyDay(''); setNewRoutineStartDate(''); setNewRoutineEndDate('');
   }
 
   function openEditRoutine(routine: any) {
