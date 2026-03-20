@@ -441,6 +441,7 @@ export default function SecretariaPage() {
             </Button>
             {activeTab === 'dia' && <MeuDiaTab todayTasks={todayTasks} todayMeetings={todayMeetings} timeEntries={timeEntries.data || []} getProjectName={getProjectName} qc={qc} />}
             {activeTab === 'semana' && <MinhaSemanaTab allTasks={tasks.data || []} allMeetings={meetings.data || []} timeEntries={timeEntries.data || []} getProjectName={getProjectName} qc={qc} />}
+            {activeTab === 'agenda' && <MinhaAgendaTab userId={user?.id} />}
             {activeTab === 'tarefas' && <MinhasTarefasTab tasks={tasks.data || []} getProjectName={getProjectName} qc={qc} userId={user?.id} />}
             {activeTab === 'projetos' && <MeusProjetosTab projects={projects.data || []} />}
             {activeTab === 'reunioes' && <MinhasReunioesTab meetings={meetings.data || []} profiles={allProfiles.data || []} />}
