@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { TasksByMemberKanban, TasksByPriority, OverdueTasks } from '@/components/hr/PerformanceTaskViews';
+import { GestaoSummaryCards } from '@/components/hr/GestaoSummaryCards';
 import { ByMemberTabShared, OverloadTabShared } from '@/components/hr/SharedProductivityViews';
 import { useCustomViews } from '@/hooks/useCustomViews';
 import { useNavigate } from 'react-router-dom';
