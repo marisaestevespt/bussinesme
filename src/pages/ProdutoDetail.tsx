@@ -40,6 +40,8 @@ export default function ProdutoDetailPage() {
   const [form, setForm] = useState<Partial<Product>>({});
   const [initialized, setInitialized] = useState(false);
   const [openSection, setOpenSection] = useState<string | null>(null);
+  const [showEventDialog, setShowEventDialog] = useState(false);
+  const [newEvent, setNewEvent] = useState({ title: '', start_date: '', end_date: '' });
 
   if (product && !initialized) {
     setForm(product);
