@@ -68,6 +68,9 @@ export default function ClientesPage() {
             <Button onClick={() => navigate('/hub/clientes/portais')} className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90 px-5 py-2.5 text-sm font-medium shadow-sm">
               <Globe className="h-4 w-4" /> Portal de Clientes
             </Button>
+            <Button onClick={() => navigate('/hub/clientes/feedback')} variant="outline" className="gap-1.5 px-5 py-2.5 text-sm font-medium shadow-sm">
+              <MessageSquare className="h-4 w-4" /> Feedbacks
+            </Button>
           </div>
           <Button size="sm" onClick={() => navigate('/hub/clientes/novo')}>
             <Plus className="h-4 w-4 mr-1" /> Novo Cliente
