@@ -28,7 +28,8 @@ const ICON_MAP: Record<string, any> = {
   Rocket, Calendar, Users, GitBranch, FolderKanban, CheckSquare,
   Key, MessageSquare, Building2, Megaphone, DollarSign, ShoppingCart,
   UserCheck, UsersRound, Headphones, Target, CalendarCheck, Crown,
-  Package, Heart, BookOpen,
+  Package, Heart, BookOpen, LayoutDashboard, Settings, Star,
+  Clock, Lightbulb, MessageSquareHeart,
 };
 
 interface NavItem {
