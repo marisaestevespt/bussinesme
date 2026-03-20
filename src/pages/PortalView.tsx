@@ -199,17 +199,31 @@ export default function PortalViewPage() {
 
       <div className="max-w-6xl mx-auto flex">
         {/* Sidebar nav */}
-        <nav className="w-56 shrink-0 border-r min-h-[calc(100vh-65px)] p-4 space-y-1 hidden md:block">
-          {navItems.map(item => (
-            <button
-              key={item.key}
-              onClick={() => setActiveSection(item.key)}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${activeSection === item.key ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted'}`}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </button>
-          ))}
+        <nav className="w-56 shrink-0 border-r min-h-[calc(100vh-65px)] p-4 hidden md:flex md:flex-col md:justify-between">
+          <div className="space-y-1">
+            {navItems.map(item => (
+              <button
+                key={item.key}
+                onClick={() => setActiveSection(item.key)}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${activeSection === item.key ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted'}`}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          {(settings as any)?.support_hours && (
+            <div className="border-t pt-4 mt-4">
+              <div className="flex items-center gap-2 px-3 text-muted-foreground">
+                <Clock className="h-4 w-4 shrink-0" />
+                <div>
+                  <p className="text-[10px] font-medium uppercase tracking-wide">Horário de atendimento</p>
+                  <p className="text-xs font-medium text-foreground">{(settings as any).support_hours}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </nav>
 
         {/* Main content */}
@@ -300,18 +314,50 @@ export default function PortalViewPage() {
                 </Card>
               )}
 
-              {/* Business hours */}
-              {(settings as any)?.support_hours && (
-                <Card>
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <Clock className="h-5 w-5 text-primary shrink-0" />
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground">Horário de atendimento</p>
-                      <p className="text-sm font-medium">{(settings as any).support_hours}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              {/* Next meeting & next payment */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {portal.show_meetings && (() => {
+                  const nextMeeting = meetings
+                    .filter((m: any) => (m.status === 'agendada' || m.status === 'confirmada') && m.date_time)
+                    .sort((a: any, b: any) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
+                  return (
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveSection('meetings')}>
+                      <CardContent className="p-4 flex items-center gap-3">
+                        <CalendarDays className="h-8 w-8 text-primary shrink-0" />
+                        <div>
+                          <p className="font-medium text-sm">Próxima Reunião</p>
+                          <p className="text-xs text-muted-foreground">
+                            {nextMeeting
+                              ? format(parseISO(nextMeeting.date_time), "d 'de' MMMM, HH:mm", { locale: pt })
+                              : 'Sem reuniões agendadas'}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })()}
+
+                {portal.show_payments && (() => {
+                  const nextPayment = payments
+                    .filter((p: any) => p.status === 'pendente' && p.payment_date)
+                    .sort((a: any, b: any) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime())[0];
+                  return (
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveSection('payments')}>
+                      <CardContent className="p-4 flex items-center gap-3">
+                        <CreditCard className="h-8 w-8 text-primary shrink-0" />
+                        <div>
+                          <p className="font-medium text-sm">Próximo Pagamento</p>
+                          <p className="text-xs text-muted-foreground">
+                            {nextPayment
+                              ? format(parseISO(nextPayment.payment_date), "d 'de' MMMM, yyyy", { locale: pt })
+                              : 'Sem pagamentos pendentes'}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })()}
+              </div>
             </>
           )}
 
@@ -459,18 +505,6 @@ export default function PortalViewPage() {
                 </Accordion>
               )}
 
-              {/* Business hours */}
-              {(settings as any)?.support_hours && (
-                <Card>
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <Clock className="h-5 w-5 text-primary shrink-0" />
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground">Horário de atendimento</p>
-                      <p className="text-sm font-medium">{(settings as any).support_hours}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
             </div>
           )}
 
