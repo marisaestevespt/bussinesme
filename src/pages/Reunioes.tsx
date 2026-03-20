@@ -291,12 +291,12 @@ function MeetingFormDialog({
     skipAutoFillRef.current = true;
     setClientId(actualId);
 
-    if (newClientId) {
+    if (actualId) {
       // Auto-set department to "clientes"
       setDepartment('clientes');
 
       // Find projects for this client
-      const cProjects = projects.filter(p => p.client_id === newClientId);
+      const cProjects = projects.filter(p => p.client_id === actualId);
       if (cProjects.length === 1) {
         setSelectedProjectIds([cProjects[0].id]);
       } else if (cProjects.length > 1) {
