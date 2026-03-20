@@ -293,6 +293,7 @@ export function TabEscala() {
   const { members, vacations, isLoading } = useEscalaData();
   const [viewMonth, setViewMonth] = useState(() => new Date());
   const [vacationMember, setVacationMember] = useState<TeamMember | null>(null);
+  const [absenceDialogOpen, setAbsenceDialogOpen] = useState(false);
 
   const year = viewMonth.getFullYear();
   const month = viewMonth.getMonth();
