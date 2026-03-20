@@ -242,6 +242,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       )}
 
       {/* NPS */}
+      {isAreaEnabled('clientes') && isKpiEnabled('clientes', 'nps_medio') && (
       <Card className="border-secondary bg-background">
         <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">NPS Médio Atual</CardTitle></CardHeader>
         <CardContent className="space-y-3">
@@ -256,6 +257,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Distribution by product */}
       {byProduct.length > 0 && (
