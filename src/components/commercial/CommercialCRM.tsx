@@ -128,6 +128,7 @@ export function CommercialCRM() {
         toContactToday={leadsToContact}
         pipelineValue={pipelineValue}
         winsThisMonth={winsThisMonth}
+        allLeads={allLeads}
         onOpenLead={openLead}
       />
 

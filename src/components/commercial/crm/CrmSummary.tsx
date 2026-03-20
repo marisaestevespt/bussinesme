@@ -1,19 +1,46 @@
+import { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Users, Phone, TrendingUp, Trophy, AlertTriangle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
-import { getFollowUpState, statusLabel } from '@/hooks/useCrmData';
+import { getFollowUpState, statusLabel, CRM_STATUSES } from '@/hooks/useCrmData';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+
+const STATUS_COLORS: Record<string, string> = {
+  lead: '#6366f1',
+  primeiro_contacto: '#8b5cf6',
+  sessao_agendada: '#a78bfa',
+  proposta_enviada: '#3b82f6',
+  follow_up_1: '#f59e0b',
+  follow_up_2: '#f97316',
+  follow_up_3: '#ef4444',
+  aguarda_retorno: '#64748b',
+  outra_altura: '#94a3b8',
+  ganho: '#22c55e',
+  perdido: '#dc2626',
+};
 
 interface CrmSummaryProps {
   activeCount: number;
   toContactToday: any[];
   pipelineValue: number;
   winsThisMonth: number;
+  allLeads: any[];
   onOpenLead: (lead: any) => void;
 }
 
-export function CrmSummary({ activeCount, toContactToday, pipelineValue, winsThisMonth, onOpenLead }: CrmSummaryProps) {
+export function CrmSummary({ activeCount, toContactToday, pipelineValue, winsThisMonth, allLeads, onOpenLead }: CrmSummaryProps) {
+  const chartData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const lead of allLeads) {
+      counts[lead.status] = (counts[lead.status] || 0) + 1;
+    }
+    return CRM_STATUSES
+      .map(s => ({ status: s.value, label: s.label, count: counts[s.value] || 0 }))
+      .filter(d => d.count > 0);
+  }, [allLeads]);
+
   return (
     <div className="space-y-4">
       {/* Summary cards */}
@@ -38,6 +65,39 @@ export function CrmSummary({ activeCount, toContactToday, pipelineValue, winsThi
           <div><p className="text-xs text-muted-foreground">Ganhos este mês</p><p className="text-xl font-bold">{winsThisMonth}</p></div>
         </CardContent></Card>
       </div>
+
+      {/* Leads by status chart */}
+      {chartData.length > 0 && (
+        <Card>
+          <CardContent className="p-4">
+            <h3 className="font-semibold text-sm mb-3">Leads por Status</h3>
+            <div className="h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: 11 }}
+                    angle={-30}
+                    textAnchor="end"
+                    height={60}
+                    interval={0}
+                  />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                  <Tooltip
+                    formatter={(value: number) => [value, 'Leads']}
+                    contentStyle={{ fontSize: 12 }}
+                  />
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                    {chartData.map((entry) => (
+                      <Cell key={entry.status} fill={STATUS_COLORS[entry.status] || '#6366f1'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Alert: To Contact Today */}
       <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
