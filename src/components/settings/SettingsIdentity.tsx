@@ -169,6 +169,7 @@ export function SettingsIdentity() {
   useEffect(() => {
     if (!settings) return;
     setBusinessName(settings.business_name);
+    setSupportHours((settings as any).support_hours || '');
     setLogoPreview(settings.logo_url);
     setBgPreview((settings as any).login_bg_url || null);
     setColors({
