@@ -28,9 +28,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import {
   CheckSquare, AlertTriangle, Users, FolderKanban, Play, Square, Clock,
   Plus, CalendarIcon, Link2, ImageIcon, FileText, ExternalLink, Trash2,
-  BarChart3, ListTodo, ChevronRight, ArrowLeft, Building2,
+  BarChart3, ListTodo, ChevronRight, ChevronLeft, ArrowLeft, Building2,
 } from 'lucide-react';
-import { format, parseISO, isToday, isBefore, startOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, differenceInSeconds, eachDayOfInterval, addDays } from 'date-fns';
+import { format, parseISO, isToday, isBefore, startOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, differenceInSeconds, eachDayOfInterval, addDays, addMonths, subMonths, getDaysInMonth, getDay, isSameDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
@@ -343,6 +343,7 @@ export default function SecretariaPage() {
           {[
             { value: 'dia', label: 'O Meu Dia', icon: CalendarIcon, iconColor: 'text-blue-600', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
             { value: 'semana', label: 'A Minha Semana', icon: CalendarIcon, iconColor: 'text-indigo-600', color: 'from-indigo-500/10 to-indigo-600/5 hover:from-indigo-500/20 hover:to-indigo-600/10' },
+            { value: 'agenda', label: 'A Minha Agenda', icon: CalendarIcon, iconColor: 'text-teal-600', color: 'from-teal-500/10 to-teal-600/5 hover:from-teal-500/20 hover:to-teal-600/10' },
             { value: 'tarefas', label: 'As Minhas Tarefas', icon: CheckSquare, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
             { value: 'projetos', label: 'Os Meus Projetos', icon: FolderKanban, iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10' },
             { value: 'reunioes', label: 'As Minhas Reuniões', icon: Users, iconColor: 'text-rose-600', color: 'from-rose-500/10 to-rose-600/5 hover:from-rose-500/20 hover:to-rose-600/10' },
@@ -440,6 +441,7 @@ export default function SecretariaPage() {
             </Button>
             {activeTab === 'dia' && <MeuDiaTab todayTasks={todayTasks} todayMeetings={todayMeetings} timeEntries={timeEntries.data || []} getProjectName={getProjectName} qc={qc} />}
             {activeTab === 'semana' && <MinhaSemanaTab allTasks={tasks.data || []} allMeetings={meetings.data || []} timeEntries={timeEntries.data || []} getProjectName={getProjectName} qc={qc} />}
+            {activeTab === 'agenda' && <MinhaAgendaTab userId={user?.id} />}
             {activeTab === 'tarefas' && <MinhasTarefasTab tasks={tasks.data || []} getProjectName={getProjectName} qc={qc} userId={user?.id} />}
             {activeTab === 'projetos' && <MeusProjetosTab projects={projects.data || []} />}
             {activeTab === 'reunioes' && <MinhasReunioesTab meetings={meetings.data || []} profiles={allProfiles.data || []} />}
@@ -1219,6 +1221,176 @@ function DashboardPersonalWidgets({ userId, teamMember }: { userId?: string; tea
             <Input placeholder="Nome" value={newLinkLabel} onChange={e => setNewLinkLabel(e.target.value)} className="flex-1 h-8 text-xs" />
             <Input placeholder="URL" value={newLinkUrl} onChange={e => setNewLinkUrl(e.target.value)} className="flex-1 h-8 text-xs" />
             <Button size="sm" className="h-8" onClick={addLink} disabled={!newLinkLabel.trim() || !newLinkUrl.trim()}><Plus className="h-4 w-4" /></Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// A MINHA AGENDA — Monthly calendar with events + tasks
+// ═══════════════════════════════════════════════════════════════
+
+function MinhaAgendaTab({ userId }: { userId?: string }) {
+  const navigate = useNavigate();
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const routineTasks = useMonthRoutineTasks();
+
+  const mStart = startOfMonth(currentMonth);
+  const mEnd = endOfMonth(currentMonth);
+  const mStartStr = format(mStart, 'yyyy-MM-dd');
+  const mEndStr = format(mEnd, 'yyyy-MM-dd');
+
+  // Fetch events where user is participant
+  const myEvents = useQuery({
+    queryKey: ['agenda-events', userId, mStartStr],
+    enabled: !!userId,
+    queryFn: async () => {
+      // Get event IDs where user is a participant
+      const { data: participations } = await supabase
+        .from('event_members')
+        .select('event_id')
+        .eq('profile_id', userId!);
+      
+      // Also get events created by this user
+      const { data: createdEvents } = await supabase
+        .from('events')
+        .select('*')
+        .eq('created_by', userId!)
+        .gte('start_date', mStartStr)
+        .lte('start_date', mEndStr + 'T23:59:59');
+
+      const participantIds = participations?.map(p => p.event_id) || [];
+      
+      let participantEvents: any[] = [];
+      if (participantIds.length > 0) {
+        const { data } = await supabase
+          .from('events')
+          .select('*')
+          .in('id', participantIds)
+          .gte('start_date', mStartStr)
+          .lte('start_date', mEndStr + 'T23:59:59');
+        participantEvents = data || [];
+      }
+
+      // Merge and deduplicate
+      const all = [...(createdEvents || []), ...participantEvents];
+      const unique = Array.from(new Map(all.map(e => [e.id, e])).values());
+      return unique;
+    },
+  });
+
+  // Fetch tasks with deadline in this month assigned to user
+  const myAgendaTasks = useQuery({
+    queryKey: ['agenda-tasks', userId, mStartStr],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('assigned_to', userId!)
+        .not('deadline', 'is', null)
+        .gte('deadline', mStartStr)
+        .lte('deadline', mEndStr + 'T23:59:59');
+      return data || [];
+    },
+  });
+
+  const goPrev = () => setCurrentMonth(prev => subMonths(prev, 1));
+  const goNext = () => setCurrentMonth(prev => addMonths(prev, 1));
+
+  // Build calendar grid
+  const daysInMonth = getDaysInMonth(currentMonth);
+  const firstDayOfWeek = (getDay(mStart) + 6) % 7; // Monday=0
+  const days = Array.from({ length: daysInMonth }, (_, i) => new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i + 1));
+
+  const getItemsForDay = (day: Date) => {
+    const dayStr = format(day, 'yyyy-MM-dd');
+    const events = (myEvents.data || []).filter(e => e.start_date?.startsWith(dayStr)).map(e => ({
+      id: e.id,
+      title: e.title,
+      type: 'event' as const,
+      time: e.start_date ? format(parseISO(e.start_date), 'HH:mm') : '',
+    }));
+    const tasks = (myAgendaTasks.data || []).filter(t => t.deadline?.startsWith(dayStr)).map(t => ({
+      id: t.id,
+      title: t.name,
+      type: 'task' as const,
+      time: '',
+    }));
+    return [...events, ...tasks];
+  };
+
+  return (
+    <div className="space-y-6">
+      <RoutineMonthCard tasks={routineTasks.data || []} />
+
+      {/* Month navigation */}
+      <div className="flex items-center justify-center gap-4">
+        <Button variant="outline" size="icon" onClick={goPrev}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <h2 className="text-xl font-bold min-w-[200px] text-center capitalize">
+          {format(currentMonth, 'MMMM yyyy', { locale: pt })}
+        </h2>
+        <Button variant="outline" size="icon" onClick={goNext}>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Calendar grid */}
+      <Card>
+        <CardContent className="p-4">
+          {/* Weekday headers */}
+          <div className="grid grid-cols-7 gap-1 mb-1">
+            {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(d => (
+              <div key={d} className="text-center text-xs font-medium text-muted-foreground py-1">{d}</div>
+            ))}
+          </div>
+          {/* Days */}
+          <div className="grid grid-cols-7 gap-1">
+            {/* Empty cells for offset */}
+            {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+              <div key={`empty-${i}`} className="min-h-[80px]" />
+            ))}
+            {days.map(day => {
+              const items = getItemsForDay(day);
+              const isCurrentDay = isToday(day);
+              return (
+                <div
+                  key={day.getDate()}
+                  className={cn(
+                    'min-h-[80px] rounded-lg border p-1.5 transition-colors',
+                    isCurrentDay && 'border-primary bg-primary/5',
+                  )}
+                >
+                  <p className={cn('text-xs font-medium mb-1', isCurrentDay && 'text-primary font-bold')}>
+                    {day.getDate()}
+                  </p>
+                  <div className="space-y-0.5">
+                    {items.slice(0, 3).map(item => (
+                      <div
+                        key={`${item.type}-${item.id}`}
+                        className={cn(
+                          'text-[10px] px-1 py-0.5 rounded truncate cursor-pointer transition-opacity hover:opacity-80',
+                          item.type === 'event' ? 'bg-primary/15 text-primary' : 'bg-secondary/30 text-secondary-foreground',
+                        )}
+                        onClick={() => {
+                          if (item.type === 'event') navigate(`/hub/agenda`);
+                          else navigate('/hub/tarefas');
+                        }}
+                      >
+                        {item.time ? `${item.time} ` : ''}{item.title}
+                      </div>
+                    ))}
+                    {items.length > 3 && (
+                      <p className="text-[10px] text-muted-foreground pl-1">+{items.length - 3} mais</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

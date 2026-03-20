@@ -27,7 +27,7 @@ const DEPARTMENTS = [
   { value: 'customer_success', label: 'Customer Success' },
   { value: 'operacoes', label: 'Operações' },
   { value: 'produto_servico', label: 'Produto/Serviço' },
-  { value: 'recursos_humanos', label: 'Recursos Humanos' },
+  { value: 'recursos_humanos', label: 'Pessoas' },
 ];
 
 const SOP_STATUSES = [

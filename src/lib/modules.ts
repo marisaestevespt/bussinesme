@@ -22,7 +22,7 @@ export const MODULES = {
   'operacao': { label: 'Operação', section: 'departamentos', icon: 'Headphones' },
   'produtos': { label: 'Produtos', section: 'departamentos', icon: 'Package' },
   'customer-success': { label: 'Customer Success', section: 'departamentos', icon: 'Heart' },
-  'recursos-humanos': { label: 'Recursos Humanos', section: 'departamentos', icon: 'UsersRound' },
+  'recursos-humanos': { label: 'Pessoas', section: 'departamentos', icon: 'UsersRound' },
 
   // Executive Room
   'planeamento': { label: 'Planeamento', section: 'executive', icon: 'Target' },

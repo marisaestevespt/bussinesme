@@ -23,7 +23,7 @@ const PAGE_META: Record<string, { title: string; icon: string }> = {
   '/hub/financeiro': { title: 'Contabilidade', icon: 'DollarSign' },
   '/hub/operacao': { title: 'Operação', icon: 'Headphones' },
   '/hub/produtos': { title: 'Produtos', icon: 'Package' },
-  '/hub/recursos-humanos': { title: 'Recursos Humanos', icon: 'UsersRound' },
+  '/hub/recursos-humanos': { title: 'Pessoas', icon: 'UsersRound' },
   '/executive': { title: 'Executive Room', icon: 'Crown' },
   '/executive/planeamento': { title: 'Planeamento', icon: 'Target' },
   '/executive/weekly-align': { title: 'Weekly Align', icon: 'CalendarCheck' },
