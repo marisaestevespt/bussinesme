@@ -262,13 +262,11 @@ export default function ProdutoDetailPage() {
   // Section button component
   const SectionButton = ({ sectionKey, label }: { sectionKey: string; label: string }) => (
     <Button
-      variant={openSection === sectionKey ? 'default' : 'outline'}
-      size="sm"
+      variant={openSection === sectionKey ? 'default' : 'secondary'}
       onClick={() => toggleSection(sectionKey)}
-      className="gap-1.5"
+      className="h-11 px-5 text-sm font-medium rounded-xl"
     >
       {label}
-      <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', openSection === sectionKey && 'rotate-180')} />
     </Button>
   );
 
