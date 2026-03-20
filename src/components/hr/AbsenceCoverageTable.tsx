@@ -214,10 +214,6 @@ export function AbsenceCoverageTable() {
         <h2 className="text-lg font-semibold text-foreground">Cobertura de Ausências</h2>
       </div>
 
-      <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
-        <Info className="h-3.5 w-3.5 shrink-0" />
-        <span>As ausências são geradas automaticamente a partir das férias registadas na ficha de cada membro. O CEO/Owner não necessita de cobertura.</span>
-      </div>
 
       {/* Quick filter */}
       <div className="flex gap-2">
