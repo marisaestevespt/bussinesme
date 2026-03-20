@@ -15,18 +15,21 @@ import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/hooks/useAuth';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useFavorites } from '@/hooks/useFavorites';
 import {
   Rocket, Calendar, Users, GitBranch, FolderKanban, CheckSquare,
   Key, MessageSquare, Building2, Megaphone, DollarSign, ShoppingCart,
   UserCheck, UsersRound, Headphones, Target, CalendarCheck, Crown,
-  LayoutDashboard, Settings, LogOut, Package, Heart, BookOpen,
+  LayoutDashboard, Settings, LogOut, Package, Heart, BookOpen, Star,
+  Clock, Lightbulb, MessageSquareHeart,
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, any> = {
   Rocket, Calendar, Users, GitBranch, FolderKanban, CheckSquare,
   Key, MessageSquare, Building2, Megaphone, DollarSign, ShoppingCart,
   UserCheck, UsersRound, Headphones, Target, CalendarCheck, Crown,
-  Package, Heart, BookOpen,
+  Package, Heart, BookOpen, LayoutDashboard, Settings, Star,
+  Clock, Lightbulb, MessageSquareHeart,
 };
 
 interface NavItem {
@@ -71,9 +74,7 @@ const executiveItems: NavItem[] = [
 ];
 
 function getIcon(name: string) {
-  if (name === 'LayoutDashboard') return LayoutDashboard;
-  if (name === 'Settings') return Settings;
-  return ICON_MAP[name] || Rocket;
+  return ICON_MAP[name] || Star;
 }
 
 function NavSection({
@@ -127,6 +128,7 @@ export function AppSidebar() {
   const { isOwner, signOut } = useAuth();
   const { settings } = useBusinessSettings();
   const { canAccess } = usePermissions();
+  const { favorites } = useFavorites();
 
   return (
     <Sidebar collapsible="icon">
@@ -144,6 +146,35 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
+        {favorites.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/70 font-medium">
+              Favoritos
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {favorites.map((fav) => {
+                  const Icon = getIcon(fav.page_icon);
+                  return (
+                    <SidebarMenuItem key={fav.id}>
+                      <SidebarMenuButton asChild>
+                        <NavLink
+                          to={fav.page_path}
+                          end
+                          className="hq-transition hover:bg-accent/50"
+                          activeClassName="bg-accent text-accent-foreground font-medium"
+                        >
+                          <Icon className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                          {!collapsed && <span className="text-sm">{fav.page_title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
         <NavSection label="Pessoal" items={pessoalItems} collapsed={collapsed} canAccess={() => true} />
         <NavSection label="Hall" items={hallItems} collapsed={collapsed} canAccess={canAccess} />
         <NavSection label="Transversais" items={transversaisItems} collapsed={collapsed} canAccess={canAccess} />
