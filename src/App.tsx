@@ -59,6 +59,7 @@ import ProdutosPage from "./pages/Produtos";
 import ProdutoDetailPage from "./pages/ProdutoDetail";
 import ClientesPage from "./pages/Clientes";
 import ClienteDetailPage from "./pages/ClienteDetail";
+import ClientesAnalisePage from "./pages/ClientesAnalise";
 import VendaDetailPage from "./pages/VendaDetail";
 import FinanceiroPage from "./pages/Financeiro";
 import FinanceiroSubPage from "./pages/FinanceiroSubPage";
