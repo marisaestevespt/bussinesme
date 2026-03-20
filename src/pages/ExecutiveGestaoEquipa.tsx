@@ -1697,13 +1697,6 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
         </TabsContent>
       </Tabs>
 
-      {/* Tempo por Membro */}
-      <Card>
-        <CardContent className="pt-5 space-y-4">
-          <h3 className="text-sm font-semibold">Tempo por Membro</h3>
-          <ByMemberTabShared />
-        </CardContent>
-      </Card>
 
       {/* Tarefas & Sobrecarga */}
       <Card>
