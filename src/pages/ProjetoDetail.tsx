@@ -551,7 +551,7 @@ export default function ProjetoDetailPage() {
     return (
       <AppLayout>
         <div className="space-y-6 max-w-3xl">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/hub/projetos')} className="gap-1"><ArrowLeft className="h-4 w-4" /> Projetos</Button>
+          <BackNavigation />
 
           {/* Cover image */}
           {local.cover_url ? (
