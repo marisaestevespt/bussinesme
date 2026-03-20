@@ -127,8 +127,14 @@ export function useParentNavigation(): ParentNavInfo | null {
 
   // Parent is everything except the last segment
   const parentParts = parts.slice(0, -1);
-  const parentRoute = parentParts.join('/') || '/';
+  let parentRoute = parentParts.join('/') || '/';
   const parentSegment = parentParts[parentParts.length - 1];
+
+  // /hub doesn't exist as a route — redirect to /hub-equipa
+  if (parentRoute === '/hub') {
+    parentRoute = '/hub-equipa';
+  }
+
   const parentLabel = getLabel(parentSegment);
 
   return { parentRoute, parentLabel };
