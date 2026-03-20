@@ -382,7 +382,7 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{isEdit ? 'Editar Membro' : 'Novo Membro'}</DialogTitle></DialogHeader>
         <div className="space-y-4">
-          {/* Photo upload */}
+          {/* Foto + Nome */}
           <div className="flex items-center gap-4">
             <div className="relative group">
               <Avatar className="h-16 w-16">
@@ -415,6 +415,17 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
               <Input placeholder="Nome completo *" value={f.full_name} onChange={e => set('full_name', e.target.value)} />
             </div>
           </div>
+
+          {/* Status */}
+          <div>
+            <label className="text-xs text-muted-foreground">Status</label>
+            <Select value={f.status} onValueChange={v => set('status', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{MEMBER_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+
+          {/* Função + Departamento + Tipo */}
           <div className="space-y-1.5">
             <span className="text-xs text-muted-foreground font-medium">Função</span>
             <div className="flex gap-2 items-center">
@@ -437,25 +448,6 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
             )}
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <Input placeholder="Email" value={f.email || ''} onChange={e => set('email', e.target.value)} />
-            <Input placeholder="Telefone" value={f.whatsapp || ''} onChange={e => set('whatsapp', e.target.value)} />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <ScheduleSelector value={f.work_schedule || ''} onChange={v => set('work_schedule', v)} />
-            <Input placeholder="Identificação (BI/NIF)" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <div>
-              <label className="text-xs text-muted-foreground">Tipo</label>
-              <Select value={f.member_type} onValueChange={v => set('member_type', v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="colaborador_fixo">Equipa Interna</SelectItem>
-                  <SelectItem value="prestador_servicos">Freelancer</SelectItem>
-                  <SelectItem value="socio">Sócio</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
             <div>
               <label className="text-xs text-muted-foreground">Departamento</label>
               <Select value={f.department || '_none'} onValueChange={v => set('department', v === '_none' ? '' : v)}>
@@ -467,14 +459,87 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
               </Select>
             </div>
             <div>
-              <label className="text-xs text-muted-foreground">Status</label>
-              <Select value={f.status} onValueChange={v => set('status', v)}>
+              <label className="text-xs text-muted-foreground">Tipo</label>
+              <Select value={f.member_type} onValueChange={v => set('member_type', v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{MEMBER_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                <SelectContent>
+                  <SelectItem value="colaborador_fixo">Equipa Interna</SelectItem>
+                  <SelectItem value="prestador_servicos">Freelancer</SelectItem>
+                  <SelectItem value="socio">Sócio</SelectItem>
+                </SelectContent>
               </Select>
             </div>
           </div>
 
+          {/* Email + Telefone + NIF */}
+          <div className="grid grid-cols-3 gap-2">
+            <Input placeholder="Email" value={f.email || ''} onChange={e => set('email', e.target.value)} />
+            <Input placeholder="Telefone" value={f.whatsapp || ''} onChange={e => set('whatsapp', e.target.value)} />
+            <Input placeholder="NIF / Identificação" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
+          </div>
+
+          {/* Responsabilidades */}
+          <Textarea placeholder="Responsabilidades" value={f.responsibilities || ''} onChange={e => set('responsibilities', e.target.value)} rows={2} />
+
+          <Separator />
+
+          {/* Horário de trabalho + Feriados */}
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Horário</h3>
+          <ScheduleSelector value={f.work_schedule || ''} onChange={v => set('work_schedule', v)} />
+          <div className="flex items-center justify-between">
+            <label className="text-sm">Trabalha em feriados?</label>
+            <Switch checked={!!f.works_holidays} onCheckedChange={v => set('works_holidays', v)} />
+          </div>
+
+          <Separator />
+
+          {/* Férias */}
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Férias</h3>
+          <div className="space-y-1.5">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] text-muted-foreground">Início</label>
+                <Input type="date" id="vacation-start-input" />
+              </div>
+              <div>
+                <label className="text-[10px] text-muted-foreground">Fim</label>
+                <Input type="date" id="vacation-end-input" />
+              </div>
+            </div>
+            <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => {
+              const startInput = document.getElementById('vacation-start-input') as HTMLInputElement;
+              const endInput = document.getElementById('vacation-end-input') as HTMLInputElement;
+              if (!startInput?.value || !endInput?.value) { toast.error('Selecione início e fim'); return; }
+              if (endInput.value < startInput.value) { toast.error('Data fim deve ser após início'); return; }
+              const entry = `${startInput.value}|${endInput.value}`;
+              const current: string[] = Array.isArray(f.custom_holidays) ? f.custom_holidays : [];
+              if (!current.includes(entry)) {
+                set('custom_holidays', [...current, entry]);
+              }
+              startInput.value = '';
+              endInput.value = '';
+            }}>
+              <Plus className="h-3 w-3 mr-1" /> Adicionar período
+            </Button>
+            {Array.isArray(f.custom_holidays) && f.custom_holidays.length > 0 && (
+              <div className="space-y-1 mt-1">
+                {f.custom_holidays.map((d: string, idx: number) => {
+                  const parts = d.split('|');
+                  const label = parts.length === 2
+                    ? `${(() => { try { return format(parseISO(parts[0]), 'dd/MM/yyyy'); } catch { return parts[0]; } })()} → ${(() => { try { return format(parseISO(parts[1]), 'dd/MM/yyyy'); } catch { return parts[1]; } })()}`
+                    : (() => { try { return format(parseISO(d), 'dd/MM/yyyy'); } catch { return d; } })();
+                  return (
+                    <div key={idx} className="flex items-center justify-between bg-muted/50 rounded-md px-2 py-1.5">
+                      <span className="text-xs">{label}</span>
+                      <button type="button" onClick={() => set('custom_holidays', f.custom_holidays.filter((_: string, i: number) => i !== idx))} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Contrato (só para novos membros) */}
           {!isEdit && (
             <>
               <Separator />
@@ -529,60 +594,9 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
             </>
           )}
 
-          <Separator />
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Feriados & Férias</h3>
-          <div className="flex items-center justify-between">
-            <label className="text-sm">Trabalha em feriados?</label>
-            <Switch checked={!!f.works_holidays} onCheckedChange={v => set('works_holidays', v)} />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">Dias off e férias</label>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-[10px] text-muted-foreground">Início</label>
-                <Input type="date" id="vacation-start-input" />
-              </div>
-              <div>
-                <label className="text-[10px] text-muted-foreground">Fim</label>
-                <Input type="date" id="vacation-end-input" />
-              </div>
-            </div>
-            <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => {
-              const startInput = document.getElementById('vacation-start-input') as HTMLInputElement;
-              const endInput = document.getElementById('vacation-end-input') as HTMLInputElement;
-              if (!startInput?.value || !endInput?.value) { toast.error('Selecione início e fim'); return; }
-              if (endInput.value < startInput.value) { toast.error('Data fim deve ser após início'); return; }
-              const entry = `${startInput.value}|${endInput.value}`;
-              const current: string[] = Array.isArray(f.custom_holidays) ? f.custom_holidays : [];
-              if (!current.includes(entry)) {
-                set('custom_holidays', [...current, entry]);
-              }
-              startInput.value = '';
-              endInput.value = '';
-            }}>
-              <Plus className="h-3 w-3 mr-1" /> Adicionar período
-            </Button>
-            {Array.isArray(f.custom_holidays) && f.custom_holidays.length > 0 && (
-              <div className="space-y-1 mt-1">
-                {f.custom_holidays.map((d: string, idx: number) => {
-                  const parts = d.split('|');
-                  const label = parts.length === 2
-                    ? `${(() => { try { return format(parseISO(parts[0]), 'dd/MM/yyyy'); } catch { return parts[0]; } })()} → ${(() => { try { return format(parseISO(parts[1]), 'dd/MM/yyyy'); } catch { return parts[1]; } })()}`
-                    : (() => { try { return format(parseISO(d), 'dd/MM/yyyy'); } catch { return d; } })();
-                  return (
-                    <div key={idx} className="flex items-center justify-between bg-muted/50 rounded-md px-2 py-1.5">
-                      <span className="text-xs">{label}</span>
-                      <button type="button" onClick={() => set('custom_holidays', f.custom_holidays.filter((_: string, i: number) => i !== idx))} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          {/* Apresentação (oculto, mantido para Começa Aqui) */}
+          <input type="hidden" value={f.presentation || ''} />
 
-          <Separator />
-          <Textarea placeholder="Apresentação" value={f.presentation || ''} onChange={e => set('presentation', e.target.value)} rows={2} />
-          <Textarea placeholder="Responsabilidades" value={f.responsibilities || ''} onChange={e => set('responsibilities', e.target.value)} rows={2} />
           <Button className="w-full" onClick={() => { onSave({ member: { ...initial, ...f }, contract: isEdit ? null : contract }); onClose(false); }} disabled={!f.full_name.trim()}>Guardar</Button>
         </div>
       </DialogContent>
