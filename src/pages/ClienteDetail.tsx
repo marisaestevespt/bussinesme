@@ -33,6 +33,7 @@ import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { BackNavigation } from '@/components/BackNavigation';
 import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 import { ClientContactsSection } from '@/components/client/ClientContactsSection';
+import { ClientFeedbackSection } from '@/components/client/ClientFeedbackSection';
 
 // ─── Meetings query for filtered view ───────────────────────────
 function useFilteredMeetings(clientId: string | undefined) {
