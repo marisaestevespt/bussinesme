@@ -360,7 +360,61 @@ export default function SopDetailPage() {
           </div>
         </div>
 
-        {/* 1. Objetivo */}
+        {/* Linked entity */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <Label className="text-xs text-muted-foreground">Tipo de ligação</Label>
+            <Select value={linkedEntityType} onValueChange={v => { setLinkedEntityType(v); setLinkedEntityId(''); setApplyToAllActiveClients(false); }}>
+              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="geral">Geral</SelectItem>
+                <SelectItem value="produto">Produto</SelectItem>
+                <SelectItem value="cliente">Cliente</SelectItem>
+                <SelectItem value="projeto">Projeto</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {linkedEntityType === 'produto' && (
+            <>
+              <div>
+                <Label className="text-xs text-muted-foreground">Produto</Label>
+                <Select value={linkedEntityId} onValueChange={setLinkedEntityId}>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                  <SelectContent>
+                    {productsList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end gap-2 pb-1">
+                <Switch checked={applyToAllActiveClients} onCheckedChange={setApplyToAllActiveClients} id="apply-all-clients" />
+                <Label htmlFor="apply-all-clients" className="text-xs cursor-pointer">Aplicar a todos os clientes ativos</Label>
+              </div>
+            </>
+          )}
+          {linkedEntityType === 'cliente' && (
+            <div>
+              <Label className="text-xs text-muted-foreground">Cliente</Label>
+              <Select value={linkedEntityId} onValueChange={setLinkedEntityId}>
+                <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                <SelectContent>
+                  {clientsList.map(c => <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {linkedEntityType === 'projeto' && (
+            <div>
+              <Label className="text-xs text-muted-foreground">Projeto</Label>
+              <Select value={linkedEntityId} onValueChange={setLinkedEntityId}>
+                <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                <SelectContent>
+                  {projectsList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+
         <section>
           <h3 className="text-lg font-semibold mb-2">1. Objetivo</h3>
           <Textarea value={objetivo} onChange={e => setObjetivo(e.target.value)} placeholder="Descrever o objetivo deste SOP..." rows={3} />
