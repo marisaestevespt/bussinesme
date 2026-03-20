@@ -519,12 +519,3 @@ export default function ClientesAnalisePage() {
     </AppLayout>
   );
 }
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </div>
-    </AppLayout>
-  );
-}
