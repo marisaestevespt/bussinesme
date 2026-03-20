@@ -11,12 +11,18 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { STATUS_OPTIONS, FORMAT_OPTIONS, CONTENT_TYPE_OPTIONS, type ContentItem, type MarketingChannel, type ContentChannelLink } from '@/lib/marketing-constants';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
+export interface ProfileInfo { id: string; full_name: string | null; avatar_url: string | null; }
+export interface AttachmentInfo { id: string; content_id: string; file_url: string; file_name: string; file_type: string; }
 
 interface Props {
   items: ContentItem[];
   channels: MarketingChannel[];
   contentChannelLinks: ContentChannelLink[];
   calendarOnly?: boolean;
+  profiles?: ProfileInfo[];
+  attachments?: AttachmentInfo[];
 }
 
 function getItemChannels(itemId: string, channels: MarketingChannel[], links: ContentChannelLink[]) {
@@ -48,33 +54,62 @@ function ContentRow({ item, channels, links }: { item: ContentItem; channels: Ma
   );
 }
 
-function CalendarDayItem({ item, channels, links }: { item: ContentItem; channels: MarketingChannel[]; links: ContentChannelLink[] }) {
+function CalendarDayItem({ item, channels, links, profiles, attachments }: { item: ContentItem; channels: MarketingChannel[]; links: ContentChannelLink[]; profiles?: ProfileInfo[]; attachments?: AttachmentInfo[] }) {
   const status = STATUS_OPTIONS.find(s => s.value === item.status);
   const itemChannels = getItemChannels(item.id, channels, links);
   const formatLabel = FORMAT_OPTIONS.find(f => f.value === item.format)?.label;
   const typeLabel = CONTENT_TYPE_OPTIONS.find(t => t.value === item.content_type)?.label;
   const time = item.scheduled_at ? format(new Date(item.scheduled_at), 'HH:mm') : null;
+  const assignee = profiles?.find(p => p.id === item.assigned_to);
+  const images = (attachments || []).filter(a => a.content_id === item.id && a.file_type.startsWith('image'));
+  // Use cover_url as primary image, then attachments
+  const displayImages = [
+    ...(item.cover_url ? [item.cover_url] : []),
+    ...images.map(i => i.file_url),
+  ].slice(0, 3);
 
   return (
     <Link to={`/hub/marketing/conteudos/${item.id}`}
-      className="block rounded border bg-muted/30 hover:bg-muted/60 transition-colors p-1.5 h-full flex flex-col gap-px">
+      className="block rounded border bg-muted/30 hover:bg-muted/60 transition-colors p-1.5 h-full flex flex-col gap-px overflow-hidden">
+      {/* Row 1: Title + time */}
       <div className="flex items-center justify-between gap-1">
         <p className="text-xs font-medium truncate leading-tight text-foreground">{item.title}</p>
         {time && <span className="text-[11px] text-muted-foreground shrink-0 tabular-nums">{time}</span>}
       </div>
+      {/* Row 2: Status full width */}
       {status && <span className={cn("text-[10px] px-1.5 py-0.5 rounded-sm leading-none font-medium text-center w-full block", status.color)}>{status.label}</span>}
+      {/* Row 3: Canal + Formato */}
       <div className="flex items-center gap-1">
         {itemChannels.slice(0, 1).map(ch => (
           <span key={ch.id} className="text-[10px] px-1 py-0.5 rounded-sm leading-none bg-secondary text-secondary-foreground">{ch.name}</span>
         ))}
         {formatLabel && <span className="text-[10px] px-1 py-0.5 rounded-sm leading-none bg-accent text-accent-foreground">{formatLabel}</span>}
       </div>
+      {/* Row 4: Tipo de conteúdo */}
       {typeLabel && <span className="text-[10px] px-1.5 py-0.5 rounded-sm leading-none bg-muted text-muted-foreground text-center w-full block">{typeLabel}</span>}
+      {/* Row 5: Assignee */}
+      {assignee && (
+        <div className="flex items-center gap-1 mt-px">
+          <Avatar className="h-4 w-4">
+            <AvatarImage src={assignee.avatar_url || undefined} />
+            <AvatarFallback className="text-[7px]">{assignee.full_name?.charAt(0) || '?'}</AvatarFallback>
+          </Avatar>
+          <span className="text-[10px] text-muted-foreground truncate">{assignee.full_name}</span>
+        </div>
+      )}
+      {/* Row 6: Images */}
+      {displayImages.length > 0 && (
+        <div className="flex gap-0.5 mt-px overflow-hidden">
+          {displayImages.map((url, i) => (
+            <img key={i} src={url} alt="" className="h-6 w-6 rounded-sm object-cover shrink-0" />
+          ))}
+        </div>
+      )}
     </Link>
   );
 }
 
-export function ContentCalendar({ items, channels, contentChannelLinks, calendarOnly }: Props) {
+export function ContentCalendar({ items, channels, contentChannelLinks, calendarOnly, profiles, attachments }: Props) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const monthStart = startOfMonth(currentMonth);
@@ -114,7 +149,7 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
               <div className="flex flex-col gap-1 flex-1">
                 {dayItems.slice(0, 4).map(item => (
                   <div key={item.id} className="flex-1 min-h-0">
-                    <CalendarDayItem key={item.id} item={item} channels={channels} links={contentChannelLinks} />
+                    <CalendarDayItem key={item.id} item={item} channels={channels} links={contentChannelLinks} profiles={profiles} attachments={attachments} />
                   </div>
                 ))}
               </div>
