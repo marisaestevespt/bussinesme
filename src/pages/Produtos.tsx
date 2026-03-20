@@ -103,15 +103,8 @@ export default function ProdutosPage() {
                     <span className="text-3xl font-bold text-muted-foreground/20">{p.name?.charAt(0)}</span>
                   )}
                 </div>
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-base leading-snug">{p.name}</h3>
-                    {getStatusBadge(p.status)}
-                  </div>
-                  <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                    {p.ticket && <span>Ticket: {p.ticket}</span>}
-                    {p.escada && <Badge variant="outline" className="text-xs">{getEscadaLabel(p.escada)}</Badge>}
-                  </div>
+                <CardContent className="p-4 space-y-2.5">
+                  <h3 className="font-semibold text-base leading-snug">{p.name}</h3>
                   {p.sales_page_url && (
                     <a
                       href={p.sales_page_url}
@@ -120,9 +113,19 @@ export default function ProdutosPage() {
                       className="text-xs text-primary flex items-center gap-1 hover:underline"
                       onClick={e => e.stopPropagation()}
                     >
-                      <ExternalLink className="h-3 w-3" /> Página de Vendas
+                      <ExternalLink className="h-3 w-3" /> Landing Page
                     </a>
                   )}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {p.ticket != null && (
+                      <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">
+                        {Number(p.ticket).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
+                      </Badge>
+                    )}
+                    {p.escada && (
+                      <Badge variant="outline" className="text-xs">{getEscadaLabel(p.escada)}</Badge>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))}
