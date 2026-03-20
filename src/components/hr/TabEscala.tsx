@@ -71,6 +71,7 @@ type TeamMember = {
   works_holidays: boolean;
   custom_holidays: any;
   status: string;
+  profile_id: string | null;
 };
 
 type Vacation = {
