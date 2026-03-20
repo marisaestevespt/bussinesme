@@ -342,9 +342,9 @@ export default function PortalViewPage() {
                     .filter((p: any) => p.status === 'pendente' && p.payment_date)
                     .sort((a: any, b: any) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime())[0];
                   return (
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveSection('payments')}>
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-accent" onClick={() => setActiveSection('payments')}>
                       <CardContent className="p-4 flex items-center gap-3">
-                        <CreditCard className="h-8 w-8 text-primary shrink-0" />
+                        <CreditCard className="h-8 w-8 text-accent shrink-0" />
                         <div>
                           <p className="font-medium text-sm">Próximo Pagamento</p>
                           <p className="text-xs text-muted-foreground">
