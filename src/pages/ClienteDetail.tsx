@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { AppLayout } from '@/components/AppLayout';
@@ -85,6 +85,47 @@ function EndOfCycleBadge({ date }: { date: string | null }) {
   const days = differenceInDays(d, new Date());
   if (days < 0) return <Badge variant="outline" className="bg-red-100 text-red-800 ml-2">Expirado</Badge>;
   if (days <= 30) return <Badge variant="outline" className="bg-amber-100 text-amber-800 ml-2">Expira em {days}d</Badge>;
+  return null;
+}
+
+// ─── Auto-copy onboarding/offboarding from product template ─────
+function AutoCopyOnboardingFromProduct({ clientId, isNew, currentProduct, productList, onboardingData, offboardingData, addOnboarding, addOffboarding }: {
+  clientId: string | undefined; isNew: boolean; currentProduct: string | null; productList: any[];
+  onboardingData: any[]; offboardingData: any[];
+  addOnboarding: { mutateAsync: (v: any) => Promise<any> };
+  addOffboarding: { mutateAsync: (v: any) => Promise<any> };
+}) {
+  const copiedRef = useRef<{ onboarding: boolean; offboarding: boolean }>({ onboarding: false, offboarding: false });
+
+  useEffect(() => {
+    if (isNew || !clientId || !currentProduct) return;
+    const prod = productList.find(p => p.name === currentProduct);
+    if (!prod) return;
+
+    const copyOnboarding = async () => {
+      if (copiedRef.current.onboarding || onboardingData.length > 0) return;
+      copiedRef.current.onboarding = true;
+      const { data: template } = await supabase.from('product_onboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
+      if (!template || template.length === 0) return;
+      for (const t of template as any[]) {
+        await addOnboarding.mutateAsync({ client_id: clientId, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
+      }
+    };
+
+    const copyOffboarding = async () => {
+      if (copiedRef.current.offboarding || offboardingData.length > 0) return;
+      copiedRef.current.offboarding = true;
+      const { data: template } = await supabase.from('product_offboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
+      if (!template || template.length === 0) return;
+      for (const t of template as any[]) {
+        await addOffboarding.mutateAsync({ client_id: clientId, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
+      }
+    };
+
+    copyOnboarding();
+    copyOffboarding();
+  }, [isNew, clientId, currentProduct, onboardingData.length, offboardingData.length]);
+
   return null;
 }
 
@@ -589,32 +630,26 @@ export default function ClienteDetailPage() {
 
           {/* ─── Jornada ───────────────────────────────── */}
           <TabsContent value="jornada" className="space-y-6 mt-4">
+            {/* Auto-copy from product template */}
+            <AutoCopyOnboardingFromProduct
+              clientId={id}
+              isNew={isNew}
+              currentProduct={form.current_product}
+              productList={productList}
+              onboardingData={onboarding.data || []}
+              offboardingData={offboarding.data || []}
+              addOnboarding={addOnboarding}
+              addOffboarding={addOffboarding}
+            />
             {/* Onboarding checklist */}
             <Card>
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm">Checklist de Onboarding</CardTitle>
-                <div className="flex gap-2">
-                  {!isNew && form.current_product && (onboarding.data || []).length === 0 && (
-                    <Button size="sm" variant="outline" onClick={async () => {
-                      // Find product by name and copy its onboarding template
-                      const prod = productList.find(p => p.name === form.current_product);
-                      if (!prod) { toast.error('Produto não encontrado'); return; }
-                      const { data: template } = await supabase.from('product_onboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
-                      if (!template || template.length === 0) { toast.error('Sem template de onboarding neste produto'); return; }
-                      for (const t of template as any[]) {
-                        await addOnboarding.mutateAsync({ client_id: id!, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
-                      }
-                      toast.success('Checklist copiada do produto');
-                    }}>
-                      <Copy className="h-3 w-3 mr-1" />Copiar do Produto
-                    </Button>
-                  )}
-                  {!isNew && (
-                    <Button size="sm" variant="outline" onClick={() => addOnboarding.mutateAsync({ client_id: id!, activity: '' })}>
-                      <Plus className="h-3 w-3 mr-1" />Nova Entrada
-                    </Button>
-                  )}
-                </div>
+                {!isNew && (
+                  <Button size="sm" variant="outline" onClick={() => addOnboarding.mutateAsync({ client_id: id!, activity: '' })}>
+                    <Plus className="h-3 w-3 mr-1" />Nova Entrada
+                  </Button>
+                )}
               </CardHeader>
               <CardContent className="p-0">
                 <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[32px_1fr_1fr_1fr_1fr_1fr_32px] gap-2">
@@ -640,27 +675,11 @@ export default function ClienteDetailPage() {
             <Card>
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm">Checklist de Offboarding</CardTitle>
-                <div className="flex gap-2">
-                  {!isNew && form.current_product && (offboarding.data || []).length === 0 && (
-                    <Button size="sm" variant="outline" onClick={async () => {
-                      const prod = productList.find(p => p.name === form.current_product);
-                      if (!prod) { toast.error('Produto não encontrado'); return; }
-                      const { data: template } = await supabase.from('product_offboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
-                      if (!template || template.length === 0) { toast.error('Sem template de offboarding neste produto'); return; }
-                      for (const t of template as any[]) {
-                        await addOffboarding.mutateAsync({ client_id: id!, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
-                      }
-                      toast.success('Checklist de offboarding copiada do produto');
-                    }}>
-                      <Copy className="h-3 w-3 mr-1" />Copiar do Produto
-                    </Button>
-                  )}
-                  {!isNew && (
-                    <Button size="sm" variant="outline" onClick={() => addOffboarding.mutateAsync({ client_id: id!, activity: '' })}>
-                      <Plus className="h-3 w-3 mr-1" />Nova Entrada
-                    </Button>
-                  )}
-                </div>
+                {!isNew && (
+                  <Button size="sm" variant="outline" onClick={() => addOffboarding.mutateAsync({ client_id: id!, activity: '' })}>
+                    <Plus className="h-3 w-3 mr-1" />Nova Entrada
+                  </Button>
+                )}
               </CardHeader>
               <CardContent className="p-0">
                 <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[32px_1fr_1fr_1fr_1fr_1fr_32px] gap-2">
