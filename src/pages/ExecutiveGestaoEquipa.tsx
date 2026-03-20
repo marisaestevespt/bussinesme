@@ -1530,7 +1530,7 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
   const [dateTo, setDateTo] = useState('');
   const [weeklyDialog, setWeeklyDialog] = useState<any>(null);
   const [monthlyDialog, setMonthlyDialog] = useState<any>(null);
-  const [perfTab, setPerfTab] = useState('registos');
+  const [perfTab, setPerfTab] = useState('tarefas-membro');
 
   const weeklyData = useMemo(() => {
     let d = team.perfWeekly.data || [];
