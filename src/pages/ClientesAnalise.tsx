@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { YearSelector } from '@/components/YearSelector';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
@@ -370,11 +371,7 @@ export default function ClientesAnalisePage() {
         <BackNavigation parentRoute="/hub/clientes" parentLabel="Clientes" />
         <PageHeader title="Análise de Clientes" subtitle="Análise mensal da carteira de clientes." />
 
-        <div className="flex items-center justify-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => setYear(y => y - 1)}><ChevronLeft className="h-4 w-4" /></Button>
-          <span className="text-lg font-semibold">{year}</span>
-          <Button variant="outline" size="icon" onClick={() => setYear(y => y + 1)}><ChevronRight className="h-4 w-4" /></Button>
-        </div>
+        <YearSelector year={year} onChange={setYear} />
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {monthSummaries.map((m, idx) => {

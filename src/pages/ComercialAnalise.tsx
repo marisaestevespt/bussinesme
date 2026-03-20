@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { YearSelector } from '@/components/YearSelector';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { BackNavigation } from '@/components/BackNavigation';
@@ -330,11 +331,7 @@ export default function ComercialAnalisePage() {
         <PageHeader title="Análise Comercial" subtitle="Análise mensal do desempenho comercial." />
 
         {/* Year selector */}
-        <div className="flex items-center justify-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => setYear(y => y - 1)}><ChevronLeft className="h-4 w-4" /></Button>
-          <span className="text-lg font-semibold">{year}</span>
-          <Button variant="outline" size="icon" onClick={() => setYear(y => y + 1)}><ChevronRight className="h-4 w-4" /></Button>
-        </div>
+        <YearSelector year={year} onChange={setYear} />
 
         {/* Month gallery */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
