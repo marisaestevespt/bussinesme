@@ -181,8 +181,8 @@ export default function PortalViewPage() {
   const totalOnb = onboarding.length;
   const onbPercent = totalOnb > 0 ? Math.round((completedOnb / totalOnb) * 100) : 0;
 
-  const upcomingMeetings = meetings.filter((m: any) => m.status === 'agendada' || m.status === 'confirmada' || m.status === 'por_confirmar');
-  const pastMeetings = meetings.filter((m: any) => m.status !== 'agendada' && m.status !== 'confirmada' && m.status !== 'por_confirmar');
+  const upcomingMeetings = meetings.filter((m: any) => ['marcada', 'agendada', 'confirmada', 'por_confirmar'].includes(m.status));
+  const pastMeetings = meetings.filter((m: any) => !['marcada', 'agendada', 'confirmada', 'por_confirmar'].includes(m.status));
 
   return (
     <div className="min-h-screen bg-background">
@@ -317,7 +317,7 @@ export default function PortalViewPage() {
               <div className="space-y-4">
                 {portal.show_meetings && (() => {
                   const nextMeeting = meetings
-                    .filter((m: any) => (m.status === 'agendada' || m.status === 'confirmada' || m.status === 'por_confirmar') && m.date_time)
+                    .filter((m: any) => ['marcada', 'agendada', 'confirmada', 'por_confirmar'].includes(m.status) && m.date_time)
                     .sort((a: any, b: any) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
                   return (
                     <Card className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-primary" onClick={() => setActiveSection('meetings')}>
@@ -422,7 +422,7 @@ export default function PortalViewPage() {
                           )}
                         </span>
                         <div className="flex items-center gap-2">
-                          {(m.status === 'agendada' || m.status === 'por_confirmar') ? (
+                          {(m.status === 'marcada' || m.status === 'por_confirmar') ? (
                             <Button size="sm" className="h-7 text-xs" onClick={async () => {
                               const { data } = await (supabase as any).rpc('portal_confirm_meeting', { _token: token, _meeting_id: m.id });
                               if (data) {
