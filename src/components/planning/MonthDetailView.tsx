@@ -930,6 +930,39 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         </CardContent>
       </Card>
 
+      {/* ═══ SECTION 8.5: Rotinas Semanais e Mensais ═══ */}
+      <Card className="border-secondary bg-background">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            Rotinas Semanais e Mensais
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {(routineTasksQ.data || []).length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">Sem rotinas configuradas para este mês.</p>
+          ) : (
+            <div className="space-y-1.5">
+              {(routineTasksQ.data || []).map((t: any) => (
+                <div
+                  key={t.id}
+                  className="flex items-center gap-2 p-2 rounded-md border cursor-pointer hover:shadow-sm transition-shadow"
+                  onClick={() => navigate('/tarefas')}
+                >
+                  {t.status === 'done' || t.status === 'concluida' ? (
+                    <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">Feita</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-[10px]">Por fazer</Badge>
+                  )}
+                  <span className={cn('text-sm flex-1 truncate', (t.status === 'done' || t.status === 'concluida') && 'line-through text-muted-foreground')}>{t.name}</span>
+                  <span className="text-[10px] text-muted-foreground shrink-0">{t.deadline ? format(parseISO(t.deadline), 'd MMM', { locale: pt }) : ''}</span>
+                  <span className="text-[10px] text-muted-foreground shrink-0">{(t.profiles as any)?.full_name || ''}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* ═══ SECTION 9: Checklists ═══ */}
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-sm">Checklists do Mês — Hábitos Mensais</CardTitle></CardHeader>
