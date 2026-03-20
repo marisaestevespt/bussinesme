@@ -7,24 +7,16 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { useExecutiveData, SALES_ROUTINES, getMonthName } from '@/hooks/useExecutiveData';
 import { usePlanningData, planStatusLabel, CADENCES } from '@/hooks/usePlanningData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfWeek, endOfWeek, format, subDays, addDays, parseISO, differenceInDays } from 'date-fns';
+import { startOfWeek, endOfWeek, format, subDays, addDays, parseISO, differenceInDays, subWeeks, addWeeks } from 'date-fns';
 import { useTeamData } from '@/hooks/useTeamData';
 import { cn } from '@/lib/utils';
 import { WeeklyAlignDetailSheet, type DetailField } from '@/components/executive/WeeklyAlignDetailSheet';
-
-const now = new Date();
-const currentMonth = now.getMonth() + 1;
-const currentYear = now.getFullYear();
-const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
-const weekStartStr = format(weekStart, 'yyyy-MM-dd');
-const weekEndStr = format(weekEnd, 'yyyy-MM-dd');
-const monthStart = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
-const monthEnd = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${new Date(currentYear, currentMonth, 0).getDate()}`;
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
