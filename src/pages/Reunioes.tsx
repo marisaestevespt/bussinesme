@@ -430,7 +430,7 @@ export default function ReunioesPage() {
         )}
       </div>
 
-      <MeetingFormDialog open={formOpen} onOpenChange={setFormOpen} profiles={profiles} projects={projects} />
+      <MeetingFormDialog open={formOpen} onOpenChange={setFormOpen} profiles={profiles} projects={projects} clients={clients} />
     </AppLayout>
   );
 }
