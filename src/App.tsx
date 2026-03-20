@@ -71,6 +71,15 @@ function AppRoutes() {
   const { user, loading: authLoading, isOwner } = useAuth();
   const { isSetupComplete, loading: settingsLoading } = useBusinessSettings();
 
+  // Ensure routine tasks exist for current year on boot
+  const routineBootRef = useRef(false);
+  useEffect(() => {
+    if (user && !routineBootRef.current) {
+      routineBootRef.current = true;
+      ensureYearRoutineTasks();
+    }
+  }, [user]);
+
   if (authLoading || settingsLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -81,14 +90,6 @@ function AppRoutes() {
 
   if (!user) return <AuthPage />;
   if (!isSetupComplete) return <SetupPage />;
-  // Ensure routine tasks exist for current year on boot
-  const routineBootRef = useRef(false);
-  useEffect(() => {
-    if (user && !routineBootRef.current) {
-      routineBootRef.current = true;
-      ensureYearRoutineTasks();
-    }
-  }, [user]);
 
   return (
     <Routes>
