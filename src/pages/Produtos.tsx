@@ -77,6 +77,9 @@ export default function ProdutosPage() {
                 </div>
                 <CardContent className="p-4 space-y-3">
                   <h3 className="font-semibold text-base leading-snug">{p.name}</h3>
+                  {p.description && (
+                    <p className="text-xs text-muted-foreground line-clamp-2">{p.description}</p>
+                  )}
                   {p.sales_page_url && (
                     <a
                       href={p.sales_page_url}
