@@ -684,7 +684,7 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
           const barSlotsHeight = (maxRow + 1) * 28;
 
           return (
-            <div key={wi} className="grid grid-cols-7 gap-px bg-border">
+            <div key={wi} className="grid grid-cols-7 gap-px bg-border relative">
               {week.map((day, di) => (
                 <div key={di} className={cn('bg-card min-h-[110px] p-1.5', day && isSameDay(day, new Date()) && 'ring-1 ring-inset ring-primary/30', !day && 'bg-muted/30')}>
                   {day && (
@@ -692,34 +692,30 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
                   )}
                 </div>
               ))}
-              {/* Overlay bars for this week */}
-              {bars.length > 0 && (
-                <div className="col-span-7 relative" style={{ height: 0, marginTop: `-${barSlotsHeight + 8}px` }}>
-                  {bars.map((bar, bi) => {
-                    const leftPct = (bar.startCol / 7) * 100;
-                    const widthPct = (bar.span / 7) * 100;
-                    const topPx = 22 + barRows[bi] * 28;
-                    return (
-                      <button
-                        key={`${bar.ev.id}-${wi}`}
-                        onClick={() => onEventClick(bar.ev)}
-                        className="absolute rounded-md px-2 py-1 text-xs font-medium truncate transition-opacity hover:opacity-80 z-10"
-                        style={{
-                          left: `calc(${leftPct}% + 4px)`,
-                          width: `calc(${widthPct}% - 8px)`,
-                          top: `${topPx}px`,
-                          backgroundColor: `${bar.color}20`,
-                          color: bar.color,
-                          height: '24px',
-                          lineHeight: '16px',
-                        }}
-                      >
-                        {bar.ev.recurrence_type && '🔁 '}{bar.ev.title}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+              {/* Overlay bars positioned from top of week row */}
+              {bars.map((bar, bi) => {
+                const leftPct = (bar.startCol / 7) * 100;
+                const widthPct = (bar.span / 7) * 100;
+                const topPx = 24 + barRows[bi] * 26;
+                return (
+                  <button
+                    key={`${bar.ev.id}-${wi}`}
+                    onClick={() => onEventClick(bar.ev)}
+                    className="absolute rounded-md px-2 py-0.5 text-xs font-medium truncate transition-opacity hover:opacity-80 z-10"
+                    style={{
+                      left: `calc(${leftPct}% + 4px)`,
+                      width: `calc(${widthPct}% - 8px)`,
+                      top: `${topPx}px`,
+                      backgroundColor: `${bar.color}20`,
+                      color: bar.color,
+                      height: '22px',
+                      lineHeight: '18px',
+                    }}
+                  >
+                    {bar.ev.recurrence_type && '🔁 '}{bar.ev.title}
+                  </button>
+                );
+              })}
             </div>
           );
         })}
