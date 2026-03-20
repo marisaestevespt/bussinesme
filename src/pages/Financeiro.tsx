@@ -28,6 +28,7 @@ export default function FinanceiroPage() {
   const fin = useFinancialData();
   const com = useCommercialData();
   const navigate = useNavigate();
+  const { isKpiEnabled, isAreaEnabled } = useKpiSettings();
 
   const currentYear = new Date().getFullYear();
   const sales = excludeCancelled(com.sales.data || []);
