@@ -6412,6 +6412,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      portal_confirm_meeting: {
+        Args: { _meeting_id: string; _token: string }
+        Returns: boolean
+      }
       portal_email_allowed: {
         Args: { _email: string; _token: string }
         Returns: boolean
