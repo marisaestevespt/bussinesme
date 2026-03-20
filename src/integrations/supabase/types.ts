@@ -3168,6 +3168,7 @@ export type Database = {
           date_time: string
           department: string | null
           discussion_points: Json | null
+          duration_minutes: number | null
           final_notes: Json | null
           id: string
           owner_actions: Json | null
@@ -3187,6 +3188,7 @@ export type Database = {
           date_time: string
           department?: string | null
           discussion_points?: Json | null
+          duration_minutes?: number | null
           final_notes?: Json | null
           id?: string
           owner_actions?: Json | null
@@ -3206,6 +3208,7 @@ export type Database = {
           date_time?: string
           department?: string | null
           discussion_points?: Json | null
+          duration_minutes?: number | null
           final_notes?: Json | null
           id?: string
           owner_actions?: Json | null

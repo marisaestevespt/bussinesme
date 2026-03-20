@@ -54,6 +54,7 @@ interface MeetingFull {
   client_actions: CheckItem[];
   final_notes: string[];
   created_by: string | null;
+  duration_minutes: number;
 }
 
 interface ProjectOption { id: string; name: string; }
@@ -81,6 +82,7 @@ function useMeeting(id: string) {
         owner_actions: Array.isArray(raw.owner_actions) ? raw.owner_actions as CheckItem[] : [],
         client_actions: Array.isArray(raw.client_actions) ? raw.client_actions as CheckItem[] : [],
         final_notes: Array.isArray(raw.final_notes) ? raw.final_notes as string[] : [],
+        duration_minutes: raw.duration_minutes || 0,
       } as MeetingFull;
     },
   });
@@ -285,6 +287,7 @@ export default function ReuniaoDetailPage() {
         owner_actions: m.owner_actions as any,
         client_actions: m.client_actions as any,
         final_notes: m.final_notes as any,
+        duration_minutes: m.duration_minutes,
       }).eq('id', m.id);
       if (error) throw error;
     },
@@ -424,6 +427,17 @@ export default function ReuniaoDetailPage() {
                 ))}
               </SelectContent>
             </Select>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Duração (min)</Label>
+              <Input
+                type="number"
+                min={0}
+                value={m.duration_minutes || ''}
+                onChange={e => update({ duration_minutes: parseInt(e.target.value) || 0 })}
+                placeholder="Ex: 60"
+                className="h-7 w-24 text-xs"
+              />
+            </div>
           </div>
 
           {/* Meta info */}
