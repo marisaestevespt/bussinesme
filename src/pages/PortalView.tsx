@@ -299,6 +299,19 @@ export default function PortalViewPage() {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Business hours */}
+              {(settings as any)?.support_hours && (
+                <Card>
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <Clock className="h-5 w-5 text-primary shrink-0" />
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">Horário de atendimento</p>
+                      <p className="text-sm font-medium">{(settings as any).support_hours}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </>
           )}
 
