@@ -219,6 +219,7 @@ export function usePlanningData(year = currentYear) {
         const { error } = await supabase.from('planning_goals').insert({ ...rec, year } as any);
         if (error) throw error;
       }
+      await syncGoalToCommercial(rec);
     },
     onSuccess: invalidate,
     onError: () => toast.error('Erro ao guardar meta'),
