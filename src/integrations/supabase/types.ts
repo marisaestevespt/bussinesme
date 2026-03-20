@@ -1669,9 +1669,11 @@ export type Database = {
           area: string
           created_at: string
           id: string
+          measurement_type: string
           meta: string
           month: number | null
           objective_id: string | null
+          objective_type: string
           quarter: number | null
           status: string
           target_date: string | null
@@ -1683,9 +1685,11 @@ export type Database = {
           area?: string
           created_at?: string
           id?: string
+          measurement_type?: string
           meta: string
           month?: number | null
           objective_id?: string | null
+          objective_type?: string
           quarter?: number | null
           status?: string
           target_date?: string | null
@@ -1697,9 +1701,11 @@ export type Database = {
           area?: string
           created_at?: string
           id?: string
+          measurement_type?: string
           meta?: string
           month?: number | null
           objective_id?: string | null
+          objective_type?: string
           quarter?: number | null
           status?: string
           target_date?: string | null
