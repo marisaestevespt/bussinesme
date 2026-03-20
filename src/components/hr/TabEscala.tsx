@@ -420,7 +420,7 @@ export function TabEscala() {
       <NewAbsenceDialog
         open={absenceDialogOpen}
         onClose={() => setAbsenceDialogOpen(false)}
-        members={members.map(m => ({ id: m.id, full_name: m.full_name, profile_id: null, role_title: m.role_title }))}
+        members={members.map(m => ({ id: m.id, full_name: m.full_name, profile_id: m.profile_id, role_title: m.role_title }))}
       />
     </div>
   );
