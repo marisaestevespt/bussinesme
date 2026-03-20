@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subWeeks } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { MemberProductivityDetail } from '@/components/productivity/MemberProductivityDetail';
 
 const CATEGORIES = [
   { value: 'cliente', label: 'Cliente' },
@@ -101,7 +102,15 @@ export default function ExecutiveProductivity() {
   const tasks = useQuery({
     queryKey: ['tasks_list'],
     queryFn: async () => {
-      const { data } = await supabase.from('tasks').select('id, name, assigned_to, project_id, department, estimated_time, deadline, status');
+      const { data } = await supabase.from('tasks').select('id, name, assigned_to, original_assignee, project_id, department, estimated_time, deadline, status, priority, notes, created_at, updated_at');
+      return (data || []) as any[];
+    },
+  });
+
+  const profiles = useQuery({
+    queryKey: ['profiles_list'],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id, full_name');
       return (data || []) as any[];
     },
   });
@@ -121,7 +130,7 @@ export default function ExecutiveProductivity() {
           </TabsList>
 
           <TabsContent value="overview">
-            <OverviewTab entries={entries.data || []} members={members.data || []} clients={clients.data || []} products={productsQ.data || []} tasks={tasks.data || []} />
+            <OverviewTab entries={entries.data || []} members={members.data || []} clients={clients.data || []} products={productsQ.data || []} tasks={tasks.data || []} projects={projects.data || []} profiles={profiles.data || []} />
           </TabsContent>
           <TabsContent value="by-client">
             <ByClientTab entries={entries.data || []} clients={clients.data || []} />
@@ -142,7 +151,7 @@ export default function ExecutiveProductivity() {
 }
 
 /* ─── TAB 1: VISÃO GERAL ─── */
-function OverviewTab({ entries, members, clients, products, tasks }: { entries: any[]; members: any[]; clients: any[]; products: any[]; tasks: any[] }) {
+function OverviewTab({ entries, members, clients, products, tasks, projects, profiles }: { entries: any[]; members: any[]; clients: any[]; products: any[]; tasks: any[]; projects: any[]; profiles: any[] }) {
   const { start, end } = getDateRange('week');
   const weekEntries = entries.filter(e => {
     const d = new Date(e.entry_date);
@@ -260,13 +269,14 @@ function OverviewTab({ entries, members, clients, products, tasks }: { entries: 
       )}
 
       {/* ─── Capacidade da Equipa ─── */}
-      <TeamCapacitySection members={members} clients={clients} products={products} tasks={tasks} />
+      <TeamCapacitySection members={members} clients={clients} products={products} tasks={tasks} entries={entries} projects={projects} profiles={profiles} />
     </div>
   );
 }
 
 /* ─── CAPACIDADE DA EQUIPA ─── */
-function TeamCapacitySection({ members, clients, products, tasks }: { members: any[]; clients: any[]; products: any[]; tasks: any[] }) {
+function TeamCapacitySection({ members, clients, products, tasks, entries, projects, profiles }: { members: any[]; clients: any[]; products: any[]; tasks: any[]; entries: any[]; projects: any[]; profiles: any[] }) {
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const activeMembers = members.filter(m => m.status === 'ativo');
   const activeClients = clients.filter(c => c.status === 'ativo');
 
@@ -277,7 +287,6 @@ function TeamCapacitySection({ members, clients, products, tasks }: { members: a
     const weeklyHours = Number(m.expected_weekly_hours || 40);
     const monthlyAvailable = Math.round(weeklyHours * 4.33 * 10) / 10;
 
-    // Clients where dp matches member name
     const memberClients = activeClients.filter(c => c.dp === m.full_name);
 
     let committedHours = 0;
@@ -293,7 +302,6 @@ function TeamCapacitySection({ members, clients, products, tasks }: { members: a
       return { clientName: c.full_name, productName: productName || '—', hours };
     });
 
-    // Add estimated hours from active tasks assigned to this member's profile
     const taskEstimatedHours = tasks
       .filter(t => t.assigned_to === m.profile_id && t.status !== 'done' && t.estimated_time)
       .reduce((sum: number, t: any) => sum + Number(t.estimated_time || 0), 0);
@@ -319,6 +327,28 @@ function TeamCapacitySection({ members, clients, products, tasks }: { members: a
     green: 'Dentro da capacidade', amber: 'Atenção', red: 'Sobrecarga',
   };
 
+  // Detail panel
+  const selectedMember = activeMembers.find(m => m.id === selectedMemberId);
+  const selectedRow = rows.find(r => r.id === selectedMemberId);
+
+  if (selectedMember && selectedRow) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-base font-semibold flex items-center gap-2"><Users className="h-4 w-4" /> Capacidade da Equipa</h2>
+        <MemberProductivityDetail
+          member={selectedMember}
+          memberRow={selectedRow}
+          allMembers={activeMembers}
+          allTasks={tasks}
+          allEntries={entries}
+          allProjects={projects}
+          allProfiles={profiles}
+          onBack={() => setSelectedMemberId(null)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <h2 className="text-base font-semibold flex items-center gap-2"><Users className="h-4 w-4" /> Capacidade da Equipa</h2>
@@ -339,7 +369,7 @@ function TeamCapacitySection({ members, clients, products, tasks }: { members: a
               {rows.length === 0 ? (
                 <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">Sem membros ativos</TableCell></TableRow>
               ) : rows.map(r => (
-                <TableRow key={r.id}>
+                <TableRow key={r.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedMemberId(r.id)}>
                   <TableCell className="text-sm font-medium">
                     {r.name}
                     {r.missingHoursFlag && (
