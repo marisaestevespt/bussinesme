@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      absence_coverage: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          member_id: string
+          reason: string
+          sos_notes: string | null
+          start_date: string
+          status: string
+          substitute_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          member_id: string
+          reason?: string
+          sos_notes?: string | null
+          start_date: string
+          status?: string
+          substitute_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          member_id?: string
+          reason?: string
+          sos_notes?: string | null
+          start_date?: string
+          status?: string
+          substitute_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "absence_coverage_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "absence_coverage_substitute_id_fkey"
+            columns: ["substitute_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brand_competitors: {
         Row: {
           comunicacao: string | null
@@ -4669,6 +4723,7 @@ export type Database = {
           id: string
           name: string
           notes: string | null
+          original_assignee: string | null
           parent_task_id: string | null
           priority: string
           project_id: string | null
@@ -4687,6 +4742,7 @@ export type Database = {
           id?: string
           name: string
           notes?: string | null
+          original_assignee?: string | null
           parent_task_id?: string | null
           priority?: string
           project_id?: string | null
@@ -4705,6 +4761,7 @@ export type Database = {
           id?: string
           name?: string
           notes?: string | null
+          original_assignee?: string | null
           parent_task_id?: string | null
           priority?: string
           project_id?: string | null
@@ -4714,6 +4771,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "tasks_original_assignee_fkey"
+            columns: ["original_assignee"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tasks_parent_task_id_fkey"
             columns: ["parent_task_id"]

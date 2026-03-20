@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { sendNotification } from '@/hooks/useNotifications';
+import { useAbsenceCoverage, findCoverageForMemberOnDate } from '@/hooks/useAbsenceCoverage';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -171,6 +172,8 @@ export default function TarefasPage() {
       return data || [];
     },
   });
+
+  const { coverages: absenceCoverages } = useAbsenceCoverage();
 
   // Mutations
   const upsertTask = useMutation({
@@ -359,12 +362,56 @@ export default function TarefasPage() {
       toast.error('Esta tarefa está atrasada. Indica nas notas o motivo do atraso antes de concluir.');
       return;
     }
+    // ─── Auto-reassignment based on absence coverage ──────────
+    let finalAssignedTo = assignedTo || null;
+    let originalAssignee: string | null = null;
+
+    if (finalAssignedTo && deadline) {
+      const deadlineStr = format(deadline, 'yyyy-MM-dd');
+      const coverage = findCoverageForMemberOnDate(absenceCoverages, finalAssignedTo, deadlineStr, teamMembers as any);
+
+      if (coverage) {
+        const absentMember = teamMembers.find(m => m.id === coverage.member_id);
+        const absentName = absentMember?.full_name || 'Membro';
+
+        if (coverage.substitute_id) {
+          // Find substitute's profile_id
+          const sub = teamMembers.find(m => m.id === coverage.substitute_id);
+          if (sub?.profile_id) {
+            originalAssignee = finalAssignedTo;
+            finalAssignedTo = sub.profile_id;
+            const subName = sub.full_name || 'Substituto';
+
+            toast.info(
+              `${absentName} está ausente de ${format(parseISO(coverage.start_date), 'dd/MM')} a ${format(parseISO(coverage.end_date), 'dd/MM')}. Tarefa atribuída a ${subName}.${coverage.sos_notes ? ` Notas SOS: ${coverage.sos_notes}` : ''}`,
+              { duration: 8000 }
+            );
+
+            // Notify substitute
+            sendNotification({
+              userId: sub.profile_id,
+              type: 'task',
+              title: `Tarefa reatribuída: ${name.trim()}`,
+              message: `Data limite: ${format(deadline, 'dd/MM/yyyy')}. ${absentName} está ausente. ${coverage.sos_notes ? `Notas SOS: ${coverage.sos_notes}` : ''}`,
+              link: '/tarefas',
+            });
+          }
+        } else {
+          toast.warning(
+            `${absentName} está ausente nessa data mas não tem substituto definido. Atribui manualmente ou define um substituto na página Escala.`,
+            { duration: 8000 }
+          );
+        }
+      }
+    }
+
     const payload: any = {
       name: name.trim(),
       status,
       priority,
       deadline: format(deadline, 'yyyy-MM-dd'),
-      assigned_to: assignedTo || null,
+      assigned_to: finalAssignedTo,
+      original_assignee: originalAssignee || (editingTask?.original_assignee || null),
       department: department || null,
       project_id: projectId && projectId !== 'none' ? projectId : null,
       parent_task_id: parentTaskId && parentTaskId !== 'none' ? parentTaskId : null,
@@ -717,6 +764,12 @@ export default function TarefasPage() {
                   </SelectContent>
                 </Select>
               </div>
+              {/* Original assignee (read-only) */}
+              {editingTask?.original_assignee && (
+                <div className="text-xs text-muted-foreground mt-1">
+                  Responsável original: {profiles.find(p => p.id === editingTask.original_assignee)?.full_name || '—'}
+                </div>
+              )}
               <div>
                 <Label>Departamento</Label>
                 <Select value={department} onValueChange={setDepartment}>
