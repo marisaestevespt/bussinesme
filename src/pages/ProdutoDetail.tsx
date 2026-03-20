@@ -262,6 +262,25 @@ export default function ProdutoDetailPage() {
     return { label: 'Passado', color: 'bg-muted text-muted-foreground' };
   };
 
+  const createProductEvent = async () => {
+    if (!newEvent.title.trim() || !newEvent.start_date) {
+      toast.error('Título e data de início são obrigatórios');
+      return;
+    }
+    const { error } = await supabase.from('events').insert({
+      title: newEvent.title.trim(),
+      start_date: newEvent.start_date,
+      end_date: newEvent.end_date || null,
+      product_name: form.name,
+      created_by: user?.id,
+    } as any);
+    if (error) { toast.error('Erro ao criar evento'); return; }
+    qc.invalidateQueries({ queryKey: ['product-events', form.name] });
+    setShowEventDialog(false);
+    setNewEvent({ title: '', start_date: '', end_date: '' });
+    toast.success('Evento criado na Agenda');
+  };
+
   // Section button component
   const SectionButton = ({ sectionKey, label }: { sectionKey: string; label: string }) => (
     <Button
