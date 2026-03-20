@@ -727,6 +727,28 @@ export default function ClienteDetailPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* WhatsApp group */}
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">Link grupo WhatsApp</CardTitle></CardHeader>
+              <CardContent>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Link para grupo WhatsApp</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={(form as any).whatsapp_group_url || ''}
+                      onChange={e => update('whatsapp_group_url' as any, e.target.value)}
+                      placeholder="https://chat.whatsapp.com/..."
+                    />
+                    {(form as any).whatsapp_group_url && (
+                      <Button variant="outline" size="icon" asChild>
+                        <a href={(form as any).whatsapp_group_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
           {/* ─── Customer Success ──────────────────────── */}
           <TabsContent value="customer-success" className="space-y-6 mt-4">

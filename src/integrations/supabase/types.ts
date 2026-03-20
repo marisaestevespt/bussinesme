@@ -1011,6 +1011,7 @@ export type Database = {
           status: string
           updated_at: string
           whatsapp: string | null
+          whatsapp_group_url: string | null
         }
         Insert: {
           birthday?: string | null
@@ -1033,6 +1034,7 @@ export type Database = {
           status?: string
           updated_at?: string
           whatsapp?: string | null
+          whatsapp_group_url?: string | null
         }
         Update: {
           birthday?: string | null
@@ -1055,6 +1057,7 @@ export type Database = {
           status?: string
           updated_at?: string
           whatsapp?: string | null
+          whatsapp_group_url?: string | null
         }
         Relationships: []
       }
