@@ -174,7 +174,7 @@ export default function ClienteDetailPage() {
   const clientSales = allSales.filter(s => s.client === form.full_name);
 
   // Filtered meetings
-  const { data: clientMeetings = [] } = useFilteredMeetings(clientId);
+  const { data: clientMeetings = [] } = useFilteredMeetings(isNew ? undefined : id);
 
   // Create meeting mutation
   const createMeeting = useMutation({
@@ -182,7 +182,7 @@ export default function ClienteDetailPage() {
       const { error } = await supabase.from('meetings').insert({
         title: data.title,
         date_time: data.date_time,
-        client_id: clientId,
+        client_id: id || null,
         client_name: form.full_name || '',
         status: 'agendada' as any,
         meeting_url: data.meeting_url || null,
