@@ -73,6 +73,7 @@ const DEFAULT_VIEWS: DefaultView[] = [
   { key: 'responsavel', label: 'Por Responsável', icon: <Users className="h-4 w-4" />, isDefault: true },
   { key: 'calendario', label: 'Calendário', icon: <CalendarDays className="h-4 w-4" />, isDefault: true },
   { key: 'todas', label: 'Todas as Tarefas', icon: <List className="h-4 w-4" />, isDefault: true },
+  { key: 'historico', label: 'Histórico', icon: <History className="h-4 w-4" />, isDefault: true },
 ];
 
 function getStatusInfo(val: string) {
