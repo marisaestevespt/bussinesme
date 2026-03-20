@@ -48,6 +48,7 @@ import MarketingEstrategia from "./pages/MarketingEstrategia";
 import MarketingChannelStrategy from "./pages/MarketingChannelStrategy";
 import MarketingFunis from "./pages/MarketingFunis";
 import MarketingFunilDetail from "./pages/MarketingFunilDetail";
+import MarketingAnalisePage from "./pages/MarketingAnalise";
 import MarketingTrafegoPago from "./pages/MarketingTrafegoPago";
 import TrafegoReportDetail from "./pages/TrafegoReportDetail";
 import TrafegoCriativoDetail from "./pages/TrafegoCriativoDetail";
