@@ -57,23 +57,19 @@ function CalendarDayItem({ item, channels, links }: { item: ContentItem; channel
 
   return (
     <Link to={`/hub/marketing/conteudos/${item.id}`}
-      className="block rounded border bg-muted/30 hover:bg-muted/60 transition-colors p-1.5 h-full flex flex-col gap-0.5">
-      {/* Row 1: Title + time */}
+      className="block rounded border bg-muted/30 hover:bg-muted/60 transition-colors p-1.5 h-full flex flex-col gap-px">
       <div className="flex items-center justify-between gap-1">
-        <p className="text-[11px] font-medium truncate leading-tight text-foreground">{item.title}</p>
-        {time && <span className="text-[10px] text-muted-foreground shrink-0 tabular-nums">{time}</span>}
+        <p className="text-xs font-medium truncate leading-tight text-foreground">{item.title}</p>
+        {time && <span className="text-[11px] text-muted-foreground shrink-0 tabular-nums">{time}</span>}
       </div>
-      {/* Row 2: Status full width */}
-      {status && <span className={cn("text-[9px] px-1.5 py-0.5 rounded-sm leading-none font-medium text-center w-full block", status.color)}>{status.label}</span>}
-      {/* Row 3: Canal + Formato */}
+      {status && <span className={cn("text-[10px] px-1.5 py-0.5 rounded-sm leading-none font-medium text-center w-full block", status.color)}>{status.label}</span>}
       <div className="flex items-center gap-1">
         {itemChannels.slice(0, 1).map(ch => (
-          <span key={ch.id} className="text-[9px] px-1 py-0.5 rounded-sm leading-none bg-secondary text-secondary-foreground">{ch.name}</span>
+          <span key={ch.id} className="text-[10px] px-1 py-0.5 rounded-sm leading-none bg-secondary text-secondary-foreground">{ch.name}</span>
         ))}
-        {formatLabel && <span className="text-[9px] px-1 py-0.5 rounded-sm leading-none bg-accent text-accent-foreground">{formatLabel}</span>}
+        {formatLabel && <span className="text-[10px] px-1 py-0.5 rounded-sm leading-none bg-accent text-accent-foreground">{formatLabel}</span>}
       </div>
-      {/* Row 4: Tipo de conteúdo full width */}
-      {typeLabel && <span className="text-[9px] px-1.5 py-0.5 rounded-sm leading-none bg-muted text-muted-foreground text-center w-full block">{typeLabel}</span>}
+      {typeLabel && <span className="text-[10px] px-1.5 py-0.5 rounded-sm leading-none bg-muted text-muted-foreground text-center w-full block">{typeLabel}</span>}
     </Link>
   );
 }
