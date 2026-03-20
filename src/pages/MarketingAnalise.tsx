@@ -145,10 +145,7 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
 
   return (
     <div className="max-w-5xl mx-auto w-full space-y-8">
-      <Button variant="ghost" size="sm" onClick={onBack} className="gap-1">
-        <ArrowLeft className="h-4 w-4" /> Voltar à galeria
-      </Button>
-      <h2 className="text-xl font-bold">{MONTHS[month - 1]} {year}</h2>
+      <MonthNavHeader monthIdx={month - 1} year={year} onBack={onBack} onChangeMonth={(m, y) => onChangeMonth(m + 1, y)} />
 
       {/* 1. Objectives */}
       <section className="space-y-3">

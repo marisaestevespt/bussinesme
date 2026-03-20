@@ -218,10 +218,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" size="sm" onClick={onBack} className="gap-1">
-        <ArrowLeft className="h-4 w-4" /> Voltar à galeria
-      </Button>
-      <h2 className="text-xl font-bold">{MONTH_NAMES[monthIdx]} {year}</h2>
+      <MonthNavHeader monthIdx={monthIdx} year={year} onBack={onBack} onChangeMonth={onChangeMonth} />
 
       {/* KPIs */}
       <div>
