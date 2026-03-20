@@ -30,6 +30,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ClientCustomerSuccess } from '@/components/client/ClientCustomerSuccess';
 import { BackNavigation } from '@/components/BackNavigation';
+import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 
 // ─── Meetings query for filtered view ───────────────────────────
 function useFilteredMeetings(clientName: string | undefined) {
