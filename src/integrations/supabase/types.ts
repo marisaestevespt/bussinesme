@@ -4374,6 +4374,7 @@ export type Database = {
       }
       sops: {
         Row: {
+          apply_to_all_active_clients: boolean
           created_at: string
           created_by: string | null
           custom_role_id: string | null
@@ -4381,6 +4382,8 @@ export type Database = {
           department: string
           id: string
           inputs: Json | null
+          linked_entity_id: string | null
+          linked_entity_type: string
           name: string
           notas: Json | null
           objetivo: string | null
@@ -4394,6 +4397,7 @@ export type Database = {
           utilizacao_usado: Json | null
         }
         Insert: {
+          apply_to_all_active_clients?: boolean
           created_at?: string
           created_by?: string | null
           custom_role_id?: string | null
@@ -4401,6 +4405,8 @@ export type Database = {
           department?: string
           id?: string
           inputs?: Json | null
+          linked_entity_id?: string | null
+          linked_entity_type?: string
           name: string
           notas?: Json | null
           objetivo?: string | null
@@ -4414,6 +4420,7 @@ export type Database = {
           utilizacao_usado?: Json | null
         }
         Update: {
+          apply_to_all_active_clients?: boolean
           created_at?: string
           created_by?: string | null
           custom_role_id?: string | null
@@ -4421,6 +4428,8 @@ export type Database = {
           department?: string
           id?: string
           inputs?: Json | null
+          linked_entity_id?: string | null
+          linked_entity_type?: string
           name?: string
           notas?: Json | null
           objetivo?: string | null
