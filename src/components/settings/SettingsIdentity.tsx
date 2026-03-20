@@ -128,6 +128,7 @@ export function SettingsIdentity() {
   const qc = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [businessName, setBusinessName] = useState('');
+  const [supportHours, setSupportHours] = useState('');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bgFile, setBgFile] = useState<File | null>(null);
