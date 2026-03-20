@@ -9,17 +9,18 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2, ChevronLeft, FileText, List } from 'lucide-react';
+import { Plus, Trash2, FileText, List, RotateCw } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { BackNavigation } from '@/components/BackNavigation';
+import { usePlanningRoutines } from '@/hooks/usePlanningRoutines';
 
 const DEPT = 'marketing';
 
@@ -31,52 +32,34 @@ const SOP_STATUSES = [
   { value: 'off', label: 'Off', color: 'bg-red-100 text-red-800 border-red-200' },
 ];
 
-const FREQUENCIES = [
-  { value: 'todos_os_dias', label: 'Todos os dias' },
-  { value: 'segunda', label: '2ª feira' },
-  { value: 'terca', label: '3ª feira' },
-  { value: 'quarta', label: '4ª feira' },
-  { value: 'quinta', label: '5ª feira' },
-  { value: 'sexta', label: '6ª feira' },
-  { value: 'primeiro_dia_util', label: '1º dia útil do mês' },
-  { value: 'dia_x_mes', label: 'Dia X do mês' },
-];
-
 function getStatusInfo(status: string) {
   return SOP_STATUSES.find(s => s.value === status) || SOP_STATUSES[0];
 }
 
 export default function MarketingProcessos() {
   const navigate = useNavigate();
-  const { user, isOwner } = useAuth();
+  const { user } = useAuth();
   const qc = useQueryClient();
+  const planningRoutines = usePlanningRoutines();
 
   const [activeTab, setActiveTab] = useState('galeria');
   const [showNewSop, setShowNewSop] = useState(false);
-  const [showNewRoutine, setShowNewRoutine] = useState(false);
-  const [editingRoutine, setEditingRoutine] = useState<any>(null);
   const [newSopName, setNewSopName] = useState('');
   const [newSopStatus, setNewSopStatus] = useState('para_criar');
-  const [newRoutineName, setNewRoutineName] = useState('');
-  const [newRoutineFreq, setNewRoutineFreq] = useState('todos_os_dias');
-  const [newRoutineAssignee, setNewRoutineAssignee] = useState('');
-  const [routineSteps, setRoutineSteps] = useState('');
-  const [newRoutineMonthlyDay, setNewRoutineMonthlyDay] = useState('');
-  const [newRoutineStartDate, setNewRoutineStartDate] = useState('');
-  const [newRoutineEndDate, setNewRoutineEndDate] = useState('');
+
+  // Routine dialog state
+  const [showNewRoutineDialog, setShowNewRoutineDialog] = useState(false);
+  const [prTitle, setPrTitle] = useState('');
+  const [prResponsible, setPrResponsible] = useState('');
+  const [prRecurrence, setPrRecurrence] = useState<'semanal' | 'mensal'>('semanal');
+  const [prWeekday, setPrWeekday] = useState('1');
+  const [prMonthDay, setPrMonthDay] = useState('1');
+  const [prAdjustBiz, setPrAdjustBiz] = useState(true);
 
   const { data: sops = [] } = useQuery({
     queryKey: ['sops'],
     queryFn: async () => {
       const { data } = await supabase.from('sops').select('*').order('sop_id');
-      return data || [];
-    },
-  });
-
-  const { data: routines = [] } = useQuery({
-    queryKey: ['routines'],
-    queryFn: async () => {
-      const { data } = await supabase.from('routines').select('*').order('created_at');
       return data || [];
     },
   });
@@ -90,8 +73,7 @@ export default function MarketingProcessos() {
   });
 
   const mktSops = sops.filter(s => s.department === DEPT);
-  const mktRoutines = routines.filter(r => r.department === DEPT);
-  const profileMap = Object.fromEntries(profiles.map(p => [p.id, p]));
+  const routinesData = planningRoutines.routines.data || [];
 
   const sortedSops = [...mktSops].sort((a, b) => {
     const numA = parseInt(a.sop_id?.replace('SOP-', '') || '0');
@@ -99,7 +81,6 @@ export default function MarketingProcessos() {
     return numA - numB;
   });
 
-  // Mutations
   const createSop = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from('sops').insert({
@@ -111,78 +92,8 @@ export default function MarketingProcessos() {
     onError: () => toast.error('Erro ao criar processo'),
   });
 
-  const createRoutine = useMutation({
-    mutationFn: async () => {
-      let sopId: string | null = null;
-      if (routineSteps.trim()) {
-        const steps = routineSteps.split('\n').filter(s => s.trim());
-        const { data: sopData, error: sopError } = await supabase.from('sops').insert({
-          name: `Rotina: ${newRoutineName}`, department: DEPT, status: 'ativo', created_by: user?.id, passos: steps,
-        }).select('id').single();
-        if (sopError) throw sopError;
-        sopId = sopData.id;
-      }
-      const { error } = await supabase.from('routines').insert({
-        name: newRoutineName, department: DEPT, frequency: newRoutineFreq,
-        assigned_to: newRoutineAssignee || null, created_by: user?.id, sop_id: sopId,
-        monthly_day: newRoutineFreq === 'dia_x_mes' && newRoutineMonthlyDay ? Number(newRoutineMonthlyDay) : null,
-        start_date: newRoutineFreq === 'dia_x_mes' && newRoutineStartDate ? newRoutineStartDate : null,
-        end_date: newRoutineFreq === 'dia_x_mes' && newRoutineEndDate ? newRoutineEndDate : null,
-      } as any);
-      if (error) throw error;
-    },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['routines', 'sops'] }); setShowNewRoutine(false); resetRoutineForm(); toast.success('Rotina criada'); },
-    onError: () => toast.error('Erro ao criar rotina'),
-  });
-
-  const updateRoutine = useMutation({
-    mutationFn: async () => {
-      if (!editingRoutine) return;
-      let sopId = editingRoutine.sop_id;
-      const steps = routineSteps.split('\n').filter(s => s.trim());
-      if (sopId) {
-        await supabase.from('sops').update({ passos: steps }).eq('id', sopId);
-      } else if (steps.length > 0) {
-        const { data: sopData } = await supabase.from('sops').insert({
-          name: `Rotina: ${newRoutineName}`, department: DEPT, status: 'ativo', created_by: user?.id, passos: steps,
-        }).select('id').single();
-        sopId = sopData?.id || null;
-      }
-      await supabase.from('routines').update({
-        name: newRoutineName, frequency: newRoutineFreq, assigned_to: newRoutineAssignee || null, sop_id: sopId,
-        monthly_day: newRoutineFreq === 'dia_x_mes' && newRoutineMonthlyDay ? Number(newRoutineMonthlyDay) : null,
-        start_date: newRoutineFreq === 'dia_x_mes' && newRoutineStartDate ? newRoutineStartDate : null,
-        end_date: newRoutineFreq === 'dia_x_mes' && newRoutineEndDate ? newRoutineEndDate : null,
-      } as any).eq('id', editingRoutine.id);
-    },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['routines', 'sops'] }); setEditingRoutine(null); resetRoutineForm(); toast.success('Rotina atualizada'); },
-    onError: () => toast.error('Erro ao atualizar'),
-  });
-
-  const deleteRoutine = useMutation({
-    mutationFn: async (id: string) => { await supabase.from('routines').delete().eq('id', id); },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['routines'] }); toast.success('Rotina eliminada'); },
-  });
-
-  function resetRoutineForm() {
-    setNewRoutineName(''); setNewRoutineFreq('todos_os_dias'); setNewRoutineAssignee(''); setRoutineSteps('');
-    setNewRoutineMonthlyDay(''); setNewRoutineStartDate(''); setNewRoutineEndDate('');
-  }
-
-  function openEditRoutine(routine: any) {
-    setEditingRoutine(routine);
-    setNewRoutineName(routine.name);
-    setNewRoutineFreq(routine.frequency);
-    setNewRoutineAssignee(routine.assigned_to || '');
-    setNewRoutineMonthlyDay(routine.monthly_day?.toString() || '');
-    setNewRoutineStartDate(routine.start_date || '');
-    setNewRoutineEndDate(routine.end_date || '');
-    if (routine.sop_id) {
-      const linked = sops.find(s => s.id === routine.sop_id);
-      setRoutineSteps(linked && Array.isArray(linked.passos) ? (linked.passos as string[]).join('\n') : '');
-    } else {
-      setRoutineSteps('');
-    }
+  function resetRoutineDialog() {
+    setPrTitle(''); setPrResponsible(''); setPrRecurrence('semanal'); setPrWeekday('1'); setPrMonthDay('1'); setPrAdjustBiz(true);
   }
 
   return (
@@ -194,7 +105,7 @@ export default function MarketingProcessos() {
           <div className="flex items-center justify-between">
             <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setShowNewRoutine(true)}>
+              <Button variant="outline" size="sm" onClick={() => setShowNewRoutineDialog(true)}>
                 <Plus className="h-4 w-4 mr-1" />Nova Rotina
               </Button>
               <Button size="sm" onClick={() => setShowNewSop(true)}>
@@ -241,28 +152,38 @@ export default function MarketingProcessos() {
 
               {/* Rotinas */}
               <section>
-                <h2 className="text-xl font-bold tracking-tight mb-4">Rotinas ({mktRoutines.length})</h2>
-                {mktRoutines.length === 0 ? (
-                  <p className="text-muted-foreground text-sm">Nenhuma rotina de marketing criada.</p>
+                <h2 className="text-xl font-bold tracking-tight mb-4 flex items-center gap-2">
+                  <RotateCw className="h-4 w-4 text-primary" /> Rotinas ({routinesData.length})
+                </h2>
+                {routinesData.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">Nenhuma rotina configurada.</p>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                    {mktRoutines.map(routine => {
-                      const assignee = routine.assigned_to ? profileMap[routine.assigned_to] : null;
-                      const freqLabel = FREQUENCIES.find(f => f.value === routine.frequency)?.label || routine.frequency;
-                      const linkedSop = routine.sop_id ? sops.find(s => s.id === routine.sop_id) : null;
+                    {routinesData.map((pr: any) => {
+                      const assignee = pr.profiles;
+                      const recLabel = pr.recurrence_type === 'semanal'
+                        ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][pr.weekday || 0]} feira`
+                        : `Mensal — dia ${pr.month_day}${pr.adjust_to_business_day ? ' (ajuste dia útil)' : ''}`;
                       return (
-                        <Card key={routine.id} className="p-3 cursor-pointer hover:shadow-md hq-transition" onClick={() => openEditRoutine(routine)}>
+                        <Card key={pr.id} className="p-3">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium line-clamp-2">{routine.name}</p>
-                              <p className="text-xs text-muted-foreground mt-1">{freqLabel}</p>
-                              {linkedSop && <Badge variant="outline" className="text-[10px] mt-1">{linkedSop.sop_id}</Badge>}
+                              <p className="text-sm font-medium line-clamp-2">{pr.title}</p>
+                              <p className="text-xs text-muted-foreground mt-1">{recLabel}</p>
+                              <Badge variant={pr.active ? 'default' : 'secondary'} className="text-[10px] mt-1">
+                                {pr.active ? 'Ativa' : 'Inativa'}
+                              </Badge>
                             </div>
-                            {isOwner && (
-                              <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={e => { e.stopPropagation(); deleteRoutine.mutate(routine.id); }}>
+                            <div className="flex flex-col gap-1 items-end shrink-0">
+                              <Switch
+                                checked={pr.active}
+                                onCheckedChange={(v) => planningRoutines.toggleActive.mutate({ id: pr.id, active: v })}
+                                className="scale-75"
+                              />
+                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => planningRoutines.deleteRoutine.mutate(pr.id)}>
                                 <Trash2 className="h-3 w-3" />
                               </Button>
-                            )}
+                            </div>
                           </div>
                           {assignee && (
                             <div className="flex items-center gap-1.5 mt-2">
@@ -334,50 +255,79 @@ export default function MarketingProcessos() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog: Nova/Editar Rotina */}
-      <Dialog open={showNewRoutine || !!editingRoutine} onOpenChange={v => { if (!v) { setShowNewRoutine(false); setEditingRoutine(null); resetRoutineForm(); } }}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editingRoutine ? 'Editar Rotina' : 'Nova Rotina'}</DialogTitle></DialogHeader>
+      {/* Dialog: Nova Rotina */}
+      <Dialog open={showNewRoutineDialog} onOpenChange={v => { if (!v) { setShowNewRoutineDialog(false); resetRoutineDialog(); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Nova Rotina</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <div><Label>Nome *</Label><Input value={newRoutineName} onChange={e => setNewRoutineName(e.target.value)} placeholder="Ex: Publicar stories" /></div>
             <div>
-              <Label>Frequência</Label>
-              <Select value={newRoutineFreq} onValueChange={setNewRoutineFreq}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{FREQUENCIES.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}</SelectContent>
-              </Select>
+              <Label>Título *</Label>
+              <Input value={prTitle} onChange={e => setPrTitle(e.target.value)} placeholder="Ex: Publicar stories" />
             </div>
-            {newRoutineFreq === 'dia_x_mes' && (
-              <>
-                <div>
-                  <Label>Dia do mês *</Label>
-                  <Input type="number" min={1} max={31} value={newRoutineMonthlyDay} onChange={e => setNewRoutineMonthlyDay(e.target.value)} placeholder="Ex: 15" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Data de início *</Label>
-                    <Input type="date" value={newRoutineStartDate} onChange={e => setNewRoutineStartDate(e.target.value)} />
-                  </div>
-                  <div>
-                    <Label>Data de fim</Label>
-                    <Input type="date" value={newRoutineEndDate} onChange={e => setNewRoutineEndDate(e.target.value)} />
-                  </div>
-                </div>
-              </>
-            )}
             <div>
               <Label>Responsável</Label>
-              <Select value={newRoutineAssignee} onValueChange={setNewRoutineAssignee}>
+              <Select value={prResponsible} onValueChange={setPrResponsible}>
                 <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
                 <SelectContent>{profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Passo a passo (um por linha)</Label>
-              <Textarea value={routineSteps} onChange={e => setRoutineSteps(e.target.value)} rows={5} placeholder={"1. Preparar conteúdo\n2. Publicar\n3. Monitorizar"} />
+              <Label>Tipo de recorrência</Label>
+              <Select value={prRecurrence} onValueChange={v => setPrRecurrence(v as any)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="semanal">Semanal</SelectItem>
+                  <SelectItem value="mensal">Mensal</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Button className="w-full" disabled={!newRoutineName.trim()} onClick={() => editingRoutine ? updateRoutine.mutate() : createRoutine.mutate()}>
-              {editingRoutine ? 'Guardar' : 'Criar Rotina'}
+            {prRecurrence === 'semanal' && (
+              <div>
+                <Label>Dia da semana</Label>
+                <Select value={prWeekday} onValueChange={setPrWeekday}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Segunda-feira</SelectItem>
+                    <SelectItem value="2">Terça-feira</SelectItem>
+                    <SelectItem value="3">Quarta-feira</SelectItem>
+                    <SelectItem value="4">Quinta-feira</SelectItem>
+                    <SelectItem value="5">Sexta-feira</SelectItem>
+                    <SelectItem value="6">Sábado</SelectItem>
+                    <SelectItem value="7">Domingo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {prRecurrence === 'mensal' && (
+              <>
+                <div>
+                  <Label>Dia do mês</Label>
+                  <Input type="number" min={1} max={31} value={prMonthDay} onChange={e => setPrMonthDay(e.target.value)} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch checked={prAdjustBiz} onCheckedChange={setPrAdjustBiz} />
+                  <Label className="text-sm">Ajustar para dia útil anterior</Label>
+                </div>
+              </>
+            )}
+            <Button
+              className="w-full"
+              disabled={!prTitle.trim() || planningRoutines.createRoutine.isPending}
+              onClick={() => {
+                planningRoutines.createRoutine.mutate({
+                  title: prTitle,
+                  responsible: prResponsible || null,
+                  recurrence_type: prRecurrence,
+                  weekday: prRecurrence === 'semanal' ? Number(prWeekday) : null,
+                  month_day: prRecurrence === 'mensal' ? Number(prMonthDay) : null,
+                  adjust_to_business_day: prRecurrence === 'mensal' ? prAdjustBiz : true,
+                  created_by: user?.id,
+                }, {
+                  onSuccess: () => { setShowNewRoutineDialog(false); resetRoutineDialog(); },
+                });
+              }}
+            >
+              {planningRoutines.createRoutine.isPending ? 'A criar...' : 'Criar Rotina'}
             </Button>
           </div>
         </DialogContent>

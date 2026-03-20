@@ -5,6 +5,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useNavigate } from 'react-router-dom';
+import { usePlanningRoutines } from '@/hooks/usePlanningRoutines';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
 
 const STATUS_MAP: Record<string, { label: string; className: string }> = {
   para_criar: { label: 'Para criar', className: 'bg-muted text-muted-foreground' },
@@ -13,24 +18,9 @@ const STATUS_MAP: Record<string, { label: string; className: string }> = {
   a_rever: { label: 'A rever', className: 'bg-amber-100 text-amber-800 border-amber-200' },
 };
 
-const FREQ_MAP: Record<string, string> = {
-  todos_os_dias: 'Todos os dias',
-  semanal: 'Semanal',
-  quinzenal: 'Quinzenal',
-  mensal: 'Mensal',
-  trimestral: 'Trimestral',
-  pontual: 'Pontual',
-  dia_x_mes: 'Dia X do mês',
-  segunda: '2ª feira',
-  terca: '3ª feira',
-  quarta: '4ª feira',
-  quinta: '5ª feira',
-  sexta: '6ª feira',
-  primeiro_dia_util: '1º dia útil do mês',
-};
-
 export function CommercialProcessos() {
   const navigate = useNavigate();
+  const planningRoutines = usePlanningRoutines();
 
   const sops = useQuery({
     queryKey: ['sops', 'comercial'],
@@ -40,13 +30,7 @@ export function CommercialProcessos() {
     },
   });
 
-  const routines = useQuery({
-    queryKey: ['routines', 'comercial'],
-    queryFn: async () => {
-      const { data } = await supabase.from('routines').select('*, profiles:assigned_to(full_name)').eq('department', 'comercial').order('name');
-      return data || [];
-    },
-  });
+  const routinesData = planningRoutines.routines.data || [];
 
   return (
     <div className="space-y-8">
@@ -85,7 +69,7 @@ export function CommercialProcessos() {
 
       <Separator />
 
-      {/* Routines */}
+      {/* Rotinas */}
       <section>
         <h3 className="text-lg font-semibold mb-3">Rotinas</h3>
         <Card>
@@ -93,21 +77,56 @@ export function CommercialProcessos() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
-                <TableHead>Frequência</TableHead>
+                <TableHead>Recorrência</TableHead>
                 <TableHead>Responsável</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead className="w-20">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {(routines.data || []).length === 0 && (
-                <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">Sem rotinas neste departamento</TableCell></TableRow>
+              {routinesData.length === 0 && (
+                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Sem rotinas configuradas</TableCell></TableRow>
               )}
-              {(routines.data || []).map(r => (
-                <TableRow key={r.id}>
-                  <TableCell className="font-medium">{r.name}</TableCell>
-                  <TableCell>{r.frequency === 'dia_x_mes' ? `Dia ${r.monthly_day || '?'} do mês` : (FREQ_MAP[r.frequency] || r.frequency)}</TableCell>
-                  <TableCell>{(r.profiles as any)?.full_name || '—'}</TableCell>
-                </TableRow>
-              ))}
+              {routinesData.map((pr: any) => {
+                const assignee = pr.profiles;
+                const recLabel = pr.recurrence_type === 'semanal'
+                  ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][pr.weekday || 0]} feira`
+                  : `Mensal — dia ${pr.month_day}`;
+                return (
+                  <TableRow key={pr.id}>
+                    <TableCell className="font-medium">{pr.title}</TableCell>
+                    <TableCell>{recLabel}</TableCell>
+                    <TableCell>
+                      {assignee ? (
+                        <div className="flex items-center gap-1.5">
+                          <Avatar className="h-5 w-5">
+                            <AvatarImage src={assignee.avatar_url || ''} />
+                            <AvatarFallback className="text-[10px]">{(assignee.full_name || '?')[0]}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm">{assignee.full_name}</span>
+                        </div>
+                      ) : '—'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={pr.active ? 'default' : 'secondary'} className="text-[10px]">
+                        {pr.active ? 'Ativa' : 'Inativa'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Switch
+                          checked={pr.active}
+                          onCheckedChange={(v) => planningRoutines.toggleActive.mutate({ id: pr.id, active: v })}
+                          className="scale-75"
+                        />
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => planningRoutines.deleteRoutine.mutate(pr.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </Card>
