@@ -6452,6 +6452,20 @@ export type Database = {
           id: string
         }[]
       }
+      get_portal_meetings: {
+        Args: { _token: string }
+        Returns: {
+          client_id: string
+          date_time: string
+          department: string
+          id: string
+          meeting_url: string
+          project_id: string
+          project_name: string
+          status: string
+          title: string
+        }[]
+      }
       get_portal_payments: {
         Args: { _token: string }
         Returns: {
