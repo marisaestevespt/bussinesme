@@ -62,6 +62,7 @@ import ClientesPage from "./pages/Clientes";
 import ClienteDetailPage from "./pages/ClienteDetail";
 import ClientesAnalisePage from "./pages/ClientesAnalise";
 import PortalClientesPage from "./pages/PortalClientes";
+import ClientesFeedbackPage from "./pages/ClientesFeedback";
 import PortalAuthPage from "./pages/PortalAuth";
 import PortalViewPage from "./pages/PortalView";
 import VendaDetailPage from "./pages/VendaDetail";
