@@ -62,6 +62,7 @@ import ClientesPage from "./pages/Clientes";
 import ClienteDetailPage from "./pages/ClienteDetail";
 import ClientesAnalisePage from "./pages/ClientesAnalise";
 import PortalClientesPage from "./pages/PortalClientes";
+import ClientesFeedbackPage from "./pages/ClientesFeedback";
 import PortalAuthPage from "./pages/PortalAuth";
 import PortalViewPage from "./pages/PortalView";
 import VendaDetailPage from "./pages/VendaDetail";
@@ -162,6 +163,7 @@ function AppRoutes() {
       <Route path="/hub/clientes" element={<ClientesPage />} />
       <Route path="/hub/clientes/analise" element={<ClientesAnalisePage />} />
       <Route path="/hub/clientes/portais" element={<PortalClientesPage />} />
+      <Route path="/hub/clientes/feedback" element={<ClientesFeedbackPage />} />
       <Route path="/hub/clientes/:id" element={<ClienteDetailPage />} />
       <Route path="/hub/financeiro" element={<FinanceiroPage />} />
       <Route path="/hub/financeiro/:section" element={<FinanceiroSubPage />} />

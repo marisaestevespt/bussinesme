@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, BarChart3, Globe } from 'lucide-react';
+import { Plus, BarChart3, Globe, MessageSquare } from 'lucide-react';
 import { useClients, CLIENT_STATUS_OPTIONS, Client } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
@@ -67,6 +67,9 @@ export default function ClientesPage() {
             </Button>
             <Button onClick={() => navigate('/hub/clientes/portais')} className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90 px-5 py-2.5 text-sm font-medium shadow-sm">
               <Globe className="h-4 w-4" /> Portal de Clientes
+            </Button>
+            <Button onClick={() => navigate('/hub/clientes/feedback')} variant="outline" className="gap-1.5 px-5 py-2.5 text-sm font-medium shadow-sm">
+              <MessageSquare className="h-4 w-4" /> Feedbacks
             </Button>
           </div>
           <Button size="sm" onClick={() => navigate('/hub/clientes/novo')}>

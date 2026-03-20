@@ -677,6 +677,41 @@ export type Database = {
           },
         ]
       }
+      client_feedback: {
+        Row: {
+          client_id: string
+          content: string
+          created_at: string
+          id: string
+          source: string
+          submitted_at: string
+        }
+        Insert: {
+          client_id: string
+          content: string
+          created_at?: string
+          id?: string
+          source?: string
+          submitted_at?: string
+        }
+        Update: {
+          client_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          source?: string
+          submitted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_feedback_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_history: {
         Row: {
           client_id: string
