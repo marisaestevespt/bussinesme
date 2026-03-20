@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { TasksByMemberKanban, TasksByPriority, OverdueTasks } from '@/components/hr/PerformanceTaskViews';
+import { GestaoSummaryCards } from '@/components/hr/GestaoSummaryCards';
 import { ByMemberTabShared, OverloadTabShared } from '@/components/hr/SharedProductivityViews';
 import { useCustomViews } from '@/hooks/useCustomViews';
 import { useNavigate } from 'react-router-dom';
@@ -1614,6 +1615,9 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
 
   return (
     <div className="space-y-6">
+      {/* Summary Cards */}
+      <GestaoSummaryCards />
+
       {/* Custom views bar */}
       <div className="flex items-center gap-2 flex-wrap">
         <Button
