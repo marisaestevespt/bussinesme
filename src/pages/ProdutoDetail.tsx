@@ -24,6 +24,7 @@ import { OfferCalculator } from '@/components/product/OfferCalculator';
 import { ProductCustomerSuccess } from '@/components/product/ProductCustomerSuccess';
 import { format } from 'date-fns';
 import { BackNavigation } from '@/components/BackNavigation';
+import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 
 const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--muted))'];

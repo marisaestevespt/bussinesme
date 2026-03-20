@@ -510,6 +510,14 @@ export default function ClienteDetailPage() {
 
           {/* ─── Úteis ─────────────────────────────────── */}
           <TabsContent value="uteis" className="space-y-6 mt-4">
+            {/* Linked SOPs */}
+            {!isNew && id && (
+              <LinkedSopsSection
+                entityType="cliente"
+                entityId={id}
+                productId={productList.find(p => p.name === form.current_product)?.id}
+              />
+            )}
             {/* Client history */}
             <Card>
               <CardHeader className="pb-2 flex flex-row items-center justify-between">

@@ -725,6 +725,9 @@ export default function ProjetoDetailPage() {
           </div>
         </div>
 
+        {/* Linked SOPs */}
+        {id && <LinkedSopsSection entityType="projeto" entityId={id} />}
+
         {/* Section 4: Fecho de Projeto */}
         <div>
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Fecho de Projeto</h3>
