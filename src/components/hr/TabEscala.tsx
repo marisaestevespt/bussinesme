@@ -372,6 +372,10 @@ export function TabEscala() {
           onClose={() => setVacationMember(null)}
         />
       )}
+
+      {/* Absence Coverage Table */}
+      <Separator className="my-6" />
+      <AbsenceCoverageTable />
     </div>
   );
 }
