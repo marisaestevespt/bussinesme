@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useKpiSettings } from '@/hooks/useKpiSettings';
 import { useNavigate } from 'react-router-dom';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
@@ -299,6 +300,8 @@ export default function ProjetosPage() {
 
         {/* Metrics strip */}
         {(() => {
+          const { isKpiEnabled: kpi, isAreaEnabled: areaOn } = useKpiSettings();
+          if (!areaOn('operacao')) return null;
           const now = new Date();
           const monthStart = startOfMonth(now);
           const monthEnd = endOfMonth(now);

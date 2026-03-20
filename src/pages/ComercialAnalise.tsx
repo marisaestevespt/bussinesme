@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, Fragment } from 'react';
+import { useKpiSettings } from '@/hooks/useKpiSettings';
 import { YearSelector } from '@/components/YearSelector';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
@@ -41,6 +42,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
   const month = monthIdx + 1;
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const { isKpiEnabled, isAreaEnabled } = useKpiSettings();
 
   const { allLeads } = useCrmData();
   const { sales: salesQ, annualGoalAmount, totalInvoiced, monthlyGoals } = useCommercialData(year);
@@ -273,30 +275,35 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       <MonthNavHeader monthIdx={monthIdx} year={year} onBack={onBack} onChangeMonth={onChangeMonth} />
 
       {/* CRM Operational */}
+      {isAreaEnabled('comercial') && (isKpiEnabled('comercial', 'leads_novas') || isKpiEnabled('comercial', 'followups_realizados')) && (
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">KPIs Operacionais do CRM</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <KpiCard label="Leads novas" value={monthLeads.length} icon={Users} />
-          <KpiCard label="Follow-ups feitos" value={followUpsDone} icon={Phone} />
-          <KpiCard label="Contactos realizados" value={contactedLeads} icon={Phone} />
-          <KpiCard label="Sessões agendadas" value={sessionsScheduled} icon={CalendarCheck} />
-          <KpiCard label="Propostas enviadas" value={proposalsSent} icon={FileText} />
-          <KpiCard label="Taxa de resposta" value={`${responseRate}%`} icon={TrendingUp} />
+          {isKpiEnabled('comercial', 'leads_novas') && <KpiCard label="Leads novas" value={monthLeads.length} icon={Users} />}
+          {isKpiEnabled('comercial', 'followups_realizados') && <KpiCard label="Follow-ups feitos" value={followUpsDone} icon={Phone} />}
+          {isKpiEnabled('comercial', 'followups_realizados') && <KpiCard label="Contactos realizados" value={contactedLeads} icon={Phone} />}
+          {isKpiEnabled('comercial', 'followups_realizados') && <KpiCard label="Sessões agendadas" value={sessionsScheduled} icon={CalendarCheck} />}
+          {isKpiEnabled('comercial', 'followups_realizados') && <KpiCard label="Propostas enviadas" value={proposalsSent} icon={FileText} />}
+          {isKpiEnabled('comercial', 'taxa_conversao') && <KpiCard label="Taxa de resposta" value={`${responseRate}%`} icon={TrendingUp} />}
         </div>
       </div>
+      )}
 
       {/* Conversion */}
+      {isAreaEnabled('comercial') && (isKpiEnabled('comercial', 'taxa_conversao') || isKpiEnabled('comercial', 'tempo_medio_pipeline') || isKpiEnabled('comercial', 'taxa_renovacao')) && (
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">KPIs de Conversão</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <KpiCard label="Taxa de conversão global" value={`${conversionRate}%`} icon={TrendingUp} />
-          <KpiCard label="Tempo médio no pipeline" value={avgPipelineDays !== null ? `${avgPipelineDays} dias` : '—'} icon={Clock} />
-          <KpiCard label="Leads perdidas" value={lossesInMonth.length} icon={UserMinus} color={lossesInMonth.length > 0 ? 'text-destructive' : undefined} />
-          <KpiCard label="Taxa de renovação" value={`${renewalRate}%`} icon={RefreshCw} />
+          {isKpiEnabled('comercial', 'taxa_conversao') && <KpiCard label="Taxa de conversão global" value={`${conversionRate}%`} icon={TrendingUp} />}
+          {isKpiEnabled('comercial', 'tempo_medio_pipeline') && <KpiCard label="Tempo médio no pipeline" value={avgPipelineDays !== null ? `${avgPipelineDays} dias` : '—'} icon={Clock} />}
+          {isKpiEnabled('comercial', 'taxa_conversao') && <KpiCard label="Leads perdidas" value={lossesInMonth.length} icon={UserMinus} color={lossesInMonth.length > 0 ? 'text-destructive' : undefined} />}
+          {isKpiEnabled('comercial', 'taxa_renovacao') && <KpiCard label="Taxa de renovação" value={`${renewalRate}%`} icon={RefreshCw} />}
         </div>
       </div>
+      )}
 
       {/* Financial */}
+      {isAreaEnabled('comercial') && isKpiEnabled('comercial', 'receita_vs_meta') && (
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">KPIs Financeiros</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -330,10 +337,10 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
           </Card>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
-          <KpiCard label="Ticket médio" value={fmtEur(ticketMedio)} icon={DollarSign} />
+          {isKpiEnabled('comercial', 'ticket_medio') && <KpiCard label="Ticket médio" value={fmtEur(ticketMedio)} icon={DollarSign} />}
           <KpiCard label="Pipeline activo" value={fmtEur(pipelineValue)} icon={TrendingUp} />
         </div>
-        {revenueByProduct.length > 0 && (
+        {isKpiEnabled('comercial', 'comparativo_produtos') && revenueByProduct.length > 0 && (
           <Card className="border-secondary bg-background mt-3">
             <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-sm font-semibold">Receita por Produto</CardTitle></CardHeader>
             <CardContent className="px-4 pb-4">
@@ -349,8 +356,10 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
           </Card>
         )}
       </div>
+      )}
 
       {/* Clients */}
+      {isAreaEnabled('comercial') && (
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">KPIs de Clientes</h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -361,8 +370,10 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
           <KpiCard label="Churn do mês" value={churnMonth} icon={AlertTriangle} color={churnMonth > 0 ? 'text-destructive' : undefined} />
         </div>
       </div>
+      )}
 
       {/* Product Comparative */}
+      {isAreaEnabled('comercial') && isKpiEnabled('comercial', 'comparativo_produtos') && (
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Comparativo de Produtos</h3>
         {sortedRows.length === 0 ? (
@@ -440,7 +451,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
           </Card>
         )}
       </div>
-
+      )}
       <Separator />
 
       {/* Qualitative */}

@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { useKpiSettings } from '@/hooks/useKpiSettings';
 import { YearSelector } from '@/components/YearSelector';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
@@ -98,6 +99,7 @@ function getPlatformMetrics(platform: string, metrics: any): { label: string; va
 function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; year: number; onBack: () => void; onChangeMonth: (m: number, y: number) => void }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { isKpiEnabled, isAreaEnabled } = useKpiSettings();
 
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
   const endMonth = month === 12 ? 1 : month + 1;
@@ -225,6 +227,7 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
       <MonthNavHeader monthIdx={month - 1} year={year} onBack={onBack} onChangeMonth={(m, y) => onChangeMonth(m + 1, y)} />
 
       {/* 1. Objectives */}
+      {isAreaEnabled('marketing') && isKpiEnabled('marketing', 'objetivos_marketing') && (
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <Target className="h-4 w-4 text-primary" />
@@ -255,6 +258,8 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
           </div>
         )}
       </section>
+
+      )}
 
       <Separator />
 

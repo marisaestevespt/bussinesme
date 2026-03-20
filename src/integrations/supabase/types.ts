@@ -2647,6 +2647,41 @@ export type Database = {
         }
         Relationships: []
       }
+      kpi_settings: {
+        Row: {
+          area: string
+          business_id: string
+          created_at: string
+          enabled: boolean
+          id: string
+          kpi_key: string
+        }
+        Insert: {
+          area: string
+          business_id: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          kpi_key: string
+        }
+        Update: {
+          area?: string
+          business_id?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          kpi_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kpi_settings_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "business_settings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketing_automations: {
         Row: {
           condicoes: Json | null

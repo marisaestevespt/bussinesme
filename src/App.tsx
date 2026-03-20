@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { BusinessSettingsProvider, useBusinessSettings } from "@/hooks/useBusinessSettings";
 import { ActiveTimerProvider } from "@/hooks/useActiveTimer";
+import { KpiSettingsProvider } from "@/hooks/useKpiSettings";
 import { FloatingTimer } from "@/components/FloatingTimer";
 import { AuthPage } from "@/components/AuthPage";
 import { SetupPage } from "@/components/SetupPage";
@@ -169,8 +170,10 @@ const App = () => (
         <AuthProvider>
           <BusinessSettingsProvider>
             <ActiveTimerProvider>
-              <FloatingTimer />
-              <AppRoutes />
+              <KpiSettingsProvider>
+                <FloatingTimer />
+                <AppRoutes />
+              </KpiSettingsProvider>
             </ActiveTimerProvider>
           </BusinessSettingsProvider>
         </AuthProvider>

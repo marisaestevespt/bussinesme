@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useKpiSettings } from '@/hooks/useKpiSettings';
 import { YearSelector } from '@/components/YearSelector';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
@@ -44,6 +45,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
   const month = monthIdx + 1;
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { isKpiEnabled, isAreaEnabled } = useKpiSettings();
 
   const { clients: clientsQ } = useClients();
   const clientsData = clientsQ.data || [];
@@ -222,22 +224,25 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       <MonthNavHeader monthIdx={monthIdx} year={year} onBack={onBack} onChangeMonth={onChangeMonth} />
 
       {/* KPIs */}
+      {isAreaEnabled('clientes') && (
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">KPIs do Mês</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <KpiCard label="Clientes ativos" value={activeClients.length} icon={Users} />
-          <KpiCard label="Novos clientes" value={newClients.length} icon={UserPlus} />
-          <KpiCard label="Churn" value={churnClients.length} icon={UserMinus} color={churnClients.length > 0 ? 'text-destructive' : undefined} />
-          <KpiCard label="Em onboarding" value={onboardingClients.length} icon={Users} />
+          {isKpiEnabled('clientes', 'novos_clientes') && <KpiCard label="Clientes ativos" value={activeClients.length} icon={Users} />}
+          {isKpiEnabled('clientes', 'novos_clientes') && <KpiCard label="Novos clientes" value={newClients.length} icon={UserPlus} />}
+          {isKpiEnabled('clientes', 'churn') && <KpiCard label="Churn" value={churnClients.length} icon={UserMinus} color={churnClients.length > 0 ? 'text-destructive' : undefined} />}
+          {isKpiEnabled('clientes', 'novos_clientes') && <KpiCard label="Em onboarding" value={onboardingClients.length} icon={Users} />}
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
-          <KpiCard label="Valor médio / cliente" value={`${fmt(avgValuePerClient)} €`} icon={DollarSign} />
-          <KpiCard label="Taxa de renovação" value={`${renewalRate}%`} icon={RefreshCw} />
-          <KpiCard label="Marcos atingidos" value={`${monthMilestonesDone.length} / ${monthMilestonesExpected.length}`} icon={Target} />
+          {isKpiEnabled('clientes', 'novos_clientes') && <KpiCard label="Valor médio / cliente" value={`${fmt(avgValuePerClient)} €`} icon={DollarSign} />}
+          {isKpiEnabled('clientes', 'taxa_renovacao') && <KpiCard label="Taxa de renovação" value={`${renewalRate}%`} icon={RefreshCw} />}
+          {isKpiEnabled('clientes', 'marcos_atingidos') && <KpiCard label="Marcos atingidos" value={`${monthMilestonesDone.length} / ${monthMilestonesExpected.length}`} icon={Target} />}
         </div>
       </div>
+      )}
 
       {/* NPS */}
+      {isAreaEnabled('clientes') && isKpiEnabled('clientes', 'nps_medio') && (
       <Card className="border-secondary bg-background">
         <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">NPS Médio Atual</CardTitle></CardHeader>
         <CardContent className="space-y-3">
@@ -252,6 +257,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Distribution by product */}
       {byProduct.length > 0 && (
@@ -272,6 +278,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       )}
 
       {/* Health */}
+      {isAreaEnabled('clientes') && isKpiEnabled('clientes', 'saude_carteira') && (
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Saúde da Carteira</h3>
         <Card className="border-secondary bg-background">
@@ -297,6 +304,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
           </CardContent>
         </Card>
       </div>
+      )}
 
       <Separator />
 
