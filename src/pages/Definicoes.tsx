@@ -122,7 +122,7 @@ function ResetSection() {
             <h2 className="text-sm font-semibold text-destructive">Resetar para instância limpa</h2>
           </div>
           <p className="text-sm text-muted-foreground">
-            Apaga todos os dados operacionais do sistema (clientes, vendas, tarefas, conteúdos, etc.) mantendo a estrutura, configurações e identidade visual.
+            Apaga todos os dados operacionais do sistema (clientes, vendas, tarefas, conteúdos, etc.) mantendo toda a configuração, processos, automações e identidade visual.
             Esta acção é irreversível.
           </p>
           <Button variant="destructive" size="sm" onClick={() => setOpen(true)}>
