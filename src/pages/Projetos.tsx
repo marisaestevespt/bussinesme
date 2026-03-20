@@ -229,7 +229,7 @@ export default function ProjetosPage() {
     // For client projects, include onboarding/offboarding items
     let boardingTotal = 0;
     let boardingDone = 0;
-    if (project?.type === 'clientes' && project.client_name) {
+    if ((project?.type === 'clientes' || project?.type === 'cliente_projeto_unico' || project?.type === 'cliente_servico_mensal') && project.client_name) {
       const clientId = clientNameToId.get(project.client_name);
       if (clientId) {
         const onb = allOnboarding.filter(o => o.client_id === clientId);

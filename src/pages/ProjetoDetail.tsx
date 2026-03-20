@@ -296,7 +296,7 @@ export default function ProjetoDetailPage() {
       const { data } = await supabase.from('clients' as any).select('id').eq('full_name', project!.client_name!).maybeSingle();
       return data as unknown as { id: string } | null;
     },
-    enabled: !!project?.client_name && project?.type === 'clientes',
+    enabled: !!project?.client_name && (project?.type === 'clientes' || project?.type === 'cliente_projeto_unico' || project?.type === 'cliente_servico_mensal'),
   });
   const resolvedClientId = clientForProject?.id;
   const { data: clientOnboardingItems = [] } = useQuery({
