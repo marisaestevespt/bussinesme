@@ -18,6 +18,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Trash2, ArrowLeft, FileText, List, RotateCw } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -56,7 +58,9 @@ export default function ProcessosPage() {
   // Planning routine form state
   const [showNewRoutineDialog, setShowNewRoutineDialog] = useState(false);
   const [prTitle, setPrTitle] = useState('');
-  const [prResponsible, setPrResponsible] = useState('');
+  const [prRoleFunction, setPrRoleFunction] = useState('');
+  const [prRoleCustom, setPrRoleCustom] = useState('');
+  const [prRoleOpen, setPrRoleOpen] = useState(false);
   const [prRecurrence, setPrRecurrence] = useState<'semanal' | 'mensal'>('semanal');
   const [prWeekday, setPrWeekday] = useState('1');
   const [prMonthDay, setPrMonthDay] = useState('1');
@@ -93,6 +97,8 @@ export default function ProcessosPage() {
     },
   });
 
+  const existingRoles = [...new Set(teamMembers.map(m => m.role_title).filter(Boolean))] as string[];
+
   // ─── Mutations ────────────────────────────────────────────────
 
   const createSop = useMutation({
@@ -115,7 +121,7 @@ export default function ProcessosPage() {
   });
 
   function resetRoutineDialog() {
-    setPrTitle(''); setPrResponsible(''); setPrRecurrence('semanal'); setPrWeekday('1'); setPrMonthDay('1'); setPrAdjustBiz(true); setPrHour('09:00'); setPrDepartment(''); setPrCreateProject(true);
+    setPrTitle(''); setPrRoleFunction(''); setPrRoleCustom(''); setPrRecurrence('semanal'); setPrWeekday('1'); setPrMonthDay('1'); setPrAdjustBiz(true); setPrHour('09:00'); setPrDepartment(''); setPrCreateProject(true);
   }
 
   // ─── Derived data ────────────────────────────────────────────
@@ -369,17 +375,46 @@ export default function ProcessosPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Responsável</Label>
-                <Select value={prResponsible} onValueChange={setPrResponsible}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
-                  <SelectContent>
-                    {teamMembers.map(m => (
-                      <SelectItem key={m.id} value={m.profile_id || m.id}>
-                        {m.full_name}{m.role_title ? ` — ${m.role_title}` : ''}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Função responsável</Label>
+                <Popover open={prRoleOpen} onOpenChange={setPrRoleOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start font-normal">
+                      {prRoleFunction || <span className="text-muted-foreground">Selecionar ou criar...</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[280px] p-0" align="start">
+                    <Command>
+                      <CommandInput
+                        placeholder="Pesquisar ou criar função..."
+                        value={prRoleCustom}
+                        onValueChange={setPrRoleCustom}
+                      />
+                      <CommandList>
+                        <CommandEmpty>
+                          {prRoleCustom.trim() && (
+                            <button
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-accent rounded"
+                              onClick={() => { setPrRoleFunction(prRoleCustom.trim()); setPrRoleOpen(false); }}
+                            >
+                              Criar "<strong>{prRoleCustom.trim()}</strong>"
+                            </button>
+                          )}
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {existingRoles.map(role => (
+                            <CommandItem
+                              key={role}
+                              value={role}
+                              onSelect={() => { setPrRoleFunction(role); setPrRoleCustom(''); setPrRoleOpen(false); }}
+                            >
+                              {role}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               <div>
                 <Label>Tipo de recorrência</Label>
@@ -473,9 +508,9 @@ export default function ProcessosPage() {
 
                 planningRoutines.createRoutine.mutate({
                   title: prTitle,
-                  responsible: prResponsible || null,
+                  responsible: null,
+                  role_function: prRoleFunction || null,
                   recurrence_type: prRecurrence,
-                  weekday: prRecurrence === 'semanal' ? Number(prWeekday) : null,
                   month_day: prRecurrence === 'mensal' ? Number(prMonthDay) : null,
                   adjust_to_business_day: prRecurrence === 'mensal' ? prAdjustBiz : true,
                   hour_time: prHour || '09:00',

@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -50,7 +52,9 @@ export default function MarketingProcessos() {
   // Routine dialog state
   const [showNewRoutineDialog, setShowNewRoutineDialog] = useState(false);
   const [prTitle, setPrTitle] = useState('');
-  const [prResponsible, setPrResponsible] = useState('');
+  const [prRoleFunction, setPrRoleFunction] = useState('');
+  const [prRoleCustom, setPrRoleCustom] = useState('');
+  const [prRoleOpen, setPrRoleOpen] = useState(false);
   const [prRecurrence, setPrRecurrence] = useState<'semanal' | 'mensal'>('semanal');
   const [prWeekday, setPrWeekday] = useState('1');
   const [prMonthDay, setPrMonthDay] = useState('1');
@@ -71,6 +75,8 @@ export default function MarketingProcessos() {
       return data || [];
     },
   });
+
+  const existingRoles = [...new Set(teamMembers.map(m => m.role_title).filter(Boolean))] as string[];
 
   const mktSops = sops.filter(s => s.department === DEPT);
   const routinesData = planningRoutines.routines.data || [];
@@ -93,7 +99,7 @@ export default function MarketingProcessos() {
   });
 
   function resetRoutineDialog() {
-    setPrTitle(''); setPrResponsible(''); setPrRecurrence('semanal'); setPrWeekday('1'); setPrMonthDay('1'); setPrAdjustBiz(true);
+    setPrTitle(''); setPrRoleFunction(''); setPrRoleCustom(''); setPrRecurrence('semanal'); setPrWeekday('1'); setPrMonthDay('1'); setPrAdjustBiz(true);
   }
 
   return (
@@ -160,7 +166,6 @@ export default function MarketingProcessos() {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {routinesData.map((pr: any) => {
-                      const assignee = pr.profiles;
                       const hourLabel = pr.hour_time ? ` às ${pr.hour_time.slice(0, 5)}` : '';
                       const recLabel = pr.recurrence_type === 'semanal'
                         ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][pr.weekday || 0]} feira${hourLabel}`
@@ -171,9 +176,14 @@ export default function MarketingProcessos() {
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium line-clamp-2">{pr.title}</p>
                               <p className="text-xs text-muted-foreground mt-1">{recLabel}</p>
-                              <Badge variant={pr.active ? 'default' : 'secondary'} className="text-[10px] mt-1">
-                                {pr.active ? 'Ativa' : 'Inativa'}
-                              </Badge>
+                              <div className="flex items-center gap-1.5 mt-1">
+                                <Badge variant={pr.active ? 'default' : 'secondary'} className="text-[10px]">
+                                  {pr.active ? 'Ativa' : 'Inativa'}
+                                </Badge>
+                                {pr.role_function && (
+                                  <Badge variant="outline" className="text-[10px]">{pr.role_function}</Badge>
+                                )}
+                              </div>
                             </div>
                             <div className="flex flex-col gap-1 items-end shrink-0">
                               <Switch
@@ -186,15 +196,6 @@ export default function MarketingProcessos() {
                               </Button>
                             </div>
                           </div>
-                          {assignee && (
-                            <div className="flex items-center gap-1.5 mt-2">
-                              <Avatar className="h-5 w-5">
-                                <AvatarImage src={assignee.avatar_url || ''} />
-                                <AvatarFallback className="text-[10px]">{(assignee.full_name || '?')[0]}</AvatarFallback>
-                              </Avatar>
-                              <span className="text-xs text-muted-foreground truncate">{assignee.full_name}</span>
-                            </div>
-                          )}
                         </Card>
                       );
                     })}
@@ -266,17 +267,35 @@ export default function MarketingProcessos() {
               <Input value={prTitle} onChange={e => setPrTitle(e.target.value)} placeholder="Ex: Publicar stories" />
             </div>
             <div>
-              <Label>Responsável</Label>
-              <Select value={prResponsible} onValueChange={setPrResponsible}>
-                <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
-                <SelectContent>
-                  {teamMembers.map(m => (
-                    <SelectItem key={m.id} value={m.profile_id || m.id}>
-                      {m.full_name}{m.role_title ? ` — ${m.role_title}` : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Função responsável</Label>
+              <Popover open={prRoleOpen} onOpenChange={setPrRoleOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start font-normal">
+                    {prRoleFunction || <span className="text-muted-foreground">Selecionar ou criar...</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[280px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Pesquisar ou criar função..." value={prRoleCustom} onValueChange={setPrRoleCustom} />
+                    <CommandList>
+                      <CommandEmpty>
+                        {prRoleCustom.trim() && (
+                          <button className="w-full text-left px-3 py-2 text-sm hover:bg-accent rounded" onClick={() => { setPrRoleFunction(prRoleCustom.trim()); setPrRoleOpen(false); }}>
+                            Criar "<strong>{prRoleCustom.trim()}</strong>"
+                          </button>
+                        )}
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {existingRoles.map(role => (
+                          <CommandItem key={role} value={role} onSelect={() => { setPrRoleFunction(role); setPrRoleCustom(''); setPrRoleOpen(false); }}>
+                            {role}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
             <div>
               <Label>Tipo de recorrência</Label>
@@ -323,9 +342,9 @@ export default function MarketingProcessos() {
               onClick={() => {
                 planningRoutines.createRoutine.mutate({
                   title: prTitle,
-                  responsible: prResponsible || null,
+                  responsible: null,
+                  role_function: prRoleFunction || null,
                   recurrence_type: prRecurrence,
-                  weekday: prRecurrence === 'semanal' ? Number(prWeekday) : null,
                   month_day: prRecurrence === 'mensal' ? Number(prMonthDay) : null,
                   adjust_to_business_day: prRecurrence === 'mensal' ? prAdjustBiz : true,
                   created_by: user?.id,

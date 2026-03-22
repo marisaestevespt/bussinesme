@@ -1,0 +1,1 @@
+ALTER TABLE public.planning_routines ADD COLUMN IF NOT EXISTS role_function text;
