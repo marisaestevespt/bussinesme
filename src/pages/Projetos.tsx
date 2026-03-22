@@ -445,7 +445,15 @@ export default function ProjetosPage() {
                 {(fType === 'servico' || fType === 'cliente_servico_mensal' || fType === 'cliente_projeto_unico') && (
                   <div className="space-y-1.5">
                     <Label>Cliente associado</Label>
-                    <Input value={fClient} onChange={e => setFClient(e.target.value)} placeholder="Nome do cliente" />
+                    <Select value={fClient || '_none_'} onValueChange={v => setFClient(v === '_none_' ? '' : v)}>
+                      <SelectTrigger><SelectValue placeholder="Selecionar cliente..." /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_none_">Nenhum</SelectItem>
+                        {allClients.map(c => (
+                          <SelectItem key={c.id} value={c.full_name}>{c.full_name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
               </div>
