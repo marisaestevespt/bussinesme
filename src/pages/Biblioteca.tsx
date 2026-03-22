@@ -284,6 +284,15 @@ export default function BibliotecaPage() {
                         <span className="font-medium">{doc.title}</span>
                       </div>
                     </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {doc.file_url ? (
+                        <a href={doc.file_url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="inline-flex items-center gap-1 text-primary hover:underline">
+                          {doc.doc_type === 'link' ? <><ExternalLink className="h-3.5 w-3.5" /> Link</> : <><Download className="h-3.5 w-3.5" /> Ficheiro</>}
+                        </a>
+                      ) : (
+                        <span>Texto</span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-muted-foreground text-sm">{getCategoryLabel(doc.category)}</TableCell>
                     <TableCell className="text-muted-foreground text-sm">
                       {format(new Date(doc.created_at), "d MMM yyyy", { locale: pt })}
