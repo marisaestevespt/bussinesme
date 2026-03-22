@@ -78,7 +78,7 @@ export function CommercialProcessos() {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Recorrência</TableHead>
-                <TableHead>Responsável</TableHead>
+                <TableHead>Função</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="w-20">Ações</TableHead>
               </TableRow>
