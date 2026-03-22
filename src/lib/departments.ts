@@ -11,6 +11,9 @@ export const DEPARTMENTS = [
   { value: 'recursos-humanos', label: 'Pessoas', gradient: 'from-rose-500 to-pink-800', icon: '👥', lucideIcon: 'UsersRound' },
 ] as const;
 
+/** Departments available for processes, routines, SOPs (excludes admin role) */
+export const PROCESS_DEPARTMENTS = DEPARTMENTS.filter(d => d.value !== 'admin');
+
 export type DepartmentValue = (typeof DEPARTMENTS)[number]['value'];
 
 export function getDept(val: string) {

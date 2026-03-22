@@ -25,7 +25,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { DEPARTMENTS, getDept, getDeptLabel } from '@/lib/departments';
+import { DEPARTMENTS, PROCESS_DEPARTMENTS, getDept, getDeptLabel } from '@/lib/departments';
 import { usePlanningRoutines } from '@/hooks/usePlanningRoutines';
 
 // ─── Constants ──────────────────────────────────────────────────
@@ -337,7 +337,7 @@ export default function ProcessosPage() {
               <Label>Departamento</Label>
               <Select value={newSopDept} onValueChange={setNewSopDept}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
+                <SelectContent>{PROCESS_DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div>
@@ -368,7 +368,7 @@ export default function ProcessosPage() {
                   <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="_none_">Nenhum</SelectItem>
-                    {DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+                    {PROCESS_DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
