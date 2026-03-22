@@ -483,17 +483,8 @@ export default function ProcessosPage() {
                   ? `Semanal (${['', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'][Number(prWeekday)]})`
                   : `Mensal (dia ${prMonthDay})`;
 
-                // Always create SOP so the process page exists
-                const { data: sopData } = await supabase.from('sops').insert({
-                  name: prTitle,
-                  department: prDepartment || null,
-                  status: 'ativo',
-                  created_by: user?.id,
-                  product_name: `Rotina ${recLabel} às ${prHour || '09:00'}`,
-                } as any).select('id').single();
-                queryClient.invalidateQueries({ queryKey: ['sops'] });
-
-                planningRoutines.createRoutine.mutate({
+                // Create routine first to get its ID
+                const routineData: any = {
                   title: prTitle,
                   responsible: null,
                   role_function: prRoleFunction || null,
@@ -504,19 +495,46 @@ export default function ProcessosPage() {
                   hour_time: prHour || '09:00',
                   created_by: user?.id,
                   department: prDepartment || null,
-                } as any, {
-                  onSuccess: () => {
-                    setShowNewRoutineDialog(false);
-                    resetRoutineDialog();
-                    // Navigate to the SOP detail page so the user can edit the process
-                    if (sopData?.id) {
-                      navigate(`/hub/processos/${sopData.id}`);
-                    }
-                  },
-                });
+                };
+
+                const { data: routineResult, error: routineError } = await supabase
+                  .from('planning_routines')
+                  .insert(routineData)
+                  .select('*')
+                  .single();
+
+                if (routineError || !routineResult) {
+                  toast.error('Erro ao criar rotina: ' + (routineError?.message || ''));
+                  return;
+                }
+
+                // Generate tasks for the routine
+                const { generateTasksForRoutine } = await import('@/hooks/usePlanningRoutines');
+                await generateTasksForRoutine(routineResult as any, new Date().getFullYear());
+
+                // Create SOP linked to the routine
+                const { data: sopData } = await supabase.from('sops').insert({
+                  name: prTitle,
+                  department: prDepartment || null,
+                  status: 'ativo',
+                  created_by: user?.id,
+                  routine_id: routineResult.id,
+                } as any).select('id').single();
+                
+                queryClient.invalidateQueries({ queryKey: ['sops'] });
+                queryClient.invalidateQueries({ queryKey: ['planning-routines'] });
+                queryClient.invalidateQueries({ queryKey: ['my-tasks'] });
+
+                setShowNewRoutineDialog(false);
+                resetRoutineDialog();
+                toast.success('Rotina criada e tarefas geradas');
+
+                if (sopData?.id) {
+                  navigate(`/hub/processos/${sopData.id}`);
+                }
               }}
             >
-              {planningRoutines.createRoutine.isPending ? 'A criar...' : 'Criar Rotina'}
+              Criar Rotina
             </Button>
           </div>
         </DialogContent>

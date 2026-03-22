@@ -1,0 +1,1 @@
+ALTER TABLE public.sops ADD COLUMN routine_id uuid REFERENCES public.planning_routines(id) ON DELETE SET NULL;

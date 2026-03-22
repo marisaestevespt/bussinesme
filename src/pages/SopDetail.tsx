@@ -165,6 +165,17 @@ export default function SopDetailPage() {
     enabled: !!id,
   });
 
+  // Fetch linked routine if exists
+  const routineId = (sop as any)?.routine_id;
+  const { data: linkedRoutine } = useQuery({
+    queryKey: ['linked-routine', routineId],
+    queryFn: async () => {
+      const { data } = await supabase.from('planning_routines').select('*').eq('id', routineId).single();
+      return data;
+    },
+    enabled: !!routineId,
+  });
+
   const { data: roles = [] } = useQuery({
     queryKey: ['custom_roles'],
     queryFn: async () => {
@@ -348,7 +359,13 @@ export default function SopDetailPage() {
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">Produto associado</Label>
-            <Input value={productName} onChange={e => setProductName(e.target.value)} placeholder="Opcional" className="h-9" />
+            <Select value={productName || '_none_'} onValueChange={v => setProductName(v === '_none_' ? '' : v)}>
+              <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_none_">Nenhum</SelectItem>
+                {productsList.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">Data de criação</Label>
@@ -359,6 +376,24 @@ export default function SopDetailPage() {
             <p className="text-sm pt-2">{sop.updated_at ? format(new Date(sop.updated_at), "dd MMM yyyy, HH:mm", { locale: pt }) : '—'}</p>
           </div>
         </div>
+
+        {/* Routine badge */}
+        {linkedRoutine && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge className="bg-violet-100 text-violet-800 border-violet-200 border text-xs px-3 py-1">
+              🔄 Rotina {linkedRoutine.recurrence_type === 'semanal'
+                ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][(linkedRoutine as any).weekday || 0]} feira`
+                : `Mensal — dia ${(linkedRoutine as any).month_day}`}
+              {(linkedRoutine as any).hour_time ? ` às ${String((linkedRoutine as any).hour_time).slice(0, 5)}` : ''}
+            </Badge>
+            {(linkedRoutine as any).role_function && (
+              <Badge variant="outline" className="text-xs">{(linkedRoutine as any).role_function}</Badge>
+            )}
+            <Badge variant={linkedRoutine.active ? 'default' : 'secondary'} className="text-[10px]">
+              {linkedRoutine.active ? 'Ativa' : 'Inativa'}
+            </Badge>
+          </div>
+        )}
 
         {/* Linked entity */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

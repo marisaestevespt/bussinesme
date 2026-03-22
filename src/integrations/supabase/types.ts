@@ -5554,6 +5554,7 @@ export type Database = {
           outputs: Json | null
           passos: Json | null
           product_name: string | null
+          routine_id: string | null
           sop_id: string
           status: string
           updated_at: string
@@ -5577,6 +5578,7 @@ export type Database = {
           outputs?: Json | null
           passos?: Json | null
           product_name?: string | null
+          routine_id?: string | null
           sop_id?: string
           status?: string
           updated_at?: string
@@ -5600,6 +5602,7 @@ export type Database = {
           outputs?: Json | null
           passos?: Json | null
           product_name?: string | null
+          routine_id?: string | null
           sop_id?: string
           status?: string
           updated_at?: string
@@ -5612,6 +5615,13 @@ export type Database = {
             columns: ["custom_role_id"]
             isOneToOne: false
             referencedRelation: "custom_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sops_routine_id_fkey"
+            columns: ["routine_id"]
+            isOneToOne: false
+            referencedRelation: "planning_routines"
             referencedColumns: ["id"]
           },
         ]
