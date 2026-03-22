@@ -154,6 +154,7 @@ export function usePlanningRoutines() {
     mutationFn: async (routine: {
       title: string;
       responsible: string | null;
+      role_function?: string | null;
       recurrence_type: string;
       weekday?: number | null;
       month_day?: number | null;
