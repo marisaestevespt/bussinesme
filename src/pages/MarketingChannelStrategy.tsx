@@ -284,6 +284,23 @@ export default function MarketingChannelStrategy() {
               </CardContent>
             </Card>
           </section>
+
+          <Separator />
+
+          {/* Notas livres */}
+          <section>
+            <h2 className="text-lg font-semibold text-foreground mb-3">Notas</h2>
+            <RichTextEditor
+              content={notes}
+              onChange={(val) => { setNotes(val); }}
+              editable={isOwner}
+            />
+            {isOwner && (
+              <Button variant="outline" size="sm" className="mt-3" onClick={() => saveDetail('notes', notes)}>
+                Guardar notas
+              </Button>
+            )}
+          </section>
         </div>
       </div>
     </AppLayout>
