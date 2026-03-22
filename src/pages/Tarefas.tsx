@@ -353,6 +353,10 @@ export default function TarefasPage() {
       toast.error('Preenche o nome e o prazo');
       return;
     }
+    if (isSubtask && (!parentTaskId || parentTaskId === 'none')) {
+      toast.error('Seleciona a tarefa principal');
+      return;
+    }
     // Block saving "Done" after deadline without notes
     const isChangingToDone = status === 'done' && editingTask?.status !== 'done';
     const deadlineDate = startOfDay(deadline);
