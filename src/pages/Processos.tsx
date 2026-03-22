@@ -337,7 +337,7 @@ export default function ProcessosPage() {
               <Label>Departamento</Label>
               <Select value={newSopDept} onValueChange={setNewSopDept}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
+                <SelectContent>{PROCESS_DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div>
