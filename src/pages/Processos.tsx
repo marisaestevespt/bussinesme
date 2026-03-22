@@ -532,32 +532,9 @@ export default function ProcessosPage() {
                 if (sopData?.id) {
                   navigate(`/hub/processos/${sopData.id}`);
                 }
-                queryClient.invalidateQueries({ queryKey: ['sops'] });
-
-                planningRoutines.createRoutine.mutate({
-                  title: prTitle,
-                  responsible: null,
-                  role_function: prRoleFunction || null,
-                  recurrence_type: prRecurrence,
-                  weekday: prRecurrence === 'semanal' ? Number(prWeekday) : null,
-                  month_day: prRecurrence === 'mensal' ? Number(prMonthDay) : null,
-                  adjust_to_business_day: prRecurrence === 'mensal' ? prAdjustBiz : true,
-                  hour_time: prHour || '09:00',
-                  created_by: user?.id,
-                  department: prDepartment || null,
-                } as any, {
-                  onSuccess: () => {
-                    setShowNewRoutineDialog(false);
-                    resetRoutineDialog();
-                    // Navigate to the SOP detail page so the user can edit the process
-                    if (sopData?.id) {
-                      navigate(`/hub/processos/${sopData.id}`);
-                    }
-                  },
-                });
               }}
             >
-              {planningRoutines.createRoutine.isPending ? 'A criar...' : 'Criar Rotina'}
+              Criar Rotina
             </Button>
           </div>
         </DialogContent>
