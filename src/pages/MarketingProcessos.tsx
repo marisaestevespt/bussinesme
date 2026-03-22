@@ -64,10 +64,10 @@ export default function MarketingProcessos() {
     },
   });
 
-  const { data: profiles = [] } = useQuery({
-    queryKey: ['profiles'],
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['team_members'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('*');
+      const { data } = await supabase.from('team_members').select('id, full_name, role_title, profile_id, photo_url').eq('status', 'ativo').order('full_name');
       return data || [];
     },
   });
