@@ -702,7 +702,9 @@ export default function TarefasPage() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {PRIORITIES.map(p => (
-                      <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                      <SelectItem key={p.value} value={p.value}>
+                        <Badge variant="outline" className={cn('text-xs border', p.color)}>{p.label}</Badge>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
