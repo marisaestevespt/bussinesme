@@ -131,6 +131,8 @@ export default function BibliotecaPage() {
     setCategory('outro');
     setContent('');
     setNewCategory('');
+    setFileUrl('');
+    setLinkUrl('');
   }
 
   function openEdit(doc: any) {
