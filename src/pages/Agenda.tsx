@@ -439,6 +439,22 @@ function EventFormDialog({
 
   const { data: existingMembers = [] } = useEventMembers(editEvent?.id);
 
+  const { data: productsList = [] } = useQuery({
+    queryKey: ['products-list-agenda'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('id, name').order('name');
+      return (data || []) as { id: string; name: string }[];
+    },
+  });
+
+  const { data: clientsList = [] } = useQuery({
+    queryKey: ['clients-list-agenda'],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients').select('id, full_name').order('full_name');
+      return (data || []) as { id: string; full_name: string }[];
+    },
+  });
+
   const [title, setTitle] = useState(editEvent?.title ?? '');
   const [eventTypeId, setEventTypeId] = useState(editEvent?.event_type_id ?? (types[0]?.id ?? ''));
   const [startDate, setStartDate] = useState<Date | undefined>(editEvent?.start_date ? parseISO(editEvent.start_date) : undefined);
@@ -568,7 +584,15 @@ function EventFormDialog({
           )}
           <div>
             <Label>Produto associado</Label>
-            <Input value={productName} onChange={e => setProductName(e.target.value)} placeholder="Opcional" />
+            <Select value={productName || '_none_'} onValueChange={v => setProductName(v === '_none_' ? '' : v)}>
+              <SelectTrigger><SelectValue placeholder="Selecionar produto..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_none_">Nenhum</SelectItem>
+                {productsList.map(p => (
+                  <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Departamento</Label>
@@ -583,7 +607,15 @@ function EventFormDialog({
           </div>
           <div>
             <Label>Cliente</Label>
-            <Input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Opcional" />
+            <Select value={clientName || '_none_'} onValueChange={v => setClientName(v === '_none_' ? '' : v)}>
+              <SelectTrigger><SelectValue placeholder="Selecionar cliente..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_none_">Nenhum</SelectItem>
+                {clientsList.map(c => (
+                  <SelectItem key={c.id} value={c.full_name}>{c.full_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label className="flex items-center gap-1.5">🔗 Link da reunião</Label>
