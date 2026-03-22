@@ -4157,6 +4157,7 @@ export type Database = {
           project_id: string | null
           recurrence_type: string
           responsible: string | null
+          role_function: string | null
           title: string
           weekday: number | null
         }
@@ -4172,6 +4173,7 @@ export type Database = {
           project_id?: string | null
           recurrence_type?: string
           responsible?: string | null
+          role_function?: string | null
           title: string
           weekday?: number | null
         }
@@ -4187,6 +4189,7 @@ export type Database = {
           project_id?: string | null
           recurrence_type?: string
           responsible?: string | null
+          role_function?: string | null
           title?: string
           weekday?: number | null
         }
