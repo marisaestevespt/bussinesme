@@ -76,6 +76,8 @@ export default function MarketingProcessos() {
     },
   });
 
+  const existingRoles = [...new Set(teamMembers.map(m => m.role_title).filter(Boolean))] as string[];
+
   const mktSops = sops.filter(s => s.department === DEPT);
   const routinesData = planningRoutines.routines.data || [];
 
