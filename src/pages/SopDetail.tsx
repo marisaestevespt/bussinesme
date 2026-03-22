@@ -377,7 +377,7 @@ export default function SopDetailPage() {
           </div>
         </div>
 
-        {/* Routine badge */}
+        {/* Routine info */}
         {linkedRoutine && (
           <div className="flex items-center gap-2 flex-wrap">
             <Badge className="bg-violet-100 text-violet-800 border-violet-200 border text-xs px-3 py-1">
@@ -386,9 +386,6 @@ export default function SopDetailPage() {
                 : `Mensal — dia ${(linkedRoutine as any).month_day}`}
               {(linkedRoutine as any).hour_time ? ` às ${String((linkedRoutine as any).hour_time).slice(0, 5)}` : ''}
             </Badge>
-            {(linkedRoutine as any).role_function && (
-              <Badge variant="outline" className="text-xs">{(linkedRoutine as any).role_function}</Badge>
-            )}
             <Badge variant={linkedRoutine.active ? 'default' : 'secondary'} className="text-[10px]">
               {linkedRoutine.active ? 'Ativa' : 'Inativa'}
             </Badge>
