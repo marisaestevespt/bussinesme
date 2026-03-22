@@ -99,7 +99,7 @@ export default function MarketingProcessos() {
   });
 
   function resetRoutineDialog() {
-    setPrTitle(''); setPrResponsible(''); setPrRecurrence('semanal'); setPrWeekday('1'); setPrMonthDay('1'); setPrAdjustBiz(true);
+    setPrTitle(''); setPrRoleFunction(''); setPrRoleCustom(''); setPrRecurrence('semanal'); setPrWeekday('1'); setPrMonthDay('1'); setPrAdjustBiz(true);
   }
 
   return (
