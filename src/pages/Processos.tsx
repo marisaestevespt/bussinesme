@@ -372,7 +372,13 @@ export default function ProcessosPage() {
                 <Label>Responsável</Label>
                 <Select value={prResponsible} onValueChange={setPrResponsible}>
                   <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
-                  <SelectContent>{profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}</SelectContent>
+                  <SelectContent>
+                    {teamMembers.map(m => (
+                      <SelectItem key={m.id} value={m.profile_id || m.id}>
+                        {m.full_name}{m.role_title ? ` — ${m.role_title}` : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </div>
               <div>
