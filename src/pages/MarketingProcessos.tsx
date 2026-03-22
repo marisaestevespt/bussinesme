@@ -52,7 +52,9 @@ export default function MarketingProcessos() {
   // Routine dialog state
   const [showNewRoutineDialog, setShowNewRoutineDialog] = useState(false);
   const [prTitle, setPrTitle] = useState('');
-  const [prResponsible, setPrResponsible] = useState('');
+  const [prRoleFunction, setPrRoleFunction] = useState('');
+  const [prRoleCustom, setPrRoleCustom] = useState('');
+  const [prRoleOpen, setPrRoleOpen] = useState(false);
   const [prRecurrence, setPrRecurrence] = useState<'semanal' | 'mensal'>('semanal');
   const [prWeekday, setPrWeekday] = useState('1');
   const [prMonthDay, setPrMonthDay] = useState('1');
