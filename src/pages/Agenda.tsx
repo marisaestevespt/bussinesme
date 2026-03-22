@@ -43,16 +43,7 @@ const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
   { value: 'mensal_primeiro', label: '1º dia de cada mês' },
 ];
 
-const DEPARTMENTS = [
-  { value: 'administrativo', label: 'Administrativo' },
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'comercial', label: 'Comercial' },
-  { value: 'financeiro', label: 'Financeiro' },
-  { value: 'customer_success', label: 'Customer Success' },
-  { value: 'operacoes', label: 'Operações' },
-  { value: 'produto_servico', label: 'Produto/Serviço' },
-  { value: 'recursos_humanos', label: 'Pessoas' },
-];
+const DEPARTMENTS = SHARED_DEPARTMENTS.map(d => ({ value: d.value, label: d.label }));
 interface Attachment { id: string; event_id: string; type: string; name: string; url: string; }
 interface Profile { id: string; user_id: string; full_name: string | null; avatar_url: string | null; role_title: string | null; }
 interface EventMember { id: string; event_id: string; profile_id: string; }
