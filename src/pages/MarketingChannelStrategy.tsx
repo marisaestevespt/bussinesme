@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/RichTextEditor';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { ChevronLeft, Plus, Trash2 } from 'lucide-react';
@@ -34,7 +35,7 @@ export default function MarketingChannelStrategy() {
     queryKey: ['strategy-channel-detail', channelId],
     queryFn: async () => {
       const { data } = await supabase.from('strategy_channel_details').select('*').eq('channel_id', channelId!).maybeSingle() as any;
-      return data as { id: string; positioning: string | null; periodicity: string | null } | null;
+      return data as { id: string; positioning: string | null; periodicity: string | null; notes: string | null } | null;
     },
     enabled: !!channelId,
   });
@@ -60,11 +61,13 @@ export default function MarketingChannelStrategy() {
   // Local state
   const [positioning, setPositioning] = useState('');
   const [periodicity, setPeriodicity] = useState('');
+  const [notes, setNotes] = useState('');
 
   useEffect(() => {
     if (detail) {
       setPositioning(detail.positioning || '');
       setPeriodicity(detail.periodicity || '');
+      setNotes(detail.notes || '');
     }
   }, [detail]);
 
@@ -280,6 +283,23 @@ export default function MarketingChannelStrategy() {
                 </table>
               </CardContent>
             </Card>
+          </section>
+
+          <Separator />
+
+          {/* Notas livres */}
+          <section>
+            <h2 className="text-lg font-semibold text-foreground mb-3">Notas</h2>
+            <RichTextEditor
+              content={notes}
+              onChange={(val) => { setNotes(val); }}
+              editable={isOwner}
+            />
+            {isOwner && (
+              <Button variant="outline" size="sm" className="mt-3" onClick={() => saveDetail('notes', notes)}>
+                Guardar notas
+              </Button>
+            )}
           </section>
         </div>
       </div>

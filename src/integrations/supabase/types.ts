@@ -5631,6 +5631,7 @@ export type Database = {
           channel_id: string
           created_at: string
           id: string
+          notes: string | null
           periodicity: string | null
           positioning: string | null
           updated_at: string
@@ -5639,6 +5640,7 @@ export type Database = {
           channel_id: string
           created_at?: string
           id?: string
+          notes?: string | null
           periodicity?: string | null
           positioning?: string | null
           updated_at?: string
@@ -5647,6 +5649,7 @@ export type Database = {
           channel_id?: string
           created_at?: string
           id?: string
+          notes?: string | null
           periodicity?: string | null
           positioning?: string | null
           updated_at?: string
