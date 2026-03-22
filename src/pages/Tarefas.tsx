@@ -76,7 +76,7 @@ function getPriorityInfo(val: string) {
   return PRIORITIES.find(p => p.value === val) || PRIORITIES[2];
 }
 function getDeptInfo(val: string) {
-  return TASK_DEPARTMENTS.find(d => d.value === val);
+  return PROCESS_DEPARTMENTS.find(d => d.value === val);
 }
 
 // ─── Main Page ──────────────────────────────────────────────────
