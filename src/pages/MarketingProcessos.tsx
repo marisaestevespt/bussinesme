@@ -272,17 +272,35 @@ export default function MarketingProcessos() {
               <Input value={prTitle} onChange={e => setPrTitle(e.target.value)} placeholder="Ex: Publicar stories" />
             </div>
             <div>
-              <Label>Responsável</Label>
-              <Select value={prResponsible} onValueChange={setPrResponsible}>
-                <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
-                <SelectContent>
-                  {teamMembers.map(m => (
-                    <SelectItem key={m.id} value={m.profile_id || m.id}>
-                      {m.full_name}{m.role_title ? ` — ${m.role_title}` : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Função responsável</Label>
+              <Popover open={prRoleOpen} onOpenChange={setPrRoleOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start font-normal">
+                    {prRoleFunction || <span className="text-muted-foreground">Selecionar ou criar...</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[280px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Pesquisar ou criar função..." value={prRoleCustom} onValueChange={setPrRoleCustom} />
+                    <CommandList>
+                      <CommandEmpty>
+                        {prRoleCustom.trim() && (
+                          <button className="w-full text-left px-3 py-2 text-sm hover:bg-accent rounded" onClick={() => { setPrRoleFunction(prRoleCustom.trim()); setPrRoleOpen(false); }}>
+                            Criar "<strong>{prRoleCustom.trim()}</strong>"
+                          </button>
+                        )}
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {existingRoles.map(role => (
+                          <CommandItem key={role} value={role} onSelect={() => { setPrRoleFunction(role); setPrRoleCustom(''); setPrRoleOpen(false); }}>
+                            {role}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
             <div>
               <Label>Tipo de recorrência</Label>
