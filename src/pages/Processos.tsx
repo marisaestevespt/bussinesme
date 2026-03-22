@@ -119,7 +119,7 @@ export default function ProcessosPage() {
   });
 
   function resetRoutineDialog() {
-    setPrTitle(''); setPrResponsible(''); setPrRecurrence('semanal'); setPrWeekday('1'); setPrMonthDay('1'); setPrAdjustBiz(true); setPrHour('09:00'); setPrDepartment(''); setPrCreateProject(true);
+    setPrTitle(''); setPrRoleFunction(''); setPrRoleCustom(''); setPrRecurrence('semanal'); setPrWeekday('1'); setPrMonthDay('1'); setPrAdjustBiz(true); setPrHour('09:00'); setPrDepartment(''); setPrCreateProject(true);
   }
 
   // ─── Derived data ────────────────────────────────────────────
