@@ -23,11 +23,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { MODULES } from '@/lib/modules';
-
-const DEPARTMENTS = Object.entries(MODULES)
-  .filter(([, v]) => v.section === 'departamentos')
-  .map(([key, v]) => ({ value: key, label: v.label }));
+import { DEPARTMENTS } from '@/lib/departments';
 
 // ─── Types ──────────────────────────────────────────────────────
 
