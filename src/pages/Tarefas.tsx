@@ -600,7 +600,7 @@ export default function TarefasPage() {
                   )}
                 </PopoverContent>
               </Popover>
-              {filterDept && <Badge variant="secondary" className="text-xs gap-1">{TASK_DEPARTMENTS.find(d => d.value === filterDept)?.label} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterDept('')} /></Badge>}
+              {filterDept && <Badge variant="secondary" className="text-xs gap-1">{PROCESS_DEPARTMENTS.find(d => d.value === filterDept)?.label || filterDept} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterDept('')} /></Badge>}
               {filterResponsible && <Badge variant="secondary" className="text-xs gap-1">{profiles.find(p => p.id === filterResponsible)?.full_name} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterResponsible('')} /></Badge>}
               {filterPriority && <Badge variant="secondary" className="text-xs gap-1">{PRIORITIES.find(p => p.value === filterPriority)?.label} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterPriority('')} /></Badge>}
               {filterProject && <Badge variant="secondary" className="text-xs gap-1">{projects.find(p => p.id === filterProject)?.name} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterProject('')} /></Badge>}
