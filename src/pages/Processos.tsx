@@ -492,6 +492,17 @@ export default function ProcessosPage() {
                   const recLabel = prRecurrence === 'semanal'
                     ? `Semanal (${['', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'][Number(prWeekday)]})`
                     : `Mensal (dia ${prMonthDay})`;
+
+                  // Create SOP in sops table so it appears on the Processos page
+                  const { data: sopData } = await supabase.from('sops').insert({
+                    name: prTitle,
+                    department: prDepartment || null,
+                    status: 'ativo',
+                    created_by: user?.id,
+                    product_name: `Rotina ${recLabel} às ${prHour || '09:00'}`,
+                  } as any).select('id').single();
+
+                  // Also create project in projects table
                   const { data: proj, error } = await supabase.from('projects').insert({
                     name: prTitle,
                     type: 'rotina',
@@ -504,6 +515,7 @@ export default function ProcessosPage() {
                     projectId = proj.id;
                     queryClient.invalidateQueries({ queryKey: ['projects'] });
                   }
+                  queryClient.invalidateQueries({ queryKey: ['sops'] });
                 }
 
                 planningRoutines.createRoutine.mutate({
