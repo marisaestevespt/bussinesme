@@ -1,0 +1,1 @@
+ALTER TABLE public.strategy_channel_details ADD COLUMN IF NOT EXISTS notes text;
