@@ -64,10 +64,10 @@ export default function MarketingProcessos() {
     },
   });
 
-  const { data: profiles = [] } = useQuery({
-    queryKey: ['profiles'],
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['team_members'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('*');
+      const { data } = await supabase.from('team_members').select('id, full_name, role_title, profile_id, photo_url').eq('status', 'ativo').order('full_name');
       return data || [];
     },
   });
@@ -269,7 +269,13 @@ export default function MarketingProcessos() {
               <Label>Responsável</Label>
               <Select value={prResponsible} onValueChange={setPrResponsible}>
                 <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
-                <SelectContent>{profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}</SelectContent>
+                <SelectContent>
+                  {teamMembers.map(m => (
+                    <SelectItem key={m.id} value={m.profile_id || m.id}>
+                      {m.full_name}{m.role_title ? ` — ${m.role_title}` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
             <div>
