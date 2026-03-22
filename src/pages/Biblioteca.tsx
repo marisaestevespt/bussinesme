@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, FileText, Trash2, Pencil, Search } from 'lucide-react';
+import { Plus, FileText, Trash2, Pencil, Search, Upload, Link2, ExternalLink, Download } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -44,6 +44,9 @@ export default function BibliotecaPage() {
   const [content, setContent] = useState('');
   const [search, setSearch] = useState('');
   const [newCategory, setNewCategory] = useState('');
+  const [fileUrl, setFileUrl] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
 
   const { data: documents = [] } = useQuery({
     queryKey: ['internal_documents'],
@@ -78,8 +81,10 @@ export default function BibliotecaPage() {
 
   const createDoc = useMutation({
     mutationFn: async () => {
+      const finalUrl = fileUrl || linkUrl || null;
+      const docType = fileUrl ? 'ficheiro' : linkUrl ? 'link' : 'texto';
       const { error } = await supabase.from('internal_documents').insert({
-        title, category, content, created_by: user?.id,
+        title, category, content, created_by: user?.id, file_url: finalUrl, doc_type: docType,
       });
       if (error) throw error;
     },
@@ -94,8 +99,10 @@ export default function BibliotecaPage() {
 
   const updateDoc = useMutation({
     mutationFn: async () => {
+      const finalUrl = fileUrl || linkUrl || null;
+      const docType = fileUrl ? 'ficheiro' : linkUrl ? 'link' : 'texto';
       const { error } = await supabase.from('internal_documents')
-        .update({ title, category, content })
+        .update({ title, category, content, file_url: finalUrl, doc_type: docType })
         .eq('id', editingDoc.id);
       if (error) throw error;
     },
@@ -124,6 +131,8 @@ export default function BibliotecaPage() {
     setCategory('outro');
     setContent('');
     setNewCategory('');
+    setFileUrl('');
+    setLinkUrl('');
   }
 
   function openEdit(doc: any) {
@@ -132,6 +141,22 @@ export default function BibliotecaPage() {
     setCategory(doc.category);
     setContent(doc.content || '');
     setNewCategory('');
+    setFileUrl(doc.doc_type === 'ficheiro' ? (doc.file_url || '') : '');
+    setLinkUrl(doc.doc_type === 'link' ? (doc.file_url || '') : '');
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const ext = file.name.split('.').pop();
+    const path = `${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from('library-files').upload(path, file);
+    if (error) { toast.error('Erro ao fazer upload'); setUploading(false); return; }
+    const { data: urlData } = supabase.storage.from('library-files').getPublicUrl(path);
+    setFileUrl(urlData.publicUrl);
+    setUploading(false);
+    toast.success('Ficheiro carregado');
   }
 
   function handleAddCategory() {
@@ -163,6 +188,34 @@ export default function BibliotecaPage() {
         <Button variant="outline" size="sm" className="h-8 shrink-0" onClick={handleAddCategory} disabled={!newCategory.trim()}>
           <Plus className="h-3.5 w-3.5" />
         </Button>
+      </div>
+    </div>
+  );
+
+  const fileAndLinkFields = (
+    <div className="space-y-3">
+      <div>
+        <Label className="flex items-center gap-1.5"><Upload className="h-3.5 w-3.5" /> Ficheiro</Label>
+        {fileUrl ? (
+          <div className="flex items-center gap-2 mt-1 p-2 rounded-md bg-muted/30 border border-border/50 text-sm">
+            <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+            <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="truncate text-primary hover:underline flex-1">
+              {fileUrl.split('/').pop()}
+            </a>
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 shrink-0" onClick={() => setFileUrl('')}>
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </div>
+        ) : (
+          <div className="mt-1">
+            <Input type="file" onChange={handleFileUpload} disabled={uploading} className="h-9 text-sm" />
+            {uploading && <p className="text-xs text-muted-foreground mt-1">A carregar...</p>}
+          </div>
+        )}
+      </div>
+      <div>
+        <Label className="flex items-center gap-1.5"><Link2 className="h-3.5 w-3.5" /> Link externo</Label>
+        <Input value={linkUrl} onChange={e => setLinkUrl(e.target.value)} placeholder="https://..." className="mt-1" />
       </div>
     </div>
   );
@@ -211,6 +264,7 @@ export default function BibliotecaPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Documento</TableHead>
+                  <TableHead>Tipo</TableHead>
                   <TableHead>Categoria</TableHead>
                   <TableHead>Data de Criação</TableHead>
                   <TableHead>Última Atualização</TableHead>
@@ -229,6 +283,15 @@ export default function BibliotecaPage() {
                         <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="font-medium">{doc.title}</span>
                       </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {doc.file_url ? (
+                        <a href={doc.file_url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="inline-flex items-center gap-1 text-primary hover:underline">
+                          {doc.doc_type === 'link' ? <><ExternalLink className="h-3.5 w-3.5" /> Link</> : <><Download className="h-3.5 w-3.5" /> Ficheiro</>}
+                        </a>
+                      ) : (
+                        <span>Texto</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">{getCategoryLabel(doc.category)}</TableCell>
                     <TableCell className="text-muted-foreground text-sm">
@@ -267,6 +330,7 @@ export default function BibliotecaPage() {
               <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Guia de Cultura" />
             </div>
             {categorySelector}
+            {fileAndLinkFields}
             <div>
               <Label>Conteúdo</Label>
               <RichTextEditor content={content} onChange={setContent} />
@@ -288,6 +352,7 @@ export default function BibliotecaPage() {
               <Input value={title} onChange={e => setTitle(e.target.value)} />
             </div>
             {categorySelector}
+            {fileAndLinkFields}
             <div>
               <Label>Conteúdo</Label>
               <RichTextEditor content={content} onChange={setContent} editable={isOwner} />
