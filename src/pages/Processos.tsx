@@ -486,21 +486,19 @@ export default function ProcessosPage() {
               className="w-full"
               disabled={!prTitle.trim() || planningRoutines.createRoutine.isPending}
               onClick={async () => {
-                if (prCreateProject) {
-                  const recLabel = prRecurrence === 'semanal'
-                    ? `Semanal (${['', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'][Number(prWeekday)]})`
-                    : `Mensal (dia ${prMonthDay})`;
+                const recLabel = prRecurrence === 'semanal'
+                  ? `Semanal (${['', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'][Number(prWeekday)]})`
+                  : `Mensal (dia ${prMonthDay})`;
 
-                  // Create SOP in sops table so it appears on the Processos page
-                  await supabase.from('sops').insert({
-                    name: prTitle,
-                    department: prDepartment || null,
-                    status: 'ativo',
-                    created_by: user?.id,
-                    product_name: `Rotina ${recLabel} às ${prHour || '09:00'}`,
-                  } as any);
-                  queryClient.invalidateQueries({ queryKey: ['sops'] });
-                }
+                // Always create SOP so the process page exists
+                const { data: sopData } = await supabase.from('sops').insert({
+                  name: prTitle,
+                  department: prDepartment || null,
+                  status: 'ativo',
+                  created_by: user?.id,
+                  product_name: `Rotina ${recLabel} às ${prHour || '09:00'}`,
+                } as any).select('id').single();
+                queryClient.invalidateQueries({ queryKey: ['sops'] });
 
                 planningRoutines.createRoutine.mutate({
                   title: prTitle,
@@ -517,6 +515,10 @@ export default function ProcessosPage() {
                   onSuccess: () => {
                     setShowNewRoutineDialog(false);
                     resetRoutineDialog();
+                    // Navigate to the SOP detail page so the user can edit the process
+                    if (sopData?.id) {
+                      navigate(`/hub/processos/${sopData.id}`);
+                    }
                   },
                 });
               }}
