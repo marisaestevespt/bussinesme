@@ -141,6 +141,22 @@ export default function BibliotecaPage() {
     setCategory(doc.category);
     setContent(doc.content || '');
     setNewCategory('');
+    setFileUrl(doc.doc_type === 'ficheiro' ? (doc.file_url || '') : '');
+    setLinkUrl(doc.doc_type === 'link' ? (doc.file_url || '') : '');
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const ext = file.name.split('.').pop();
+    const path = `${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from('library-files').upload(path, file);
+    if (error) { toast.error('Erro ao fazer upload'); setUploading(false); return; }
+    const { data: urlData } = supabase.storage.from('library-files').getPublicUrl(path);
+    setFileUrl(urlData.publicUrl);
+    setUploading(false);
+    toast.success('Ficheiro carregado');
   }
 
   function handleAddCategory() {
