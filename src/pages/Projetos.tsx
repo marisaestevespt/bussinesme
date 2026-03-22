@@ -442,20 +442,18 @@ export default function ProjetosPage() {
                   <Label>Data de Fim</Label>
                   <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !fDeadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{fDeadline ? format(fDeadline, 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={fDeadline} onSelect={setFDeadline} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
                 </div>
-                {(fType === 'servico' || fType === 'cliente_servico_mensal' || fType === 'cliente_projeto_unico') && (
-                  <div className="space-y-1.5">
-                    <Label>Cliente associado</Label>
-                    <Select value={fClient || '_none_'} onValueChange={v => setFClient(v === '_none_' ? '' : v)}>
-                      <SelectTrigger><SelectValue placeholder="Selecionar cliente..." /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="_none_">Nenhum</SelectItem>
-                        {allClients.map(c => (
-                          <SelectItem key={c.id} value={c.full_name}>{c.full_name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label>Cliente associado</Label>
+                <Select value={fClient || '_none_'} onValueChange={v => setFClient(v === '_none_' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar cliente..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none_">Nenhum</SelectItem>
+                    {allClients.map(c => (
+                      <SelectItem key={c.id} value={c.full_name}>{c.full_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <MemberPicker selected={fMembers} onChange={setFMembers} profiles={profiles} />
               <div className="space-y-1.5">
