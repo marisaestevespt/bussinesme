@@ -165,6 +165,17 @@ export default function SopDetailPage() {
     enabled: !!id,
   });
 
+  // Fetch linked routine if exists
+  const routineId = (sop as any)?.routine_id;
+  const { data: linkedRoutine } = useQuery({
+    queryKey: ['linked-routine', routineId],
+    queryFn: async () => {
+      const { data } = await supabase.from('planning_routines').select('*').eq('id', routineId).single();
+      return data;
+    },
+    enabled: !!routineId,
+  });
+
   const { data: roles = [] } = useQuery({
     queryKey: ['custom_roles'],
     queryFn: async () => {
