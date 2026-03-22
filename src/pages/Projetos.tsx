@@ -433,27 +433,27 @@ export default function ProjetosPage() {
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Data de Início</Label>
-                  <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !fStartDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{fStartDate ? format(fStartDate, 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={fStartDate} onSelect={setFStartDate} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+                  <Label>Cliente associado</Label>
+                  <Select value={fClient || '_none_'} onValueChange={v => setFClient(v === '_none_' ? '' : v)}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar cliente..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="_none_">Nenhum</SelectItem>
+                      {allClients.map(c => (
+                        <SelectItem key={c.id} value={c.full_name}>{c.full_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
+                  <Label>Data de Início</Label>
+                  <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !fStartDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{fStartDate ? format(fStartDate, 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={fStartDate} onSelect={setFStartDate} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+                </div>
+                <div className="space-y-1.5">
                   <Label>Data de Fim</Label>
                   <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !fDeadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{fDeadline ? format(fDeadline, 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={fDeadline} onSelect={setFDeadline} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
                 </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Cliente associado</Label>
-                <Select value={fClient || '_none_'} onValueChange={v => setFClient(v === '_none_' ? '' : v)}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar cliente..." /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="_none_">Nenhum</SelectItem>
-                    {allClients.map(c => (
-                      <SelectItem key={c.id} value={c.full_name}>{c.full_name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
               <MemberPicker selected={fMembers} onChange={setFMembers} profiles={profiles} />
               <div className="space-y-1.5">
