@@ -330,6 +330,7 @@ export default function BibliotecaPage() {
               <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Guia de Cultura" />
             </div>
             {categorySelector}
+            {fileAndLinkFields}
             <div>
               <Label>Conteúdo</Label>
               <RichTextEditor content={content} onChange={setContent} />
