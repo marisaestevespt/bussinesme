@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/RichTextEditor';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { ChevronLeft, Plus, Trash2 } from 'lucide-react';
