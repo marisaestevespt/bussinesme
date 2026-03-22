@@ -192,6 +192,34 @@ export default function BibliotecaPage() {
     </div>
   );
 
+  const fileAndLinkFields = (
+    <div className="space-y-3">
+      <div>
+        <Label className="flex items-center gap-1.5"><Upload className="h-3.5 w-3.5" /> Ficheiro</Label>
+        {fileUrl ? (
+          <div className="flex items-center gap-2 mt-1 p-2 rounded-md bg-muted/30 border border-border/50 text-sm">
+            <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+            <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="truncate text-primary hover:underline flex-1">
+              {fileUrl.split('/').pop()}
+            </a>
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 shrink-0" onClick={() => setFileUrl('')}>
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </div>
+        ) : (
+          <div className="mt-1">
+            <Input type="file" onChange={handleFileUpload} disabled={uploading} className="h-9 text-sm" />
+            {uploading && <p className="text-xs text-muted-foreground mt-1">A carregar...</p>}
+          </div>
+        )}
+      </div>
+      <div>
+        <Label className="flex items-center gap-1.5"><Link2 className="h-3.5 w-3.5" /> Link externo</Label>
+        <Input value={linkUrl} onChange={e => setLinkUrl(e.target.value)} placeholder="https://..." className="mt-1" />
+      </div>
+    </div>
+  );
+
   return (
     <AppLayout>
       <div className="space-y-6">
