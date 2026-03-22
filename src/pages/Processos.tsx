@@ -512,6 +512,27 @@ export default function ProcessosPage() {
                 const { generateTasksForRoutine } = await import('@/hooks/usePlanningRoutines');
                 await generateTasksForRoutine(routineResult as any, new Date().getFullYear());
 
+                // Find or create custom_role for the function
+                let customRoleId: string | null = null;
+                if (prRoleFunction) {
+                  const { data: existingRole } = await supabase
+                    .from('custom_roles')
+                    .select('id')
+                    .eq('name', prRoleFunction)
+                    .single();
+                  
+                  if (existingRole) {
+                    customRoleId = existingRole.id;
+                  } else {
+                    const { data: newRole } = await supabase
+                      .from('custom_roles')
+                      .insert({ name: prRoleFunction } as any)
+                      .select('id')
+                      .single();
+                    if (newRole) customRoleId = newRole.id;
+                  }
+                }
+
                 // Create SOP linked to the routine
                 const { data: sopData } = await supabase.from('sops').insert({
                   name: prTitle,
@@ -519,6 +540,7 @@ export default function ProcessosPage() {
                   status: 'ativo',
                   created_by: user?.id,
                   routine_id: routineResult.id,
+                  custom_role_id: customRoleId,
                 } as any).select('id').single();
                 
                 queryClient.invalidateQueries({ queryKey: ['sops'] });
