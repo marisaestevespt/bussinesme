@@ -559,7 +559,7 @@ export default function TarefasPage() {
                       <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="_all">Todos</SelectItem>
-                        {TASK_DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+                        {PROCESS_DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
