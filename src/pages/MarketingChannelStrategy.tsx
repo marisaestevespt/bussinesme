@@ -35,7 +35,7 @@ export default function MarketingChannelStrategy() {
     queryKey: ['strategy-channel-detail', channelId],
     queryFn: async () => {
       const { data } = await supabase.from('strategy_channel_details').select('*').eq('channel_id', channelId!).maybeSingle() as any;
-      return data as { id: string; positioning: string | null; periodicity: string | null } | null;
+      return data as { id: string; positioning: string | null; periodicity: string | null; notes: string | null } | null;
     },
     enabled: !!channelId,
   });
