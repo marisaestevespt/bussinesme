@@ -105,6 +105,7 @@ export default function TarefasPage() {
   const [notes, setNotes] = useState('');
   const [parentTaskId, setParentTaskId] = useState('');
   const [dependsOnIds, setDependsOnIds] = useState<string[]>([]);
+  const [isSubtask, setIsSubtask] = useState(false);
   const [recurrenceType, setRecurrenceType] = useState('');
   const [recurrenceEnd, setRecurrenceEnd] = useState<Date | undefined>();
   const [estimatedTime, setEstimatedTime] = useState('');
@@ -241,7 +242,7 @@ export default function TarefasPage() {
     setEditingTask(null);
     setName(''); setStatus('por_comecar'); setPriority('alta');
     setDeadline(undefined); setAssignedTo(''); setDepartment(''); setProjectId(''); setNotes('');
-    setParentTaskId(''); setDependsOnIds([]); setRecurrenceType(''); setRecurrenceEnd(undefined);
+    setParentTaskId(''); setDependsOnIds([]); setIsSubtask(false); setRecurrenceType(''); setRecurrenceEnd(undefined);
     setEstimatedTime(''); setSuggestion(null); setSuggestionDismissed(false);
     setDialogOpen(true);
   }
@@ -253,6 +254,7 @@ export default function TarefasPage() {
     setAssignedTo(task.assigned_to || ''); setDepartment(task.department || '');
     setProjectId(task.project_id || ''); setNotes(task.notes || '');
     setParentTaskId(task.parent_task_id || '');
+    setIsSubtask(!!task.parent_task_id);
     setRecurrenceType(task.recurrence_type || '');
     setRecurrenceEnd(task.recurrence_end ? parseISO(task.recurrence_end) : undefined);
     setEstimatedTime(task.estimated_time != null ? String(task.estimated_time) : '');
@@ -807,8 +809,9 @@ export default function TarefasPage() {
             <div className="flex items-center gap-2">
               <Checkbox
                 id="is-subtask"
-                checked={!!parentTaskId && parentTaskId !== 'none'}
+                checked={isSubtask}
                 onCheckedChange={(checked) => {
+                  setIsSubtask(!!checked);
                   if (!checked) {
                     setParentTaskId('');
                     setDependsOnIds([]);
@@ -818,8 +821,7 @@ export default function TarefasPage() {
               <Label htmlFor="is-subtask" className="text-sm cursor-pointer">Esta é uma subtarefa?</Label>
             </div>
 
-            {/* Show parent + depends fields when checkbox is checked OR when editing a task that already has a parent */}
-            {((!!parentTaskId && parentTaskId !== 'none') || (editingTask && editingTask.parent_task_id)) && (
+            {isSubtask && (
               <div className="space-y-4 pl-4 border-l-2 border-primary/20">
                 {/* Parent task */}
                 <div>
