@@ -223,6 +223,9 @@ export function usePlanningRoutines() {
         .neq('status', 'concluida')
         .gte('deadline', todayStr);
 
+      // Delete associated SOP
+      await supabase.from('sops').delete().eq('routine_id', id);
+
       const { error } = await supabase.from('planning_routines').delete().eq('id', id);
       if (error) throw error;
     },
