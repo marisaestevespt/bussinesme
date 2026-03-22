@@ -37,26 +37,26 @@ export function OfferCalculator({ vatRate }: Props) {
   const taxPercent = parseFloat(taxRate) || 0;
   const marginPercent = parseFloat(desiredMargin) || 0;
 
-  // Tax on income (simplified: applies to profit)
-  // Minimum price = costs / (1 - tax% - margin%)
-  // But simpler: minPrice base = costs / (1 - marginPercent/100) then add tax on the profit
-  const effectiveRate = 1 - (marginPercent / 100);
-  const minPriceBase = effectiveRate > 0 ? totalCosts / effectiveRate : totalCosts;
-  const profitAtMin = minPriceBase - totalCosts;
-  const taxOnProfitAtMin = profitAtMin * (taxPercent / 100);
-  const minPriceWithTax = totalCosts + profitAtMin + taxOnProfitAtMin;
-  const minPriceWithVat = minPriceWithTax * (1 + vatPercent / 100);
+  // Preço base s/ IVA = custos / (1 - margem%)
+  const marginFactor = 1 - (marginPercent / 100);
+  const minPriceBase = marginFactor > 0 ? totalCosts / marginFactor : totalCosts;
+  // Preço após impostos = base / (1 - impostos%)
+  const taxFactor = 1 - (taxPercent / 100);
+  const minPriceAfterTax = taxFactor > 0 ? minPriceBase / taxFactor : minPriceBase;
+  // Preço final c/ IVA
+  const minPriceWithVat = minPriceAfterTax * (1 + vatPercent / 100);
 
-  // Absolute floor: just costs + taxes on zero margin
+  // Absolute floor: just costs + IVA
   const floorPrice = totalCosts * (1 + vatPercent / 100);
 
-  // Test price analysis
+  // Test price analysis — reverse the chain
   const testVal = parseFloat(testPrice) || 0;
-  const testBase = vatPercent > 0 ? testVal / (1 + vatPercent / 100) : testVal;
+  const testAfterVat = testVal / (1 + vatPercent / 100);       // remove IVA
+  const testBase = testAfterVat * (taxFactor > 0 ? taxFactor : 1); // remove impostos → preço base
   const testProfit = testBase - totalCosts;
   const testTax = testProfit > 0 ? testProfit * (taxPercent / 100) : 0;
   const testNetProfit = testProfit - testTax;
-  const testMargin = testBase > 0 ? (testNetProfit / testBase) * 100 : 0;
+  const testMargin = testBase > 0 ? ((testBase - totalCosts) / testBase) * 100 : 0;
 
   const getVerdict = () => {
     if (testVal <= 0) return null;
