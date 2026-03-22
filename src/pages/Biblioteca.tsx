@@ -44,6 +44,9 @@ export default function BibliotecaPage() {
   const [content, setContent] = useState('');
   const [search, setSearch] = useState('');
   const [newCategory, setNewCategory] = useState('');
+  const [fileUrl, setFileUrl] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
 
   const { data: documents = [] } = useQuery({
     queryKey: ['internal_documents'],
