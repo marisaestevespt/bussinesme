@@ -510,7 +510,7 @@ export default function ProcessosPage() {
                   title: prTitle,
                   responsible: null,
                   role_function: prRoleFunction || null,
-                  weekday: prRecurrence === 'semanal' ? Number(prWeekday) : null,
+                  recurrence_type: prRecurrence,
                   month_day: prRecurrence === 'mensal' ? Number(prMonthDay) : null,
                   adjust_to_business_day: prRecurrence === 'mensal' ? prAdjustBiz : true,
                   hour_time: prHour || '09:00',
