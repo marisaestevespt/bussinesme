@@ -1137,7 +1137,7 @@ function TaskTable({
                 <TableCell className="text-sm">{getProfileName(task.assigned_to)}</TableCell>
                 <TableCell>
                   {deptInfo ? (
-                    <Badge variant="outline" className={cn('text-xs', deptInfo.color)}>{deptInfo.label}</Badge>
+                    <Badge variant="outline" className="text-xs">{deptInfo.icon} {deptInfo.label}</Badge>
                   ) : '—'}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">{getProjectName(task.project_id) || '—'}</TableCell>
