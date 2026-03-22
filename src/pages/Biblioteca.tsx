@@ -81,8 +81,10 @@ export default function BibliotecaPage() {
 
   const createDoc = useMutation({
     mutationFn: async () => {
+      const finalUrl = fileUrl || linkUrl || null;
+      const docType = fileUrl ? 'ficheiro' : linkUrl ? 'link' : 'texto';
       const { error } = await supabase.from('internal_documents').insert({
-        title, category, content, created_by: user?.id,
+        title, category, content, created_by: user?.id, file_url: finalUrl, doc_type: docType,
       });
       if (error) throw error;
     },
