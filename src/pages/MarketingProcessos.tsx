@@ -166,7 +166,6 @@ export default function MarketingProcessos() {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {routinesData.map((pr: any) => {
-                      const assignee = pr.profiles;
                       const hourLabel = pr.hour_time ? ` às ${pr.hour_time.slice(0, 5)}` : '';
                       const recLabel = pr.recurrence_type === 'semanal'
                         ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][pr.weekday || 0]} feira${hourLabel}`
@@ -177,9 +176,14 @@ export default function MarketingProcessos() {
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium line-clamp-2">{pr.title}</p>
                               <p className="text-xs text-muted-foreground mt-1">{recLabel}</p>
-                              <Badge variant={pr.active ? 'default' : 'secondary'} className="text-[10px] mt-1">
-                                {pr.active ? 'Ativa' : 'Inativa'}
-                              </Badge>
+                              <div className="flex items-center gap-1.5 mt-1">
+                                <Badge variant={pr.active ? 'default' : 'secondary'} className="text-[10px]">
+                                  {pr.active ? 'Ativa' : 'Inativa'}
+                                </Badge>
+                                {pr.role_function && (
+                                  <Badge variant="outline" className="text-[10px]">{pr.role_function}</Badge>
+                                )}
+                              </div>
                             </div>
                             <div className="flex flex-col gap-1 items-end shrink-0">
                               <Switch
@@ -192,15 +196,6 @@ export default function MarketingProcessos() {
                               </Button>
                             </div>
                           </div>
-                          {assignee && (
-                            <div className="flex items-center gap-1.5 mt-2">
-                              <Avatar className="h-5 w-5">
-                                <AvatarImage src={assignee.avatar_url || ''} />
-                                <AvatarFallback className="text-[10px]">{(assignee.full_name || '?')[0]}</AvatarFallback>
-                              </Avatar>
-                              <span className="text-xs text-muted-foreground truncate">{assignee.full_name}</span>
-                            </div>
-                          )}
                         </Card>
                       );
                     })}
