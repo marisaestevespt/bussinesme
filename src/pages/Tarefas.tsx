@@ -45,15 +45,7 @@ const PRIORITIES = [
   { value: 'baixa', label: 'Prioridade 3', color: 'bg-slate-100 text-slate-500 border-slate-300' },
 ];
 
-const TASK_DEPARTMENTS = [
-  { value: 'administrativo', label: 'Administrativo', color: 'bg-slate-100 text-slate-700 border-slate-200' },
-  { value: 'marketing', label: 'Marketing e Branding', color: 'bg-pink-100 text-pink-700 border-pink-200' },
-  { value: 'financeiro', label: 'Financeiro', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-  { value: 'comercial', label: 'Comercial e Vendas', color: 'bg-amber-100 text-amber-700 border-amber-200' },
-  { value: 'clientes', label: 'Clientes', color: 'bg-cyan-100 text-cyan-700 border-cyan-200' },
-  { value: 'equipa', label: 'Equipa', color: 'bg-rose-100 text-rose-700 border-rose-200' },
-  { value: 'operacao', label: 'Operação', color: 'bg-violet-100 text-violet-700 border-violet-200' },
-];
+// Departments imported from shared constants
 
 type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'diario';
 const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
