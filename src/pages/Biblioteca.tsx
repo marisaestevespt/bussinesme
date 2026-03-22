@@ -236,6 +236,7 @@ export default function BibliotecaPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Documento</TableHead>
+                  <TableHead>Tipo</TableHead>
                   <TableHead>Categoria</TableHead>
                   <TableHead>Data de Criação</TableHead>
                   <TableHead>Última Atualização</TableHead>
