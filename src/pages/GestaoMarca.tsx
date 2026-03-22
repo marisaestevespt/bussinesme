@@ -867,16 +867,20 @@ export default function GestaoMarcaPage() {
                 </div>
                 {editingVisualDesc ? (
                   <div className="space-y-2">
-                    <Textarea value={visualDesc} onChange={e => setVisualDesc(e.target.value)} rows={3} placeholder="Descreve esta secção..." />
+                    <RichTextEditor content={visualDesc} onChange={setVisualDesc} />
                     <div className="flex gap-2">
                       <Button size="sm" onClick={saveVisualDesc}><Check className="h-3.5 w-3.5 mr-1" />Guardar</Button>
                       <Button size="sm" variant="ghost" onClick={() => setEditingVisualDesc(false)}><X className="h-3.5 w-3.5 mr-1" />Cancelar</Button>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {selectedVisual.description || <span className="italic">Sem descrição.</span>}
-                  </p>
+                  <div className="text-sm text-muted-foreground leading-relaxed prose prose-sm max-w-none">
+                    {selectedVisual.description ? (
+                      <div dangerouslySetInnerHTML={{ __html: selectedVisual.description }} />
+                    ) : (
+                      <p className="italic">Sem descrição.</p>
+                    )}
+                  </div>
                 )}
               </div>
 
