@@ -95,6 +95,8 @@ export default function ProcessosPage() {
     },
   });
 
+  const existingRoles = [...new Set(teamMembers.map(m => m.role_title).filter(Boolean))] as string[];
+
   // ─── Mutations ────────────────────────────────────────────────
 
   const createSop = useMutation({
