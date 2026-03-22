@@ -27,6 +27,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format, isPast, isToday, startOfDay, isBefore, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, addDays, addWeeks, isSameDay, setDate as setDateFns, startOfWeek, endOfWeek } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { PROCESS_DEPARTMENTS } from '@/lib/departments';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -45,15 +46,7 @@ const PRIORITIES = [
   { value: 'baixa', label: 'Prioridade 3', color: 'bg-slate-100 text-slate-500 border-slate-300' },
 ];
 
-const TASK_DEPARTMENTS = [
-  { value: 'administrativo', label: 'Administrativo', color: 'bg-slate-100 text-slate-700 border-slate-200' },
-  { value: 'marketing', label: 'Marketing e Branding', color: 'bg-pink-100 text-pink-700 border-pink-200' },
-  { value: 'financeiro', label: 'Financeiro', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-  { value: 'comercial', label: 'Comercial e Vendas', color: 'bg-amber-100 text-amber-700 border-amber-200' },
-  { value: 'clientes', label: 'Clientes', color: 'bg-cyan-100 text-cyan-700 border-cyan-200' },
-  { value: 'equipa', label: 'Equipa', color: 'bg-rose-100 text-rose-700 border-rose-200' },
-  { value: 'operacao', label: 'Operação', color: 'bg-violet-100 text-violet-700 border-violet-200' },
-];
+// Departments imported from shared constants
 
 type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'diario';
 const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
@@ -84,7 +77,7 @@ function getPriorityInfo(val: string) {
   return PRIORITIES.find(p => p.value === val) || PRIORITIES[2];
 }
 function getDeptInfo(val: string) {
-  return TASK_DEPARTMENTS.find(d => d.value === val);
+  return PROCESS_DEPARTMENTS.find(d => d.value === val);
 }
 
 // ─── Main Page ──────────────────────────────────────────────────
@@ -567,7 +560,7 @@ export default function TarefasPage() {
                       <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="_all">Todos</SelectItem>
-                        {TASK_DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+                        {PROCESS_DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -608,7 +601,7 @@ export default function TarefasPage() {
                   )}
                 </PopoverContent>
               </Popover>
-              {filterDept && <Badge variant="secondary" className="text-xs gap-1">{TASK_DEPARTMENTS.find(d => d.value === filterDept)?.label} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterDept('')} /></Badge>}
+              {filterDept && <Badge variant="secondary" className="text-xs gap-1">{PROCESS_DEPARTMENTS.find(d => d.value === filterDept)?.label || filterDept} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterDept('')} /></Badge>}
               {filterResponsible && <Badge variant="secondary" className="text-xs gap-1">{profiles.find(p => p.id === filterResponsible)?.full_name} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterResponsible('')} /></Badge>}
               {filterPriority && <Badge variant="secondary" className="text-xs gap-1">{PRIORITIES.find(p => p.value === filterPriority)?.label} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterPriority('')} /></Badge>}
               {filterProject && <Badge variant="secondary" className="text-xs gap-1">{projects.find(p => p.id === filterProject)?.name} <X className="h-3 w-3 cursor-pointer" onClick={() => setFilterProject('')} /></Badge>}
@@ -710,7 +703,9 @@ export default function TarefasPage() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {PRIORITIES.map(p => (
-                      <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                      <SelectItem key={p.value} value={p.value}>
+                        <Badge variant="outline" className={cn('text-xs border', p.color)}>{p.label}</Badge>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -786,7 +781,7 @@ export default function TarefasPage() {
                 <Select value={department} onValueChange={setDepartment}>
                   <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                   <SelectContent>
-                    {TASK_DEPARTMENTS.map(d => (
+                    {PROCESS_DEPARTMENTS.map(d => (
                       <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
                     ))}
                   </SelectContent>
@@ -1142,7 +1137,7 @@ function TaskTable({
                 <TableCell className="text-sm">{getProfileName(task.assigned_to)}</TableCell>
                 <TableCell>
                   {deptInfo ? (
-                    <Badge variant="outline" className={cn('text-xs', deptInfo.color)}>{deptInfo.label}</Badge>
+                    <Badge variant="outline" className="text-xs">{deptInfo.icon} {deptInfo.label}</Badge>
                   ) : '—'}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">{getProjectName(task.project_id) || '—'}</TableCell>
@@ -1312,7 +1307,7 @@ function ResponsavelView({
                           </span>
                         </TableCell>
                         <TableCell>
-                          {deptInfo ? <Badge variant="outline" className={cn('text-xs', deptInfo.color)}>{deptInfo.label}</Badge> : '—'}
+                          {deptInfo ? <Badge variant="outline" className="text-xs">{deptInfo.icon} {deptInfo.label}</Badge> : '—'}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{getProjectName(task.project_id) || '—'}</TableCell>
                       </TableRow>
