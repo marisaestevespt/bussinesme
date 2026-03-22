@@ -465,42 +465,33 @@ export default function ProcessosPage() {
 
             <Separator />
 
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Switch checked={prCreateProject} onCheckedChange={setPrCreateProject} />
-                <Label className="text-sm font-medium">Criar processo associado na BD Projetos</Label>
-              </div>
-              {prCreateProject && (
-                <div className="rounded-lg border bg-muted/30 p-4 space-y-1 text-sm text-muted-foreground">
-                  <p>Será criado automaticamente um projeto do tipo <strong className="text-foreground">Rotina</strong> com:</p>
-                  <ul className="list-disc list-inside space-y-0.5 ml-1">
-                    <li>Nome: <strong className="text-foreground">{prTitle || '(título da rotina)'}</strong></li>
-                    <li>Departamento: <strong className="text-foreground">{prDepartment ? DEPARTMENTS.find(d => d.value === prDepartment)?.label : '(nenhum)'}</strong></li>
-                    <li>Frequência: <strong className="text-foreground">{prRecurrence === 'semanal' ? 'Semanal' : 'Mensal'}</strong></li>
-                  </ul>
-                </div>
-              )}
+            <div className="rounded-lg border bg-muted/30 p-4 space-y-1 text-sm text-muted-foreground">
+              <p>Será criado automaticamente um processo (SOP) com:</p>
+              <ul className="list-disc list-inside space-y-0.5 ml-1">
+                <li>Nome: <strong className="text-foreground">{prTitle || '(título da rotina)'}</strong></li>
+                <li>Departamento: <strong className="text-foreground">{prDepartment ? DEPARTMENTS.find(d => d.value === prDepartment)?.label : '(nenhum)'}</strong></li>
+                <li>Frequência: <strong className="text-foreground">{prRecurrence === 'semanal' ? 'Semanal' : 'Mensal'}</strong></li>
+              </ul>
+              <p className="mt-2 text-xs">Após criar, serás redirecionado para a página do processo.</p>
             </div>
 
             <Button
               className="w-full"
               disabled={!prTitle.trim() || planningRoutines.createRoutine.isPending}
               onClick={async () => {
-                if (prCreateProject) {
-                  const recLabel = prRecurrence === 'semanal'
-                    ? `Semanal (${['', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'][Number(prWeekday)]})`
-                    : `Mensal (dia ${prMonthDay})`;
+                const recLabel = prRecurrence === 'semanal'
+                  ? `Semanal (${['', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'][Number(prWeekday)]})`
+                  : `Mensal (dia ${prMonthDay})`;
 
-                  // Create SOP in sops table so it appears on the Processos page
-                  await supabase.from('sops').insert({
-                    name: prTitle,
-                    department: prDepartment || null,
-                    status: 'ativo',
-                    created_by: user?.id,
-                    product_name: `Rotina ${recLabel} às ${prHour || '09:00'}`,
-                  } as any);
-                  queryClient.invalidateQueries({ queryKey: ['sops'] });
-                }
+                // Always create SOP so the process page exists
+                const { data: sopData } = await supabase.from('sops').insert({
+                  name: prTitle,
+                  department: prDepartment || null,
+                  status: 'ativo',
+                  created_by: user?.id,
+                  product_name: `Rotina ${recLabel} às ${prHour || '09:00'}`,
+                } as any).select('id').single();
+                queryClient.invalidateQueries({ queryKey: ['sops'] });
 
                 planningRoutines.createRoutine.mutate({
                   title: prTitle,
@@ -517,6 +508,10 @@ export default function ProcessosPage() {
                   onSuccess: () => {
                     setShowNewRoutineDialog(false);
                     resetRoutineDialog();
+                    // Navigate to the SOP detail page so the user can edit the process
+                    if (sopData?.id) {
+                      navigate(`/hub/processos/${sopData.id}`);
+                    }
                   },
                 });
               }}
