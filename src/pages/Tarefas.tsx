@@ -780,7 +780,7 @@ export default function TarefasPage() {
                 <Select value={department} onValueChange={setDepartment}>
                   <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                   <SelectContent>
-                    {TASK_DEPARTMENTS.map(d => (
+                    {PROCESS_DEPARTMENTS.map(d => (
                       <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
                     ))}
                   </SelectContent>
