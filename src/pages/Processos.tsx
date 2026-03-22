@@ -25,7 +25,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { DEPARTMENTS, getDept, getDeptLabel } from '@/lib/departments';
+import { DEPARTMENTS, PROCESS_DEPARTMENTS, getDept, getDeptLabel } from '@/lib/departments';
 import { usePlanningRoutines } from '@/hooks/usePlanningRoutines';
 
 // ─── Constants ──────────────────────────────────────────────────
