@@ -99,8 +99,10 @@ export default function BibliotecaPage() {
 
   const updateDoc = useMutation({
     mutationFn: async () => {
+      const finalUrl = fileUrl || linkUrl || null;
+      const docType = fileUrl ? 'ficheiro' : linkUrl ? 'link' : 'texto';
       const { error } = await supabase.from('internal_documents')
-        .update({ title, category, content })
+        .update({ title, category, content, file_url: finalUrl, doc_type: docType })
         .eq('id', editingDoc.id);
       if (error) throw error;
     },
