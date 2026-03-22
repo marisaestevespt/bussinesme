@@ -439,6 +439,22 @@ function EventFormDialog({
 
   const { data: existingMembers = [] } = useEventMembers(editEvent?.id);
 
+  const { data: productsList = [] } = useQuery({
+    queryKey: ['products-list-agenda'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('id, name').order('name');
+      return (data || []) as { id: string; name: string }[];
+    },
+  });
+
+  const { data: clientsList = [] } = useQuery({
+    queryKey: ['clients-list-agenda'],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients').select('id, full_name').order('full_name');
+      return (data || []) as { id: string; full_name: string }[];
+    },
+  });
+
   const [title, setTitle] = useState(editEvent?.title ?? '');
   const [eventTypeId, setEventTypeId] = useState(editEvent?.event_type_id ?? (types[0]?.id ?? ''));
   const [startDate, setStartDate] = useState<Date | undefined>(editEvent?.start_date ? parseISO(editEvent.start_date) : undefined);
