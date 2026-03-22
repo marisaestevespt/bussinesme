@@ -456,20 +456,25 @@ function MeetingFormDialog({
               </Select>
             </div>
             <div>
-              <Label>Projeto(s) associado(s)</Label>
-              <div className="space-y-1.5 mt-1">
-                {projects.map(p => (
-                  <label key={p.id} className="flex items-center gap-2 cursor-pointer text-sm hover:bg-muted/50 rounded px-2 py-1">
-                    <Checkbox
-                      checked={selectedProjectIds.includes(p.id)}
-                      onCheckedChange={() => handleProjectToggle(p.id)}
-                    />
-                    <span className="text-foreground">{p.name}</span>
-                    {p.type && <span className="text-xs text-muted-foreground">({p.type})</span>}
-                  </label>
-                ))}
-                {projects.length === 0 && <p className="text-sm text-muted-foreground">Nenhum projeto disponível</p>}
-              </div>
+              <Label>Projeto associado</Label>
+              <Select value={selectedProjectIds[0] || '_none_'} onValueChange={v => {
+                const id = v === '_none_' ? '' : v;
+                if (id) {
+                  handleProjectToggle(id);
+                  // ensure only this one is selected
+                  setSelectedProjectIds([id]);
+                } else {
+                  setSelectedProjectIds([]);
+                }
+              }}>
+                <SelectTrigger><SelectValue placeholder="Selecionar projeto..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none_">Nenhum</SelectItem>
+                  {projects.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}{p.type ? ` (${p.type})` : ''}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <Button className="w-full" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
               {saveMutation.isPending ? 'A criar...' : 'Criar reunião'}
