@@ -61,6 +61,8 @@ export default function ProcessosPage() {
   const [prMonthDay, setPrMonthDay] = useState('1');
   const [prAdjustBiz, setPrAdjustBiz] = useState(true);
   const [prHour, setPrHour] = useState('09:00');
+  const [prDepartment, setPrDepartment] = useState('');
+  const [prCreateProject, setPrCreateProject] = useState(true);
 
   const { allViews, addView, renameView, deleteView } = useUserViews('processos', PROCESSOS_DEFAULT_VIEWS);
   const [selectedDept, setSelectedDept] = useState<string | null>(null);
