@@ -133,9 +133,11 @@ export function OfferCalculator({ vatRate }: Props) {
             </Card>
             <Card className="border-dashed">
               <CardContent className="pt-4 pb-3 space-y-1">
-                <p className="text-xs text-muted-foreground">Preço recomendado (c/ IVA)</p>
-                <p className="text-lg font-bold text-green-600">{fmt(minPriceWithVat)}</p>
-                <p className="text-[10px] text-muted-foreground">Com {marginPercent}% margem + {taxPercent}% impostos + {vatPercent}% IVA</p>
+                <p className="text-xs text-muted-foreground">Preço recomendado</p>
+                <p className="text-lg font-bold text-green-600">
+                  {fmt(minPriceAfterTax)} <span className="text-sm font-medium text-muted-foreground">({fmt(minPriceWithVat)} c/ IVA)</span>
+                </p>
+                <p className="text-[10px] text-muted-foreground">Com {marginPercent}% margem + {taxPercent}% impostos</p>
               </CardContent>
             </Card>
           </div>
