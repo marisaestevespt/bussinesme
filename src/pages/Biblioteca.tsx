@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { PageHeader } from '@/components/PageHeader';
 import { AppLayout } from '@/components/AppLayout';
 import { ViewTabs } from '@/components/ViewTabs';
@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, FileText, Trash2, Pencil } from 'lucide-react';
+import { Plus, FileText, Trash2, Pencil, Search } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,7 +19,7 @@ import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { RichTextEditor } from '@/components/RichTextEditor';
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   { value: 'cultura', label: 'Guia de Cultura' },
   { value: 'conduta', label: 'Código de Conduta' },
   { value: 'comunicacao', label: 'Política de Comunicação Interna' },
@@ -42,6 +42,8 @@ export default function BibliotecaPage() {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('outro');
   const [content, setContent] = useState('');
+  const [search, setSearch] = useState('');
+  const [newCategory, setNewCategory] = useState('');
 
   const { data: documents = [] } = useQuery({
     queryKey: ['internal_documents'],
@@ -54,6 +56,25 @@ export default function BibliotecaPage() {
       return data;
     },
   });
+
+  // Build categories from defaults + any custom ones found in DB
+  const allCategories = useMemo(() => {
+    const existing = new Set(DEFAULT_CATEGORIES.map(c => c.value));
+    const extras: { value: string; label: string }[] = [];
+    documents.forEach(d => {
+      if (d.category && !existing.has(d.category)) {
+        existing.add(d.category);
+        extras.push({ value: d.category, label: d.category });
+      }
+    });
+    return [...DEFAULT_CATEGORIES, ...extras];
+  }, [documents]);
+
+  const filteredDocs = useMemo(() => {
+    if (!search.trim()) return documents;
+    const q = search.toLowerCase();
+    return documents.filter(d => d.title.toLowerCase().includes(q));
+  }, [documents, search]);
 
   const createDoc = useMutation({
     mutationFn: async () => {
@@ -102,6 +123,7 @@ export default function BibliotecaPage() {
     setTitle('');
     setCategory('outro');
     setContent('');
+    setNewCategory('');
   }
 
   function openEdit(doc: any) {
@@ -109,16 +131,56 @@ export default function BibliotecaPage() {
     setTitle(doc.title);
     setCategory(doc.category);
     setContent(doc.content || '');
+    setNewCategory('');
   }
 
-  const getCategoryLabel = (val: string) => CATEGORIES.find(c => c.value === val)?.label || val;
+  function handleAddCategory() {
+    const trimmed = newCategory.trim();
+    if (!trimmed) return;
+    setCategory(trimmed);
+    setNewCategory('');
+  }
+
+  const getCategoryLabel = (val: string) => allCategories.find(c => c.value === val)?.label || val;
+
+  const categorySelector = (
+    <div className="space-y-2">
+      <Label>Categoria</Label>
+      <Select value={category} onValueChange={setCategory}>
+        <SelectTrigger><SelectValue /></SelectTrigger>
+        <SelectContent>
+          {allCategories.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+        </SelectContent>
+      </Select>
+      <div className="flex gap-2">
+        <Input
+          value={newCategory}
+          onChange={e => setNewCategory(e.target.value)}
+          placeholder="Nova categoria..."
+          className="h-8 text-sm"
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCategory(); } }}
+        />
+        <Button variant="outline" size="sm" className="h-8 shrink-0" onClick={handleAddCategory} disabled={!newCategory.trim()}>
+          <Plus className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <AppLayout>
       <div className="space-y-6">
         <PageHeader title="Biblioteca de Documentos Internos" />
         <div className="flex items-center justify-between">
-          <div />
+          <div className="relative w-64">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Pesquisar documento..."
+              className="pl-9 h-9"
+            />
+          </div>
           <div className="flex items-center gap-3">
             <ViewTabs
               views={allViews}
@@ -136,11 +198,11 @@ export default function BibliotecaPage() {
           </div>
         </div>
 
-        {documents.length === 0 ? (
+        {filteredDocs.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
               <FileText className="h-12 w-12 mx-auto mb-3 opacity-40" />
-              <p>Nenhum documento interno criado.</p>
+              <p>{search ? 'Nenhum documento encontrado.' : 'Nenhum documento interno criado.'}</p>
             </CardContent>
           </Card>
         ) : (
@@ -156,7 +218,7 @@ export default function BibliotecaPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {documents.map(doc => (
+                {filteredDocs.map(doc => (
                   <TableRow
                     key={doc.id}
                     className="cursor-pointer hover:bg-muted/50"
@@ -204,15 +266,7 @@ export default function BibliotecaPage() {
               <Label>Título *</Label>
               <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Guia de Cultura" />
             </div>
-            <div>
-              <Label>Categoria</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            {categorySelector}
             <div>
               <Label>Conteúdo</Label>
               <RichTextEditor content={content} onChange={setContent} />
@@ -233,15 +287,7 @@ export default function BibliotecaPage() {
               <Label>Título *</Label>
               <Input value={title} onChange={e => setTitle(e.target.value)} />
             </div>
-            <div>
-              <Label>Categoria</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            {categorySelector}
             <div>
               <Label>Conteúdo</Label>
               <RichTextEditor content={content} onChange={setContent} editable={isOwner} />
