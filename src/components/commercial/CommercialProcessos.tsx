@@ -88,7 +88,6 @@ export function CommercialProcessos() {
                 <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Sem rotinas configuradas</TableCell></TableRow>
               )}
               {routinesData.map((pr: any) => {
-                const assignee = pr.profiles;
                 const hourLabel = pr.hour_time ? ` às ${pr.hour_time.slice(0, 5)}` : '';
                 const recLabel = pr.recurrence_type === 'semanal'
                   ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][pr.weekday || 0]} feira${hourLabel}`
@@ -98,14 +97,8 @@ export function CommercialProcessos() {
                     <TableCell className="font-medium">{pr.title}</TableCell>
                     <TableCell>{recLabel}</TableCell>
                     <TableCell>
-                      {assignee ? (
-                        <div className="flex items-center gap-1.5">
-                          <Avatar className="h-5 w-5">
-                            <AvatarImage src={assignee.avatar_url || ''} />
-                            <AvatarFallback className="text-[10px]">{(assignee.full_name || '?')[0]}</AvatarFallback>
-                          </Avatar>
-                          <span className="text-sm">{assignee.full_name}</span>
-                        </div>
+                      {pr.role_function ? (
+                        <Badge variant="outline" className="text-xs">{pr.role_function}</Badge>
                       ) : '—'}
                     </TableCell>
                     <TableCell>
