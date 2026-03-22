@@ -67,6 +67,7 @@ export default function MarketingChannelStrategy() {
     if (detail) {
       setPositioning(detail.positioning || '');
       setPeriodicity(detail.periodicity || '');
+      setNotes(detail.notes || '');
     }
   }, [detail]);
 
