@@ -508,8 +508,8 @@ export default function ProcessosPage() {
 
                 planningRoutines.createRoutine.mutate({
                   title: prTitle,
-                  responsible: prResponsible || null,
-                  recurrence_type: prRecurrence,
+                  responsible: null,
+                  role_function: prRoleFunction || null,
                   weekday: prRecurrence === 'semanal' ? Number(prWeekday) : null,
                   month_day: prRecurrence === 'mensal' ? Number(prMonthDay) : null,
                   adjust_to_business_day: prRecurrence === 'mensal' ? prAdjustBiz : true,
