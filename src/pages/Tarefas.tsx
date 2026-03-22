@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { BackNavigation } from '@/components/BackNavigation';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
