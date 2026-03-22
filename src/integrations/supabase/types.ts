@@ -4150,9 +4150,11 @@ export type Database = {
           adjust_to_business_day: boolean
           created_at: string
           created_by: string | null
+          department: string | null
           hour_time: string | null
           id: string
           month_day: number | null
+          project_id: string | null
           recurrence_type: string
           responsible: string | null
           title: string
@@ -4163,9 +4165,11 @@ export type Database = {
           adjust_to_business_day?: boolean
           created_at?: string
           created_by?: string | null
+          department?: string | null
           hour_time?: string | null
           id?: string
           month_day?: number | null
+          project_id?: string | null
           recurrence_type?: string
           responsible?: string | null
           title: string
@@ -4176,15 +4180,24 @@ export type Database = {
           adjust_to_business_day?: boolean
           created_at?: string
           created_by?: string | null
+          department?: string | null
           hour_time?: string | null
           id?: string
           month_day?: number | null
+          project_id?: string | null
           recurrence_type?: string
           responsible?: string | null
           title?: string
           weekday?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "planning_routines_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "planning_routines_responsible_fkey"
             columns: ["responsible"]

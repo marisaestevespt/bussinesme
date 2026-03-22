@@ -17,6 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Trash2, ArrowLeft, FileText, List, RotateCw } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -61,6 +62,8 @@ export default function ProcessosPage() {
   const [prMonthDay, setPrMonthDay] = useState('1');
   const [prAdjustBiz, setPrAdjustBiz] = useState(true);
   const [prHour, setPrHour] = useState('09:00');
+  const [prDepartment, setPrDepartment] = useState('');
+  const [prCreateProject, setPrCreateProject] = useState(true);
 
   const { allViews, addView, renameView, deleteView } = useUserViews('processos', PROCESSOS_DEFAULT_VIEWS);
   const [selectedDept, setSelectedDept] = useState<string | null>(null);
@@ -112,7 +115,7 @@ export default function ProcessosPage() {
   });
 
   function resetRoutineDialog() {
-    setPrTitle(''); setPrResponsible(''); setPrRecurrence('semanal'); setPrWeekday('1'); setPrMonthDay('1'); setPrAdjustBiz(true); setPrHour('09:00');
+    setPrTitle(''); setPrResponsible(''); setPrRecurrence('semanal'); setPrWeekday('1'); setPrMonthDay('1'); setPrAdjustBiz(true); setPrHour('09:00'); setPrDepartment(''); setPrCreateProject(true);
   }
 
   // ─── Derived data ────────────────────────────────────────────
@@ -345,67 +348,123 @@ export default function ProcessosPage() {
 
       {/* ═══ Dialog: Nova Rotina ═══ */}
       <Dialog open={showNewRoutineDialog} onOpenChange={v => { if (!v) { setShowNewRoutineDialog(false); resetRoutineDialog(); } }}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Nova Rotina</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label>Título *</Label>
-              <Input value={prTitle} onChange={e => setPrTitle(e.target.value)} placeholder="Ex: Revisão semanal de KPIs" />
-            </div>
-            <div>
-              <Label>Responsável</Label>
-              <Select value={prResponsible} onValueChange={setPrResponsible}>
-                <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
-                <SelectContent>{profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Tipo de recorrência</Label>
-              <Select value={prRecurrence} onValueChange={v => setPrRecurrence(v as any)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="semanal">Semanal</SelectItem>
-                  <SelectItem value="mensal">Mensal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {prRecurrence === 'semanal' && (
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Dia da semana</Label>
-                <Select value={prWeekday} onValueChange={setPrWeekday}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Label>Título *</Label>
+                <Input value={prTitle} onChange={e => setPrTitle(e.target.value)} placeholder="Ex: Revisão semanal de KPIs" />
+              </div>
+              <div>
+                <Label>Departamento</Label>
+                <Select value={prDepartment || '_none_'} onValueChange={v => setPrDepartment(v === '_none_' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">Segunda-feira</SelectItem>
-                    <SelectItem value="2">Terça-feira</SelectItem>
-                    <SelectItem value="3">Quarta-feira</SelectItem>
-                    <SelectItem value="4">Quinta-feira</SelectItem>
-                    <SelectItem value="5">Sexta-feira</SelectItem>
-                    <SelectItem value="6">Sábado</SelectItem>
-                    <SelectItem value="7">Domingo</SelectItem>
+                    <SelectItem value="_none_">Nenhum</SelectItem>
+                    {DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-            )}
-            {prRecurrence === 'mensal' && (
-              <>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Responsável</Label>
+                <Select value={prResponsible} onValueChange={setPrResponsible}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                  <SelectContent>{profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Tipo de recorrência</Label>
+                <Select value={prRecurrence} onValueChange={v => setPrRecurrence(v as any)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="semanal">Semanal</SelectItem>
+                    <SelectItem value="mensal">Mensal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {prRecurrence === 'semanal' && (
+                <div>
+                  <Label>Dia da semana</Label>
+                  <Select value={prWeekday} onValueChange={setPrWeekday}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Segunda-feira</SelectItem>
+                      <SelectItem value="2">Terça-feira</SelectItem>
+                      <SelectItem value="3">Quarta-feira</SelectItem>
+                      <SelectItem value="4">Quinta-feira</SelectItem>
+                      <SelectItem value="5">Sexta-feira</SelectItem>
+                      <SelectItem value="6">Sábado</SelectItem>
+                      <SelectItem value="7">Domingo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {prRecurrence === 'mensal' && (
                 <div>
                   <Label>Dia do mês</Label>
                   <Input type="number" min={1} max={31} value={prMonthDay} onChange={e => setPrMonthDay(e.target.value)} />
                 </div>
-                <div className="flex items-center gap-2">
-                  <Switch checked={prAdjustBiz} onCheckedChange={setPrAdjustBiz} />
-                  <Label className="text-sm">Ajustar para dia útil anterior (se cair em fim de semana)</Label>
-                </div>
-              </>
-            )}
-            <div>
-              <Label>Hora</Label>
-              <Input type="time" value={prHour} onChange={e => setPrHour(e.target.value)} className="w-32" />
+              )}
+              <div>
+                <Label>Hora</Label>
+                <Input type="time" value={prHour} onChange={e => setPrHour(e.target.value)} className="w-32" />
+              </div>
             </div>
+            {prRecurrence === 'mensal' && (
+              <div className="flex items-center gap-2">
+                <Switch checked={prAdjustBiz} onCheckedChange={setPrAdjustBiz} />
+                <Label className="text-sm">Ajustar para dia útil anterior (se cair em fim de semana)</Label>
+              </div>
+            )}
+
+            <Separator />
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Switch checked={prCreateProject} onCheckedChange={setPrCreateProject} />
+                <Label className="text-sm font-medium">Criar processo associado na BD Projetos</Label>
+              </div>
+              {prCreateProject && (
+                <div className="rounded-lg border bg-muted/30 p-4 space-y-1 text-sm text-muted-foreground">
+                  <p>Será criado automaticamente um projeto do tipo <strong className="text-foreground">Rotina</strong> com:</p>
+                  <ul className="list-disc list-inside space-y-0.5 ml-1">
+                    <li>Nome: <strong className="text-foreground">{prTitle || '(título da rotina)'}</strong></li>
+                    <li>Departamento: <strong className="text-foreground">{prDepartment ? DEPARTMENTS.find(d => d.value === prDepartment)?.label : '(nenhum)'}</strong></li>
+                    <li>Frequência: <strong className="text-foreground">{prRecurrence === 'semanal' ? 'Semanal' : 'Mensal'}</strong></li>
+                  </ul>
+                </div>
+              )}
+            </div>
+
             <Button
               className="w-full"
               disabled={!prTitle.trim() || planningRoutines.createRoutine.isPending}
-              onClick={() => {
+              onClick={async () => {
+                let projectId: string | null = null;
+
+                if (prCreateProject) {
+                  const recLabel = prRecurrence === 'semanal'
+                    ? `Semanal (${['', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'][Number(prWeekday)]})`
+                    : `Mensal (dia ${prMonthDay})`;
+                  const { data: proj, error } = await supabase.from('projects').insert({
+                    name: prTitle,
+                    type: 'rotina',
+                    status: 'ativo',
+                    department: prDepartment || null,
+                    notes: `Rotina ${recLabel} às ${prHour || '09:00'}`,
+                    created_by: user?.id,
+                  } as any).select('id').single();
+                  if (!error && proj) {
+                    projectId = proj.id;
+                    queryClient.invalidateQueries({ queryKey: ['projects'] });
+                  }
+                }
+
                 planningRoutines.createRoutine.mutate({
                   title: prTitle,
                   responsible: prResponsible || null,
@@ -415,7 +474,9 @@ export default function ProcessosPage() {
                   adjust_to_business_day: prRecurrence === 'mensal' ? prAdjustBiz : true,
                   hour_time: prHour || '09:00',
                   created_by: user?.id,
-                }, {
+                  department: prDepartment || null,
+                  project_id: projectId,
+                } as any, {
                   onSuccess: () => {
                     setShowNewRoutineDialog(false);
                     resetRoutineDialog();
