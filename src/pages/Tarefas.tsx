@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { BackNavigation } from '@/components/BackNavigation';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
@@ -802,64 +803,84 @@ export default function TarefasPage() {
               </Select>
             </div>
 
-            {/* Sub-tarefa (parent) */}
-            <div>
-              <Label className="flex items-center gap-1.5"><GitBranch className="h-3.5 w-3.5" /> Sub-tarefa de</Label>
-              <Select value={parentTaskId} onValueChange={setParentTaskId}>
-                <SelectTrigger><SelectValue placeholder="Nenhuma (tarefa principal)" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhuma (tarefa principal)</SelectItem>
-                  {tasks.filter(t => t.id !== editingTask?.id && !t.parent_task_id).map(t => (
-                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Dependencies */}
-            <div>
-              <Label className="flex items-center gap-1.5"><Link2 className="h-3.5 w-3.5" /> Depende de</Label>
-              <Select
-                value=""
-                onValueChange={(val) => {
-                  if (val && !dependsOnIds.includes(val)) {
-                    setDependsOnIds(prev => [...prev, val]);
+            {/* Subtask toggle */}
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="is-subtask"
+                checked={!!parentTaskId && parentTaskId !== 'none'}
+                onCheckedChange={(checked) => {
+                  if (!checked) {
+                    setParentTaskId('');
+                    setDependsOnIds([]);
                   }
                 }}
-              >
-                <SelectTrigger><SelectValue placeholder="Adicionar dependência..." /></SelectTrigger>
-                <SelectContent>
-                  {tasks.filter(t => t.id !== editingTask?.id && !dependsOnIds.includes(t.id)).map(t => (
-                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {dependsOnIds.length > 0 && (
-                <div className="mt-2 space-y-1">
-                  {dependsOnIds.map(depId => {
-                    const depTask = tasks.find(t => t.id === depId);
-                    if (!depTask) return null;
-                    const depStatus = getStatusInfo(depTask.status);
-                    const depAssignee = getProfileName(depTask.assigned_to);
-                    return (
-                      <div key={depId} className="flex items-center gap-2 p-2 rounded-md bg-muted/30 border border-border/50 text-sm">
-                        <span className="truncate flex-1">{depTask.name}</span>
-                        <Badge variant="outline" className={cn('text-[10px] shrink-0', depStatus.color)}>{depStatus.label}</Badge>
-                        <span className="text-[10px] text-muted-foreground shrink-0">{depAssignee}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 shrink-0"
-                          onClick={() => setDependsOnIds(prev => prev.filter(id => id !== depId))}
-                        >
-                          ×
-                        </Button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              />
+              <Label htmlFor="is-subtask" className="text-sm cursor-pointer">Esta é uma subtarefa?</Label>
             </div>
+
+            {/* Show parent + depends fields when checkbox is checked OR when editing a task that already has a parent */}
+            {((!!parentTaskId && parentTaskId !== 'none') || (editingTask && editingTask.parent_task_id)) && (
+              <div className="space-y-4 pl-4 border-l-2 border-primary/20">
+                {/* Parent task */}
+                <div>
+                  <Label className="flex items-center gap-1.5"><GitBranch className="h-3.5 w-3.5" /> Tarefa principal</Label>
+                  <Select value={parentTaskId} onValueChange={setParentTaskId}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar tarefa principal" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhuma</SelectItem>
+                      {tasks.filter(t => t.id !== editingTask?.id && !t.parent_task_id).map(t => (
+                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Dependencies */}
+                <div>
+                  <Label className="flex items-center gap-1.5"><Link2 className="h-3.5 w-3.5" /> Depende de</Label>
+                  <Select
+                    value=""
+                    onValueChange={(val) => {
+                      if (val && !dependsOnIds.includes(val)) {
+                        setDependsOnIds(prev => [...prev, val]);
+                      }
+                    }}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Adicionar dependência..." /></SelectTrigger>
+                    <SelectContent>
+                      {tasks.filter(t => t.id !== editingTask?.id && !dependsOnIds.includes(t.id)).map(t => (
+                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {dependsOnIds.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {dependsOnIds.map(depId => {
+                        const depTask = tasks.find(t => t.id === depId);
+                        if (!depTask) return null;
+                        const depStatus = getStatusInfo(depTask.status);
+                        const depAssignee = getProfileName(depTask.assigned_to);
+                        return (
+                          <div key={depId} className="flex items-center gap-2 p-2 rounded-md bg-muted/30 border border-border/50 text-sm">
+                            <span className="truncate flex-1">{depTask.name}</span>
+                            <Badge variant="outline" className={cn('text-[10px] shrink-0', depStatus.color)}>{depStatus.label}</Badge>
+                            <span className="text-[10px] text-muted-foreground shrink-0">{depAssignee}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 shrink-0"
+                              onClick={() => setDependsOnIds(prev => prev.filter(id => id !== depId))}
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Dependency warnings */}
             {editingTask && dependsOnIds.length > 0 && (() => {
