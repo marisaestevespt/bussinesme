@@ -61,6 +61,7 @@ export default function MarketingChannelStrategy() {
   // Local state
   const [positioning, setPositioning] = useState('');
   const [periodicity, setPeriodicity] = useState('');
+  const [notes, setNotes] = useState('');
 
   useEffect(() => {
     if (detail) {
