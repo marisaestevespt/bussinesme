@@ -171,7 +171,7 @@ export function OfferCalculator({ vatRate }: Props) {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Base s/ IVA</p>
-                <p className="text-sm font-semibold">{fmt(testBase)}</p>
+                <p className="text-sm font-semibold">{fmt(testAfterVat)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Lucro bruto</p>
