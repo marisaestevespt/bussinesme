@@ -254,6 +254,7 @@ export default function TarefasPage() {
     setAssignedTo(task.assigned_to || ''); setDepartment(task.department || '');
     setProjectId(task.project_id || ''); setNotes(task.notes || '');
     setParentTaskId(task.parent_task_id || '');
+    setIsSubtask(!!task.parent_task_id);
     setRecurrenceType(task.recurrence_type || '');
     setRecurrenceEnd(task.recurrence_end ? parseISO(task.recurrence_end) : undefined);
     setEstimatedTime(task.estimated_time != null ? String(task.estimated_time) : '');
