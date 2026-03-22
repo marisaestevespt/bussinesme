@@ -486,35 +486,19 @@ export default function ProcessosPage() {
               className="w-full"
               disabled={!prTitle.trim() || planningRoutines.createRoutine.isPending}
               onClick={async () => {
-                let projectId: string | null = null;
-
                 if (prCreateProject) {
                   const recLabel = prRecurrence === 'semanal'
                     ? `Semanal (${['', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'][Number(prWeekday)]})`
                     : `Mensal (dia ${prMonthDay})`;
 
                   // Create SOP in sops table so it appears on the Processos page
-                  const { data: sopData } = await supabase.from('sops').insert({
+                  await supabase.from('sops').insert({
                     name: prTitle,
                     department: prDepartment || null,
                     status: 'ativo',
                     created_by: user?.id,
                     product_name: `Rotina ${recLabel} às ${prHour || '09:00'}`,
-                  } as any).select('id').single();
-
-                  // Also create project in projects table
-                  const { data: proj, error } = await supabase.from('projects').insert({
-                    name: prTitle,
-                    type: 'rotina',
-                    status: 'ativo',
-                    department: prDepartment || null,
-                    notes: `Rotina ${recLabel} às ${prHour || '09:00'}`,
-                    created_by: user?.id,
-                  } as any).select('id').single();
-                  if (!error && proj) {
-                    projectId = proj.id;
-                    queryClient.invalidateQueries({ queryKey: ['projects'] });
-                  }
+                  } as any);
                   queryClient.invalidateQueries({ queryKey: ['sops'] });
                 }
 
@@ -529,7 +513,6 @@ export default function ProcessosPage() {
                   hour_time: prHour || '09:00',
                   created_by: user?.id,
                   department: prDepartment || null,
-                  project_id: projectId,
                 } as any, {
                   onSuccess: () => {
                     setShowNewRoutineDialog(false);
