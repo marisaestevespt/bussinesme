@@ -15,6 +15,7 @@ interface PipelineBoardProps {
   onAddLeadToPipeline: (leadId: string, stageId: string) => void;
   onRemoveLeadFromPipeline: (leadId: string) => void;
   onOpenLead: (lead: any) => void;
+  onCreateLead: (stageId: string) => void;
   onAddStage: () => void;
   onDeleteStage: (stageId: string) => void;
   onRenameStage: (id: string, currentName: string) => void;
