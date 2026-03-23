@@ -189,7 +189,7 @@ export default function MarketingTrafegoPago() {
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">{c.formato || '—'}</TableCell>
                           <TableCell className="text-sm text-muted-foreground truncate max-w-[180px]">{c.objetivo || '—'}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground truncate max-w-[140px]">{c.oferta_goal || '—'}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground truncate max-w-[140px]">{displayObjetivoFinal(c.oferta_goal)}</TableCell>
                           <TableCell>
                             {c.link ? (
                               <a href={c.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
