@@ -13,7 +13,7 @@ import { LeadDetailSheet } from './crm/LeadDetailSheet';
 import { toast } from 'sonner';
 
 export function CommercialCRM() {
-  const [view, setView] = useState<'pipeline' | 'list'>('pipeline');
+  const [view, setView] = useState<'pipeline' | 'list' | 'custom'>('pipeline');
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<any>(null);
 
