@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -8,15 +8,18 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, Plus, Pencil, Trash2, Clock, PlayCircle, CalendarDays } from 'lucide-react';
+import { CalendarIcon, Plus, Pencil, Trash2, Clock, PlayCircle, CalendarDays, BookOpen, Check, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useCommercialData } from '@/hooks/useCommercialData';
+import { RichTextEditor } from '@/components/RichTextEditor';
 
 const STATUS_OPTIONS = [
   { value: 'por_comecar', label: 'Por Começar', color: 'bg-muted text-muted-foreground' },
@@ -55,6 +58,7 @@ export function CommercialAcoes() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
+  const [detailAction, setDetailAction] = useState<any>(null);
 
   const { data: actions = [], isLoading } = useQuery({
     queryKey: ['commercial', 'sales-actions'],
@@ -113,6 +117,7 @@ export function CommercialAcoes() {
 
   const openNew = () => { setEditing(null); setDialogOpen(true); };
   const openEdit = (a: any) => { setEditing(a); setDialogOpen(true); };
+  const openDetail = (a: any) => { setDetailAction(a); };
 
   return (
     <div className="space-y-8">
@@ -162,7 +167,7 @@ export function CommercialAcoes() {
                   <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Sem ações ativas</TableCell></TableRow>
                 )}
                 {activeActions.map((a: any) => (
-                  <TableRow key={a.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openEdit(a)}>
+                  <TableRow key={a.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openDetail(a)}>
                     <TableCell><Badge variant="secondary" className={cn('text-xs', statusColor(a.status))}>{statusLabel(a.status)}</Badge></TableCell>
                     <TableCell className="font-medium">{a.action_name}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{typeLabel(a.action_type)}</TableCell>
@@ -170,9 +175,14 @@ export function CommercialAcoes() {
                     <TableCell className="text-sm">{a.end_date ? format(new Date(a.end_date), 'dd/MM/yyyy') : '—'}</TableCell>
                     <TableCell className="text-sm">{a.product || '—'}</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); remove.mutate(a.id); }}>
-                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); openEdit(a); }}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); remove.mutate(a.id); }}>
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -204,7 +214,7 @@ export function CommercialAcoes() {
                   <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Sem histórico</TableCell></TableRow>
                 )}
                 {historyActions.map((a: any) => (
-                  <TableRow key={a.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openEdit(a)}>
+                  <TableRow key={a.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openDetail(a)}>
                     <TableCell><Badge variant="secondary" className={cn('text-xs', statusColor(a.status))}>{statusLabel(a.status)}</Badge></TableCell>
                     <TableCell className="font-medium">{a.action_name}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{typeLabel(a.action_type)}</TableCell>
@@ -212,9 +222,14 @@ export function CommercialAcoes() {
                     <TableCell className="text-sm">{a.product || '—'}</TableCell>
                     <TableCell className="text-sm text-muted-foreground truncate max-w-[200px]">{a.result || '—'}</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); remove.mutate(a.id); }}>
-                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); openEdit(a); }}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); remove.mutate(a.id); }}>
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -232,7 +247,167 @@ export function CommercialAcoes() {
         initialData={editing}
         onSave={record => upsert.mutate(record)}
       />
+
+      {/* Detail Sheet */}
+      <ActionDetailSheet
+        action={detailAction}
+        onClose={() => setDetailAction(null)}
+        onEdit={(a) => { setDetailAction(null); openEdit(a); }}
+      />
     </div>
+  );
+}
+
+/* ─── Detail Sheet ─── */
+function ActionDetailSheet({ action, onClose, onEdit }: {
+  action: any;
+  onClose: () => void;
+  onEdit: (a: any) => void;
+}) {
+  const qc = useQueryClient();
+  const [notes, setNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [savingToLib, setSavingToLib] = useState(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (action) {
+      setNotes(action.notes || '');
+    }
+  }, [action]);
+
+  const saveNotes = useCallback(async (content: string) => {
+    if (!action?.id) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('commercial_sales_actions')
+        .update({ notes: content } as any)
+        .eq('id', action.id);
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ['commercial', 'sales-actions'] });
+    } catch {
+      toast.error('Erro ao guardar notas');
+    } finally {
+      setSaving(false);
+    }
+  }, [action?.id, qc]);
+
+  const handleNotesChange = (content: string) => {
+    setNotes(content);
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => saveNotes(content), 1500);
+  };
+
+  const handleSaveToLibrary = async () => {
+    if (!action) return;
+    setSavingToLib(true);
+    try {
+      const { error } = await supabase.from('commercial_library_entries').insert({
+        title: action.action_name,
+        entry_type: action.action_type || 'outro',
+        product: action.product || null,
+        start_date: action.start_date || null,
+        end_date: action.end_date || null,
+        result: action.result || '',
+        notes: notes || null,
+        summary: action.objective || null,
+      } as any);
+      if (error) throw error;
+      toast.success('Ação guardada na Biblioteca Comercial');
+      qc.invalidateQueries({ queryKey: ['commercial-library'] });
+    } catch {
+      toast.error('Erro ao guardar na biblioteca');
+    } finally {
+      setSavingToLib(false);
+    }
+  };
+
+  if (!action) return null;
+
+  return (
+    <Sheet open={!!action} onOpenChange={v => { if (!v) onClose(); }}>
+      <SheetContent className="sm:max-w-lg overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle className="text-lg">{action.action_name}</SheetTitle>
+        </SheetHeader>
+
+        <div className="space-y-5 mt-4">
+          {/* Meta info */}
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="secondary" className={cn('text-xs', statusColor(action.status))}>
+              {statusLabel(action.status)}
+            </Badge>
+            <Badge variant="outline" className="text-xs">{typeLabel(action.action_type)}</Badge>
+            {action.product && <Badge variant="outline" className="text-xs">{action.product}</Badge>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <span className="text-muted-foreground">Início:</span>{' '}
+              <span className="font-medium">{action.start_date ? format(new Date(action.start_date), 'dd/MM/yyyy') : '—'}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Fim:</span>{' '}
+              <span className="font-medium">{action.end_date ? format(new Date(action.end_date), 'dd/MM/yyyy') : '—'}</span>
+            </div>
+          </div>
+
+          {action.objective && (
+            <div className="text-sm">
+              <span className="text-muted-foreground">Objetivo:</span>{' '}
+              <span>{action.objective}</span>
+            </div>
+          )}
+
+          {action.result && (
+            <div className="text-sm">
+              <span className="text-muted-foreground">Resultado:</span>{' '}
+              <span>{action.result}</span>
+            </div>
+          )}
+
+          <Separator />
+
+          {/* Notes with rich text */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium">Notas</Label>
+              {saving && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+              {!saving && notes !== (action.notes || '') && (
+                <span className="text-xs text-muted-foreground animate-pulse">A guardar...</span>
+              )}
+            </div>
+            <div className="min-h-[200px] border rounded-md">
+              <RichTextEditor
+                content={notes}
+                onChange={handleNotesChange}
+                editable={true}
+              />
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Actions */}
+          <div className="flex flex-col gap-2">
+            <Button
+              variant="outline"
+              className="gap-2 w-full"
+              onClick={handleSaveToLibrary}
+              disabled={savingToLib}
+            >
+              {savingToLib ? <Loader2 className="h-4 w-4 animate-spin" /> : <BookOpen className="h-4 w-4" />}
+              Guardar na Biblioteca
+            </Button>
+            <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => onEdit(action)}>
+              <Pencil className="h-3.5 w-3.5" />
+              Editar campos
+            </Button>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 

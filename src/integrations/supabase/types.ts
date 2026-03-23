@@ -1398,6 +1398,7 @@ export type Database = {
           created_by: string | null
           end_date: string | null
           id: string
+          notes: string | null
           objective: string | null
           product: string | null
           project_id: string | null
@@ -1413,6 +1414,7 @@ export type Database = {
           created_by?: string | null
           end_date?: string | null
           id?: string
+          notes?: string | null
           objective?: string | null
           product?: string | null
           project_id?: string | null
@@ -1428,6 +1430,7 @@ export type Database = {
           created_by?: string | null
           end_date?: string | null
           id?: string
+          notes?: string | null
           objective?: string | null
           product?: string | null
           project_id?: string | null
