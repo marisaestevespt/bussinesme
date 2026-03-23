@@ -294,9 +294,10 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
         result: initialData.result || '',
         project_id: initialData.project_id || '',
       });
+      setShowProject(!!initialData.project_id);
     } else {
       setForm(empty());
-    }
+      setShowProject(false);
   }, [open, initialData]);
 
   const handleSave = () => {
