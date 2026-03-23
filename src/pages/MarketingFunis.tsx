@@ -49,6 +49,8 @@ export default function MarketingFunis() {
   const qc = useQueryClient();
 
   const [showNew, setShowNew] = useState(false);
+  const [addingTipo, setAddingTipo] = useState(false);
+  const [newTipo, setNewTipo] = useState('');
   const [form, setForm] = useState({ name: '', status: 'em_ideia', oferta_final: '', objetivo: '', tipo_funil: '' });
 
   const { data: funnels = [] } = useQuery({
