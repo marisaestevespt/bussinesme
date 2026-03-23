@@ -26,8 +26,8 @@ const STATUSES = [
   { value: 'arquivo', label: 'Arquivo', color: 'bg-muted text-muted-foreground' },
 ];
 
-const PLATAFORMAS = [
-  'Mailerlite', 'ActiveCampaign', 'Zapier', 'Make', 'Systeme.io', 'Outro',
+const DEFAULT_PLATAFORMAS = [
+  'Mailerlite', 'ActiveCampaign', 'Zapier', 'Make', 'Systeme.io',
 ];
 
 type Automation = {
@@ -42,6 +42,8 @@ export default function MarketingAutomacoes() {
   const qc = useQueryClient();
 
   const [showNew, setShowNew] = useState(false);
+  const [addingPlatform, setAddingPlatform] = useState(false);
+  const [newPlatform, setNewPlatform] = useState('');
   const [form, setForm] = useState({ name: '', status: 'em_desenho', oferta_final: '', objetivo: '', plataforma: '', notas: '' });
 
   const { data: automations = [] } = useQuery({
@@ -51,6 +53,11 @@ export default function MarketingAutomacoes() {
       return (data || []) as Automation[];
     },
   });
+
+  const allPlataformas = Array.from(new Set([
+    ...DEFAULT_PLATAFORMAS,
+    ...automations.map(a => a.plataforma).filter(Boolean) as string[],
+  ])).sort();
 
   const create = async () => {
     if (!form.name.trim()) return;
@@ -145,12 +152,30 @@ export default function MarketingAutomacoes() {
             </div>
             <div>
               <Label>Plataforma</Label>
-              <Select value={form.plataforma} onValueChange={v => setForm(f => ({ ...f, plataforma: v }))}>
-                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>{PLATAFORMAS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-              </Select>
+              {addingPlatform ? (
+                <div className="flex gap-2">
+                  <Input value={newPlatform} onChange={e => setNewPlatform(e.target.value)} placeholder="Nome da plataforma" autoFocus />
+                  <Button size="sm" variant="outline" disabled={!newPlatform.trim()} onClick={() => {
+                    setForm(f => ({ ...f, plataforma: newPlatform.trim() }));
+                    setAddingPlatform(false);
+                    setNewPlatform('');
+                  }}>OK</Button>
+                  <Button size="sm" variant="ghost" onClick={() => { setAddingPlatform(false); setNewPlatform(''); }}>Cancelar</Button>
+                </div>
+              ) : (
+                <Select value={form.plataforma} onValueChange={v => {
+                  if (v === '___add_new___') { setAddingPlatform(true); return; }
+                  setForm(f => ({ ...f, plataforma: v }));
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    {allPlataformas.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                    <SelectItem value="___add_new___" className="text-primary font-medium">+ Adicionar nova...</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
-            <div><Label>Oferta Final</Label><Input value={form.oferta_final} onChange={e => setForm(f => ({ ...f, oferta_final: e.target.value }))} placeholder="Produto associado (opcional)" /></div>
+            <div><Label>Oferta Final</Label><Input value={form.oferta_final} onChange={e => setForm(f => ({ ...f, oferta_final: e.target.value }))} placeholder="Produto/Plataforma/Outro Final" /></div>
             <div><Label>Objetivo</Label><Input value={form.objetivo} onChange={e => setForm(f => ({ ...f, objetivo: e.target.value }))} placeholder="Objetivo da automação" /></div>
             <Button className="w-full" disabled={!form.name.trim()} onClick={create}>Criar Automação</Button>
           </div>
