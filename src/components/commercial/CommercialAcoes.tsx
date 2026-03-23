@@ -395,6 +395,30 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
             <Label>Objetivo</Label>
             <Input value={form.objective} onChange={e => set({ objective: e.target.value })} placeholder="O que se pretende atingir" />
           </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="has-project"
+              checked={hasProject}
+              onCheckedChange={(checked) => {
+                if (!checked) set({ project_id: '' });
+              }}
+            />
+            <Label htmlFor="has-project" className="cursor-pointer">Há projeto associado?</Label>
+          </div>
+          {hasProject || form.project_id === '' ? null : null}
+          {/* Show project select when checkbox is checked OR when editing with existing project */}
+          {(hasProject || false) && (
+            <div>
+              <Label>Projeto</Label>
+              <Select value={form.project_id} onValueChange={v => set({ project_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecionar projeto" /></SelectTrigger>
+                <SelectContent>
+                  {projectsList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  {projectsList.length === 0 && <SelectItem value="_none" disabled>Sem projetos</SelectItem>}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div>
             <Label>Resultado</Label>
             <Input value={form.result} onChange={e => set({ result: e.target.value })} placeholder="Resultado após conclusão" />
