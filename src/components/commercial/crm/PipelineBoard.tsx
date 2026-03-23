@@ -13,7 +13,7 @@ interface PipelineBoardProps {
   stages: any[];
   pipelineLeads: any[];
   allLeads: any[];
-  dialogOpen?: boolean;
+  stagesDialogOpen?: boolean;
   onStagesDialogChange?: (open: boolean) => void;
   onMoveLeadToStage: (leadId: string, stageId: string) => void;
   onAddLeadToPipeline: (leadId: string, stageId: string) => void;
