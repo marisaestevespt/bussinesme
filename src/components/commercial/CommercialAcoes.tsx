@@ -245,6 +245,24 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
 }) {
   const [form, setForm] = useState(empty());
 
+  const { data: existingTypes = [] } = useQuery({
+    queryKey: ['commercial', 'sales-action-types'],
+    queryFn: async () => {
+      const { data } = await supabase.from('commercial_sales_actions').select('action_type');
+      const unique = [...new Set((data || []).map(r => r.action_type).filter(Boolean))];
+      return unique;
+    },
+  });
+
+  const typeOptions = useMemo(() => {
+    const defaultValues = DEFAULT_TYPE_OPTIONS.map(o => o.value);
+    const custom = existingTypes.filter(t => !defaultValues.includes(t));
+    return [
+      ...DEFAULT_TYPE_OPTIONS,
+      ...custom.map(t => ({ value: t, label: t })),
+    ];
+  }, [existingTypes]);
+
   function empty() {
     return { id: '', status: 'por_comecar', action_name: '', action_type: 'outro', start_date: undefined as Date | undefined, end_date: undefined as Date | undefined, product: '', objective: '', result: '' };
   }
