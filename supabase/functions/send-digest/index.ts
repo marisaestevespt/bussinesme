@@ -52,6 +52,12 @@ Deno.serve(async (req) => {
     const primaryColor = bizSettings?.primary_color
       ? hslToHex(bizSettings.primary_color)
       : "#6366f1";
+    const secondaryColor = bizSettings?.secondary_color
+      ? hslToHex(bizSettings.secondary_color)
+      : "#e4e4e7";
+    const accentColor = bizSettings?.accent_color
+      ? hslToHex(bizSettings.accent_color)
+      : "#6366f1";
     const logoUrl = bizSettings?.logo_url || null;
 
     const todayStr = formatDate(now);
