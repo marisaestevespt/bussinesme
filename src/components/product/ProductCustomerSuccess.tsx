@@ -9,9 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Save } from 'lucide-react';
+import { Plus, Trash2, Save, ExternalLink, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTeamData } from '@/hooks/useTeamData';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 
 const MILESTONE_TYPE_OPTIONS = [
@@ -36,9 +37,24 @@ interface Props {
 }
 
 export function ProductCustomerSuccess({ productId, isOwner }: Props) {
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const { members } = useTeamData();
   const teamMembers = members.data || [];
+
+  // ---- NPS SOP linked to this product ----
+  const { data: npsSop } = useQuery({
+    queryKey: ['nps-sop', productId],
+    queryFn: async () => {
+      const { data } = await (supabase.from('sops') as any)
+        .select('id, title, sop_id')
+        .eq('product_id', productId)
+        .ilike('title', '%NPS%')
+        .limit(1)
+        .maybeSingle();
+      return data as { id: string; title: string; sop_id: string } | null;
+    },
+  });
 
   // ---- Product renewal_advance_days ----
   const { data: product } = useQuery({
@@ -100,6 +116,7 @@ export function ProductCustomerSuccess({ productId, isOwner }: Props) {
         cadence_days: effectiveConfig?.cadence_days || 30,
         collection_message: effectiveConfig?.collection_message || '',
         responsible_id: effectiveConfig?.responsible_id || null,
+        nps_form_url: effectiveConfig?.nps_form_url || null,
       };
       if (effectiveConfig?.id) {
         const { error } = await supabase.from('product_nps_config' as any).update(payload).eq('id', effectiveConfig.id);
@@ -300,6 +317,47 @@ export function ProductCustomerSuccess({ productId, isOwner }: Props) {
               className="min-h-[60px]"
               readOnly={!isOwner}
             />
+          </div>
+
+          {/* NPS Form URL */}
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Link do formulário de recolha de NPS</Label>
+            <div className="flex gap-2">
+              <Input
+                placeholder="https://forms.google.com/... ou outro link"
+                value={effectiveConfig?.nps_form_url || ''}
+                onChange={e => setConfigForm((p: any) => ({ ...(p || {}), nps_form_url: e.target.value }))}
+                className="h-9"
+                readOnly={!isOwner}
+              />
+              {effectiveConfig?.nps_form_url && (
+                <Button variant="outline" size="sm" className="shrink-0" asChild>
+                  <a href={effectiveConfig.nps_form_url} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* NPS SOP Link */}
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">SOP de Recolha de NPS</Label>
+            {npsSop ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => navigate(`/hub/processos/${npsSop.id}`)}
+              >
+                <FileText className="h-4 w-4" />
+                {npsSop.sop_id} — {npsSop.title}
+              </Button>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Nenhum SOP de NPS encontrado. Crie um processo com "NPS" no título e associe-o a este produto.
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

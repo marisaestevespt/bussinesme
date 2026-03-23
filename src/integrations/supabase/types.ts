@@ -5133,6 +5133,7 @@ export type Database = {
           collection_message: string | null
           created_at: string
           id: string
+          nps_form_url: string | null
           product_id: string
           responsible_id: string | null
           updated_at: string
@@ -5142,6 +5143,7 @@ export type Database = {
           collection_message?: string | null
           created_at?: string
           id?: string
+          nps_form_url?: string | null
           product_id: string
           responsible_id?: string | null
           updated_at?: string
@@ -5151,6 +5153,7 @@ export type Database = {
           collection_message?: string | null
           created_at?: string
           id?: string
+          nps_form_url?: string | null
           product_id?: string
           responsible_id?: string | null
           updated_at?: string
