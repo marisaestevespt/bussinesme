@@ -71,9 +71,9 @@ export function OfferCalculator({ vatRate }: Props) {
 
   const getVerdict = () => {
     if (testVal <= 0) return null;
-    if (testVal < totalCosts) return { icon: TrendingDown, color: 'text-red-600', bg: 'bg-red-50 border-red-200', label: 'Abaixo do custo', desc: 'Estás a perder dinheiro com este preço.' };
-    if (testVal < minPriceAfterTax * 0.8) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Margem muito baixa', desc: `Preço abaixo do recomendado (${fmt(minPriceAfterTax)}).` };
-    if (testVal < minPriceAfterTax) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Quase lá', desc: `Perto do preço recomendado de ${fmt(minPriceAfterTax)}.` };
+    if (testBase < totalCosts) return { icon: TrendingDown, color: 'text-red-600', bg: 'bg-red-50 border-red-200', label: 'Abaixo do custo', desc: 'Estás a perder dinheiro com este preço.' };
+    if (testBase < minPriceBase * 0.8) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Margem muito baixa', desc: `Preço abaixo do recomendado (${fmt(minPriceWithVat)} c/ IVA).` };
+    if (testBase < minPriceBase) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Quase lá', desc: `Perto do preço recomendado de ${fmt(minPriceWithVat)} c/ IVA.` };
     return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50 border-green-200', label: 'Bom preço!', desc: `Acima do preço recomendado — margem bruta de ${testMargin.toFixed(1)}%.` };
   };
   const verdict = getVerdict();
@@ -151,7 +151,7 @@ export function OfferCalculator({ vatRate }: Props) {
               <CardContent className="pt-4 pb-3 space-y-1">
                 <p className="text-xs text-muted-foreground">Preço recomendado</p>
                 <p className="text-lg font-bold text-green-600">
-                  {fmt(minPriceAfterTax)} <span className="text-sm font-medium text-muted-foreground">({fmt(minPriceWithVat)} c/ IVA)</span>
+                  {fmt(minPriceBase)} <span className="text-sm font-medium text-muted-foreground">({fmt(minPriceWithVat)} c/ IVA)</span>
                 </p>
                 <p className="text-[10px] text-muted-foreground">Com {marginPercent}% margem + {ssPercent}% SS + {taxPercent}% impostos</p>
               </CardContent>
@@ -164,7 +164,7 @@ export function OfferCalculator({ vatRate }: Props) {
           <Label className="text-sm font-medium">Testar um preço</Label>
           <div className="flex gap-3 items-end">
             <div className="flex-1 space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Preço de venda (s/ IVA)</Label>
+              <Label className="text-xs text-muted-foreground">Preço de venda (c/ IVA)</Label>
               <Input
                 type="number"
                 placeholder="Ex: 497"
@@ -188,8 +188,8 @@ export function OfferCalculator({ vatRate }: Props) {
           {testVal > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
               <div className="p-2 rounded-md bg-muted/50">
-                <p className="text-[10px] text-muted-foreground">Preço c/ IVA</p>
-                <p className="text-sm font-semibold">{fmt(testWithVat)}</p>
+                <p className="text-[10px] text-muted-foreground">Base s/ IVA</p>
+                <p className="text-sm font-semibold">{fmt(testBase)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Guardar p/ Seg. Social ({ssPercent}% s/ 70%)</p>
