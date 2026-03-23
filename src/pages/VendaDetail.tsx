@@ -48,6 +48,14 @@ export default function VendaDetailPage() {
     enabled: !!id,
   });
 
+  const { data: clientsList } = useQuery({
+    queryKey: ['clients-list-names'],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients').select('full_name').order('full_name');
+      return (data || []).map(c => c.full_name);
+    },
+  });
+
   const [form, setForm] = useState<any>({});
   const [initialized, setInitialized] = useState(false);
 
