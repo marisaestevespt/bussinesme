@@ -2,17 +2,18 @@ import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Plus, LayoutGrid, List } from 'lucide-react';
+import { Plus, LayoutGrid, List, SlidersHorizontal } from 'lucide-react';
 import { useCrmData } from '@/hooks/useCrmData';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { CrmSummary } from './crm/CrmSummary';
 import { CrmPipeline } from './crm/CrmPipeline';
 import { CrmListView } from './crm/CrmListView';
+import { CrmCustomView } from './crm/CrmCustomView';
 import { LeadDetailSheet } from './crm/LeadDetailSheet';
 import { toast } from 'sonner';
 
 export function CommercialCRM() {
-  const [view, setView] = useState<'pipeline' | 'list'>('pipeline');
+  const [view, setView] = useState<'pipeline' | 'list' | 'custom'>('pipeline');
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<any>(null);
 
@@ -129,6 +130,13 @@ export function CommercialCRM() {
         >
           <List className="h-4 w-4 mr-1" /> Lista
         </Button>
+        <Button
+          variant={view === 'custom' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setView('custom')}
+        >
+          <SlidersHorizontal className="h-4 w-4 mr-1" /> Personalizada
+        </Button>
         </div>
         <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Lead</Button>
       </div>
@@ -136,8 +144,10 @@ export function CommercialCRM() {
       {/* Views */}
       {view === 'pipeline' ? (
         <CrmPipeline leads={allLeads} onOpenLead={openLead} onUpdateStatus={handleUpdateStatus} />
-      ) : (
+      ) : view === 'list' ? (
         <CrmListView leads={allLeads} onOpenLead={openLead} />
+      ) : (
+        <CrmCustomView leads={allLeads} onOpenLead={openLead} />
       )}
 
       {/* Lead Detail Sheet */}
