@@ -31,7 +31,6 @@ const MEMBER_DEFAULT_SECTIONS: Record<string, boolean> = {
   tarefas_atraso: true,
   reunioes_periodo: true,
   rotinas: true,
-  nps_realizados: true,
   tempo_registado: true,
 };
 

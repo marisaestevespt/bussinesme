@@ -14,7 +14,6 @@ const MEMBER_SECTION_LABELS: Record<string, string> = {
   tarefas_atraso: 'Tarefas em atraso',
   reunioes_periodo: 'Reuniões do período',
   rotinas: 'Rotinas — feitas vs por fazer',
-  nps_realizados: 'NPS realizados',
   tempo_registado: 'Tempo registado',
 };
 
