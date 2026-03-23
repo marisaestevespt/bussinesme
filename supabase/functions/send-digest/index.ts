@@ -52,6 +52,12 @@ Deno.serve(async (req) => {
     const primaryColor = bizSettings?.primary_color
       ? hslToHex(bizSettings.primary_color)
       : "#6366f1";
+    const secondaryColor = bizSettings?.secondary_color
+      ? hslToHex(bizSettings.secondary_color)
+      : "#e4e4e7";
+    const accentColor = bizSettings?.accent_color
+      ? hslToHex(bizSettings.accent_color)
+      : "#6366f1";
     const logoUrl = bizSettings?.logo_url || null;
 
     const todayStr = formatDate(now);
@@ -97,6 +103,8 @@ Deno.serve(async (req) => {
           subject,
           businessName,
           primaryColor,
+          secondaryColor,
+          accentColor,
           logoUrl,
           contentHtml: htmlSections,
           isOwner: digest.is_owner_digest,
@@ -527,10 +535,14 @@ function buildEmailHtml(opts: {
   subject: string;
   businessName: string;
   primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
   logoUrl: string | null;
   contentHtml: string;
   isOwner: boolean;
 }) {
+  // Replace placeholder in content with actual secondary color
+  const content = opts.contentHtml.replace(/%%SECONDARY%%/g, opts.secondaryColor).replace(/%%ACCENT%%/g, opts.accentColor).replace(/%%PRIMARY%%/g, opts.primaryColor);
   return `<!DOCTYPE html>
 <html lang="pt">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -543,9 +555,9 @@ function buildEmailHtml(opts: {
     <h1 style="color:#ffffff;font-size:20px;margin:0;font-weight:600">${esc(opts.subject)}</h1>
   </td></tr>
   <tr><td style="padding:32px">
-    ${opts.contentHtml}
+    ${content}
   </td></tr>
-  <tr><td style="padding:16px 32px 24px;border-top:1px solid #e4e4e7;text-align:center">
+  <tr><td style="padding:16px 32px 24px;border-top:2px solid ${opts.secondaryColor};text-align:center">
     <p style="font-size:12px;color:#a1a1aa;margin:0">${esc(opts.businessName)}</p>
   </td></tr>
 </table>
@@ -556,7 +568,7 @@ function buildEmailHtml(opts: {
 
 // ─── Helpers ──────────────────────────────────────────────
 function sectionHeader(title: string): string {
-  return `<h2 style="font-size:16px;font-weight:600;color:#18181b;margin:24px 0 8px;border-bottom:1px solid #e4e4e7;padding-bottom:6px">${title}</h2>`;
+  return `<h2 style="font-size:16px;font-weight:600;color:#18181b;margin:24px 0 8px;border-bottom:2px solid %%SECONDARY%%;padding-bottom:6px">${title}</h2>`;
 }
 
 function esc(s: string): string {
