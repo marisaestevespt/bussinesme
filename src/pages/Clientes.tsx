@@ -112,7 +112,7 @@ export default function ClientesPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={byProduct} margin={{ bottom: 40 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis type="category" dataKey="name" tick={{ fontSize: 11, angle: -30, textAnchor: 'end' }} interval={0} />
+                  <XAxis type="category" dataKey="name" tick={{ fontSize: 11 }} interval={0} />
                   <YAxis type="number" allowDecimals={false} />
                   <Tooltip />
                   <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
