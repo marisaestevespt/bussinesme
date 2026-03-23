@@ -67,6 +67,15 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
     }
   }, [initialData, open]);
 
+  // Fetch clients list
+  const clientsList = useQuery({
+    queryKey: ['clients-list-names'],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients').select('full_name').order('full_name');
+      return (data || []).map(c => c.full_name);
+    },
+  });
+
   // Fetch client details by name
   const clientName = form.client;
   const clientInfo = useQuery({
