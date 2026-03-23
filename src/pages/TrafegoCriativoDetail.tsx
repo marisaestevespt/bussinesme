@@ -59,7 +59,7 @@ export default function TrafegoCriativoDetail() {
 
   const [form, setForm] = useState({
     name: '', status: 'em_desenho', start_date: null as Date | null, formato: '',
-    objetivo: '', oferta_goal: '', link: '', titulo_principal: '', headline: '', legenda: '',
+    objetivo: '', oferta_type: '' as ObjetivoFinalType, oferta_value: '', link: '', titulo_principal: '', headline: '', legenda: '',
   });
   const [saving, setSaving] = useState(false);
 
