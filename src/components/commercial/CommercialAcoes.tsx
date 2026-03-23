@@ -310,6 +310,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
       product: form.product || null,
       objective: form.objective || null,
       result: form.result || null,
+      project_id: form.project_id || null,
     });
   };
 
