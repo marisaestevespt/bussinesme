@@ -95,14 +95,19 @@ Deno.serve(async (req) => {
         }
 
         // Build email
-        const headerTitle = digest.is_owner_digest ? "Resumo do dia" : `O teu resumo ${getFrequencyLabel(digest.frequency)}`;
+        const firstName = (profile.full_name || "").split(" ")[0] || "—";
+        const freqLabel = getFrequencyLabel(digest.frequency);
+        const headerTitle = digest.is_owner_digest ? "Resumo do dia" : `O teu resumo ${freqLabel}`;
+        const periodWord = digest.frequency === "diario" ? "dia" : digest.frequency === "semanal" ? "semana" : "mês";
+        const greeting = `Olá, ${firstName}! Aqui está o resumo do teu ${periodWord}.`;
         const subject = digest.is_owner_digest
           ? `Resumo do dia — ${businessName} — ${formatDatePT(now)}`
-          : `O teu resumo — ${getFrequencyLabel(digest.frequency)} — ${formatDatePT(now)}`;
+          : `O teu resumo — ${freqLabel} — ${formatDatePT(now)}`;
 
         const html = buildEmailHtml({
           subject,
           headerTitle,
+          greeting,
           dateLine: formatDatePT(now),
           businessName,
           primaryColor,
