@@ -23,6 +23,7 @@ function applyTheme(settings: BusinessSettings) {
   root.style.setProperty('--foreground', settings.text_color);
   root.style.setProperty('--card-foreground', settings.text_color);
   root.style.setProperty('--popover-foreground', settings.text_color);
+  root.style.setProperty('--accent', (settings as any).accent_color || settings.secondary_color);
   root.style.setProperty('--font-display', `'${settings.font_display}'`);
   root.style.setProperty('--font-body', `'${settings.font_body}'`);
 }
