@@ -26,6 +26,7 @@ export default function CrmPipelines() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<any>(null);
   const [createLeadStageId, setCreateLeadStageId] = useState<string | null>(null);
+  const [stagesDialogOpen, setStagesDialogOpen] = useState(false);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
