@@ -280,7 +280,7 @@ function MonthDetail({ monthIdx, year, onBack, onChangeMonth }: { monthIdx: numb
       {/* Health */}
       {isAreaEnabled('clientes') && isKpiEnabled('clientes', 'saude_carteira') && (
       <div>
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Saúde da Carteira</h3>
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Saúde da Relação com Clientes</h3>
         <Card className="border-secondary bg-background">
           <CardContent className="p-0">
             <div className="bg-muted px-4 py-2 text-xs font-medium grid grid-cols-5 gap-2">
@@ -514,7 +514,7 @@ export default function ClientesAnalisePage() {
 
           {/* Health */}
           <Card className="border-secondary bg-background">
-            <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-sm font-semibold">Saúde da Carteira Atual</CardTitle></CardHeader>
+            <CardHeader className="pb-2 pt-4 px-4"><CardTitle className="text-sm font-semibold">Saúde da Relação com Clientes</CardTitle></CardHeader>
             <CardContent className="px-4 pb-4">
               <div className="flex gap-6 text-sm">
                 <div className="flex items-center gap-2"><div className="h-3 w-3 rounded-full bg-emerald-500" /><span className="font-medium">{annualSummary.green} Verde</span></div>
