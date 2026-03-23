@@ -1,0 +1,109 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './useAuth';
+
+export interface DigestSettings {
+  id: string;
+  user_id: string;
+  is_owner_digest: boolean;
+  enabled: boolean;
+  frequency: 'diario' | 'semanal' | 'mensal';
+  send_time: string;
+  send_day_of_week: number | null;
+  send_day_of_month: number | null;
+  sections: Record<string, boolean>;
+}
+
+const OWNER_DEFAULT_SECTIONS: Record<string, boolean> = {
+  tarefas_concluidas: true,
+  tarefas_atraso: true,
+  reunioes_dia: true,
+  vendas_hoje: true,
+  leads_novas: true,
+  nps_recebidos: true,
+  pagamentos_recebidos: true,
+  rotinas_dia: true,
+  resumo_membros: true,
+};
+
+const MEMBER_DEFAULT_SECTIONS: Record<string, boolean> = {
+  tarefas_concluidas: true,
+  tarefas_atraso: true,
+  reunioes_periodo: true,
+  rotinas: true,
+  nps_realizados: true,
+  tempo_registado: true,
+};
+
+export function useDigestSettings(isOwnerDigest: boolean) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const profileQuery = useQuery({
+    queryKey: ['my-profile-id', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user!.id)
+        .single();
+      return data?.id || null;
+    },
+  });
+
+  const profileId = profileQuery.data;
+
+  const settingsQuery = useQuery({
+    queryKey: ['digest-settings', profileId, isOwnerDigest],
+    enabled: !!profileId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('digest_settings')
+        .select('*')
+        .eq('user_id', profileId!)
+        .eq('is_owner_digest', isOwnerDigest)
+        .maybeSingle();
+      return data as DigestSettings | null;
+    },
+  });
+
+  const upsertMutation = useMutation({
+    mutationFn: async (updates: Partial<DigestSettings>) => {
+      if (!profileId) throw new Error('Profile not found');
+
+      const defaultSections = isOwnerDigest ? OWNER_DEFAULT_SECTIONS : MEMBER_DEFAULT_SECTIONS;
+
+      if (settingsQuery.data?.id) {
+        const { error } = await supabase
+          .from('digest_settings')
+          .update(updates as any)
+          .eq('id', settingsQuery.data.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('digest_settings')
+          .insert({
+            user_id: profileId,
+            is_owner_digest: isOwnerDigest,
+            sections: defaultSections,
+            ...updates,
+          } as any);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['digest-settings', profileId, isOwnerDigest] });
+    },
+  });
+
+  return {
+    settings: settingsQuery.data,
+    isLoading: profileQuery.isLoading || settingsQuery.isLoading,
+    profileId,
+    update: upsertMutation.mutateAsync,
+    isUpdating: upsertMutation.isPending,
+    ownerDefaultSections: OWNER_DEFAULT_SECTIONS,
+    memberDefaultSections: MEMBER_DEFAULT_SECTIONS,
+  };
+}

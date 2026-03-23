@@ -7,6 +7,7 @@ import { SettingsIdentity } from '@/components/settings/SettingsIdentity';
 import { ChannelSettings } from '@/components/settings/ChannelSettings';
 import { SettingsUsers } from '@/components/settings/SettingsUsers';
 import { SettingsKpis } from '@/components/settings/SettingsKpis';
+import { SettingsDigest } from '@/components/settings/SettingsDigest';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ const TABS = [
   { key: 'marketing', label: 'Marketing' },
   { key: 'utilizadores', label: 'Utilizadores' },
   { key: 'kpis', label: 'KPIs e Análise' },
+  { key: 'resumo', label: 'Resumo Diário' },
 ] as const;
 
 type TabKey = typeof TABS[number]['key'];
@@ -65,6 +67,7 @@ export default function DefinicoesPage() {
           {tab === 'marketing' && <ChannelSettings />}
           {tab === 'utilizadores' && <SettingsUsers />}
           {tab === 'kpis' && <SettingsKpis />}
+          {tab === 'resumo' && <SettingsDigest />}
         </div>
 
         {/* Reset section - owner only */}

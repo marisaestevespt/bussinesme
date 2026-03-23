@@ -2119,6 +2119,56 @@ export type Database = {
         }
         Relationships: []
       }
+      digest_settings: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          frequency: Database["public"]["Enums"]["digest_frequency"]
+          id: string
+          is_owner_digest: boolean
+          sections: Json
+          send_day_of_month: number | null
+          send_day_of_week: number | null
+          send_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          frequency?: Database["public"]["Enums"]["digest_frequency"]
+          id?: string
+          is_owner_digest?: boolean
+          sections?: Json
+          send_day_of_month?: number | null
+          send_day_of_week?: number | null
+          send_time?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          frequency?: Database["public"]["Enums"]["digest_frequency"]
+          id?: string
+          is_owner_digest?: boolean
+          sections?: Json
+          send_day_of_month?: number | null
+          send_day_of_week?: number | null
+          send_time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "digest_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_attachments: {
         Row: {
           created_at: string
@@ -6733,6 +6783,7 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "member"
+      digest_frequency: "diario" | "semanal" | "mensal"
       launch_phase:
         | "estrategia"
         | "antecipacao"
@@ -6872,6 +6923,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "member"],
+      digest_frequency: ["diario", "semanal", "mensal"],
       launch_phase: [
         "estrategia",
         "antecipacao",
