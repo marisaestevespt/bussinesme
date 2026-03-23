@@ -16,6 +16,8 @@ const OWNER_SECTION_LABELS: Record<string, string> = {
   nps_recebidos: 'NPS recebidos',
   pagamentos_recebidos: 'Pagamentos recebidos hoje',
   rotinas_dia: 'Rotinas do dia — feitas vs por fazer',
+  projetos_fechados: 'Projetos fechados hoje',
+  projetos_novos: 'Projetos criados hoje',
   resumo_membros: 'Resumo de cada membro',
 };
 
