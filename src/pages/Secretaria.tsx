@@ -430,6 +430,30 @@ export default function SecretariaPage() {
             )}
 
             <DashboardPersonalWidgets userId={user?.id} teamMember={teamMember.data} />
+
+            {/* Bottom utility buttons */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4">
+              {[
+                { value: 'recomendacoes', label: 'Caixa de Recomendações', icon: ListTodo, iconColor: 'text-orange-600', color: 'from-orange-500/10 to-orange-600/5 hover:from-orange-500/20 hover:to-orange-600/10' },
+                { value: 'resumo_email', label: 'Resumo por Email', icon: Mail, iconColor: 'text-pink-600', color: 'from-pink-500/10 to-pink-600/5 hover:from-pink-500/20 hover:to-pink-600/10' },
+              ].map(s => (
+                <Card
+                  key={s.value}
+                  className={cn(
+                    'group cursor-pointer border bg-gradient-to-br transition-all duration-200 hover:shadow-md hover:-translate-y-0.5',
+                    s.color
+                  )}
+                  onClick={() => setActiveTab(s.value)}
+                >
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
+                      <s.icon className="h-4.5 w-4.5" />
+                    </div>
+                    <span className="font-medium text-sm text-foreground">{s.label}</span>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </>
         )}
 
