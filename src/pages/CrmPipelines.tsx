@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Plus, Pencil, Trash2, Search, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, X, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PipelineBoard } from '@/components/commercial/crm/PipelineBoard';
 import { PipelineFormDialog } from '@/components/commercial/crm/PipelineFormDialog';
@@ -26,6 +26,7 @@ export default function CrmPipelines() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<any>(null);
   const [createLeadStageId, setCreateLeadStageId] = useState<string | null>(null);
+  const [stagesDialogOpen, setStagesDialogOpen] = useState(false);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -300,6 +301,9 @@ export default function CrmPipelines() {
               </div>
             </div>
             <div className="flex items-center gap-1">
+              <Button variant="outline" size="sm" onClick={() => setStagesDialogOpen(true)}>
+                <Settings2 className="h-3.5 w-3.5 mr-1" /> Editar Etapas
+              </Button>
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditingPipeline(activePipeline); setFormOpen(true); }}>
                 <Pencil className="h-4 w-4" />
               </Button>
@@ -323,6 +327,8 @@ export default function CrmPipelines() {
             stages={allStages.filter(s => s.pipeline_id === activePipeline.id)}
             pipelineLeads={pipelineLeads.filter(pl => pl.pipeline_id === activePipeline.id)}
             allLeads={allLeads}
+            stagesDialogOpen={stagesDialogOpen}
+            onStagesDialogChange={setStagesDialogOpen}
             onMoveLeadToStage={(leadId, stageId) =>
               moveLeadToStage.mutate({ pipelineId: activePipeline.id, leadId, stageId })
             }

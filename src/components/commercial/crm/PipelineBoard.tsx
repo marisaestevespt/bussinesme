@@ -13,6 +13,8 @@ interface PipelineBoardProps {
   stages: any[];
   pipelineLeads: any[];
   allLeads: any[];
+  stagesDialogOpen?: boolean;
+  onStagesDialogChange?: (open: boolean) => void;
   onMoveLeadToStage: (leadId: string, stageId: string) => void;
   onAddLeadToPipeline: (leadId: string, stageId: string) => void;
   onRemoveLeadFromPipeline: (leadId: string) => void;
@@ -29,6 +31,8 @@ export function PipelineBoard({
   stages,
   pipelineLeads,
   allLeads,
+  stagesDialogOpen: externalOpen,
+  onStagesDialogChange,
   onMoveLeadToStage,
   onAddLeadToPipeline,
   onRemoveLeadFromPipeline,
@@ -40,7 +44,9 @@ export function PipelineBoard({
   onReorderStage,
 }: PipelineBoardProps) {
   const [addingToStage, setAddingToStage] = useState<string | null>(null);
-  const [stagesDialogOpen, setStagesDialogOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const dialogOpen = externalOpen ?? internalOpen;
+  const setDialogOpen = onStagesDialogChange ?? setInternalOpen;
 
   const assignedLeadIds = new Set(pipelineLeads.map(pl => pl.lead_id));
   const unassignedLeads = allLeads.filter(l => !assignedLeadIds.has(l.id));
@@ -52,18 +58,12 @@ export function PipelineBoard({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <h2 className="font-semibold text-lg">{pipeline.name}</h2>
-        <Button variant="outline" size="sm" onClick={() => setStagesDialogOpen(true)}>
-          <Settings2 className="h-3.5 w-3.5 mr-1" /> Editar Etapas
-        </Button>
-      </div>
 
       {stages.length === 0 ? (
         <Card>
           <CardContent className="p-6 text-center text-muted-foreground">
             Este pipeline ainda não tem etapas.
-            <Button variant="link" className="ml-1" onClick={() => setStagesDialogOpen(true)}>
+            <Button variant="link" className="ml-1" onClick={() => setDialogOpen(true)}>
               Adicionar etapas
             </Button>
           </CardContent>
@@ -179,8 +179,8 @@ export function PipelineBoard({
 
       {/* Edit Stages Dialog */}
       <StagesDialog
-        open={stagesDialogOpen}
-        onOpenChange={setStagesDialogOpen}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
         stages={stages}
         pipelineLeads={pipelineLeads}
         onAdd={onAddStage}
