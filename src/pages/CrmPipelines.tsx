@@ -232,6 +232,99 @@ export default function CrmPipelines() {
     return projects.find(p => p.id === projectId)?.name || null;
   };
 
+  const activePipeline = openPipelineId ? pipelines.find(p => p.id === openPipelineId) : null;
+
+  // ── FULL VIEW: pipeline is open ──
+  if (activePipeline) {
+    const projectName = getProjectName(activePipeline.project_id);
+    return (
+      <AppLayout>
+        <div className="p-6 space-y-4 max-w-[1600px] mx-auto">
+          {/* Header with X to close */}
+          <div className="flex items-center justify-between">
+            <div className="min-w-0">
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold truncate">{activePipeline.name}</h1>
+                <Badge variant={activePipeline.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                  {activePipeline.status === 'active' ? 'Ativo' : 'Arquivado'}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                {activePipeline.start_date && (
+                  <span>{format(new Date(activePipeline.start_date), 'dd/MM/yyyy')} — {activePipeline.end_date ? format(new Date(activePipeline.end_date), 'dd/MM/yyyy') : '...'}</span>
+                )}
+                {activePipeline.product && <span>• {activePipeline.product}</span>}
+                {projectName && <span>• {projectName}</span>}
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditingPipeline(activePipeline); setFormOpen(true); }}>
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-destructive hover:text-destructive"
+                onClick={() => { if (confirm(`Eliminar pipeline "${activePipeline.name}"?`)) deletePipeline.mutate(activePipeline.id); }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="icon" className="h-8 w-8 ml-2" onClick={() => setOpenPipelineId(null)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Board */}
+          <PipelineBoard
+            pipeline={activePipeline}
+            stages={allStages.filter(s => s.pipeline_id === activePipeline.id)}
+            pipelineLeads={pipelineLeads.filter(pl => pl.pipeline_id === activePipeline.id)}
+            allLeads={allLeads}
+            onMoveLeadToStage={(leadId, stageId) =>
+              moveLeadToStage.mutate({ pipelineId: activePipeline.id, leadId, stageId })
+            }
+            onAddLeadToPipeline={(leadId, stageId) =>
+              moveLeadToStage.mutate({ pipelineId: activePipeline.id, leadId, stageId })
+            }
+            onRemoveLeadFromPipeline={(leadId) =>
+              removeLeadFromPipeline.mutate({ pipelineId: activePipeline.id, leadId })
+            }
+            onOpenLead={openLead}
+            onAddStage={() => {
+              const name = window.prompt('Nome da nova etapa:');
+              if (name?.trim()) addStage.mutate({ pipelineId: activePipeline.id, name: name.trim() });
+            }}
+            onDeleteStage={(stageId) => deleteStage.mutate(stageId)}
+            onRenameStage={(id, current) => {
+              const name = window.prompt('Novo nome:', current);
+              if (name?.trim() && name.trim() !== current) renameStage.mutate({ id, name: name.trim() });
+            }}
+          />
+
+          <PipelineFormDialog
+            open={formOpen}
+            onOpenChange={v => { setFormOpen(v); if (!v) setEditingPipeline(null); }}
+            onSave={(data) => savePipeline.mutate({ ...data, id: editingPipeline?.id })}
+            products={products}
+            projects={projects}
+            initialData={editingPipeline}
+          />
+          <LeadDetailSheet
+            open={sheetOpen}
+            onOpenChange={v => { setSheetOpen(v); if (!v) setSelectedLead(null); }}
+            lead={selectedLead}
+            products={products}
+            profiles={profiles}
+            onSave={handleSaveLead}
+            onDelete={(id) => deleteLead.mutate(id)}
+          />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // ── LIST VIEW: search & select ──
   return (
     <AppLayout>
       <div className="p-6 space-y-6 max-w-[1400px] mx-auto">
@@ -293,98 +386,56 @@ export default function CrmPipelines() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {filteredPipelines.map(p => {
-              const isOpen = openPipelineId === p.id;
               const leadsCount = pipelineLeads.filter(pl => pl.pipeline_id === p.id).length;
               const projectName = getProjectName(p.project_id);
 
               return (
-                <div key={p.id} className="space-y-0">
-                  <Card
-                    className={cn(
-                      'cursor-pointer transition-colors hover:border-primary/30',
-                      isOpen && 'border-primary/50'
-                    )}
-                    onClick={() => togglePipeline(p.id)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="font-semibold truncate">{p.name}</p>
-                              <Badge variant={p.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                                {p.status === 'active' ? 'Ativo' : 'Arquivado'}
-                              </Badge>
-                              <Badge variant="outline" className="text-xs">{leadsCount} leads</Badge>
-                            </div>
-                            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                              {p.start_date && (
-                                <span>{format(new Date(p.start_date), 'dd/MM/yyyy')} — {p.end_date ? format(new Date(p.end_date), 'dd/MM/yyyy') : '...'}</span>
-                              )}
-                              {p.product && <span>• {p.product}</span>}
-                              {projectName && <span>• {projectName}</span>}
-                            </div>
-                          </div>
+                <Card
+                  key={p.id}
+                  className="cursor-pointer transition-colors hover:border-primary/30"
+                  onClick={() => setOpenPipelineId(p.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold truncate">{p.name}</p>
+                          <Badge variant={p.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                            {p.status === 'active' ? 'Ativo' : 'Arquivado'}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">{leadsCount} leads</Badge>
                         </div>
-                        <div className="flex items-center gap-1 ml-2" onClick={e => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => togglePipeline(p.id)}>
-                            {isOpen ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setEditingPipeline(p); setFormOpen(true); }}>
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-destructive hover:text-destructive"
-                            onClick={() => { if (confirm(`Eliminar pipeline "${p.name}" e todas as suas etapas?`)) deletePipeline.mutate(p.id); }}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                          {p.start_date && (
+                            <span>{format(new Date(p.start_date), 'dd/MM/yyyy')} — {p.end_date ? format(new Date(p.end_date), 'dd/MM/yyyy') : '...'}</span>
+                          )}
+                          {p.product && <span>• {p.product}</span>}
+                          {projectName && <span>• {projectName}</span>}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Expanded board */}
-                  {isOpen && (
-                    <div className="pt-3 pb-1">
-                      <PipelineBoard
-                        pipeline={p}
-                        stages={allStages.filter(s => s.pipeline_id === p.id)}
-                        pipelineLeads={pipelineLeads.filter(pl => pl.pipeline_id === p.id)}
-                        allLeads={allLeads}
-                        onMoveLeadToStage={(leadId, stageId) =>
-                          moveLeadToStage.mutate({ pipelineId: p.id, leadId, stageId })
-                        }
-                        onAddLeadToPipeline={(leadId, stageId) =>
-                          moveLeadToStage.mutate({ pipelineId: p.id, leadId, stageId })
-                        }
-                        onRemoveLeadFromPipeline={(leadId) =>
-                          removeLeadFromPipeline.mutate({ pipelineId: p.id, leadId })
-                        }
-                        onOpenLead={openLead}
-                        onAddStage={() => {
-                          const name = window.prompt('Nome da nova etapa:');
-                          if (name?.trim()) addStage.mutate({ pipelineId: p.id, name: name.trim() });
-                        }}
-                        onDeleteStage={(stageId) => deleteStage.mutate(stageId)}
-                        onRenameStage={(id, current) => {
-                          const name = window.prompt('Novo nome:', current);
-                          if (name?.trim() && name.trim() !== current) renameStage.mutate({ id, name: name.trim() });
-                        }}
-                      />
+                      <div className="flex items-center gap-1 ml-2" onClick={e => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setEditingPipeline(p); setFormOpen(true); }}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-destructive hover:text-destructive"
+                          onClick={() => { if (confirm(`Eliminar pipeline "${p.name}"?`)) deletePipeline.mutate(p.id); }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
-                  )}
-                </div>
+                  </CardContent>
+                </Card>
               );
             })}
           </div>
         )}
 
-        {/* Form Dialog */}
         <PipelineFormDialog
           open={formOpen}
           onOpenChange={v => { setFormOpen(v); if (!v) setEditingPipeline(null); }}
@@ -392,17 +443,6 @@ export default function CrmPipelines() {
           products={products}
           projects={projects}
           initialData={editingPipeline}
-        />
-
-        {/* Lead Detail */}
-        <LeadDetailSheet
-          open={sheetOpen}
-          onOpenChange={v => { setSheetOpen(v); if (!v) setSelectedLead(null); }}
-          lead={selectedLead}
-          products={products}
-          profiles={profiles}
-          onSave={handleSaveLead}
-          onDelete={(id) => deleteLead.mutate(id)}
         />
       </div>
     </AppLayout>
