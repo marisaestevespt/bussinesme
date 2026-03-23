@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Plus, LayoutGrid, List } from 'lucide-react';
+import { Plus, LayoutGrid, List, SlidersHorizontal } from 'lucide-react';
 import { useCrmData } from '@/hooks/useCrmData';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { CrmSummary } from './crm/CrmSummary';
