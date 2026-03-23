@@ -25,7 +25,7 @@ const STATUS_OPTIONS = [
   { value: 'cancelada', label: 'Cancelada', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
 ];
 
-const TYPE_OPTIONS = [
+const DEFAULT_TYPE_OPTIONS = [
   { value: 'lancamento', label: 'Lançamento' },
   { value: 'relancamento', label: 'Relançamento' },
   { value: 'campanha', label: 'Campanha' },
