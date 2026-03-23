@@ -322,9 +322,19 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
             </div>
             <div>
               <Label>Tipo</Label>
-              <Select value={form.action_type} onValueChange={v => set({ action_type: v })}>
+              <Select value={form.action_type} onValueChange={v => {
+                if (v === '__custom_type__') {
+                  const custom = window.prompt('Introduz o novo tipo:');
+                  if (custom?.trim()) set({ action_type: custom.trim() });
+                  return;
+                }
+                set({ action_type: v });
+              }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                <SelectContent>
+                  {typeOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                  <SelectItem value="__custom_type__">+ Adicionar outro</SelectItem>
+                </SelectContent>
               </Select>
             </div>
           </div>
