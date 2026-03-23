@@ -29,6 +29,7 @@ const TABS = [
   { key: 'marketing', label: 'Marketing' },
   { key: 'utilizadores', label: 'Utilizadores' },
   { key: 'kpis', label: 'KPIs e Análise' },
+  { key: 'resumo', label: 'Resumo Diário' },
 ] as const;
 
 type TabKey = typeof TABS[number]['key'];
