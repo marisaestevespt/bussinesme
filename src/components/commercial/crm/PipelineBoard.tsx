@@ -52,12 +52,6 @@ export function PipelineBoard({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <h2 className="font-semibold text-lg">{pipeline.name}</h2>
-        <Button variant="outline" size="sm" onClick={() => setStagesDialogOpen(true)}>
-          <Settings2 className="h-3.5 w-3.5 mr-1" /> Editar Etapas
-        </Button>
-      </div>
 
       {stages.length === 0 ? (
         <Card>

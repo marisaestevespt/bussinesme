@@ -300,6 +300,9 @@ export default function CrmPipelines() {
               </div>
             </div>
             <div className="flex items-center gap-1">
+              <Button variant="outline" size="sm" onClick={() => pipelineBoardRef.current?.openStagesDialog()}>
+                <Settings2 className="h-3.5 w-3.5 mr-1" /> Editar Etapas
+              </Button>
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditingPipeline(activePipeline); setFormOpen(true); }}>
                 <Pencil className="h-4 w-4" />
               </Button>
