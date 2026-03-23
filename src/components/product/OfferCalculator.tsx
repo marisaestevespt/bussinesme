@@ -44,15 +44,13 @@ export function OfferCalculator({ vatRate }: Props) {
   //   SS = base × 70% × ss%, taxable = base - costs - SS, IRS = taxable × tax%
   //   net = taxable × (1 - tax%) = base × margin%
   // Solving: base = costs / [(1 - 0.7×ss%) - margin% / (1 - tax%)]
+  // SS_efectiva = 0.70 × (SS% / 100)
   const ssFactor = 0.7 * (ssPercent / 100);
-  const taxFactor = 1 - (taxPercent / 100);
   const marginFraction = marginPercent / 100;
-  const denominator = (1 - ssFactor) - (taxFactor > 0 ? marginFraction / taxFactor : marginFraction);
-  const minPriceBase = denominator > 0 ? totalCosts / denominator : totalCosts;
-  const minSS = minPriceBase * ssFactor;
-  const minTaxable = minPriceBase - totalCosts - minSS;
-  const minIRS = minTaxable > 0 ? minTaxable * (taxPercent / 100) : 0;
-  // Preço recomendado s/ IVA = base
+
+  // Preço recomendado s/ IVA: X = custos / (1 - SS_efectiva - margem%)
+  const recDenom = 1 - ssFactor - marginFraction;
+  const minPriceBase = recDenom > 0 ? totalCosts / recDenom : totalCosts;
   const minPriceWithVat = minPriceBase * (1 + vatPercent / 100);
 
   // Absolute floor: base onde net = 0 → base(1 - ssFactor) = costs → base = costs / (1 - ssFactor)
@@ -67,7 +65,7 @@ export function OfferCalculator({ vatRate }: Props) {
   const testTaxableProfit = testBase - totalCosts - testSS;
   const testTax = testTaxableProfit > 0 ? testTaxableProfit * (taxPercent / 100) : 0;
   const testNetProfit = testTaxableProfit - testTax;
-  const testMargin = testBase > 0 ? ((testBase - totalCosts) / testBase) * 100 : 0;
+  const testMargin = testBase > 0 ? ((testBase - totalCosts - testSS) / testBase) * 100 : 0;
 
   const getVerdict = () => {
     if (testBase <= 0) return null;
@@ -144,7 +142,7 @@ export function OfferCalculator({ vatRate }: Props) {
               <CardContent className="pt-4 pb-3 space-y-1">
                 <p className="text-xs text-muted-foreground">Preço mínimo absoluto</p>
                 <p className="text-lg font-bold text-red-600">{fmt(floorPrice)}</p>
-                <p className="text-[10px] text-muted-foreground">Custos + IVA, sem lucro nem impostos</p>
+                <p className="text-[10px] text-muted-foreground">Custos + SS + IVA, sem margem nem IRS</p>
               </CardContent>
             </Card>
             <Card className="border-dashed">
