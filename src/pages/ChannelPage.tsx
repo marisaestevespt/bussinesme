@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,7 +19,7 @@ import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import {
   Plus, FileText, Trash2,
-  Check, Image as ImageIcon,
+  Check, Image as ImageIcon, ExternalLink, Target,
 } from 'lucide-react';
 import { WebsiteChannelContent } from '@/components/marketing/WebsiteChannelContent';
 import { ChannelMonthGallery } from '@/components/marketing/ChannelMonthGallery';
