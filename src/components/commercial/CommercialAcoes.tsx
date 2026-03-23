@@ -291,6 +291,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
         product: initialData.product || '',
         objective: initialData.objective || '',
         result: initialData.result || '',
+        project_id: initialData.project_id || '',
       });
     } else {
       setForm(empty());
