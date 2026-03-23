@@ -3,6 +3,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useProducts } from '@/hooks/useProducts';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -51,7 +52,9 @@ export default function MarketingFunis() {
   const [showNew, setShowNew] = useState(false);
   const [addingTipo, setAddingTipo] = useState(false);
   const [newTipo, setNewTipo] = useState('');
-  const [form, setForm] = useState({ name: '', status: 'em_ideia', oferta_final: '', objetivo: '', tipo_funil: '' });
+  const [form, setForm] = useState({ name: '', status: 'em_ideia', oferta_final: '', objetivo: '', tipo_funil: '', product_name: '' });
+  const { products: productsQuery } = useProducts();
+  const productsList = productsQuery.data || [];
 
   const { data: funnels = [] } = useQuery({
     queryKey: ['marketing-funnels'],
@@ -74,11 +77,12 @@ export default function MarketingFunis() {
       oferta_final: form.oferta_final || null,
       objetivo: form.objetivo || null,
       tipo_funil: form.tipo_funil || null,
+      product_name: form.product_name || null,
       created_by: user?.id,
     } as any);
     qc.invalidateQueries({ queryKey: ['marketing-funnels'] });
     setShowNew(false);
-    setForm({ name: '', status: 'em_ideia', oferta_final: '', objetivo: '', tipo_funil: '' });
+    setForm({ name: '', status: 'em_ideia', oferta_final: '', objetivo: '', tipo_funil: '', product_name: '' });
     toast.success('Funil criado');
   };
 
@@ -198,6 +202,16 @@ export default function MarketingFunis() {
             </div>
             <div><Label>Oferta Final</Label><Input value={form.oferta_final} onChange={e => setForm(f => ({ ...f, oferta_final: e.target.value }))} placeholder="Produto/Plataforma/Outro Final" /></div>
             <div><Label>Objetivo</Label><Input value={form.objetivo} onChange={e => setForm(f => ({ ...f, objetivo: e.target.value }))} placeholder="Objetivo do funil" /></div>
+            <div>
+              <Label>Produto</Label>
+              <Select value={form.product_name} onValueChange={v => setForm(f => ({ ...f, product_name: v === '___none___' ? '' : v }))}>
+                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="___none___">Nenhum</SelectItem>
+                  {productsList.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             <Button className="w-full" disabled={!form.name.trim()} onClick={create}>Criar Funil</Button>
           </div>
         </DialogContent>
