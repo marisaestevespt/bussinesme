@@ -635,18 +635,23 @@ function buildEmailHtml(opts: {
   return `<!DOCTYPE html>
 <html lang="pt">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${googleFontsLink}</head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:${bodyFont};font-size:13px">
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:${bodyFont};font-size:11px;color:#333">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 16px">
 <tr><td align="center">
 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
-  <tr><td style="padding:28px 32px;font-family:${bodyFont}">
-    ${opts.logoUrl ? `<img src="${opts.logoUrl}" alt="" style="height:32px;margin:0 0 16px;display:block">` : ""}
-    <p style="font-size:14px;color:#333;margin:0 0 4px;font-family:${displayFont}">${esc(opts.greeting)}</p>
-    <p style="font-size:12px;color:#888;margin:0 0 20px">${esc(opts.dateLine)}</p>
+  <tr><td style="padding:0">
+    <table width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td style="height:4px;background:${opts.primaryColor};border-radius:12px 12px 0 0"></td>
+    </tr></table>
+  </td></tr>
+  <tr><td style="padding:24px 32px;font-family:${bodyFont}">
+    ${opts.logoUrl ? `<img src="${opts.logoUrl}" alt="" style="height:28px;margin:0 0 14px;display:block">` : ""}
+    <p style="font-size:13px;color:${opts.primaryColor};margin:0 0 4px;font-family:${displayFont};font-weight:600">${esc(opts.greeting)}</p>
+    <p style="font-size:10px;color:#888;margin:0 0 18px">${esc(opts.dateLine)}</p>
     ${content}
   </td></tr>
-  <tr><td style="padding:14px 32px 20px;border-top:2px solid ${opts.secondaryColor};text-align:center">
-    <p style="font-size:11px;color:#a1a1aa;margin:0;font-family:${bodyFont}">${esc(opts.businessName)}</p>
+  <tr><td style="padding:12px 32px 16px;border-top:2px solid ${opts.secondaryColor};text-align:center">
+    <p style="font-size:10px;color:#a1a1aa;margin:0;font-family:${bodyFont}">${esc(opts.businessName)}</p>
   </td></tr>
 </table>
 </td></tr>
@@ -656,7 +661,7 @@ function buildEmailHtml(opts: {
 
 // ─── Helpers ──────────────────────────────────────────────
 function sectionHeader(title: string): string {
-  return `<h2 style="font-size:14px;font-weight:600;color:#18181b;margin:20px 0 6px;border-bottom:2px solid %%SECONDARY%%;padding-bottom:5px;font-family:%%DISPLAY_FONT%%">${title}</h2>`;
+  return `<h2 style="font-size:12px;font-weight:600;color:%%PRIMARY%%;margin:20px 0 6px;border-bottom:2px solid %%SECONDARY%%;padding-bottom:5px;font-family:%%DISPLAY_FONT%%;text-transform:uppercase;letter-spacing:0.5px">${title}</h2>`;
 }
 
 function esc(s: string): string {
