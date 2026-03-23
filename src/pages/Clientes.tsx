@@ -110,12 +110,12 @@ export default function ClientesPage() {
             </CardHeader>
             <CardContent className="h-48">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={byProduct} layout="vertical" margin={{ left: 80 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                  <XAxis type="number" allowDecimals={false} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={75} />
+                <BarChart data={byProduct} margin={{ bottom: 40 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis type="category" dataKey="name" tick={{ fontSize: 11, angle: -30, textAnchor: 'end' }} interval={0} />
+                  <YAxis type="number" allowDecimals={false} />
                   <Tooltip />
-                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
