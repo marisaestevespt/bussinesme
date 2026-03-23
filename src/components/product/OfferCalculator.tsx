@@ -55,17 +55,19 @@ export function OfferCalculator({ vatRate }: Props) {
   const floorSS = totalCosts * 0.7 * (ssPercent / 100);
   const floorPrice = (totalCosts + floorSS) * (1 + vatPercent / 100);
 
-  // Test price analysis — input is s/ IVA
+  // Test price analysis — simple forward calculation
   const testVal = parseFloat(testPrice) || 0;
-  const testWithVat = testVal * (1 + vatPercent / 100);         // add IVA for display
-  // Reverse: recommended = (base + SS) / (1 - IRS%)
-  const ssFactor = 1 + 0.7 * (ssPercent / 100);
-  const testBase = taxFactor > 0 ? (testVal * taxFactor) / ssFactor : testVal / ssFactor;
-  const testSS = testBase * 0.7 * (ssPercent / 100);
-  const testTaxableProfit = testBase - totalCosts;
+  const testWithVat = testVal * (1 + vatPercent / 100);
+  // SS is on 70% of revenue
+  const testSS = testVal * 0.7 * (ssPercent / 100);
+  // Taxable profit = revenue - costs - SS (SS is deductible)
+  const testTaxableProfit = testVal - totalCosts - testSS;
   const testTax = testTaxableProfit > 0 ? testTaxableProfit * (taxPercent / 100) : 0;
-  const testNetProfit = testBase - totalCosts - testSS - testTax;
-  const testMargin = testBase > 0 ? ((testBase - totalCosts) / testBase) * 100 : 0;
+  const testNetProfit = testTaxableProfit - testTax;
+  // Margin: how much of revenue is profit (before SS/IRS)
+  const testMargin = testVal > 0 ? ((testVal - totalCosts) / testVal) * 100 : 0;
+  // Compare directly against the recommended price
+  const isAboveRecommended = testVal >= minPriceAfterTax;
 
   const getVerdict = () => {
     if (testVal <= 0) return null;
