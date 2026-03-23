@@ -1400,6 +1400,7 @@ export type Database = {
           id: string
           objective: string | null
           product: string | null
+          project_id: string | null
           result: string | null
           start_date: string | null
           status: string
@@ -1414,6 +1415,7 @@ export type Database = {
           id?: string
           objective?: string | null
           product?: string | null
+          project_id?: string | null
           result?: string | null
           start_date?: string | null
           status?: string
@@ -1428,12 +1430,21 @@ export type Database = {
           id?: string
           objective?: string | null
           product?: string | null
+          project_id?: string | null
           result?: string | null
           start_date?: string | null
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "commercial_sales_actions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       commercial_strategy: {
         Row: {

@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -264,8 +265,18 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
   }, [existingTypes]);
 
   function empty() {
-    return { id: '', status: 'por_comecar', action_name: '', action_type: 'outro', start_date: undefined as Date | undefined, end_date: undefined as Date | undefined, product: '', objective: '', result: '' };
+    return { id: '', status: 'por_comecar', action_name: '', action_type: 'outro', start_date: undefined as Date | undefined, end_date: undefined as Date | undefined, product: '', objective: '', result: '', project_id: '' };
   }
+
+  const hasProject = !!form.project_id;
+
+  const { data: projectsList = [] } = useQuery({
+    queryKey: ['projects-list-names'],
+    queryFn: async () => {
+      const { data } = await supabase.from('projects').select('id, name').order('name');
+      return data || [];
+    },
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -280,6 +291,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
         product: initialData.product || '',
         objective: initialData.objective || '',
         result: initialData.result || '',
+        project_id: initialData.project_id || '',
       });
     } else {
       setForm(empty());
@@ -298,6 +310,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
       product: form.product || null,
       objective: form.objective || null,
       result: form.result || null,
+      project_id: form.project_id || null,
     });
   };
 
@@ -382,6 +395,29 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
             <Label>Objetivo</Label>
             <Input value={form.objective} onChange={e => set({ objective: e.target.value })} placeholder="O que se pretende atingir" />
           </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="has-project"
+              checked={hasProject}
+              onCheckedChange={(checked) => {
+                if (!checked) set({ project_id: '' });
+                else if (projectsList.length > 0) set({ project_id: projectsList[0].id });
+              }}
+            />
+            <Label htmlFor="has-project" className="cursor-pointer">Há projeto associado?</Label>
+          </div>
+          {hasProject && (
+            <div>
+              <Label>Projeto</Label>
+              <Select value={form.project_id} onValueChange={v => set({ project_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecionar projeto" /></SelectTrigger>
+                <SelectContent>
+                  {projectsList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  {projectsList.length === 0 && <SelectItem value="_none" disabled>Sem projetos</SelectItem>}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div>
             <Label>Resultado</Label>
             <Input value={form.result} onChange={e => set({ result: e.target.value })} placeholder="Resultado após conclusão" />
