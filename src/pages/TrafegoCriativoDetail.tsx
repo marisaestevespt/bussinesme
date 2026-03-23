@@ -152,9 +152,9 @@ export default function TrafegoCriativoDetail() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-medium text-muted-foreground">Oferta Goal</label>
+              <label className="text-xs font-medium text-muted-foreground">Objetivo Final</label>
               <Input value={form.oferta_goal} onChange={e => setForm(f => ({ ...f, oferta_goal: e.target.value }))}
-                className="h-9" placeholder="Produto associado" readOnly={!isOwner} />
+                className="h-9" placeholder="Produto/Link/Outro Final" readOnly={!isOwner} />
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground">Link</label>
