@@ -334,14 +334,12 @@ export default function CrmPipelines() {
             }
             onOpenLead={openLead}
             onCreateLead={handleCreateLead}
-            onAddStage={() => {
-              const name = window.prompt('Nome da nova etapa:');
-              if (name?.trim()) addStage.mutate({ pipelineId: activePipeline.id, name: name.trim() });
+            onAddStage={(name) => {
+              addStage.mutate({ pipelineId: activePipeline.id, name });
             }}
             onDeleteStage={(stageId) => deleteStage.mutate(stageId)}
-            onRenameStage={(id, current) => {
-              const name = window.prompt('Novo nome:', current);
-              if (name?.trim() && name.trim() !== current) renameStage.mutate({ id, name: name.trim() });
+            onRenameStage={(id, newName) => {
+              renameStage.mutate({ id, name: newName });
             }}
             onReorderStage={(stageId, direction) =>
               reorderStage.mutate({ stageId, direction, pipelineId: activePipeline.id })
