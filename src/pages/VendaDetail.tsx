@@ -48,6 +48,14 @@ export default function VendaDetailPage() {
     enabled: !!id,
   });
 
+  const { data: clientsList } = useQuery({
+    queryKey: ['clients-list-names'],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients').select('full_name').order('full_name');
+      return (data || []).map(c => c.full_name);
+    },
+  });
+
   const [form, setForm] = useState<any>({});
   const [initialized, setInitialized] = useState(false);
 
@@ -246,7 +254,12 @@ export default function VendaDetailPage() {
 
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Cliente</Label>
-                  <Input value={form.client || ''} onChange={e => setForm((f: any) => ({ ...f, client: e.target.value }))} readOnly={!isOwner} />
+                  <Select value={form.client || ''} onValueChange={v => setForm((f: any) => ({ ...f, client: v }))} disabled={!isOwner}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar cliente" /></SelectTrigger>
+                    <SelectContent>
+                      {(clientsList || []).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-3">

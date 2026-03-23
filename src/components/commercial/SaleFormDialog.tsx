@@ -67,6 +67,15 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
     }
   }, [initialData, open]);
 
+  // Fetch clients list
+  const clientsList = useQuery({
+    queryKey: ['clients-list-names'],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients').select('full_name').order('full_name');
+      return (data || []).map(c => c.full_name);
+    },
+  });
+
   // Fetch client details by name
   const clientName = form.client;
   const clientInfo = useQuery({
@@ -190,7 +199,15 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
               </SelectContent>
             </Select>
           </div>
-          <div><Label>Cliente</Label><Input value={form.client} onChange={e => setForm(f => ({ ...f, client: e.target.value }))} /></div>
+          <div>
+            <Label>Cliente</Label>
+            <Select value={form.client} onValueChange={v => setForm(f => ({ ...f, client: v }))}>
+              <SelectTrigger><SelectValue placeholder="Selecionar cliente" /></SelectTrigger>
+              <SelectContent>
+                {(clientsList.data || []).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
           <div>
             <Label>Fonte da Venda</Label>
             <Select value={form.source} onValueChange={v => setForm(f => ({ ...f, source: v }))}>
