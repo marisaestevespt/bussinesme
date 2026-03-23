@@ -206,7 +206,111 @@ export default function ChannelPage() {
 
               <Separator />
 
-              {/* Section 2: Custom Pages */}
+              {/* Strategy Section */}
+              <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Target className="h-4 w-4 text-primary" />
+                    Estratégia
+                  </h2>
+                  <Link to={`/hub/marketing/estrategia/canal/${channelId}`}>
+                    <Button variant="outline" size="sm">
+                      <ExternalLink className="h-3.5 w-3.5 mr-1" />Editar Estratégia
+                    </Button>
+                  </Link>
+                </div>
+
+                {!hasStrategy ? (
+                  <Card>
+                    <CardContent className="p-6 text-center text-sm text-muted-foreground italic">
+                      Nenhuma estratégia definida para este canal.{' '}
+                      <Link to={`/hub/marketing/estrategia/canal/${channelId}`} className="text-primary hover:underline">
+                        Definir agora
+                      </Link>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {strategyDetail?.positioning && (
+                      <Card className="border-primary/20 bg-primary/5">
+                        <CardContent className="p-4">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Posicionamento</p>
+                          <p className="text-sm text-foreground whitespace-pre-wrap">{strategyDetail.positioning}</p>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {strategyDetail?.periodicity && (
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">Periodicidade</p>
+                        <p className="text-sm text-foreground whitespace-pre-wrap">{strategyDetail.periodicity}</p>
+                      </div>
+                    )}
+
+                    {strategyFormats.length > 0 && (
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Formatos e Funções Validados</p>
+                        <Card>
+                          <CardContent className="p-0">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="border-b bg-muted/30">
+                                  <th className="text-left p-2.5 font-medium text-muted-foreground text-xs">Formato</th>
+                                  <th className="text-left p-2.5 font-medium text-muted-foreground text-xs">Objetivo</th>
+                                  <th className="text-left p-2.5 font-medium text-muted-foreground text-xs">Exemplos</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {strategyFormats.map(f => (
+                                  <tr key={f.id} className="border-b last:border-0">
+                                    <td className="p-2.5 text-sm">{f.formato || '—'}</td>
+                                    <td className="p-2.5 text-sm">{f.objetivo || '—'}</td>
+                                    <td className="p-2.5 text-sm text-muted-foreground">{f.exemplos || '—'}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )}
+
+                    {strategyFrames.length > 0 && (
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Quadros Fixos de Conteúdo</p>
+                        <Card>
+                          <CardContent className="p-0">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="border-b bg-muted/30">
+                                  <th className="text-left p-2.5 font-medium text-muted-foreground text-xs">Nome</th>
+                                  <th className="text-left p-2.5 font-medium text-muted-foreground text-xs">Formato</th>
+                                  <th className="text-left p-2.5 font-medium text-muted-foreground text-xs">Frequência</th>
+                                  <th className="text-left p-2.5 font-medium text-muted-foreground text-xs">Notas</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {strategyFrames.map(f => (
+                                  <tr key={f.id} className="border-b last:border-0">
+                                    <td className="p-2.5 text-sm font-medium">{f.nome || '—'}</td>
+                                    <td className="p-2.5 text-sm">{f.formato || '—'}</td>
+                                    <td className="p-2.5 text-sm">{f.frequencia || '—'}</td>
+                                    <td className="p-2.5 text-sm text-muted-foreground">{f.notas || '—'}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </section>
+
+              <Separator />
+
+
               <section className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold text-foreground">Páginas</h2>
