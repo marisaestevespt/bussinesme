@@ -237,7 +237,12 @@ export default function MarketingTrafegoPago() {
               </Select>
             </div>
             <div><Label>Objetivo</Label><Input value={creativeForm.objetivo} onChange={e => setCreativeForm(f => ({ ...f, objetivo: e.target.value }))} placeholder="Objetivo do criativo" /></div>
-            <div><Label>Objetivo Final</Label><Input value={creativeForm.oferta_goal} onChange={e => setCreativeForm(f => ({ ...f, oferta_goal: e.target.value }))} placeholder="Produto/Link/Outro Final" /></div>
+            <ObjetivoFinalField
+              type={creativeForm.oferta_type}
+              value={creativeForm.oferta_value}
+              onTypeChange={t => setCreativeForm(f => ({ ...f, oferta_type: t, oferta_value: '' }))}
+              onValueChange={v => setCreativeForm(f => ({ ...f, oferta_value: v }))}
+            />
             <div><Label>Link</Label><Input value={creativeForm.link} onChange={e => setCreativeForm(f => ({ ...f, link: e.target.value }))} placeholder="https://..." /></div>
             <Button className="w-full" disabled={!creativeForm.name.trim()} onClick={createCreative}>Criar Criativo</Button>
           </div>
