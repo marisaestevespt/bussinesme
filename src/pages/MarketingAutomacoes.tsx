@@ -152,12 +152,30 @@ export default function MarketingAutomacoes() {
             </div>
             <div>
               <Label>Plataforma</Label>
-              <Select value={form.plataforma} onValueChange={v => setForm(f => ({ ...f, plataforma: v }))}>
-                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>{PLATAFORMAS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-              </Select>
+              {addingPlatform ? (
+                <div className="flex gap-2">
+                  <Input value={newPlatform} onChange={e => setNewPlatform(e.target.value)} placeholder="Nome da plataforma" autoFocus />
+                  <Button size="sm" variant="outline" disabled={!newPlatform.trim()} onClick={() => {
+                    setForm(f => ({ ...f, plataforma: newPlatform.trim() }));
+                    setAddingPlatform(false);
+                    setNewPlatform('');
+                  }}>OK</Button>
+                  <Button size="sm" variant="ghost" onClick={() => { setAddingPlatform(false); setNewPlatform(''); }}>Cancelar</Button>
+                </div>
+              ) : (
+                <Select value={form.plataforma} onValueChange={v => {
+                  if (v === '___add_new___') { setAddingPlatform(true); return; }
+                  setForm(f => ({ ...f, plataforma: v }));
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    {allPlataformas.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                    <SelectItem value="___add_new___" className="text-primary font-medium">+ Adicionar nova...</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
-            <div><Label>Oferta Final</Label><Input value={form.oferta_final} onChange={e => setForm(f => ({ ...f, oferta_final: e.target.value }))} placeholder="Produto associado (opcional)" /></div>
+            <div><Label>Oferta Final</Label><Input value={form.oferta_final} onChange={e => setForm(f => ({ ...f, oferta_final: e.target.value }))} placeholder="Produto/Plataforma/Outro Final" /></div>
             <div><Label>Objetivo</Label><Input value={form.objetivo} onChange={e => setForm(f => ({ ...f, objetivo: e.target.value }))} placeholder="Objetivo da automação" /></div>
             <Button className="w-full" disabled={!form.name.trim()} onClick={create}>Criar Automação</Button>
           </div>
