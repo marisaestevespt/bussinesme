@@ -170,12 +170,33 @@ export default function MarketingFunis() {
             </div>
             <div>
               <Label>Tipo de Funil</Label>
-              <Select value={form.tipo_funil} onValueChange={v => setForm(f => ({ ...f, tipo_funil: v }))}>
-                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>{TIPOS_FUNIL.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-              </Select>
+              {addingTipo ? (
+                <div className="flex gap-2">
+                  <Input value={newTipo} onChange={e => setNewTipo(e.target.value)} placeholder="Nome do tipo" autoFocus />
+                  <Button size="sm" variant="outline" disabled={!newTipo.trim()} onClick={() => {
+                    setForm(f => ({ ...f, tipo_funil: newTipo.trim() }));
+                    setAddingTipo(false);
+                    setNewTipo('');
+                  }}>OK</Button>
+                  <Button size="sm" variant="ghost" onClick={() => { setAddingTipo(false); setNewTipo(''); }}>Cancelar</Button>
+                </div>
+              ) : (
+                <Select value={form.tipo_funil} onValueChange={v => {
+                  if (v === '___add_new___') { setAddingTipo(true); return; }
+                  setForm(f => ({ ...f, tipo_funil: v }));
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    {allTiposFunil.map(val => {
+                      const tf = TIPOS_FUNIL.find(t => t.value === val);
+                      return <SelectItem key={val} value={val}>{tf ? tf.label : val}</SelectItem>;
+                    })}
+                    <SelectItem value="___add_new___" className="text-primary font-medium">+ Adicionar novo...</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
-            <div><Label>Oferta Final</Label><Input value={form.oferta_final} onChange={e => setForm(f => ({ ...f, oferta_final: e.target.value }))} placeholder="Produto associado (opcional)" /></div>
+            <div><Label>Oferta Final</Label><Input value={form.oferta_final} onChange={e => setForm(f => ({ ...f, oferta_final: e.target.value }))} placeholder="Produto/Plataforma/Outro Final" /></div>
             <div><Label>Objetivo</Label><Input value={form.objetivo} onChange={e => setForm(f => ({ ...f, objetivo: e.target.value }))} placeholder="Objetivo do funil" /></div>
             <Button className="w-full" disabled={!form.name.trim()} onClick={create}>Criar Funil</Button>
           </div>
