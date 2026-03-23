@@ -55,14 +55,12 @@ export function OfferCalculator({ vatRate }: Props) {
   const floorSS = totalCosts * 0.7 * (ssPercent / 100);
   const floorPrice = (totalCosts + floorSS) * (1 + vatPercent / 100);
 
-  // Test price analysis — reverse the build-up chain
+  // Test price analysis — input is s/ IVA
   const testVal = parseFloat(testPrice) || 0;
-  const testAfterVat = testVal / (1 + vatPercent / 100);       // remove IVA
+  const testWithVat = testVal * (1 + vatPercent / 100);         // add IVA for display
   // Reverse: recommended = (base + SS) / (1 - IRS%)
-  // base + SS = recommended * (1 - IRS%)  and  SS = base * 0.7 * SS%
-  // base * (1 + 0.7 * SS%) = recommended * (1 - IRS%)
   const ssFactor = 1 + 0.7 * (ssPercent / 100);
-  const testBase = taxFactor > 0 ? (testAfterVat * taxFactor) / ssFactor : testAfterVat / ssFactor;
+  const testBase = taxFactor > 0 ? (testVal * taxFactor) / ssFactor : testVal / ssFactor;
   const testSS = testBase * 0.7 * (ssPercent / 100);
   const testTaxableProfit = testBase - totalCosts;
   const testTax = testTaxableProfit > 0 ? testTaxableProfit * (taxPercent / 100) : 0;
@@ -164,7 +162,7 @@ export function OfferCalculator({ vatRate }: Props) {
           <Label className="text-sm font-medium">Testar um preço</Label>
           <div className="flex gap-3 items-end">
             <div className="flex-1 space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Preço de venda (c/ IVA)</Label>
+              <Label className="text-xs text-muted-foreground">Preço de venda (s/ IVA)</Label>
               <Input
                 type="number"
                 placeholder="Ex: 497"
@@ -186,10 +184,10 @@ export function OfferCalculator({ vatRate }: Props) {
           )}
 
           {testVal > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-3 text-center">
               <div className="p-2 rounded-md bg-muted/50">
-                <p className="text-[10px] text-muted-foreground">Base s/ IVA</p>
-                <p className="text-sm font-semibold">{fmt(testAfterVat)}</p>
+                <p className="text-[10px] text-muted-foreground">Preço c/ IVA</p>
+                <p className="text-sm font-semibold">{fmt(testWithVat)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Lucro bruto</p>
