@@ -59,6 +59,8 @@ Deno.serve(async (req) => {
       ? hslToHex(bizSettings.accent_color)
       : "#6366f1";
     const logoUrl = bizSettings?.logo_url || null;
+    const fontBody = bizSettings?.font_body || "Arial";
+    const fontDisplay = bizSettings?.font_display || fontBody;
 
     const todayStr = formatDate(now);
     const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay(); // 1=Mon, 7=Sun
@@ -114,6 +116,8 @@ Deno.serve(async (req) => {
           secondaryColor,
           accentColor,
           logoUrl,
+          fontBody,
+          fontDisplay,
           contentHtml: htmlSections,
           isOwner: digest.is_owner_digest,
         });
@@ -615,26 +619,34 @@ function buildEmailHtml(opts: {
   secondaryColor: string;
   accentColor: string;
   logoUrl: string | null;
+  fontBody: string;
+  fontDisplay: string;
   contentHtml: string;
   isOwner: boolean;
 }) {
-  const content = opts.contentHtml.replace(/%%SECONDARY%%/g, opts.secondaryColor).replace(/%%ACCENT%%/g, opts.accentColor).replace(/%%PRIMARY%%/g, opts.primaryColor);
-  const textColor = getContrastColor(opts.primaryColor);
+  const content = opts.contentHtml.replace(/%%SECONDARY%%/g, opts.secondaryColor).replace(/%%ACCENT%%/g, opts.accentColor).replace(/%%PRIMARY%%/g, opts.primaryColor).replace(/%%DISPLAY_FONT%%/g, displayFont);
+  const bodyFont = `'${opts.fontBody}', Arial, Helvetica, sans-serif`;
+  const displayFont = `'${opts.fontDisplay}', '${opts.fontBody}', Arial, sans-serif`;
+  // Build Google Fonts import for web-safe fonts
+  const fontsToImport = [opts.fontBody, opts.fontDisplay].filter(f => f && f !== "Arial" && f !== "Helvetica");
+  const googleFontsLink = fontsToImport.length
+    ? `<link href="https://fonts.googleapis.com/css2?${fontsToImport.map(f => `family=${encodeURIComponent(f)}:wght@400;600;700`).join("&")}&display=swap" rel="stylesheet">`
+    : "";
   return `<!DOCTYPE html>
 <html lang="pt">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;font-size:13px">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${googleFontsLink}</head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:${bodyFont};font-size:13px">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 16px">
 <tr><td align="center">
 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
-  <tr><td style="padding:28px 32px">
+  <tr><td style="padding:28px 32px;font-family:${bodyFont}">
     ${opts.logoUrl ? `<img src="${opts.logoUrl}" alt="" style="height:32px;margin:0 0 16px;display:block">` : ""}
-    <p style="font-size:14px;color:#333;margin:0 0 4px">${esc(opts.greeting)}</p>
+    <p style="font-size:14px;color:#333;margin:0 0 4px;font-family:${displayFont}">${esc(opts.greeting)}</p>
     <p style="font-size:12px;color:#888;margin:0 0 20px">${esc(opts.dateLine)}</p>
     ${content}
   </td></tr>
   <tr><td style="padding:14px 32px 20px;border-top:2px solid ${opts.secondaryColor};text-align:center">
-    <p style="font-size:11px;color:#a1a1aa;margin:0">${esc(opts.businessName)}</p>
+    <p style="font-size:11px;color:#a1a1aa;margin:0;font-family:${bodyFont}">${esc(opts.businessName)}</p>
   </td></tr>
 </table>
 </td></tr>
@@ -644,7 +656,7 @@ function buildEmailHtml(opts: {
 
 // ─── Helpers ──────────────────────────────────────────────
 function sectionHeader(title: string): string {
-  return `<h2 style="font-size:14px;font-weight:600;color:#18181b;margin:20px 0 6px;border-bottom:2px solid %%SECONDARY%%;padding-bottom:5px">${title}</h2>`;
+  return `<h2 style="font-size:14px;font-weight:600;color:#18181b;margin:20px 0 6px;border-bottom:2px solid %%SECONDARY%%;padding-bottom:5px;font-family:%%DISPLAY_FONT%%">${title}</h2>`;
 }
 
 function esc(s: string): string {
