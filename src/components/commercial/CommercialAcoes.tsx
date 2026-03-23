@@ -44,7 +44,7 @@ function statusColor(val: string) {
   return STATUS_OPTIONS.find(o => o.value === val)?.color || '';
 }
 function typeLabel(val: string) {
-  return TYPE_OPTIONS.find(o => o.value === val)?.label || val;
+  return DEFAULT_TYPE_OPTIONS.find(o => o.value === val)?.label || val;
 }
 
 export function CommercialAcoes() {
