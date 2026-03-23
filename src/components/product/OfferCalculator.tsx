@@ -70,7 +70,7 @@ export function OfferCalculator({ vatRate }: Props) {
   const testMargin = testBase > 0 ? ((testBase - totalCosts) / testBase) * 100 : 0;
 
   const getVerdict = () => {
-    if (testVal <= 0) return null;
+    if (testBase <= 0) return null;
     if (testBase < totalCosts) return { icon: TrendingDown, color: 'text-red-600', bg: 'bg-red-50 border-red-200', label: 'Abaixo do custo', desc: 'Estás a perder dinheiro com este preço.' };
     if (testBase < minPriceBase * 0.8) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Margem muito baixa', desc: `Preço abaixo do recomendado (${fmt(minPriceWithVat)} c/ IVA).` };
     if (testBase < minPriceBase) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Quase lá', desc: `Perto do preço recomendado de ${fmt(minPriceWithVat)} c/ IVA.` };
