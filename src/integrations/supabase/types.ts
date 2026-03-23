@@ -1956,28 +1956,51 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          end_date: string | null
           id: string
           name: string
+          product: string | null
+          project_id: string | null
           sort_order: number
+          start_date: string | null
+          status: string
           updated_at: string
         }
         Insert: {
           created_at?: string
           description?: string | null
+          end_date?: string | null
           id?: string
           name: string
+          product?: string | null
+          project_id?: string | null
           sort_order?: number
+          start_date?: string | null
+          status?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
           description?: string | null
+          end_date?: string | null
           id?: string
           name?: string
+          product?: string | null
+          project_id?: string | null
           sort_order?: number
+          start_date?: string | null
+          status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "crm_pipelines_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       crm_saved_views: {
         Row: {
