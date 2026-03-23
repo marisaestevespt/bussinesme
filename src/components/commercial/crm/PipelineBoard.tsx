@@ -31,6 +31,7 @@ export function PipelineBoard({
   onAddLeadToPipeline,
   onRemoveLeadFromPipeline,
   onOpenLead,
+  onCreateLead,
   onAddStage,
   onDeleteStage,
   onRenameStage,
