@@ -109,6 +109,21 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
 
 export function ContentCalendar({ items, channels, contentChannelLinks, calendarOnly, profiles, attachments }: Props) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const handleDrop = useCallback(async (newStatus: string) => {
+    if (!draggingId) return;
+    const item = items.find(i => i.id === draggingId);
+    if (!item || item.status === newStatus) { setDraggingId(null); setDragOverStatus(null); return; }
+    await supabase.from('content_items').update({ status: newStatus } as any).eq('id', draggingId);
+    queryClient.invalidateQueries({ queryKey: ['content-items'] });
+    setDraggingId(null);
+    setDragOverStatus(null);
+    const label = STATUS_OPTIONS.find(s => s.value === newStatus)?.label;
+    toast.success(`Movido para "${label}"`);
+  }, [draggingId, items, queryClient]);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
