@@ -153,12 +153,17 @@ export default function TrafegoCriativoDetail() {
             </div>
           </div>
 
+          <div className="space-y-4">
+            <ObjetivoFinalField
+              type={form.oferta_type}
+              value={form.oferta_value}
+              onTypeChange={t => setForm(f => ({ ...f, oferta_type: t, oferta_value: '' }))}
+              onValueChange={v => setForm(f => ({ ...f, oferta_value: v }))}
+              disabled={!isOwner}
+            />
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground">Objetivo Final</label>
-              <Input value={form.oferta_goal} onChange={e => setForm(f => ({ ...f, oferta_goal: e.target.value }))}
-                className="h-9" placeholder="Produto/Link/Outro Final" readOnly={!isOwner} />
-            </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground">Link</label>
               <Input value={form.link} onChange={e => setForm(f => ({ ...f, link: e.target.value }))}
