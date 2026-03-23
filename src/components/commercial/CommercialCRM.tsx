@@ -101,10 +101,6 @@ export function CommercialCRM() {
 
   return (
     <div className="space-y-6">
-      {/* Top controls */}
-      <div className="flex items-center justify-end">
-        <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Lead</Button>
-      </div>
 
       {/* Summary + Alerts */}
       <CrmSummary
