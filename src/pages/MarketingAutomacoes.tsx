@@ -42,6 +42,8 @@ export default function MarketingAutomacoes() {
   const qc = useQueryClient();
 
   const [showNew, setShowNew] = useState(false);
+  const [addingPlatform, setAddingPlatform] = useState(false);
+  const [newPlatform, setNewPlatform] = useState('');
   const [form, setForm] = useState({ name: '', status: 'em_desenho', oferta_final: '', objetivo: '', plataforma: '', notas: '' });
 
   const { data: automations = [] } = useQuery({
