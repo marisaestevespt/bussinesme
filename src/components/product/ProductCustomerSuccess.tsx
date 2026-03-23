@@ -46,14 +46,13 @@ export function ProductCustomerSuccess({ productId, isOwner }: Props) {
   const { data: npsSop } = useQuery({
     queryKey: ['nps-sop', productId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('sops')
+      const { data } = await (supabase.from('sops') as any)
         .select('id, title, sop_id')
         .eq('product_id', productId)
         .ilike('title', '%NPS%')
         .limit(1)
         .maybeSingle();
-      return data;
+      return data as { id: string; title: string; sop_id: string } | null;
     },
   });
 
