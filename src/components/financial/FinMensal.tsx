@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { FinancialHealthSection } from './FinancialHealthSection';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -290,6 +291,9 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
           {ssExpense && <p className="text-xs text-muted-foreground mt-2">Registado: {fmt(ssExpense.total_with_vat)}</p>}
         </CardContent>
       </Card>
+
+      {/* Saúde Financeira */}
+      <FinancialHealthSection sales={monthSales} allSales={sales} currentYear={currentYear} month={m} />
 
       <Dialog open={saleOpen} onOpenChange={setSaleOpen}>
         <DialogContent className="max-w-md">
