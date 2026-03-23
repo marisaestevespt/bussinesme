@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Pencil, UserPlus, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Plus, Trash2, UserPlus, X, ChevronUp, ChevronDown, Settings2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { statusLabel } from '@/hooks/useCrmData';
 
 interface PipelineBoardProps {
@@ -16,9 +18,9 @@ interface PipelineBoardProps {
   onRemoveLeadFromPipeline: (leadId: string) => void;
   onOpenLead: (lead: any) => void;
   onCreateLead: (stageId: string) => void;
-  onAddStage: () => void;
+  onAddStage: (name: string) => void;
   onDeleteStage: (stageId: string) => void;
-  onRenameStage: (id: string, currentName: string) => void;
+  onRenameStage: (id: string, newName: string) => void;
   onReorderStage?: (stageId: string, direction: 'left' | 'right') => void;
 }
 
@@ -38,6 +40,7 @@ export function PipelineBoard({
   onReorderStage,
 }: PipelineBoardProps) {
   const [addingToStage, setAddingToStage] = useState<string | null>(null);
+  const [stagesDialogOpen, setStagesDialogOpen] = useState(false);
 
   const assignedLeadIds = new Set(pipelineLeads.map(pl => pl.lead_id));
   const unassignedLeads = allLeads.filter(l => !assignedLeadIds.has(l.id));
@@ -51,82 +54,36 @@ export function PipelineBoard({
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <h2 className="font-semibold text-lg">{pipeline.name}</h2>
-        <Button variant="outline" size="sm" onClick={onAddStage}>
-          <Plus className="h-3.5 w-3.5 mr-1" /> Etapa
+        <Button variant="outline" size="sm" onClick={() => setStagesDialogOpen(true)}>
+          <Settings2 className="h-3.5 w-3.5 mr-1" /> Editar Etapas
         </Button>
       </div>
 
       {stages.length === 0 ? (
         <Card>
           <CardContent className="p-6 text-center text-muted-foreground">
-            Este pipeline ainda não tem etapas. Adiciona uma para começar.
+            Este pipeline ainda não tem etapas.
+            <Button variant="link" className="ml-1" onClick={() => setStagesDialogOpen(true)}>
+              Adicionar etapas
+            </Button>
           </CardContent>
         </Card>
       ) : (
         <div className="flex gap-3 overflow-x-auto pb-4">
-          {stages.map((stage, idx) => {
+          {stages.map((stage) => {
             const stageLeads = getLeadsForStage(stage.id);
-            const isFirst = idx === 0;
-            const isLast = idx === stages.length - 1;
 
             return (
-              <div
-                key={stage.id}
-                className="min-w-[260px] max-w-[300px] flex-shrink-0"
-              >
+              <div key={stage.id} className="min-w-[260px] max-w-[300px] flex-shrink-0">
                 <Card className="h-full">
                   <CardHeader className="p-3 pb-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div
-                          className="h-3 w-3 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: stage.color }}
-                        />
-                        <CardTitle className="text-sm font-medium truncate">{stage.name}</CardTitle>
-                        <Badge variant="secondary" className="text-xs flex-shrink-0">{stageLeads.length}</Badge>
-                      </div>
-                      <div className="flex items-center gap-0.5 flex-shrink-0">
-                        {/* Reorder arrows */}
-                        {onReorderStage && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              disabled={isFirst}
-                              onClick={() => onReorderStage(stage.id, 'left')}
-                            >
-                              <ChevronLeft className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              disabled={isLast}
-                              onClick={() => onReorderStage(stage.id, 'right')}
-                            >
-                              <ChevronRight className="h-3 w-3" />
-                            </Button>
-                          </>
-                        )}
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onRenameStage(stage.id, stage.name)}>
-                          <Pencil className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-destructive hover:text-destructive"
-                          onClick={() => {
-                            if (stageLeads.length > 0) {
-                              alert('Remove as leads desta etapa antes de a eliminar.');
-                              return;
-                            }
-                            if (confirm(`Eliminar etapa "${stage.name}"?`)) onDeleteStage(stage.id);
-                          }}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div
+                        className="h-3 w-3 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: stage.color }}
+                      />
+                      <CardTitle className="text-sm font-medium truncate">{stage.name}</CardTitle>
+                      <Badge variant="secondary" className="text-xs flex-shrink-0">{stageLeads.length}</Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="p-2 space-y-2">
@@ -219,6 +176,166 @@ export function PipelineBoard({
           })}
         </div>
       )}
+
+      {/* Edit Stages Dialog */}
+      <StagesDialog
+        open={stagesDialogOpen}
+        onOpenChange={setStagesDialogOpen}
+        stages={stages}
+        pipelineLeads={pipelineLeads}
+        onAdd={onAddStage}
+        onRename={onRenameStage}
+        onDelete={onDeleteStage}
+        onReorder={onReorderStage}
+      />
     </div>
+  );
+}
+
+/* ─── Stages Management Dialog ─── */
+function StagesDialog({
+  open,
+  onOpenChange,
+  stages,
+  pipelineLeads,
+  onAdd,
+  onRename,
+  onDelete,
+  onReorder,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  stages: any[];
+  pipelineLeads: any[];
+  onAdd: (name: string) => void;
+  onRename: (id: string, newName: string) => void;
+  onDelete: (id: string) => void;
+  onReorder?: (stageId: string, direction: 'left' | 'right') => void;
+}) {
+  const [newName, setNewName] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+
+  const handleAdd = () => {
+    if (!newName.trim()) return;
+    onAdd(newName.trim());
+    setNewName('');
+  };
+
+  const handleRename = (id: string) => {
+    if (!editName.trim()) return;
+    onRename(id, editName.trim());
+    setEditingId(null);
+    setEditName('');
+  };
+
+  const leadsInStage = (stageId: string) =>
+    pipelineLeads.filter(pl => pl.stage_id === stageId).length;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Editar Etapas</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          {/* Existing stages */}
+          {stages.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-2">Nenhuma etapa criada.</p>
+          )}
+          <div className="space-y-1.5">
+            {stages.map((stage, idx) => {
+              const count = leadsInStage(stage.id);
+              const isEditing = editingId === stage.id;
+              const isFirst = idx === 0;
+              const isLast = idx === stages.length - 1;
+
+              return (
+                <div key={stage.id} className="flex items-center gap-2 rounded-md border px-3 py-2">
+                  <div className="h-3 w-3 rounded-full flex-shrink-0" style={{ backgroundColor: stage.color }} />
+
+                  {isEditing ? (
+                    <Input
+                      autoFocus
+                      className="h-7 text-sm flex-1"
+                      value={editName}
+                      onChange={e => setEditName(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') handleRename(stage.id);
+                        if (e.key === 'Escape') setEditingId(null);
+                      }}
+                      onBlur={() => handleRename(stage.id)}
+                    />
+                  ) : (
+                    <span
+                      className="text-sm flex-1 cursor-pointer hover:text-primary truncate"
+                      onClick={() => { setEditingId(stage.id); setEditName(stage.name); }}
+                    >
+                      {stage.name}
+                    </span>
+                  )}
+
+                  {count > 0 && (
+                    <Badge variant="secondary" className="text-xs flex-shrink-0">{count}</Badge>
+                  )}
+
+                  {/* Reorder */}
+                  {onReorder && (
+                    <div className="flex flex-col flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5"
+                        disabled={isFirst}
+                        onClick={() => onReorder(stage.id, 'left')}
+                      >
+                        <ChevronUp className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5"
+                        disabled={isLast}
+                        onClick={() => onReorder(stage.id, 'right')}
+                      >
+                        <ChevronDown className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-destructive hover:text-destructive flex-shrink-0"
+                    disabled={count > 0}
+                    onClick={() => {
+                      if (count > 0) return;
+                      if (confirm(`Eliminar etapa "${stage.name}"?`)) onDelete(stage.id);
+                    }}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Add new */}
+          <div className="flex gap-2 pt-1">
+            <Input
+              placeholder="Nome da nova etapa..."
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAdd()}
+              className="text-sm"
+            />
+            <Button size="sm" onClick={handleAdd} disabled={!newName.trim()}>
+              <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
