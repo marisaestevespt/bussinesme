@@ -402,8 +402,8 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
               id="has-project"
               checked={hasProject}
               onCheckedChange={(checked) => {
+                setShowProject(!!checked);
                 if (!checked) set({ project_id: '' });
-                else if (projectsList.length > 0) set({ project_id: projectsList[0].id });
               }}
             />
             <Label htmlFor="has-project" className="cursor-pointer">Há projeto associado?</Label>
