@@ -169,7 +169,7 @@ export default function MarketingTrafegoPago() {
                       <TableHead className="w-28">Data Início</TableHead>
                       <TableHead className="w-24">Formato</TableHead>
                       <TableHead className="w-44">Objetivo</TableHead>
-                      <TableHead className="w-36">Oferta Goal</TableHead>
+                      <TableHead className="w-36">Objetivo Final</TableHead>
                       <TableHead className="w-10">Link</TableHead>
                       <TableHead className="w-32">Última Atualização</TableHead>
                       {isOwner && <TableHead className="w-10" />}
