@@ -67,6 +67,7 @@ export default function DefinicoesPage() {
           {tab === 'marketing' && <ChannelSettings />}
           {tab === 'utilizadores' && <SettingsUsers />}
           {tab === 'kpis' && <SettingsKpis />}
+          {tab === 'resumo' && <SettingsDigest />}
         </div>
 
         {/* Reset section - owner only */}
