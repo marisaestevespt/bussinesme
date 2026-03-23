@@ -757,7 +757,14 @@ export default function ProdutoDetailPage() {
               <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
                 {/* Ações de Venda */}
                 <Card>
-                  <CardHeader><CardTitle className="text-base">Ações de Venda</CardTitle></CardHeader>
+                  <CardHeader className="flex-row items-center justify-between">
+                    <CardTitle className="text-base">Ações de Venda</CardTitle>
+                    {isOwner && (
+                      <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'commercial_sales_actions', data: { action_name: `Nova Ação — ${form.name}`, product: form.name, status: 'planeada', action_type: 'campanha' } })}>
+                        <Plus className="h-3 w-3 mr-1" /> Nova Ação
+                      </Button>
+                    )}
+                  </CardHeader>
                   <CardContent>
                     <Table>
                       <TableHeader>
