@@ -59,20 +59,21 @@ export function OfferCalculator({ vatRate }: Props) {
 
   // --- Test price analysis ---
   // O preço introduzido é c/ IVA; extraímos a base
+  // O utilizador introduz o preço s/ IVA
   const testVal = parseFloat(testPrice) || 0;
-  const testBase = testVal / (1 + vatPercent / 100);
-  const testSS = testBase * ssFactor;
-  const testTaxableProfit = testBase - totalCosts - testSS;
+  const testWithVat = testVal * (1 + vatPercent / 100);
+  const testSS = testVal * ssFactor;
+  const testTaxableProfit = testVal - totalCosts - testSS;
   const testTax = testTaxableProfit > 0 ? testTaxableProfit * (taxPercent / 100) : 0;
   const testNetProfit = testTaxableProfit - testTax;
-  const testMargin = testBase > 0 ? ((testBase - totalCosts - testSS) / testBase) * 100 : 0;
+  const testMargin = testVal > 0 ? ((testVal - totalCosts - testSS) / testVal) * 100 : 0;
 
   const getVerdict = () => {
-    if (testBase <= 0) return null;
-    if (testBase < totalCosts) return { icon: TrendingDown, color: 'text-red-600', bg: 'bg-red-50 border-red-200', label: 'Abaixo do custo', desc: 'Estás a perder dinheiro com este preço.' };
-    if (testBase < minPriceBase * 0.8) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Margem muito baixa', desc: `Preço abaixo do recomendado (${fmt(minPriceWithVat)} c/ IVA).` };
-    if (testBase < minPriceBase) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Quase lá', desc: `Perto do preço recomendado de ${fmt(minPriceWithVat)} c/ IVA.` };
-    return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50 border-green-200', label: 'Bom preço!', desc: `Acima do preço recomendado — margem bruta de ${testMargin.toFixed(1)}%.` };
+    if (testVal <= 0) return null;
+    if (testVal < totalCosts) return { icon: TrendingDown, color: 'text-red-600', bg: 'bg-red-50 border-red-200', label: 'Abaixo do custo', desc: `Estás a perder dinheiro com este preço — margem de lucro de ${testMargin.toFixed(1)}%.` };
+    if (testVal < minPriceBase * 0.8) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Margem muito baixa', desc: `Margem de lucro de ${testMargin.toFixed(1)}%, abaixo do objectivo de ${marginPercent}%.` };
+    if (testVal < minPriceBase) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Quase lá', desc: `Margem de lucro de ${testMargin.toFixed(1)}%, abaixo do objectivo de ${marginPercent}%.` };
+    return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50 border-green-200', label: 'Bom preço!', desc: `Margem de lucro de ${testMargin.toFixed(1)}%.` };
   };
   const verdict = getVerdict();
 
@@ -162,7 +163,7 @@ export function OfferCalculator({ vatRate }: Props) {
           <Label className="text-sm font-medium">Testar um preço</Label>
           <div className="flex gap-3 items-end">
             <div className="flex-1 space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Preço de venda (c/ IVA)</Label>
+              <Label className="text-xs text-muted-foreground">Preço de venda (s/ IVA)</Label>
               <Input
                 type="number"
                 placeholder="Ex: 497"
@@ -186,8 +187,8 @@ export function OfferCalculator({ vatRate }: Props) {
           {testVal > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
               <div className="p-2 rounded-md bg-muted/50">
-                <p className="text-[10px] text-muted-foreground">Base s/ IVA</p>
-                <p className="text-sm font-semibold">{fmt(testBase)}</p>
+                <p className="text-[10px] text-muted-foreground">Preço c/ IVA</p>
+                <p className="text-sm font-semibold">{fmt(testWithVat)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Guardar p/ Seg. Social ({ssPercent}% s/ 70%)</p>
