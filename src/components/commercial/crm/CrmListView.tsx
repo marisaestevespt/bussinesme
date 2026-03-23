@@ -69,6 +69,7 @@ export function CrmListView({ leads, onOpenLead }: CrmListViewProps) {
             variant={filter === f.value ? 'default' : 'outline'}
             size="sm"
             onClick={() => setFilter(f.value)}
+            className={filter === f.value ? 'bg-accent text-accent-foreground hover:bg-accent/90' : ''}
           >
             {f.label}
           </Button>
