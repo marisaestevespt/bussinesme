@@ -66,6 +66,7 @@ import ClientesFeedbackPage from "./pages/ClientesFeedback";
 import PortalAuthPage from "./pages/PortalAuth";
 import PortalViewPage from "./pages/PortalView";
 import VendaDetailPage from "./pages/VendaDetail";
+import CrmPipelinesPage from "./pages/CrmPipelines";
 import FinanceiroPage from "./pages/Financeiro";
 import FinanceiroSubPage from "./pages/FinanceiroSubPage";
 import OperacaoPage from "./pages/Operacao";
