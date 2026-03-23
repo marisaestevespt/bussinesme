@@ -37,9 +37,25 @@ interface Props {
 }
 
 export function ProductCustomerSuccess({ productId, isOwner }: Props) {
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const { members } = useTeamData();
   const teamMembers = members.data || [];
+
+  // ---- NPS SOP linked to this product ----
+  const { data: npsSop } = useQuery({
+    queryKey: ['nps-sop', productId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('sops')
+        .select('id, title, sop_id')
+        .eq('product_id', productId)
+        .ilike('title', '%NPS%')
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+  });
 
   // ---- Product renewal_advance_days ----
   const { data: product } = useQuery({
