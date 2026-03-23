@@ -184,17 +184,13 @@ export function OfferCalculator({ vatRate }: Props) {
           )}
 
           {testVal > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-3 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Preço c/ IVA</p>
                 <p className="text-sm font-semibold">{fmt(testWithVat)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
-                <p className="text-[10px] text-muted-foreground">Lucro bruto</p>
-                <p className={`text-sm font-semibold ${testTaxableProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(testTaxableProfit)}</p>
-              </div>
-              <div className="p-2 rounded-md bg-muted/50">
-                <p className="text-[10px] text-muted-foreground">Seg. Social ({ssPercent}% s/ 70%)</p>
+                <p className="text-[10px] text-muted-foreground">Guardar p/ Seg. Social ({ssPercent}% s/ 70%)</p>
                 <p className="text-sm font-semibold">{fmt(testSS)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
@@ -202,7 +198,7 @@ export function OfferCalculator({ vatRate }: Props) {
                 <p className="text-sm font-semibold">{fmt(testTax)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
-                <p className="text-[10px] text-muted-foreground">Lucro líquido</p>
+                <p className="text-[10px] text-muted-foreground">Lucro Final (s/ custos e impostos)</p>
                 <p className={`text-sm font-semibold ${testNetProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(testNetProfit)}</p>
               </div>
             </div>
