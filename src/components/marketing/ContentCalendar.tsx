@@ -172,24 +172,44 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
       </TabsContent>
 
       <TabsContent value="status">
-        <div className="space-y-6">
+        <div className="flex gap-3 overflow-x-auto pb-4">
           {STATUS_OPTIONS.map(status => {
             const statusItems = items.filter(i => i.status === status.value);
             return (
-              <div key={status.value}>
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge className={cn(status.color)}>{status.label}</Badge>
+              <div key={status.value} className="flex flex-col min-w-[220px] max-w-[260px] shrink-0">
+                <div className="flex items-center gap-2 mb-2 px-1">
+                  <Badge className={cn("text-[10px]", status.color)}>{status.label}</Badge>
                   <span className="text-xs text-muted-foreground">({statusItems.length})</span>
                 </div>
-                {statusItems.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic pl-1 pb-2">Nenhum conteúdo</p>
-                ) : (
-                  <div className="space-y-0.5">
-                    {statusItems.map(item => (
-                      <ContentRow key={item.id} item={item} channels={channels} links={contentChannelLinks} />
-                    ))}
-                  </div>
-                )}
+                <div className="flex-1 rounded-lg border bg-muted/20 p-2 space-y-2 min-h-[120px]">
+                  {statusItems.length === 0 ? (
+                    <p className="text-[11px] text-muted-foreground italic text-center pt-6">Vazio</p>
+                  ) : (
+                    statusItems.map(item => {
+                      const itemChannels = getItemChannels(item.id, channels, contentChannelLinks);
+                      return (
+                        <Link key={item.id} to={`/hub/marketing/conteudos/${item.id}`} className="block">
+                          <div className="rounded-md border bg-card p-2.5 hover:shadow-sm hq-transition cursor-pointer space-y-1.5">
+                            {item.cover_url && (
+                              <img src={item.cover_url} alt="" className="w-full aspect-video rounded object-cover" />
+                            )}
+                            <p className="text-xs font-medium text-foreground leading-tight truncate">{item.title}</p>
+                            <div className="flex items-center gap-1 flex-wrap">
+                              {itemChannels.slice(0, 2).map(ch => (
+                                <Badge key={ch.id} variant="outline" className="text-[9px] px-1 py-0 h-3.5">{ch.name}</Badge>
+                              ))}
+                            </div>
+                            {item.scheduled_at && (
+                              <p className="text-[10px] text-muted-foreground">
+                                {format(new Date(item.scheduled_at), 'dd MMM HH:mm', { locale: pt })}
+                              </p>
+                            )}
+                          </div>
+                        </Link>
+                      );
+                    })
+                  )}
+                </div>
               </div>
             );
           })}
