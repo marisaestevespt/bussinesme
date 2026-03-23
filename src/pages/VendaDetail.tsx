@@ -29,7 +29,7 @@ const STATUS_OPTIONS = [
   { value: 'contabilidade_ok', label: 'Contabilidade OK', className: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
 ];
 
-const SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
+const DEFAULT_SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function VendaDetailPage() {
@@ -47,6 +47,16 @@ export default function VendaDetailPage() {
     },
     enabled: !!id,
   });
+
+  const { data: customSources } = useQuery({
+    queryKey: ['sales-sources'],
+    queryFn: async () => {
+      const { data } = await supabase.from('commercial_sales').select('source');
+      const unique = [...new Set((data || []).map(d => d.source).filter(Boolean))] as string[];
+      return unique;
+    },
+  });
+  const sourceOptions = [...new Set([...DEFAULT_SOURCE_OPTIONS, ...(customSources || [])])];
 
   const { data: clientsList } = useQuery({
     queryKey: ['clients-list-names'],
@@ -245,9 +255,19 @@ export default function VendaDetailPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">Fonte</Label>
-                    <Select value={form.source || ''} onValueChange={v => setForm((f: any) => ({ ...f, source: v }))} disabled={!isOwner}>
+                    <Select value={form.source || ''} onValueChange={v => {
+                      if (v === '__custom__') {
+                        const custom = prompt('Introduz a nova fonte:');
+                        if (custom?.trim()) setForm((f: any) => ({ ...f, source: custom.trim() }));
+                        return;
+                      }
+                      setForm((f: any) => ({ ...f, source: v }));
+                    }} disabled={!isOwner}>
                       <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                      <SelectContent>{SOURCE_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                      <SelectContent>
+                        {sourceOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                        <SelectItem value="__custom__">+ Adicionar outro</SelectItem>
+                      </SelectContent>
                     </Select>
                   </div>
                 </div>

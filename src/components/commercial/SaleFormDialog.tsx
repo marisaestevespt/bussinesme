@@ -22,7 +22,7 @@ const STATUS_OPTIONS = [
   { value: 'contabilidade_ok', label: 'Contabilidade OK' },
 ];
 
-const SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
+const DEFAULT_SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
 
 interface SaleFormDialogProps {
   open: boolean;
@@ -99,6 +99,17 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
     },
     enabled: !!productName && open,
   });
+
+  // Fetch custom sources from existing sales
+  const customSources = useQuery({
+    queryKey: ['sales-sources'],
+    queryFn: async () => {
+      const { data } = await supabase.from('commercial_sales').select('source');
+      const unique = [...new Set((data || []).map(d => d.source).filter(Boolean))] as string[];
+      return unique;
+    },
+  });
+  const sourceOptions = [...new Set([...DEFAULT_SOURCE_OPTIONS, ...(customSources.data || [])])];
 
   const getVatMultiplier = () => {
     const rate = productInfo.data?.vat_rate;
@@ -210,9 +221,19 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
           </div>
           <div>
             <Label>Fonte da Venda</Label>
-            <Select value={form.source} onValueChange={v => setForm(f => ({ ...f, source: v }))}>
+            <Select value={form.source} onValueChange={v => {
+              if (v === '__custom__') {
+                const custom = prompt('Introduz a nova fonte:');
+                if (custom?.trim()) setForm(f => ({ ...f, source: custom.trim() }));
+                return;
+              }
+              setForm(f => ({ ...f, source: v }));
+            }}>
               <SelectTrigger><SelectValue placeholder="Selecionar fonte" /></SelectTrigger>
-              <SelectContent>{SOURCE_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+              <SelectContent>
+                {sourceOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                <SelectItem value="__custom__">+ Adicionar outro</SelectItem>
+              </SelectContent>
             </Select>
           </div>
           <div><Label>Documentos (link)</Label><Input value={form.documents} onChange={e => setForm(f => ({ ...f, documents: e.target.value }))} placeholder="https://..." /></div>
