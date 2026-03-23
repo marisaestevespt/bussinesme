@@ -333,6 +333,7 @@ export default function CrmPipelines() {
               removeLeadFromPipeline.mutate({ pipelineId: activePipeline.id, leadId })
             }
             onOpenLead={openLead}
+            onCreateLead={handleCreateLead}
             onAddStage={() => {
               const name = window.prompt('Nome da nova etapa:');
               if (name?.trim()) addStage.mutate({ pipelineId: activePipeline.id, name: name.trim() });
