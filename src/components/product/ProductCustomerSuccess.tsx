@@ -9,9 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Save } from 'lucide-react';
+import { Plus, Trash2, Save, ExternalLink, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTeamData } from '@/hooks/useTeamData';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 
 const MILESTONE_TYPE_OPTIONS = [
