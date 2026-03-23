@@ -327,6 +327,8 @@ export default function CrmPipelines() {
             stages={allStages.filter(s => s.pipeline_id === activePipeline.id)}
             pipelineLeads={pipelineLeads.filter(pl => pl.pipeline_id === activePipeline.id)}
             allLeads={allLeads}
+            stagesDialogOpen={stagesDialogOpen}
+            onStagesDialogChange={setStagesDialogOpen}
             onMoveLeadToStage={(leadId, stageId) =>
               moveLeadToStage.mutate({ pipelineId: activePipeline.id, leadId, stageId })
             }
