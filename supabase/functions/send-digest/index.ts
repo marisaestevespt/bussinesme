@@ -103,6 +103,8 @@ Deno.serve(async (req) => {
           subject,
           businessName,
           primaryColor,
+          secondaryColor,
+          accentColor,
           logoUrl,
           contentHtml: htmlSections,
           isOwner: digest.is_owner_digest,
