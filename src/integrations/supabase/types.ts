@@ -1449,29 +1449,71 @@ export type Database = {
       commercial_strategy: {
         Row: {
           created_at: string
+          end_date: string | null
           id: string
           period: string
           sections: Json
+          start_date: string | null
           title: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          end_date?: string | null
           id?: string
           period?: string
           sections?: Json
+          start_date?: string | null
           title?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          end_date?: string | null
           id?: string
           period?: string
           sections?: Json
+          start_date?: string | null
           title?: string
           updated_at?: string
         }
         Relationships: []
+      }
+      commercial_strategy_projects: {
+        Row: {
+          created_at: string | null
+          id: string
+          project_id: string
+          strategy_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          project_id: string
+          strategy_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          project_id?: string
+          strategy_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_strategy_projects_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_strategy_projects_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_strategy"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       content_attachments: {
         Row: {
