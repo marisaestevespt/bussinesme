@@ -581,6 +581,7 @@ async function buildMemberDigest(
 function buildEmailHtml(opts: {
   subject: string;
   headerTitle: string;
+  greeting: string;
   dateLine: string;
   businessName: string;
   primaryColor: string;
@@ -595,21 +596,22 @@ function buildEmailHtml(opts: {
   return `<!DOCTYPE html>
 <html lang="pt">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif">
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;font-size:13px">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 16px">
 <tr><td align="center">
 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
   <tr><td style="background:${opts.primaryColor};padding:32px 32px 28px;text-align:center">
     ${opts.logoUrl ? `<img src="${opts.logoUrl}" alt="" style="height:40px;margin:0 auto 16px;display:block">` : ""}
-    <h1 style="color:${textColor};font-size:22px;margin:0 0 6px;font-weight:700;letter-spacing:1px;text-transform:uppercase">${esc(opts.headerTitle)}</h1>
-    <p style="color:${textColor};font-size:15px;margin:0 0 4px;font-weight:600;opacity:0.9">${esc(opts.businessName)}</p>
-    <p style="color:${textColor};font-size:13px;margin:0;font-weight:400;opacity:0.75">${esc(opts.dateLine)}</p>
+    <h1 style="color:${textColor};font-size:20px;margin:0 0 6px;font-weight:700;letter-spacing:1px;text-transform:uppercase">${esc(opts.headerTitle)}</h1>
+    <p style="color:${textColor};font-size:13px;margin:0 0 4px;font-weight:600;opacity:0.9">${esc(opts.businessName)}</p>
+    <p style="color:${textColor};font-size:12px;margin:0;font-weight:400;opacity:0.75">${esc(opts.dateLine)}</p>
   </td></tr>
-  <tr><td style="padding:32px">
+  <tr><td style="padding:28px 32px">
+    <p style="font-size:14px;color:#333;margin:0 0 20px">${esc(opts.greeting)}</p>
     ${content}
   </td></tr>
-  <tr><td style="padding:16px 32px 24px;border-top:2px solid ${opts.secondaryColor};text-align:center">
-    <p style="font-size:12px;color:#a1a1aa;margin:0">${esc(opts.businessName)}</p>
+  <tr><td style="padding:14px 32px 20px;border-top:2px solid ${opts.secondaryColor};text-align:center">
+    <p style="font-size:11px;color:#a1a1aa;margin:0">${esc(opts.businessName)}</p>
   </td></tr>
 </table>
 </td></tr>
