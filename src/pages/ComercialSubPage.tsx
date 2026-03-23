@@ -9,6 +9,7 @@ import { CommercialAcoes } from '@/components/commercial/CommercialAcoes';
 import { CommercialCRM } from '@/components/commercial/CommercialCRM';
 import { CommercialEstrategia } from '@/components/commercial/CommercialEstrategia';
 import { CommercialBiblioteca } from '@/components/commercial/CommercialBiblioteca';
+import { CommercialClientsList } from '@/components/commercial/CommercialClientsList';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 
 const TITLES: Record<string, string> = {
@@ -19,6 +20,7 @@ const TITLES: Record<string, string> = {
   estrategia: 'Estratégia',
   biblioteca: 'Biblioteca',
   processos: 'Processos',
+  clientes: 'Lista de Clientes',
 };
 
 export default function ComercialSubPage() {
@@ -35,6 +37,7 @@ export default function ComercialSubPage() {
       case 'processos': return <CommercialProcessos />;
       case 'estrategia': return <CommercialEstrategia />;
       case 'biblioteca': return <CommercialBiblioteca />;
+      case 'clientes': return <CommercialClientsList />;
       default: return <EmptyModulePage title={title} description="Conteúdo será construído em breve." />;
     }
   };
