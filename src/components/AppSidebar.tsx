@@ -120,7 +120,7 @@ function NavSection({
                         to={item.url}
                         end
                         className="hq-transition hover:bg-accent/50"
-                        activeClassName="bg-accent text-accent-foreground font-medium"
+                        activeClassName="bg-primary text-primary-foreground font-medium"
                       >
                         <Icon className="mr-2 h-4 w-4" strokeWidth={1.5} />
                         {!collapsed && <span className="text-sm">{item.title}</span>}
@@ -178,7 +178,7 @@ export function AppSidebar() {
                           to={fav.page_path}
                           end
                           className="hq-transition hover:bg-accent/50"
-                          activeClassName="bg-accent text-accent-foreground font-medium"
+                          activeClassName="bg-primary text-primary-foreground font-medium"
                         >
                           <Icon className="mr-2 h-4 w-4" strokeWidth={1.5} />
                           {!collapsed && <span className="text-sm">{fav.page_title}</span>}
@@ -204,7 +204,7 @@ export function AppSidebar() {
           {isOwner && (
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <NavLink to="/definicoes" end className="hq-transition hover:bg-accent/50" activeClassName="bg-accent text-accent-foreground font-medium">
+                <NavLink to="/definicoes" end className="hq-transition hover:bg-accent/50" activeClassName="bg-primary text-primary-foreground font-medium">
                   <Settings className="mr-2 h-4 w-4" strokeWidth={1.5} />
                   {!collapsed && <span className="text-sm">Definições</span>}
                 </NavLink>
