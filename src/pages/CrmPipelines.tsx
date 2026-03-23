@@ -1,23 +1,34 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AppLayout } from '@/components/AppLayout';
 import { BackNavigation } from '@/components/BackNavigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, GripVertical } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Plus, Pencil, Trash2, Search, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { PipelineBoard } from '@/components/commercial/crm/PipelineBoard';
+import { PipelineFormDialog } from '@/components/commercial/crm/PipelineFormDialog';
 import { LeadDetailSheet } from '@/components/commercial/crm/LeadDetailSheet';
 import { useCrmData } from '@/hooks/useCrmData';
 import { useCommercialData } from '@/hooks/useCommercialData';
+import { format } from 'date-fns';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function CrmPipelines() {
   const qc = useQueryClient();
-  const [selectedPipelineId, setSelectedPipelineId] = useState<string | null>(null);
+  const [openPipelineId, setOpenPipelineId] = useState<string | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingPipeline, setEditingPipeline] = useState<any>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<any>(null);
+
+  // Filters
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterProduct, setFilterProduct] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
 
   const { allLeads, upsertLead, deleteLead } = useCrmData();
   const { productGoals } = useCommercialData();
@@ -45,11 +56,20 @@ export default function CrmPipelines() {
     },
   });
 
+  // Projects
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects-list-pipelines'],
+    queryFn: async () => {
+      const { data } = await supabase.from('projects').select('id, name').order('name');
+      return (data || []).map(p => ({ id: p.id, name: p.name }));
+    },
+  });
+
   // Pipelines
   const { data: pipelines = [] } = useQuery({
     queryKey: ['crm-pipelines'],
     queryFn: async () => {
-      const { data } = await supabase.from('crm_pipelines').select('*').order('sort_order');
+      const { data } = await supabase.from('crm_pipelines').select('*').order('created_at', { ascending: false });
       return data || [];
     },
   });
@@ -78,38 +98,45 @@ export default function CrmPipelines() {
     qc.invalidateQueries({ queryKey: ['crm-pipeline-leads'] });
   };
 
-  // Create pipeline
-  const createPipeline = useMutation({
-    mutationFn: async (name: string) => {
-      const { data, error } = await supabase.from('crm_pipelines')
-        .insert({ name, sort_order: pipelines.length })
-        .select('id')
-        .single();
-      if (error) throw error;
-      // Create default stages
-      const defaults = [
-        { name: 'Entrada', color: '#6366f1', sort_order: 0 },
-        { name: 'Em Progresso', color: '#f59e0b', sort_order: 1 },
-        { name: 'Concluído', color: '#22c55e', sort_order: 2 },
-      ];
-      await supabase.from('crm_pipeline_stages')
-        .insert(defaults.map(s => ({ ...s, pipeline_id: data.id })));
-      return data;
+  // Create / Update pipeline
+  const savePipeline = useMutation({
+    mutationFn: async (payload: any) => {
+      const cleaned = {
+        name: payload.name,
+        start_date: payload.start_date,
+        end_date: payload.end_date,
+        product: payload.product === '__none' ? null : payload.product,
+        project_id: payload.project_id === '__none' ? null : payload.project_id,
+      };
+      if (payload.id) {
+        const { error } = await supabase.from('crm_pipelines').update(cleaned).eq('id', payload.id);
+        if (error) throw error;
+        return { id: payload.id };
+      } else {
+        const { data, error } = await supabase.from('crm_pipelines')
+          .insert({ ...cleaned, sort_order: pipelines.length })
+          .select('id')
+          .single();
+        if (error) throw error;
+        // Create default stages
+        const defaults = [
+          { name: 'Entrada', color: '#6366f1', sort_order: 0 },
+          { name: 'Em Progresso', color: '#f59e0b', sort_order: 1 },
+          { name: 'Concluído', color: '#22c55e', sort_order: 2 },
+        ];
+        await supabase.from('crm_pipeline_stages')
+          .insert(defaults.map(s => ({ ...s, pipeline_id: data.id })));
+        return data;
+      }
     },
     onSuccess: (data) => {
       invalidateAll();
-      setSelectedPipelineId(data.id);
-      toast.success('Pipeline criado');
+      setFormOpen(false);
+      setEditingPipeline(null);
+      setOpenPipelineId(data.id);
+      toast.success(editingPipeline ? 'Pipeline atualizado' : 'Pipeline criado');
     },
-    onError: () => toast.error('Erro ao criar pipeline'),
-  });
-
-  const renamePipeline = useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      const { error } = await supabase.from('crm_pipelines').update({ name }).eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => invalidateAll(),
+    onError: () => toast.error('Erro ao guardar pipeline'),
   });
 
   const deletePipeline = useMutation({
@@ -119,12 +146,12 @@ export default function CrmPipelines() {
     },
     onSuccess: () => {
       invalidateAll();
-      setSelectedPipelineId(null);
+      setOpenPipelineId(null);
       toast.success('Pipeline eliminado');
     },
   });
 
-  // Stages
+  // Stage mutations
   const addStage = useMutation({
     mutationFn: async ({ pipelineId, name }: { pipelineId: string; name: string }) => {
       const stagesForPipeline = allStages.filter(s => s.pipeline_id === pipelineId);
@@ -151,10 +178,9 @@ export default function CrmPipelines() {
     onSuccess: () => invalidateAll(),
   });
 
-  // Move lead to stage
+  // Move lead
   const moveLeadToStage = useMutation({
     mutationFn: async ({ pipelineId, leadId, stageId }: { pipelineId: string; leadId: string; stageId: string }) => {
-      // Upsert
       const existing = pipelineLeads.find(pl => pl.pipeline_id === pipelineId && pl.lead_id === leadId);
       if (existing) {
         const { error } = await supabase.from('crm_pipeline_leads')
@@ -173,32 +199,11 @@ export default function CrmPipelines() {
   const removeLeadFromPipeline = useMutation({
     mutationFn: async ({ pipelineId, leadId }: { pipelineId: string; leadId: string }) => {
       const { error } = await supabase.from('crm_pipeline_leads')
-        .delete()
-        .eq('pipeline_id', pipelineId)
-        .eq('lead_id', leadId);
+        .delete().eq('pipeline_id', pipelineId).eq('lead_id', leadId);
       if (error) throw error;
     },
     onSuccess: () => invalidateAll(),
   });
-
-  const handleNewPipeline = () => {
-    const name = window.prompt('Nome do novo pipeline:');
-    if (name?.trim()) createPipeline.mutate(name.trim());
-  };
-
-  const handleRenamePipeline = (id: string, current: string) => {
-    const name = window.prompt('Novo nome:', current);
-    if (name?.trim() && name.trim() !== current) renamePipeline.mutate({ id, name: name.trim() });
-  };
-
-  const handleDeletePipeline = (id: string, name: string) => {
-    if (confirm(`Eliminar pipeline "${name}" e todas as suas etapas?`)) deletePipeline.mutate(id);
-  };
-
-  const handleAddStage = (pipelineId: string) => {
-    const name = window.prompt('Nome da nova etapa:');
-    if (name?.trim()) addStage.mutate({ pipelineId, name: name.trim() });
-  };
 
   const openLead = useCallback((lead: any) => { setSelectedLead(lead); setSheetOpen(true); }, []);
 
@@ -206,7 +211,25 @@ export default function CrmPipelines() {
     upsertLead.mutate(lead, { onSuccess: () => { setSheetOpen(false); setSelectedLead(null); } });
   };
 
-  const activePipeline = pipelines.find(p => p.id === selectedPipelineId) || pipelines[0] || null;
+  // Toggle open pipeline (only one at a time)
+  const togglePipeline = (id: string) => {
+    setOpenPipelineId(prev => prev === id ? null : id);
+  };
+
+  // Filtered pipelines
+  const filteredPipelines = useMemo(() => {
+    return pipelines.filter(p => {
+      if (searchTerm && !p.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+      if (filterProduct && filterProduct !== '__all' && p.product !== filterProduct) return false;
+      if (filterStatus && filterStatus !== '__all' && p.status !== filterStatus) return false;
+      return true;
+    });
+  }, [pipelines, searchTerm, filterProduct, filterStatus]);
+
+  const getProjectName = (projectId: string | null) => {
+    if (!projectId) return null;
+    return projects.find(p => p.id === projectId)?.name || null;
+  };
 
   return (
     <AppLayout>
@@ -215,76 +238,162 @@ export default function CrmPipelines() {
 
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Pipelines</h1>
-          <Button size="sm" onClick={handleNewPipeline}>
+          <Button size="sm" onClick={() => { setEditingPipeline(null); setFormOpen(true); }}>
             <Plus className="h-4 w-4 mr-1" /> Novo Pipeline
           </Button>
         </div>
 
-        {pipelines.length === 0 ? (
+        {/* Filters */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Pesquisar por nome..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Select value={filterProduct} onValueChange={setFilterProduct}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Produto" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all">Todos os produtos</SelectItem>
+              {products.map(p => (
+                <SelectItem key={p} value={p}>{p}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all">Todos</SelectItem>
+              <SelectItem value="active">Ativo</SelectItem>
+              <SelectItem value="archived">Arquivado</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Pipeline list */}
+        {filteredPipelines.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
-              <p className="text-muted-foreground mb-4">Ainda não criaste nenhum pipeline.</p>
-              <Button onClick={handleNewPipeline}><Plus className="h-4 w-4 mr-1" /> Criar Pipeline</Button>
+              <p className="text-muted-foreground mb-4">
+                {pipelines.length === 0 ? 'Ainda não criaste nenhum pipeline.' : 'Nenhum pipeline encontrado com esses filtros.'}
+              </p>
+              {pipelines.length === 0 && (
+                <Button onClick={() => { setEditingPipeline(null); setFormOpen(true); }}>
+                  <Plus className="h-4 w-4 mr-1" /> Criar Pipeline
+                </Button>
+              )}
             </CardContent>
           </Card>
         ) : (
-          <>
-            {/* Pipeline selector tabs */}
-            <div className="flex items-center gap-1 rounded-lg border p-1 flex-wrap">
-              {pipelines.map(p => (
-                <div key={p.id} className="flex items-center">
-                  <Button
-                    variant={activePipeline?.id === p.id ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setSelectedPipelineId(p.id)}
+          <div className="space-y-3">
+            {filteredPipelines.map(p => {
+              const isOpen = openPipelineId === p.id;
+              const leadsCount = pipelineLeads.filter(pl => pl.pipeline_id === p.id).length;
+              const projectName = getProjectName(p.project_id);
+
+              return (
+                <div key={p.id} className="space-y-0">
+                  <Card
+                    className={cn(
+                      'cursor-pointer transition-colors hover:border-primary/30',
+                      isOpen && 'border-primary/50'
+                    )}
+                    onClick={() => togglePipeline(p.id)}
                   >
-                    {p.name}
-                    <Badge variant="secondary" className="ml-1.5 text-xs">
-                      {pipelineLeads.filter(pl => pl.pipeline_id === p.id).length}
-                    </Badge>
-                  </Button>
-                  {activePipeline?.id === p.id && (
-                    <div className="flex items-center ml-0.5 gap-0.5">
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRenamePipeline(p.id, p.name)}>
-                        <Pencil className="h-3 w-3" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive" onClick={() => handleDeletePipeline(p.id, p.name)}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold truncate">{p.name}</p>
+                              <Badge variant={p.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                                {p.status === 'active' ? 'Ativo' : 'Arquivado'}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">{leadsCount} leads</Badge>
+                            </div>
+                            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                              {p.start_date && (
+                                <span>{format(new Date(p.start_date), 'dd/MM/yyyy')} — {p.end_date ? format(new Date(p.end_date), 'dd/MM/yyyy') : '...'}</span>
+                              )}
+                              {p.product && <span>• {p.product}</span>}
+                              {projectName && <span>• {projectName}</span>}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 ml-2" onClick={e => e.stopPropagation()}>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => togglePipeline(p.id)}>
+                            {isOpen ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setEditingPipeline(p); setFormOpen(true); }}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-destructive hover:text-destructive"
+                            onClick={() => { if (confirm(`Eliminar pipeline "${p.name}" e todas as suas etapas?`)) deletePipeline.mutate(p.id); }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Expanded board */}
+                  {isOpen && (
+                    <div className="pt-3 pb-1">
+                      <PipelineBoard
+                        pipeline={p}
+                        stages={allStages.filter(s => s.pipeline_id === p.id)}
+                        pipelineLeads={pipelineLeads.filter(pl => pl.pipeline_id === p.id)}
+                        allLeads={allLeads}
+                        onMoveLeadToStage={(leadId, stageId) =>
+                          moveLeadToStage.mutate({ pipelineId: p.id, leadId, stageId })
+                        }
+                        onAddLeadToPipeline={(leadId, stageId) =>
+                          moveLeadToStage.mutate({ pipelineId: p.id, leadId, stageId })
+                        }
+                        onRemoveLeadFromPipeline={(leadId) =>
+                          removeLeadFromPipeline.mutate({ pipelineId: p.id, leadId })
+                        }
+                        onOpenLead={openLead}
+                        onAddStage={() => {
+                          const name = window.prompt('Nome da nova etapa:');
+                          if (name?.trim()) addStage.mutate({ pipelineId: p.id, name: name.trim() });
+                        }}
+                        onDeleteStage={(stageId) => deleteStage.mutate(stageId)}
+                        onRenameStage={(id, current) => {
+                          const name = window.prompt('Novo nome:', current);
+                          if (name?.trim() && name.trim() !== current) renameStage.mutate({ id, name: name.trim() });
+                        }}
+                      />
                     </div>
                   )}
                 </div>
-              ))}
-            </div>
-
-            {/* Active pipeline board */}
-            {activePipeline && (
-              <PipelineBoard
-                pipeline={activePipeline}
-                stages={allStages.filter(s => s.pipeline_id === activePipeline.id)}
-                pipelineLeads={pipelineLeads.filter(pl => pl.pipeline_id === activePipeline.id)}
-                allLeads={allLeads}
-                onMoveLeadToStage={(leadId, stageId) =>
-                  moveLeadToStage.mutate({ pipelineId: activePipeline.id, leadId, stageId })
-                }
-                onAddLeadToPipeline={(leadId, stageId) =>
-                  moveLeadToStage.mutate({ pipelineId: activePipeline.id, leadId, stageId })
-                }
-                onRemoveLeadFromPipeline={(leadId) =>
-                  removeLeadFromPipeline.mutate({ pipelineId: activePipeline.id, leadId })
-                }
-                onOpenLead={openLead}
-                onAddStage={() => handleAddStage(activePipeline.id)}
-                onDeleteStage={(stageId) => deleteStage.mutate(stageId)}
-                onRenameStage={(id, current) => {
-                  const name = window.prompt('Novo nome:', current);
-                  if (name?.trim() && name.trim() !== current) renameStage.mutate({ id, name: name.trim() });
-                }}
-              />
-            )}
-          </>
+              );
+            })}
+          </div>
         )}
 
+        {/* Form Dialog */}
+        <PipelineFormDialog
+          open={formOpen}
+          onOpenChange={v => { setFormOpen(v); if (!v) setEditingPipeline(null); }}
+          onSave={(data) => savePipeline.mutate({ ...data, id: editingPipeline?.id })}
+          products={products}
+          projects={projects}
+          initialData={editingPipeline}
+        />
+
+        {/* Lead Detail */}
         <LeadDetailSheet
           open={sheetOpen}
           onOpenChange={v => { setSheetOpen(v); if (!v) setSelectedLead(null); }}
