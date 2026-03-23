@@ -3,6 +3,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useProducts } from '@/hooks/useProducts';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -50,7 +51,9 @@ export default function MarketingTrafegoPago() {
   const [showNewCreative, setShowNewCreative] = useState(false);
   const [showNewCard, setShowNewCard] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState('');
-  const [creativeForm, setCreativeForm] = useState({ name: '', status: 'em_desenho', formato: '', objetivo: '', oferta_type: '' as ObjetivoFinalType, oferta_value: '', link: '' });
+  const [creativeForm, setCreativeForm] = useState({ name: '', status: 'em_desenho', formato: '', objetivo: '', oferta_type: '' as ObjetivoFinalType, oferta_value: '', link: '', product_name: '' });
+  const { products: productsQuery } = useProducts();
+  const productsList = productsQuery.data || [];
 
   const { data: reportCards = [] } = useQuery({
     queryKey: ['traffic-report-cards'],
@@ -75,11 +78,12 @@ export default function MarketingTrafegoPago() {
       formato: creativeForm.formato || null, objetivo: creativeForm.objetivo || null,
       oferta_goal: serializeObjetivoFinal(creativeForm.oferta_type, creativeForm.oferta_value),
       link: creativeForm.link || null,
+      product_name: creativeForm.product_name || null,
       created_by: user?.id,
     } as any);
     qc.invalidateQueries({ queryKey: ['traffic-creatives'] });
     setShowNewCreative(false);
-    setCreativeForm({ name: '', status: 'em_desenho', formato: '', objetivo: '', oferta_type: '', oferta_value: '', link: '' });
+    setCreativeForm({ name: '', status: 'em_desenho', formato: '', objetivo: '', oferta_type: '', oferta_value: '', link: '', product_name: '' });
     toast.success('Criativo criado');
   };
 
@@ -244,6 +248,16 @@ export default function MarketingTrafegoPago() {
               onValueChange={v => setCreativeForm(f => ({ ...f, oferta_value: v }))}
             />
             <div><Label>Link</Label><Input value={creativeForm.link} onChange={e => setCreativeForm(f => ({ ...f, link: e.target.value }))} placeholder="https://..." /></div>
+            <div>
+              <Label>Produto</Label>
+              <Select value={creativeForm.product_name} onValueChange={v => setCreativeForm(f => ({ ...f, product_name: v === '___none___' ? '' : v }))}>
+                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="___none___">Nenhum</SelectItem>
+                  {productsList.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             <Button className="w-full" disabled={!creativeForm.name.trim()} onClick={createCreative}>Criar Criativo</Button>
           </div>
         </DialogContent>

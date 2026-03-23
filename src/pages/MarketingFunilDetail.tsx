@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useProducts } from '@/hooks/useProducts';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -62,8 +63,10 @@ export default function MarketingFunilDetail() {
   const [form, setForm] = useState({
     name: '', status: 'em_ideia', entry_points: [] as string[], oferta_final: '',
     objetivo: '', plataformas: [] as string[], tipo_funil: '', notas: '',
-    etapas: [] as Etapa[], fluxo_resumido: '',
+    etapas: [] as Etapa[], fluxo_resumido: '', product_name: '',
   });
+  const { products: productsQuery } = useProducts();
+  const productsList = productsQuery.data || [];
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -76,6 +79,7 @@ export default function MarketingFunilDetail() {
         tipo_funil: item.tipo_funil || '', notas: item.notas || '',
         etapas: Array.isArray(item.etapas) ? item.etapas : [],
         fluxo_resumido: item.fluxo_resumido || '',
+        product_name: (item as any).product_name || '',
       });
     }
   }, [item]);
@@ -87,6 +91,7 @@ export default function MarketingFunilDetail() {
       oferta_final: form.oferta_final || null, objetivo: form.objetivo || null,
       plataformas: form.plataformas, tipo_funil: form.tipo_funil || null,
       notas: form.notas || null, etapas: form.etapas, fluxo_resumido: form.fluxo_resumido || null,
+      product_name: form.product_name || null,
     } as any).eq('id', id!);
     setSaving(false);
     if (error) toast.error('Erro ao guardar');

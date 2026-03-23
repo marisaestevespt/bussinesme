@@ -96,33 +96,33 @@ export default function ProdutoDetailPage() {
   });
 
   const { data: funnels = [] } = useQuery({
-    queryKey: ['product-funnels', id],
+    queryKey: ['marketing-funnels-product', form.name],
     queryFn: async () => {
-      if (!id || isNew) return [];
-      const { data } = await supabase.from('product_funnels').select('*').eq('product_id', id).order('created_at', { ascending: false });
+      if (!form.name) return [];
+      const { data } = await supabase.from('marketing_funnels').select('*').eq('product_name', form.name).order('created_at', { ascending: false });
       return data || [];
     },
-    enabled: !isNew,
+    enabled: !!form.name,
   });
 
   const { data: automations = [] } = useQuery({
-    queryKey: ['product-automations', id],
+    queryKey: ['marketing-automations-product', form.name],
     queryFn: async () => {
-      if (!id || isNew) return [];
-      const { data } = await supabase.from('product_automations').select('*').eq('product_id', id).order('created_at', { ascending: false });
+      if (!form.name) return [];
+      const { data } = await supabase.from('marketing_automations').select('*').eq('product_name', form.name).order('created_at', { ascending: false });
       return data || [];
     },
-    enabled: !isNew,
+    enabled: !!form.name,
   });
 
   const { data: trafficAds = [] } = useQuery({
-    queryKey: ['product-traffic-ads', id],
+    queryKey: ['traffic-creatives-product', form.name],
     queryFn: async () => {
-      if (!id || isNew) return [];
-      const { data } = await supabase.from('product_traffic_ads').select('*').eq('product_id', id).order('created_at', { ascending: false });
+      if (!form.name) return [];
+      const { data } = await supabase.from('traffic_creatives').select('*').eq('product_name', form.name).order('created_at', { ascending: false });
       return data || [];
     },
-    enabled: !isNew,
+    enabled: !!form.name,
   });
 
   const { data: usefulLinks = [] } = useQuery({
@@ -199,9 +199,12 @@ export default function ProdutoDetailPage() {
   // Mutations for sub-tables
   const invalidateSub = () => {
     qc.invalidateQueries({ queryKey: ['product-feedbacks', id] });
-    qc.invalidateQueries({ queryKey: ['product-funnels', id] });
-    qc.invalidateQueries({ queryKey: ['product-automations', id] });
-    qc.invalidateQueries({ queryKey: ['product-traffic-ads', id] });
+    qc.invalidateQueries({ queryKey: ['marketing-funnels-product', form.name] });
+    qc.invalidateQueries({ queryKey: ['marketing-automations-product', form.name] });
+    qc.invalidateQueries({ queryKey: ['traffic-creatives-product', form.name] });
+    qc.invalidateQueries({ queryKey: ['marketing-funnels'] });
+    qc.invalidateQueries({ queryKey: ['marketing-automations'] });
+    qc.invalidateQueries({ queryKey: ['traffic-creatives'] });
     qc.invalidateQueries({ queryKey: ['product-useful-links', id] });
     qc.invalidateQueries({ queryKey: ['product-costs', id] });
     qc.invalidateQueries({ queryKey: ['product-onboarding-template', id] });
@@ -787,7 +790,7 @@ export default function ProdutoDetailPage() {
                   <CardHeader className="flex-row items-center justify-between">
                     <CardTitle className="text-base">Funis</CardTitle>
                     {isOwner && (
-                      <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_funnels', data: { product_id: id, name: '' } })}>
+                      <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'marketing_funnels', data: { name: `Funil — ${form.name}`, product_name: form.name } })}>
                         <Plus className="h-3 w-3 mr-1" /> Novo Funil
                       </Button>
                     )}
@@ -809,24 +812,17 @@ export default function ProdutoDetailPage() {
                           <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-4">Sem funis</TableCell></TableRow>
                         )}
                         {funnels.map((f: any) => (
-                          <TableRow key={f.id}>
+                          <TableRow key={f.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/marketing/funis/${f.id}`)}>
                             <TableCell>
-                              <Select defaultValue={f.status} onValueChange={v => updateRow.mutate({ table: 'product_funnels', id: f.id, data: { status: v } })} disabled={!isOwner}>
-                                <SelectTrigger className="h-7 w-[120px] text-xs"><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                  {['em_ideia', 'ativo', 'pausado', 'arquivo'].map(s => <SelectItem key={s} value={s}>{s.replace('_', ' ')}</SelectItem>)}
-                                </SelectContent>
-                              </Select>
+                              <Badge variant="outline" className="text-xs">{f.status?.replace('_', ' ') || '—'}</Badge>
                             </TableCell>
-                            <TableCell>
-                              <Input defaultValue={f.name} onBlur={e => updateRow.mutate({ table: 'product_funnels', id: f.id, data: { name: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} />
-                            </TableCell>
-                            <TableCell className="text-sm">{f.funnel_type || '—'}</TableCell>
-                            <TableCell className="text-sm">{f.objective || '—'}</TableCell>
+                            <TableCell className="font-medium">{f.name}</TableCell>
+                            <TableCell className="text-sm">{f.tipo_funil || '—'}</TableCell>
+                            <TableCell className="text-sm">{f.objetivo || '—'}</TableCell>
                             <TableCell className="text-xs text-muted-foreground">{format(new Date(f.updated_at), 'dd/MM/yyyy')}</TableCell>
                             {isOwner && (
                               <TableCell>
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteRow.mutate({ table: 'product_funnels', id: f.id })}><Trash2 className="h-3 w-3" /></Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); deleteRow.mutate({ table: 'marketing_funnels', id: f.id }); }}><Trash2 className="h-3 w-3" /></Button>
                               </TableCell>
                             )}
                           </TableRow>
@@ -841,7 +837,7 @@ export default function ProdutoDetailPage() {
                   <CardHeader className="flex-row items-center justify-between">
                     <CardTitle className="text-base">Automações</CardTitle>
                     {isOwner && (
-                      <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_automations', data: { product_id: id, name: '' } })}>
+                      <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'marketing_automations', data: { name: `Automação — ${form.name}`, product_name: form.name } })}>
                         <Plus className="h-3 w-3 mr-1" /> Nova Automação
                       </Button>
                     )}
@@ -863,24 +859,17 @@ export default function ProdutoDetailPage() {
                           <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-4">Sem automações</TableCell></TableRow>
                         )}
                         {automations.map((a: any) => (
-                          <TableRow key={a.id}>
+                          <TableRow key={a.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/marketing/automacoes/${a.id}`)}>
                             <TableCell>
-                              <Select defaultValue={a.status} onValueChange={v => updateRow.mutate({ table: 'product_automations', id: a.id, data: { status: v } })} disabled={!isOwner}>
-                                <SelectTrigger className="h-7 w-[120px] text-xs"><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                  {['em_desenho', 'ativo', 'pausado', 'arquivo'].map(s => <SelectItem key={s} value={s}>{s.replace('_', ' ')}</SelectItem>)}
-                                </SelectContent>
-                              </Select>
+                              <Badge variant="outline" className="text-xs">{a.status?.replace('_', ' ') || '—'}</Badge>
                             </TableCell>
-                            <TableCell>
-                              <Input defaultValue={a.name} onBlur={e => updateRow.mutate({ table: 'product_automations', id: a.id, data: { name: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} />
-                            </TableCell>
-                            <TableCell className="text-sm">{a.platform || '—'}</TableCell>
-                            <TableCell className="text-sm">{a.objective || '—'}</TableCell>
+                            <TableCell className="font-medium">{a.name}</TableCell>
+                            <TableCell className="text-sm">{a.plataforma || '—'}</TableCell>
+                            <TableCell className="text-sm">{a.objetivo || '—'}</TableCell>
                             <TableCell className="text-xs text-muted-foreground">{format(new Date(a.updated_at), 'dd/MM/yyyy')}</TableCell>
                             {isOwner && (
                               <TableCell>
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteRow.mutate({ table: 'product_automations', id: a.id })}><Trash2 className="h-3 w-3" /></Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); deleteRow.mutate({ table: 'marketing_automations', id: a.id }); }}><Trash2 className="h-3 w-3" /></Button>
                               </TableCell>
                             )}
                           </TableRow>
@@ -944,8 +933,8 @@ export default function ProdutoDetailPage() {
                   <CardHeader className="flex-row items-center justify-between">
                     <CardTitle className="text-base">Tráfego Pago</CardTitle>
                     {isOwner && (
-                      <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_traffic_ads', data: { product_id: id } })}>
-                        <Plus className="h-3 w-3 mr-1" /> Novo Anúncio
+                      <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'traffic_creatives', data: { name: `Criativo — ${form.name}`, product_name: form.name } })}>
+                        <Plus className="h-3 w-3 mr-1" /> Novo Criativo
                       </Button>
                     )}
                   </CardHeader>
@@ -954,7 +943,7 @@ export default function ProdutoDetailPage() {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Data Início</TableHead>
-                          <TableHead>Criativo</TableHead>
+                          <TableHead>Nome</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>Formato</TableHead>
                           <TableHead>Objetivo</TableHead>
@@ -964,19 +953,19 @@ export default function ProdutoDetailPage() {
                       </TableHeader>
                       <TableBody>
                         {trafficAds.length === 0 && (
-                          <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-4">Sem anúncios</TableCell></TableRow>
+                          <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-4">Sem criativos</TableCell></TableRow>
                         )}
                         {trafficAds.map((ad: any) => (
-                          <TableRow key={ad.id}>
-                            <TableCell className="text-sm">{ad.start_date || '—'}</TableCell>
-                            <TableCell>{ad.creative_url ? <a href={ad.creative_url} target="_blank" rel="noopener noreferrer" className="text-primary text-xs"><ExternalLink className="h-3 w-3" /></a> : '—'}</TableCell>
-                            <TableCell className="text-sm">{ad.status || '—'}</TableCell>
-                            <TableCell className="text-sm">{ad.format || '—'}</TableCell>
-                            <TableCell className="text-sm">{ad.objective || '—'}</TableCell>
-                            <TableCell>{ad.link ? <a href={ad.link} target="_blank" rel="noopener noreferrer" className="text-primary text-xs"><ExternalLink className="h-3 w-3" /></a> : '—'}</TableCell>
+                          <TableRow key={ad.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/marketing/trafego-pago/criativo/${ad.id}`)}>
+                            <TableCell className="text-sm">{ad.start_date ? format(new Date(ad.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                            <TableCell className="font-medium">{ad.name}</TableCell>
+                            <TableCell><Badge variant="outline" className="text-xs">{ad.status?.replace('_', ' ') || '—'}</Badge></TableCell>
+                            <TableCell className="text-sm">{ad.formato || '—'}</TableCell>
+                            <TableCell className="text-sm">{ad.objetivo || '—'}</TableCell>
+                            <TableCell>{ad.link ? <a href={ad.link} target="_blank" rel="noopener noreferrer" className="text-primary text-xs" onClick={e => e.stopPropagation()}><ExternalLink className="h-3 w-3" /></a> : '—'}</TableCell>
                             {isOwner && (
                               <TableCell>
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteRow.mutate({ table: 'product_traffic_ads', id: ad.id })}><Trash2 className="h-3 w-3" /></Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); deleteRow.mutate({ table: 'traffic_creatives', id: ad.id }); }}><Trash2 className="h-3 w-3" /></Button>
                               </TableCell>
                             )}
                           </TableRow>
