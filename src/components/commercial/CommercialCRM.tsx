@@ -109,7 +109,7 @@ export function CommercialCRM() {
             size="sm"
             onClick={() => setView('pipeline')}
           >
-            <LayoutGrid className="h-4 w-4 mr-1" /> Pipeline
+            <LayoutGrid className="h-4 w-4 mr-1" /> CRM
           </Button>
           <Button
             variant={view === 'list' ? 'default' : 'ghost'}
