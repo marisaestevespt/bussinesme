@@ -13,7 +13,7 @@ interface PipelineBoardProps {
   stages: any[];
   pipelineLeads: any[];
   allLeads: any[];
-  stagesDialogOpen?: boolean;
+  dialogOpen?: boolean;
   onStagesDialogChange?: (open: boolean) => void;
   onMoveLeadToStage: (leadId: string, stageId: string) => void;
   onAddLeadToPipeline: (leadId: string, stageId: string) => void;
@@ -31,7 +31,7 @@ export function PipelineBoard({
   stages,
   pipelineLeads,
   allLeads,
-  stagesDialogOpen: externalOpen,
+  dialogOpen: externalOpen,
   onStagesDialogChange,
   onMoveLeadToStage,
   onAddLeadToPipeline,
@@ -63,7 +63,7 @@ export function PipelineBoard({
         <Card>
           <CardContent className="p-6 text-center text-muted-foreground">
             Este pipeline ainda não tem etapas.
-            <Button variant="link" className="ml-1" onClick={() => setStagesDialogOpen(true)}>
+            <Button variant="link" className="ml-1" onClick={() => setDialogOpen(true)}>
               Adicionar etapas
             </Button>
           </CardContent>
@@ -179,8 +179,8 @@ export function PipelineBoard({
 
       {/* Edit Stages Dialog */}
       <StagesDialog
-        open={stagesDialogOpen}
-        onOpenChange={setStagesDialogOpen}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
         stages={stages}
         pipelineLeads={pipelineLeads}
         onAdd={onAddStage}
