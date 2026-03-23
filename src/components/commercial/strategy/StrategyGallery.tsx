@@ -25,6 +25,8 @@ interface Strategy {
   id: string;
   title: string;
   period: string;
+  start_date: string | null;
+  end_date: string | null;
   updated_at: string;
   sections: any[];
 }

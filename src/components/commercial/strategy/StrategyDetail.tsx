@@ -5,10 +5,15 @@ import { RichTextEditor } from '@/components/RichTextEditor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { toast } from 'sonner';
-import { Plus, FileDown, Check, Loader2, ArrowLeft } from 'lucide-react';
+import { Plus, FileDown, Check, Loader2, ArrowLeft, CalendarIcon, X, FolderKanban } from 'lucide-react';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Section {
@@ -55,10 +60,12 @@ export function StrategyDetail({ strategyId, onBack }: Props) {
   const { isOwner } = useAuth();
   const queryClient = useQueryClient();
   const [title, setTitle] = useState('');
-  const [period, setPeriod] = useState('');
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
   const [sections, setSections] = useState<Section[]>([]);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [projectPickerOpen, setProjectPickerOpen] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: strategy, isLoading } = useQuery({
@@ -77,21 +84,56 @@ export function StrategyDetail({ strategyId, onBack }: Props) {
     },
   });
 
+  // Linked projects
+  const { data: linkedProjects = [], refetch: refetchProjects } = useQuery({
+    queryKey: ['strategy-projects', strategyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('commercial_strategy_projects')
+        .select('id, project_id, projects(id, name, client_name, status)')
+        .eq('strategy_id', strategyId) as any;
+      return (data || []).map((r: any) => ({
+        linkId: r.id,
+        ...r.projects,
+      }));
+    },
+  });
+
+  // All projects for picker
+  const { data: allProjects = [] } = useQuery({
+    queryKey: ['all-projects-for-strategy'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('projects')
+        .select('id, name, client_name, status')
+        .order('created_at', { ascending: false })
+        .limit(200);
+      return data || [];
+    },
+  });
+
   useEffect(() => {
     if (strategy) {
       setTitle(strategy.title);
-      setPeriod(strategy.period);
+      setStartDate(strategy.start_date ? new Date(strategy.start_date) : undefined);
+      setEndDate(strategy.end_date ? new Date(strategy.end_date) : undefined);
       const s = (strategy.sections as Section[]) || [];
       setSections(s.length > 0 ? s : DEFAULT_SECTIONS.map(d => ({ ...d, id: generateId() })));
     }
   }, [strategy]);
 
-  const save = useCallback(async (t: string, p: string, s: Section[]) => {
+  const save = useCallback(async (t: string, sd: Date | undefined, ed: Date | undefined, s: Section[]) => {
     setSaving(true);
     try {
       const { error } = await supabase
         .from('commercial_strategy')
-        .update({ title: t, period: p, sections: s as any, updated_at: new Date().toISOString() } as any)
+        .update({
+          title: t,
+          start_date: sd ? format(sd, 'yyyy-MM-dd') : null,
+          end_date: ed ? format(ed, 'yyyy-MM-dd') : null,
+          sections: s as any,
+          updated_at: new Date().toISOString(),
+        } as any)
         .eq('id', strategyId);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['commercial-strategy', strategyId] });
@@ -103,38 +145,68 @@ export function StrategyDetail({ strategyId, onBack }: Props) {
     }
   }, [strategyId, queryClient]);
 
-  const debouncedSave = useCallback((t: string, p: string, s: Section[]) => {
+  const debouncedSave = useCallback((t: string, sd: Date | undefined, ed: Date | undefined, s: Section[]) => {
     setDirty(true);
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(() => save(t, p, s), 1500);
+    saveTimerRef.current = setTimeout(() => save(t, sd, ed, s), 1500);
   }, [save]);
 
   const updateSection = (id: string, content: string) => {
     const next = sections.map(s => s.id === id ? { ...s, content } : s);
     setSections(next);
-    debouncedSave(title, period, next);
+    debouncedSave(title, startDate, endDate, next);
   };
 
   const updateSectionTitle = (id: string, newTitle: string) => {
     const next = sections.map(s => s.id === id ? { ...s, title: newTitle } : s);
     setSections(next);
-    debouncedSave(title, period, next);
+    debouncedSave(title, startDate, endDate, next);
   };
 
   const addSection = () => {
     const next = [...sections, { id: generateId(), title: 'Nova Secção', content: '', is_custom: true }];
     setSections(next);
-    debouncedSave(title, period, next);
+    debouncedSave(title, startDate, endDate, next);
   };
 
   const handleTitleChange = (v: string) => {
     setTitle(v);
-    debouncedSave(v, period, sections);
+    debouncedSave(v, startDate, endDate, sections);
   };
 
-  const handlePeriodChange = (v: string) => {
-    setPeriod(v);
-    debouncedSave(title, v, sections);
+  const handleStartDateChange = (d: Date | undefined) => {
+    setStartDate(d);
+    debouncedSave(title, d, endDate, sections);
+  };
+
+  const handleEndDateChange = (d: Date | undefined) => {
+    setEndDate(d);
+    debouncedSave(title, startDate, d, sections);
+  };
+
+  const handleLinkProject = async (projectId: string) => {
+    if (linkedProjects.some((p: any) => p.id === projectId)) return;
+    const { error } = await supabase
+      .from('commercial_strategy_projects')
+      .insert({ strategy_id: strategyId, project_id: projectId } as any);
+    if (error) {
+      toast.error('Erro ao associar projeto');
+      return;
+    }
+    refetchProjects();
+    setProjectPickerOpen(false);
+  };
+
+  const handleUnlinkProject = async (linkId: string) => {
+    const { error } = await supabase
+      .from('commercial_strategy_projects')
+      .delete()
+      .eq('id', linkId);
+    if (error) {
+      toast.error('Erro ao desassociar projeto');
+      return;
+    }
+    refetchProjects();
   };
 
   const handleExportPdf = () => {
@@ -150,6 +222,8 @@ export function StrategyDetail({ strategyId, onBack }: Props) {
   }
 
   const updatedAt = strategy?.updated_at ? format(new Date(strategy.updated_at), "d 'de' MMMM 'de' yyyy, HH:mm", { locale: pt }) : null;
+  const linkedProjectIds = new Set(linkedProjects.map((p: any) => p.id));
+  const availableProjects = allProjects.filter((p: any) => !linkedProjectIds.has(p.id));
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -173,18 +247,42 @@ export function StrategyDetail({ strategyId, onBack }: Props) {
               <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
             )}
 
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <span>Período:</span>
+            {/* Date range */}
+            <div className="flex items-center gap-3 flex-wrap text-sm text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <CalendarIcon className="h-3.5 w-3.5" />
+                <span>Início:</span>
                 {isOwner ? (
-                  <Input
-                    value={period}
-                    onChange={e => handlePeriodChange(e.target.value)}
-                    className="w-32 h-7 text-sm border-dashed"
-                    placeholder="Ex: 2026, Q1 2026"
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className={cn("h-7 text-xs gap-1.5 font-normal", !startDate && "text-muted-foreground")}>
+                        {startDate ? format(startDate, "d MMM yyyy", { locale: pt }) : "Definir"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={startDate} onSelect={handleStartDateChange} initialFocus className="p-3 pointer-events-auto" />
+                    </PopoverContent>
+                  </Popover>
                 ) : (
-                  <span className="font-medium text-foreground">{period}</span>
+                  <span className="font-medium text-foreground">{startDate ? format(startDate, "d MMM yyyy", { locale: pt }) : "—"}</span>
+                )}
+              </div>
+              <span className="text-border">→</span>
+              <div className="flex items-center gap-1.5">
+                <span>Fim:</span>
+                {isOwner ? (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className={cn("h-7 text-xs gap-1.5 font-normal", !endDate && "text-muted-foreground")}>
+                        {endDate ? format(endDate, "d MMM yyyy", { locale: pt }) : "Definir"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={endDate} onSelect={handleEndDateChange} disabled={(date) => startDate ? date < startDate : false} initialFocus className="p-3 pointer-events-auto" />
+                    </PopoverContent>
+                  </Popover>
+                ) : (
+                  <span className="font-medium text-foreground">{endDate ? format(endDate, "d MMM yyyy", { locale: pt }) : "—"}</span>
                 )}
               </div>
               {updatedAt && (
@@ -211,6 +309,50 @@ export function StrategyDetail({ strategyId, onBack }: Props) {
               Exportar PDF
             </Button>
           </div>
+        </div>
+
+        {/* Linked projects */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <FolderKanban className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">Projetos:</span>
+          {linkedProjects.map((p: any) => (
+            <Badge key={p.linkId} variant="secondary" className="gap-1 text-xs">
+              {p.name}
+              {isOwner && (
+                <button onClick={() => handleUnlinkProject(p.linkId)} className="hover:text-destructive">
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </Badge>
+          ))}
+          {isOwner && (
+            <Popover open={projectPickerOpen} onOpenChange={setProjectPickerOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-6 text-xs gap-1 px-2">
+                  <Plus className="h-3 w-3" /> Associar
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Pesquisar projeto..." />
+                  <CommandList>
+                    <CommandEmpty>Nenhum projeto encontrado.</CommandEmpty>
+                    <CommandGroup>
+                      {availableProjects.map((p: any) => (
+                        <CommandItem key={p.id} value={p.name} onSelect={() => handleLinkProject(p.id)}>
+                          <span className="truncate">{p.name}</span>
+                          {p.client_name && <span className="ml-auto text-xs text-muted-foreground truncate">{p.client_name}</span>}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          )}
+          {linkedProjects.length === 0 && !isOwner && (
+            <span className="text-xs text-muted-foreground">Nenhum projeto associado</span>
+          )}
         </div>
 
         <Separator />
