@@ -228,8 +228,31 @@ export default function CrmPipelines() {
   const openLead = useCallback((lead: any) => { setSelectedLead(lead); setSheetOpen(true); }, []);
 
   const handleSaveLead = (lead: any) => {
-    upsertLead.mutate(lead, { onSuccess: () => { setSheetOpen(false); setSelectedLead(null); } });
+    upsertLead.mutate(lead, {
+      onSuccess: (_, variables) => {
+        // If creating a new lead from a pipeline stage, add it to that stage
+        if (!variables.id && createLeadStageId && activePipeline) {
+          // We need the new lead's id - refetch leads and find the newest one
+          qc.invalidateQueries({ queryKey: ['crm'] }).then(() => {
+            const freshLeads = qc.getQueryData<any[]>(['crm', 'leads']) || [];
+            const newLead = freshLeads.find((l: any) => l.name === variables.name);
+            if (newLead) {
+              moveLeadToStage.mutate({ pipelineId: activePipeline.id, leadId: newLead.id, stageId: createLeadStageId });
+            }
+          });
+        }
+        setSheetOpen(false);
+        setSelectedLead(null);
+        setCreateLeadStageId(null);
+      },
+    });
   };
+
+  const handleCreateLead = useCallback((stageId: string) => {
+    setCreateLeadStageId(stageId);
+    setSelectedLead(null);
+    setSheetOpen(true);
+  }, []);
 
   // Toggle open pipeline (only one at a time)
   const togglePipeline = (id: string) => {
