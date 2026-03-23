@@ -26,8 +26,8 @@ const STATUSES = [
   { value: 'arquivo', label: 'Arquivo', color: 'bg-muted text-muted-foreground' },
 ];
 
-const PLATAFORMAS = [
-  'Mailerlite', 'ActiveCampaign', 'Zapier', 'Make', 'Systeme.io', 'Outro',
+const DEFAULT_PLATAFORMAS = [
+  'Mailerlite', 'ActiveCampaign', 'Zapier', 'Make', 'Systeme.io',
 ];
 
 type Automation = {
