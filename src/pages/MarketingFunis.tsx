@@ -61,6 +61,12 @@ export default function MarketingFunis() {
     },
   });
 
+  // Dynamic tipo list: defaults + any custom values from DB
+  const allTiposFunil = Array.from(new Set([
+    ...TIPOS_FUNIL.map(t => t.value),
+    ...funnels.map(f => f.tipo_funil).filter(Boolean) as string[],
+  ]));
+
   const create = async () => {
     if (!form.name.trim()) return;
     await supabase.from('marketing_funnels').insert({
