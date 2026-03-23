@@ -68,7 +68,7 @@ export function OfferCalculator({ vatRate }: Props) {
 
   const getVerdict = () => {
     if (testVal <= 0) return null;
-    if (testBase < totalCosts) return { icon: TrendingDown, color: 'text-red-600', bg: 'bg-red-50 border-red-200', label: 'Abaixo do custo', desc: 'Estás a perder dinheiro com este preço.' };
+    if ((testAfterVat - testSS) < totalCosts) return { icon: TrendingDown, color: 'text-red-600', bg: 'bg-red-50 border-red-200', label: 'Abaixo do custo', desc: 'Estás a perder dinheiro com este preço.' };
     if (testMargin < marginPercent * 0.5) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Margem muito baixa', desc: `Margem de ${testMargin.toFixed(1)}% — abaixo do objetivo de ${marginPercent}%.` };
     if (testMargin < marginPercent) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Quase lá', desc: `Margem de ${testMargin.toFixed(1)}% — perto do objetivo de ${marginPercent}%.` };
     return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50 border-green-200', label: 'Bom preço!', desc: `Margem de ${testMargin.toFixed(1)}% — acima do objetivo de ${marginPercent}%.` };
