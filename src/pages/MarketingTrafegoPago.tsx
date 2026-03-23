@@ -73,7 +73,8 @@ export default function MarketingTrafegoPago() {
     await supabase.from('traffic_creatives').insert({
       name: creativeForm.name, status: creativeForm.status,
       formato: creativeForm.formato || null, objetivo: creativeForm.objetivo || null,
-      oferta_goal: creativeForm.oferta_goal || null, link: creativeForm.link || null,
+      oferta_goal: serializeObjetivoFinal(creativeForm.oferta_type, creativeForm.oferta_value),
+      link: creativeForm.link || null,
       created_by: user?.id,
     } as any);
     qc.invalidateQueries({ queryKey: ['traffic-creatives'] });
