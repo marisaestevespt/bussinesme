@@ -635,7 +635,7 @@ function getContrastColor(hex: string): string {
   }
 }
 
-
+function hslToHex(hsl: string): string {
   try {
     const parts = hsl.trim().split(/\s+/);
     if (parts.length < 3) return "#6366f1";
