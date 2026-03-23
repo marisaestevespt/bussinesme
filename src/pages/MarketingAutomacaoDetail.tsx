@@ -53,6 +53,14 @@ export default function MarketingAutomacaoDetail() {
     condicoes: [] as string[], links: [] as { label: string; url: string }[],
   });
   const [saving, setSaving] = useState(false);
+  const [addingPlatform, setAddingPlatform] = useState(false);
+  const [newPlatform, setNewPlatform] = useState('');
+
+  // Dynamic platform list: defaults + current value if custom
+  const allPlataformas = Array.from(new Set([
+    ...DEFAULT_PLATAFORMAS,
+    ...(form.plataforma && !DEFAULT_PLATAFORMAS.includes(form.plataforma) ? [form.plataforma] : []),
+  ])).sort();
 
   useEffect(() => {
     if (item) {
