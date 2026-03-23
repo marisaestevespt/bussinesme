@@ -656,7 +656,7 @@ function buildEmailHtml(opts: {
 
 // ─── Helpers ──────────────────────────────────────────────
 function sectionHeader(title: string): string {
-  return `<h2 style="font-size:14px;font-weight:600;color:#18181b;margin:20px 0 6px;border-bottom:2px solid %%SECONDARY%%;padding-bottom:5px">${title}</h2>`;
+  return `<h2 style="font-size:14px;font-weight:600;color:#18181b;margin:20px 0 6px;border-bottom:2px solid %%SECONDARY%%;padding-bottom:5px;font-family:%%DISPLAY_FONT%%">${title}</h2>`;
 }
 
 function esc(s: string): string {
