@@ -79,7 +79,7 @@ export default function MarketingTrafegoPago() {
     } as any);
     qc.invalidateQueries({ queryKey: ['traffic-creatives'] });
     setShowNewCreative(false);
-    setCreativeForm({ name: '', status: 'em_desenho', formato: '', objetivo: '', oferta_goal: '', link: '' });
+    setCreativeForm({ name: '', status: 'em_desenho', formato: '', objetivo: '', oferta_type: '', oferta_value: '', link: '' });
     toast.success('Criativo criado');
   };
 
