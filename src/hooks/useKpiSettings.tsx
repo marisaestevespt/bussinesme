@@ -20,7 +20,7 @@ export const KPI_DEFINITIONS: Record<string, { key: string; label: string }[]> =
     { key: 'churn', label: 'Churn' },
     { key: 'nps_medio', label: 'NPS médio actual' },
     { key: 'taxa_renovacao', label: 'Taxa de renovação' },
-    { key: 'saude_carteira', label: 'Saúde da carteira' },
+    { key: 'saude_carteira', label: 'Saúde da relação com clientes' },
     { key: 'marcos_atingidos', label: 'Marcos atingidos' },
   ],
   marketing: [
