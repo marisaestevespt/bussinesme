@@ -31,7 +31,7 @@ export function PipelineBoard({
   stages,
   pipelineLeads,
   allLeads,
-  dialogOpen: externalOpen,
+  stagesDialogOpen: externalOpen,
   onStagesDialogChange,
   onMoveLeadToStage,
   onAddLeadToPipeline,
