@@ -245,6 +245,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
   onSave: (r: any) => void;
 }) {
   const [form, setForm] = useState(empty());
+  const [showProject, setShowProject] = useState(false);
 
   const { data: existingTypes = [] } = useQuery({
     queryKey: ['commercial', 'sales-action-types'],
