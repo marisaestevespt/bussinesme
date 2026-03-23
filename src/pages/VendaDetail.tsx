@@ -48,6 +48,16 @@ export default function VendaDetailPage() {
     enabled: !!id,
   });
 
+  const { data: customSources } = useQuery({
+    queryKey: ['sales-sources'],
+    queryFn: async () => {
+      const { data } = await supabase.from('commercial_sales').select('source');
+      const unique = [...new Set((data || []).map(d => d.source).filter(Boolean))] as string[];
+      return unique;
+    },
+  });
+  const sourceOptions = [...new Set([...DEFAULT_SOURCE_OPTIONS, ...(customSources || [])])];
+
   const { data: clientsList } = useQuery({
     queryKey: ['clients-list-names'],
     queryFn: async () => {
