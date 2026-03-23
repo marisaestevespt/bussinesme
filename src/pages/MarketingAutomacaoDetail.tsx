@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useProducts } from '@/hooks/useProducts';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -50,8 +51,10 @@ export default function MarketingAutomacaoDetail() {
   const [form, setForm] = useState({
     name: '', status: 'em_desenho', oferta_final: '', objetivo: '', plataforma: '', notas: '',
     gatilho: '', plataformas_envolvidas: [] as string[], fluxo: [] as string[],
-    condicoes: [] as string[], links: [] as { label: string; url: string }[],
+    condicoes: [] as string[], links: [] as { label: string; url: string }[], product_name: '',
   });
+  const { products: productsQuery } = useProducts();
+  const productsList = productsQuery.data || [];
   const [saving, setSaving] = useState(false);
   const [addingPlatform, setAddingPlatform] = useState(false);
   const [newPlatform, setNewPlatform] = useState('');
@@ -73,6 +76,7 @@ export default function MarketingAutomacaoDetail() {
         fluxo: Array.isArray(item.fluxo) ? item.fluxo : [],
         condicoes: Array.isArray(item.condicoes) ? item.condicoes : [],
         links: Array.isArray(item.links) ? item.links : [],
+        product_name: (item as any).product_name || '',
       });
     }
   }, [item]);
@@ -86,6 +90,7 @@ export default function MarketingAutomacaoDetail() {
       gatilho: form.gatilho || null,
       plataformas_envolvidas: form.plataformas_envolvidas,
       fluxo: form.fluxo, condicoes: form.condicoes, links: form.links,
+      product_name: form.product_name || null,
     } as any).eq('id', id!);
     setSaving(false);
     if (error) toast.error('Erro ao guardar');
