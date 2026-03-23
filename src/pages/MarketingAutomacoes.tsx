@@ -3,6 +3,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useProducts } from '@/hooks/useProducts';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -44,7 +45,9 @@ export default function MarketingAutomacoes() {
   const [showNew, setShowNew] = useState(false);
   const [addingPlatform, setAddingPlatform] = useState(false);
   const [newPlatform, setNewPlatform] = useState('');
-  const [form, setForm] = useState({ name: '', status: 'em_desenho', oferta_final: '', objetivo: '', plataforma: '', notas: '' });
+  const [form, setForm] = useState({ name: '', status: 'em_desenho', oferta_final: '', objetivo: '', plataforma: '', notas: '', product_name: '' });
+  const { products: productsQuery } = useProducts();
+  const productsList = productsQuery.data || [];
 
   const { data: automations = [] } = useQuery({
     queryKey: ['marketing-automations'],
@@ -67,11 +70,12 @@ export default function MarketingAutomacoes() {
       objetivo: form.objetivo || null,
       plataforma: form.plataforma || null,
       notas: form.notas || null,
+      product_name: form.product_name || null,
       created_by: user?.id,
     } as any);
     qc.invalidateQueries({ queryKey: ['marketing-automations'] });
     setShowNew(false);
-    setForm({ name: '', status: 'em_desenho', oferta_final: '', objetivo: '', plataforma: '', notas: '' });
+    setForm({ name: '', status: 'em_desenho', oferta_final: '', objetivo: '', plataforma: '', notas: '', product_name: '' });
     toast.success('Automação criada');
   };
 
@@ -177,6 +181,16 @@ export default function MarketingAutomacoes() {
             </div>
             <div><Label>Oferta Final</Label><Input value={form.oferta_final} onChange={e => setForm(f => ({ ...f, oferta_final: e.target.value }))} placeholder="Produto/Plataforma/Outro Final" /></div>
             <div><Label>Objetivo</Label><Input value={form.objetivo} onChange={e => setForm(f => ({ ...f, objetivo: e.target.value }))} placeholder="Objetivo da automação" /></div>
+            <div>
+              <Label>Produto</Label>
+              <Select value={form.product_name} onValueChange={v => setForm(f => ({ ...f, product_name: v === '___none___' ? '' : v }))}>
+                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="___none___">Nenhum</SelectItem>
+                  {productsList.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             <Button className="w-full" disabled={!form.name.trim()} onClick={create}>Criar Automação</Button>
           </div>
         </DialogContent>
