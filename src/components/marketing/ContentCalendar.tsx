@@ -1,4 +1,7 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -106,6 +109,21 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
 
 export function ContentCalendar({ items, channels, contentChannelLinks, calendarOnly, profiles, attachments }: Props) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const handleDrop = useCallback(async (newStatus: string) => {
+    if (!draggingId) return;
+    const item = items.find(i => i.id === draggingId);
+    if (!item || item.status === newStatus) { setDraggingId(null); setDragOverStatus(null); return; }
+    await supabase.from('content_items').update({ status: newStatus } as any).eq('id', draggingId);
+    queryClient.invalidateQueries({ queryKey: ['content-items'] });
+    setDraggingId(null);
+    setDragOverStatus(null);
+    const label = STATUS_OPTIONS.find(s => s.value === newStatus)?.label;
+    toast.success(`Movido para "${label}"`);
+  }, [draggingId, items, queryClient]);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -181,31 +199,47 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
                   <Badge className={cn("text-[10px]", status.color)}>{status.label}</Badge>
                   <span className="text-xs text-muted-foreground">({statusItems.length})</span>
                 </div>
-                <div className="flex-1 rounded-lg border bg-muted/20 p-2 space-y-2 min-h-[120px]">
+                <div
+                  className={cn(
+                    "flex-1 rounded-lg border bg-muted/20 p-2 space-y-2 min-h-[120px] transition-colors",
+                    dragOverStatus === status.value && "border-primary bg-primary/5"
+                  )}
+                  onDragOver={e => { e.preventDefault(); setDragOverStatus(status.value); }}
+                  onDragLeave={() => setDragOverStatus(null)}
+                  onDrop={e => { e.preventDefault(); handleDrop(status.value); }}
+                >
                   {statusItems.length === 0 ? (
                     <p className="text-[11px] text-muted-foreground italic text-center pt-6">Vazio</p>
                   ) : (
                     statusItems.map(item => {
                       const itemChannels = getItemChannels(item.id, channels, contentChannelLinks);
                       return (
-                        <Link key={item.id} to={`/hub/marketing/conteudos/${item.id}`} className="block">
-                          <div className="rounded-md border bg-card p-2.5 hover:shadow-sm hq-transition cursor-pointer space-y-1.5">
-                            {item.cover_url && (
-                              <img src={item.cover_url} alt="" className="w-full aspect-video rounded object-cover" />
-                            )}
-                            <p className="text-xs font-medium text-foreground leading-tight truncate">{item.title}</p>
-                            <div className="flex items-center gap-1 flex-wrap">
-                              {itemChannels.slice(0, 2).map(ch => (
-                                <Badge key={ch.id} variant="outline" className="text-[9px] px-1 py-0 h-3.5">{ch.name}</Badge>
-                              ))}
+                        <div
+                          key={item.id}
+                          draggable
+                          onDragStart={() => setDraggingId(item.id)}
+                          onDragEnd={() => { setDraggingId(null); setDragOverStatus(null); }}
+                          className={cn("cursor-grab active:cursor-grabbing", draggingId === item.id && "opacity-40")}
+                        >
+                          <Link to={`/hub/marketing/conteudos/${item.id}`} className="block" draggable={false}>
+                            <div className="rounded-md border bg-card p-2.5 hover:shadow-sm hq-transition space-y-1.5">
+                              {item.cover_url && (
+                                <img src={item.cover_url} alt="" className="w-full aspect-video rounded object-cover pointer-events-none" draggable={false} />
+                              )}
+                              <p className="text-xs font-medium text-foreground leading-tight truncate">{item.title}</p>
+                              <div className="flex items-center gap-1 flex-wrap">
+                                {itemChannels.slice(0, 2).map(ch => (
+                                  <Badge key={ch.id} variant="outline" className="text-[9px] px-1 py-0 h-3.5">{ch.name}</Badge>
+                                ))}
+                              </div>
+                              {item.scheduled_at && (
+                                <p className="text-[10px] text-muted-foreground">
+                                  {format(new Date(item.scheduled_at), 'dd MMM HH:mm', { locale: pt })}
+                                </p>
+                              )}
                             </div>
-                            {item.scheduled_at && (
-                              <p className="text-[10px] text-muted-foreground">
-                                {format(new Date(item.scheduled_at), 'dd MMM HH:mm', { locale: pt })}
-                              </p>
-                            )}
-                          </div>
-                        </Link>
+                          </Link>
+                        </div>
                       );
                     })
                   )}
