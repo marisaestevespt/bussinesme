@@ -59,6 +59,8 @@ Deno.serve(async (req) => {
       ? hslToHex(bizSettings.accent_color)
       : "#6366f1";
     const logoUrl = bizSettings?.logo_url || null;
+    const fontBody = bizSettings?.font_body || "Arial";
+    const fontDisplay = bizSettings?.font_display || fontBody;
 
     const todayStr = formatDate(now);
     const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay(); // 1=Mon, 7=Sun
