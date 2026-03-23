@@ -318,6 +318,47 @@ export function ProductCustomerSuccess({ productId, isOwner }: Props) {
               readOnly={!isOwner}
             />
           </div>
+
+          {/* NPS Form URL */}
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Link do formulário de recolha de NPS</Label>
+            <div className="flex gap-2">
+              <Input
+                placeholder="https://forms.google.com/... ou outro link"
+                value={effectiveConfig?.nps_form_url || ''}
+                onChange={e => setConfigForm((p: any) => ({ ...(p || {}), nps_form_url: e.target.value }))}
+                className="h-9"
+                readOnly={!isOwner}
+              />
+              {effectiveConfig?.nps_form_url && (
+                <Button variant="outline" size="sm" className="shrink-0" asChild>
+                  <a href={effectiveConfig.nps_form_url} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* NPS SOP Link */}
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">SOP de Recolha de NPS</Label>
+            {npsSop ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => navigate(`/hub/processos/${npsSop.id}`)}
+              >
+                <FileText className="h-4 w-4" />
+                {npsSop.sop_id} — {npsSop.title}
+              </Button>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Nenhum SOP de NPS encontrado. Crie um processo com "NPS" no título e associe-o a este produto.
+              </p>
+            )}
+          </div>
         </CardContent>
       </Card>
 
