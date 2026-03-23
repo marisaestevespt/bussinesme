@@ -298,6 +298,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
     } else {
       setForm(empty());
       setShowProject(false);
+    }
   }, [open, initialData]);
 
   const handleSave = () => {
