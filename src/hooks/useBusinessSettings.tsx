@@ -13,17 +13,44 @@ interface BusinessSettingsContextType {
 
 const BusinessSettingsContext = createContext<BusinessSettingsContextType | undefined>(undefined);
 
+/** Parse "H S% L%" HSL string to relative luminance (0–1) */
+function hslLuminance(hsl: string): number {
+  const parts = hsl.split(' ').map(p => parseFloat(p));
+  if (parts.length < 3) return 0;
+  const h = parts[0], s = parts[1] / 100, l = parts[2] / 100;
+  // Convert HSL → sRGB
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    return l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+  };
+  // Linearize and compute luminance
+  const lin = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  return 0.2126 * lin(f(0)) + 0.7152 * lin(f(8)) + 0.0722 * lin(f(4));
+}
+
+/** Returns a contrasting foreground HSL for the given background HSL */
+function contrastForeground(bgHsl: string): string {
+  return hslLuminance(bgHsl) > 0.4 ? '222 47% 11%' : '210 40% 98%';
+}
+
 function applyTheme(settings: BusinessSettings) {
   const root = document.documentElement;
   root.style.setProperty('--primary', settings.primary_color);
+  root.style.setProperty('--primary-foreground', contrastForeground(settings.primary_color));
   root.style.setProperty('--brand-primary', settings.primary_color);
   root.style.setProperty('--secondary', settings.secondary_color);
+  root.style.setProperty('--secondary-foreground', contrastForeground(settings.secondary_color));
   root.style.setProperty('--brand-secondary', settings.secondary_color);
   root.style.setProperty('--background', settings.background_color);
   root.style.setProperty('--foreground', settings.text_color);
   root.style.setProperty('--card-foreground', settings.text_color);
   root.style.setProperty('--popover-foreground', settings.text_color);
-  root.style.setProperty('--accent', (settings as any).accent_color || settings.secondary_color);
+  const accentColor = (settings as any).accent_color || settings.secondary_color;
+  root.style.setProperty('--accent', accentColor);
+  root.style.setProperty('--accent-foreground', contrastForeground(accentColor));
+  root.style.setProperty('--sidebar-primary', settings.primary_color);
+  root.style.setProperty('--sidebar-primary-foreground', contrastForeground(settings.primary_color));
   root.style.setProperty('--font-display', `'${settings.font_display}'`);
   root.style.setProperty('--font-body', `'${settings.font_body}'`);
 }
