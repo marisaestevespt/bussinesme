@@ -95,12 +95,15 @@ Deno.serve(async (req) => {
         }
 
         // Build email
+        const headerTitle = digest.is_owner_digest ? "Resumo do dia" : `O teu resumo ${getFrequencyLabel(digest.frequency)}`;
         const subject = digest.is_owner_digest
           ? `Resumo do dia — ${businessName} — ${formatDatePT(now)}`
           : `O teu resumo — ${getFrequencyLabel(digest.frequency)} — ${formatDatePT(now)}`;
 
         const html = buildEmailHtml({
           subject,
+          headerTitle,
+          dateLine: formatDatePT(now),
           businessName,
           primaryColor,
           secondaryColor,
@@ -533,6 +536,8 @@ async function buildMemberDigest(
 // ─── Email HTML Builder ───────────────────────────────────
 function buildEmailHtml(opts: {
   subject: string;
+  headerTitle: string;
+  dateLine: string;
   businessName: string;
   primaryColor: string;
   secondaryColor: string;
@@ -541,8 +546,8 @@ function buildEmailHtml(opts: {
   contentHtml: string;
   isOwner: boolean;
 }) {
-  // Replace placeholder in content with actual secondary color
   const content = opts.contentHtml.replace(/%%SECONDARY%%/g, opts.secondaryColor).replace(/%%ACCENT%%/g, opts.accentColor).replace(/%%PRIMARY%%/g, opts.primaryColor);
+  const textColor = getContrastColor(opts.primaryColor);
   return `<!DOCTYPE html>
 <html lang="pt">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -550,9 +555,11 @@ function buildEmailHtml(opts: {
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 16px">
 <tr><td align="center">
 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
-  <tr><td style="background:${opts.primaryColor};padding:24px 32px;text-align:center">
-    ${opts.logoUrl ? `<img src="${opts.logoUrl}" alt="" style="height:40px;margin-bottom:12px;display:block;margin:0 auto 12px">` : ""}
-    <h1 style="color:#ffffff;font-size:20px;margin:0;font-weight:600">${esc(opts.subject)}</h1>
+  <tr><td style="background:${opts.primaryColor};padding:32px 32px 28px;text-align:center">
+    ${opts.logoUrl ? `<img src="${opts.logoUrl}" alt="" style="height:40px;margin:0 auto 16px;display:block">` : ""}
+    <h1 style="color:${textColor};font-size:22px;margin:0 0 6px;font-weight:700;letter-spacing:1px;text-transform:uppercase">${esc(opts.headerTitle)}</h1>
+    <p style="color:${textColor};font-size:15px;margin:0 0 4px;font-weight:600;opacity:0.9">${esc(opts.businessName)}</p>
+    <p style="color:${textColor};font-size:13px;margin:0;font-weight:400;opacity:0.75">${esc(opts.dateLine)}</p>
   </td></tr>
   <tr><td style="padding:32px">
     ${content}
@@ -614,6 +621,18 @@ function getFrequencyLabel(f: string): string {
   if (f === "diario") return "diário";
   if (f === "semanal") return "semanal";
   return "mensal";
+}
+function getContrastColor(hex: string): string {
+  try {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    const toLinear = (c: number) => c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    const luminance = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+    return luminance < 0.4 ? "#ffffff" : "#1a1a1a";
+  } catch {
+    return "#ffffff";
+  }
 }
 
 function hslToHex(hsl: string): string {
