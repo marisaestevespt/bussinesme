@@ -65,11 +65,12 @@ export default function TrafegoCriativoDetail() {
 
   useEffect(() => {
     if (item) {
+      const parsed = parseObjetivoFinal(item.oferta_goal);
       setForm({
         name: item.name || '', status: item.status || 'em_desenho',
         start_date: item.start_date ? new Date(item.start_date) : null,
         formato: item.formato || '', objetivo: item.objetivo || '',
-        oferta_goal: item.oferta_goal || '', link: item.link || '',
+        oferta_type: parsed.type, oferta_value: parsed.value, link: item.link || '',
         titulo_principal: item.titulo_principal || '', headline: item.headline || '',
         legenda: item.legenda || '',
       });
