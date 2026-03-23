@@ -790,7 +790,7 @@ export default function ProdutoDetailPage() {
                   <CardHeader className="flex-row items-center justify-between">
                     <CardTitle className="text-base">Funis</CardTitle>
                     {isOwner && (
-                      <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_funnels', data: { product_id: id, name: '' } })}>
+                      <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'marketing_funnels', data: { name: `Funil — ${form.name}`, product_name: form.name } })}>
                         <Plus className="h-3 w-3 mr-1" /> Novo Funil
                       </Button>
                     )}
@@ -812,24 +812,17 @@ export default function ProdutoDetailPage() {
                           <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-4">Sem funis</TableCell></TableRow>
                         )}
                         {funnels.map((f: any) => (
-                          <TableRow key={f.id}>
+                          <TableRow key={f.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/marketing/funis/${f.id}`)}>
                             <TableCell>
-                              <Select defaultValue={f.status} onValueChange={v => updateRow.mutate({ table: 'product_funnels', id: f.id, data: { status: v } })} disabled={!isOwner}>
-                                <SelectTrigger className="h-7 w-[120px] text-xs"><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                  {['em_ideia', 'ativo', 'pausado', 'arquivo'].map(s => <SelectItem key={s} value={s}>{s.replace('_', ' ')}</SelectItem>)}
-                                </SelectContent>
-                              </Select>
+                              <Badge variant="outline" className="text-xs">{f.status?.replace('_', ' ') || '—'}</Badge>
                             </TableCell>
-                            <TableCell>
-                              <Input defaultValue={f.name} onBlur={e => updateRow.mutate({ table: 'product_funnels', id: f.id, data: { name: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} />
-                            </TableCell>
-                            <TableCell className="text-sm">{f.funnel_type || '—'}</TableCell>
-                            <TableCell className="text-sm">{f.objective || '—'}</TableCell>
+                            <TableCell className="font-medium">{f.name}</TableCell>
+                            <TableCell className="text-sm">{f.tipo_funil || '—'}</TableCell>
+                            <TableCell className="text-sm">{f.objetivo || '—'}</TableCell>
                             <TableCell className="text-xs text-muted-foreground">{format(new Date(f.updated_at), 'dd/MM/yyyy')}</TableCell>
                             {isOwner && (
                               <TableCell>
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteRow.mutate({ table: 'product_funnels', id: f.id })}><Trash2 className="h-3 w-3" /></Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={e => { e.stopPropagation(); deleteRow.mutate({ table: 'marketing_funnels', id: f.id }); }}><Trash2 className="h-3 w-3" /></Button>
                               </TableCell>
                             )}
                           </TableRow>
