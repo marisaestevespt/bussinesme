@@ -101,10 +101,6 @@ export function CommercialCRM() {
 
   return (
     <div className="space-y-6">
-      {/* Top controls */}
-      <div className="flex items-center justify-end">
-        <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Lead</Button>
-      </div>
 
       {/* Summary + Alerts */}
       <CrmSummary
@@ -116,8 +112,9 @@ export function CommercialCRM() {
         onOpenLead={openLead}
       />
 
-      {/* View tabs */}
-      <div className="flex items-center gap-1 rounded-lg border p-1 w-fit">
+      {/* View tabs + Nova Lead */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-1 rounded-lg border p-1">
         <Button
           variant={view === 'pipeline' ? 'default' : 'ghost'}
           size="sm"
@@ -132,6 +129,8 @@ export function CommercialCRM() {
         >
           <List className="h-4 w-4 mr-1" /> Lista
         </Button>
+        </div>
+        <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Lead</Button>
       </div>
 
       {/* Views */}
