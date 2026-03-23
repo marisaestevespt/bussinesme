@@ -364,6 +364,33 @@ async function buildOwnerDigest(
     }
   }
 
+  // Tempo trabalhado hoje (total equipa)
+  if (sections.tempo_trabalhado) {
+    const { data: entries } = await supabase
+      .from("time_entries")
+      .select("duration, member_id, team_members(full_name)")
+      .gte("entry_date", todayStr)
+      .lte("entry_date", todayStr);
+
+    if (entries?.length) {
+      hasContent = true;
+      const totalMin = entries.reduce((s: number, e: any) => s + (e.duration || 0), 0);
+      html += sectionHeader("⏱️ Tempo trabalhado hoje");
+      html += `<p>Total equipa: <strong>${(totalMin / 60).toFixed(1)}h</strong></p>`;
+      // Group by member
+      const byMember: Record<string, number> = {};
+      for (const e of entries) {
+        const name = e.team_members?.full_name || "—";
+        byMember[name] = (byMember[name] || 0) + (e.duration || 0);
+      }
+      html += "<ul>";
+      for (const [name, mins] of Object.entries(byMember)) {
+        html += `<li>${esc(name)}: ${((mins as number) / 60).toFixed(1)}h</li>`;
+      }
+      html += "</ul>";
+    }
+  }
+
   // Resumo por membro
   if (sections.resumo_membros) {
     const { data: members } = await supabase

@@ -18,6 +18,7 @@ const OWNER_SECTION_LABELS: Record<string, string> = {
   rotinas_dia: 'Rotinas do dia — feitas vs por fazer',
   projetos_fechados: 'Projetos fechados hoje',
   projetos_novos: 'Projetos criados hoje',
+  tempo_trabalhado: 'Tempo trabalhado hoje (equipa)',
   resumo_membros: 'Resumo de cada membro',
 };
 

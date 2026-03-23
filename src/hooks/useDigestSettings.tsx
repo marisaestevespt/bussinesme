@@ -25,6 +25,7 @@ const OWNER_DEFAULT_SECTIONS: Record<string, boolean> = {
   rotinas_dia: true,
   projetos_fechados: true,
   projetos_novos: true,
+  tempo_trabalhado: true,
   resumo_membros: true,
 };
 
