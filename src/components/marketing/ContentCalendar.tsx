@@ -175,18 +175,21 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
         <div className="space-y-6">
           {STATUS_OPTIONS.map(status => {
             const statusItems = items.filter(i => i.status === status.value);
-            if (statusItems.length === 0) return null;
             return (
               <div key={status.value}>
                 <div className="flex items-center gap-2 mb-2">
                   <Badge className={cn(status.color)}>{status.label}</Badge>
                   <span className="text-xs text-muted-foreground">({statusItems.length})</span>
                 </div>
-                <div className="space-y-0.5">
-                  {statusItems.map(item => (
-                    <ContentRow key={item.id} item={item} channels={channels} links={contentChannelLinks} />
-                  ))}
-                </div>
+                {statusItems.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic pl-1 pb-2">Nenhum conteúdo</p>
+                ) : (
+                  <div className="space-y-0.5">
+                    {statusItems.map(item => (
+                      <ContentRow key={item.id} item={item} channels={channels} links={contentChannelLinks} />
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })}
