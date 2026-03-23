@@ -32,6 +32,7 @@ interface CrmSummaryProps {
 }
 
 export function CrmSummary({ activeCount, toContactToday, pipelineValue, winsThisMonth, allLeads, onOpenLead }: CrmSummaryProps) {
+  const navigate = useNavigate();
   const chartData = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const lead of allLeads) {
