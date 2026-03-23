@@ -179,6 +179,24 @@ export default function CrmPipelines() {
     onSuccess: () => invalidateAll(),
   });
 
+  // Reorder stage
+  const reorderStage = useMutation({
+    mutationFn: async ({ stageId, direction, pipelineId }: { stageId: string; direction: 'left' | 'right'; pipelineId: string }) => {
+      const pipelineStages = allStages.filter(s => s.pipeline_id === pipelineId).sort((a, b) => a.sort_order - b.sort_order);
+      const idx = pipelineStages.findIndex(s => s.id === stageId);
+      if (idx < 0) return;
+      const swapIdx = direction === 'left' ? idx - 1 : idx + 1;
+      if (swapIdx < 0 || swapIdx >= pipelineStages.length) return;
+      const current = pipelineStages[idx];
+      const swap = pipelineStages[swapIdx];
+      await Promise.all([
+        supabase.from('crm_pipeline_stages').update({ sort_order: swap.sort_order }).eq('id', current.id),
+        supabase.from('crm_pipeline_stages').update({ sort_order: current.sort_order }).eq('id', swap.id),
+      ]);
+    },
+    onSuccess: () => invalidateAll(),
+  });
+
   // Move lead
   const moveLeadToStage = useMutation({
     mutationFn: async ({ pipelineId, leadId, stageId }: { pipelineId: string; leadId: string; stageId: string }) => {
@@ -300,6 +318,9 @@ export default function CrmPipelines() {
               const name = window.prompt('Novo nome:', current);
               if (name?.trim() && name.trim() !== current) renameStage.mutate({ id, name: name.trim() });
             }}
+            onReorderStage={(stageId, direction) =>
+              reorderStage.mutate({ stageId, direction, pipelineId: activePipeline.id })
+            }
           />
 
           <PipelineFormDialog
