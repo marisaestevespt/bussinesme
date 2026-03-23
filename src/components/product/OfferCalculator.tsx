@@ -55,20 +55,23 @@ export function OfferCalculator({ vatRate }: Props) {
   const floorSS = totalCosts * 0.7 * (ssPercent / 100);
   const floorPrice = (totalCosts + floorSS) * (1 + vatPercent / 100);
 
-  // Test price analysis — reverse the chain
+  // Test price analysis — reverse the build-up chain
   const testVal = parseFloat(testPrice) || 0;
   const testAfterVat = testVal / (1 + vatPercent / 100);       // remove IVA
-  // SS é calculada sobre 70% da base s/ IVA
-  const testSS = testAfterVat * 0.7 * (ssPercent / 100);
-  const testBeforeTax = testAfterVat - testSS;                 // base após SS
-  const testProfit = testBeforeTax - totalCosts;
-  const testTax = testProfit > 0 ? testProfit * (taxPercent / 100) : 0;
-  const testNetProfit = testProfit - testTax;
-  const testMargin = testAfterVat > 0 ? ((testAfterVat - totalCosts - testSS) / testAfterVat) * 100 : 0;
+  // Reverse: recommended = (base + SS) / (1 - IRS%)
+  // base + SS = recommended * (1 - IRS%)  and  SS = base * 0.7 * SS%
+  // base * (1 + 0.7 * SS%) = recommended * (1 - IRS%)
+  const ssFactor = 1 + 0.7 * (ssPercent / 100);
+  const testBase = taxFactor > 0 ? (testAfterVat * taxFactor) / ssFactor : testAfterVat / ssFactor;
+  const testSS = testBase * 0.7 * (ssPercent / 100);
+  const testTaxableProfit = testBase - totalCosts;
+  const testTax = testTaxableProfit > 0 ? testTaxableProfit * (taxPercent / 100) : 0;
+  const testNetProfit = testBase - totalCosts - testSS - testTax;
+  const testMargin = testBase > 0 ? ((testBase - totalCosts) / testBase) * 100 : 0;
 
   const getVerdict = () => {
     if (testVal <= 0) return null;
-    if ((testAfterVat - testSS) < totalCosts) return { icon: TrendingDown, color: 'text-red-600', bg: 'bg-red-50 border-red-200', label: 'Abaixo do custo', desc: 'Estás a perder dinheiro com este preço.' };
+    if (testBase < totalCosts) return { icon: TrendingDown, color: 'text-red-600', bg: 'bg-red-50 border-red-200', label: 'Abaixo do custo', desc: 'Estás a perder dinheiro com este preço.' };
     if (testMargin < marginPercent * 0.5) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Margem muito baixa', desc: `Margem de ${testMargin.toFixed(1)}% — abaixo do objetivo de ${marginPercent}%.` };
     if (testMargin < marginPercent) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Quase lá', desc: `Margem de ${testMargin.toFixed(1)}% — perto do objetivo de ${marginPercent}%.` };
     return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50 border-green-200', label: 'Bom preço!', desc: `Margem de ${testMargin.toFixed(1)}% — acima do objetivo de ${marginPercent}%.` };
@@ -190,7 +193,7 @@ export function OfferCalculator({ vatRate }: Props) {
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Lucro bruto</p>
-                <p className={`text-sm font-semibold ${testProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(testProfit)}</p>
+                <p className={`text-sm font-semibold ${testTaxableProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(testTaxableProfit)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Seg. Social ({ssPercent}% s/ 70%)</p>
