@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Phone, TrendingUp, Trophy, AlertTriangle, Clock } from 'lucide-react';
+import { Users, Phone, TrendingUp, Trophy, AlertTriangle, Clock, GitBranchPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { getFollowUpState, statusLabel, CRM_STATUSES } from '@/hooks/useCrmData';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
@@ -31,6 +32,7 @@ interface CrmSummaryProps {
 }
 
 export function CrmSummary({ activeCount, toContactToday, pipelineValue, winsThisMonth, allLeads, onOpenLead }: CrmSummaryProps) {
+  const navigate = useNavigate();
   const chartData = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const lead of allLeads) {
@@ -44,7 +46,7 @@ export function CrmSummary({ activeCount, toContactToday, pipelineValue, winsThi
   return (
     <div className="space-y-4">
       {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <Card><CardContent className="p-4 flex items-center gap-3">
           <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center"><Users className="h-4.5 w-4.5 text-primary" /></div>
           <div><p className="text-xs text-muted-foreground">Leads Ativos</p><p className="text-xl font-bold">{activeCount}</p></div>
@@ -64,6 +66,18 @@ export function CrmSummary({ activeCount, toContactToday, pipelineValue, winsThi
           <div className="h-9 w-9 rounded-lg bg-green-500/10 flex items-center justify-center"><Trophy className="h-4.5 w-4.5 text-green-600" /></div>
           <div><p className="text-xs text-muted-foreground">Ganhos este mês</p><p className="text-xl font-bold">{winsThisMonth}</p></div>
         </CardContent></Card>
+
+        <Card
+          className="cursor-pointer hover:border-primary/50 transition-colors"
+          onClick={() => navigate('/hub/comercial/pipelines')}
+        >
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-accent/20 flex items-center justify-center">
+              <GitBranchPlus className="h-4.5 w-4.5 text-accent-foreground" />
+            </div>
+            <div><p className="text-sm font-semibold">Pipelines</p><p className="text-xs text-muted-foreground">Ver todos</p></div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Leads by status chart */}
