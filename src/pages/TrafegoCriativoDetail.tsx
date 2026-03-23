@@ -83,7 +83,8 @@ export default function TrafegoCriativoDetail() {
       name: form.name, status: form.status,
       start_date: form.start_date ? format(form.start_date, 'yyyy-MM-dd') : null,
       formato: form.formato || null, objetivo: form.objetivo || null,
-      oferta_goal: form.oferta_goal || null, link: form.link || null,
+      oferta_goal: serializeObjetivoFinal(form.oferta_type, form.oferta_value),
+      link: form.link || null,
       titulo_principal: form.titulo_principal || null, headline: form.headline || null,
       legenda: form.legenda || null,
     } as any).eq('id', id!);
