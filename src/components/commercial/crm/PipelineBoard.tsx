@@ -193,14 +193,24 @@ export function PipelineBoard({
                         </Button>
                       </div>
                     ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full text-xs text-muted-foreground"
-                        onClick={() => setAddingToStage(stage.id)}
-                      >
-                        <UserPlus className="h-3 w-3 mr-1" /> Adicionar Lead
-                      </Button>
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full text-xs text-muted-foreground"
+                          onClick={() => setAddingToStage(stage.id)}
+                        >
+                          <UserPlus className="h-3 w-3 mr-1" /> Adicionar Lead
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full text-xs text-muted-foreground"
+                          onClick={() => onCreateLead(stage.id)}
+                        >
+                          <Plus className="h-3 w-3 mr-1" /> Nova Lead
+                        </Button>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
