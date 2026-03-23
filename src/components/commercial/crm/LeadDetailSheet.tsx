@@ -287,6 +287,14 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
               </>
             )}
 
+            {/* Pipeline History */}
+            {lead?.id && (
+              <>
+                <Separator />
+                <PipelineHistory leadId={lead.id} />
+              </>
+            )}
+
             {/* Delete */}
             {lead?.id && onDelete && (
               <>
