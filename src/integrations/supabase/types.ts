@@ -3297,6 +3297,7 @@ export type Database = {
           oferta_final: string | null
           plataforma: string | null
           plataformas_envolvidas: Json | null
+          product_name: string | null
           status: string
           updated_at: string
         }
@@ -3314,6 +3315,7 @@ export type Database = {
           oferta_final?: string | null
           plataforma?: string | null
           plataformas_envolvidas?: Json | null
+          product_name?: string | null
           status?: string
           updated_at?: string
         }
@@ -3331,6 +3333,7 @@ export type Database = {
           oferta_final?: string | null
           plataforma?: string | null
           plataformas_envolvidas?: Json | null
+          product_name?: string | null
           status?: string
           updated_at?: string
         }
@@ -3379,6 +3382,7 @@ export type Database = {
           objetivo: string | null
           oferta_final: string | null
           plataformas: Json | null
+          product_name: string | null
           status: string
           tipo_funil: string | null
           updated_at: string
@@ -3395,6 +3399,7 @@ export type Database = {
           objetivo?: string | null
           oferta_final?: string | null
           plataformas?: Json | null
+          product_name?: string | null
           status?: string
           tipo_funil?: string | null
           updated_at?: string
@@ -3411,6 +3416,7 @@ export type Database = {
           objetivo?: string | null
           oferta_final?: string | null
           plataformas?: Json | null
+          product_name?: string | null
           status?: string
           tipo_funil?: string | null
           updated_at?: string
@@ -6467,6 +6473,7 @@ export type Database = {
           name: string
           objetivo: string | null
           oferta_goal: string | null
+          product_name: string | null
           start_date: string | null
           status: string
           titulo_principal: string | null
@@ -6483,6 +6490,7 @@ export type Database = {
           name: string
           objetivo?: string | null
           oferta_goal?: string | null
+          product_name?: string | null
           start_date?: string | null
           status?: string
           titulo_principal?: string | null
@@ -6499,6 +6507,7 @@ export type Database = {
           name?: string
           objetivo?: string | null
           oferta_goal?: string | null
+          product_name?: string | null
           start_date?: string | null
           status?: string
           titulo_principal?: string | null
