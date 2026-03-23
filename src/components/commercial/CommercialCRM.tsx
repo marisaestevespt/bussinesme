@@ -129,6 +129,8 @@ export function CommercialCRM() {
         >
           <List className="h-4 w-4 mr-1" /> Lista
         </Button>
+        </div>
+        <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Lead</Button>
       </div>
 
       {/* Views */}
