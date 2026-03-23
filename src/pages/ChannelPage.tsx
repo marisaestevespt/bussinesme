@@ -90,6 +90,36 @@ export default function ChannelPage() {
     },
   });
 
+  // Fetch strategy data for this channel
+  const { data: strategyDetail } = useQuery({
+    queryKey: ['strategy-channel-detail', channelId],
+    queryFn: async () => {
+      const { data } = await supabase.from('strategy_channel_details').select('*').eq('channel_id', channelId!).maybeSingle() as any;
+      return data as { id: string; positioning: string | null; periodicity: string | null; notes: string | null } | null;
+    },
+    enabled: !!channelId,
+  });
+
+  const { data: strategyFormats = [] } = useQuery({
+    queryKey: ['strategy-channel-formats', channelId],
+    queryFn: async () => {
+      const { data } = await supabase.from('strategy_channel_formats').select('*').eq('channel_id', channelId!).order('sort_order') as any;
+      return (data || []) as { id: string; formato: string; objetivo: string; exemplos: string }[];
+    },
+    enabled: !!channelId,
+  });
+
+  const { data: strategyFrames = [] } = useQuery({
+    queryKey: ['strategy-channel-frames', channelId],
+    queryFn: async () => {
+      const { data } = await supabase.from('strategy_channel_frames').select('*').eq('channel_id', channelId!).order('sort_order') as any;
+      return (data || []) as { id: string; nome: string; formato: string; frequencia: string; notas: string }[];
+    },
+    enabled: !!channelId,
+  });
+
+  const hasStrategy = !!(strategyDetail?.positioning || strategyDetail?.periodicity || strategyFormats.length > 0 || strategyFrames.length > 0);
+
   // Filter content for this channel
   const channelContentIds = contentChannelLinks
     .filter(l => l.channel_id === channelId)
