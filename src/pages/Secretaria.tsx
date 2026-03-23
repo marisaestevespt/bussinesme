@@ -429,6 +429,7 @@ export default function SecretariaPage() {
               </Card>
             )}
 
+            <MemberDigestSettings />
             <DashboardPersonalWidgets userId={user?.id} teamMember={teamMember.data} />
             <RecommendationWidget memberName={firstName} />
           </>
