@@ -25,7 +25,7 @@ const STATUS_OPTIONS = [
   { value: 'cancelada', label: 'Cancelada', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
 ];
 
-const TYPE_OPTIONS = [
+const DEFAULT_TYPE_OPTIONS = [
   { value: 'lancamento', label: 'Lançamento' },
   { value: 'relancamento', label: 'Relançamento' },
   { value: 'campanha', label: 'Campanha' },
@@ -44,7 +44,7 @@ function statusColor(val: string) {
   return STATUS_OPTIONS.find(o => o.value === val)?.color || '';
 }
 function typeLabel(val: string) {
-  return TYPE_OPTIONS.find(o => o.value === val)?.label || val;
+  return DEFAULT_TYPE_OPTIONS.find(o => o.value === val)?.label || val;
 }
 
 export function CommercialAcoes() {
@@ -245,6 +245,24 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
 }) {
   const [form, setForm] = useState(empty());
 
+  const { data: existingTypes = [] } = useQuery({
+    queryKey: ['commercial', 'sales-action-types'],
+    queryFn: async () => {
+      const { data } = await supabase.from('commercial_sales_actions').select('action_type');
+      const unique = [...new Set((data || []).map(r => r.action_type).filter(Boolean))];
+      return unique;
+    },
+  });
+
+  const typeOptions = useMemo(() => {
+    const defaultValues = DEFAULT_TYPE_OPTIONS.map(o => o.value);
+    const custom = existingTypes.filter(t => !defaultValues.includes(t));
+    return [
+      ...DEFAULT_TYPE_OPTIONS,
+      ...custom.map(t => ({ value: t, label: t })),
+    ];
+  }, [existingTypes]);
+
   function empty() {
     return { id: '', status: 'por_comecar', action_name: '', action_type: 'outro', start_date: undefined as Date | undefined, end_date: undefined as Date | undefined, product: '', objective: '', result: '' };
   }
@@ -304,9 +322,19 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
             </div>
             <div>
               <Label>Tipo</Label>
-              <Select value={form.action_type} onValueChange={v => set({ action_type: v })}>
+              <Select value={form.action_type} onValueChange={v => {
+                if (v === '__custom_type__') {
+                  const custom = window.prompt('Introduz o novo tipo:');
+                  if (custom?.trim()) set({ action_type: custom.trim() });
+                  return;
+                }
+                set({ action_type: v });
+              }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                <SelectContent>
+                  {typeOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                  <SelectItem value="__custom_type__">+ Adicionar outro</SelectItem>
+                </SelectContent>
               </Select>
             </div>
           </div>
