@@ -245,6 +245,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
   onSave: (r: any) => void;
 }) {
   const [form, setForm] = useState(empty());
+  const [showProject, setShowProject] = useState(false);
 
   const { data: existingTypes = [] } = useQuery({
     queryKey: ['commercial', 'sales-action-types'],
@@ -268,7 +269,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
     return { id: '', status: 'por_comecar', action_name: '', action_type: 'outro', start_date: undefined as Date | undefined, end_date: undefined as Date | undefined, product: '', objective: '', result: '', project_id: '' };
   }
 
-  const hasProject = !!form.project_id;
+  const hasProject = showProject || !!form.project_id;
 
   const { data: projectsList = [] } = useQuery({
     queryKey: ['projects-list-names'],
@@ -293,8 +294,10 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
         result: initialData.result || '',
         project_id: initialData.project_id || '',
       });
+      setShowProject(!!initialData.project_id);
     } else {
       setForm(empty());
+      setShowProject(false);
     }
   }, [open, initialData]);
 
@@ -400,8 +403,8 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
               id="has-project"
               checked={hasProject}
               onCheckedChange={(checked) => {
+                setShowProject(!!checked);
                 if (!checked) set({ project_id: '' });
-                else if (projectsList.length > 0) set({ project_id: projectsList[0].id });
               }}
             />
             <Label htmlFor="has-project" className="cursor-pointer">Há projeto associado?</Label>
