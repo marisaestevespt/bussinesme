@@ -207,11 +207,11 @@ export function OfferCalculator({ vatRate }: Props) {
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Custos totais</p>
-                <p className="text-sm font-semibold">{fmt(totalCosts)}</p>
+                <p className="text-sm font-semibold">{fmt(totalCosts)} — {(totalCosts / testVal * 100).toFixed(1)}% do preço</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Lucro real</p>
-                <p className={`text-sm font-semibold ${testRealProfit >= 0 ? 'text-green-600' : 'text-destructive'}`}>{fmt(testRealProfit)}</p>
+                <p className={`text-sm font-semibold ${testRealProfit >= 0 ? 'text-green-600' : 'text-destructive'}`}>{fmt(testRealProfit)} — {(testRealProfit / testVal * 100).toFixed(1)}% do preço</p>
               </div>
             </div>
           )}
