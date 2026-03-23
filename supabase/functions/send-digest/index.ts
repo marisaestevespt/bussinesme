@@ -535,10 +535,14 @@ function buildEmailHtml(opts: {
   subject: string;
   businessName: string;
   primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
   logoUrl: string | null;
   contentHtml: string;
   isOwner: boolean;
 }) {
+  // Replace placeholder in content with actual secondary color
+  const content = opts.contentHtml.replace(/%%SECONDARY%%/g, opts.secondaryColor).replace(/%%ACCENT%%/g, opts.accentColor).replace(/%%PRIMARY%%/g, opts.primaryColor);
   return `<!DOCTYPE html>
 <html lang="pt">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -551,9 +555,9 @@ function buildEmailHtml(opts: {
     <h1 style="color:#ffffff;font-size:20px;margin:0;font-weight:600">${esc(opts.subject)}</h1>
   </td></tr>
   <tr><td style="padding:32px">
-    ${opts.contentHtml}
+    ${content}
   </td></tr>
-  <tr><td style="padding:16px 32px 24px;border-top:1px solid #e4e4e7;text-align:center">
+  <tr><td style="padding:16px 32px 24px;border-top:2px solid ${opts.secondaryColor};text-align:center">
     <p style="font-size:12px;color:#a1a1aa;margin:0">${esc(opts.businessName)}</p>
   </td></tr>
 </table>
