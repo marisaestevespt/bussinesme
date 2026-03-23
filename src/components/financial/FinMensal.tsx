@@ -292,6 +292,9 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
         </CardContent>
       </Card>
 
+      {/* Saúde Financeira */}
+      <FinancialHealthSection sales={monthSales} allSales={sales} currentYear={currentYear} month={m} />
+
       <Dialog open={saleOpen} onOpenChange={setSaleOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Nova Entrada — {MONTHS[m - 1]} {currentYear}</DialogTitle></DialogHeader>
