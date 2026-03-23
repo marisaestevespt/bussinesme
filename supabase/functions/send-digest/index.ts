@@ -95,12 +95,15 @@ Deno.serve(async (req) => {
         }
 
         // Build email
+        const headerTitle = digest.is_owner_digest ? "Resumo do dia" : `O teu resumo ${getFrequencyLabel(digest.frequency)}`;
         const subject = digest.is_owner_digest
           ? `Resumo do dia — ${businessName} — ${formatDatePT(now)}`
           : `O teu resumo — ${getFrequencyLabel(digest.frequency)} — ${formatDatePT(now)}`;
 
         const html = buildEmailHtml({
           subject,
+          headerTitle,
+          dateLine: formatDatePT(now),
           businessName,
           primaryColor,
           secondaryColor,
