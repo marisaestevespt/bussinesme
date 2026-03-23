@@ -624,7 +624,7 @@ function buildEmailHtml(opts: {
   contentHtml: string;
   isOwner: boolean;
 }) {
-  const content = opts.contentHtml.replace(/%%SECONDARY%%/g, opts.secondaryColor).replace(/%%ACCENT%%/g, opts.accentColor).replace(/%%PRIMARY%%/g, opts.primaryColor);
+  const content = opts.contentHtml.replace(/%%SECONDARY%%/g, opts.secondaryColor).replace(/%%ACCENT%%/g, opts.accentColor).replace(/%%PRIMARY%%/g, opts.primaryColor).replace(/%%DISPLAY_FONT%%/g, displayFont);
   const bodyFont = `'${opts.fontBody}', Arial, Helvetica, sans-serif`;
   const displayFont = `'${opts.fontDisplay}', '${opts.fontBody}', Arial, sans-serif`;
   // Build Google Fonts import for web-safe fonts
