@@ -54,6 +54,11 @@ export default function MarketingAutomacoes() {
     },
   });
 
+  const allPlataformas = Array.from(new Set([
+    ...DEFAULT_PLATAFORMAS,
+    ...automations.map(a => a.plataforma).filter(Boolean) as string[],
+  ])).sort();
+
   const create = async () => {
     if (!form.name.trim()) return;
     await supabase.from('marketing_automations').insert({
