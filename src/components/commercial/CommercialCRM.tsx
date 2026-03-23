@@ -8,6 +8,7 @@ import { useCommercialData } from '@/hooks/useCommercialData';
 import { CrmSummary } from './crm/CrmSummary';
 import { CrmPipeline } from './crm/CrmPipeline';
 import { CrmListView } from './crm/CrmListView';
+import { CrmCustomView } from './crm/CrmCustomView';
 import { LeadDetailSheet } from './crm/LeadDetailSheet';
 import { toast } from 'sonner';
 
