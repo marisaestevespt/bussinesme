@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Phone, TrendingUp, Trophy, AlertTriangle, Clock } from 'lucide-react';
+import { Users, Phone, TrendingUp, Trophy, AlertTriangle, Clock, GitBranchPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { getFollowUpState, statusLabel, CRM_STATUSES } from '@/hooks/useCrmData';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
