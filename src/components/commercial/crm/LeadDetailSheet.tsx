@@ -164,14 +164,14 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                   </SelectContent>
                 </Select>
               </div>
-              <div>
+              <div className="col-span-2">
                 <Label>Produto Potencial</Label>
                 <Select value={form.potential_product || ''} onValueChange={v => set({ potential_product: v })}>
                   <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                   <SelectContent>{products.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div>
+              <div className="col-span-2">
                 <Label>Produto Fechado</Label>
                 <Select value={form.closed_product || ''} onValueChange={v => set({ closed_product: v })}>
                   <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
