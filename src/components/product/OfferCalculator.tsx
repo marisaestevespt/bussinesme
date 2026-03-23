@@ -55,16 +55,19 @@ export function OfferCalculator({ vatRate }: Props) {
   const floorSS = totalCosts * 0.7 * (ssPercent / 100);
   const floorPrice = (totalCosts + floorSS) * (1 + vatPercent / 100);
 
-  // Test price analysis — reverse the chain
+  // Test price analysis — reverse the build-up chain
   const testVal = parseFloat(testPrice) || 0;
   const testAfterVat = testVal / (1 + vatPercent / 100);       // remove IVA
-  // SS é calculada sobre 70% da base s/ IVA
-  const testSS = testAfterVat * 0.7 * (ssPercent / 100);
-  const testBeforeTax = testAfterVat - testSS;                 // base após SS
-  const testProfit = testBeforeTax - totalCosts;
-  const testTax = testProfit > 0 ? testProfit * (taxPercent / 100) : 0;
-  const testNetProfit = testProfit - testTax;
-  const testMargin = testAfterVat > 0 ? ((testAfterVat - totalCosts - testSS) / testAfterVat) * 100 : 0;
+  // Reverse: recommended = (base + SS) / (1 - IRS%)
+  // base + SS = recommended * (1 - IRS%)  and  SS = base * 0.7 * SS%
+  // base * (1 + 0.7 * SS%) = recommended * (1 - IRS%)
+  const ssFactor = 1 + 0.7 * (ssPercent / 100);
+  const testBase = taxFactor > 0 ? (testAfterVat * taxFactor) / ssFactor : testAfterVat / ssFactor;
+  const testSS = testBase * 0.7 * (ssPercent / 100);
+  const testTaxableProfit = testBase - totalCosts;
+  const testTax = testTaxableProfit > 0 ? testTaxableProfit * (taxPercent / 100) : 0;
+  const testNetProfit = testBase - totalCosts - testSS - testTax;
+  const testMargin = testBase > 0 ? ((testBase - totalCosts) / testBase) * 100 : 0;
 
   const getVerdict = () => {
     if (testVal <= 0) return null;
