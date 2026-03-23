@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, AlertTriangle, CheckCircle, TrendingDown } from 'lucide-react';
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
@@ -22,9 +21,9 @@ export function OfferCalculator({ vatRate }: Props) {
   const [costs, setCosts] = useState<CostLine[]>([
     { id: '1', label: '', value: '' },
   ]);
-  const [taxRate, setTaxRate] = useState('25'); // IRS / IRC estimate
-  const [ssRate, setSsRate] = useState('21.4'); // Segurança Social
   const [desiredMargin, setDesiredMargin] = useState('80');
+  const [taxRate, setTaxRate] = useState('25');
+  const [ssRate, setSsRate] = useState('21.4');
   const [testPrice, setTestPrice] = useState('');
 
   const addCost = () => setCosts(prev => [...prev, { id: String(Date.now()), label: '', value: '' }]);
@@ -33,47 +32,46 @@ export function OfferCalculator({ vatRate }: Props) {
     setCosts(prev => prev.map(c => c.id === id ? { ...c, [field]: val } : c));
 
   const vatPercent = vatRate === 'isento' ? 0 : parseFloat(vatRate) || 23;
-
   const totalCosts = useMemo(() => costs.reduce((s, c) => s + (parseFloat(c.value) || 0), 0), [costs]);
+  const marginPercent = parseFloat(desiredMargin) || 0;
   const taxPercent = parseFloat(taxRate) || 0;
   const ssPercent = parseFloat(ssRate) || 0;
-  const marginPercent = parseFloat(desiredMargin) || 0;
 
-  // --- Preço recomendado (reverse) ---
-  // net = margin% × base, where:
-  //   SS = base × 70% × ss%, taxable = base - costs - SS, IRS = taxable × tax%
-  //   net = taxable × (1 - tax%) = base × margin%
-  // Solving: base = costs / [(1 - 0.7×ss%) - margin% / (1 - tax%)]
-  // SS_efectiva = 0.70 × (SS% / 100)
-  const ssFactor = 0.7 * (ssPercent / 100);
+  // ── Secção 1 — Preço mínimo e recomendado ──
   const marginFraction = marginPercent / 100;
 
-  // Preço recomendado s/ IVA: X = custos / (1 - SS_efectiva - margem%)
-  const recDenom = 1 - ssFactor - marginFraction;
-  const minPriceBase = recDenom > 0 ? totalCosts / recDenom : totalCosts;
-  const minPriceWithVat = minPriceBase * (1 + vatPercent / 100);
+  // Preço mínimo absoluto = custos
+  const floorBase = totalCosts;
+  const floorWithVat = floorBase * (1 + vatPercent / 100);
 
-  // Absolute floor: base onde net = 0 → base(1 - ssFactor) = costs → base = costs / (1 - ssFactor)
-  const floorBase = (1 - ssFactor) > 0 ? totalCosts / (1 - ssFactor) : totalCosts;
-  const floorPrice = floorBase * (1 + vatPercent / 100);
+  // Preço recomendado s/ IVA = custos / (1 - margem%)
+  const recDenom = 1 - marginFraction;
+  const recBase = recDenom > 0 ? totalCosts / recDenom : totalCosts;
+  const recWithVat = recBase * (1 + vatPercent / 100);
 
-  // --- Test price analysis ---
-  // O preço introduzido é c/ IVA; extraímos a base
-  // O utilizador introduz o preço s/ IVA
+  // Margem bruta % do preço recomendado
+  const recMargin = recBase > 0 ? ((recBase - totalCosts) / recBase) * 100 : 0;
+
+  // ── Secção 3 — Testar um preço (s/ IVA) ──
   const testVal = parseFloat(testPrice) || 0;
   const testWithVat = testVal * (1 + vatPercent / 100);
-  const testSS = testVal * ssFactor;
-  const testTaxableProfit = testVal - totalCosts - testSS;
-  const testTax = testTaxableProfit > 0 ? testTaxableProfit * (taxPercent / 100) : 0;
-  const testNetProfit = testTaxableProfit - testTax;
-  const testMargin = testVal > 0 ? ((testVal - totalCosts - testSS) / testVal) * 100 : 0;
+  const testIRS = testVal * 0.75 * (taxPercent / 100);
+  const testSS = testVal * 0.70 * (ssPercent / 100);
+  const testRealProfit = testVal - testIRS - testSS - totalCosts;
+  const testGrossMargin = testVal > 0 ? ((testVal - totalCosts) / testVal) * 100 : 0;
 
   const getVerdict = () => {
     if (testVal <= 0) return null;
-    if (testVal < totalCosts) return { icon: TrendingDown, color: 'text-red-600', bg: 'bg-red-50 border-red-200', label: 'Abaixo do custo', desc: `Estás a perder dinheiro com este preço — margem de lucro de ${testMargin.toFixed(1)}%.` };
-    if (testVal < minPriceBase * 0.8) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Margem muito baixa', desc: `Margem de lucro de ${testMargin.toFixed(1)}%, abaixo do objectivo de ${marginPercent}%.` };
-    if (testVal < minPriceBase) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Quase lá', desc: `Margem de lucro de ${testMargin.toFixed(1)}%, abaixo do objectivo de ${marginPercent}%.` };
-    return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50 border-green-200', label: 'Bom preço!', desc: `Margem de lucro de ${testMargin.toFixed(1)}%.` };
+    if (testRealProfit < 0) {
+      return { icon: TrendingDown, color: 'text-destructive', bg: 'bg-destructive/5 border-destructive/20', label: 'Atenção', desc: 'Este preço não cobre todos os custos e impostos.' };
+    }
+    if (testVal > recBase) {
+      return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50 border-green-200', label: 'Bom preço!', desc: `Margem bruta de ${testGrossMargin.toFixed(1)}% — lucro real de ${fmt(testRealProfit)}` };
+    }
+    if (Math.abs(testVal - recBase) < 0.01) {
+      return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50 border-green-200', label: 'Preço no limite', desc: `Margem bruta de ${testGrossMargin.toFixed(1)}% — lucro real de ${fmt(testRealProfit)}` };
+    }
+    return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Abaixo do recomendado', desc: `Margem bruta de ${testGrossMargin.toFixed(1)}% — lucro real de ${fmt(testRealProfit)}` };
   };
   const verdict = getVerdict();
 
@@ -81,10 +79,10 @@ export function OfferCalculator({ vatRate }: Props) {
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Calculadora de Oferta</CardTitle>
-        <p className="text-xs text-muted-foreground">Define os custos e impostos para descobrir o preço mínimo e testar diferentes valores.</p>
+        <p className="text-xs text-muted-foreground">Define os custos e margem para descobrir o preço recomendado e testa diferentes valores.</p>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Costs */}
+        {/* ── Secção 1: Custos e Margem ── */}
         <div className="space-y-3">
           <Label className="text-sm font-medium">Custos Associados</Label>
           {costs.map(c => (
@@ -119,46 +117,55 @@ export function OfferCalculator({ vatRate }: Props) {
           </div>
         </div>
 
-        {/* Tax & Margin */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Impostos sobre lucro (IRS/IRC %)</Label>
-            <Input type="number" value={taxRate} onChange={e => setTaxRate(e.target.value)} placeholder="25" />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Segurança Social (%)</Label>
-            <Input type="number" value={ssRate} onChange={e => setSsRate(e.target.value)} placeholder="21.4" />
-            <p className="text-[10px] text-muted-foreground">Taxa aplicada sobre 70% da faturação (rendimento relevante)</p>
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Margem de lucro desejada (%)</Label>
-            <Input type="number" value={desiredMargin} onChange={e => setDesiredMargin(e.target.value)} placeholder="30" />
-          </div>
+        {/* Margem desejada */}
+        <div className="max-w-xs space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Margem de lucro desejada (%)</Label>
+          <Input type="number" value={desiredMargin} onChange={e => setDesiredMargin(e.target.value)} placeholder="80" />
         </div>
 
-        {/* Results */}
+        {/* Resultados automáticos */}
         {totalCosts > 0 && (
-          <div className="grid grid-cols-2 gap-4">
-            <Card className="border-dashed">
-              <CardContent className="pt-4 pb-3 space-y-1">
-                <p className="text-xs text-muted-foreground">Preço mínimo absoluto</p>
-                <p className="text-lg font-bold text-red-600">{fmt(floorPrice)}</p>
-                <p className="text-[10px] text-muted-foreground">Custos + SS + IVA, sem margem nem IRS</p>
-              </CardContent>
-            </Card>
-            <Card className="border-dashed">
-              <CardContent className="pt-4 pb-3 space-y-1">
-                <p className="text-xs text-muted-foreground">Preço recomendado</p>
-                <p className="text-lg font-bold text-green-600">
-                  {fmt(minPriceBase)} <span className="text-sm font-medium text-muted-foreground">({fmt(minPriceWithVat)} c/ IVA)</span>
-                </p>
-                <p className="text-[10px] text-muted-foreground">Com {marginPercent}% margem + {ssPercent}% SS + {taxPercent}% impostos</p>
-              </CardContent>
-            </Card>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="border-dashed">
+                <CardContent className="pt-4 pb-3 space-y-1">
+                  <p className="text-xs text-muted-foreground">Preço mínimo absoluto</p>
+                  <p className="text-lg font-bold text-destructive">
+                    {fmt(floorBase)} <span className="text-sm font-medium text-muted-foreground">({fmt(floorWithVat)} c/ IVA)</span>
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">Custos, sem margem</p>
+                </CardContent>
+              </Card>
+              <Card className="border-dashed">
+                <CardContent className="pt-4 pb-3 space-y-1">
+                  <p className="text-xs text-muted-foreground">Preço recomendado</p>
+                  <p className="text-lg font-bold text-green-600">
+                    {fmt(recBase)} <span className="text-sm font-medium text-muted-foreground">({fmt(recWithVat)} c/ IVA)</span>
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">Margem bruta de {recMargin.toFixed(1)}%</p>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         )}
 
-        {/* Test a price */}
+        {/* ── Secção 2: Impostos ── */}
+        <div className="space-y-3 pt-2 border-t">
+          <Label className="text-sm font-medium">Impostos</Label>
+          <p className="text-xs text-muted-foreground">Configuração para a simulação de preço abaixo. Não afecta o preço recomendado.</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">IRS/IRC — aplicado sobre 75% do rendimento</Label>
+              <Input type="number" value={taxRate} onChange={e => setTaxRate(e.target.value)} placeholder="25" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Segurança Social — aplicado sobre 70% do rendimento</Label>
+              <Input type="number" value={ssRate} onChange={e => setSsRate(e.target.value)} placeholder="21.4" />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Secção 3: Testar um preço ── */}
         <div className="space-y-3 pt-2 border-t">
           <Label className="text-sm font-medium">Testar um preço</Label>
           <div className="flex gap-3 items-end">
@@ -185,22 +192,26 @@ export function OfferCalculator({ vatRate }: Props) {
           )}
 
           {testVal > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Preço c/ IVA</p>
                 <p className="text-sm font-semibold">{fmt(testWithVat)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
-                <p className="text-[10px] text-muted-foreground">Guardar p/ Seg. Social ({ssPercent}% s/ 70%)</p>
+                <p className="text-[10px] text-muted-foreground">IRS/IRC ({taxPercent}% s/ 75%)</p>
+                <p className="text-sm font-semibold">{fmt(testIRS)}</p>
+              </div>
+              <div className="p-2 rounded-md bg-muted/50">
+                <p className="text-[10px] text-muted-foreground">Seg. Social ({ssPercent}% s/ 70%)</p>
                 <p className="text-sm font-semibold">{fmt(testSS)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
-                <p className="text-[10px] text-muted-foreground">IRS/IRC ({taxPercent}%)</p>
-                <p className="text-sm font-semibold">{fmt(testTax)}</p>
+                <p className="text-[10px] text-muted-foreground">Custos totais</p>
+                <p className="text-sm font-semibold">{fmt(totalCosts)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
-                <p className="text-[10px] text-muted-foreground">Lucro Final (s/ custos e impostos)</p>
-                <p className={`text-sm font-semibold ${testNetProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(testNetProfit)}</p>
+                <p className="text-[10px] text-muted-foreground">Lucro real</p>
+                <p className={`text-sm font-semibold ${testRealProfit >= 0 ? 'text-green-600' : 'text-destructive'}`}>{fmt(testRealProfit)}</p>
               </div>
             </div>
           )}
