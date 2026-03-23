@@ -23,6 +23,7 @@ export function OfferCalculator({ vatRate }: Props) {
     { id: '1', label: '', value: '' },
   ]);
   const [taxRate, setTaxRate] = useState('25'); // IRS / IRC estimate
+  const [ssRate, setSsRate] = useState('21.4'); // Segurança Social
   const [desiredMargin, setDesiredMargin] = useState('80');
   const [testPrice, setTestPrice] = useState('');
 
@@ -35,32 +36,39 @@ export function OfferCalculator({ vatRate }: Props) {
 
   const totalCosts = useMemo(() => costs.reduce((s, c) => s + (parseFloat(c.value) || 0), 0), [costs]);
   const taxPercent = parseFloat(taxRate) || 0;
+  const ssPercent = parseFloat(ssRate) || 0;
   const marginPercent = parseFloat(desiredMargin) || 0;
 
   // Preço base s/ IVA = custos / (1 - margem%)
   const marginFactor = 1 - (marginPercent / 100);
   const minPriceBase = marginFactor > 0 ? totalCosts / marginFactor : totalCosts;
-  // Preço após impostos = base / (1 - impostos%)
+  // Encargo SS = base × 70% × SS%
+  const minSS = minPriceBase * 0.7 * (ssPercent / 100);
+  const minPriceAfterSS = minPriceBase + minSS;
+  // Preço após impostos = (base + SS) / (1 - IRS%)
   const taxFactor = 1 - (taxPercent / 100);
-  const minPriceAfterTax = taxFactor > 0 ? minPriceBase / taxFactor : minPriceBase;
+  const minPriceAfterTax = taxFactor > 0 ? minPriceAfterSS / taxFactor : minPriceAfterSS;
   // Preço final c/ IVA
   const minPriceWithVat = minPriceAfterTax * (1 + vatPercent / 100);
 
-  // Absolute floor: just costs + IVA
-  const floorPrice = totalCosts * (1 + vatPercent / 100);
+  // Absolute floor: custos + SS mínima (sobre custos) + IVA, sem margem nem IRS
+  const floorSS = totalCosts * 0.7 * (ssPercent / 100);
+  const floorPrice = (totalCosts + floorSS) * (1 + vatPercent / 100);
 
   // Test price analysis — reverse the chain
   const testVal = parseFloat(testPrice) || 0;
   const testAfterVat = testVal / (1 + vatPercent / 100);       // remove IVA
-  const testBase = testAfterVat * (taxFactor > 0 ? taxFactor : 1); // remove impostos → preço base
-  const testProfit = testBase - totalCosts;
+  // SS é calculada sobre 70% da base s/ IVA
+  const testSS = testAfterVat * 0.7 * (ssPercent / 100);
+  const testBeforeTax = testAfterVat - testSS;                 // base após SS
+  const testProfit = testBeforeTax - totalCosts;
   const testTax = testProfit > 0 ? testProfit * (taxPercent / 100) : 0;
   const testNetProfit = testProfit - testTax;
-  const testMargin = testBase > 0 ? ((testBase - totalCosts) / testBase) * 100 : 0;
+  const testMargin = testAfterVat > 0 ? ((testAfterVat - totalCosts - testSS) / testAfterVat) * 100 : 0;
 
   const getVerdict = () => {
     if (testVal <= 0) return null;
-    if (testBase < totalCosts) return { icon: TrendingDown, color: 'text-red-600', bg: 'bg-red-50 border-red-200', label: 'Abaixo do custo', desc: 'Estás a perder dinheiro com este preço.' };
+    if ((testAfterVat - testSS) < totalCosts) return { icon: TrendingDown, color: 'text-red-600', bg: 'bg-red-50 border-red-200', label: 'Abaixo do custo', desc: 'Estás a perder dinheiro com este preço.' };
     if (testMargin < marginPercent * 0.5) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Margem muito baixa', desc: `Margem de ${testMargin.toFixed(1)}% — abaixo do objetivo de ${marginPercent}%.` };
     if (testMargin < marginPercent) return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', label: 'Quase lá', desc: `Margem de ${testMargin.toFixed(1)}% — perto do objetivo de ${marginPercent}%.` };
     return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50 border-green-200', label: 'Bom preço!', desc: `Margem de ${testMargin.toFixed(1)}% — acima do objetivo de ${marginPercent}%.` };
@@ -110,10 +118,15 @@ export function OfferCalculator({ vatRate }: Props) {
         </div>
 
         {/* Tax & Margin */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Impostos sobre lucro (IRS/IRC %)</Label>
             <Input type="number" value={taxRate} onChange={e => setTaxRate(e.target.value)} placeholder="25" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Segurança Social (%)</Label>
+            <Input type="number" value={ssRate} onChange={e => setSsRate(e.target.value)} placeholder="21.4" />
+            <p className="text-[10px] text-muted-foreground">Taxa aplicada sobre 70% da faturação (rendimento relevante)</p>
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Margem de lucro desejada (%)</Label>
@@ -137,7 +150,7 @@ export function OfferCalculator({ vatRate }: Props) {
                 <p className="text-lg font-bold text-green-600">
                   {fmt(minPriceAfterTax)} <span className="text-sm font-medium text-muted-foreground">({fmt(minPriceWithVat)} c/ IVA)</span>
                 </p>
-                <p className="text-[10px] text-muted-foreground">Com {marginPercent}% margem + {taxPercent}% impostos</p>
+                <p className="text-[10px] text-muted-foreground">Com {marginPercent}% margem + {ssPercent}% SS + {taxPercent}% impostos</p>
               </CardContent>
             </Card>
           </div>
@@ -170,7 +183,7 @@ export function OfferCalculator({ vatRate }: Props) {
           )}
 
           {testVal > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Base s/ IVA</p>
                 <p className="text-sm font-semibold">{fmt(testAfterVat)}</p>
@@ -180,7 +193,11 @@ export function OfferCalculator({ vatRate }: Props) {
                 <p className={`text-sm font-semibold ${testProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(testProfit)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
-                <p className="text-[10px] text-muted-foreground">Impostos ({taxPercent}%)</p>
+                <p className="text-[10px] text-muted-foreground">Seg. Social ({ssPercent}% s/ 70%)</p>
+                <p className="text-sm font-semibold">{fmt(testSS)}</p>
+              </div>
+              <div className="p-2 rounded-md bg-muted/50">
+                <p className="text-[10px] text-muted-foreground">IRS/IRC ({taxPercent}%)</p>
                 <p className="text-sm font-semibold">{fmt(testTax)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
