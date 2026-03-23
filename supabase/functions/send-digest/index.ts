@@ -116,6 +116,8 @@ Deno.serve(async (req) => {
           secondaryColor,
           accentColor,
           logoUrl,
+          fontBody,
+          fontDisplay,
           contentHtml: htmlSections,
           isOwner: digest.is_owner_digest,
         });
