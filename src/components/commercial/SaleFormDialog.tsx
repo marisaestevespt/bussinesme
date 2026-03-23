@@ -100,6 +100,17 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
     enabled: !!productName && open,
   });
 
+  // Fetch custom sources from existing sales
+  const customSources = useQuery({
+    queryKey: ['sales-sources'],
+    queryFn: async () => {
+      const { data } = await supabase.from('commercial_sales').select('source');
+      const unique = [...new Set((data || []).map(d => d.source).filter(Boolean))] as string[];
+      return unique;
+    },
+  });
+  const sourceOptions = [...new Set([...DEFAULT_SOURCE_OPTIONS, ...(customSources.data || [])])];
+
   const getVatMultiplier = () => {
     const rate = productInfo.data?.vat_rate;
     if (!rate || rate === 'isento') return 1;
