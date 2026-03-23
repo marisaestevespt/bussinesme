@@ -130,6 +130,13 @@ export function CommercialCRM() {
         >
           <List className="h-4 w-4 mr-1" /> Lista
         </Button>
+        <Button
+          variant={view === 'custom' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setView('custom')}
+        >
+          <SlidersHorizontal className="h-4 w-4 mr-1" /> Personalizada
+        </Button>
         </div>
         <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Lead</Button>
       </div>
@@ -137,8 +144,10 @@ export function CommercialCRM() {
       {/* Views */}
       {view === 'pipeline' ? (
         <CrmPipeline leads={allLeads} onOpenLead={openLead} onUpdateStatus={handleUpdateStatus} />
-      ) : (
+      ) : view === 'list' ? (
         <CrmListView leads={allLeads} onOpenLead={openLead} />
+      ) : (
+        <CrmCustomView leads={allLeads} onOpenLead={openLead} />
       )}
 
       {/* Lead Detail Sheet */}
