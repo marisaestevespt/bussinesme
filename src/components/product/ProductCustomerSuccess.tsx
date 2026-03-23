@@ -100,6 +100,7 @@ export function ProductCustomerSuccess({ productId, isOwner }: Props) {
         cadence_days: effectiveConfig?.cadence_days || 30,
         collection_message: effectiveConfig?.collection_message || '',
         responsible_id: effectiveConfig?.responsible_id || null,
+        nps_form_url: effectiveConfig?.nps_form_url || null,
       };
       if (effectiveConfig?.id) {
         const { error } = await supabase.from('product_nps_config' as any).update(payload).eq('id', effectiveConfig.id);
