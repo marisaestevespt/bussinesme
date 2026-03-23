@@ -269,7 +269,7 @@ function ActionFormDialog({ open, onOpenChange, products, initialData, onSave }:
     return { id: '', status: 'por_comecar', action_name: '', action_type: 'outro', start_date: undefined as Date | undefined, end_date: undefined as Date | undefined, product: '', objective: '', result: '', project_id: '' };
   }
 
-  const hasProject = !!form.project_id;
+  const hasProject = showProject || !!form.project_id;
 
   const { data: projectsList = [] } = useQuery({
     queryKey: ['projects-list-names'],
