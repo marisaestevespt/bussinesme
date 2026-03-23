@@ -25,6 +25,8 @@ interface Strategy {
   id: string;
   title: string;
   period: string;
+  start_date: string | null;
+  end_date: string | null;
   updated_at: string;
   sections: any[];
 }
@@ -47,10 +49,9 @@ export function StrategyGallery() {
   });
 
   const handleCreate = async () => {
-    const currentYear = String(new Date().getFullYear());
     const { data, error } = await supabase
       .from('commercial_strategy')
-      .insert({ title: 'Nova Estratégia', period: currentYear, sections: [] } as any)
+      .insert({ title: 'Nova Estratégia', period: '', sections: [] } as any)
       .select('id')
       .single();
     if (error) {
@@ -128,9 +129,13 @@ export function StrategyGallery() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="space-y-1 min-w-0 flex-1">
                     <h3 className="font-semibold text-sm truncate">{s.title}</h3>
-                    <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                      {s.period}
-                    </span>
+                    {(s.start_date || s.end_date) && (
+                      <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                        {s.start_date ? format(new Date(s.start_date), "d MMM yy", { locale: pt }) : '—'}
+                        {' → '}
+                        {s.end_date ? format(new Date(s.end_date), "d MMM yy", { locale: pt }) : '—'}
+                      </span>
+                    )}
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1" />
                 </div>
