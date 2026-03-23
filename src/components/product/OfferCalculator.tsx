@@ -193,7 +193,7 @@ export function OfferCalculator({ vatRate }: Props) {
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Lucro bruto</p>
-                <p className={`text-sm font-semibold ${testProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(testProfit)}</p>
+                <p className={`text-sm font-semibold ${testTaxableProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(testTaxableProfit)}</p>
               </div>
               <div className="p-2 rounded-md bg-muted/50">
                 <p className="text-[10px] text-muted-foreground">Seg. Social ({ssPercent}% s/ 70%)</p>
