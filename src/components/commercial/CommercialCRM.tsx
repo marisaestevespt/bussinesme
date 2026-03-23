@@ -1,80 +1,116 @@
 import { useState, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Plus, LayoutGrid, List, SlidersHorizontal } from 'lucide-react';
+import { Plus, LayoutGrid, List, SlidersHorizontal, X, Pencil } from 'lucide-react';
 import { useCrmData } from '@/hooks/useCrmData';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { CrmSummary } from './crm/CrmSummary';
 import { CrmPipeline } from './crm/CrmPipeline';
 import { CrmListView } from './crm/CrmListView';
-import { CrmCustomView } from './crm/CrmCustomView';
+import { CrmCustomView, EMPTY_FILTERS } from './crm/CrmCustomView';
+import type { Filters } from './crm/CrmCustomView';
 import { LeadDetailSheet } from './crm/LeadDetailSheet';
 import { toast } from 'sonner';
 
+type ViewType = 'pipeline' | 'list' | string; // string = saved view id
+
 export function CommercialCRM() {
-  const [view, setView] = useState<'pipeline' | 'list' | 'custom'>('pipeline');
+  const [view, setView] = useState<ViewType>('pipeline');
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<any>(null);
+  const qc = useQueryClient();
 
   const { allLeads, activeLeads, leadsToContact, pipelineValue, winsThisMonth, upsertLead, deleteLead } = useCrmData();
   const { productGoals } = useCommercialData();
   const products = (productGoals.data || []).map(p => p.product_name);
 
+  // Saved custom views
+  const { data: savedViews = [] } = useQuery({
+    queryKey: ['crm-saved-views'],
+    queryFn: async () => {
+      const { data } = await supabase.from('crm_saved_views').select('*').order('sort_order');
+      return data || [];
+    },
+  });
+
+  const createView = useMutation({
+    mutationFn: async (name: string) => {
+      const { data, error } = await supabase.from('crm_saved_views')
+        .insert({ name, filters: EMPTY_FILTERS as any, sort_order: savedViews.length })
+        .select('id')
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ['crm-saved-views'] });
+      setView(data.id);
+    },
+    onError: () => toast.error('Erro ao criar vista'),
+  });
+
+  const updateViewFilters = useMutation({
+    mutationFn: async ({ id, filters }: { id: string; filters: Filters }) => {
+      const { error } = await supabase.from('crm_saved_views')
+        .update({ filters: filters as any, updated_at: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['crm-saved-views'] });
+      toast.success('Filtros guardados');
+    },
+  });
+
+  const renameView = useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const { error } = await supabase.from('crm_saved_views').update({ name }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['crm-saved-views'] }),
+  });
+
+  const deleteView = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('crm_saved_views').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['crm-saved-views'] });
+      setView('pipeline');
+    },
+  });
+
   const { data: profiles = [] } = useQuery({
     queryKey: ['profiles-commercial-team'],
     queryFn: async () => {
-      // Get owners
       const { data: ownerRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'owner');
       const ownerIds = (ownerRoles || []).map(r => r.user_id);
-
-      // Get members with comercial module permission
       const { data: commercialPerms } = await supabase
-        .from('role_permissions')
-        .select('custom_role_id')
-        .eq('module_key', 'comercial')
-        .eq('can_view', true);
+        .from('role_permissions').select('custom_role_id')
+        .eq('module_key', 'comercial').eq('can_view', true);
       const commercialRoleIds = (commercialPerms || []).map(p => p.custom_role_id);
-
       let commercialUserIds: string[] = [];
       if (commercialRoleIds.length > 0) {
-        const { data: members } = await supabase
-          .from('members')
-          .select('user_id')
-          .in('custom_role_id', commercialRoleIds);
+        const { data: members } = await supabase.from('members').select('user_id').in('custom_role_id', commercialRoleIds);
         commercialUserIds = (members || []).map(m => m.user_id);
       }
-
       const allUserIds = [...new Set([...ownerIds, ...commercialUserIds])];
       if (allUserIds.length === 0) return [];
-
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, full_name, user_id')
-        .in('user_id', allUserIds)
-        .order('full_name');
+      const { data } = await supabase.from('profiles').select('id, full_name, user_id').in('user_id', allUserIds).order('full_name');
       return (data || []).map(p => ({ id: p.id, full_name: p.full_name }));
     },
   });
 
-  const openLead = useCallback((lead: any) => {
-    setSelectedLead(lead);
-    setSheetOpen(true);
-  }, []);
-
-  const openNew = () => {
-    setSelectedLead(null);
-    setSheetOpen(true);
-  };
+  const openLead = useCallback((lead: any) => { setSelectedLead(lead); setSheetOpen(true); }, []);
+  const openNew = () => { setSelectedLead(null); setSheetOpen(true); };
 
   const handleSave = (lead: any) => {
     upsertLead.mutate(lead, {
       onSuccess: () => {
-        setSheetOpen(false);
-        setSelectedLead(null);
-        if (lead.status === 'ganho' && !lead.id) {
-          toast.info('Lead marcada como Ganha! Pode converter em cliente no módulo de Clientes.');
-        }
+        setSheetOpen(false); setSelectedLead(null);
+        if (lead.status === 'ganho' && !lead.id) toast.info('Lead marcada como Ganha! Pode converter em cliente no módulo de Clientes.');
       },
     });
   };
@@ -82,28 +118,28 @@ export function CommercialCRM() {
   const handleUpdateStatus = useCallback((leadId: string, newStatus: string) => {
     const lead = allLeads.find(l => l.id === leadId);
     if (!lead) return;
-    if (newStatus === 'perdido') {
-      setSelectedLead({ ...lead, status: newStatus });
-      setSheetOpen(true);
-      return;
-    }
+    if (newStatus === 'perdido') { setSelectedLead({ ...lead, status: newStatus }); setSheetOpen(true); return; }
     upsertLead.mutate({ id: leadId, status: newStatus }, {
-      onSuccess: () => {
-        if (newStatus === 'ganho') {
-          toast.info('Lead marcada como Ganha! Pode converter em cliente no módulo de Clientes.');
-        }
-      },
+      onSuccess: () => { if (newStatus === 'ganho') toast.info('Lead marcada como Ganha! Pode converter em cliente no módulo de Clientes.'); },
     });
   }, [allLeads, upsertLead]);
 
-  const handleDelete = (id: string) => {
-    deleteLead.mutate(id);
+  const handleDelete = (id: string) => { deleteLead.mutate(id); };
+
+  const handleNewView = () => {
+    const name = window.prompt('Nome da nova vista:');
+    if (name?.trim()) createView.mutate(name.trim());
   };
+
+  const handleRenameView = (id: string, currentName: string) => {
+    const name = window.prompt('Novo nome:', currentName);
+    if (name?.trim() && name.trim() !== currentName) renameView.mutate({ id, name: name.trim() });
+  };
+
+  const activeCustomView = savedViews.find(v => v.id === view);
 
   return (
     <div className="space-y-6">
-
-      {/* Summary + Alerts */}
       <CrmSummary
         activeCount={activeLeads.length}
         toContactToday={leadsToContact}
@@ -115,28 +151,43 @@ export function CommercialCRM() {
 
       {/* View tabs + Nova Lead */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-1 rounded-lg border p-1">
-        <Button
-          variant={view === 'pipeline' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setView('pipeline')}
-        >
-          <LayoutGrid className="h-4 w-4 mr-1" /> CRM
-        </Button>
-        <Button
-          variant={view === 'list' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setView('list')}
-        >
-          <List className="h-4 w-4 mr-1" /> Lista
-        </Button>
-        <Button
-          variant={view === 'custom' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setView('custom')}
-        >
-          <SlidersHorizontal className="h-4 w-4 mr-1" /> Personalizada
-        </Button>
+        <div className="flex items-center gap-1 rounded-lg border p-1 flex-wrap">
+          <Button variant={view === 'pipeline' ? 'default' : 'ghost'} size="sm" onClick={() => setView('pipeline')}>
+            <LayoutGrid className="h-4 w-4 mr-1" /> CRM
+          </Button>
+          <Button variant={view === 'list' ? 'default' : 'ghost'} size="sm" onClick={() => setView('list')}>
+            <List className="h-4 w-4 mr-1" /> Lista
+          </Button>
+
+          {savedViews.map(sv => (
+            <div key={sv.id} className="flex items-center">
+              <Button
+                variant={view === sv.id ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setView(sv.id)}
+                className="pr-1"
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5 mr-1" />
+                {sv.name}
+              </Button>
+              {view === sv.id && (
+                <div className="flex items-center ml-0.5 gap-0.5">
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRenameView(sv.id, sv.name)}>
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive" onClick={() => {
+                    if (confirm(`Eliminar vista "${sv.name}"?`)) deleteView.mutate(sv.id);
+                  }}>
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          ))}
+
+          <Button variant="ghost" size="sm" onClick={handleNewView} className="text-muted-foreground">
+            <Plus className="h-4 w-4 mr-1" /> Vista
+          </Button>
         </div>
         <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Lead</Button>
       </div>
@@ -146,11 +197,17 @@ export function CommercialCRM() {
         <CrmPipeline leads={allLeads} onOpenLead={openLead} onUpdateStatus={handleUpdateStatus} />
       ) : view === 'list' ? (
         <CrmListView leads={allLeads} onOpenLead={openLead} />
-      ) : (
-        <CrmCustomView leads={allLeads} onOpenLead={openLead} />
-      )}
+      ) : activeCustomView ? (
+        <CrmCustomView
+          key={activeCustomView.id}
+          leads={allLeads}
+          onOpenLead={openLead}
+          initialFilters={activeCustomView.filters as unknown as Filters}
+          onSaveFilters={(filters) => updateViewFilters.mutate({ id: activeCustomView.id, filters })}
+          viewName={activeCustomView.name}
+        />
+      ) : null}
 
-      {/* Lead Detail Sheet */}
       <LeadDetailSheet
         open={sheetOpen}
         onOpenChange={v => { setSheetOpen(v); if (!v) setSelectedLead(null); }}
