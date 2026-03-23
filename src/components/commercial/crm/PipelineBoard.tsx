@@ -13,6 +13,8 @@ interface PipelineBoardProps {
   stages: any[];
   pipelineLeads: any[];
   allLeads: any[];
+  stagesDialogOpen?: boolean;
+  onStagesDialogChange?: (open: boolean) => void;
   onMoveLeadToStage: (leadId: string, stageId: string) => void;
   onAddLeadToPipeline: (leadId: string, stageId: string) => void;
   onRemoveLeadFromPipeline: (leadId: string) => void;
@@ -29,6 +31,8 @@ export function PipelineBoard({
   stages,
   pipelineLeads,
   allLeads,
+  stagesDialogOpen: externalOpen,
+  onStagesDialogChange,
   onMoveLeadToStage,
   onAddLeadToPipeline,
   onRemoveLeadFromPipeline,
@@ -40,7 +44,9 @@ export function PipelineBoard({
   onReorderStage,
 }: PipelineBoardProps) {
   const [addingToStage, setAddingToStage] = useState<string | null>(null);
-  const [stagesDialogOpen, setStagesDialogOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const dialogOpen = externalOpen ?? internalOpen;
+  const setDialogOpen = onStagesDialogChange ?? setInternalOpen;
 
   const assignedLeadIds = new Set(pipelineLeads.map(pl => pl.lead_id));
   const unassignedLeads = allLeads.filter(l => !assignedLeadIds.has(l.id));
