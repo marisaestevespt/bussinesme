@@ -61,16 +61,25 @@ export default function ClientesPage() {
       <div className="p-6 space-y-6">
         <PageHeader title="Clientes" />
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button onClick={() => navigate('/hub/clientes/analise')} className="gap-1.5 bg-cyan-600 text-white hover:bg-cyan-700 px-5 py-2.5 text-sm font-medium shadow-sm">
-              <BarChart3 className="h-4 w-4" /> Análise de Clientes
-            </Button>
-            <Button onClick={() => navigate('/hub/clientes/portais')} className="gap-1.5 bg-teal-600 text-white hover:bg-teal-700 px-5 py-2.5 text-sm font-medium shadow-sm">
-              <Globe className="h-4 w-4" /> Portal de Clientes
-            </Button>
-            <Button onClick={() => navigate('/hub/clientes/feedback')} className="gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700 px-5 py-2.5 text-sm font-medium shadow-sm">
-              <MessageSquare className="h-4 w-4" /> Feedbacks
-            </Button>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 flex-1 mr-4">
+            {[
+              { path: '/hub/clientes/analise', label: 'Análise de Clientes', icon: BarChart3, iconColor: 'text-cyan-600', color: 'from-cyan-500/10 to-cyan-600/5 hover:from-cyan-500/20 hover:to-cyan-600/10' },
+              { path: '/hub/clientes/portais', label: 'Portal de Clientes', icon: Globe, iconColor: 'text-teal-600', color: 'from-teal-500/10 to-teal-600/5 hover:from-teal-500/20 hover:to-teal-600/10' },
+              { path: '/hub/clientes/feedback', label: 'Feedbacks', icon: MessageSquare, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
+            ].map(s => (
+              <Card
+                key={s.path}
+                className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
+                onClick={() => navigate(s.path)}
+              >
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
+                    <s.icon className="h-4 w-4" />
+                  </div>
+                  <span className="font-medium text-sm">{s.label}</span>
+                </CardContent>
+              </Card>
+            ))}
           </div>
           <Button size="sm" onClick={() => navigate('/hub/clientes/novo')}>
             <Plus className="h-4 w-4 mr-1" /> Novo Cliente
