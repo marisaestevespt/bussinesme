@@ -8,17 +8,20 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { CRM_STATUSES, CRM_SOURCES, statusLabel, getFollowUpState, FollowUpState } from '@/hooks/useCrmData';
+import { CRM_STATUSES, statusLabel, getFollowUpState, FollowUpState } from '@/hooks/useCrmData';
 import { format } from 'date-fns';
-import { AlertTriangle, Clock, CalendarIcon, Filter, X } from 'lucide-react';
+import { AlertTriangle, Clock, CalendarIcon, Filter, X, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CrmCustomViewProps {
   leads: any[];
   onOpenLead: (lead: any) => void;
+  initialFilters?: Filters;
+  onSaveFilters?: (filters: Filters) => void;
+  viewName?: string;
 }
 
-interface Filters {
+export interface Filters {
   name: string;
   email: string;
   phone: string;
@@ -27,17 +30,17 @@ interface Filters {
   product: string;
   minValue: string;
   maxValue: string;
-  followupFrom: Date | undefined;
-  followupTo: Date | undefined;
-  addedFrom: Date | undefined;
-  addedTo: Date | undefined;
+  followupFrom: string;
+  followupTo: string;
+  addedFrom: string;
+  addedTo: string;
 }
 
-const EMPTY_FILTERS: Filters = {
+export const EMPTY_FILTERS: Filters = {
   name: '', email: '', phone: '', status: '', source: '', product: '',
   minValue: '', maxValue: '',
-  followupFrom: undefined, followupTo: undefined,
-  addedFrom: undefined, addedTo: undefined,
+  followupFrom: '', followupTo: '',
+  addedFrom: '', addedTo: '',
 };
 
 function fuClass(state: FollowUpState) {
@@ -55,7 +58,8 @@ function FuIcon({ state }: { state: FollowUpState }) {
   return null;
 }
 
-function DateFilter({ label, value, onChange }: { label: string; value: Date | undefined; onChange: (d: Date | undefined) => void }) {
+function DateFilter({ label, value, onChange }: { label: string; value: string; onChange: (d: string) => void }) {
+  const dateVal = value ? new Date(value) : undefined;
   return (
     <div className="space-y-1">
       <Label className="text-xs">{label}</Label>
@@ -63,43 +67,30 @@ function DateFilter({ label, value, onChange }: { label: string; value: Date | u
         <PopoverTrigger asChild>
           <Button variant="outline" size="sm" className={cn("w-full justify-start text-left font-normal h-9", !value && "text-muted-foreground")}>
             <CalendarIcon className="h-3 w-3 mr-1" />
-            {value ? format(value, 'dd/MM/yyyy') : 'Selecionar'}
+            {dateVal ? format(dateVal, 'dd/MM/yyyy') : 'Selecionar'}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <Calendar mode="single" selected={value} onSelect={onChange} initialFocus className="p-3 pointer-events-auto" />
+          <Calendar mode="single" selected={dateVal} onSelect={d => onChange(d ? d.toISOString() : '')} initialFocus className="p-3 pointer-events-auto" />
         </PopoverContent>
       </Popover>
     </div>
   );
 }
 
-export function CrmCustomView({ leads, onOpenLead }: CrmCustomViewProps) {
-  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+export function CrmCustomView({ leads, onOpenLead, initialFilters, onSaveFilters }: CrmCustomViewProps) {
+  const [filters, setFilters] = useState<Filters>(initialFilters || EMPTY_FILTERS);
   const [showFilters, setShowFilters] = useState(true);
 
   const set = (partial: Partial<Filters>) => setFilters(prev => ({ ...prev, ...partial }));
 
-  // Extract unique values for selects
   const uniqueSources = useMemo(() => [...new Set(leads.map(l => l.source).filter(Boolean))], [leads]);
   const uniqueProducts = useMemo(() => [...new Set(leads.map(l => l.potential_product).filter(Boolean))], [leads]);
 
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (filters.name) count++;
-    if (filters.email) count++;
-    if (filters.phone) count++;
-    if (filters.status) count++;
-    if (filters.source) count++;
-    if (filters.product) count++;
-    if (filters.minValue) count++;
-    if (filters.maxValue) count++;
-    if (filters.followupFrom) count++;
-    if (filters.followupTo) count++;
-    if (filters.addedFrom) count++;
-    if (filters.addedTo) count++;
-    return count;
-  }, [filters]);
+  const activeFilterCount = useMemo(() =>
+    Object.values(filters).filter(v => v !== '').length,
+    [filters]
+  );
 
   const filtered = useMemo(() => {
     return leads.filter(l => {
@@ -111,18 +102,17 @@ export function CrmCustomView({ leads, onOpenLead }: CrmCustomViewProps) {
       if (filters.product && l.potential_product !== filters.product) return false;
       if (filters.minValue && Number(l.estimated_value || 0) < Number(filters.minValue)) return false;
       if (filters.maxValue && Number(l.estimated_value || 0) > Number(filters.maxValue)) return false;
-      if (filters.followupFrom && l.next_followup && new Date(l.next_followup) < filters.followupFrom) return false;
-      if (filters.followupTo && l.next_followup && new Date(l.next_followup) > filters.followupTo) return false;
+      if (filters.followupFrom && l.next_followup && new Date(l.next_followup) < new Date(filters.followupFrom)) return false;
+      if (filters.followupTo && l.next_followup && new Date(l.next_followup) > new Date(filters.followupTo)) return false;
       if (filters.followupFrom && !l.next_followup) return false;
-      if (filters.addedFrom && new Date(l.added_at) < filters.addedFrom) return false;
-      if (filters.addedTo && new Date(l.added_at) > filters.addedTo) return false;
+      if (filters.addedFrom && new Date(l.added_at) < new Date(filters.addedFrom)) return false;
+      if (filters.addedTo && new Date(l.added_at) > new Date(filters.addedTo)) return false;
       return true;
     });
   }, [leads, filters]);
 
   return (
     <div className="space-y-3">
-      {/* Filter toggle + clear */}
       <div className="flex items-center gap-2">
         <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
           <Filter className="h-4 w-4 mr-1" />
@@ -133,18 +123,21 @@ export function CrmCustomView({ leads, onOpenLead }: CrmCustomViewProps) {
         </Button>
         {activeFilterCount > 0 && (
           <Button variant="ghost" size="sm" onClick={() => setFilters(EMPTY_FILTERS)}>
-            <X className="h-3 w-3 mr-1" /> Limpar filtros
+            <X className="h-3 w-3 mr-1" /> Limpar
+          </Button>
+        )}
+        {onSaveFilters && (
+          <Button variant="outline" size="sm" onClick={() => onSaveFilters(filters)}>
+            <Save className="h-3 w-3 mr-1" /> Guardar filtros
           </Button>
         )}
         <span className="text-sm text-muted-foreground ml-auto">{filtered.length} resultado{filtered.length !== 1 ? 's' : ''}</span>
       </div>
 
-      {/* Filter panel */}
       {showFilters && (
         <Card>
           <CardContent className="p-4">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-              {/* Text filters */}
               <div className="space-y-1">
                 <Label className="text-xs">Nome</Label>
                 <Input placeholder="Pesquisar..." value={filters.name} onChange={e => set({ name: e.target.value })} className="h-9" />
@@ -157,17 +150,13 @@ export function CrmCustomView({ leads, onOpenLead }: CrmCustomViewProps) {
                 <Label className="text-xs">Telefone</Label>
                 <Input placeholder="Pesquisar..." value={filters.phone} onChange={e => set({ phone: e.target.value })} className="h-9" />
               </div>
-
-              {/* Select filters */}
               <div className="space-y-1">
                 <Label className="text-xs">Status</Label>
                 <Select value={filters.status} onValueChange={v => set({ status: v === '__all__' ? '' : v })}>
                   <SelectTrigger className="h-9"><SelectValue placeholder="Todos" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__all__">Todos</SelectItem>
-                    {CRM_STATUSES.map(s => (
-                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                    ))}
+                    {CRM_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -177,9 +166,7 @@ export function CrmCustomView({ leads, onOpenLead }: CrmCustomViewProps) {
                   <SelectTrigger className="h-9"><SelectValue placeholder="Todas" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__all__">Todas</SelectItem>
-                    {uniqueSources.map(s => (
-                      <SelectItem key={s} value={s}>{s}</SelectItem>
-                    ))}
+                    {uniqueSources.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -189,14 +176,10 @@ export function CrmCustomView({ leads, onOpenLead }: CrmCustomViewProps) {
                   <SelectTrigger className="h-9"><SelectValue placeholder="Todos" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__all__">Todos</SelectItem>
-                    {uniqueProducts.map(p => (
-                      <SelectItem key={p} value={p}>{p}</SelectItem>
-                    ))}
+                    {uniqueProducts.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-
-              {/* Value range */}
               <div className="space-y-1">
                 <Label className="text-xs">Valor mínimo (€)</Label>
                 <Input type="number" placeholder="0" value={filters.minValue} onChange={e => set({ minValue: e.target.value })} className="h-9" />
@@ -205,8 +188,6 @@ export function CrmCustomView({ leads, onOpenLead }: CrmCustomViewProps) {
                 <Label className="text-xs">Valor máximo (€)</Label>
                 <Input type="number" placeholder="∞" value={filters.maxValue} onChange={e => set({ maxValue: e.target.value })} className="h-9" />
               </div>
-
-              {/* Date ranges */}
               <DateFilter label="Follow-up desde" value={filters.followupFrom} onChange={d => set({ followupFrom: d })} />
               <DateFilter label="Follow-up até" value={filters.followupTo} onChange={d => set({ followupTo: d })} />
               <DateFilter label="Adicionada desde" value={filters.addedFrom} onChange={d => set({ addedFrom: d })} />
@@ -216,7 +197,6 @@ export function CrmCustomView({ leads, onOpenLead }: CrmCustomViewProps) {
         </Card>
       )}
 
-      {/* Results table */}
       <Card>
         <CardContent className="p-0">
           <Table>
