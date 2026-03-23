@@ -158,6 +158,7 @@ function AppRoutes() {
       <Route path="/hub/comercial" element={<ComercialPage />} />
       <Route path="/hub/comercial/analise" element={<ComercialAnalisePage />} />
       <Route path="/hub/comercial/vendas/:id" element={<VendaDetailPage />} />
+      <Route path="/hub/comercial/pipelines" element={<CrmPipelinesPage />} />
       <Route path="/hub/comercial/:section" element={<ComercialSubPage />} />
       <Route path="/hub/produtos" element={<ProdutosPage />} />
       <Route path="/hub/produtos/:id" element={<ProdutoDetailPage />} />
