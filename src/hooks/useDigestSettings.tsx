@@ -23,6 +23,8 @@ const OWNER_DEFAULT_SECTIONS: Record<string, boolean> = {
   nps_recebidos: true,
   pagamentos_recebidos: true,
   rotinas_dia: true,
+  projetos_fechados: true,
+  projetos_novos: true,
   resumo_membros: true,
 };
 
