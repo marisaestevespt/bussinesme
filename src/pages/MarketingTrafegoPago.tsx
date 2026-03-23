@@ -19,6 +19,7 @@ import { ChevronLeft, Plus, Trash2, FileText, ExternalLink } from 'lucide-react'
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
+import { ObjetivoFinalField, parseObjetivoFinal, serializeObjetivoFinal, displayObjetivoFinal, type ObjetivoFinalType } from '@/components/traffic/ObjetivoFinalField';
 
 const STATUSES = [
   { value: 'em_desenho', label: 'Em desenho', color: 'bg-violet-100 text-violet-800' },
@@ -49,7 +50,7 @@ export default function MarketingTrafegoPago() {
   const [showNewCreative, setShowNewCreative] = useState(false);
   const [showNewCard, setShowNewCard] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState('');
-  const [creativeForm, setCreativeForm] = useState({ name: '', status: 'em_desenho', formato: '', objetivo: '', oferta_goal: '', link: '' });
+  const [creativeForm, setCreativeForm] = useState({ name: '', status: 'em_desenho', formato: '', objetivo: '', oferta_type: '' as ObjetivoFinalType, oferta_value: '', link: '' });
 
   const { data: reportCards = [] } = useQuery({
     queryKey: ['traffic-report-cards'],
@@ -72,12 +73,13 @@ export default function MarketingTrafegoPago() {
     await supabase.from('traffic_creatives').insert({
       name: creativeForm.name, status: creativeForm.status,
       formato: creativeForm.formato || null, objetivo: creativeForm.objetivo || null,
-      oferta_goal: creativeForm.oferta_goal || null, link: creativeForm.link || null,
+      oferta_goal: serializeObjetivoFinal(creativeForm.oferta_type, creativeForm.oferta_value),
+      link: creativeForm.link || null,
       created_by: user?.id,
     } as any);
     qc.invalidateQueries({ queryKey: ['traffic-creatives'] });
     setShowNewCreative(false);
-    setCreativeForm({ name: '', status: 'em_desenho', formato: '', objetivo: '', oferta_goal: '', link: '' });
+    setCreativeForm({ name: '', status: 'em_desenho', formato: '', objetivo: '', oferta_type: '', oferta_value: '', link: '' });
     toast.success('Criativo criado');
   };
 
@@ -187,7 +189,7 @@ export default function MarketingTrafegoPago() {
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">{c.formato || '—'}</TableCell>
                           <TableCell className="text-sm text-muted-foreground truncate max-w-[180px]">{c.objetivo || '—'}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground truncate max-w-[140px]">{c.oferta_goal || '—'}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground truncate max-w-[140px]">{displayObjetivoFinal(c.oferta_goal)}</TableCell>
                           <TableCell>
                             {c.link ? (
                               <a href={c.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
@@ -235,7 +237,12 @@ export default function MarketingTrafegoPago() {
               </Select>
             </div>
             <div><Label>Objetivo</Label><Input value={creativeForm.objetivo} onChange={e => setCreativeForm(f => ({ ...f, objetivo: e.target.value }))} placeholder="Objetivo do criativo" /></div>
-            <div><Label>Objetivo Final</Label><Input value={creativeForm.oferta_goal} onChange={e => setCreativeForm(f => ({ ...f, oferta_goal: e.target.value }))} placeholder="Produto/Link/Outro Final" /></div>
+            <ObjetivoFinalField
+              type={creativeForm.oferta_type}
+              value={creativeForm.oferta_value}
+              onTypeChange={t => setCreativeForm(f => ({ ...f, oferta_type: t, oferta_value: '' }))}
+              onValueChange={v => setCreativeForm(f => ({ ...f, oferta_value: v }))}
+            />
             <div><Label>Link</Label><Input value={creativeForm.link} onChange={e => setCreativeForm(f => ({ ...f, link: e.target.value }))} placeholder="https://..." /></div>
             <Button className="w-full" disabled={!creativeForm.name.trim()} onClick={createCreative}>Criar Criativo</Button>
           </div>

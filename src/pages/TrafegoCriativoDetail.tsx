@@ -19,6 +19,7 @@ import { ChevronLeft, Check, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
+import { ObjetivoFinalField, parseObjetivoFinal, serializeObjetivoFinal, type ObjetivoFinalType } from '@/components/traffic/ObjetivoFinalField';
 
 const STATUSES = [
   { value: 'em_desenho', label: 'Em desenho', color: 'bg-violet-100 text-violet-800' },
@@ -58,17 +59,18 @@ export default function TrafegoCriativoDetail() {
 
   const [form, setForm] = useState({
     name: '', status: 'em_desenho', start_date: null as Date | null, formato: '',
-    objetivo: '', oferta_goal: '', link: '', titulo_principal: '', headline: '', legenda: '',
+    objetivo: '', oferta_type: '' as ObjetivoFinalType, oferta_value: '', link: '', titulo_principal: '', headline: '', legenda: '',
   });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (item) {
+      const parsed = parseObjetivoFinal(item.oferta_goal);
       setForm({
         name: item.name || '', status: item.status || 'em_desenho',
         start_date: item.start_date ? new Date(item.start_date) : null,
         formato: item.formato || '', objetivo: item.objetivo || '',
-        oferta_goal: item.oferta_goal || '', link: item.link || '',
+        oferta_type: parsed.type, oferta_value: parsed.value, link: item.link || '',
         titulo_principal: item.titulo_principal || '', headline: item.headline || '',
         legenda: item.legenda || '',
       });
@@ -81,7 +83,8 @@ export default function TrafegoCriativoDetail() {
       name: form.name, status: form.status,
       start_date: form.start_date ? format(form.start_date, 'yyyy-MM-dd') : null,
       formato: form.formato || null, objetivo: form.objetivo || null,
-      oferta_goal: form.oferta_goal || null, link: form.link || null,
+      oferta_goal: serializeObjetivoFinal(form.oferta_type, form.oferta_value),
+      link: form.link || null,
       titulo_principal: form.titulo_principal || null, headline: form.headline || null,
       legenda: form.legenda || null,
     } as any).eq('id', id!);
@@ -150,12 +153,17 @@ export default function TrafegoCriativoDetail() {
             </div>
           </div>
 
+          <div className="space-y-4">
+            <ObjetivoFinalField
+              type={form.oferta_type}
+              value={form.oferta_value}
+              onTypeChange={t => setForm(f => ({ ...f, oferta_type: t, oferta_value: '' }))}
+              onValueChange={v => setForm(f => ({ ...f, oferta_value: v }))}
+              disabled={!isOwner}
+            />
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground">Objetivo Final</label>
-              <Input value={form.oferta_goal} onChange={e => setForm(f => ({ ...f, oferta_goal: e.target.value }))}
-                className="h-9" placeholder="Produto/Link/Outro Final" readOnly={!isOwner} />
-            </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground">Link</label>
               <Input value={form.link} onChange={e => setForm(f => ({ ...f, link: e.target.value }))}
