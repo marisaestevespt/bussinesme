@@ -211,7 +211,7 @@ export default function CrmPipelines() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6 max-w-[1400px] mx-auto">
-        <BackNavigation to="/hub/comercial/crm" label="Voltar ao CRM" />
+        <BackNavigation parentRoute="/hub/comercial/crm" parentLabel="Voltar ao CRM" />
 
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Pipelines</h1>
