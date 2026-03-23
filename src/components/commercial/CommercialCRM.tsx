@@ -112,8 +112,9 @@ export function CommercialCRM() {
         onOpenLead={openLead}
       />
 
-      {/* View tabs */}
-      <div className="flex items-center gap-1 rounded-lg border p-1 w-fit">
+      {/* View tabs + Nova Lead */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-1 rounded-lg border p-1">
         <Button
           variant={view === 'pipeline' ? 'default' : 'ghost'}
           size="sm"
