@@ -449,6 +449,8 @@ export default function SecretariaPage() {
             {activeTab === 'reunioes' && <MinhasReunioesTab meetings={meetings.data || []} profiles={allProfiles.data || []} />}
             {activeTab === 'produtividade' && <MinhaProdutividadeTab tasks={tasks.data || []} timeEntries={timeEntries.data || []} teamMember={teamMember.data} allProjects={allProjects.data || []} qc={qc} userId={user?.id} />}
             {activeTab === 'contrato' && <MeuContratoTab teamMember={teamMember.data} />}
+            {activeTab === 'recomendacoes' && <RecommendationWidget memberName={firstName} />}
+            {activeTab === 'resumo_email' && <MemberDigestSettings />}
           </>
         )}
       </div>
