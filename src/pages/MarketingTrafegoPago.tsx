@@ -50,7 +50,7 @@ export default function MarketingTrafegoPago() {
   const [showNewCreative, setShowNewCreative] = useState(false);
   const [showNewCard, setShowNewCard] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState('');
-  const [creativeForm, setCreativeForm] = useState({ name: '', status: 'em_desenho', formato: '', objetivo: '', oferta_goal: '', link: '' });
+  const [creativeForm, setCreativeForm] = useState({ name: '', status: 'em_desenho', formato: '', objetivo: '', oferta_type: '' as ObjetivoFinalType, oferta_value: '', link: '' });
 
   const { data: reportCards = [] } = useQuery({
     queryKey: ['traffic-report-cards'],
