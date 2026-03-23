@@ -255,9 +255,19 @@ export default function VendaDetailPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">Fonte</Label>
-                    <Select value={form.source || ''} onValueChange={v => setForm((f: any) => ({ ...f, source: v }))} disabled={!isOwner}>
+                    <Select value={form.source || ''} onValueChange={v => {
+                      if (v === '__custom__') {
+                        const custom = prompt('Introduz a nova fonte:');
+                        if (custom?.trim()) setForm((f: any) => ({ ...f, source: custom.trim() }));
+                        return;
+                      }
+                      setForm((f: any) => ({ ...f, source: v }));
+                    }} disabled={!isOwner}>
                       <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                      <SelectContent>{SOURCE_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                      <SelectContent>
+                        {sourceOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                        <SelectItem value="__custom__">+ Adicionar outro</SelectItem>
+                      </SelectContent>
                     </Select>
                   </div>
                 </div>
