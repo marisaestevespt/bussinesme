@@ -102,23 +102,7 @@ export function CommercialCRM() {
   return (
     <div className="space-y-6">
       {/* Top controls */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-1 rounded-lg border p-1">
-          <Button
-            variant={view === 'pipeline' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setView('pipeline')}
-          >
-            <LayoutGrid className="h-4 w-4 mr-1" /> CRM
-          </Button>
-          <Button
-            variant={view === 'list' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setView('list')}
-          >
-            <List className="h-4 w-4 mr-1" /> Lista
-          </Button>
-        </div>
+      <div className="flex items-center justify-end">
         <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Lead</Button>
       </div>
 
@@ -131,6 +115,24 @@ export function CommercialCRM() {
         allLeads={allLeads}
         onOpenLead={openLead}
       />
+
+      {/* View tabs */}
+      <div className="flex items-center gap-1 rounded-lg border p-1 w-fit">
+        <Button
+          variant={view === 'pipeline' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setView('pipeline')}
+        >
+          <LayoutGrid className="h-4 w-4 mr-1" /> CRM
+        </Button>
+        <Button
+          variant={view === 'list' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setView('list')}
+        >
+          <List className="h-4 w-4 mr-1" /> Lista
+        </Button>
+      </div>
 
       {/* Views */}
       {view === 'pipeline' ? (
