@@ -252,29 +252,31 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
       </TabsContent>
 
       <TabsContent value="canal">
-        <div className="space-y-6">
+        <div className="space-y-2">
           {channels.filter(c => c.is_active).map(channel => {
             const channelItemIds = contentChannelLinks.filter(l => l.channel_id === channel.id).map(l => l.content_id);
             const channelItems = items.filter(i => channelItemIds.includes(i.id));
-            if (channelItems.length === 0) return null;
             return (
-              <div key={channel.id}>
-                <div className="flex items-center gap-2 mb-2">
+              <Collapsible key={channel.id} defaultOpen={channelItems.length > 0}>
+                <CollapsibleTrigger className="flex items-center gap-2 w-full p-2 rounded-lg hover:bg-muted/50 hq-transition group">
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform group-data-[state=closed]:-rotate-90" />
                   <Badge variant="outline">{channel.name}</Badge>
                   <span className="text-xs text-muted-foreground">({channelItems.length})</span>
-                </div>
-                <div className="space-y-0.5">
-                  {channelItems.map(item => (
-                    <ContentRow key={item.id} item={item} channels={channels} links={contentChannelLinks} />
-                  ))}
-                </div>
-              </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  {channelItems.length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic pl-8 pb-2">Nenhum conteúdo</p>
+                  ) : (
+                    <div className="space-y-0.5 pl-6">
+                      {channelItems.map(item => (
+                        <ContentRow key={item.id} item={item} channels={channels} links={contentChannelLinks} />
+                      ))}
+                    </div>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
             );
           })}
-          {channels.filter(c => c.is_active).every(channel => {
-            const ids = contentChannelLinks.filter(l => l.channel_id === channel.id).map(l => l.content_id);
-            return items.filter(i => ids.includes(i.id)).length === 0;
-          }) && <p className="text-sm text-muted-foreground italic text-center py-4">Nenhum conteúdo associado a canais.</p>}
         </div>
       </TabsContent>
 
