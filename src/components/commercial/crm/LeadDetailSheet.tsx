@@ -11,13 +11,15 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2, GitBranch } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { CRM_STATUSES, CRM_SOURCES, INTERACTION_TYPES, statusLabel, getFollowUpState } from '@/hooks/useCrmData';
 import { useCrmData } from '@/hooks/useCrmData';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LeadDetailSheetProps {
   open: boolean;
@@ -285,6 +287,14 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
               </>
             )}
 
+            {/* Pipeline History */}
+            {lead?.id && (
+              <>
+                <Separator />
+                <PipelineHistory leadId={lead.id} />
+              </>
+            )}
+
             {/* Delete */}
             {lead?.id && onDelete && (
               <>
@@ -370,5 +380,67 @@ function InteractionDialog({ open, onOpenChange, leadId, onSave }: { open: boole
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ─── Pipeline History ─── */
+function PipelineHistory({ leadId }: { leadId: string }) {
+  const { data: history = [] } = useQuery({
+    queryKey: ['crm-lead-pipeline-history', leadId],
+    queryFn: async () => {
+      // Get all pipeline_leads for this lead
+      const { data: plData } = await supabase
+        .from('crm_pipeline_leads')
+        .select('pipeline_id, stage_id, created_at, updated_at')
+        .eq('lead_id', leadId)
+        .order('created_at', { ascending: false });
+      if (!plData || plData.length === 0) return [];
+
+      // Fetch pipeline names and stage names
+      const pipelineIds = [...new Set(plData.map(pl => pl.pipeline_id))];
+      const stageIds = [...new Set(plData.map(pl => pl.stage_id))];
+
+      const [{ data: pipelines }, { data: stages }] = await Promise.all([
+        supabase.from('crm_pipelines').select('id, name').in('id', pipelineIds),
+        supabase.from('crm_pipeline_stages').select('id, name, color').in('id', stageIds),
+      ]);
+
+      const pipelineMap = Object.fromEntries((pipelines || []).map(p => [p.id, p.name]));
+      const stageMap = Object.fromEntries((stages || []).map(s => [s.id, { name: s.name, color: s.color }]));
+
+      return plData.map(pl => ({
+        pipelineName: pipelineMap[pl.pipeline_id] || 'Pipeline removido',
+        stageName: stageMap[pl.stage_id]?.name || 'Etapa removida',
+        stageColor: stageMap[pl.stage_id]?.color || '#94a3b8',
+        addedAt: pl.created_at,
+        updatedAt: pl.updated_at,
+      }));
+    },
+    enabled: !!leadId,
+  });
+
+  if (history.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <GitBranch className="h-4 w-4 text-muted-foreground" />
+        <h3 className="text-sm font-semibold">Histórico de Pipelines</h3>
+      </div>
+      <div className="space-y-2">
+        {history.map((h, i) => (
+          <div key={i} className="flex items-center gap-3 text-sm">
+            <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: h.stageColor }} />
+            <div className="min-w-0 flex-1">
+              <span className="font-medium">{h.pipelineName}</span>
+              <span className="text-muted-foreground"> → {h.stageName}</span>
+            </div>
+            <span className="text-xs text-muted-foreground flex-shrink-0">
+              {format(new Date(h.updatedAt || h.addedAt), 'dd/MM/yyyy')}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
