@@ -96,33 +96,33 @@ export default function ProdutoDetailPage() {
   });
 
   const { data: funnels = [] } = useQuery({
-    queryKey: ['product-funnels', id],
+    queryKey: ['marketing-funnels-product', form.name],
     queryFn: async () => {
-      if (!id || isNew) return [];
-      const { data } = await supabase.from('product_funnels').select('*').eq('product_id', id).order('created_at', { ascending: false });
+      if (!form.name) return [];
+      const { data } = await supabase.from('marketing_funnels').select('*').eq('product_name', form.name).order('created_at', { ascending: false });
       return data || [];
     },
-    enabled: !isNew,
+    enabled: !!form.name,
   });
 
   const { data: automations = [] } = useQuery({
-    queryKey: ['product-automations', id],
+    queryKey: ['marketing-automations-product', form.name],
     queryFn: async () => {
-      if (!id || isNew) return [];
-      const { data } = await supabase.from('product_automations').select('*').eq('product_id', id).order('created_at', { ascending: false });
+      if (!form.name) return [];
+      const { data } = await supabase.from('marketing_automations').select('*').eq('product_name', form.name).order('created_at', { ascending: false });
       return data || [];
     },
-    enabled: !isNew,
+    enabled: !!form.name,
   });
 
   const { data: trafficAds = [] } = useQuery({
-    queryKey: ['product-traffic-ads', id],
+    queryKey: ['traffic-creatives-product', form.name],
     queryFn: async () => {
-      if (!id || isNew) return [];
-      const { data } = await supabase.from('product_traffic_ads').select('*').eq('product_id', id).order('created_at', { ascending: false });
+      if (!form.name) return [];
+      const { data } = await supabase.from('traffic_creatives').select('*').eq('product_name', form.name).order('created_at', { ascending: false });
       return data || [];
     },
-    enabled: !isNew,
+    enabled: !!form.name,
   });
 
   const { data: usefulLinks = [] } = useQuery({
@@ -199,9 +199,12 @@ export default function ProdutoDetailPage() {
   // Mutations for sub-tables
   const invalidateSub = () => {
     qc.invalidateQueries({ queryKey: ['product-feedbacks', id] });
-    qc.invalidateQueries({ queryKey: ['product-funnels', id] });
-    qc.invalidateQueries({ queryKey: ['product-automations', id] });
-    qc.invalidateQueries({ queryKey: ['product-traffic-ads', id] });
+    qc.invalidateQueries({ queryKey: ['marketing-funnels-product', form.name] });
+    qc.invalidateQueries({ queryKey: ['marketing-automations-product', form.name] });
+    qc.invalidateQueries({ queryKey: ['traffic-creatives-product', form.name] });
+    qc.invalidateQueries({ queryKey: ['marketing-funnels'] });
+    qc.invalidateQueries({ queryKey: ['marketing-automations'] });
+    qc.invalidateQueries({ queryKey: ['traffic-creatives'] });
     qc.invalidateQueries({ queryKey: ['product-useful-links', id] });
     qc.invalidateQueries({ queryKey: ['product-costs', id] });
     qc.invalidateQueries({ queryKey: ['product-onboarding-template', id] });
