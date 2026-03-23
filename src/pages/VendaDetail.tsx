@@ -29,7 +29,7 @@ const STATUS_OPTIONS = [
   { value: 'contabilidade_ok', label: 'Contabilidade OK', className: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
 ];
 
-const SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
+const DEFAULT_SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function VendaDetailPage() {

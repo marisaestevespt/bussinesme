@@ -22,7 +22,7 @@ const STATUS_OPTIONS = [
   { value: 'contabilidade_ok', label: 'Contabilidade OK' },
 ];
 
-const SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
+const DEFAULT_SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
 
 interface SaleFormDialogProps {
   open: boolean;
