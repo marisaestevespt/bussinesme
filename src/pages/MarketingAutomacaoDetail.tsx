@@ -23,7 +23,7 @@ const STATUSES = [
   { value: 'arquivo', label: 'Arquivo', color: 'bg-muted text-muted-foreground' },
 ];
 
-const PLATAFORMAS = ['Mailerlite', 'ActiveCampaign', 'Zapier', 'Make', 'Systeme.io', 'Outro'];
+const DEFAULT_PLATAFORMAS = ['Mailerlite', 'ActiveCampaign', 'Zapier', 'Make', 'Systeme.io'];
 
 type AutoFull = {
   id: string; name: string; status: string; oferta_final: string | null;
