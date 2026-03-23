@@ -320,6 +320,45 @@ async function buildOwnerDigest(
     }
   }
 
+  // Projetos fechados hoje
+  if (sections.projetos_fechados) {
+    const { data: closed } = await supabase
+      .from("projects")
+      .select("name, client_name")
+      .eq("status", "concluido")
+      .gte("updated_at", todayStr + "T00:00:00")
+      .lte("updated_at", todayStr + "T23:59:59");
+
+    if (closed?.length) {
+      hasContent = true;
+      html += sectionHeader("🏁 Projetos fechados hoje");
+      html += "<ul>";
+      for (const p of closed) {
+        html += `<li>${esc(p.name)}${p.client_name ? ` <span style="color:#888">(${esc(p.client_name)})</span>` : ""}</li>`;
+      }
+      html += "</ul>";
+    }
+  }
+
+  // Projetos criados hoje
+  if (sections.projetos_novos) {
+    const { data: created } = await supabase
+      .from("projects")
+      .select("name, client_name, department")
+      .gte("created_at", todayStr + "T00:00:00")
+      .lte("created_at", todayStr + "T23:59:59");
+
+    if (created?.length) {
+      hasContent = true;
+      html += sectionHeader("🆕 Projetos criados hoje");
+      html += "<ul>";
+      for (const p of created) {
+        html += `<li>${esc(p.name)}${p.client_name ? ` <span style="color:#888">(${esc(p.client_name)})</span>` : ""}</li>`;
+      }
+      html += "</ul>";
+    }
+  }
+
   // Resumo por membro
   if (sections.resumo_membros) {
     const { data: members } = await supabase
