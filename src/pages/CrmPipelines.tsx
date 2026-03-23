@@ -318,6 +318,9 @@ export default function CrmPipelines() {
               const name = window.prompt('Novo nome:', current);
               if (name?.trim() && name.trim() !== current) renameStage.mutate({ id, name: name.trim() });
             }}
+            onReorderStage={(stageId, direction) =>
+              reorderStage.mutate({ stageId, direction, pipelineId: activePipeline.id })
+            }
           />
 
           <PipelineFormDialog
