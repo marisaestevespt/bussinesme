@@ -285,9 +285,25 @@ export function ContentCalendar({ items, channels, contentChannelLinks, calendar
           <p className="text-sm text-muted-foreground italic text-center py-8">Todos os conteúdos têm data atribuída.</p>
         ) : (
           <div className="space-y-0.5">
-            {undatedItems.map(item => (
-              <ContentRow key={item.id} item={item} channels={channels} links={contentChannelLinks} />
-            ))}
+            {undatedItems.map(item => {
+              const itemChannels = getItemChannels(item.id, channels, contentChannelLinks);
+              const formatLabel = FORMAT_OPTIONS.find(f => f.value === item.format)?.label;
+              return (
+                <Link key={item.id} to={`/hub/marketing/conteudos/${item.id}`} className="block">
+                  <div className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 hq-transition">
+                    <p className="text-sm font-medium truncate text-foreground flex-1 min-w-0">{item.title}</p>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {itemChannels.map(ch => (
+                        <Badge key={ch.id} variant="outline" className="text-[10px] px-1.5 py-0 h-4">{ch.name}</Badge>
+                      ))}
+                      {formatLabel && (
+                        <Badge className="text-[10px] px-1.5 py-0 h-4 bg-accent text-accent-foreground">{formatLabel}</Badge>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </TabsContent>
