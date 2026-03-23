@@ -407,51 +407,47 @@ export default function CrmPipelines() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-2">
+          <div className="border rounded-lg divide-y divide-border overflow-hidden">
             {filteredPipelines.map(p => {
               const leadsCount = pipelineLeads.filter(pl => pl.pipeline_id === p.id).length;
               const projectName = getProjectName(p.project_id);
 
               return (
-                <Card
+                <div
                   key={p.id}
-                  className="cursor-pointer transition-colors hover:border-primary/30"
+                  className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => setOpenPipelineId(p.id)}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-semibold truncate">{p.name}</p>
-                          <Badge variant={p.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                            {p.status === 'active' ? 'Ativo' : 'Arquivado'}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">{leadsCount} leads</Badge>
-                        </div>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                          {p.start_date && (
-                            <span>{format(new Date(p.start_date), 'dd/MM/yyyy')} — {p.end_date ? format(new Date(p.end_date), 'dd/MM/yyyy') : '...'}</span>
-                          )}
-                          {p.product && <span>• {p.product}</span>}
-                          {projectName && <span>• {projectName}</span>}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 ml-2" onClick={e => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setEditingPipeline(p); setFormOpen(true); }}>
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-destructive hover:text-destructive"
-                          onClick={() => { if (confirm(`Eliminar pipeline "${p.name}"?`)) deletePipeline.mutate(p.id); }}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
+                  <div className="min-w-0 flex-1 flex items-center gap-3">
+                    <span className="font-medium truncate">{p.name}</span>
+                    {p.product && <span className="text-xs text-muted-foreground shrink-0">• {p.product}</span>}
+                    {projectName && <span className="text-xs text-muted-foreground shrink-0">• {projectName}</span>}
+                    {p.start_date && (
+                      <span className="text-xs text-muted-foreground shrink-0">
+                        {format(new Date(p.start_date), 'dd/MM/yyyy')} — {p.end_date ? format(new Date(p.end_date), 'dd/MM/yyyy') : '...'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Badge variant={p.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                      {p.status === 'active' ? 'Ativo' : 'Arquivado'}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">{leadsCount} leads</Badge>
+                    <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setEditingPipeline(p); setFormOpen(true); }}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive hover:text-destructive"
+                        onClick={() => { if (confirm(`Eliminar pipeline "${p.name}"?`)) deletePipeline.mutate(p.id); }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               );
             })}
           </div>
