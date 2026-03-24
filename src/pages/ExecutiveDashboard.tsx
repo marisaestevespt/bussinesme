@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { Target, CalendarCheck, Lightbulb, Rocket, Clock, Trash2, Plus, Briefcase, MessageSquareHeart, AlertTriangle } from 'lucide-react';
 import { useExecutiveData, getMonthName } from '@/hooks/useExecutiveData';
 import { usePlanningData, planAreaLabel, planStatusLabel } from '@/hooks/usePlanningData';
+import { ExecutiveKpiAlerts } from '@/components/executive/ExecutiveKpiAlerts';
 
 const currentMonth = new Date().getMonth() + 1;
 const currentYear = new Date().getFullYear();
@@ -38,6 +39,9 @@ export default function ExecutiveDashboard() {
       <div className="space-y-8">
         {/* Cover Header */}
         <PageHeader title="Executive Room" subtitle="Planeamento estratégico & visão do negócio" />
+
+        {/* Cross-departmental KPIs & Alerts */}
+        <ExecutiveKpiAlerts />
 
         {/* 3-Column Layout */}
         <div className="grid gap-6 md:grid-cols-3">
