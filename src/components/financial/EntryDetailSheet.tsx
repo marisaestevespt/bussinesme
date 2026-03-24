@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -54,7 +55,8 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
   const [status, setStatus] = useState(sale?.status || 'aguarda_pagamento');
   const [docs, setDocs] = useState<DocEntry[]>([]);
   const [saving, setSaving] = useState(false);
-
+  const [confirmNoDocsOpen, setConfirmNoDocsOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   // Sync state when sale changes
   const [lastId, setLastId] = useState<string | null>(null);
   if (sale && sale.id !== lastId) {
