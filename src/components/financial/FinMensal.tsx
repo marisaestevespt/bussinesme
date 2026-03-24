@@ -402,7 +402,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
       {/* IVA Cobrado Detail */}
       <Dialog open={ivaCobradoOpen} onOpenChange={setIvaCobradoOpen}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle className="text-base">IVA Cobrado — {FULL[m - 1]}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="text-base">IVA Cobrado — {MONTHS[m - 1]}</DialogTitle></DialogHeader>
           {monthSales.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4">Sem vendas registadas neste mês.</p>
           ) : (
