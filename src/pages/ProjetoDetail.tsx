@@ -616,6 +616,7 @@ export default function ProjetoDetailPage() {
 
   // ─── Service project ──────────────────────────────────────────
   if (local.type === 'servico' || local.type === 'cliente_servico_mensal') {
+    const isRecorrente = (local as any).project_mode === 'recorrente';
     return (
       <AppLayout>
         <div className="space-y-6 max-w-3xl">
@@ -640,6 +641,7 @@ export default function ProjetoDetailPage() {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
+              {isRecorrente && <Badge variant="outline" className="text-xs">🔄 Recorrente</Badge>}
               <Select value={local.status} onValueChange={v => updateField('status', v)}><SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger><SelectContent>{PROJECT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent></Select>
             </div>
             <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-xl font-bold border-none px-0 focus-visible:ring-0" />
@@ -647,15 +649,17 @@ export default function ProjetoDetailPage() {
               <div><Label className="text-xs">Cliente</Label><Input value={local.client_name || ''} onChange={e => updateField('client_name', e.target.value)} /></div>
               <div><Label className="text-xs">Departamento</Label><Select value={local.department || ''} onValueChange={v => updateField('department', v)}><SelectTrigger><SelectValue placeholder="—" /></SelectTrigger><SelectContent>{DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent></Select></div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><Label className="text-xs">Prazo</Label>
-                <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{local.deadline ? format(new Date(local.deadline), 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+            {!isRecorrente && (
+              <div className="grid grid-cols-2 gap-4">
+                <div><Label className="text-xs">Prazo</Label>
+                  <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{local.deadline ? format(new Date(local.deadline), 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+                </div>
+                <div><Label className="text-xs">Progresso ({getProjectProgress()}%)</Label><Progress value={getProjectProgress()} className="h-2 mt-3" /><p className="text-[10px] text-muted-foreground mt-1">{tasks.filter(t => t.status === 'concluida').length}/{tasks.length} tarefas{clientOnboardingItems.length + clientOffboardingItems.length > 0 ? ` + ${clientOnboardingItems.filter(i => i.completed).length + clientOffboardingItems.filter(i => i.completed).length}/${clientOnboardingItems.length + clientOffboardingItems.length} boarding` : ''}</p></div>
               </div>
-              <div><Label className="text-xs">Progresso ({getProjectProgress()}%)</Label><Progress value={getProjectProgress()} className="h-2 mt-3" /><p className="text-[10px] text-muted-foreground mt-1">{tasks.filter(t => t.status === 'concluida').length}/{tasks.length} tarefas{clientOnboardingItems.length + clientOffboardingItems.length > 0 ? ` + ${clientOnboardingItems.filter(i => i.completed).length + clientOffboardingItems.filter(i => i.completed).length}/${clientOnboardingItems.length + clientOffboardingItems.length} boarding` : ''}</p></div>
-            </div>
+            )}
             <div><Label className="text-xs">Equipa</Label><div className="flex gap-1 mt-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div></div>
             <Separator />
-            {/* Deliverables */}
+            {/* Deliverables - always shown for service projects */}
             <ProjectDeliverables projectId={id!} profiles={profiles} />
             <Separator />
             <div><Label className="text-xs">Notas</Label><MentionTextarea value={local.notes || ''} onChange={v => updateField('notes', v)} rows={6} placeholder="Notas do projeto..." /></div>
