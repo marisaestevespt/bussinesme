@@ -186,6 +186,7 @@ export default function ProdutoDetailPage() {
     enabled: !isNew,
   });
 
+  const { data: salesActions = [] } = useQuery({
     queryKey: ['product-sales-actions', form.name],
     queryFn: async () => {
       if (!form.name) return [];
