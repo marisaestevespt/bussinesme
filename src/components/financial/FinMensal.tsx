@@ -133,29 +133,28 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
 
   // Sale dialog
   const [saleOpen, setSaleOpen] = useState(false);
-  const [saleForm, setSaleForm] = useState({ description: '', product: '', client: '', base_value: '', invoice_total: '' });
 
-  const saveSale = async () => {
-    if (!saleForm.invoice_total) { toast.error('Valor é obrigatório'); return; }
+  const saveSale = async (saleData: any) => {
     const q = Math.ceil(m / 3);
     const { error } = await supabase.from('commercial_sales').insert({
-      sale_id: `V${currentYear}-${String(Date.now()).slice(-4)}`,
-      description: saleForm.description || null,
-      product: saleForm.product || null,
-      client: saleForm.client || null,
-      base_value: parseFloat(saleForm.base_value) || 0,
-      invoice_total: parseFloat(saleForm.invoice_total) || 0,
+      sale_id: saleData.sale_id || `V${currentYear}-${String(Date.now()).slice(-4)}`,
+      description: saleData.description || null,
+      product: saleData.product || null,
+      client: saleData.client || null,
+      source: saleData.source || null,
+      base_value: saleData.base_value || 0,
+      invoice_total: saleData.invoice_total || 0,
+      payment_date: saleData.payment_date || null,
+      status: saleData.status || 'aguarda_pagamento',
+      documents: saleData.documents || [],
       sale_month: m,
       sale_quarter: q,
       sale_year: currentYear,
-      status: 'aguarda_pagamento',
     });
     if (error) { toast.error('Erro ao guardar entrada'); return; }
     toast.success('Entrada adicionada');
     setSaleOpen(false);
-    setSaleForm({ description: '', product: '', client: '', base_value: '', invoice_total: '' });
-    // Refetch via window reload is crude; use queryClient instead
-    window.location.reload();
+    qc.invalidateQueries({ queryKey: ['commercial'] });
   };
 
   // Expense dialog
