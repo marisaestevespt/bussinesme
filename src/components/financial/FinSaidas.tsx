@@ -33,14 +33,27 @@ const LOCATIONS = [
   { value: 'fora_ue', label: 'Fora da UE' },
 ];
 
-interface Props { fin: ReturnType<typeof useFinancialData>; }
+interface Props { fin: ReturnType<typeof useFinancialData>; currentYear: number; }
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
+type Filter = 'all' | 'month' | 'quarter' | 'year';
 
-export function FinSaidas({ fin }: Props) {
+export function FinSaidas({ fin, currentYear }: Props) {
   const { getCategoryLabel } = useFinancialCategories();
-  const expenses = fin.expenses.data || [];
+  const allExpenses = fin.expenses.data || [];
+  const [filter, setFilter] = useState<Filter>('year');
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentQuarter = Math.ceil(currentMonth / 3);
+
+  const expenses = allExpenses.filter(e => {
+    if (filter === 'all') return true;
+    if (filter === 'year') return e.expense_year === currentYear;
+    if (filter === 'quarter') return e.expense_year === currentYear && e.expense_quarter === currentQuarter;
+    if (filter === 'month') return e.expense_year === currentYear && e.expense_month === currentMonth;
+    return true;
+  });
 
   // --- Expense Dialog ---
   const [expOpen, setExpOpen] = useState(false);
@@ -92,7 +105,11 @@ export function FinSaidas({ fin }: Props) {
       {/* DESPESAS */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold">Despesas</h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            {([['all', 'Todos'], ['month', 'Este mês'], ['quarter', 'Este trimestre'], ['year', 'Este ano']] as const).map(([k, l]) => (
+              <Button key={k} variant={filter === k ? 'default' : 'outline'} size="sm" onClick={() => setFilter(k)}>{l}</Button>
+            ))}
+          </div>
           <Button size="sm" onClick={openNewExpense}><Plus className="h-4 w-4 mr-1" /> Nova Despesa</Button>
         </div>
         <Card>
