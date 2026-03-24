@@ -30,7 +30,7 @@ export function PlanningObjectivesTab({ planning }: { planning: any }) {
           Sem objetivos para {planning.year}. Comece por criar o primeiro objetivo.
         </CardContent></Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4">
           {planning.allObjectives.map((obj: any) => {
             const prog = planning.objectiveProgress(obj);
             return (
