@@ -12,8 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Switch } from '@/components/ui/switch';
-import { Plus, CalendarIcon, Trash2, AlertTriangle } from 'lucide-react';
-import { format, parseISO, differenceInDays } from 'date-fns';
+import { Plus, CalendarIcon, Trash2 } from 'lucide-react';
+import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -202,18 +202,15 @@ export function FinSetupFinanceiro({ fin }: Props) {
                   <TableHead>Periodicidade</TableHead>
                   <TableHead className="text-right">Custo Mensal</TableHead>
                   <TableHead>Localização</TableHead>
-                  <TableHead>Renovação</TableHead>
-                  <TableHead>Status</TableHead>
+                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {subscriptions.length === 0 ? (
-                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Sem subscrições</TableCell></TableRow>
-                ) : subscriptions.map(s => {
-                  const renewalWarning = s.renewal_date && s.status === 'ativo' && differenceInDays(parseISO(s.renewal_date), today) <= 30 && differenceInDays(parseISO(s.renewal_date), today) >= 0;
-                  return (
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Sem subscrições</TableCell></TableRow>
+                ) : subscriptions.map(s => (
                     <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
-                      setSubForm({ ...s, value: s.value.toString(), start_date: s.start_date ? new Date(s.start_date + 'T00:00:00') : undefined, renewal_date: s.renewal_date ? new Date(s.renewal_date + 'T00:00:00') : undefined });
+                      setSubForm({ ...s, value: s.value.toString(), start_date: s.start_date ? new Date(s.start_date + 'T00:00:00') : undefined });
                       setSubOpen(true);
                     }}>
                       <TableCell className="font-medium">{s.platform_name}</TableCell>
@@ -222,16 +219,9 @@ export function FinSetupFinanceiro({ fin }: Props) {
                       <TableCell>{PERIODICITIES.find(p => p.value === s.periodicity)?.label || s.periodicity}</TableCell>
                       <TableCell className="text-right font-medium">{fmt(s.monthly_equivalent)}</TableCell>
                       <TableCell>{LOCATIONS.find(l => l.value === s.location)?.label || s.location}</TableCell>
-                      <TableCell>
-                        <span className="flex items-center gap-1">
-                          {s.renewal_date || '—'}
-                          {renewalWarning && <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />}
-                        </span>
-                      </TableCell>
                       <TableCell><Badge variant="outline" className={s.status === 'ativo' ? 'bg-green-100 text-green-800' : s.status === 'pausado' ? 'bg-amber-100 text-amber-800' : 'bg-muted text-muted-foreground'}>{SUB_STATUS.find(st => st.value === s.status)?.label || s.status}</Badge></TableCell>
                     </TableRow>
-                  );
-                })}
+                ))}
               </TableBody>
             </Table>
           </CardContent>
@@ -281,33 +271,18 @@ export function FinSetupFinanceiro({ fin }: Props) {
                 <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label>Data de Início</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start", !subForm.start_date && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {subForm.start_date ? format(subForm.start_date instanceof Date ? subForm.start_date : new Date(subForm.start_date), 'dd/MM/yyyy') : 'Selecionar'}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={subForm.start_date instanceof Date ? subForm.start_date : undefined} onSelect={d => setSubForm((f: any) => ({ ...f, start_date: d }))} className="p-3 pointer-events-auto" />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div><Label>Data de Renovação</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start", !subForm.renewal_date && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {subForm.renewal_date ? format(subForm.renewal_date instanceof Date ? subForm.renewal_date : new Date(subForm.renewal_date), 'dd/MM/yyyy') : 'Selecionar'}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={subForm.renewal_date instanceof Date ? subForm.renewal_date : undefined} onSelect={d => setSubForm((f: any) => ({ ...f, renewal_date: d }))} className="p-3 pointer-events-auto" />
-                  </PopoverContent>
-                </Popover>
-              </div>
+            <div><Label>Data de Início</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start", !subForm.start_date && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {subForm.start_date ? format(subForm.start_date instanceof Date ? subForm.start_date : new Date(subForm.start_date), 'dd/MM/yyyy') : 'Selecionar'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={subForm.start_date instanceof Date ? subForm.start_date : undefined} onSelect={d => setSubForm((f: any) => ({ ...f, start_date: d }))} className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
             </div>
             <div><Label>Status</Label>
               <Select value={subForm.status || 'ativo'} onValueChange={v => setSubForm((f: any) => ({ ...f, status: v }))}>
