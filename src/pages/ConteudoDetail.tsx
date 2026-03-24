@@ -107,7 +107,8 @@ export default function ConteudoDetailPage() {
         title: item.title, scheduled_at: item.scheduled_at, status: item.status,
         funnel_stage: item.funnel_stage || '', content_type: item.content_type || '',
         format: item.format || '', objective: item.objective || '',
-        product_name: item.product_name || '', project_id: item.project_id || '',
+        product_name: item.product_name || '', product_id: (item as any).product_id || '',
+        project_id: item.project_id || '',
         assigned_to: item.assigned_to || '', copy_content: item.copy_content || '',
       });
     }
@@ -126,7 +127,8 @@ export default function ConteudoDetailPage() {
       title: form.title, scheduled_at: form.scheduled_at, status: form.status,
       funnel_stage: form.funnel_stage || null, content_type: form.content_type || null,
       format: form.format || null, objective: form.objective || null,
-      product_name: form.product_name || null, project_id: form.project_id || null,
+      product_name: form.product_name || null, product_id: form.product_id || null,
+      project_id: form.project_id || null,
       assigned_to: form.assigned_to || null, copy_content: form.copy_content || null,
       cover_url: autoCover,
     } as any).eq('id', id);
@@ -412,8 +414,15 @@ export default function ConteudoDetailPage() {
                   </Field>
 
                   <Field label="Produto associado">
-                    <Input value={form.product_name} onChange={e => setForm(f => ({ ...f, product_name: e.target.value }))}
-                      className="h-9" placeholder="Nome do produto" />
+                    <Select value={form.product_id} onValueChange={v => {
+                      const prod = products.find((p: any) => p.id === v);
+                      setForm(f => ({ ...f, product_id: v, product_name: prod?.name || '' }));
+                    }}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                      <SelectContent>
+                        {products.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </Field>
 
                   <Field label="Projeto">
