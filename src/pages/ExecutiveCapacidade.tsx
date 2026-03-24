@@ -112,7 +112,7 @@ export default function ExecutiveCapacidade() {
         product_name: product.name,
         hours_per_client_month: product.monthly_hours_per_client || 0,
         current_clients: 0,
-        price_per_client: 0,
+        price_per_client: parseFloat(String(product.ticket || '0').replace(/[^\d.,]/g, '').replace(',', '.')) || 0,
       } as any);
       if (error) throw error;
     },
