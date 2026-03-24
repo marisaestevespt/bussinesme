@@ -1058,44 +1058,6 @@ export default function ProdutoDetailPage() {
                   </CardContent>
                 </Card>
                 <OfferCalculator vatRate={(form as any).vat_rate || '23'} />
-              </div>
-            )}
-
-            {/* ===== PROCESSOS ===== */}
-            {openSection === 'processos' && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
-                {/* SOPs do Produto */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Processos (SOPs)</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>ID</TableHead>
-                          <TableHead>Nome</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {productSops.length === 0 && (
-                          <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-4">Sem processos associados</TableCell></TableRow>
-                        )}
-                        {productSops.map((sop: any) => {
-                          const st = SOP_STATUSES[sop.status] || SOP_STATUSES.para_criar;
-                          return (
-                            <TableRow key={sop.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/processos/${sop.id}`)}>
-                              <TableCell className="text-xs font-mono text-muted-foreground">{sop.sop_id}</TableCell>
-                              <TableCell className="font-medium text-sm">{sop.name}</TableCell>
-                              <TableCell><Badge className={cn('text-xs', st.color)}>{st.label}</Badge></TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
 
                 {/* Formas de Pagamento do Produto */}
                 <Card>
@@ -1137,94 +1099,45 @@ export default function ProdutoDetailPage() {
                     </div>
                   </CardContent>
                 </Card>
+              </div>
+            )}
 
-                {/* Templates de Onboarding */}
+            {/* ===== PROCESSOS ===== */}
+            {openSection === 'processos' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                {/* SOPs do Produto */}
                 <Card>
-                  <CardHeader className="flex-row items-center justify-between">
-                    <CardTitle className="text-base">SOP: Entrada/Onboarding de Clientes</CardTitle>
-                    {isOwner && (
-                      <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_onboarding_templates', data: { product_id: id, activity: '' } })}>
-                        <Plus className="h-3 w-3 mr-1" /> Adicionar Passo
-                      </Button>
-                    )}
+                  <CardHeader>
+                    <CardTitle className="text-base">Processos (SOPs)</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-xs text-muted-foreground mb-3">Passos de onboarding que serão aplicados a cada cliente deste produto.</p>
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Fase</TableHead>
-                          <TableHead>Atividade</TableHead>
-                          <TableHead>Responsável</TableHead>
-                          <TableHead>Regra</TableHead>
-                          <TableHead>Documentos / Links</TableHead>
-                          {isOwner && <TableHead className="w-10" />}
+                          <TableHead>ID</TableHead>
+                          <TableHead>Nome</TableHead>
+                          <TableHead>Status</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {onboardingTemplate.length === 0 && (
-                          <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-4">Sem passos de onboarding</TableCell></TableRow>
+                        {productSops.length === 0 && (
+                          <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-4">Sem processos associados</TableCell></TableRow>
                         )}
-                        {onboardingTemplate.map((t: any) => (
-                          <TableRow key={t.id}>
-                            <TableCell><Input defaultValue={t.phase || ''} placeholder="Fase" onBlur={e => updateRow.mutate({ table: 'product_onboarding_templates', id: t.id, data: { phase: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
-                            <TableCell><Input defaultValue={t.activity || ''} placeholder="Atividade" onBlur={e => updateRow.mutate({ table: 'product_onboarding_templates', id: t.id, data: { activity: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
-                            <TableCell><Input defaultValue={t.responsible || ''} placeholder="Responsável" onBlur={e => updateRow.mutate({ table: 'product_onboarding_templates', id: t.id, data: { responsible: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
-                            <TableCell><Input defaultValue={t.rule || ''} placeholder="Regra" onBlur={e => updateRow.mutate({ table: 'product_onboarding_templates', id: t.id, data: { rule: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
-                            <TableCell><Input defaultValue={t.documents_links || ''} placeholder="URL ou notas" onBlur={e => updateRow.mutate({ table: 'product_onboarding_templates', id: t.id, data: { documents_links: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
-                            {isOwner && (
-                              <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteRow.mutate({ table: 'product_onboarding_templates', id: t.id })}><Trash2 className="h-3 w-3" /></Button></TableCell>
-                            )}
-                          </TableRow>
-                        ))}
+                        {productSops.map((sop: any) => {
+                          const st = SOP_STATUSES[sop.status] || SOP_STATUSES.para_criar;
+                          return (
+                            <TableRow key={sop.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/processos/${sop.id}`)}>
+                              <TableCell className="text-xs font-mono text-muted-foreground">{sop.sop_id}</TableCell>
+                              <TableCell className="font-medium text-sm">{sop.name}</TableCell>
+                              <TableCell><Badge className={cn('text-xs', st.color)}>{st.label}</Badge></TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   </CardContent>
                 </Card>
 
-                {/* Template de Offboarding */}
-                <Card>
-                  <CardHeader className="flex-row items-center justify-between">
-                    <CardTitle className="text-base">SOP: Fecho/Offboarding de Clientes</CardTitle>
-                    {isOwner && (
-                      <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_offboarding_templates', data: { product_id: id, activity: '' } })}>
-                        <Plus className="h-3 w-3 mr-1" /> Adicionar Passo
-                      </Button>
-                    )}
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-xs text-muted-foreground mb-3">Passos de offboarding que serão aplicados a cada cliente deste produto.</p>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Fase</TableHead>
-                          <TableHead>Atividade</TableHead>
-                          <TableHead>Responsável</TableHead>
-                          <TableHead>Regra</TableHead>
-                          <TableHead>Documentos / Links</TableHead>
-                          {isOwner && <TableHead className="w-10" />}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {offboardingTemplate.length === 0 && (
-                          <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-4">Sem passos de offboarding</TableCell></TableRow>
-                        )}
-                        {offboardingTemplate.map((t: any) => (
-                          <TableRow key={t.id}>
-                            <TableCell><Input defaultValue={t.phase || ''} placeholder="Fase" onBlur={e => updateRow.mutate({ table: 'product_offboarding_templates', id: t.id, data: { phase: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
-                            <TableCell><Input defaultValue={t.activity || ''} placeholder="Atividade" onBlur={e => updateRow.mutate({ table: 'product_offboarding_templates', id: t.id, data: { activity: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
-                            <TableCell><Input defaultValue={t.responsible || ''} placeholder="Responsável" onBlur={e => updateRow.mutate({ table: 'product_offboarding_templates', id: t.id, data: { responsible: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
-                            <TableCell><Input defaultValue={t.rule || ''} placeholder="Regra" onBlur={e => updateRow.mutate({ table: 'product_offboarding_templates', id: t.id, data: { rule: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
-                            <TableCell><Input defaultValue={t.documents_links || ''} placeholder="URL ou notas" onBlur={e => updateRow.mutate({ table: 'product_offboarding_templates', id: t.id, data: { documents_links: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} /></TableCell>
-                            {isOwner && (
-                              <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteRow.mutate({ table: 'product_offboarding_templates', id: t.id })}><Trash2 className="h-3 w-3" /></Button></TableCell>
-                            )}
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
 
                 {/* Template de Projeto */}
                 <Card>
