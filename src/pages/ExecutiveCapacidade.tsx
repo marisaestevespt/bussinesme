@@ -173,7 +173,7 @@ export default function ExecutiveCapacidade() {
               <Card>
                 <CardContent className="p-4 text-center">
                   <p className="text-xs text-muted-foreground">Capacidade</p>
-                  <p className={`text-2xl font-bold ${capacityPercent > 90 ? 'text-destructive' : capacityPercent > 70 ? 'text-yellow-600' : 'text-emerald-600'}`}>
+                  <p className={`text-2xl font-bold ${capacityPercent > 90 ? 'text-destructive' : capacityPercent > 70 ? 'text-accent-foreground' : 'text-primary'}`}>
                     {capacityPercent}%
                   </p>
                   <Progress value={Math.min(capacityPercent, 100)} className="h-2 mt-1" />
