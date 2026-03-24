@@ -476,6 +476,63 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Import from product dialog */}
+      <Dialog open={importOpen} onOpenChange={setImportOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Importar Entregas do Produto</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm">Selecionar Produto</Label>
+              {productsWithTemplates.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic py-2">Nenhum produto com entregas definidas.</p>
+              ) : (
+                <Select value={selectedProductId} onValueChange={setSelectedProductId}>
+                  <SelectTrigger><SelectValue placeholder="Escolher produto..." /></SelectTrigger>
+                  <SelectContent>
+                    {productsWithTemplates.map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.name} ({p.templates.length} fases)</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            {selectedProductId && (() => {
+              const product = productsWithTemplates.find(p => p.id === selectedProductId);
+              if (!product) return null;
+              return (
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Fases que serão criadas:</Label>
+                  <div className="rounded-lg border p-3 space-y-1.5 bg-muted/30">
+                    {product.templates.map((t: any, i: number) => (
+                      <div key={t.id} className="flex items-center gap-2 text-sm">
+                        <span className="text-xs text-muted-foreground font-mono w-5 text-right">{i + 1}.</span>
+                        <span className="font-medium">{t.name || '(sem nome)'}</span>
+                        {t.description && <span className="text-xs text-muted-foreground truncate">— {t.description}</span>}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">As entregas serão criadas como recorrentes. Poderás depois definir as datas no projeto.</p>
+                </div>
+              );
+            })()}
+
+            <Button
+              className="w-full"
+              onClick={() => {
+                if (!selectedProductId) { toast.error('Seleciona um produto'); return; }
+                importMutation.mutate(selectedProductId);
+              }}
+              disabled={!selectedProductId || importMutation.isPending}
+            >
+              {importMutation.isPending ? 'A importar...' : 'Importar Entregas'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
