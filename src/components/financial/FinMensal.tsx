@@ -54,6 +54,8 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
   const [saleSheetOpen, setSaleSheetOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [expenseSheetOpen, setExpenseSheetOpen] = useState(false);
+  const [ivaCobradoOpen, setIvaCobradoOpen] = useState(false);
+  const [ivaPagoOpen, setIvaPagoOpen] = useState(false);
   const m = parseInt(month);
 
   // Active member contracts
