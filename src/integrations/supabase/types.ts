@@ -4908,6 +4908,41 @@ export type Database = {
           },
         ]
       }
+      product_improvements: {
+        Row: {
+          completed: boolean
+          created_at: string
+          description: string
+          id: string
+          product_id: string
+          sort_order: number
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          description?: string
+          id?: string
+          product_id: string
+          sort_order?: number
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          description?: string
+          id?: string
+          product_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_improvements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_kpi_reports: {
         Row: {
           content: string | null
