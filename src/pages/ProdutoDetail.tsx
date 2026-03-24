@@ -757,6 +757,7 @@ export default function ProdutoDetailPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               <SectionButton sectionKey="comercial" label="Comercial & Mkt" />
               <SectionButton sectionKey="contabilidade" label="Contabilidade" />
+              <SectionButton sectionKey="processos" label="Processos" />
               <SectionButton sectionKey="backoffice" label="Backoffice" />
               <SectionButton sectionKey="customer-success" label="Customer Success" />
               <SectionButton sectionKey="kpis" label="KPIs do Produto" />
