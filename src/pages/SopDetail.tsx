@@ -232,6 +232,12 @@ export default function SopDetailPage() {
     return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && (n.includes('nps') || n.includes('feedback'));
   }, [sop]);
 
+  const isAcompanhamentoSop = useMemo(() => {
+    if (!sop) return false;
+    const n = sop.name?.toLowerCase() || '';
+    return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && n.includes('acompanhamento');
+  }, [sop]);
+
   const templateTable = isOnboardingSop ? 'product_onboarding_templates' : isOffboardingSop ? 'product_offboarding_templates' : null;
   const linkedProductId = (sop as any)?.linked_entity_id;
 
