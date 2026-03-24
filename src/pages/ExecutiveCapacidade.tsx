@@ -19,7 +19,7 @@ import { useProducts, Product } from '@/hooks/useProducts';
 export default function ExecutiveCapacidade() {
   const qc = useQueryClient();
   const { products } = useProducts();
-  const activeProducts = (products.data || []).filter((p: Product) => p.status === 'vendas_ativas');
+  const allProducts = (products.data || []).filter((p: Product) => p.status !== 'off');
 
   // Scenario data
   const scenario = useQuery({
@@ -121,7 +121,7 @@ export default function ExecutiveCapacidade() {
   const capacityPercent = availableHours > 0 ? Math.round((totalHoursUsed / availableHours) * 100) : 0;
 
   const addedProductIds = items.map(p => p.product_id);
-  const availableToAdd = activeProducts.filter((p: Product) => !addedProductIds.includes(p.id));
+  const availableToAdd = allProducts.filter((p: Product) => !addedProductIds.includes(p.id));
 
   return (
     <AppLayout>
