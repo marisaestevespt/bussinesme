@@ -455,44 +455,6 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin }: {
   const LOC_LABELS: Record<string, string> = { portugal: 'Portugal', ue: 'União Europeia', fora_ue: 'Fora da UE' };
   const [confirming, setConfirming] = useState(false);
 
-  const handleConfirm = async () => {
-    setConfirming(true);
-    const dateStr = `${currentYear}-${String(month).padStart(2, '0')}-15`;
-    if (linkedExpense) {
-      await fin.upsertExpense.mutateAsync({
-        id: linkedExpense.id,
-        status: isPaid ? 'por_pagar' : 'pago',
-      } as any);
-    } else {
-      // Calculate proper base/total with VAT
-      const vatRate = sub.vat_rate || 0;
-      let base: number, total: number;
-      if (sub.includes_vat) {
-        total = sub.value;
-        base = Math.round(sub.value / (1 + vatRate / 100) * 100) / 100;
-      } else {
-        base = sub.value;
-        total = Math.round(sub.value * (1 + vatRate / 100) * 100) / 100;
-      }
-      await fin.upsertExpense.mutateAsync({
-        description: `${sub.platform_name} — ${MONTHS_LABEL[month - 1]} ${currentYear}`,
-        category: 'plataformas',
-        base_value: base,
-        vat_rate: vatRate,
-        total_with_vat: total,
-        location: sub.location,
-        expense_date: dateStr,
-        expense_month: month,
-        expense_quarter: Math.ceil(month / 3),
-        expense_year: currentYear,
-        status: 'pago',
-        source_type: 'subscription',
-        source_id: sub.id,
-      } as any);
-    }
-    setConfirming(false);
-    toast.success(isPaid ? 'Marcado como pendente' : 'Confirmado como pago');
-  };
 
   const vatRate = sub.vat_rate || 0;
   let displayBase: number, displayTotal: number;
