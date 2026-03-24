@@ -95,11 +95,12 @@ export function useProducts() {
         if (error) throw error;
         const newId = data.id;
 
-        // Auto-create 4 default SOPs for the new product
+        // Auto-create 5 default SOPs for the new product
         const defaultSops = [
           'Entrada/Onboarding de Clientes',
           'Gestão de Pagamentos',
           'Recolha de NPS/Feedbacks',
+          'Acompanhamento de Cliente',
           'Fecho/Offboarding de Clientes',
         ];
         await supabase.from('sops').insert(
