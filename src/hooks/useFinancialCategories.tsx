@@ -19,6 +19,7 @@ const DEFAULT_EXP_CATEGORIES = [
   { value: 'ferramenta', label: 'Ferramenta' },
   { value: 'formacao', label: 'Formação' },
   { value: 'servico_contratado', label: 'Serviço Contratado' },
+  { value: 'plataformas', label: 'Plataformas' },
   { value: 'outro', label: 'Outro' },
 ];
 
