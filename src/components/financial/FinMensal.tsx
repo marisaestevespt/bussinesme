@@ -382,21 +382,12 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
       {/* Saúde Financeira */}
       <FinancialHealthSection sales={monthSales} allSales={sales} currentYear={currentYear} month={m} />
 
-      <Dialog open={saleOpen} onOpenChange={setSaleOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Nova Entrada — {MONTHS[m - 1]} {currentYear}</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <div><Label>Descrição</Label><Input value={saleForm.description} onChange={e => setSaleForm(f => ({ ...f, description: e.target.value }))} /></div>
-            <div><Label>Produto</Label><Input value={saleForm.product} onChange={e => setSaleForm(f => ({ ...f, product: e.target.value }))} /></div>
-            <div><Label>Cliente</Label><Input value={saleForm.client} onChange={e => setSaleForm(f => ({ ...f, client: e.target.value }))} /></div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label>Valor Base (€)</Label><Input type="number" value={saleForm.base_value} onChange={e => setSaleForm(f => ({ ...f, base_value: e.target.value }))} /></div>
-              <div><Label>Fatura Total (€)</Label><Input type="number" value={saleForm.invoice_total} onChange={e => setSaleForm(f => ({ ...f, invoice_total: e.target.value }))} /></div>
-            </div>
-            <Button className="w-full" onClick={saveSale}>Guardar</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <SaleFormDialog
+        open={saleOpen}
+        onOpenChange={setSaleOpen}
+        products={productNames}
+        onSave={saveSale}
+      />
 
       {/* New Expense Dialog */}
       <Dialog open={expOpen} onOpenChange={setExpOpen}>
