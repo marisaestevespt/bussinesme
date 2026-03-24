@@ -90,12 +90,17 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <span className="font-mono text-sm text-muted-foreground">{sale.sale_id}</span>
-            <Badge variant="outline" className={statusBadge.cls}>{statusBadge.label}</Badge>
           </SheetTitle>
         </SheetHeader>
 
         <div className="space-y-5 mt-6">
-          {/* Details grid */}
+          {/* Status prominently on top */}
+          <div className={`rounded-lg px-4 py-3 ${statusBadge.cls}`}>
+            <p className="text-xs opacity-70">Status</p>
+            <p className="font-semibold">{statusBadge.label}</p>
+          </div>
+
+          {/* Description & Client */}
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
               <p className="text-muted-foreground text-xs">Descrição</p>
@@ -105,6 +110,10 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
               <p className="text-muted-foreground text-xs">Cliente</p>
               <p className="font-medium">{sale.client || '—'}</p>
             </div>
+          </div>
+
+          {/* Other details */}
+          <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
               <p className="text-muted-foreground text-xs">Produto</p>
               <p className="font-medium">{sale.product || '—'}</p>
