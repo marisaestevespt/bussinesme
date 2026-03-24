@@ -1944,7 +1944,6 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
   const allMembers = team.members.data || [];
   const [filterMember, setFilterMember] = useState('');
   const [contractDialog, setContractDialog] = useState<any>(null);
-  const [paymentDialog, setPaymentDialog] = useState<any>(null);
 
   const memberName = (id: string) => allMembers.find(m => m.id === id)?.full_name || '—';
 
@@ -1953,24 +1952,6 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
     if (filterMember) d = d.filter(r => r.member_id === filterMember);
     return d;
   }, [team.contracts.data, filterMember]);
-
-  const paymentsData = useMemo(() => {
-    let d = team.payments.data || [];
-    if (filterMember) d = d.filter(r => r.member_id === filterMember);
-    return d;
-  }, [team.payments.data, filterMember]);
-
-  const paidThisMonth = useMemo(() =>
-    (team.payments.data || []).filter(p => p.status === 'pago' && p.month === currentMonth && p.year === currentYear)
-      .reduce((s, p) => s + Number(p.net_value || 0), 0),
-    [team.payments.data]
-  );
-
-  const paidThisYear = useMemo(() =>
-    (team.payments.data || []).filter(p => p.status === 'pago' && p.year === currentYear)
-      .reduce((s, p) => s + Number(p.net_value || 0), 0),
-    [team.payments.data]
-  );
 
   const contractFields = [
     { key: 'member_id', label: 'Membro', type: 'select', options: allMembers.map(m => ({ value: m.id, label: m.full_name })) },
@@ -1982,32 +1963,11 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
     { key: 'notes', label: 'Notas', type: 'textarea' },
   ];
 
-  const paymentFields = [
-    { key: 'member_id', label: 'Membro', type: 'select', options: allMembers.map(m => ({ value: m.id, label: m.full_name })) },
-    { key: 'month', label: 'Mês', type: 'number' },
-    { key: 'year', label: 'Ano', type: 'number' },
-    { key: 'payment_type', label: 'Tipo', type: 'select', options: PAYMENT_TYPES },
-    { key: 'gross_value', label: 'Valor Bruto (€)', type: 'number' },
-    { key: 'net_value', label: 'Valor Líquido (€)', type: 'number' },
-    { key: 'status', label: 'Status', type: 'select', options: PAYMENT_STATUSES },
-    { key: 'document_url', label: 'Documentos (URL)', type: 'text' },
-  ];
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center gap-3 flex-wrap">
-        <h2 className="text-base font-semibold">Contratos & Pagamentos</h2>
+        <h2 className="text-base font-semibold">Contratos</h2>
         <div className="w-48"><MemberSelect value={filterMember} onChange={setFilterMember} members={allMembers} /></div>
-      </div>
-      <div className="flex gap-4">
-        <Card className="flex-1"><CardContent className="p-4 text-center">
-          <p className="text-xs text-muted-foreground">Pago este mês</p>
-          <p className="text-lg font-bold">€{paidThisMonth.toLocaleString()}</p>
-        </CardContent></Card>
-        <Card className="flex-1"><CardContent className="p-4 text-center">
-          <p className="text-xs text-muted-foreground">Pago este ano</p>
-          <p className="text-lg font-bold">€{paidThisYear.toLocaleString()}</p>
-        </CardContent></Card>
       </div>
       <div className="space-y-3">
         <div className="flex justify-between items-center">
@@ -2040,40 +2000,6 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
           </Table>
         </div></Card>
         {contractDialog !== null && <RecordDialog open onClose={() => setContractDialog(null)} title={contractDialog.id ? 'Editar Contrato' : 'Novo Contrato'} fields={contractFields} initial={contractDialog} onSave={(r: any) => team.upsertContract.mutate(r)} />}
-      </div>
-      <Separator />
-      <div className="space-y-3">
-        <div className="flex justify-between items-center">
-          <h3 className="text-sm font-semibold">/ Pagamentos</h3>
-          <Button size="sm" onClick={() => setPaymentDialog({ month: currentMonth, year: currentYear })}><Plus className="h-4 w-4 mr-1" /> Novo Pagamento</Button>
-        </div>
-        <Card><div className="overflow-x-auto">
-          <Table>
-            <TableHeader><TableRow>
-              <TableHead>Membro</TableHead><TableHead>Mês</TableHead><TableHead>Tipo</TableHead><TableHead>Bruto</TableHead><TableHead>Líquido</TableHead><TableHead>Status</TableHead><TableHead>Doc</TableHead><TableHead></TableHead>
-            </TableRow></TableHeader>
-            <TableBody>
-              {paymentsData.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Sem pagamentos</TableCell></TableRow> :
-                paymentsData.map(p => (
-                  <TableRow key={p.id}>
-                    <TableCell className="text-sm">{memberName(p.member_id)}</TableCell>
-                    <TableCell className="text-xs">{p.month && p.year ? `${getMonthName(p.month)} ${p.year}` : '—'}</TableCell>
-                    <TableCell className="text-xs">{labelFor(PAYMENT_TYPES, p.payment_type)}</TableCell>
-                    <TableCell className="text-xs">€{Number(p.gross_value).toLocaleString()}</TableCell>
-                    <TableCell className="text-xs">€{Number(p.net_value).toLocaleString()}</TableCell>
-                    <TableCell><Badge variant={p.status === 'pago' ? 'default' : 'secondary'} className="text-[10px]">{labelFor(PAYMENT_STATUSES, p.status)}</Badge></TableCell>
-                    <TableCell>{p.document_url ? <a href={p.document_url} target="_blank" rel="noopener" className="text-xs text-primary underline">Ver</a> : '—'}</TableCell>
-                    <TableCell><div className="flex gap-1">
-                      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setPaymentDialog(p)}>Editar</Button>
-                      <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive" onClick={() => team.deletePayment.mutate(p.id)}><Trash2 className="h-3 w-3" /></Button>
-                    </div></TableCell>
-                  </TableRow>
-                ))
-              }
-            </TableBody>
-          </Table>
-        </div></Card>
-        {paymentDialog !== null && <RecordDialog open onClose={() => setPaymentDialog(null)} title={paymentDialog.id ? 'Editar Pagamento' : 'Novo Pagamento'} fields={paymentFields} initial={paymentDialog} onSave={(r: any) => team.upsertPayment.mutate(r)} />}
       </div>
     </div>
   );
