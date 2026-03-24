@@ -10,8 +10,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Users, FolderOpen, CheckCircle2, Clock, AlertTriangle, Briefcase, Building2, ListTodo, Filter, X, TrendingUp, UserX, CalendarClock } from 'lucide-react';
+import { Users, FolderOpen, CheckCircle2, Clock, AlertTriangle, Briefcase, Building2, ListTodo, Filter, X, TrendingUp, UserX, CalendarClock, Rocket, Target, CircleDot } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -394,7 +395,60 @@ export default function OperacaoPage() {
 
   const totalAlerts = stalledProjects.length + clientsNearEndOfCycle.length + unassignedTasks.length;
 
-  // ── Render helpers ──────────────────────────────────────────
+  // ── Countdown — next delivery ──────────────────────────────
+  const nextDelivery = useMemo(() => {
+    const upcoming = allActiveProjects
+      .filter(p => p.deadline && !isBefore(new Date(p.deadline), today))
+      .sort((a, b) => new Date(a.deadline!).getTime() - new Date(b.deadline!).getTime());
+    if (upcoming.length === 0) return null;
+    const p = upcoming[0];
+    const daysLeft = differenceInDays(new Date(p.deadline!), today);
+    return { ...p, daysLeft };
+  }, [allActiveProjects, today]);
+
+  // ── Project health indicators ──────────────────────────────
+  const projectHealth = useMemo(() => {
+    return allActiveProjects.map(p => {
+      const prog = projectProgress.get(p.id) ?? p.progress;
+      let health: 'green' | 'yellow' | 'red' = 'green';
+      if (p.deadline) {
+        const daysLeft = differenceInDays(new Date(p.deadline), today);
+        const expectedProg = p.deadline ? Math.max(0, Math.min(100, ((differenceInDays(today, new Date(p.start_date || p.created_at))) / Math.max(1, differenceInDays(new Date(p.deadline), new Date(p.start_date || p.created_at)))) * 100)) : 0;
+        if (prog < expectedProg - 25 || (daysLeft <= 3 && prog < 80)) health = 'red';
+        else if (prog < expectedProg - 10 || (daysLeft <= 7 && prog < 60)) health = 'yellow';
+      }
+      if (prog === 0 && differenceInDays(today, new Date(p.start_date || p.created_at)) > 7) health = 'red';
+      return { ...p, prog, health };
+    }).sort((a, b) => {
+      const order = { red: 0, yellow: 1, green: 2 };
+      return order[a.health] - order[b.health];
+    });
+  }, [allActiveProjects, projectProgress, today]);
+
+  // ── Delivery timeline (next 14 days) ──────────────────────
+  const deliveryTimeline = useMemo(() => {
+    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task'; id: string }[] }[] = [];
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() + i);
+      const dateStr = format(d, 'yyyy-MM-dd');
+      const items: { name: string; type: 'project' | 'task'; id: string }[] = [];
+      allActiveProjects.forEach(p => {
+        if (p.deadline && format(new Date(p.deadline), 'yyyy-MM-dd') === dateStr) {
+          items.push({ name: p.name, type: 'project', id: p.id });
+        }
+      });
+      tasks.filter(t => t.status !== 'concluida').forEach(t => {
+        if (t.deadline && format(new Date(t.deadline), 'yyyy-MM-dd') === dateStr) {
+          items.push({ name: t.name, type: 'task', id: t.id });
+        }
+      });
+      if (items.length > 0) {
+        days.push({ date: d, label: isToday(d) ? 'Hoje' : format(d, 'EEE dd', { locale: pt }), items });
+      }
+    }
+    return days;
+  }, [allActiveProjects, tasks, today]);
 
   function renderTaskRow(t: Task) {
     const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
@@ -605,7 +659,132 @@ export default function OperacaoPage() {
           </DialogContent>
         </Dialog>
 
-        {/* ═══════════════ CONTEÚDO PRINCIPAL — TABS ═══════════════ */}
+        {/* ═══════════════ COUNTDOWN + TIMELINE + HEALTH ═══════════════ */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+          {/* Countdown — next delivery */}
+          {nextDelivery && (
+            <Card className="lg:col-span-3 border-0 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent animate-fade-in overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-8 translate-x-8" />
+              <CardContent className="p-5 relative">
+                <div className="flex items-center gap-2 mb-3">
+                  <Rocket className="h-4 w-4 text-primary" />
+                  <p className="text-xs font-semibold text-primary uppercase tracking-wider">Próxima Entrega</p>
+                </div>
+                <div className="flex items-baseline gap-1 mb-2">
+                  <span className={`text-4xl font-black tabular-nums ${nextDelivery.daysLeft <= 3 ? 'text-destructive' : nextDelivery.daysLeft <= 7 ? 'text-amber-600' : 'text-foreground'}`}>
+                    {nextDelivery.daysLeft}
+                  </span>
+                  <span className="text-sm text-muted-foreground font-medium">dias</span>
+                </div>
+                <Link to={`/hub/projetos/${nextDelivery.id}`} className="group">
+                  <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">{nextDelivery.name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {nextDelivery.client_name && `${nextDelivery.client_name} · `}
+                    {format(new Date(nextDelivery.deadline!), 'dd MMM yyyy', { locale: pt })}
+                  </p>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Delivery Timeline */}
+          <Card className={`${nextDelivery ? 'lg:col-span-9' : 'lg:col-span-12'} animate-fade-in`}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <CalendarClock className="h-4 w-4" /> Timeline de Entregas
+                <span className="text-xs text-muted-foreground font-normal ml-1">próximos 14 dias</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {deliveryTimeline.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">Sem entregas nos próximos 14 dias 🎉</p>
+              ) : (
+                <div className="flex gap-0 overflow-x-auto pb-2">
+                  {deliveryTimeline.map((day, idx) => (
+                    <div key={idx} className="flex flex-col items-center min-w-0 flex-1">
+                      {/* Connector line + dot */}
+                      <div className="flex items-center w-full">
+                        <div className={`h-0.5 flex-1 ${idx === 0 ? 'bg-transparent' : 'bg-border'}`} />
+                        <div className={`h-3 w-3 rounded-full shrink-0 border-2 ${
+                          isToday(day.date) ? 'bg-primary border-primary' : 
+                          day.items.some(i => i.type === 'project') ? 'bg-amber-500 border-amber-500' : 'bg-muted-foreground/40 border-muted-foreground/40'
+                        }`} />
+                        <div className={`h-0.5 flex-1 ${idx === deliveryTimeline.length - 1 ? 'bg-transparent' : 'bg-border'}`} />
+                      </div>
+                      {/* Label */}
+                      <p className={`text-[10px] mt-1.5 font-medium capitalize ${isToday(day.date) ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {day.label}
+                      </p>
+                      {/* Items */}
+                      <div className="mt-1 space-y-0.5 w-full px-0.5">
+                        {day.items.slice(0, 3).map((item, i) => (
+                          <div key={i} className={`text-[9px] leading-tight px-1.5 py-1 rounded-md truncate text-center ${
+                            item.type === 'project' ? 'bg-primary/10 text-primary font-medium' : 'bg-muted text-muted-foreground'
+                          }`} title={item.name}>
+                            {item.name.length > 12 ? item.name.slice(0, 12) + '…' : item.name}
+                          </div>
+                        ))}
+                        {day.items.length > 3 && (
+                          <p className="text-[9px] text-muted-foreground text-center">+{day.items.length - 3}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ═══════════════ SAÚDE DOS PROJETOS ═══════════════ */}
+        <Card className="animate-fade-in">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Target className="h-4 w-4" /> Saúde dos Projetos
+              <div className="flex items-center gap-3 ml-auto text-[10px] text-muted-foreground">
+                <span className="flex items-center gap-1"><CircleDot className="h-3 w-3 text-emerald-500" /> Em dia</span>
+                <span className="flex items-center gap-1"><CircleDot className="h-3 w-3 text-amber-500" /> Atenção</span>
+                <span className="flex items-center gap-1"><CircleDot className="h-3 w-3 text-red-500" /> Em risco</span>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
+              {projectHealth.map(p => {
+                const healthColor = {
+                  green: { bg: 'bg-emerald-500/10', ring: 'ring-emerald-500/30', text: 'text-emerald-700 dark:text-emerald-400', dot: 'bg-emerald-500' },
+                  yellow: { bg: 'bg-amber-500/10', ring: 'ring-amber-500/30', text: 'text-amber-700 dark:text-amber-400', dot: 'bg-amber-500' },
+                  red: { bg: 'bg-red-500/10', ring: 'ring-red-500/30', text: 'text-red-700 dark:text-red-400', dot: 'bg-red-500 animate-pulse' },
+                }[p.health];
+                return (
+                  <Link
+                    key={p.id}
+                    to={`/hub/projetos/${p.id}`}
+                    className={`group rounded-xl p-3 ring-1 ${healthColor.ring} ${healthColor.bg} hover:shadow-md transition-all hover-scale`}
+                  >
+                    <div className="flex items-start gap-2 mb-2">
+                      <span className={`h-2 w-2 rounded-full mt-1 shrink-0 ${healthColor.dot}`} />
+                      <p className="text-xs font-semibold truncate group-hover:text-primary transition-colors leading-tight">{p.name}</p>
+                    </div>
+                    {p.client_name && <p className="text-[10px] text-muted-foreground truncate mb-2 pl-4">{p.client_name}</p>}
+                    <div className="flex items-center gap-1.5 pl-4">
+                      <Progress value={p.prog} className="h-1.5 flex-1" />
+                      <span className={`text-[10px] font-bold ${healthColor.text}`}>{p.prog}%</span>
+                    </div>
+                    {p.deadline && (
+                      <p className="text-[10px] text-muted-foreground mt-1.5 pl-4">
+                        {format(new Date(p.deadline), 'dd MMM', { locale: pt })}
+                      </p>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+
         <Tabs defaultValue="clientes" className="space-y-4">
           <TabsList>
             <TabsTrigger value="clientes" className="gap-1.5">
