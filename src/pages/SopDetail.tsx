@@ -597,7 +597,50 @@ export default function SopDetailPage() {
           </section>
         )}
 
-        {/* 5. Decisões/Exceções */}
+        {/* Formas de Pagamento (for "Gestão de Pagamentos" SOP) */}
+        {isPaymentSop && (
+          <section>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Formas de Pagamento</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground mb-3">Seleciona as formas de pagamento disponíveis para este produto. Ao associar a um cliente, apenas estas opções aparecerão.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    { value: 'pagamento_total', label: 'Pagamento Total' },
+                    { value: 'entrada_prestacoes', label: 'Pagamento Entrada + Prestações' },
+                    { value: 'prestacoes', label: 'Pagamento Prestações' },
+                    { value: 'avenca_mensal', label: 'Pagamento Avença Mensal' },
+                  ].map(opt => {
+                    const isActive = paymentMethods.some((pm: any) => pm.payment_method === opt.value);
+                    return (
+                      <label key={opt.value} className={cn(
+                        "flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors",
+                        isActive ? "border-primary bg-primary/5" : "border-border"
+                      )}>
+                        <Checkbox
+                          checked={isActive}
+                          onCheckedChange={async (checked) => {
+                            if (checked) {
+                              await supabase.from('product_payment_methods' as any).insert({ product_id: linkedProductId, payment_method: opt.value });
+                            } else {
+                              const row = paymentMethods.find((pm: any) => pm.payment_method === opt.value);
+                              if (row) await supabase.from('product_payment_methods' as any).delete().eq('id', row.id);
+                            }
+                            queryClient.invalidateQueries({ queryKey: ['product-payment-methods', linkedProductId] });
+                          }}
+                        />
+                        <span className="text-sm">{opt.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
+
         <section>
           <h3 className="text-lg font-semibold mb-2">5. Decisões / Exceções</h3>
           <EditableBulletList items={decisoes} onChange={setDecisoes} placeholder="(se acontecer X, fazer Y)" />
