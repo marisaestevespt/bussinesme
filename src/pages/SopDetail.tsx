@@ -297,6 +297,55 @@ export default function SopDetailPage() {
     onError: () => toast.error('Erro ao guardar configuração'),
   });
 
+  // Milestones for "Acompanhamento de Cliente" SOP
+  const MILESTONE_TYPE_OPTIONS = [
+    { value: 'check_in', label: 'Check-in' },
+    { value: 'feedback', label: 'Recolha de Feedback' },
+    { value: 'reuniao', label: 'Reunião' },
+    { value: 'email', label: 'Email' },
+    { value: 'outro', label: 'Outro' },
+  ];
+
+  const { data: milestones = [] } = useQuery({
+    queryKey: ['product-milestones', linkedProductId],
+    queryFn: async () => {
+      if (!linkedProductId) return [];
+      const { data } = await supabase.from('product_milestones' as any).select('*').eq('product_id', linkedProductId).order('days_after_start');
+      return (data || []) as any[];
+    },
+    enabled: isAcompanhamentoSop && !!linkedProductId,
+  });
+
+  const addMilestone = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('product_milestones' as any).insert({
+        product_id: linkedProductId,
+        milestone: '',
+        days_after_start: 0,
+        milestone_type: 'check_in',
+        sort_order: milestones.length,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['product-milestones', linkedProductId] }),
+  });
+
+  const updateMilestone = useMutation({
+    mutationFn: async ({ id: mId, data: mData }: { id: string; data: any }) => {
+      const { error } = await supabase.from('product_milestones' as any).update(mData).eq('id', mId);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['product-milestones', linkedProductId] }),
+  });
+
+  const deleteMilestone = useMutation({
+    mutationFn: async (mId: string) => {
+      const { error } = await supabase.from('product_milestones' as any).delete().eq('id', mId);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['product-milestones', linkedProductId] }),
+  });
+
   const { data: templateRows = [] } = useQuery({
     queryKey: ['sop-template-rows', templateTable, linkedProductId],
     queryFn: async () => {
