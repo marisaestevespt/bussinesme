@@ -14,6 +14,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ArrowLeft, Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, ChevronDown } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, Product } from '@/hooks/useProducts';
 import { useAuth } from '@/hooks/useAuth';
@@ -186,6 +187,16 @@ export default function ProdutoDetailPage() {
   });
 
   // Events linked to this product (Datas Importantes)
+  const { data: improvements = [] } = useQuery({
+    queryKey: ['product-improvements', id],
+    queryFn: async () => {
+      if (!id || isNew) return [];
+      const { data } = await supabase.from('product_improvements' as any).select('*').eq('product_id', id).order('sort_order').order('created_at');
+      return (data || []) as any[];
+    },
+    enabled: !isNew,
+  });
+
   const { data: productEvents = [] } = useQuery({
     queryKey: ['product-events', form.name],
     queryFn: async () => {
@@ -208,6 +219,7 @@ export default function ProdutoDetailPage() {
     qc.invalidateQueries({ queryKey: ['product-useful-links', id] });
     qc.invalidateQueries({ queryKey: ['product-costs', id] });
     qc.invalidateQueries({ queryKey: ['product-onboarding-template', id] });
+    qc.invalidateQueries({ queryKey: ['product-improvements', id] });
   };
 
   const addRow = useMutation({
@@ -1297,13 +1309,44 @@ export default function ProdutoDetailPage() {
                 </Card>
 
                 <Card>
-                  <CardHeader><CardTitle className="text-base">Melhorias</CardTitle></CardHeader>
+                  <CardHeader className="flex-row items-center justify-between">
+                    <CardTitle className="text-base">Melhorias</CardTitle>
+                    {isOwner && (
+                      <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_improvements', data: { product_id: id, description: '', completed: false, sort_order: improvements.length } })}>
+                        <Plus className="h-3 w-3 mr-1" /> Adicionar
+                      </Button>
+                    )}
+                  </CardHeader>
                   <CardContent>
-                    <RichTextEditor
-                      content={form.improvements_content || ''}
-                      onChange={v => update('improvements_content', v)}
-                      editable={isOwner}
-                    />
+                    {improvements.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Nenhuma melhoria registada.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {improvements.map((item: any) => (
+                          <div key={item.id} className="flex items-start gap-3 group">
+                            <Checkbox
+                              checked={item.completed}
+                              onCheckedChange={(checked) => updateRow.mutate({ table: 'product_improvements', id: item.id, data: { completed: !!checked } })}
+                              disabled={!isOwner}
+                              className="mt-0.5"
+                            />
+                            <Input
+                              value={item.description}
+                              onChange={e => updateRow.mutate({ table: 'product_improvements', id: item.id, data: { description: e.target.value } })}
+                              onBlur={e => updateRow.mutate({ table: 'product_improvements', id: item.id, data: { description: e.target.value } })}
+                              className={cn("flex-1 h-8 text-sm", item.completed && "line-through text-muted-foreground")}
+                              placeholder="Descrever melhoria..."
+                              readOnly={!isOwner}
+                            />
+                            {isOwner && (
+                              <Button size="icon" variant="ghost" className="h-8 w-8 opacity-0 group-hover:opacity-100" onClick={() => deleteRow.mutate({ table: 'product_improvements', id: item.id })}>
+                                <X className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
