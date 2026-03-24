@@ -101,6 +101,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
   }, [monthExpenses]);
 
 
+  const totalEntradas = monthSales.reduce((s, v) => s + v.invoice_total, 0);
   const totalBaseEntradas = monthSales.reduce((s, v) => s + v.base_value, 0);
   const ivaCobrado = totalEntradas - totalBaseEntradas;
 
