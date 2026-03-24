@@ -93,6 +93,14 @@ export default function ConteudoDetailPage() {
     },
   });
 
+  const { data: products = [] } = useQuery({
+    queryKey: ['products-list'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('id, name').order('name');
+      return data || [];
+    },
+  });
+
   useEffect(() => {
     if (item) {
       setForm({
