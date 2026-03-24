@@ -1140,13 +1140,6 @@ export default function ProdutoDetailPage() {
 
 
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {[
-                        { value: 'pagamento_total', label: 'Pagamento Total' },
-                        { value: 'entrada_prestacoes', label: 'Pagamento Entrada + Prestações' },
-                        { value: 'prestacoes', label: 'Pagamento Prestações' },
-                        { value: 'avenca_mensal', label: 'Pagamento Avença Mensal' },
-                      ].map(opt => {
                         const isActive = productPaymentMethods.some((pm: any) => pm.payment_method === opt.value);
                         return (
                           <label key={opt.value} className={cn(
