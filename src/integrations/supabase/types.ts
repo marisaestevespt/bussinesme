@@ -5546,6 +5546,7 @@ export type Database = {
         Row: {
           about_content: string | null
           accounting_notes: string | null
+          archive_notes: string | null
           brainstorming_content: string | null
           client_profile: Json | null
           competitors: Json | null
@@ -5577,6 +5578,7 @@ export type Database = {
         Insert: {
           about_content?: string | null
           accounting_notes?: string | null
+          archive_notes?: string | null
           brainstorming_content?: string | null
           client_profile?: Json | null
           competitors?: Json | null
@@ -5608,6 +5610,7 @@ export type Database = {
         Update: {
           about_content?: string | null
           accounting_notes?: string | null
+          archive_notes?: string | null
           brainstorming_content?: string | null
           client_profile?: Json | null
           competitors?: Json | null

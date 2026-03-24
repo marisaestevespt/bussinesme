@@ -26,6 +26,7 @@ export type Product = {
   vat_rate: string | null;
   invoice_denomination: string | null;
   accounting_notes: string | null;
+  archive_notes: string | null;
   cycle_duration: number | null;
   monthly_hours_per_client: number | null;
   created_by: string | null;
