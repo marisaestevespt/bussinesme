@@ -10,8 +10,8 @@ Product detail page layout (reorganized)
 
 ## Section buttons (toggle open/close, not tabs)
 - Comercial & Mkt: Ações de Venda, Funis, Automações, Concorrentes, Tráfego Pago
-- Contabilidade: Dados de Faturação, Calculadora de Oferta
-- Processos: SOPs table (from sops table, linked_entity_type=produto), Formas de Pagamento, SOP Onboarding template, SOP Offboarding template, Template de Projeto
+- Contabilidade: Dados de Faturação, Calculadora de Oferta, Formas de Pagamento
+- Processos: SOPs table (from sops table, linked_entity_type=produto), Template de Projeto
 - Backoffice: Cliente do Produto, Links Úteis, Drive, Melhorias, Custos
 - Customer Success: ProductCustomerSuccess component
 - KPIs do Produto: ProductKPIsTab component
@@ -25,8 +25,12 @@ When a product is created, 4 default SOPs are auto-inserted:
 3. Recolha de NPS/Feedbacks
 4. Fecho/Offboarding de Clientes
 
+## SOP ↔ Template Sync (Onboarding & Offboarding)
+- SOPs with "onboarding" in name + linked_entity_type=produto show a structured template table (phase, activity, responsible, rule) inside the SOP detail page
+- These read/write directly to `product_onboarding_templates` / `product_offboarding_templates`
+- The existing automation in ClienteDetail copies template rows to `client_onboarding` / `client_offboarding` when a client is associated with a product — this remains unchanged
+
 ## Removed
 - Standalone "Processos" card from main page — moved to Processos section
-- "Template de Onboarding/Offboarding" renamed to "SOP: Entrada/Onboarding" and "SOP: Fecho/Offboarding"
-- "Vendas feitas" section (charts) — eliminated
+- Standalone Onboarding/Offboarding cards from Processos section — now inside SOP detail
 - Tabs UI replaced by toggle buttons that expand sections below
