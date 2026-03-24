@@ -22,8 +22,6 @@ const NPS_STATUS_OPTIONS = [
   { value: 'em_atraso', label: 'Em atraso' },
 ];
 
-const QUICK_RENEWAL_DAYS = [15, 30, 45, 60];
-
 interface Props {
   productId: string;
   isOwner: boolean;
@@ -34,53 +32,6 @@ export function ProductCustomerSuccess({ productId, isOwner }: Props) {
   const qc = useQueryClient();
   const { members } = useTeamData();
   const teamMembers = members.data || [];
-
-  // ---- NPS SOP linked to this product ----
-  const { data: npsSop } = useQuery({
-    queryKey: ['nps-sop', productId],
-    queryFn: async () => {
-      const { data } = await (supabase.from('sops') as any)
-        .select('id, title, sop_id')
-        .eq('product_id', productId)
-        .ilike('title', '%NPS%')
-        .limit(1)
-        .maybeSingle();
-      return data as { id: string; title: string; sop_id: string } | null;
-    },
-  });
-
-  // ---- Product renewal_advance_days ----
-  const { data: product } = useQuery({
-    queryKey: ['product-renewal', productId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('products')
-        .select('renewal_advance_days')
-        .eq('id', productId)
-        .maybeSingle();
-      return data;
-    },
-  });
-
-  const [renewalDays, setRenewalDays] = useState<number>(30);
-
-  useEffect(() => {
-    if (product) {
-      setRenewalDays(product.renewal_advance_days ?? 30);
-    }
-  }, [product]);
-
-  const saveRenewalDays = useMutation({
-    mutationFn: async (days: number) => {
-      const { error } = await supabase.from('products').update({ renewal_advance_days: days } as any).eq('id', productId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['product-renewal', productId] });
-      toast.success('Antecedência de renovação guardada');
-    },
-    onError: () => toast.error('Erro ao guardar'),
-  });
 
   // ---- NPS Config ----
   const { data: npsConfig } = useQuery({
@@ -163,59 +114,6 @@ export function ProductCustomerSuccess({ productId, isOwner }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Renewal Advance Days */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Antecedência de Renovação</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Antecedência de renovação (dias)</Label>
-            <div className="flex items-center gap-3">
-              <Input
-                type="number"
-                min={1}
-                max={365}
-                value={renewalDays}
-                onChange={e => setRenewalDays(Number(e.target.value))}
-                className="h-9 w-32"
-                readOnly={!isOwner}
-              />
-              {isOwner && (
-                <Button
-                  size="sm"
-                  onClick={() => saveRenewalDays.mutate(renewalDays)}
-                  disabled={saveRenewalDays.isPending}
-                >
-                  <Save className="h-4 w-4 mr-1" /> Guardar
-                </Button>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Quantos dias antes do fim de ciclo iniciar o processo de renovação com o cliente
-            </p>
-          </div>
-          {isOwner && (
-            <div className="flex flex-wrap gap-2">
-              {QUICK_RENEWAL_DAYS.map(d => (
-                <Button
-                  key={d}
-                  variant={renewalDays === d ? 'default' : 'outline'}
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => {
-                    setRenewalDays(d);
-                    saveRenewalDays.mutate(d);
-                  }}
-                >
-                  {d} dias
-                </Button>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
