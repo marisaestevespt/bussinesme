@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { excludeCancelled } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCommercialData } from '@/hooks/useCommercialData';
