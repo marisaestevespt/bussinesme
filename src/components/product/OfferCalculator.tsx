@@ -3,53 +3,46 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Trash2, AlertTriangle, CheckCircle, TrendingDown } from 'lucide-react';
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-interface CostLine {
+interface PersistedCost {
   id: string;
-  label: string;
-  value: string;
+  name: string;
+  usage_desc: string;
+  value: number;
 }
 
 interface Props {
   vatRate: string;
+  costs: PersistedCost[];
+  isOwner: boolean;
+  onAddCost: () => void;
+  onUpdateCost: (id: string, data: Partial<PersistedCost>) => void;
+  onDeleteCost: (id: string) => void;
 }
 
-export function OfferCalculator({ vatRate }: Props) {
-  const [costs, setCosts] = useState<CostLine[]>([
-    { id: '1', label: '', value: '' },
-  ]);
+export function OfferCalculator({ vatRate, costs, isOwner, onAddCost, onUpdateCost, onDeleteCost }: Props) {
   const [desiredMargin, setDesiredMargin] = useState('80');
   const [taxRate, setTaxRate] = useState('25');
   const [ssRate, setSsRate] = useState('21.4');
   const [testPrice, setTestPrice] = useState('');
 
-  const addCost = () => setCosts(prev => [...prev, { id: String(Date.now()), label: '', value: '' }]);
-  const removeCost = (id: string) => setCosts(prev => prev.filter(c => c.id !== id));
-  const updateCost = (id: string, field: 'label' | 'value', val: string) =>
-    setCosts(prev => prev.map(c => c.id === id ? { ...c, [field]: val } : c));
-
   const vatPercent = vatRate === 'isento' ? 0 : parseFloat(vatRate) || 23;
-  const totalCosts = useMemo(() => costs.reduce((s, c) => s + (parseFloat(c.value) || 0), 0), [costs]);
+  const totalCosts = useMemo(() => costs.reduce((s, c) => s + (Number(c.value) || 0), 0), [costs]);
   const marginPercent = parseFloat(desiredMargin) || 0;
   const taxPercent = parseFloat(taxRate) || 0;
   const ssPercent = parseFloat(ssRate) || 0;
 
   // ── Secção 1 — Preço mínimo e recomendado ──
   const marginFraction = marginPercent / 100;
-
-  // Preço mínimo absoluto = custos
   const floorBase = totalCosts;
   const floorWithVat = floorBase * (1 + vatPercent / 100);
-
-  // Preço recomendado s/ IVA = custos / (1 - margem%)
   const recDenom = 1 - marginFraction;
   const recBase = recDenom > 0 ? totalCosts / recDenom : totalCosts;
   const recWithVat = recBase * (1 + vatPercent / 100);
-
-  // Margem bruta % do preço recomendado
   const recMargin = recBase > 0 ? ((recBase - totalCosts) / recBase) * 100 : 0;
 
   // ── Secção 3 — Testar um preço (s/ IVA) ──
@@ -82,35 +75,49 @@ export function OfferCalculator({ vatRate }: Props) {
         <p className="text-xs text-muted-foreground">Define os custos e margem para descobrir o preço recomendado e testa diferentes valores.</p>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* ── Secção 1: Custos e Margem ── */}
+        {/* ── Custos do Produto (persisted table) ── */}
         <div className="space-y-3">
-          <Label className="text-sm font-medium">Custos Associados</Label>
-          {costs.map(c => (
-            <div key={c.id} className="flex gap-2 items-center">
-              <Input
-                placeholder="Ex: Plataforma, Conteúdo, Equipa..."
-                value={c.label}
-                onChange={e => updateCost(c.id, 'label', e.target.value)}
-                className="flex-1"
-              />
-              <Input
-                type="number"
-                placeholder="0.00"
-                value={c.value}
-                onChange={e => updateCost(c.id, 'value', e.target.value)}
-                className="w-32"
-              />
-              <span className="text-xs text-muted-foreground">€</span>
-              {costs.length > 1 && (
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => removeCost(c.id)}>
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Custos do Produto</Label>
+            {isOwner && (
+              <Button variant="outline" size="sm" onClick={onAddCost}>
+                <Plus className="h-3 w-3 mr-1" /> Adicionar
+              </Button>
+            )}
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Utilização</TableHead>
+                <TableHead>Valor (€)</TableHead>
+                {isOwner && <TableHead className="w-10" />}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {costs.length === 0 && (
+                <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-4">Sem custos</TableCell></TableRow>
               )}
-            </div>
-          ))}
-          <Button variant="outline" size="sm" onClick={addCost}>
-            <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar custo
-          </Button>
+              {costs.map((c) => (
+                <TableRow key={c.id}>
+                  <TableCell>
+                    <Input defaultValue={c.name} onBlur={e => onUpdateCost(c.id, { name: e.target.value })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} />
+                  </TableCell>
+                  <TableCell>
+                    <Input defaultValue={c.usage_desc} onBlur={e => onUpdateCost(c.id, { usage_desc: e.target.value })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} />
+                  </TableCell>
+                  <TableCell>
+                    <Input type="number" defaultValue={c.value} onBlur={e => onUpdateCost(c.id, { value: Number(e.target.value) })} className="border-none shadow-none h-auto p-0 text-sm w-20" readOnly={!isOwner} />
+                  </TableCell>
+                  {isOwner && (
+                    <TableCell>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDeleteCost(c.id)}><Trash2 className="h-3 w-3" /></Button>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
           <div className="flex justify-between items-center pt-2 border-t">
             <span className="text-sm font-medium">Total Custos</span>
             <span className="font-semibold">{fmt(totalCosts)}</span>
