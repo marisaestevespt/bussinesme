@@ -9,13 +9,12 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Link } from 'react-router-dom';
-import { Users, FolderOpen, CheckCircle2, Clock, AlertTriangle, Briefcase, Building2, ListTodo, Filter, X } from 'lucide-react';
+import { Users, FolderOpen, CheckCircle2, Clock, AlertTriangle, Briefcase, Building2, ListTodo, Filter, X, TrendingUp, UserX, CalendarClock } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format, isToday, isBefore, startOfToday, isAfter, subDays, endOfWeek, startOfWeek } from 'date-fns';
+import { format, isToday, isBefore, startOfToday, isAfter, endOfWeek, startOfWeek, subDays, differenceInDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -96,7 +95,6 @@ function TaskDynamicFilters({ filters, onChange, profiles, projects }: {
 
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
-      {/* Time filter pills */}
       {(['todas', 'hoje', 'semana', 'atrasadas'] as TaskFilter[]).map(k => (
         <Button key={k} size="sm" variant={filters.time === k ? 'default' : 'outline'} className="h-7 text-xs"
           onClick={() => onChange({ ...filters, time: k })}>
@@ -200,6 +198,7 @@ export default function OperacaoPage() {
   const [clientFilters, setClientFilters] = useState<TaskFilters>(EMPTY_FILTERS);
   const [internoFilters, setInternoFilters] = useState<TaskFilters>(EMPTY_FILTERS);
   const [expandedStatus, setExpandedStatus] = useState<string | null>(null);
+  const [alertsOpen, setAlertsOpen] = useState(false);
 
   // ── Queries ─────────────────────────────────────────────────
   const { data: projects = [] } = useQuery({
@@ -234,7 +233,6 @@ export default function OperacaoPage() {
     },
   });
 
-  // Onboarding items for all clients (for the popup)
   const { data: allOnboarding = [] } = useQuery({
     queryKey: ['op-all-onboarding'],
     queryFn: async () => {
@@ -243,7 +241,6 @@ export default function OperacaoPage() {
     },
   });
 
-  // Offboarding items for all clients (for the popup)
   const { data: allOffboarding = [] } = useQuery({
     queryKey: ['op-all-offboarding'],
     queryFn: async () => {
@@ -269,37 +266,18 @@ export default function OperacaoPage() {
   const activeClientProjects = useMemo(() => clientProjects.filter(p => ACTIVE_STATUSES.includes(p.status)), [clientProjects]);
   const activeInternoProjects = useMemo(() => internoProjects.filter(p => ACTIVE_STATUSES.includes(p.status)), [internoProjects]);
 
+  const allActiveProjects = useMemo(() => projects.filter(p => ACTIVE_STATUSES.includes(p.status)), [projects]);
+
   const clientProjectIds = useMemo(() => new Set(clientProjects.map(p => p.id)), [clientProjects]);
   const internoProjectIds = useMemo(() => new Set(internoProjects.map(p => p.id)), [internoProjects]);
 
   const clientTasks = useMemo(() => tasks.filter(t => t.project_id && clientProjectIds.has(t.project_id) && t.status !== 'concluida'), [tasks, clientProjectIds]);
   const internoTasks = useMemo(() => tasks.filter(t => t.project_id && internoProjectIds.has(t.project_id) && t.status !== 'concluida'), [tasks, internoProjectIds]);
 
-  // Client summary — all except "terminado"
   const activeClients = useMemo(() => clients.filter(c => c.status !== 'terminado'), [clients]);
-  const productBreakdown = useMemo(() => {
-    const map = new Map<string, number>();
-    activeClients.forEach(c => {
-      const prod = c.current_product || 'Sem produto';
-      map.set(prod, (map.get(prod) || 0) + 1);
-    });
-    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
-  }, [activeClients]);
 
-  const onboardingClients = useMemo(() => {
-    return clients.filter(c => c.status === 'em_onboarding');
-  }, [clients]);
+  const onboardingClients = useMemo(() => clients.filter(c => c.status === 'em_onboarding'), [clients]);
 
-  // Interno summary
-  const internoByStatus = useMemo(() => {
-    const counts = { em_curso: 0, em_ideia: 0, em_pausa: 0 };
-    activeInternoProjects.forEach(p => {
-      if (p.status in counts) counts[p.status as keyof typeof counts]++;
-    });
-    return counts;
-  }, [activeInternoProjects]);
-
-  // Interno by department for pie chart
   const internoByDept = useMemo(() => {
     const map = new Map<string, number>();
     activeInternoProjects.forEach(p => {
@@ -313,7 +291,6 @@ export default function OperacaoPage() {
     })).sort((a, b) => b.value - a.value);
   }, [activeInternoProjects]);
 
-  // Project progress from tasks
   const projectProgress = useMemo(() => {
     const map = new Map<string, number>();
     const totals = new Map<string, number>();
@@ -329,7 +306,6 @@ export default function OperacaoPage() {
     return map;
   }, [tasks]);
 
-  // Members in internal projects
   const internoMembers = useMemo(() => {
     const memberProjects = new Map<string, Set<string>>();
     projectMembers.forEach(pm => {
@@ -338,7 +314,6 @@ export default function OperacaoPage() {
         memberProjects.get(pm.profile_id)!.add(pm.project_id);
       }
     });
-    // Count open tasks per member
     const memberTasks = new Map<string, number>();
     internoTasks.forEach(t => {
       if (t.assigned_to) memberTasks.set(t.assigned_to, (memberTasks.get(t.assigned_to) || 0) + 1);
@@ -351,7 +326,6 @@ export default function OperacaoPage() {
     })).filter(m => m.profile);
   }, [projectMembers, internoProjectIds, internoTasks, profileMap, projects]);
 
-  // Members map for projects
   const projectMembersMap = useMemo(() => {
     const map = new Map<string, Profile[]>();
     projectMembers.forEach(pm => {
@@ -364,51 +338,62 @@ export default function OperacaoPage() {
     return map;
   }, [projectMembers, profileMap]);
 
-  // Project name map for tasks
   const projectNameMap = useMemo(() => new Map(projects.map(p => [p.id, p.name])), [projects]);
 
-  // Filtered tasks
   const filteredClientTasks = useMemo(() => applyTaskFilters(clientTasks, clientFilters), [clientTasks, clientFilters]);
   const filteredInternoTasks = useMemo(() => applyTaskFilters(internoTasks, internoFilters), [internoTasks, internoFilters]);
 
   const clientProjectOptions = useMemo(() => clientProjects.map(p => ({ id: p.id, name: p.name })), [clientProjects]);
   const internoProjectOptions = useMemo(() => internoProjects.map(p => ({ id: p.id, name: p.name })), [internoProjects]);
 
-  // ── Render helpers ──────────────────────────────────────────
+  // ── KPI data ────────────────────────────────────────────────
+  const today = startOfToday();
+  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+  const weekEnd2 = endOfWeek(today, { weekStartsOn: 1 });
 
-  function renderProjectRow(p: Project, showClient = false, showDept = false) {
-    const prog = projectProgress.get(p.id) ?? p.progress;
-    const members = projectMembersMap.get(p.id) || [];
-    return (
-      <Link key={p.id} to={`/hub/projetos/${p.id}`} className="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-muted/50 transition-colors group">
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{p.name}</p>
-          <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
-            {showClient && p.client_name && <span>{p.client_name}</span>}
-            {showDept && p.department && <span className="capitalize">{p.department}</span>}
-            {p.deadline && <span>Entrega: {format(new Date(p.deadline), 'dd MMM', { locale: pt })}</span>}
-          </div>
-        </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="w-20">
-            <div className="flex items-center gap-1.5">
-              <Progress value={prog} className="h-1.5 flex-1" />
-              <span className="text-[10px] text-muted-foreground w-7 text-right">{prog}%</span>
-            </div>
-          </div>
-          <div className="flex -space-x-1.5">
-            {members.slice(0, 3).map(m => (
-              <Avatar key={m.id} className="h-6 w-6 border-2 border-background">
-                <AvatarImage src={m.avatar_url || ''} />
-                <AvatarFallback className="text-[9px]">{getInitials(m.full_name)}</AvatarFallback>
-              </Avatar>
-            ))}
-            {members.length > 3 && <span className="text-[10px] text-muted-foreground ml-1">+{members.length - 3}</span>}
-          </div>
-        </div>
-      </Link>
-    );
-  }
+  const overdueTasks = useMemo(() =>
+    tasks.filter(t => t.deadline && t.status !== 'concluida' && isBefore(new Date(t.deadline), today)),
+    [tasks, today]
+  );
+
+  const weeklyCompletion = useMemo(() => {
+    const weekTasks = tasks.filter(t => t.deadline && new Date(t.deadline) >= weekStart && new Date(t.deadline) <= weekEnd2);
+    const done = weekTasks.filter(t => t.status === 'concluida').length;
+    return { done, total: weekTasks.length, rate: weekTasks.length > 0 ? Math.round((done / weekTasks.length) * 100) : 0 };
+  }, [tasks, weekStart, weekEnd2]);
+
+  const allocatedMembers = useMemo(() => {
+    const memberIds = new Set<string>();
+    projectMembers.forEach(pm => {
+      if (allActiveProjects.some(p => p.id === pm.project_id)) memberIds.add(pm.profile_id);
+    });
+    return memberIds.size;
+  }, [projectMembers, allActiveProjects]);
+
+  // ── Alerts data ─────────────────────────────────────────────
+  const stalledProjects = useMemo(() => {
+    return allActiveProjects.filter(p => {
+      const prog = projectProgress.get(p.id) ?? p.progress;
+      return prog === 0;
+    });
+  }, [allActiveProjects, projectProgress]);
+
+  const clientsNearEndOfCycle = useMemo(() => {
+    return clients.filter(c => {
+      if (c.status === 'terminado' || !c.end_of_cycle) return false;
+      const daysLeft = differenceInDays(new Date(c.end_of_cycle), today);
+      return daysLeft >= 0 && daysLeft <= 30;
+    });
+  }, [clients, today]);
+
+  const unassignedTasks = useMemo(() =>
+    tasks.filter(t => !t.assigned_to && t.status !== 'concluida'),
+    [tasks]
+  );
+
+  const totalAlerts = stalledProjects.length + clientsNearEndOfCycle.length + unassignedTasks.length;
+
+  // ── Render helpers ──────────────────────────────────────────
 
   function renderTaskRow(t: Task) {
     const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
@@ -435,9 +420,194 @@ export default function OperacaoPage() {
       <div className="p-4 md:p-6 space-y-6">
         <PageHeader title="Operação" subtitle="Vista operacional de projetos de clientes e internos" />
 
-        <div className="space-y-10">
+        {/* ═══════════════ KPI CARDS ═══════════════ */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <Card className="border-l-4 border-l-primary/60">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Projetos Ativos</p>
+                  <p className="text-2xl font-bold mt-1">{allActiveProjects.length}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{activeClientProjects.length} clientes · {activeInternoProjects.length} internos</p>
+                </div>
+                <div className="p-2 rounded-md bg-primary/10">
+                  <FolderOpen className="h-4 w-4 text-primary" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* ═══════════════ COLUNA ESQUERDA — CLIENTES ═══════════════ */}
+          <Card className={`border-l-4 ${overdueTasks.length > 0 ? 'border-l-destructive' : 'border-l-emerald-500'}`}>
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Tarefas Atrasadas</p>
+                  <p className={`text-2xl font-bold mt-1 ${overdueTasks.length > 0 ? 'text-destructive' : 'text-emerald-600'}`}>
+                    {overdueTasks.length}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    {overdueTasks.length > 0 ? 'Requer atenção' : 'Tudo em dia ✓'}
+                  </p>
+                </div>
+                <div className={`p-2 rounded-md ${overdueTasks.length > 0 ? 'bg-destructive/10' : 'bg-emerald-500/10'}`}>
+                  <AlertTriangle className={`h-4 w-4 ${overdueTasks.length > 0 ? 'text-destructive' : 'text-emerald-600'}`} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-blue-500/60">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Conclusão Semanal</p>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <p className="text-2xl font-bold">{weeklyCompletion.done}</p>
+                    <span className="text-sm text-muted-foreground">/ {weeklyCompletion.total}</span>
+                  </div>
+                </div>
+                <div className="p-2 rounded-md bg-blue-500/10">
+                  <TrendingUp className="h-4 w-4 text-blue-600" />
+                </div>
+              </div>
+              <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+                <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${Math.min(weeklyCompletion.rate, 100)}%` }} />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">{weeklyCompletion.rate}% concluído</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-violet-500/60">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Membros Alocados</p>
+                  <p className="text-2xl font-bold mt-1">{allocatedMembers}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">em projetos ativos</p>
+                </div>
+                <div className="p-2 rounded-md bg-violet-500/10">
+                  <Users className="h-4 w-4 text-violet-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ═══════════════ ALERTAS OPERACIONAIS ═══════════════ */}
+        {totalAlerts > 0 && (
+          <Card className="border border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-950/20">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-400">Alertas Operacionais</h3>
+                  <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-[10px]">{totalAlerts}</Badge>
+                </div>
+                <Button variant="ghost" size="sm" className="h-7 text-xs text-amber-700" onClick={() => setAlertsOpen(true)}>
+                  Ver detalhes →
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {stalledProjects.length > 0 && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="h-4 w-4 text-amber-600 shrink-0" />
+                    <span className="text-amber-800 dark:text-amber-300">
+                      <strong>{stalledProjects.length}</strong> projeto{stalledProjects.length > 1 ? 's' : ''} sem progresso
+                    </span>
+                  </div>
+                )}
+                {clientsNearEndOfCycle.length > 0 && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <CalendarClock className="h-4 w-4 text-amber-600 shrink-0" />
+                    <span className="text-amber-800 dark:text-amber-300">
+                      <strong>{clientsNearEndOfCycle.length}</strong> cliente{clientsNearEndOfCycle.length > 1 ? 's' : ''} perto do fim de ciclo
+                    </span>
+                  </div>
+                )}
+                {unassignedTasks.length > 0 && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <UserX className="h-4 w-4 text-amber-600 shrink-0" />
+                    <span className="text-amber-800 dark:text-amber-300">
+                      <strong>{unassignedTasks.length}</strong> tarefa{unassignedTasks.length > 1 ? 's' : ''} sem responsável
+                    </span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Alerts detail dialog */}
+        <Dialog open={alertsOpen} onOpenChange={setAlertsOpen}>
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader><DialogTitle className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-amber-600" /> Alertas Operacionais</DialogTitle></DialogHeader>
+            <div className="space-y-6">
+              {stalledProjects.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold flex items-center gap-2 mb-2"><Clock className="h-4 w-4 text-muted-foreground" /> Projetos sem progresso</h4>
+                  <div className="space-y-1">
+                    {stalledProjects.map(p => (
+                      <Link key={p.id} to={`/hub/projetos/${p.id}`} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors" onClick={() => setAlertsOpen(false)}>
+                        <div>
+                          <p className="text-sm font-medium">{p.name}</p>
+                          <p className="text-xs text-muted-foreground">{p.client_name || p.department || '—'}</p>
+                        </div>
+                        <Badge variant="outline" className="text-[10px]">0%</Badge>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {clientsNearEndOfCycle.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold flex items-center gap-2 mb-2"><CalendarClock className="h-4 w-4 text-muted-foreground" /> Clientes perto do fim de ciclo</h4>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs">Cliente</TableHead>
+                        <TableHead className="text-xs">Fim de Ciclo</TableHead>
+                        <TableHead className="text-xs">Dias restantes</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {clientsNearEndOfCycle.map(c => {
+                        const daysLeft = differenceInDays(new Date(c.end_of_cycle!), today);
+                        return (
+                          <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setAlertsOpen(false); window.location.href = `/hub/clientes/${c.id}`; }}>
+                            <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
+                            <TableCell className="text-xs">{format(new Date(c.end_of_cycle!), 'dd/MM/yyyy')}</TableCell>
+                            <TableCell><Badge variant={daysLeft <= 7 ? 'destructive' : 'outline'} className="text-[10px]">{daysLeft}d</Badge></TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+              {unassignedTasks.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold flex items-center gap-2 mb-2"><UserX className="h-4 w-4 text-muted-foreground" /> Tarefas sem responsável</h4>
+                  <div className="space-y-0.5 max-h-[250px] overflow-y-auto">
+                    {unassignedTasks.slice(0, 20).map(t => (
+                      <div key={t.id} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 text-sm">
+                        <PriorityDot priority={t.priority} />
+                        <span className="flex-1 truncate">{t.name}</span>
+                        {t.project_id && <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">{projectNameMap.get(t.project_id)}</span>}
+                        {t.deadline && <span className="text-[10px] text-muted-foreground">{format(new Date(t.deadline), 'dd/MM')}</span>}
+                      </div>
+                    ))}
+                    {unassignedTasks.length > 20 && <p className="text-xs text-muted-foreground px-3 py-1">+{unassignedTasks.length - 20} mais</p>}
+                  </div>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* ═══════════════ LADO A LADO — CLIENTES + INTERNO ═══════════════ */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          {/* ─── COLUNA ESQUERDA — CLIENTES ─── */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-1">
               <Briefcase className="h-5 w-5 text-primary" />
@@ -564,7 +734,7 @@ export default function OperacaoPage() {
               {activeClientProjects.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-3">Nenhum projeto de cliente ativo</p>
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   {activeClientProjects.map(p => {
                     const prog = projectProgress.get(p.id) ?? p.progress;
                     const members = projectMembersMap.get(p.id) || [];
@@ -608,7 +778,7 @@ export default function OperacaoPage() {
             {/* Tarefas de cliente */}
             <Card>
               <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <ListTodo className="h-4 w-4" /> Tarefas de Clientes
                     <Badge variant="outline" className="text-[10px]">{clientTasks.length}</Badge>
@@ -626,7 +796,7 @@ export default function OperacaoPage() {
             </Card>
           </div>
 
-          {/* ═══════════════ COLUNA DIREITA — INTERNO ═══════════════ */}
+          {/* ─── COLUNA DIREITA — INTERNO ─── */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-1">
               <Building2 className="h-5 w-5 text-primary" />
@@ -666,7 +836,7 @@ export default function OperacaoPage() {
             {/* Tarefas internas */}
             <Card>
               <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <ListTodo className="h-4 w-4" /> Tarefas Internas
                     <Badge variant="outline" className="text-[10px]">{internoTasks.length}</Badge>
