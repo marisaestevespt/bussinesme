@@ -1192,6 +1192,7 @@ export default function SopDetailPage() {
           </section>
         )}
 
+        <section>
           <h3 className="text-lg font-semibold mb-2">5. Decisões / Exceções</h3>
           <EditableBulletList items={decisoes} onChange={setDecisoes} placeholder="(se acontecer X, fazer Y)" />
         </section>
