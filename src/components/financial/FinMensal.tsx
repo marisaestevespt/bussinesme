@@ -49,11 +49,24 @@ const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2,
 
 export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: Props) {
   const { getCategoryLabel } = useFinancialCategories();
+  const qc = useQueryClient();
   const currentMonth = new Date().getMonth() + 1;
   const [month, setMonth] = useState(currentMonth.toString());
   const [selectedSale, setSelectedSale] = useState<any>(null);
   const [saleSheetOpen, setSaleSheetOpen] = useState(false);
   const m = parseInt(month);
+
+  // Active member contracts
+  const { data: activeContracts = [] } = useQuery({
+    queryKey: ['active-member-contracts'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('member_contracts')
+        .select('*, team_members(id, full_name, role_title)')
+        .in('status', ['ativo']);
+      return data || [];
+    },
+  });
 
   const monthSales = useMemo(() => sales.filter(s => s.sale_year === currentYear && s.sale_month === m), [sales, currentYear, m]);
   const monthExpenses = useMemo(() => expenses.filter(e => e.expense_year === currentYear && e.expense_month === m), [expenses, currentYear, m]);
