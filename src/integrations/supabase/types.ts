@@ -5767,6 +5767,8 @@ export type Database = {
           name: string
           project_id: string
           recurrence_label: string | null
+          recurrence_week: number | null
+          recurrence_weekday: number | null
           sort_order: number
           status: string
           updated_at: string
@@ -5781,6 +5783,8 @@ export type Database = {
           name?: string
           project_id: string
           recurrence_label?: string | null
+          recurrence_week?: number | null
+          recurrence_weekday?: number | null
           sort_order?: number
           status?: string
           updated_at?: string
@@ -5795,6 +5799,8 @@ export type Database = {
           name?: string
           project_id?: string
           recurrence_label?: string | null
+          recurrence_week?: number | null
+          recurrence_weekday?: number | null
           sort_order?: number
           status?: string
           updated_at?: string
