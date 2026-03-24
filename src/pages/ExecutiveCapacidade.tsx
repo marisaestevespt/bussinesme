@@ -225,6 +225,7 @@ export default function ExecutiveCapacidade() {
                       const maxClients = Number(item.hours_per_client_month) > 0
                         ? Math.floor(availableHours / Number(item.hours_per_client_month))
                         : 0;
+                      const realCount = realClientCounts[item.product_name] || 0;
                       return (
                         <div key={item.id} className="rounded-lg border p-4 space-y-3">
                           <div className="flex items-center justify-between">
@@ -238,7 +239,7 @@ export default function ExecutiveCapacidade() {
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
                           </div>
-                          <div className="grid grid-cols-3 gap-3">
+                          <div className="grid grid-cols-4 gap-3">
                             <div className="space-y-1">
                               <Label className="text-[10px]">Horas/cliente/mês</Label>
                               <Input
@@ -249,7 +250,21 @@ export default function ExecutiveCapacidade() {
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-[10px]">Clientes atuais</Label>
+                              <Label className="text-[10px]">Clientes reais</Label>
+                              <div className="h-7 flex items-center gap-1.5">
+                                <span className="text-sm font-semibold">{realCount}</span>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-5 px-1.5 text-[10px]"
+                                  onClick={() => updateScenarioProduct.mutate({ id: item.id, current_clients: realCount })}
+                                >
+                                  Usar
+                                </Button>
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-[10px]">Simular c/ clientes</Label>
                               <Input
                                 type="number"
                                 className="h-7 text-sm"
@@ -258,7 +273,7 @@ export default function ExecutiveCapacidade() {
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-[10px]">Máx. possível (sozinho)</Label>
+                              <Label className="text-[10px]">Máx. possível</Label>
                               <div className="h-7 flex items-center">
                                 <span className="text-sm font-semibold flex items-center gap-1">
                                   <Users className="h-3 w-3 text-muted-foreground" /> {maxClients}
