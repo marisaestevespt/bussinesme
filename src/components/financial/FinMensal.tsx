@@ -22,6 +22,7 @@ import type { Expense, Subscription, PayrollEntry, ContractorEntry, FinancialDoc
 import { InvoiceUpload } from './InvoiceUpload';
 import { CategorySelect } from './CategorySelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
+import { EntryDetailSheet, getEntryStatusBadge } from './EntryDetailSheet';
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 const VAT_RATES = [0, 6, 13, 23];
@@ -47,6 +48,8 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
   const { getCategoryLabel } = useFinancialCategories();
   const currentMonth = new Date().getMonth() + 1;
   const [month, setMonth] = useState(currentMonth.toString());
+  const [selectedSale, setSelectedSale] = useState<any>(null);
+  const [saleSheetOpen, setSaleSheetOpen] = useState(false);
   const m = parseInt(month);
 
   const monthSales = useMemo(() => sales.filter(s => s.sale_year === currentYear && s.sale_month === m), [sales, currentYear, m]);
@@ -112,7 +115,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
       sale_month: m,
       sale_quarter: q,
       sale_year: currentYear,
-      status: 'pago',
+      status: 'aguarda_pagamento',
     });
     if (error) { toast.error('Erro ao guardar entrada'); return; }
     toast.success('Entrada adicionada');
@@ -188,19 +191,22 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
             <TableBody>
               {monthSales.length === 0 ? (
                 <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">Sem entradas</TableCell></TableRow>
-              ) : monthSales.map((s: any, i) => (
-                <TableRow key={i}>
-                  <TableCell><Badge variant="outline">{s.status}</Badge></TableCell>
-                  <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{s.sale_id || '—'}</TableCell>
-                  <TableCell>{s.description || '—'}</TableCell>
-                  <TableCell>{s.product || '—'}</TableCell>
-                  <TableCell>{s.client || '—'}</TableCell>
-                  <TableCell>{s.source || '—'}</TableCell>
-                  <TableCell className="text-right">{fmt(s.base_value)}</TableCell>
-                  <TableCell className="text-right">{fmt(s.invoice_total)}</TableCell>
-                  <TableCell className="whitespace-nowrap">{s.payment_date || '—'}</TableCell>
-                </TableRow>
-              ))}
+              ) : monthSales.map((s: any, i) => {
+                const sb = getEntryStatusBadge(s.status);
+                return (
+                  <TableRow key={i} className="cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedSale(s); setSaleSheetOpen(true); }}>
+                    <TableCell><Badge variant="outline" className={sb.cls}>{sb.label}</Badge></TableCell>
+                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{s.sale_id || '—'}</TableCell>
+                    <TableCell>{s.description || '—'}</TableCell>
+                    <TableCell>{s.product || '—'}</TableCell>
+                    <TableCell>{s.client || '—'}</TableCell>
+                    <TableCell>{s.source || '—'}</TableCell>
+                    <TableCell className="text-right">{fmt(s.base_value)}</TableCell>
+                    <TableCell className="text-right">{fmt(s.invoice_total)}</TableCell>
+                    <TableCell className="whitespace-nowrap">{s.payment_date || '—'}</TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
@@ -375,6 +381,8 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
           </div>
         </DialogContent>
       </Dialog>
+
+      <EntryDetailSheet sale={selectedSale} open={saleSheetOpen} onOpenChange={setSaleSheetOpen} />
     </div>
   );
 }
