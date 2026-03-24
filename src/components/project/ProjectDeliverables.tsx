@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,8 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Progress } from '@/components/ui/progress';
-import { Plus, Package, CalendarIcon, Trash2, GripVertical } from 'lucide-react';
-import { format } from 'date-fns';
+import { Plus, Package, CalendarIcon, Trash2 } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, addMonths, getDay, addDays, subDays, isAfter } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -25,8 +25,78 @@ const DELIVERABLE_STATUSES = [
   { value: 'atrasado', label: 'Atrasado', color: 'bg-red-100 text-red-800' },
 ];
 
+const WEEK_OPTIONS = [
+  { value: '1', label: '1ª semana' },
+  { value: '2', label: '2ª semana' },
+  { value: '3', label: '3ª semana' },
+  { value: '4', label: '4ª semana' },
+  { value: '-1', label: 'Última semana' },
+  { value: '-2', label: 'Penúltima semana' },
+];
+
+const WEEKDAY_OPTIONS = [
+  { value: '1', label: 'Segunda' },
+  { value: '2', label: 'Terça' },
+  { value: '3', label: 'Quarta' },
+  { value: '4', label: 'Quinta' },
+  { value: '5', label: 'Sexta' },
+  { value: '6', label: 'Sábado' },
+  { value: '0', label: 'Domingo' },
+];
+
 function getStatusInfo(v: string) {
   return DELIVERABLE_STATUSES.find(s => s.value === v) || DELIVERABLE_STATUSES[0];
+}
+
+/**
+ * Calculate the next occurrence date given a week-of-month and weekday rule.
+ * recurrence_week: 1-4 = nth week, -1 = last week, -2 = second-to-last
+ * recurrence_weekday: 0 = Sunday, 1 = Monday ... 6 = Saturday
+ */
+function calcNextOccurrence(recurrenceWeek: number, recurrenceWeekday: number): Date {
+  const today = new Date();
+  // Try current month first, then next month
+  for (let offset = 0; offset <= 2; offset++) {
+    const target = addMonths(today, offset);
+    const date = getOccurrenceInMonth(target, recurrenceWeek, recurrenceWeekday);
+    if (date && isAfter(date, subDays(today, 1))) return date;
+  }
+  return addMonths(today, 1); // fallback
+}
+
+function getOccurrenceInMonth(refDate: Date, week: number, weekday: number): Date | null {
+  const monthStart = startOfMonth(refDate);
+  const monthEnd = endOfMonth(refDate);
+
+  if (week > 0) {
+    // Find nth occurrence of weekday in month
+    let count = 0;
+    let d = monthStart;
+    while (d <= monthEnd) {
+      if (getDay(d) === weekday) {
+        count++;
+        if (count === week) return d;
+      }
+      d = addDays(d, 1);
+    }
+    return null;
+  } else {
+    // From end: -1 = last, -2 = second-to-last
+    const occurrences: Date[] = [];
+    let d = monthStart;
+    while (d <= monthEnd) {
+      if (getDay(d) === weekday) occurrences.push(new Date(d));
+      d = addDays(d, 1);
+    }
+    const idx = occurrences.length + week; // e.g. length + (-1) = last
+    return idx >= 0 ? occurrences[idx] : null;
+  }
+}
+
+function formatRecurrenceRule(week: number, weekday: number): string {
+  const w = WEEK_OPTIONS.find(o => o.value === String(week));
+  const d = WEEKDAY_OPTIONS.find(o => o.value === String(weekday));
+  return `${w?.label || ''}, ${d?.label || ''}`;
 }
 
 interface Profile {
@@ -47,6 +117,8 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
   const [assignedTo, setAssignedTo] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrenceLabel, setRecurrenceLabel] = useState('');
+  const [recurrenceWeek, setRecurrenceWeek] = useState('');
+  const [recurrenceWeekday, setRecurrenceWeekday] = useState('');
   const qc = useQueryClient();
 
   const { data: deliverables = [] } = useQuery({
@@ -63,15 +135,41 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
     },
   });
 
+  // Enrich deliverables with computed next deadline for recurring ones
+  const enrichedDeliverables = useMemo(() => {
+    return deliverables.map(d => {
+      if (d.is_recurring && d.recurrence_week != null && d.recurrence_weekday != null) {
+        const nextDate = calcNextOccurrence(d.recurrence_week, d.recurrence_weekday);
+        return { ...d, computed_deadline: format(nextDate, 'yyyy-MM-dd'), _nextDate: nextDate };
+      }
+      return { ...d, computed_deadline: d.deadline, _nextDate: d.deadline ? new Date(d.deadline) : null };
+    });
+  }, [deliverables]);
+
+  const computedDeadline = useMemo(() => {
+    if (!isRecurring || !recurrenceWeek || !recurrenceWeekday) return deadline;
+    return calcNextOccurrence(Number(recurrenceWeek), Number(recurrenceWeekday));
+  }, [isRecurring, recurrenceWeek, recurrenceWeekday, deadline]);
+
   const createMutation = useMutation({
     mutationFn: async () => {
+      const finalDeadline = isRecurring && recurrenceWeek && recurrenceWeekday
+        ? format(calcNextOccurrence(Number(recurrenceWeek), Number(recurrenceWeekday)), 'yyyy-MM-dd')
+        : deadline ? format(deadline, 'yyyy-MM-dd') : null;
+
+      const autoLabel = isRecurring && recurrenceWeek && recurrenceWeekday
+        ? formatRecurrenceRule(Number(recurrenceWeek), Number(recurrenceWeekday))
+        : recurrenceLabel || null;
+
       const { error } = await supabase.from('project_deliverables').insert({
         project_id: projectId,
         name,
-        deadline: deadline ? format(deadline, 'yyyy-MM-dd') : null,
+        deadline: finalDeadline,
         assigned_to: assignedTo || null,
         is_recurring: isRecurring,
-        recurrence_label: isRecurring ? recurrenceLabel : null,
+        recurrence_label: isRecurring ? autoLabel : null,
+        recurrence_week: isRecurring && recurrenceWeek ? Number(recurrenceWeek) : null,
+        recurrence_weekday: isRecurring && recurrenceWeekday ? Number(recurrenceWeekday) : null,
         sort_order: deliverables.length,
       });
       if (error) throw error;
@@ -80,19 +178,22 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
       qc.invalidateQueries({ queryKey: ['project-deliverables', projectId] });
       toast.success('Entrega criada');
       setDialogOpen(false);
-      setName(''); setDeadline(undefined); setAssignedTo(''); setIsRecurring(false); setRecurrenceLabel('');
+      resetForm();
     },
     onError: () => toast.error('Erro ao criar entrega'),
   });
+
+  const resetForm = () => {
+    setName(''); setDeadline(undefined); setAssignedTo('');
+    setIsRecurring(false); setRecurrenceLabel(''); setRecurrenceWeek(''); setRecurrenceWeekday('');
+  };
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase.from('project_deliverables').update({ status }).eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['project-deliverables', projectId] });
-    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['project-deliverables', projectId] }),
   });
 
   const deleteMutation = useMutation({
@@ -144,16 +245,17 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
           )}
         </CardHeader>
         <CardContent className="pt-0">
-          {deliverables.length === 0 ? (
+          {enrichedDeliverables.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">
               Nenhuma entrega definida. Adiciona milestones para acompanhar o progresso.
             </p>
           ) : (
             <div className="space-y-1">
-              {deliverables.map(d => {
+              {enrichedDeliverables.map(d => {
                 const si = getStatusInfo(d.status);
                 const assignee = d.assigned_to ? profiles.find(p => p.id === d.assigned_to) : null;
-                const isOverdue = d.deadline && d.status !== 'entregue' && new Date(d.deadline) < new Date();
+                const displayDeadline = d.computed_deadline;
+                const isOverdue = displayDeadline && d.status !== 'entregue' && new Date(displayDeadline) < new Date();
 
                 return (
                   <div key={d.id} className="flex items-center gap-2 py-2 px-2 rounded-lg hover:bg-muted/40 transition-colors group">
@@ -170,24 +272,29 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
 
                     <span className="flex-1 text-sm font-medium truncate">{d.name}</span>
 
-                    {d.is_recurring && d.recurrence_label && (
+                    {d.is_recurring && d.recurrence_week != null && d.recurrence_weekday != null && (
+                      <Badge variant="outline" className="text-[9px] shrink-0">
+                        🔄 {formatRecurrenceRule(d.recurrence_week, d.recurrence_weekday)}
+                      </Badge>
+                    )}
+                    {d.is_recurring && d.recurrence_label && d.recurrence_week == null && (
                       <Badge variant="outline" className="text-[9px] shrink-0">🔄 {d.recurrence_label}</Badge>
                     )}
 
-                    {d.deadline && (
+                    {displayDeadline && (
                       <Popover>
                         <PopoverTrigger asChild>
                           <button className={cn(
                             "text-[10px] shrink-0 hover:underline",
                             isOverdue ? "text-destructive font-semibold" : "text-muted-foreground"
                           )}>
-                            {format(new Date(d.deadline), 'dd MMM', { locale: pt })}
+                            {format(new Date(displayDeadline), 'dd MMM', { locale: pt })}
                           </button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="end">
                           <Calendar
                             mode="single"
-                            selected={new Date(d.deadline)}
+                            selected={new Date(displayDeadline)}
                             onSelect={date => {
                               if (date) updateDeadline.mutate({ id: d.id, deadline: format(date, 'yyyy-MM-dd') });
                             }}
@@ -218,7 +325,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
         </CardContent>
       </Card>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={v => { setDialogOpen(v); if (!v) resetForm(); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>Nova Entrega / Milestone</DialogTitle></DialogHeader>
           <div className="space-y-3 py-2">
@@ -226,20 +333,68 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
               <Label>Nome da entrega *</Label>
               <Input value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Calendário Editorial" />
             </div>
-            <div className="space-y-1.5">
-              <Label>Data de entrega</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !deadline && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {deadline ? format(deadline, 'PPP', { locale: pt }) : 'Selecionar data'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={deadline} onSelect={setDeadline} className="p-3 pointer-events-auto" />
-                </PopoverContent>
-              </Popover>
+
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={isRecurring} onChange={e => setIsRecurring(e.target.checked)} className="rounded" />
+                <span className="text-sm">Entrega recorrente</span>
+              </label>
             </div>
+
+            {isRecurring ? (
+              <div className="space-y-3 p-3 rounded-lg bg-muted/50 border">
+                <p className="text-xs text-muted-foreground">Define quando esta entrega acontece todos os meses:</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Semana do mês</Label>
+                    <Select value={recurrenceWeek} onValueChange={setRecurrenceWeek}>
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue placeholder="Selecionar" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {WEEK_OPTIONS.map(o => (
+                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Dia da semana</Label>
+                    <Select value={recurrenceWeekday} onValueChange={setRecurrenceWeekday}>
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue placeholder="Selecionar" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {WEEKDAY_OPTIONS.map(o => (
+                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {computedDeadline && recurrenceWeek && recurrenceWeekday && (
+                  <p className="text-xs text-muted-foreground">
+                    📅 Próxima entrega: <span className="font-medium text-foreground">{format(computedDeadline, "EEEE, d 'de' MMMM", { locale: pt })}</span>
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <Label>Data de entrega</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !deadline && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {deadline ? format(deadline, 'PPP', { locale: pt }) : 'Selecionar data'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={deadline} onSelect={setDeadline} className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
+
             <div className="space-y-1.5">
               <Label>Responsável</Label>
               <Select value={assignedTo} onValueChange={setAssignedTo}>
@@ -252,19 +407,15 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={isRecurring} onChange={e => setIsRecurring(e.target.checked)} className="rounded" />
-                <span className="text-sm">Entrega recorrente</span>
-              </label>
-              {isRecurring && (
-                <Input value={recurrenceLabel} onChange={e => setRecurrenceLabel(e.target.value)} placeholder="Ex: Mensal" className="flex-1 h-8 text-sm" />
-              )}
-            </div>
+
             <Button
               className="w-full"
               onClick={() => {
                 if (!name.trim()) { toast.error('Nome obrigatório'); return; }
+                if (isRecurring && (!recurrenceWeek || !recurrenceWeekday)) {
+                  toast.error('Seleciona a semana e o dia da semana');
+                  return;
+                }
                 createMutation.mutate();
               }}
               disabled={createMutation.isPending}
