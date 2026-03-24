@@ -526,6 +526,7 @@ export type Database = {
       capacity_scenarios: {
         Row: {
           admin_percent: number
+          business_percent: number
           client_facing_count: number
           created_at: string
           id: string
@@ -537,6 +538,7 @@ export type Database = {
         }
         Insert: {
           admin_percent?: number
+          business_percent?: number
           client_facing_count?: number
           created_at?: string
           id?: string
@@ -548,6 +550,7 @@ export type Database = {
         }
         Update: {
           admin_percent?: number
+          business_percent?: number
           client_facing_count?: number
           created_at?: string
           id?: string
