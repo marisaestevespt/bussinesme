@@ -42,6 +42,7 @@ interface ProjectFull {
   closure_good: string | null; closure_bad: string | null; closure_lessons: string | null;
   created_by: string | null; created_at: string; cover_url: string | null;
   total_time_minutes: number | null;
+  project_mode: string | null;
 }
 
 interface Profile { id: string; user_id: string; full_name: string | null; avatar_url: string | null; }
@@ -615,6 +616,7 @@ export default function ProjetoDetailPage() {
 
   // ─── Service project ──────────────────────────────────────────
   if (local.type === 'servico' || local.type === 'cliente_servico_mensal') {
+    const isRecorrente = (local as any).project_mode === 'recorrente';
     return (
       <AppLayout>
         <div className="space-y-6 max-w-3xl">
@@ -639,6 +641,7 @@ export default function ProjetoDetailPage() {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
+              {isRecorrente && <Badge variant="outline" className="text-xs">🔄 Recorrente</Badge>}
               <Select value={local.status} onValueChange={v => updateField('status', v)}><SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger><SelectContent>{PROJECT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent></Select>
             </div>
             <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-xl font-bold border-none px-0 focus-visible:ring-0" />
@@ -646,15 +649,17 @@ export default function ProjetoDetailPage() {
               <div><Label className="text-xs">Cliente</Label><Input value={local.client_name || ''} onChange={e => updateField('client_name', e.target.value)} /></div>
               <div><Label className="text-xs">Departamento</Label><Select value={local.department || ''} onValueChange={v => updateField('department', v)}><SelectTrigger><SelectValue placeholder="—" /></SelectTrigger><SelectContent>{DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent></Select></div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><Label className="text-xs">Prazo</Label>
-                <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{local.deadline ? format(new Date(local.deadline), 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+            {!isRecorrente && (
+              <div className="grid grid-cols-2 gap-4">
+                <div><Label className="text-xs">Prazo</Label>
+                  <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{local.deadline ? format(new Date(local.deadline), 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+                </div>
+                <div><Label className="text-xs">Progresso ({getProjectProgress()}%)</Label><Progress value={getProjectProgress()} className="h-2 mt-3" /><p className="text-[10px] text-muted-foreground mt-1">{tasks.filter(t => t.status === 'concluida').length}/{tasks.length} tarefas{clientOnboardingItems.length + clientOffboardingItems.length > 0 ? ` + ${clientOnboardingItems.filter(i => i.completed).length + clientOffboardingItems.filter(i => i.completed).length}/${clientOnboardingItems.length + clientOffboardingItems.length} boarding` : ''}</p></div>
               </div>
-              <div><Label className="text-xs">Progresso ({getProjectProgress()}%)</Label><Progress value={getProjectProgress()} className="h-2 mt-3" /><p className="text-[10px] text-muted-foreground mt-1">{tasks.filter(t => t.status === 'concluida').length}/{tasks.length} tarefas{clientOnboardingItems.length + clientOffboardingItems.length > 0 ? ` + ${clientOnboardingItems.filter(i => i.completed).length + clientOffboardingItems.filter(i => i.completed).length}/${clientOnboardingItems.length + clientOffboardingItems.length} boarding` : ''}</p></div>
-            </div>
+            )}
             <div><Label className="text-xs">Equipa</Label><div className="flex gap-1 mt-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div></div>
             <Separator />
-            {/* Deliverables */}
+            {/* Deliverables - always shown for service projects */}
             <ProjectDeliverables projectId={id!} profiles={profiles} />
             <Separator />
             <div><Label className="text-xs">Notas</Label><MentionTextarea value={local.notes || ''} onChange={v => updateField('notes', v)} rows={6} placeholder="Notas do projeto..." /></div>
@@ -671,6 +676,8 @@ export default function ProjetoDetailPage() {
   }
 
   // ─── Internal project ─────────────────────────────────────────
+  const isRecorrente = (local as any).project_mode === 'recorrente';
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -698,19 +705,24 @@ export default function ProjetoDetailPage() {
         <div className="space-y-3">
           <div className="flex items-center gap-3 flex-wrap">
             <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
+            {isRecorrente && <Badge variant="outline" className="text-xs">🔄 Recorrente</Badge>}
             <Select value={local.status} onValueChange={v => updateField('status', v)}><SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger><SelectContent>{PROJECT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent></Select>
             {local.department && <span className="text-sm text-muted-foreground">{getDeptLabel(local.department)}</span>}
           </div>
           <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-xl font-bold border-none px-0 focus-visible:ring-0" />
           <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <Label className="text-xs text-muted-foreground">Prazo:</Label>
-              <Popover><PopoverTrigger asChild><Button variant="outline" size="sm" className={cn("h-7 text-xs", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-1 h-3 w-3" />{local.deadline ? format(new Date(local.deadline), 'd MMM yyyy', { locale: pt }) : '—'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
-            </div>
-            <div className="flex items-center gap-2 min-w-[160px]">
-              <Progress value={getProjectProgress()} className="h-2 flex-1" />
-              <span className="text-xs text-muted-foreground">{getProjectProgress()}%</span>
-            </div>
+            {!isRecorrente && (
+              <div className="flex items-center gap-2">
+                <Label className="text-xs text-muted-foreground">Prazo:</Label>
+                <Popover><PopoverTrigger asChild><Button variant="outline" size="sm" className={cn("h-7 text-xs", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-1 h-3 w-3" />{local.deadline ? format(new Date(local.deadline), 'd MMM yyyy', { locale: pt }) : '—'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+              </div>
+            )}
+            {!isRecorrente && (
+              <div className="flex items-center gap-2 min-w-[160px]">
+                <Progress value={getProjectProgress()} className="h-2 flex-1" />
+                <span className="text-xs text-muted-foreground">{getProjectProgress()}%</span>
+              </div>
+            )}
             <div className="flex -space-x-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-6 w-6 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div>
             <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
             {local.status === 'concluido' && local.total_time_minutes != null && local.total_time_minutes > 0 && (
@@ -723,35 +735,40 @@ export default function ProjetoDetailPage() {
 
         <Separator />
 
-        {/* Deliverables */}
-        <ProjectDeliverables projectId={id!} profiles={profiles} />
+        {/* Deliverables - only for recorrente projects */}
+        {isRecorrente && (
+          <>
+            <ProjectDeliverables projectId={id!} profiles={profiles} />
+            <Separator />
+          </>
+        )}
 
-        <Separator />
-
-        {/* Section 1: Menu Inicial */}
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Menu Inicial</h3>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              { key: 'objetivo' as SubPage, icon: Target, label: 'Objetivo e Definição' },
-              { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes Iniciais' },
-              { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral' },
-              { key: 'dependencias' as SubPage, icon: Link2, label: 'Dependências' },
-            ].map(({ key, icon: Icon, label }) => (
-              <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border overflow-hidden h-32 transition-all hover:shadow-md text-center">
-                <div className="absolute inset-0 bg-primary opacity-[0.07] group-hover:opacity-[0.12] transition-opacity" />
-                <Icon className="h-7 w-7 text-primary relative z-10" />
-                <span className="text-sm font-semibold text-primary relative z-10 px-3">{label}</span>
-              </button>
-            ))}
+        {/* Section 1: Menu Inicial - only for pontual */}
+        {!isRecorrente && (
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Menu Inicial</h3>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {[
+                { key: 'objetivo' as SubPage, icon: Target, label: 'Objetivo e Definição' },
+                { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes Iniciais' },
+                { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral' },
+                { key: 'dependencias' as SubPage, icon: Link2, label: 'Dependências' },
+              ].map(({ key, icon: Icon, label }) => (
+                <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border overflow-hidden h-32 transition-all hover:shadow-md text-center">
+                  <div className="absolute inset-0 bg-primary opacity-[0.07] group-hover:opacity-[0.12] transition-opacity" />
+                  <Icon className="h-7 w-7 text-primary relative z-10" />
+                  <span className="text-sm font-semibold text-primary relative z-10 px-3">{label}</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Section 2: Estado e Prioridades */}
+        {/* Section 2: Estado e Prioridades (Tarefas) */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Estado e Prioridades</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{isRecorrente ? 'Tarefas do Ciclo' : 'Estado e Prioridades'}</h3>
               <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
             </div>
             <div className="flex gap-2">
@@ -760,7 +777,7 @@ export default function ProjetoDetailPage() {
             </div>
           </div>
           {tasks.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4">Nenhuma tarefa ligada a este projeto</p>
+            <p className="text-sm text-muted-foreground py-4">{isRecorrente ? 'As tarefas serão geradas automaticamente a partir das entregas recorrentes.' : 'Nenhuma tarefa ligada a este projeto'}</p>
           ) : (
             <div className="rounded-lg border">
               <Table>
@@ -788,56 +805,77 @@ export default function ProjetoDetailPage() {
           )}
         </div>
 
-        {/* Section 3: Desenvolvimento */}
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Desenvolvimento</h3>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* Section 3: Desenvolvimento - only for pontual */}
+        {!isRecorrente && (
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Desenvolvimento</h3>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {[
+                { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis' },
+                { key: 'reunioes' as SubPage, icon: Users, label: `Reuniões (${meetings.length})` },
+                { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos' },
+                { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
+              ].map(({ key, icon: Icon, label }) => (
+                <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border overflow-hidden h-32 transition-all hover:shadow-md text-center">
+                  <div className="absolute inset-0 bg-primary opacity-[0.07] group-hover:opacity-[0.12] transition-opacity" />
+                  <Icon className="h-7 w-7 text-primary relative z-10" />
+                  <span className="text-sm font-semibold text-primary relative z-10 px-3">{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recorrente: simplified dev links */}
+        {isRecorrente && (
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             {[
-              { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis' },
+              { key: 'entregaveis' as SubPage, icon: FileText, label: 'Ficheiros' },
               { key: 'reunioes' as SubPage, icon: Users, label: `Reuniões (${meetings.length})` },
-              { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos' },
               { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
             ].map(({ key, icon: Icon, label }) => (
-              <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border overflow-hidden h-32 transition-all hover:shadow-md text-center">
+              <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border overflow-hidden h-24 transition-all hover:shadow-md text-center">
                 <div className="absolute inset-0 bg-primary opacity-[0.07] group-hover:opacity-[0.12] transition-opacity" />
-                <Icon className="h-7 w-7 text-primary relative z-10" />
+                <Icon className="h-6 w-6 text-primary relative z-10" />
                 <span className="text-sm font-semibold text-primary relative z-10 px-3">{label}</span>
               </button>
             ))}
           </div>
-        </div>
+        )}
 
         {/* Linked SOPs */}
         {id && <LinkedSopsSection entityType="projeto" entityId={id} />}
 
-        {/* Section 4: Fecho de Projeto */}
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Fecho de Projeto</h3>
-          <div className="space-y-2">
-            {[
-              { field: 'closure_good' as keyof ProjectFull, label: '✅ O que funcionou bem' },
-              { field: 'closure_bad' as keyof ProjectFull, label: '❌ O que não voltaria a fazer' },
-              { field: 'closure_lessons' as keyof ProjectFull, label: '💡 Lições finais' },
-            ].map(({ field, label }) => (
-              <Collapsible key={field}>
-                <CollapsibleTrigger asChild>
-                  <button className="flex items-center justify-between w-full p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
-                    <span className="text-sm font-medium">{label}</span>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  </button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="px-3 pb-3 pt-2">
-                  <MentionTextarea
-                    value={(local[field] as string) || ''}
-                    onChange={v => updateField(field, v)}
-                    rows={4}
-                    placeholder="Escreve aqui..."
-                  />
-                </CollapsibleContent>
-              </Collapsible>
-            ))}
+        {/* Section 4: Fecho de Projeto - only for pontual */}
+        {!isRecorrente && (
+          <div>
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Fecho de Projeto</h3>
+            <div className="space-y-2">
+              {[
+                { field: 'closure_good' as keyof ProjectFull, label: '✅ O que funcionou bem' },
+                { field: 'closure_bad' as keyof ProjectFull, label: '❌ O que não voltaria a fazer' },
+                { field: 'closure_lessons' as keyof ProjectFull, label: '💡 Lições finais' },
+              ].map(({ field, label }) => (
+                <Collapsible key={field}>
+                  <CollapsibleTrigger asChild>
+                    <button className="flex items-center justify-between w-full p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
+                      <span className="text-sm font-medium">{label}</span>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="px-3 pb-3 pt-2">
+                    <MentionTextarea
+                      value={(local[field] as string) || ''}
+                      onChange={v => updateField(field, v)}
+                      rows={4}
+                      placeholder="Escreve aqui..."
+                    />
+                  </CollapsibleContent>
+                </Collapsible>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <Separator />
         <AlertDialog>
