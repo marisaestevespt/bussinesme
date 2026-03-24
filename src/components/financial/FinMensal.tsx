@@ -229,6 +229,44 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
               )}
             </TableBody>
           </Table>
+
+          {/* Segurança Social — inline within Saídas */}
+          <div className="border-t px-4 py-3 flex items-center gap-3">
+            <p className="text-xs font-medium text-muted-foreground whitespace-nowrap">Segurança Social</p>
+            <Input
+              type="number"
+              placeholder="0.00"
+              className="h-8 w-32 text-sm"
+              value={ssValue}
+              onChange={e => setSsValue(e.target.value)}
+            />
+            <span className="text-xs text-muted-foreground">€</span>
+            <Button size="icon" variant="outline" className="h-8 w-8 shrink-0" onClick={async () => {
+              const val = parseFloat(ssValue) || 0;
+              const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-15`;
+              if (ssExpense) {
+                await fin.upsertExpense.mutateAsync({ id: ssExpense.id, total_with_vat: val, base_value: val, description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}` } as any);
+              } else if (val > 0) {
+                await fin.upsertExpense.mutateAsync({
+                  description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}`,
+                  category: 'seguranca_social',
+                  base_value: val,
+                  vat_rate: 0,
+                  total_with_vat: val,
+                  location: 'portugal',
+                  expense_date: dateStr,
+                  expense_month: m,
+                  expense_quarter: Math.ceil(m / 3),
+                  expense_year: currentYear,
+                  status: 'pago',
+                } as any);
+              }
+              toast.success('Segurança Social guardada');
+            }}>
+              <Check className="h-3.5 w-3.5" />
+            </Button>
+            {ssExpense && <Badge variant="outline" className="text-[10px]">Registado: {fmt(ssExpense.total_with_vat)}</Badge>}
+          </div>
         </CardContent>
       </Card>
 
