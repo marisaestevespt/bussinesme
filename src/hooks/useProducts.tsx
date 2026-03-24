@@ -101,6 +101,7 @@ export function useProducts() {
           'Gestão de Pagamentos',
           'Recolha de NPS/Feedbacks',
           'Acompanhamento de Cliente',
+          'KPIs de Produto',
           'Fecho/Offboarding de Clientes',
         ];
         await supabase.from('sops').insert(
