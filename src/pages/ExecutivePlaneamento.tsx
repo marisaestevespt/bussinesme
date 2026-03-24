@@ -11,11 +11,18 @@ import { MonthlyGallery } from '@/components/planning/MonthlyGallery';
 import { QuarterlyGallery } from '@/components/planning/QuarterlyGallery';
 import { SemesterGallery } from '@/components/planning/SemesterGallery';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Calendar, BarChart3, PieChart, Target, TrendingUp, CheckCircle2, Clock } from 'lucide-react';
+import { Calendar, BarChart3, PieChart, Target, TrendingUp, CheckCircle2, Clock, ArrowLeft } from 'lucide-react';
 import { YearSelector } from '@/components/YearSelector';
+
+type ViewMode = 'mensal' | 'trimestral' | 'semestral' | 'metas' | null;
+
+const VIEW_CARDS: { key: Exclude<ViewMode, null>; label: string; desc: string; icon: typeof Calendar; iconColor: string; color: string }[] = [
+  { key: 'mensal', label: 'Mensal', desc: '12 meses', icon: Calendar, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
+  { key: 'trimestral', label: 'Trimestral', desc: '4 trimestres', icon: BarChart3, iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10' },
+  { key: 'semestral', label: 'Semestral', desc: '2 semestres', icon: PieChart, iconColor: 'text-amber-600', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10' },
+  { key: 'metas', label: 'Metas', desc: 'Todas as metas', icon: Target, iconColor: 'text-rose-600', color: 'from-rose-500/10 to-rose-600/5 hover:from-rose-500/20 hover:to-rose-600/10' },
+];
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
