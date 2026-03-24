@@ -218,8 +218,24 @@ export default function SopDetailPage() {
     return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && sop.name?.toLowerCase().includes('offboarding');
   }, [sop]);
 
+  const isPaymentSop = useMemo(() => {
+    if (!sop) return false;
+    return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && sop.name?.toLowerCase().includes('pagamento');
+  }, [sop]);
+
   const templateTable = isOnboardingSop ? 'product_onboarding_templates' : isOffboardingSop ? 'product_offboarding_templates' : null;
   const linkedProductId = (sop as any)?.linked_entity_id;
+
+  // Payment methods for "Gestão de Pagamentos" SOP
+  const { data: paymentMethods = [] } = useQuery({
+    queryKey: ['product-payment-methods', linkedProductId],
+    queryFn: async () => {
+      if (!linkedProductId) return [];
+      const { data } = await supabase.from('product_payment_methods' as any).select('*').eq('product_id', linkedProductId);
+      return (data || []) as any[];
+    },
+    enabled: isPaymentSop && !!linkedProductId,
+  });
 
   const { data: templateRows = [] } = useQuery({
     queryKey: ['sop-template-rows', templateTable, linkedProductId],
