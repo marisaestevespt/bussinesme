@@ -337,23 +337,26 @@ export default function ProcessosPage() {
             </div>
             <div>
               <Label>Departamentos</Label>
-              <div className="flex flex-wrap gap-2 mt-1">
-                {PROCESS_DEPARTMENTS.map(d => (
-                  <button
-                    key={d.value}
-                    type="button"
-                    onClick={() => setNewSopDepts(prev => prev.includes(d.value) ? prev.filter(v => v !== d.value) : [...prev, d.value])}
-                    className={cn(
-                      'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors',
-                      newSopDepts.includes(d.value)
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-muted text-muted-foreground border-border hover:bg-accent'
-                    )}
-                  >
-                    {d.label}
-                  </button>
-                ))}
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start h-9 text-sm font-normal">
+                    {newSopDepts.length === 0
+                      ? 'Selecionar departamentos...'
+                      : newSopDepts.map(d => PROCESS_DEPARTMENTS.find(x => x.value === d)?.label || d).join(', ')}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-2" align="start">
+                  {PROCESS_DEPARTMENTS.map(d => (
+                    <label key={d.value} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer text-sm">
+                      <Checkbox
+                        checked={newSopDepts.includes(d.value)}
+                        onCheckedChange={(checked) => setNewSopDepts(prev => checked ? [...prev, d.value] : prev.filter(v => v !== d.value))}
+                      />
+                      {d.label}
+                    </label>
+                  ))}
+                </PopoverContent>
+              </Popover>
             </div>
             <div>
               <Label>Status</Label>

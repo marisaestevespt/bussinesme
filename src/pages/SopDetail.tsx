@@ -464,23 +464,26 @@ export default function SopDetailPage() {
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">Departamentos</Label>
-            <div className="flex flex-wrap gap-2 mt-1">
-              {DEPARTMENTS.map(d => (
-                <button
-                  key={d.value}
-                  type="button"
-                  onClick={() => setDepartments(prev => prev.includes(d.value) ? prev.filter(v => v !== d.value) : [...prev, d.value])}
-                  className={cn(
-                    'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors',
-                    departments.includes(d.value)
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-muted text-muted-foreground border-border hover:bg-accent'
-                  )}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start h-9 text-sm font-normal">
+                  {departments.length === 0
+                    ? 'Selecionar departamentos...'
+                    : departments.map(d => DEPARTMENTS.find(x => x.value === d)?.label || d).join(', ')}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2" align="start">
+                {DEPARTMENTS.map(d => (
+                  <label key={d.value} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer text-sm">
+                    <Checkbox
+                      checked={departments.includes(d.value)}
+                      onCheckedChange={(checked) => setDepartments(prev => checked ? [...prev, d.value] : prev.filter(v => v !== d.value))}
+                    />
+                    {d.label}
+                  </label>
+                ))}
+              </PopoverContent>
+            </Popover>
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">Função associada</Label>
