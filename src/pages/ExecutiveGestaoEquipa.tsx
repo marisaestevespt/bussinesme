@@ -2011,7 +2011,7 @@ const HR_SECTIONS = [
   { path: '/hub/recursos-humanos/escala', label: 'Escala', icon: CalendarIcon, iconColor: 'text-orange-600', color: 'from-orange-500/10 to-orange-600/5 hover:from-orange-500/20 hover:to-orange-600/10' },
   { path: '/hub/recursos-humanos/performance', label: 'Gestão de Equipa', icon: BarChart3, iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10' },
   { path: '/hub/recursos-humanos/feedback', label: 'Feedback', icon: MessageSquare, iconColor: 'text-amber-600', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10' },
-  { path: '/hub/recursos-humanos/contratos-pagamentos', label: 'Contratos & Pagamentos', icon: FileText, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
+  { path: '/hub/recursos-humanos/contratos-pagamentos', label: 'Contratos', icon: FileText, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
 ];
 
 // ─── Main Page ──────
