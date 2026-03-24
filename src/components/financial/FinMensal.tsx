@@ -65,6 +65,15 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
     },
   });
 
+  // Products for sale form
+  const { data: productNames = [] } = useQuery({
+    queryKey: ['product-names-for-sale'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('name').order('name');
+      return (data || []).map(p => p.name);
+    },
+  });
+
   const monthSales = useMemo(() => sales.filter(s => s.sale_year === currentYear && s.sale_month === m), [sales, currentYear, m]);
   const monthExpenses = useMemo(() => expenses.filter(e => e.expense_year === currentYear && e.expense_month === m), [expenses, currentYear, m]);
 
