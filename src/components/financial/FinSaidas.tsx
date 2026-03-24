@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -9,13 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Plus, CalendarIcon, Trash2, AlertTriangle } from 'lucide-react';
+import { Plus, CalendarIcon, Trash2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { format, parseISO, differenceInDays } from 'date-fns';
+import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { useFinancialData } from '@/hooks/useFinancialData';
-import { calcMonthlyEquivalent, type Expense, type Subscription } from '@/hooks/useFinancialData';
+import { type Expense } from '@/hooks/useFinancialData';
 import { InvoiceUpload, type DocEntry } from './InvoiceUpload';
 import { CategorySelect } from './CategorySelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
@@ -36,15 +36,11 @@ const LOCATIONS = [
 interface Props { fin: ReturnType<typeof useFinancialData>; }
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-const FULL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
 
 export function FinSaidas({ fin }: Props) {
-  const { expenseCategories, subscriptionCategories, getCategoryLabel } = useFinancialCategories();
+  const { getCategoryLabel } = useFinancialCategories();
   const expenses = fin.expenses.data || [];
-  const subscriptions = fin.subscriptions.data || [];
-  const payrollData = fin.payroll.data || [];
-  const contractorsData = fin.contractors.data || [];
-  const currentYear = new Date().getFullYear();
 
   // --- Expense Dialog ---
   const [expOpen, setExpOpen] = useState(false);
@@ -90,27 +86,6 @@ export function FinSaidas({ fin }: Props) {
     toast.success('Despesa guardada');
   };
 
-  const activeSubs = subscriptions.filter(s => s.status === 'ativo');
-  const totalMonthly = activeSubs.reduce((s, sub) => s + sub.monthly_equivalent, 0);
-
-  // Previsibilidade mensal
-  const predictability = useMemo(() => {
-    return Array.from({ length: 12 }, (_, i) => {
-      const m = i + 1;
-      const subsTotal = totalMonthly;
-      const pessoal = payrollData.filter(p => p.year === currentYear && p.month === m).reduce((s, v) => s + v.total_cost, 0);
-      const prest = contractorsData.filter(c => c.year === currentYear && c.month === m).reduce((s, v) => s + v.value, 0);
-      // Check for renewals this month
-      const renewals = subscriptions.filter(s => {
-        if (!s.renewal_date || s.status !== 'ativo') return false;
-        const rd = parseISO(s.renewal_date);
-        return rd.getMonth() + 1 === m;
-      });
-      return { mes: FULL[i], subs: subsTotal, pessoal, prestadores: prest, total: Math.round((subsTotal + pessoal + prest) * 100) / 100, renewals };
-    });
-  }, [totalMonthly, payrollData, contractorsData, subscriptions, currentYear]);
-
-  const today = new Date();
 
   return (
     <div className="space-y-8 mt-4">
@@ -163,41 +138,6 @@ export function FinSaidas({ fin }: Props) {
         </Card>
       </div>
 
-
-      {/* PREVISIBILIDADE */}
-      <div>
-        <h3 className="text-lg font-semibold mb-3">Previsibilidade Mensal</h3>
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Mês</TableHead>
-                  <TableHead className="text-right">Subscrições (€)</TableHead>
-                  <TableHead className="text-right">Pessoal Fixo (€)</TableHead>
-                  <TableHead className="text-right">Prestadores (€)</TableHead>
-                  <TableHead className="text-right">Total Previsto (€)</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {predictability.map((p, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="font-medium">{p.mes}</TableCell>
-                    <TableCell className="text-right">{fmt(p.subs)}</TableCell>
-                    <TableCell className="text-right">{fmt(p.pessoal)}</TableCell>
-                    <TableCell className="text-right">{fmt(p.prestadores)}</TableCell>
-                    <TableCell className="text-right font-medium">{fmt(p.total)}</TableCell>
-                    <TableCell>
-                      {p.renewals.length > 0 && <Badge variant="outline" className="bg-amber-100 text-amber-800 text-xs">{p.renewals.length} renovação(ões)</Badge>}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* EXPENSE DIALOG */}
       <Dialog open={expOpen} onOpenChange={setExpOpen}>

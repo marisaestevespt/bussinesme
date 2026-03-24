@@ -17,6 +17,7 @@ import { FinTrimestral } from '@/components/financial/FinTrimestral';
 import { FinSegurancaSocial } from '@/components/financial/FinSegurancaSocial';
 import { FinAllDocuments } from '@/components/financial/FinAllDocuments';
 import { FinSetupFinanceiro } from '@/components/financial/FinSetupFinanceiro';
+import { FinPrevisibilidade } from '@/components/financial/FinPrevisibilidade';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 import { YearSelector } from '@/components/YearSelector';
 
@@ -29,9 +30,10 @@ const TITLES: Record<string, string> = {
   'seguranca-social': 'Segurança Social',
   documentos: 'Documentos',
   'setup-financeiro': 'Setup Financeiro',
+  previsibilidade: 'Previsibilidade Financeira',
 };
 
-const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'iva', 'seguranca-social'];
+const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'iva', 'seguranca-social', 'previsibilidade'];
 
 export default function FinanceiroSubPage() {
   const { section } = useParams<{ section: string }>();
@@ -75,6 +77,8 @@ export default function FinanceiroSubPage() {
         return <FinAllDocuments />;
       case 'setup-financeiro':
         return <FinSetupFinanceiro fin={fin} />;
+      case 'previsibilidade':
+        return <FinPrevisibilidade fin={fin} currentYear={year} />;
       default:
         return <EmptyModulePage title={title} />;
     }
