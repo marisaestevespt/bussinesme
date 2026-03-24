@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, Check } from 'lucide-react';
+import { Plus, Check, Download } from 'lucide-react';
+import { exportCsv } from '@/lib/exportCsv';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -208,12 +209,22 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
 
   return (
     <div className="space-y-6 mt-4">
-      <div className="flex items-center gap-3">
-        <Select value={month} onValueChange={setMonth}>
-          <SelectTrigger className="w-48 bg-secondary text-secondary-foreground border-secondary font-medium"><SelectValue /></SelectTrigger>
-          <SelectContent>{MONTHS.map((label, i) => <SelectItem key={i} value={String(i + 1)}>{String(i + 1).padStart(2, '0')} {label}</SelectItem>)}</SelectContent>
-        </Select>
-        <span className="text-muted-foreground text-sm">{currentYear}</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Select value={month} onValueChange={setMonth}>
+            <SelectTrigger className="w-48 bg-secondary text-secondary-foreground border-secondary font-medium"><SelectValue /></SelectTrigger>
+            <SelectContent>{MONTHS.map((label, i) => <SelectItem key={i} value={String(i + 1)}>{String(i + 1).padStart(2, '0')} {label}</SelectItem>)}</SelectContent>
+          </Select>
+          <span className="text-muted-foreground text-sm">{currentYear}</span>
+        </div>
+        <Button size="sm" variant="outline" onClick={() => {
+          const headers = ['Tipo', 'Descrição', 'Cliente/Categoria', 'Base (€)', 'Total (€)', 'Status'];
+          const saleRows = monthSales.map((s: any) => ['Entrada', s.description || '', s.client || '', s.base_value, s.invoice_total, s.status || '']);
+          const expRows = monthExpenses.map(e => ['Saída', e.description || '', e.category || '', e.base_value, e.total_with_vat, e.status || '']);
+          exportCsv(`mensal-${currentYear}-${String(m).padStart(2, '0')}.csv`, headers, [...saleRows, ...expRows]);
+        }}>
+          <Download className="h-3.5 w-3.5 mr-1" /> Exportar
+        </Button>
       </div>
 
       {/* Summary cards */}
