@@ -325,6 +325,7 @@ export default function SopDetailPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-template-rows', templateTable, linkedProductId] }),
   });
 
+  const deleteMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from('sops').delete().eq('id', id!);
       if (error) throw error;
