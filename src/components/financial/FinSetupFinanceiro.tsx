@@ -202,15 +202,13 @@ export function FinSetupFinanceiro({ fin }: Props) {
                   <TableHead>Periodicidade</TableHead>
                   <TableHead className="text-right">Custo Mensal</TableHead>
                   <TableHead>Localização</TableHead>
-                  <TableHead>Renovação</TableHead>
-                  <TableHead>Status</TableHead>
+                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {subscriptions.length === 0 ? (
-                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Sem subscrições</TableCell></TableRow>
-                ) : subscriptions.map(s => {
-                  const renewalWarning = s.renewal_date && s.status === 'ativo' && differenceInDays(parseISO(s.renewal_date), today) <= 30 && differenceInDays(parseISO(s.renewal_date), today) >= 0;
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Sem subscrições</TableCell></TableRow>
+                 const renewalWarning = false;
                   return (
                     <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
                       setSubForm({ ...s, value: s.value.toString(), start_date: s.start_date ? new Date(s.start_date + 'T00:00:00') : undefined, renewal_date: s.renewal_date ? new Date(s.renewal_date + 'T00:00:00') : undefined });
