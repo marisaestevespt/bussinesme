@@ -1601,6 +1601,7 @@ export type Database = {
           funnel_stage: string | null
           id: string
           objective: string | null
+          product_id: string | null
           product_name: string | null
           project_id: string | null
           scheduled_at: string | null
@@ -1619,6 +1620,7 @@ export type Database = {
           funnel_stage?: string | null
           id?: string
           objective?: string | null
+          product_id?: string | null
           product_name?: string | null
           project_id?: string | null
           scheduled_at?: string | null
@@ -1637,6 +1639,7 @@ export type Database = {
           funnel_stage?: string | null
           id?: string
           objective?: string | null
+          product_id?: string | null
           product_name?: string | null
           project_id?: string | null
           scheduled_at?: string | null
@@ -1650,6 +1653,13 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
           {

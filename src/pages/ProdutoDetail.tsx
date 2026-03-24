@@ -203,6 +203,16 @@ export default function ProdutoDetailPage() {
     enabled: !!form.name,
   });
 
+  const { data: productContents = [] } = useQuery({
+    queryKey: ['product-content-items', id],
+    queryFn: async () => {
+      if (!id || isNew) return [];
+      const { data } = await supabase.from('content_items').select('*').eq('product_id', id as any).order('scheduled_at', { ascending: false });
+      return data || [];
+    },
+    enabled: !isNew && !!id,
+  });
+
   // Events linked to this product (Datas Importantes)
   const { data: improvements = [] } = useQuery({
     queryKey: ['product-improvements', id],
@@ -774,7 +784,8 @@ export default function ProdutoDetailPage() {
         {(
           <div className="space-y-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              <SectionButton sectionKey="comercial" label="Comercial & Mkt" />
+              <SectionButton sectionKey="comercial" label="Comercial" />
+              <SectionButton sectionKey="marketing" label="Marketing" />
               <SectionButton sectionKey="contabilidade" label="Contabilidade" />
               <SectionButton sectionKey="processos" label="Processos" />
               <SectionButton sectionKey="backoffice" label="Backoffice" />
@@ -783,9 +794,87 @@ export default function ProdutoDetailPage() {
               <SectionButton sectionKey="arquivo" label="Arquivo" />
             </div>
 
-            {/* ===== COMERCIAL & MKT ===== */}
+            {/* ===== COMERCIAL ===== */}
             {openSection === 'comercial' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                {/* Cliente do Produto */}
+                <Card>
+                  <CardHeader><CardTitle className="text-base">Cliente do Produto</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {[
+                        { key: 'dificuldades', label: 'Dificuldades', hint: 'O que acontece no dia a dia' },
+                        { key: 'dores', label: 'Dores', hint: 'Impacto emocional e mental' },
+                        { key: 'desejo', label: 'Desejo', hint: 'O que quer concretizar ao comprar' },
+                      ].map(({ key, label, hint }) => (
+                        <div key={key} className="space-y-2">
+                          <h4 className="text-sm font-semibold">{label}</h4>
+                          <p className="text-xs text-muted-foreground">{hint}</p>
+                          {(clientProfile[key] || []).map((item: string, i: number) => (
+                            <div key={i} className="flex gap-1">
+                              <Input value={item} onChange={e => {
+                                const arr = [...(clientProfile[key] || [])];
+                                arr[i] = e.target.value;
+                                updateClientProfile(key, arr);
+                              }} className="h-7 text-xs" readOnly={!isOwner} />
+                              {isOwner && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => updateClientProfile(key, (clientProfile[key] || []).filter((_: any, j: number) => j !== i))}><X className="h-3 w-3" /></Button>}
+                            </div>
+                          ))}
+                          {isOwner && <Button variant="ghost" size="sm" className="text-xs" onClick={() => updateClientProfile(key, [...(clientProfile[key] || []), ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar</Button>}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {[
+                        { key: 'pensa', label: 'O que ela pensa', hint: 'Pensamentos recorrentes' },
+                        { key: 'expressoes', label: 'Expressões que usa', hint: 'Linguagem real' },
+                        { key: 'ouve', label: 'O que ela ouve', hint: 'Contexto externo' },
+                      ].map(({ key, label, hint }) => (
+                        <div key={key} className="space-y-2">
+                          <h4 className="text-sm font-semibold">{label}</h4>
+                          <p className="text-xs text-muted-foreground">{hint}</p>
+                          {(clientProfile[key] || []).map((item: string, i: number) => (
+                            <div key={i} className="flex gap-1">
+                              <Input value={item} onChange={e => {
+                                const arr = [...(clientProfile[key] || [])];
+                                arr[i] = e.target.value;
+                                updateClientProfile(key, arr);
+                              }} className="h-7 text-xs" readOnly={!isOwner} />
+                              {isOwner && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => updateClientProfile(key, (clientProfile[key] || []).filter((_: any, j: number) => j !== i))}><X className="h-3 w-3" /></Button>}
+                            </div>
+                          ))}
+                          {isOwner && <Button variant="ghost" size="sm" className="text-xs" onClick={() => updateClientProfile(key, [...(clientProfile[key] || []), ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar</Button>}
+                        </div>
+                      ))}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2">Linguagem</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {[
+                          { key: 'linguagem_nucleo', label: 'Núcleo (usar sempre)' },
+                          { key: 'linguagem_apoio', label: 'Apoio (usar quando faz sentido)' },
+                          { key: 'linguagem_evitar', label: 'Evitar' },
+                        ].map(({ key, label }) => (
+                          <div key={key} className="space-y-2">
+                            <p className="text-xs text-muted-foreground font-medium">{label}</p>
+                            {(clientProfile[key] || []).map((item: string, i: number) => (
+                              <div key={i} className="flex gap-1">
+                                <Input value={item} onChange={e => {
+                                  const arr = [...(clientProfile[key] || [])];
+                                  arr[i] = e.target.value;
+                                  updateClientProfile(key, arr);
+                                }} className="h-7 text-xs" readOnly={!isOwner} />
+                                {isOwner && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => updateClientProfile(key, (clientProfile[key] || []).filter((_: any, j: number) => j !== i))}><X className="h-3 w-3" /></Button>}
+                              </div>
+                            ))}
+                            {isOwner && <Button variant="ghost" size="sm" className="text-xs" onClick={() => updateClientProfile(key, [...(clientProfile[key] || []), ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar</Button>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 {/* Ações de Venda */}
                 <Card>
                   <CardHeader className="flex-row items-center justify-between">
@@ -816,6 +905,93 @@ export default function ProdutoDetailPage() {
                             <TableCell className="font-medium">{a.action_name}</TableCell>
                             <TableCell className="text-sm">{a.start_date ? format(new Date(a.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
                             <TableCell className="text-sm">{a.product || '—'}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+
+                {/* Produtos Concorrentes */}
+                <Card>
+                  <CardHeader><CardTitle className="text-base">Produtos Concorrentes</CardTitle></CardHeader>
+                  <CardContent>
+                    <Accordion type="multiple" className="w-full">
+                      {competitors.map((c, i) => (
+                        <AccordionItem key={i} value={`comp-${i}`}>
+                          <AccordionTrigger className="text-sm">
+                            <Input
+                              value={c.name}
+                              onChange={e => {
+                                const next = [...competitors];
+                                next[i] = { ...next[i], name: e.target.value };
+                                updateCompetitors(next);
+                              }}
+                              className="border-none shadow-none h-auto p-0 focus-visible:ring-0 text-sm font-medium"
+                              onClick={e => e.stopPropagation()}
+                              readOnly={!isOwner}
+                            />
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <Textarea
+                              value={c.notes}
+                              onChange={e => {
+                                const next = [...competitors];
+                                next[i] = { ...next[i], notes: e.target.value };
+                                updateCompetitors(next);
+                              }}
+                              placeholder="Notas sobre este concorrente..."
+                              className="min-h-[80px]"
+                              readOnly={!isOwner}
+                            />
+                            {isOwner && (
+                              <Button variant="ghost" size="sm" className="mt-1 text-destructive" onClick={() => updateCompetitors(competitors.filter((_, j) => j !== i))}>
+                                <Trash2 className="h-3 w-3 mr-1" /> Remover
+                              </Button>
+                            )}
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                    {isOwner && (
+                      <Button variant="outline" size="sm" className="mt-2" onClick={() => updateCompetitors([...competitors, { name: '', notes: '' }])}>
+                        <Plus className="h-3 w-3 mr-1" /> Adicionar concorrente
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* ===== MARKETING ===== */}
+            {openSection === 'marketing' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                {/* Conteúdos */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Conteúdos</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xs text-muted-foreground mb-3">Conteúdos do calendário de conteúdos associados a este produto.</p>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Título</TableHead>
+                          <TableHead>Formato</TableHead>
+                          <TableHead>Data</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {productContents.length === 0 && (
+                          <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-4">Sem conteúdos associados a este produto</TableCell></TableRow>
+                        )}
+                        {productContents.map((c: any) => (
+                          <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/marketing/conteudos/${c.id}`)}>
+                            <TableCell><Badge variant="outline" className="text-xs">{c.status?.replace('_', ' ') || '—'}</Badge></TableCell>
+                            <TableCell className="font-medium">{c.title}</TableCell>
+                            <TableCell className="text-sm">{c.format || '—'}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{c.scheduled_at ? format(new Date(c.scheduled_at), 'dd/MM/yyyy') : '—'}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -917,55 +1093,6 @@ export default function ProdutoDetailPage() {
                   </CardContent>
                 </Card>
 
-                {/* Produtos Concorrentes */}
-                <Card>
-                  <CardHeader><CardTitle className="text-base">Produtos Concorrentes</CardTitle></CardHeader>
-                  <CardContent>
-                    <Accordion type="multiple" className="w-full">
-                      {competitors.map((c, i) => (
-                        <AccordionItem key={i} value={`comp-${i}`}>
-                          <AccordionTrigger className="text-sm">
-                            <Input
-                              value={c.name}
-                              onChange={e => {
-                                const next = [...competitors];
-                                next[i] = { ...next[i], name: e.target.value };
-                                updateCompetitors(next);
-                              }}
-                              className="border-none shadow-none h-auto p-0 focus-visible:ring-0 text-sm font-medium"
-                              onClick={e => e.stopPropagation()}
-                              readOnly={!isOwner}
-                            />
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            <Textarea
-                              value={c.notes}
-                              onChange={e => {
-                                const next = [...competitors];
-                                next[i] = { ...next[i], notes: e.target.value };
-                                updateCompetitors(next);
-                              }}
-                              placeholder="Notas sobre este concorrente..."
-                              className="min-h-[80px]"
-                              readOnly={!isOwner}
-                            />
-                            {isOwner && (
-                              <Button variant="ghost" size="sm" className="mt-1 text-destructive" onClick={() => updateCompetitors(competitors.filter((_, j) => j !== i))}>
-                                <Trash2 className="h-3 w-3 mr-1" /> Remover
-                              </Button>
-                            )}
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                    {isOwner && (
-                      <Button variant="outline" size="sm" className="mt-2" onClick={() => updateCompetitors([...competitors, { name: '', notes: '' }])}>
-                        <Plus className="h-3 w-3 mr-1" /> Adicionar concorrente
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-
                 {/* Tráfego Pago */}
                 <Card>
                   <CardHeader className="flex-row items-center justify-between">
@@ -1014,6 +1141,7 @@ export default function ProdutoDetailPage() {
                 </Card>
               </div>
             )}
+
 
             {/* ===== CONTABILIDADE ===== */}
             {openSection === 'contabilidade' && (
@@ -1149,83 +1277,6 @@ export default function ProdutoDetailPage() {
 
             {openSection === 'backoffice' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
-                {/* Cliente do Produto (moved from old Produto tab) */}
-                <Card>
-                  <CardHeader><CardTitle className="text-base">Cliente do Produto</CardTitle></CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {[
-                        { key: 'dificuldades', label: 'Dificuldades', hint: 'O que acontece no dia a dia' },
-                        { key: 'dores', label: 'Dores', hint: 'Impacto emocional e mental' },
-                        { key: 'desejo', label: 'Desejo', hint: 'O que quer concretizar ao comprar' },
-                      ].map(({ key, label, hint }) => (
-                        <div key={key} className="space-y-2">
-                          <h4 className="text-sm font-semibold">{label}</h4>
-                          <p className="text-xs text-muted-foreground">{hint}</p>
-                          {(clientProfile[key] || []).map((item: string, i: number) => (
-                            <div key={i} className="flex gap-1">
-                              <Input value={item} onChange={e => {
-                                const arr = [...(clientProfile[key] || [])];
-                                arr[i] = e.target.value;
-                                updateClientProfile(key, arr);
-                              }} className="h-7 text-xs" readOnly={!isOwner} />
-                              {isOwner && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => updateClientProfile(key, (clientProfile[key] || []).filter((_: any, j: number) => j !== i))}><X className="h-3 w-3" /></Button>}
-                            </div>
-                          ))}
-                          {isOwner && <Button variant="ghost" size="sm" className="text-xs" onClick={() => updateClientProfile(key, [...(clientProfile[key] || []), ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar</Button>}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {[
-                        { key: 'pensa', label: 'O que ela pensa', hint: 'Pensamentos recorrentes' },
-                        { key: 'expressoes', label: 'Expressões que usa', hint: 'Linguagem real' },
-                        { key: 'ouve', label: 'O que ela ouve', hint: 'Contexto externo' },
-                      ].map(({ key, label, hint }) => (
-                        <div key={key} className="space-y-2">
-                          <h4 className="text-sm font-semibold">{label}</h4>
-                          <p className="text-xs text-muted-foreground">{hint}</p>
-                          {(clientProfile[key] || []).map((item: string, i: number) => (
-                            <div key={i} className="flex gap-1">
-                              <Input value={item} onChange={e => {
-                                const arr = [...(clientProfile[key] || [])];
-                                arr[i] = e.target.value;
-                                updateClientProfile(key, arr);
-                              }} className="h-7 text-xs" readOnly={!isOwner} />
-                              {isOwner && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => updateClientProfile(key, (clientProfile[key] || []).filter((_: any, j: number) => j !== i))}><X className="h-3 w-3" /></Button>}
-                            </div>
-                          ))}
-                          {isOwner && <Button variant="ghost" size="sm" className="text-xs" onClick={() => updateClientProfile(key, [...(clientProfile[key] || []), ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar</Button>}
-                        </div>
-                      ))}
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold mb-2">Linguagem</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {[
-                          { key: 'linguagem_nucleo', label: 'Núcleo (usar sempre)' },
-                          { key: 'linguagem_apoio', label: 'Apoio (usar quando faz sentido)' },
-                          { key: 'linguagem_evitar', label: 'Evitar' },
-                        ].map(({ key, label }) => (
-                          <div key={key} className="space-y-2">
-                            <p className="text-xs text-muted-foreground font-medium">{label}</p>
-                            {(clientProfile[key] || []).map((item: string, i: number) => (
-                              <div key={i} className="flex gap-1">
-                                <Input value={item} onChange={e => {
-                                  const arr = [...(clientProfile[key] || [])];
-                                  arr[i] = e.target.value;
-                                  updateClientProfile(key, arr);
-                                }} className="h-7 text-xs" readOnly={!isOwner} />
-                                {isOwner && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => updateClientProfile(key, (clientProfile[key] || []).filter((_: any, j: number) => j !== i))}><X className="h-3 w-3" /></Button>}
-                              </div>
-                            ))}
-                            {isOwner && <Button variant="ghost" size="sm" className="text-xs" onClick={() => updateClientProfile(key, [...(clientProfile[key] || []), ''])}><Plus className="h-3 w-3 mr-1" /> Adicionar</Button>}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
 
                 {/* Links Úteis */}
                 <Card>
