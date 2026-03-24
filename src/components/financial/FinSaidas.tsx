@@ -36,7 +36,7 @@ const LOCATIONS = [
 interface Props { fin: ReturnType<typeof useFinancialData>; }
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-const FULL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
 
 export function FinSaidas({ fin }: Props) {
   const { getCategoryLabel } = useFinancialCategories();
