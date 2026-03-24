@@ -93,7 +93,27 @@ export function useProducts() {
       } else {
         const { data, error } = await supabase.from('products').insert(product).select('id').single();
         if (error) throw error;
-        return data.id;
+        const newId = data.id;
+
+        // Auto-create 4 default SOPs for the new product
+        const defaultSops = [
+          'Entrada/Onboarding de Clientes',
+          'Gestão de Pagamentos',
+          'Recolha de NPS/Feedbacks',
+          'Fecho/Offboarding de Clientes',
+        ];
+        await supabase.from('sops').insert(
+          defaultSops.map(name => ({
+            name: `${name} — ${product.name}`,
+            department: 'comercial',
+            status: 'para_criar',
+            linked_entity_type: 'produto',
+            linked_entity_id: newId,
+            product_name: product.name,
+          }))
+        );
+
+        return newId;
       }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['products'] }),
