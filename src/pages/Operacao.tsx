@@ -276,6 +276,12 @@ export default function OperacaoPage() {
   const activeClientProjects = useMemo(() => clientProjects.filter(p => ACTIVE_STATUSES.includes(p.status)), [clientProjects]);
   const activeInternoProjects = useMemo(() => internoProjects.filter(p => ACTIVE_STATUSES.includes(p.status)), [internoProjects]);
 
+  // Split by mode
+  const activeClientPontuais = useMemo(() => activeClientProjects.filter(p => p.project_mode !== 'recorrente'), [activeClientProjects]);
+  const activeClientRecorrentes = useMemo(() => activeClientProjects.filter(p => p.project_mode === 'recorrente'), [activeClientProjects]);
+  const activeInternoPontuais = useMemo(() => activeInternoProjects.filter(p => p.project_mode !== 'recorrente'), [activeInternoProjects]);
+  const activeInternoRecorrentes = useMemo(() => activeInternoProjects.filter(p => p.project_mode === 'recorrente'), [activeInternoProjects]);
+
   const allActiveProjects = useMemo(() => projects.filter(p => ACTIVE_STATUSES.includes(p.status)), [projects]);
 
   const clientProjectIds = useMemo(() => new Set(clientProjects.map(p => p.id)), [clientProjects]);
