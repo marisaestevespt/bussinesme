@@ -1,106 +1,143 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
-import { usePlanningData } from '@/hooks/usePlanningData';
+import { usePlanningData, planStatusLabel } from '@/hooks/usePlanningData';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
 import { BackNavigation } from '@/components/BackNavigation';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import { PlanningGoalsTab, type GoalsViewMode } from '@/components/planning/PlanningGoalsTab';
+import { PlanningGoalsTab } from '@/components/planning/PlanningGoalsTab';
 import { PlanningTrackingTab } from '@/components/planning/PlanningTrackingTab';
 import { MonthlyGallery } from '@/components/planning/MonthlyGallery';
 import { QuarterlyGallery } from '@/components/planning/QuarterlyGallery';
 import { SemesterGallery } from '@/components/planning/SemesterGallery';
-import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
-import { Calendar, BarChart3, PieChart, Target } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Calendar, BarChart3, PieChart, Target, TrendingUp, CheckCircle2, Clock } from 'lucide-react';
 import { YearSelector } from '@/components/YearSelector';
 
-type ViewMode = 'mensal' | 'trimestral' | 'semestral' | 'metas' | null;
-
-const VIEW_CARDS: { key: Exclude<ViewMode, null>; label: string; icon: typeof Calendar; iconColor: string; color: string }[] = [
-  { key: 'mensal', label: 'Mensal', icon: Calendar, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
-  { key: 'trimestral', label: 'Trimestral', icon: BarChart3, iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10' },
-  { key: 'semestral', label: 'Semestral', icon: PieChart, iconColor: 'text-amber-600', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10' },
-  { key: 'metas', label: 'Metas', icon: Target, iconColor: 'text-rose-600', color: 'from-rose-500/10 to-rose-600/5 hover:from-rose-500/20 hover:to-rose-600/10' },
-];
+const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 export default function ExecutivePlaneamento() {
   const [year, setYear] = useState(new Date().getFullYear());
   const planning = usePlanningData(year);
-  const [viewMode, setViewMode] = useState<ViewMode>(null);
 
-  const handleCardClick = (key: Exclude<ViewMode, null>) => {
-    setViewMode(prev => prev === key ? null : key);
-  };
+  const stats = useMemo(() => {
+    const objs = planning.allObjectives;
+    const goals = planning.allGoals;
+    const totalObjs = objs.length;
+    const achieved = objs.filter((o: any) => o.status === 'atingido').length;
+    const inProgress = objs.filter((o: any) => o.status === 'em_curso').length;
+    const avgProgress = totalObjs > 0
+      ? Math.round(objs.reduce((s: number, o: any) => s + planning.objectiveProgress(o), 0) / totalObjs)
+      : 0;
+
+    const monthsWithGoals = new Set(goals.filter((g: any) => MONTHS.includes(g.period)).map((g: any) => g.period)).size;
+    const goalsAchieved = goals.filter((g: any) => g.status === 'atingido').length;
+
+    return { totalObjs, achieved, inProgress, avgProgress, monthsWithGoals, totalGoals: goals.length, goalsAchieved };
+  }, [planning.allObjectives, planning.allGoals]);
 
   return (
     <AppLayout>
-      <div className="space-y-10">
+      <div className="space-y-6">
         <BackNavigation />
         <PageHeader title="Planeamento Anual" subtitle={String(year)} />
 
         <YearSelector year={year} onChange={setYear} />
 
-        {/* View mode cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {VIEW_CARDS.map(v => (
-            <Card
-              key={v.key}
-              className={`group cursor-pointer border bg-gradient-to-br ${v.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${viewMode === v.key ? 'ring-2 ring-primary shadow-md' : ''}`}
-              onClick={() => handleCardClick(v.key)}
-            >
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${v.iconColor}`}>
-                  <v.icon className="h-4.5 w-4.5" />
-                </div>
-                <span className="font-medium text-sm text-foreground">{v.label}</span>
-              </CardContent>
-            </Card>
-          ))}
+        {/* Pulse — resumo rápido do ano */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4 flex items-start gap-3">
+              <div className="rounded-lg bg-primary/10 p-2 text-primary">
+                <Target className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Objetivos</p>
+                <p className="text-lg font-bold">{stats.totalObjs}</p>
+                <p className="text-[10px] text-muted-foreground">{stats.inProgress} em curso</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-start gap-3">
+              <div className="rounded-lg bg-emerald-500/10 p-2 text-emerald-600">
+                <TrendingUp className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Progresso médio</p>
+                <p className="text-lg font-bold">{stats.avgProgress}%</p>
+                <Progress value={stats.avgProgress} className="h-1.5 mt-1 w-20" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-start gap-3">
+              <div className="rounded-lg bg-violet-500/10 p-2 text-violet-600">
+                <CheckCircle2 className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Atingidos</p>
+                <p className="text-lg font-bold">{stats.achieved}<span className="text-sm font-normal text-muted-foreground">/{stats.totalObjs}</span></p>
+                <p className="text-[10px] text-muted-foreground">{stats.goalsAchieved} metas atingidas</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-start gap-3">
+              <div className="rounded-lg bg-amber-500/10 p-2 text-amber-600">
+                <Clock className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Cobertura</p>
+                <p className="text-lg font-bold">{stats.monthsWithGoals}<span className="text-sm font-normal text-muted-foreground">/12 meses</span></p>
+                <p className="text-[10px] text-muted-foreground">{stats.totalGoals} metas definidas</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Back button when a view is active */}
-        {viewMode !== null && (
-          <Button variant="ghost" size="sm" onClick={() => setViewMode(null)} className="gap-1.5 text-muted-foreground hover:text-foreground -mt-4">
-            <ArrowLeft className="h-4 w-4" />
-            Voltar ao Planeamento
-          </Button>
-        )}
+        {/* Tabs de navegação */}
+        <Tabs defaultValue="objetivos" className="space-y-6">
+          <TabsList className="w-full justify-start">
+            <TabsTrigger value="objetivos" className="gap-1.5">
+              <Target className="h-3.5 w-3.5" /> Objetivos
+            </TabsTrigger>
+            <TabsTrigger value="mensal" className="gap-1.5">
+              <Calendar className="h-3.5 w-3.5" /> Mensal
+            </TabsTrigger>
+            <TabsTrigger value="trimestral" className="gap-1.5">
+              <BarChart3 className="h-3.5 w-3.5" /> Trimestral
+            </TabsTrigger>
+            <TabsTrigger value="semestral" className="gap-1.5">
+              <PieChart className="h-3.5 w-3.5" /> Semestral
+            </TabsTrigger>
+            <TabsTrigger value="metas" className="gap-1.5">
+              <TrendingUp className="h-3.5 w-3.5" /> Metas
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Default dashboard: Objetivos + Metas cards */}
-        {viewMode === null && (
-          <>
-            <section className="space-y-3">
-              <h2 className="text-lg font-semibold">Objetivos</h2>
-              <PlanningObjectivesTab planning={planning} />
-            </section>
-            <Separator />
-            <section className="space-y-3">
-              <h2 className="text-lg font-semibold">Metas</h2>
-              <PlanningGoalsTab planning={planning} viewMode="mensal" />
-            </section>
-          </>
-        )}
+          <TabsContent value="objetivos">
+            <PlanningObjectivesTab planning={planning} />
+          </TabsContent>
 
-        {viewMode === 'mensal' && (
-          <MonthlyGallery planning={planning} year={year} />
-        )}
+          <TabsContent value="mensal">
+            <MonthlyGallery planning={planning} year={year} />
+          </TabsContent>
 
-        {viewMode === 'trimestral' && (
-          <QuarterlyGallery planning={planning} year={year} />
-        )}
+          <TabsContent value="trimestral">
+            <QuarterlyGallery planning={planning} year={year} />
+          </TabsContent>
 
-        {viewMode === 'semestral' && (
-          <SemesterGallery planning={planning} year={year} />
-        )}
+          <TabsContent value="semestral">
+            <SemesterGallery planning={planning} year={year} />
+          </TabsContent>
 
-        {viewMode === 'metas' && (
-          <section className="space-y-3">
-            <h2 className="text-lg font-semibold">Metas</h2>
+          <TabsContent value="metas">
             <PlanningGoalsTab planning={planning} viewMode="metas" />
-          </section>
-        )}
+          </TabsContent>
+        </Tabs>
       </div>
     </AppLayout>
   );
