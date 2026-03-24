@@ -174,8 +174,8 @@ export function FinSaidas({ fin }: Props) {
             <Table>
               <TableHeader>
                 <TableRow>
+                   <TableHead>Status</TableHead>
                   <TableHead>ID</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead>Data</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead>Categoria</TableHead>
@@ -194,8 +194,8 @@ export function FinSaidas({ fin }: Props) {
                     setExpForm({ ...e, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.base_value.toString() });
                     setExpOpen(true);
                   }}>
-                    <TableCell className="font-mono text-xs">{e.expense_id}</TableCell>
                     <TableCell><Badge variant="outline" className={e.status === 'pago' ? 'bg-green-100 text-green-800' : e.status === 'cancelado' ? 'bg-muted text-muted-foreground' : 'bg-amber-100 text-amber-800'}>{EXP_STATUS.find(s => s.value === e.status)?.label || e.status}</Badge></TableCell>
+                    <TableCell className="font-mono text-xs">{e.expense_id}</TableCell>
                     <TableCell>{e.expense_date || '—'}</TableCell>
                     <TableCell className="truncate max-w-[200px]">{e.description || '—'}</TableCell>
                     <TableCell>{getCategoryLabel('expense', e.category)}</TableCell>
