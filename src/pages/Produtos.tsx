@@ -71,11 +71,6 @@ export default function ProdutosPage() {
     <AppLayout>
       <div className="p-6 space-y-6">
         <PageHeader title="Produtos" />
-        <div className="flex items-center justify-end">
-          <Button size="sm" onClick={() => navigate('/hub/produtos/novo')}>
-            <Plus className="h-4 w-4 mr-1" /> Novo Produto
-          </Button>
-        </div>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -154,7 +149,12 @@ export default function ProdutosPage() {
               </Button>
             )}
           </div>
-          <p className="text-xs text-muted-foreground">{filtered.length} produto{filtered.length !== 1 ? 's' : ''}</p>
+          <div className="flex items-center gap-3">
+            <p className="text-xs text-muted-foreground">{filtered.length} produto{filtered.length !== 1 ? 's' : ''}</p>
+            <Button size="sm" onClick={() => navigate('/hub/produtos/novo')}>
+              <Plus className="h-4 w-4 mr-1" /> Novo Produto
+            </Button>
+          </div>
         </div>
 
         {/* Gallery */}
