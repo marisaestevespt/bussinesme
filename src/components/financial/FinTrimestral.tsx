@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ const catLabel = (key: string) => {
 };
 
 export function FinTrimestral({ sales, expenses, currentYear }: Props) {
+  const [selectedQ, setSelectedQ] = useState<string>('todos');
   const yearSales = useMemo(() => sales.filter(s => s.sale_year === currentYear), [sales, currentYear]);
   const yearExpenses = useMemo(() => expenses.filter(e => e.expense_year === currentYear), [expenses, currentYear]);
 
