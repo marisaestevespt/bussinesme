@@ -22,7 +22,8 @@ import type { Expense, Subscription, PayrollEntry, ContractorEntry, FinancialDoc
 import { InvoiceUpload } from './InvoiceUpload';
 import { CategorySelect } from './CategorySelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
-import { EntryDetailSheet, getEntryStatusBadge } from './EntryDetailSheet';
+import { EntryStatusSelect, ExpenseStatusSelect } from './InlineStatusSelect';
+import { EntryDetailSheet } from './EntryDetailSheet';
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 const VAT_RATES = [0, 6, 13, 23];
@@ -191,11 +192,9 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
             <TableBody>
               {monthSales.length === 0 ? (
                 <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">Sem entradas</TableCell></TableRow>
-              ) : monthSales.map((s: any, i) => {
-                const sb = getEntryStatusBadge(s.status);
-                return (
+              ) : monthSales.map((s: any, i) => (
                   <TableRow key={i} className="cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedSale(s); setSaleSheetOpen(true); }}>
-                    <TableCell><Badge variant="outline" className={sb.cls}>{sb.label}</Badge></TableCell>
+                    <TableCell onClick={e => e.stopPropagation()}><EntryStatusSelect saleId={s.id} currentStatus={s.status || 'aguarda_pagamento'} /></TableCell>
                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{s.sale_id || '—'}</TableCell>
                     <TableCell>{s.description || '—'}</TableCell>
                     <TableCell>{s.product || '—'}</TableCell>
@@ -205,8 +204,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
                     <TableCell className="text-right">{fmt(s.invoice_total)}</TableCell>
                     <TableCell className="whitespace-nowrap">{s.payment_date || '—'}</TableCell>
                   </TableRow>
-                );
-              })}
+              ))}
             </TableBody>
           </Table>
         </CardContent>
@@ -268,17 +266,13 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
               {monthExpenses.map(e => (
                 <TableRow key={e.id}>
                   <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={`cursor-pointer ${e.status === 'pago' ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'}`}
-                      onClick={async () => {
-                        const newStatus = e.status === 'pago' ? 'pendente' : 'pago';
-                        await fin.upsertExpense.mutateAsync({ id: e.id, status: newStatus } as any);
-                        toast.success(`Status alterado para ${newStatus}`);
+                    <ExpenseStatusSelect
+                      expenseId={e.id}
+                      currentStatus={e.status}
+                      onUpdate={async (id, status) => {
+                        await fin.upsertExpense.mutateAsync({ id, status } as any);
                       }}
-                    >
-                      {e.status === 'pago' ? '✓ Pago' : 'Pendente'}
-                    </Badge>
+                    />
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{(e as any).expense_id || '—'}</TableCell>
                   <TableCell>{e.description || '—'}</TableCell>
