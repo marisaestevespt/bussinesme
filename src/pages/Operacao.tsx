@@ -395,7 +395,60 @@ export default function OperacaoPage() {
 
   const totalAlerts = stalledProjects.length + clientsNearEndOfCycle.length + unassignedTasks.length;
 
-  // ── Render helpers ──────────────────────────────────────────
+  // ── Countdown — next delivery ──────────────────────────────
+  const nextDelivery = useMemo(() => {
+    const upcoming = allActiveProjects
+      .filter(p => p.deadline && !isBefore(new Date(p.deadline), today))
+      .sort((a, b) => new Date(a.deadline!).getTime() - new Date(b.deadline!).getTime());
+    if (upcoming.length === 0) return null;
+    const p = upcoming[0];
+    const daysLeft = differenceInDays(new Date(p.deadline!), today);
+    return { ...p, daysLeft };
+  }, [allActiveProjects, today]);
+
+  // ── Project health indicators ──────────────────────────────
+  const projectHealth = useMemo(() => {
+    return allActiveProjects.map(p => {
+      const prog = projectProgress.get(p.id) ?? p.progress;
+      let health: 'green' | 'yellow' | 'red' = 'green';
+      if (p.deadline) {
+        const daysLeft = differenceInDays(new Date(p.deadline), today);
+        const expectedProg = p.deadline ? Math.max(0, Math.min(100, ((differenceInDays(today, new Date(p.start_date || p.created_at))) / Math.max(1, differenceInDays(new Date(p.deadline), new Date(p.start_date || p.created_at)))) * 100)) : 0;
+        if (prog < expectedProg - 25 || (daysLeft <= 3 && prog < 80)) health = 'red';
+        else if (prog < expectedProg - 10 || (daysLeft <= 7 && prog < 60)) health = 'yellow';
+      }
+      if (prog === 0 && differenceInDays(today, new Date(p.start_date || p.created_at)) > 7) health = 'red';
+      return { ...p, prog, health };
+    }).sort((a, b) => {
+      const order = { red: 0, yellow: 1, green: 2 };
+      return order[a.health] - order[b.health];
+    });
+  }, [allActiveProjects, projectProgress, today]);
+
+  // ── Delivery timeline (next 14 days) ──────────────────────
+  const deliveryTimeline = useMemo(() => {
+    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task'; id: string }[] }[] = [];
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() + i);
+      const dateStr = format(d, 'yyyy-MM-dd');
+      const items: { name: string; type: 'project' | 'task'; id: string }[] = [];
+      allActiveProjects.forEach(p => {
+        if (p.deadline && format(new Date(p.deadline), 'yyyy-MM-dd') === dateStr) {
+          items.push({ name: p.name, type: 'project', id: p.id });
+        }
+      });
+      tasks.filter(t => t.status !== 'concluida').forEach(t => {
+        if (t.deadline && format(new Date(t.deadline), 'yyyy-MM-dd') === dateStr) {
+          items.push({ name: t.name, type: 'task', id: t.id });
+        }
+      });
+      if (items.length > 0) {
+        days.push({ date: d, label: isToday(d) ? 'Hoje' : format(d, 'EEE dd', { locale: pt }), items });
+      }
+    }
+    return days;
+  }, [allActiveProjects, tasks, today]);
 
   function renderTaskRow(t: Task) {
     const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
