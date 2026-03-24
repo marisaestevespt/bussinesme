@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { excludeCancelled } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCommercialData } from '@/hooks/useCommercialData';
@@ -14,6 +15,8 @@ import { YearSelector } from '@/components/YearSelector';
 import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Settings, TrendingUp, Users, Heart, Package, UserCheck } from 'lucide-react';
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+const ML = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const PIE_COLORS = ['hsl(var(--primary))', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#6366f1'];
 
 const SECTIONS_ROW1 = [
   { path: '/hub/financeiro/mensal', label: 'Mensal', icon: CalendarDays, iconColor: 'text-blue-600', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
@@ -117,6 +120,40 @@ export default function FinanceiroPage() {
     return map[key] || key;
   };
 
+  // Monthly chart data
+  const monthlyData = useMemo(() => {
+    return Array.from({ length: 12 }, (_, i) => {
+      const m = i + 1;
+      const ent = yearSales.filter(s => s.sale_month === m).reduce((s, v) => s + v.invoice_total, 0);
+      const sai = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.total_with_vat, 0);
+      return { mes: ML[i], entradas: ent, saidas: sai };
+    });
+  }, [yearSales, yearExpenses]);
+
+  // Product distribution for pie chart
+  const productPieData = useMemo(() => {
+    const byProduct = new Map<string, number>();
+    yearSales.forEach(s => {
+      const name = s.product || 'Sem produto';
+      byProduct.set(name, (byProduct.get(name) || 0) + s.invoice_total);
+    });
+    return [...byProduct.entries()]
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [yearSales]);
+
+  // Category distribution for pie chart
+  const categoryPieData = useMemo(() => {
+    const byCat = new Map<string, number>();
+    yearExpenses.forEach(e => {
+      const cat = catLabel(e.category || 'outro');
+      byCat.set(cat, (byCat.get(cat) || 0) + e.total_with_vat);
+    });
+    return [...byCat.entries()]
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [yearExpenses]);
+
   return (
     <AppLayout>
       <div className="p-6 space-y-8">
@@ -198,77 +235,113 @@ export default function FinanceiroPage() {
           </Card>
         </div>
 
-        {/* Entradas insights */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
+        {/* Entradas: chart + insights */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Card className="lg:col-span-2">
             <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Package className="h-3.5 w-3.5 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">Produto mais vendido</p>
+              <p className="text-xs text-muted-foreground mb-3">Entradas por mês — {year}</p>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={monthlyData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                    <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip formatter={(v: number) => fmt(v)} />
+                    <Bar dataKey="entradas" name="Entradas" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-              {productInsights.best ? (
-                <>
-                  <p className="text-sm font-semibold truncate">{productInsights.best.name}</p>
-                  <p className="text-xs text-muted-foreground">{fmt(productInsights.best.value)}</p>
-                </>
-              ) : <p className="text-xs text-muted-foreground">Sem dados</p>}
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Package className="h-3.5 w-3.5 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">Produto menos vendido</p>
-              </div>
-              {productInsights.worst ? (
-                <>
-                  <p className="text-sm font-semibold truncate">{productInsights.worst.name}</p>
-                  <p className="text-xs text-muted-foreground">{fmt(productInsights.worst.value)}</p>
-                </>
-              ) : <p className="text-xs text-muted-foreground">Sem dados</p>}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <UserCheck className="h-3.5 w-3.5 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">Clientes no ano</p>
-              </div>
-              <p className="text-xl font-bold">{clientsInYear}</p>
-            </CardContent>
-          </Card>
+          <div className="space-y-4">
+            <Card>
+              <CardContent className="pt-4 pb-3">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">Produto mais vendido</p>
+                </div>
+                {productInsights.best ? (
+                  <>
+                    <p className="text-sm font-semibold truncate">{productInsights.best.name}</p>
+                    <p className="text-xs text-muted-foreground">{fmt(productInsights.best.value)}</p>
+                  </>
+                ) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4 pb-3">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">Produto menos vendido</p>
+                </div>
+                {productInsights.worst ? (
+                  <>
+                    <p className="text-sm font-semibold truncate">{productInsights.worst.name}</p>
+                    <p className="text-xs text-muted-foreground">{fmt(productInsights.worst.value)}</p>
+                  </>
+                ) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4 pb-3">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <UserCheck className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">Clientes no ano</p>
+                </div>
+                <p className="text-xl font-bold">{clientsInYear}</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
-        {/* Saídas insights */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
+        {/* Saídas: chart + insights */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Card className="lg:col-span-2">
             <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">Maior categoria de despesa</p>
+              <p className="text-xs text-muted-foreground mb-3">Saídas por mês — {year}</p>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={monthlyData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="mes" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                    <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip formatter={(v: number) => fmt(v)} />
+                    <Bar dataKey="saidas" name="Saídas" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-              {categoryInsights.biggest ? (
-                <>
-                  <p className="text-sm font-semibold">{catLabel(categoryInsights.biggest.name)}</p>
-                  <p className="text-xs text-muted-foreground">{fmt(categoryInsights.biggest.value)}</p>
-                </>
-              ) : <p className="text-xs text-muted-foreground">Sem dados</p>}
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">Menor categoria de despesa</p>
-              </div>
-              {categoryInsights.smallest ? (
-                <>
-                  <p className="text-sm font-semibold">{catLabel(categoryInsights.smallest.name)}</p>
-                  <p className="text-xs text-muted-foreground">{fmt(categoryInsights.smallest.value)}</p>
-                </>
-              ) : <p className="text-xs text-muted-foreground">Sem dados</p>}
-            </CardContent>
-          </Card>
+          <div className="space-y-4">
+            <Card>
+              <CardContent className="pt-4 pb-3">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">Maior categoria de despesa</p>
+                </div>
+                {categoryInsights.biggest ? (
+                  <>
+                    <p className="text-sm font-semibold">{catLabel(categoryInsights.biggest.name)}</p>
+                    <p className="text-xs text-muted-foreground">{fmt(categoryInsights.biggest.value)}</p>
+                  </>
+                ) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4 pb-3">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">Menor categoria de despesa</p>
+                </div>
+                {categoryInsights.smallest ? (
+                  <>
+                    <p className="text-sm font-semibold">{catLabel(categoryInsights.smallest.name)}</p>
+                    <p className="text-xs text-muted-foreground">{fmt(categoryInsights.smallest.value)}</p>
+                  </>
+                ) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* IVA & SS Balance */}
