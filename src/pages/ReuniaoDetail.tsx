@@ -524,8 +524,8 @@ export default function ReuniaoDetailPage() {
                   </SelectContent>
                 </Select>
               </div>
-            )
-            </div>
+            )}
+          </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Projeto</Label>
               <Select value={m.project_id ?? ''} onValueChange={v => {
