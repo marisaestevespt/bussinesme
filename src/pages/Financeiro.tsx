@@ -12,7 +12,9 @@ import { useCommercialData } from '@/hooks/useCommercialData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { YearSelector } from '@/components/YearSelector';
-import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Settings, TrendingUp, Users, Heart, Package, UserCheck } from 'lucide-react';
+import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Settings, TrendingUp, Users, Heart, Package, UserCheck, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { exportCsv } from '@/lib/exportCsv';
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 const ML = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -195,7 +197,17 @@ export default function FinanceiroPage() {
           </div>
         </div>
 
-        <YearSelector year={year} onChange={setYear} />
+        <div className="flex items-center justify-between">
+          <YearSelector year={year} onChange={setYear} />
+          <Button size="sm" variant="outline" onClick={() => {
+            const headers = ['Mês', 'Entradas (€)', 'Saídas (€)', 'Resultado (€)'];
+            const rows = monthlyData.map(d => [d.mes, d.entradas, d.saidas, d.entradas - d.saidas]);
+            rows.push(['TOTAL', totalEntradas, totalSaidas, resultado]);
+            exportCsv(`resumo-anual-${year}.csv`, headers, rows);
+          }}>
+            <Download className="h-3.5 w-3.5 mr-1" /> Exportar
+          </Button>
+        </div>
 
         {/* Saúde Financeira do Ano */}
         <Card className="bg-primary/10 border-primary/30">
