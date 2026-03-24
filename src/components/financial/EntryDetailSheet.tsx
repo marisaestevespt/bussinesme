@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -54,7 +55,8 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
   const [status, setStatus] = useState(sale?.status || 'aguarda_pagamento');
   const [docs, setDocs] = useState<DocEntry[]>([]);
   const [saving, setSaving] = useState(false);
-
+  const [confirmNoDocsOpen, setConfirmNoDocsOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   // Sync state when sale changes
   const [lastId, setLastId] = useState<string | null>(null);
   if (sale && sale.id !== lastId) {
@@ -85,6 +87,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
   };
 
   return (
+    <>
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-lg overflow-y-auto">
         <SheetHeader>
@@ -97,19 +100,21 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
           {/* Status prominently on top — clickable dropdown */}
           <div className={`rounded-lg px-4 py-3 ${statusBadge.cls}`}>
             <p className="text-xs opacity-70 mb-1">Status</p>
-            <Select value={status} onValueChange={setStatus}>
+            <Select value={status} onValueChange={(val) => {
+              if (val === 'tudo_ok' && !canBeOk) {
+                setPendingStatus(val);
+                setConfirmNoDocsOpen(true);
+              } else {
+                setStatus(val);
+              }
+            }}>
               <SelectTrigger className="h-auto border-0 bg-transparent p-0 shadow-none focus:ring-0 font-semibold text-base [&>svg]:ml-2">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {ENTRY_STATUSES.map(s => (
-                  <SelectItem
-                    key={s.value}
-                    value={s.value}
-                    disabled={s.value === 'tudo_ok' && !canBeOk}
-                  >
+                  <SelectItem key={s.value} value={s.value}>
                     <Badge variant="outline" className={`${s.cls} text-xs`}>{s.label}</Badge>
-                    {s.value === 'tudo_ok' && !canBeOk && <span className="text-xs text-muted-foreground ml-1">(anexar fatura)</span>}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -171,5 +176,27 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
         </div>
       </SheetContent>
     </Sheet>
+
+    <AlertDialog open={confirmNoDocsOpen} onOpenChange={setConfirmNoDocsOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Nenhuma fatura anexada</AlertDialogTitle>
+          <AlertDialogDescription>
+            Nenhuma fatura está anexada a esta transação. De certeza que pretende finalizar?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setPendingStatus(null)}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={() => {
+            if (pendingStatus) setStatus(pendingStatus);
+            setPendingStatus(null);
+            setConfirmNoDocsOpen(false);
+          }}>
+            Sim, finalizar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }

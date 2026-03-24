@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
@@ -18,32 +20,59 @@ function getExpenseStatusBadge(status: string) {
 interface EntryStatusSelectProps {
   saleId: string;
   currentStatus: string;
+  hasDocuments?: boolean;
 }
 
-export function EntryStatusSelect({ saleId, currentStatus }: EntryStatusSelectProps) {
+export function EntryStatusSelect({ saleId, currentStatus, hasDocuments = false }: EntryStatusSelectProps) {
   const qc = useQueryClient();
   const sb = getEntryStatusBadge(currentStatus);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const handleChange = async (value: string) => {
+  const doUpdate = async (value: string) => {
     const { error } = await supabase.from('commercial_sales').update({ status: value }).eq('id', saleId);
     if (error) { toast.error('Erro ao atualizar status'); return; }
     qc.invalidateQueries({ queryKey: ['commercial'] });
     toast.success('Status atualizado');
   };
 
+  const handleChange = (value: string) => {
+    if (value === 'tudo_ok' && !hasDocuments) {
+      setConfirmOpen(true);
+    } else {
+      doUpdate(value);
+    }
+  };
+
   return (
-    <Select value={currentStatus} onValueChange={handleChange}>
-      <SelectTrigger className="h-7 w-auto min-w-[140px] border-0 bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground" onClick={e => e.stopPropagation()}>
-        <Badge variant="outline" className={sb.cls}>{sb.label}</Badge>
-      </SelectTrigger>
-      <SelectContent onClick={e => e.stopPropagation()}>
-        {ENTRY_STATUSES.map(s => (
-          <SelectItem key={s.value} value={s.value}>
-            <Badge variant="outline" className={`${s.cls} text-xs`}>{s.label}</Badge>
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <>
+      <Select value={currentStatus} onValueChange={handleChange}>
+        <SelectTrigger className="h-7 w-auto min-w-[140px] border-0 bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground" onClick={e => e.stopPropagation()}>
+          <Badge variant="outline" className={sb.cls}>{sb.label}</Badge>
+        </SelectTrigger>
+        <SelectContent onClick={e => e.stopPropagation()}>
+          {ENTRY_STATUSES.map(s => (
+            <SelectItem key={s.value} value={s.value}>
+              <Badge variant="outline" className={`${s.cls} text-xs`}>{s.label}</Badge>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent onClick={e => e.stopPropagation()}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Nenhuma fatura anexada</AlertDialogTitle>
+            <AlertDialogDescription>
+              Nenhuma fatura está anexada a esta transação. De certeza que pretende finalizar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => doUpdate('tudo_ok')}>Sim, finalizar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
