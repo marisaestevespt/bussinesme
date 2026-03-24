@@ -25,7 +25,15 @@ import { ProductMetricsTab } from '@/components/product/ProductMetricsTab';
 import { ProductCustomerSuccess } from '@/components/product/ProductCustomerSuccess';
 import { format, parseISO, isPast, isFuture, isToday } from 'date-fns';
 import { BackNavigation } from '@/components/BackNavigation';
-import { LinkedSopsSection } from '@/components/LinkedSopsSection';
+import { cn } from '@/lib/utils';
+
+const SOP_STATUSES: Record<string, { label: string; color: string }> = {
+  para_criar: { label: 'Para criar', color: 'bg-muted text-muted-foreground' },
+  em_criacao: { label: 'Em criação', color: 'bg-amber-100 text-amber-800 border-amber-200' },
+  ativo: { label: 'Ativo', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+  em_revisao: { label: 'Em revisão', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+  off: { label: 'Off', color: 'bg-red-100 text-red-800 border-red-200' },
+};
 import { cn } from '@/lib/utils';
 
 export default function ProdutoDetailPage() {
