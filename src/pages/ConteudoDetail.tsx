@@ -35,7 +35,7 @@ export default function ConteudoDetailPage() {
   const [form, setForm] = useState({
     title: '', scheduled_at: null as string | null, status: 'por_planear',
     funnel_stage: '', content_type: '', format: '', objective: '',
-    product_name: '', project_id: '', assigned_to: '', copy_content: '',
+    product_name: '', product_id: '', project_id: '', assigned_to: '', copy_content: '',
   });
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
