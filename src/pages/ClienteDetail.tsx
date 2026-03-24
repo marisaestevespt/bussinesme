@@ -294,6 +294,28 @@ export default function ClienteDetailPage() {
 
   const productList = products.data || [];
 
+  // Fetch allowed payment methods for selected product
+  const selectedProduct = productList.find(p => p.name === form.current_product);
+  const { data: allowedPaymentMethods = [] } = useQuery({
+    queryKey: ['product-payment-methods', selectedProduct?.id],
+    queryFn: async () => {
+      if (!selectedProduct?.id) return [];
+      const { data } = await supabase.from('product_payment_methods' as any).select('*').eq('product_id', selectedProduct.id);
+      return (data || []).map((pm: any) => pm.payment_method as string);
+    },
+    enabled: !!selectedProduct?.id,
+  });
+
+  const allPaymentOptions = [
+    { value: 'pagamento_total', label: 'Pagamento Total' },
+    { value: 'entrada_prestacoes', label: 'Pagamento Entrada + Prestações' },
+    { value: 'prestacoes', label: 'Pagamento Prestações' },
+    { value: 'avenca_mensal', label: 'Pagamento Avença Mensal' },
+  ];
+  const availablePaymentOptions = allowedPaymentMethods.length > 0
+    ? allPaymentOptions.filter(o => allowedPaymentMethods.includes(o.value))
+    : allPaymentOptions;
+
   if (!isNew && isLoading) {
     return <AppLayout><div className="flex items-center justify-center min-h-[60vh]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div></AppLayout>;
   }
@@ -346,6 +368,26 @@ export default function ClienteDetailPage() {
                 <Label className="text-xs text-muted-foreground">Produto Atual</Label>
                 <Select value={form.current_product || ''} onValueChange={async (v) => {
                   update('current_product', v);
+                  // Auto-fill payment method and ticket from product
+                  const selectedProd = productList.find(p => p.name === v);
+                  if (selectedProd) {
+                    // Pre-fill total value from product ticket
+                    if (selectedProd.ticket) {
+                      const ticketNum = parseFloat(selectedProd.ticket);
+                      if (!isNaN(ticketNum)) setTotalValue(String(ticketNum));
+                    }
+                    // Fetch allowed payment methods and auto-select if only one
+                    const { data: pmData } = await supabase.from('product_payment_methods' as any).select('payment_method').eq('product_id', selectedProd.id);
+                    const methods = (pmData || []).map((pm: any) => pm.payment_method);
+                    if (methods.length === 1) {
+                      update('payment_method', methods[0]);
+                      setEntradaValue(''); setNumPrestacoes(''); setDiaPagamento(''); setValorAvenca('');
+                    } else {
+                      update('payment_method', '');
+                      setEntradaValue(''); setNumPrestacoes(''); setDiaPagamento(''); setValorAvenca('');
+                    }
+                    queryClient.invalidateQueries({ queryKey: ['product-payment-methods', selectedProd.id] });
+                  }
                   if (form.start_date) {
                     const prod = productList.find(p => p.name === v);
                     if (prod?.cycle_duration) {
@@ -473,10 +515,7 @@ export default function ClienteDetailPage() {
                 <Select value={form.payment_method || ''} onValueChange={v => { update('payment_method', v); setEntradaValue(''); setNumPrestacoes(''); setDiaPagamento(''); setValorAvenca(''); setTotalValue(''); }}>
                   <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pagamento_total">Pagamento Total</SelectItem>
-                    <SelectItem value="entrada_prestacoes">Pagamento Entrada + Prestações</SelectItem>
-                    <SelectItem value="prestacoes">Pagamento Prestações</SelectItem>
-                    <SelectItem value="avenca_mensal">Pagamento Avença Mensal</SelectItem>
+                    {availablePaymentOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
