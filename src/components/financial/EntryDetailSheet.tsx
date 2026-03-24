@@ -158,26 +158,6 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
             </div>
           </div>
 
-          {/* Status */}
-          <div>
-            <Label className="text-xs">Status</Label>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {ENTRY_STATUSES.map(s => (
-                  <SelectItem
-                    key={s.value}
-                    value={s.value}
-                    disabled={s.value === 'tudo_ok' && !canBeOk}
-                  >
-                    {s.label}
-                    {s.value === 'tudo_ok' && !canBeOk && ' (anexar fatura primeiro)'}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Documents */}
           <InvoiceUpload
             documents={docs}
