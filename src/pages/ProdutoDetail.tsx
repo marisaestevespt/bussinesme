@@ -163,6 +163,16 @@ export default function ProdutoDetailPage() {
     enabled: !isNew,
   });
 
+  const { data: deliverableTemplates = [] } = useQuery({
+    queryKey: ['product-deliverable-templates', id],
+    queryFn: async () => {
+      if (!id || isNew) return [];
+      const { data } = await supabase.from('product_deliverable_templates' as any).select('*').eq('product_id', id).order('sort_order');
+      return data || [];
+    },
+    enabled: !isNew,
+  });
+
   const { data: offboardingTemplate = [] } = useQuery({
     queryKey: ['product-offboarding-template', id],
     queryFn: async () => {
@@ -281,6 +291,7 @@ export default function ProdutoDetailPage() {
     qc.invalidateQueries({ queryKey: ['product-costs', id] });
     qc.invalidateQueries({ queryKey: ['product-onboarding-template', id] });
     qc.invalidateQueries({ queryKey: ['product-improvements', id] });
+    qc.invalidateQueries({ queryKey: ['product-deliverable-templates', id] });
   };
 
   const addRow = useMutation({
@@ -818,7 +829,8 @@ export default function ProdutoDetailPage() {
         {/* ═══════ SECTION BUTTONS ═══════ */}
         {(
           <div className="space-y-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              <SectionButton sectionKey="entregas" label="Entregas" />
               <SectionButton sectionKey="comercial" label="Comercial" />
               <SectionButton sectionKey="marketing" label="Marketing" />
               <SectionButton sectionKey="contabilidade" label="Contabilidade" />
@@ -828,6 +840,57 @@ export default function ProdutoDetailPage() {
               <SectionButton sectionKey="metricas" label="Métricas" />
               <SectionButton sectionKey="arquivo" label="Arquivo" />
             </div>
+
+            {/* ===== ENTREGAS ===== */}
+            {openSection === 'entregas' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                <Card>
+                  <CardHeader className="flex-row items-center justify-between">
+                    <div>
+                      <CardTitle className="text-base">Fases / Entregas do Produto</CardTitle>
+                      <p className="text-xs text-muted-foreground mt-1">Define as entregas-tipo deste produto. Serão importadas nos projetos associados.</p>
+                    </div>
+                    {isOwner && (
+                      <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_deliverable_templates', data: { product_id: id, name: '', sort_order: deliverableTemplates.length } })}>
+                        <Plus className="h-3 w-3 mr-1" /> Adicionar
+                      </Button>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    {deliverableTemplates.length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-4 text-center italic">Nenhuma fase definida. Adiciona as entregas-tipo que este produto inclui.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {(deliverableTemplates as any[]).map((t: any, i: number) => (
+                          <div key={t.id} className="flex items-center gap-3 group">
+                            <span className="text-xs text-muted-foreground font-mono w-6 text-right shrink-0">{i + 1}.</span>
+                            <Input
+                              defaultValue={t.name}
+                              onBlur={e => updateRow.mutate({ table: 'product_deliverable_templates', id: t.id, data: { name: e.target.value } })}
+                              className="flex-1 h-9 text-sm"
+                              placeholder="Nome da fase/entrega..."
+                              readOnly={!isOwner}
+                            />
+                            <Input
+                              defaultValue={t.description || ''}
+                              onBlur={e => updateRow.mutate({ table: 'product_deliverable_templates', id: t.id, data: { description: e.target.value } })}
+                              className="flex-1 h-9 text-sm"
+                              placeholder="Descrição (opcional)"
+                              readOnly={!isOwner}
+                            />
+                            {isOwner && (
+                              <Button size="icon" variant="ghost" className="h-8 w-8 opacity-0 group-hover:opacity-100" onClick={() => deleteRow.mutate({ table: 'product_deliverable_templates', id: t.id })}>
+                                <X className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
             {/* ===== COMERCIAL ===== */}
             {openSection === 'comercial' && (

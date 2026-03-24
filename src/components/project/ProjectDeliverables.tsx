@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Progress } from '@/components/ui/progress';
-import { Plus, Package, CalendarIcon, Trash2 } from 'lucide-react';
+import { Plus, Package, CalendarIcon, Trash2, Download } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, addMonths, getDay, addDays, subDays, isAfter } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -112,6 +112,8 @@ function getInitials(name: string | null) {
 
 export function ProjectDeliverables({ projectId, profiles }: { projectId: string; profiles: Profile[] }) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState('');
   const [name, setName] = useState('');
   const [deadline, setDeadline] = useState<Date | undefined>();
   const [assignedTo, setAssignedTo] = useState('');
@@ -218,6 +220,50 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
     },
   });
 
+  // Products with deliverable templates for import
+  const { data: productsWithTemplates = [] } = useQuery({
+    queryKey: ['products-with-templates'],
+    queryFn: async () => {
+      const { data: products } = await supabase.from('products').select('id, name').order('name');
+      if (!products?.length) return [];
+      const { data: templates } = await supabase.from('product_deliverable_templates' as any).select('id, product_id, name, description, sort_order');
+      const templatesByProduct = new Map<string, any[]>();
+      ((templates || []) as any[]).forEach((t: any) => {
+        if (!templatesByProduct.has(t.product_id)) templatesByProduct.set(t.product_id, []);
+        templatesByProduct.get(t.product_id)!.push(t);
+      });
+      return products.filter(p => templatesByProduct.has(p.id)).map(p => ({
+        ...p,
+        templates: templatesByProduct.get(p.id)!.sort((a: any, b: any) => a.sort_order - b.sort_order),
+      }));
+    },
+    enabled: importOpen,
+  });
+
+  const importMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const product = productsWithTemplates.find(p => p.id === productId);
+      if (!product?.templates?.length) throw new Error('Sem templates');
+      const inserts = product.templates.map((t: any, i: number) => ({
+        project_id: projectId,
+        name: t.name,
+        description: t.description || null,
+        is_recurring: true,
+        sort_order: deliverables.length + i,
+        status: 'pendente',
+      }));
+      const { error } = await supabase.from('project_deliverables').insert(inserts);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['project-deliverables', projectId] });
+      toast.success('Entregas importadas do produto');
+      setImportOpen(false);
+      setSelectedProductId('');
+    },
+    onError: () => toast.error('Erro ao importar entregas'),
+  });
+
   const doneCount = deliverables.filter(d => d.status === 'entregue').length;
   const totalCount = deliverables.length;
   const progressPct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
@@ -233,9 +279,14 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                 <span className="text-xs text-muted-foreground font-normal">{doneCount}/{totalCount}</span>
               )}
             </CardTitle>
-            <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={() => setDialogOpen(true)}>
-              <Plus className="h-3.5 w-3.5" /> Nova Entrega
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={() => setImportOpen(true)}>
+                <Download className="h-3.5 w-3.5" /> Importar do Produto
+              </Button>
+              <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={() => setDialogOpen(true)}>
+                <Plus className="h-3.5 w-3.5" /> Nova Entrega
+              </Button>
+            </div>
           </div>
           {totalCount > 0 && (
             <div className="flex items-center gap-2 mt-1">
@@ -421,6 +472,63 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
               disabled={createMutation.isPending}
             >
               {createMutation.isPending ? 'A criar...' : 'Criar Entrega'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Import from product dialog */}
+      <Dialog open={importOpen} onOpenChange={setImportOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Importar Entregas do Produto</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm">Selecionar Produto</Label>
+              {productsWithTemplates.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic py-2">Nenhum produto com entregas definidas.</p>
+              ) : (
+                <Select value={selectedProductId} onValueChange={setSelectedProductId}>
+                  <SelectTrigger><SelectValue placeholder="Escolher produto..." /></SelectTrigger>
+                  <SelectContent>
+                    {productsWithTemplates.map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.name} ({p.templates.length} fases)</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            {selectedProductId && (() => {
+              const product = productsWithTemplates.find(p => p.id === selectedProductId);
+              if (!product) return null;
+              return (
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Fases que serão criadas:</Label>
+                  <div className="rounded-lg border p-3 space-y-1.5 bg-muted/30">
+                    {product.templates.map((t: any, i: number) => (
+                      <div key={t.id} className="flex items-center gap-2 text-sm">
+                        <span className="text-xs text-muted-foreground font-mono w-5 text-right">{i + 1}.</span>
+                        <span className="font-medium">{t.name || '(sem nome)'}</span>
+                        {t.description && <span className="text-xs text-muted-foreground truncate">— {t.description}</span>}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">As entregas serão criadas como recorrentes. Poderás depois definir as datas no projeto.</p>
+                </div>
+              );
+            })()}
+
+            <Button
+              className="w-full"
+              onClick={() => {
+                if (!selectedProductId) { toast.error('Seleciona um produto'); return; }
+                importMutation.mutate(selectedProductId);
+              }}
+              disabled={!selectedProductId || importMutation.isPending}
+            >
+              {importMutation.isPending ? 'A importar...' : 'Importar Entregas'}
             </Button>
           </div>
         </DialogContent>
