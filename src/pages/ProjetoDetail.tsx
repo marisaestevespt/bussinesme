@@ -743,8 +743,7 @@ export default function ProjetoDetailPage() {
           </>
         )}
 
-        {/* Section 1: Menu Inicial - only for pontual */}
-        {!isRecorrente && (
+        {/* Section 1: Menu Inicial */}
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Menu Inicial</h3>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -762,7 +761,6 @@ export default function ProjetoDetailPage() {
               ))}
             </div>
           </div>
-        )}
 
         {/* Section 2: Estado e Prioridades (Tarefas) */}
         <div>
@@ -805,8 +803,7 @@ export default function ProjetoDetailPage() {
           )}
         </div>
 
-        {/* Section 3: Desenvolvimento - only for pontual */}
-        {!isRecorrente && (
+        {/* Section 3: Desenvolvimento */}
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Desenvolvimento</h3>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -824,30 +821,11 @@ export default function ProjetoDetailPage() {
               ))}
             </div>
           </div>
-        )}
-
-        {/* Recorrente: simplified dev links */}
-        {isRecorrente && (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-            {[
-              { key: 'entregaveis' as SubPage, icon: FileText, label: 'Ficheiros' },
-              { key: 'reunioes' as SubPage, icon: Users, label: `Reuniões (${meetings.length})` },
-              { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
-            ].map(({ key, icon: Icon, label }) => (
-              <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border overflow-hidden h-24 transition-all hover:shadow-md text-center">
-                <div className="absolute inset-0 bg-primary opacity-[0.07] group-hover:opacity-[0.12] transition-opacity" />
-                <Icon className="h-6 w-6 text-primary relative z-10" />
-                <span className="text-sm font-semibold text-primary relative z-10 px-3">{label}</span>
-              </button>
-            ))}
-          </div>
-        )}
 
         {/* Linked SOPs */}
         {id && <LinkedSopsSection entityType="projeto" entityId={id} />}
 
-        {/* Section 4: Fecho de Projeto - only for pontual */}
-        {!isRecorrente && (
+        {/* Section 4: Fecho de Projeto */}
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Fecho de Projeto</h3>
             <div className="space-y-2">
@@ -875,7 +853,6 @@ export default function ProjetoDetailPage() {
               ))}
             </div>
           </div>
-        )}
 
         <Separator />
         <AlertDialog>
