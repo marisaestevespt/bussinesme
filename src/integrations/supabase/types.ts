@@ -3005,6 +3005,7 @@ export type Database = {
       financial_subscriptions: {
         Row: {
           category: string
+          country: string | null
           created_at: string
           created_by: string | null
           documents: Json | null
@@ -3012,6 +3013,7 @@ export type Database = {
           includes_vat: boolean
           location: string
           monthly_equivalent: number
+          nif: string | null
           notes: string | null
           periodicity: string
           platform_name: string
@@ -3024,6 +3026,7 @@ export type Database = {
         }
         Insert: {
           category?: string
+          country?: string | null
           created_at?: string
           created_by?: string | null
           documents?: Json | null
@@ -3031,6 +3034,7 @@ export type Database = {
           includes_vat?: boolean
           location?: string
           monthly_equivalent?: number
+          nif?: string | null
           notes?: string | null
           periodicity?: string
           platform_name: string
@@ -3043,6 +3047,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          country?: string | null
           created_at?: string
           created_by?: string | null
           documents?: Json | null
@@ -3050,6 +3055,7 @@ export type Database = {
           includes_vat?: boolean
           location?: string
           monthly_equivalent?: number
+          nif?: string | null
           notes?: string | null
           periodicity?: string
           platform_name?: string
