@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import { calcMonthlyEquivalent, type Subscription } from '@/hooks/useFinancialData';
-import { InvoiceUpload } from './InvoiceUpload';
+
 import { CategorySelect } from './CategorySelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 
@@ -315,10 +315,6 @@ export function FinSetupFinanceiro({ fin }: Props) {
               </Select>
             </div>
             <div><Label>Notas</Label><Input value={subForm.notes || ''} onChange={e => setSubForm((f: any) => ({ ...f, notes: e.target.value }))} /></div>
-            <InvoiceUpload
-              documents={Array.isArray(subForm.documents) ? subForm.documents : []}
-              onChange={docs => setSubForm((f: any) => ({ ...f, documents: docs }))}
-            />
             <div className="flex gap-2">
               <Button className="flex-1" onClick={saveSub}>Guardar</Button>
               {subForm.id && <Button variant="destructive" size="icon" onClick={async () => { await fin.deleteSubscription.mutateAsync(subForm.id); setSubOpen(false); toast.success('Eliminada'); }}><Trash2 className="h-4 w-4" /></Button>}
