@@ -15,11 +15,27 @@ import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2, Calculator, Users, Clock, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProducts, Product } from '@/hooks/useProducts';
+import { useClients } from '@/hooks/useClients';
 
 export default function ExecutiveCapacidade() {
   const qc = useQueryClient();
   const { products } = useProducts();
   const allProducts = (products.data || []).filter((p: Product) => p.status !== 'off');
+  const { clients } = useClients();
+  const allClients = clients.data || [];
+
+  // Count active clients per product name
+  const realClientCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    const activeStatuses = ['ativo', 'em_onboarding', 'altura_renovacao'];
+    for (const c of allClients) {
+      if (activeStatuses.includes((c as any).status) && (c as any).current_product) {
+        const prod = (c as any).current_product;
+        counts[prod] = (counts[prod] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [allClients]);
 
   // Scenario data
   const scenario = useQuery({
