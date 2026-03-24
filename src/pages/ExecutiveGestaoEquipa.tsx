@@ -1289,11 +1289,12 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
     },
   });
 
-  // Current week days (Mon-Fri)
-  const weekDays = useMemo(() => {
+  // Current month days (weekdays only)
+  const monthDays = useMemo(() => {
     const today = new Date();
-    const start = startOfWeek(today, { weekStartsOn: 1 });
-    return eachDayOfInterval({ start, end: addDays(start, 4) }); // Mon-Fri
+    const start = startOfMonth(today);
+    const end = endOfMonth(today);
+    return eachDayOfInterval({ start, end }).filter(d => d.getDay() >= 1 && d.getDay() <= 5);
   }, []);
 
   // Portuguese holidays for current year
