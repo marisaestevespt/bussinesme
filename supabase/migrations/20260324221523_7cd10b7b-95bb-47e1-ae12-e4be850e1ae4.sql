@@ -1,0 +1,1 @@
+ALTER TABLE public.product_deliverable_templates ADD COLUMN is_recurring boolean NOT NULL DEFAULT true;

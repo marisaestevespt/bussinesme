@@ -4911,6 +4911,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_recurring: boolean
           name: string
           product_id: string
           sort_order: number
@@ -4919,6 +4920,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_recurring?: boolean
           name?: string
           product_id: string
           sort_order?: number
@@ -4927,6 +4929,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_recurring?: boolean
           name?: string
           product_id?: string
           sort_order?: number
