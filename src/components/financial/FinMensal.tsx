@@ -342,6 +342,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
                     month={m}
                     currentYear={currentYear}
                     fin={fin}
+                    onExpenseClick={linkedExp ? () => { setSelectedExpense(linkedExp); setExpenseSheetOpen(true); } : undefined}
                   />
                 );
               })}
@@ -359,6 +360,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
                     currentYear={currentYear}
                     fin={fin}
                     qc={qc}
+                    onExpenseClick={linkedExp ? () => { setSelectedExpense(linkedExp); setExpenseSheetOpen(true); } : undefined}
                   />
                 );
               })}
