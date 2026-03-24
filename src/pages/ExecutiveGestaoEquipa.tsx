@@ -21,7 +21,9 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText, LayoutDashboard, AlertTriangle, Clock, CreditCard, Upload, ExternalLink, CheckSquare, ListTodo, CalendarIcon, Palmtree, CalendarDays, Save, Eye, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, startOfWeek, eachDayOfInterval, addDays, isWithinInterval, isSameDay } from 'date-fns';
+import { pt as ptLocale } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -1263,8 +1265,154 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
     { key: 'document_url', label: 'Documentos (URL)', type: 'text' },
   ];
 
+  // Escala data for current week preview
+  const escalaMembers = useQuery({
+    queryKey: ['dashboard-escala-members'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('team_members')
+        .select('id, full_name, photo_url, role_title, work_schedule, works_holidays, custom_holidays, status, profile_id')
+        .eq('status', 'ativo')
+        .order('full_name');
+      return (data || []) as any[];
+    },
+  });
+
+  const escalaVacations = useQuery({
+    queryKey: ['dashboard-escala-vacations'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('team_member_vacations')
+        .select('*')
+        .order('start_date');
+      return (data || []) as any[];
+    },
+  });
+
+  // Current week days (Mon-Fri)
+  const weekDays = useMemo(() => {
+    const today = new Date();
+    const start = startOfWeek(today, { weekStartsOn: 1 });
+    return eachDayOfInterval({ start, end: addDays(start, 4) }); // Mon-Fri
+  }, []);
+
+  // Portuguese holidays for current year
+  const holidays = useMemo(() => {
+    const year = new Date().getFullYear();
+    const a = year % 19;
+    const b = Math.floor(year / 100);
+    const c = year % 100;
+    const d = Math.floor(b / 4);
+    const e = b % 4;
+    const f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3);
+    const h = (19 * a + b - d - g + 15) % 30;
+    const ii = Math.floor(c / 4);
+    const k = c % 4;
+    const l = (32 + 2 * e + 2 * ii - h - k) % 7;
+    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const month = Math.floor((h + l - 7 * m + 114) / 31);
+    const day = ((h + l - 7 * m + 114) % 31) + 1;
+    const easter = new Date(year, month - 1, day);
+    return [
+      new Date(year, 0, 1), addDays(easter, -2), easter, new Date(year, 3, 25),
+      new Date(year, 4, 1), addDays(easter, 60), new Date(year, 5, 10),
+      new Date(year, 7, 15), new Date(year, 9, 5), new Date(year, 10, 1),
+      new Date(year, 11, 1), new Date(year, 11, 8), new Date(year, 11, 25),
+    ];
+  }, []);
+
+  const DAY_KEY_MAP: Record<number, string> = { 1: 'seg', 2: 'ter', 3: 'qua', 4: 'qui', 5: 'sex', 6: 'sab', 0: 'dom' };
+  const DAY_NAMES = ['', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex'];
+
+  const getAvail = (member: any, day: Date): string => {
+    const vacs = (escalaVacations.data || []).filter((v: any) => v.member_id === member.id);
+    for (const v of vacs) {
+      if (isWithinInterval(day, { start: parseISO(v.start_date), end: parseISO(v.end_date) })) return 'vacation';
+    }
+    const customDates: string[] = Array.isArray(member.custom_holidays) ? member.custom_holidays : [];
+    for (const d of customDates) {
+      try {
+        if (d.includes('|')) {
+          const [s, e] = d.split('|');
+          if (isWithinInterval(day, { start: parseISO(s), end: parseISO(e) })) return 'vacation';
+        } else {
+          if (isSameDay(parseISO(d), day)) return 'vacation';
+        }
+      } catch {}
+    }
+    const isNational = holidays.some(h => isSameDay(h, day));
+    if (isNational) return member.works_holidays ? 'available' : 'holiday';
+    if (!member.work_schedule) return 'off';
+    try {
+      const schedule = JSON.parse(member.work_schedule);
+      const dayKey = DAY_KEY_MAP[day.getDay()];
+      const val = schedule[dayKey];
+      if (!val) return 'off';
+      if (Array.isArray(val)) return val.length > 0 ? 'available' : 'off';
+      if (typeof val === 'object' && (val.manha || val.tarde)) return 'available';
+      return 'off';
+    } catch { return 'off'; }
+  };
+
+  const availColors: Record<string, string> = {
+    available: 'bg-green-100 dark:bg-green-900/30',
+    off: 'bg-muted',
+    vacation: 'bg-amber-100 dark:bg-amber-900/30',
+    holiday: 'bg-blue-100 dark:bg-blue-900/30',
+  };
+
+  const availDots: Record<string, string> = {
+    available: 'bg-green-500',
+    off: 'bg-muted-foreground/30',
+    vacation: 'bg-amber-500',
+    holiday: 'bg-blue-500',
+  };
+
   return (
     <div className="space-y-6">
+      {/* Team Gallery */}
+      <div className="space-y-3">
+        <div className="flex justify-between items-center">
+          <h2 className="text-base font-semibold">Equipa</h2>
+          <Button size="sm" onClick={() => setDialog({})}><Plus className="h-4 w-4 mr-1" /> Novo Membro</Button>
+        </div>
+        {allMembers.length === 0 ? (
+          <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">Sem membros ativos.</CardContent></Card>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {allMembers.map((m: any) => {
+              const hasOverdue = !!overdueByMember[m.id];
+              return (
+                <Card key={m.id} className={`cursor-pointer hover:shadow-md transition-shadow ${hasOverdue ? 'border-destructive/50' : ''}`} onClick={() => setSelected(m)}>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={m.photo_url || undefined} />
+                        <AvatarFallback className="text-xs font-semibold">{getInitials(m.full_name)}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm truncate">{m.full_name}</p>
+                        {m.role_title && <p className="text-xs text-muted-foreground truncate">{m.role_title}</p>}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      <DeptBadge dept={m.department} />
+                    </div>
+                    {hasOverdue && (
+                      <div className="flex items-center gap-1.5 text-destructive">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        <span className="text-xs font-medium">{overdueByMember[m.id]} pagamento(s) em atraso</span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
@@ -1295,6 +1443,63 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Week Schedule Preview */}
+      {(escalaMembers.data || []).length > 0 && (
+        <Card>
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold">Escala da Semana</h3>
+              <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-green-500 inline-block" /> Disponível</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-500 inline-block" /> Férias</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-500 inline-block" /> Feriado</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-muted-foreground/30 inline-block" /> Folga</span>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr>
+                    <th className="text-left font-medium text-muted-foreground py-1 pr-3 w-[140px]">Membro</th>
+                    {weekDays.map(d => (
+                      <th key={d.toISOString()} className={cn("text-center font-medium py-1 px-2 min-w-[60px]", isSameDay(d, new Date()) && "text-primary")}>
+                        <div>{DAY_NAMES[d.getDay()]}</div>
+                        <div className="text-[10px] text-muted-foreground">{format(d, 'd MMM', { locale: ptLocale })}</div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {(escalaMembers.data || []).map((m: any) => (
+                    <tr key={m.id} className="border-t border-border/50">
+                      <td className="py-1.5 pr-3">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src={m.photo_url || undefined} />
+                            <AvatarFallback className="text-[9px]">{getInitials(m.full_name)}</AvatarFallback>
+                          </Avatar>
+                          <span className="truncate font-medium">{m.full_name?.split(' ')[0]}</span>
+                        </div>
+                      </td>
+                      {weekDays.map(d => {
+                        const avail = getAvail(m, d);
+                        return (
+                          <td key={d.toISOString()} className="py-1.5 px-2 text-center">
+                            <div className={cn("mx-auto h-6 w-6 rounded-full flex items-center justify-center", availColors[avail])}>
+                              <span className={cn("h-2 w-2 rounded-full", availDots[avail])} />
+                            </div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Overload Warnings */}
       {overloadWarnings.length > 0 && (
@@ -1331,6 +1536,9 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
           </CardContent>
         </Card>
       )}
+
+      {dialog !== null && <MemberDialog open onClose={() => setDialog(null)} initial={dialog} onSave={handleSave} />}
+      {selected && <MemberDetailSheet open onClose={() => setSelected(null)} member={selected} team={team} />}
     </div>
   );
 }
