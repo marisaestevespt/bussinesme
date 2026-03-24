@@ -1,0 +1,1 @@
+Product deliverable templates: products can define phase/delivery templates via product_deliverable_templates table. Projects can import them via "Importar do Produto" button in ProjectDeliverables component. Imported as recurring deliverables without dates — dates/recurrence are configured per-project.
