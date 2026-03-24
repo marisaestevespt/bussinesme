@@ -760,6 +760,7 @@ export default function OperacaoPage() {
                       <div className="mt-1 space-y-0.5 w-full px-0.5">
                         {day.items.slice(0, 3).map((item, i) => (
                           <div key={i} className={`text-[9px] leading-tight px-1.5 py-1 rounded-md truncate text-center ${
+                            item.type === 'deliverable' ? 'bg-accent/20 text-accent-foreground font-semibold ring-1 ring-accent/30' :
                             item.type === 'project' ? 'bg-primary/10 text-primary font-medium' : 'bg-muted text-muted-foreground'
                           }`} title={item.name}>
                             {item.name.length > 12 ? item.name.slice(0, 12) + '…' : item.name}
