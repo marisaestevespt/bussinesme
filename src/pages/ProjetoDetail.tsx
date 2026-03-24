@@ -42,6 +42,7 @@ interface ProjectFull {
   closure_good: string | null; closure_bad: string | null; closure_lessons: string | null;
   created_by: string | null; created_at: string; cover_url: string | null;
   total_time_minutes: number | null;
+  project_mode: string | null;
 }
 
 interface Profile { id: string; user_id: string; full_name: string | null; avatar_url: string | null; }
