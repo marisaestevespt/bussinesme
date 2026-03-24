@@ -496,7 +496,11 @@ export default function ReuniaoDetailPage() {
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Departamento</Label>
-              <Select value={m.department ?? ''} onValueChange={v => update({ department: v || null })}>
+              <Select value={m.department ?? ''} onValueChange={v => {
+                const patch: Partial<MeetingFull> = { department: v || null };
+                if (v !== 'produtos') { patch.product_id = null; patch.product_name = null; }
+                update(patch);
+              }}>
                 <SelectTrigger className="h-7 text-xs w-44"><SelectValue placeholder="Nenhum" /></SelectTrigger>
                 <SelectContent>
                   {Object.entries(MODULES).filter(([, v]) => v.section === 'departamentos').map(([key, v]) => (
@@ -504,6 +508,23 @@ export default function ReuniaoDetailPage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            {m.department === 'produtos' && (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Produto</Label>
+                <Select value={m.product_id ?? ''} onValueChange={v => {
+                  const prod = productsList.find(p => p.id === v);
+                  update({ product_id: v || null, product_name: prod?.name || null });
+                }}>
+                  <SelectTrigger className="h-7 text-xs w-48"><SelectValue placeholder="Sem produto" /></SelectTrigger>
+                  <SelectContent>
+                    {productsList.map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Projeto</Label>
