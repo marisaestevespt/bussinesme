@@ -522,6 +522,17 @@ export default function ProdutoDetailPage() {
                   )}
                 </div>
               </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Drive</Label>
+                <div className="flex items-center gap-1">
+                  <Input value={form.drive_url || ''} onChange={e => update('drive_url', e.target.value)} placeholder="https://..." className="h-9" readOnly={!isOwner} />
+                  {form.drive_url && (
+                    <a href={form.drive_url} target="_blank" rel="noopener noreferrer" className="shrink-0">
+                      <ExternalLink className="h-4 w-4 text-primary" />
+                    </a>
+                  )}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -1321,20 +1332,6 @@ export default function ProdutoDetailPage() {
                   </CardContent>
                 </Card>
 
-                {/* Drive */}
-                <Card>
-                  <CardHeader><CardTitle className="text-base">Drive</CardTitle></CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-2">
-                      <Input value={form.drive_url || ''} onChange={e => update('drive_url', e.target.value)} placeholder="https://..." readOnly={!isOwner} />
-                      {form.drive_url && (
-                        <a href={form.drive_url} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-4 w-4 text-primary" />
-                        </a>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
 
                 <Card>
                   <CardHeader className="flex-row items-center justify-between">
