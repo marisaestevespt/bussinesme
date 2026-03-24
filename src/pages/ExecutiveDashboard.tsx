@@ -139,6 +139,9 @@ export default function ExecutiveDashboard() {
           </Card>
         </div>
 
+        {/* Cross-departmental KPIs & Alerts */}
+        <ExecutiveKpiAlerts />
+
         {/* Este Ano + Este Mês */}
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Este Ano — Objetivos from new planning DB */}
