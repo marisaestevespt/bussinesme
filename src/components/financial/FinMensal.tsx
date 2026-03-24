@@ -534,50 +534,6 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
   const contractType = contract.contract_type || 'outro';
   const typeLabel = CONTRACT_TYPE_LABELS[contractType] || contractType;
 
-  const handleConfirm = async () => {
-    setConfirming(true);
-    const dateStr = `${currentYear}-${String(month).padStart(2, '0')}-${String(contract.payment_day || 15).padStart(2, '0')}`;
-    if (linkedExpense) {
-      // Toggle status
-      const newStatus = isPaid ? 'por_pagar' : 'pago';
-      await fin.upsertExpense.mutateAsync({
-        id: linkedExpense.id,
-        status: newStatus,
-      } as any);
-      // Update member_payments status too
-      await supabase.from('member_payments').update({ status: newStatus }).eq('member_id', contract.member_id).eq('month', month).eq('year', currentYear).eq('payment_type', contractType);
-    } else {
-      // Create expense
-      await fin.upsertExpense.mutateAsync({
-        description: `${memberName} — ${MONTHS_LABEL[month - 1]} ${currentYear}`,
-        category: contractType === 'contrato_trabalho' ? 'ordenados' : 'prestadores',
-        base_value: value,
-        vat_rate: 0,
-        total_with_vat: value,
-        location: 'portugal',
-        expense_date: dateStr,
-        expense_month: month,
-        expense_quarter: Math.ceil(month / 3),
-        expense_year: currentYear,
-        status: 'pago',
-        source_type: 'contract',
-        source_id: contract.id,
-      } as any);
-      // Create member_payment record
-      await supabase.from('member_payments').insert({
-        member_id: contract.member_id,
-        month,
-        year: currentYear,
-        gross_value: value,
-        net_value: value,
-        payment_type: contractType,
-        status: 'pago',
-      });
-    }
-    qc.invalidateQueries({ queryKey: ['my-payments'] });
-    setConfirming(false);
-    toast.success(isPaid ? 'Marcado como pendente' : 'Pagamento confirmado');
-  };
 
   const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
