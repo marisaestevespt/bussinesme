@@ -1,0 +1,1 @@
+ALTER TABLE public.products ADD COLUMN archive_notes TEXT DEFAULT NULL;
