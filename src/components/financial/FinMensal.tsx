@@ -8,12 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { Plus, CalendarIcon, Check, FileText } from 'lucide-react';
+import { Plus, Check } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { Checkbox } from '@/components/ui/checkbox';
-import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,6 +22,7 @@ import { CategorySelect } from './CategorySelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 import { EntryStatusSelect, ExpenseStatusSelect } from './InlineStatusSelect';
 import { EntryDetailSheet } from './EntryDetailSheet';
+import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 const VAT_RATES = [0, 6, 13, 23];
@@ -65,6 +62,15 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
         .select('*, team_members(id, full_name, role_title)')
         .in('status', ['ativo']);
       return data || [];
+    },
+  });
+
+  // Products for sale form
+  const { data: productNames = [] } = useQuery({
+    queryKey: ['product-names-for-sale'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('name').order('name');
+      return (data || []).map(p => p.name);
     },
   });
 
@@ -127,29 +133,28 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
 
   // Sale dialog
   const [saleOpen, setSaleOpen] = useState(false);
-  const [saleForm, setSaleForm] = useState({ description: '', product: '', client: '', base_value: '', invoice_total: '' });
 
-  const saveSale = async () => {
-    if (!saleForm.invoice_total) { toast.error('Valor é obrigatório'); return; }
+  const saveSale = async (saleData: any) => {
     const q = Math.ceil(m / 3);
     const { error } = await supabase.from('commercial_sales').insert({
-      sale_id: `V${currentYear}-${String(Date.now()).slice(-4)}`,
-      description: saleForm.description || null,
-      product: saleForm.product || null,
-      client: saleForm.client || null,
-      base_value: parseFloat(saleForm.base_value) || 0,
-      invoice_total: parseFloat(saleForm.invoice_total) || 0,
+      sale_id: saleData.sale_id || `V${currentYear}-${String(Date.now()).slice(-4)}`,
+      description: saleData.description || null,
+      product: saleData.product || null,
+      client: saleData.client || null,
+      source: saleData.source || null,
+      base_value: saleData.base_value || 0,
+      invoice_total: saleData.invoice_total || 0,
+      payment_date: saleData.payment_date || null,
+      status: saleData.status || 'aguarda_pagamento',
+      documents: saleData.documents || [],
       sale_month: m,
       sale_quarter: q,
       sale_year: currentYear,
-      status: 'aguarda_pagamento',
     });
     if (error) { toast.error('Erro ao guardar entrada'); return; }
     toast.success('Entrada adicionada');
     setSaleOpen(false);
-    setSaleForm({ description: '', product: '', client: '', base_value: '', invoice_total: '' });
-    // Refetch via window reload is crude; use queryClient instead
-    window.location.reload();
+    qc.invalidateQueries({ queryKey: ['commercial'] });
   };
 
   // Expense dialog
@@ -377,21 +382,12 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
       {/* Saúde Financeira */}
       <FinancialHealthSection sales={monthSales} allSales={sales} currentYear={currentYear} month={m} />
 
-      <Dialog open={saleOpen} onOpenChange={setSaleOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Nova Entrada — {MONTHS[m - 1]} {currentYear}</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <div><Label>Descrição</Label><Input value={saleForm.description} onChange={e => setSaleForm(f => ({ ...f, description: e.target.value }))} /></div>
-            <div><Label>Produto</Label><Input value={saleForm.product} onChange={e => setSaleForm(f => ({ ...f, product: e.target.value }))} /></div>
-            <div><Label>Cliente</Label><Input value={saleForm.client} onChange={e => setSaleForm(f => ({ ...f, client: e.target.value }))} /></div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label>Valor Base (€)</Label><Input type="number" value={saleForm.base_value} onChange={e => setSaleForm(f => ({ ...f, base_value: e.target.value }))} /></div>
-              <div><Label>Fatura Total (€)</Label><Input type="number" value={saleForm.invoice_total} onChange={e => setSaleForm(f => ({ ...f, invoice_total: e.target.value }))} /></div>
-            </div>
-            <Button className="w-full" onClick={saveSale}>Guardar</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <SaleFormDialog
+        open={saleOpen}
+        onOpenChange={setSaleOpen}
+        products={productNames}
+        onSave={saveSale}
+      />
 
       {/* New Expense Dialog */}
       <Dialog open={expOpen} onOpenChange={setExpOpen}>
