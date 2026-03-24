@@ -19,7 +19,7 @@ import { useProducts, Product } from '@/hooks/useProducts';
 export default function ExecutiveCapacidade() {
   const qc = useQueryClient();
   const { products } = useProducts();
-  const activeProducts = (products.data || []).filter((p: Product) => p.status === 'vendas_ativas');
+  const allProducts = (products.data || []).filter((p: Product) => p.status !== 'off');
 
   // Scenario data
   const scenario = useQuery({
