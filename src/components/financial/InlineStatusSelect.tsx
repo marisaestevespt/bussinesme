@@ -5,7 +5,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
-import { ENTRY_STATUSES, getEntryStatusBadge } from './EntryDetailSheet';
+import { ENTRY_STATUSES, getEntryStatusBadge, getEffectiveEntryStatus } from './EntryDetailSheet';
 
 const EXPENSE_STATUSES = [
   { value: 'pendente', label: 'Pendente', cls: 'bg-amber-100 text-amber-800' },
@@ -20,12 +20,14 @@ function getExpenseStatusBadge(status: string) {
 interface EntryStatusSelectProps {
   saleId: string;
   currentStatus: string;
+  paymentDate?: string | null;
   hasDocuments?: boolean;
 }
 
-export function EntryStatusSelect({ saleId, currentStatus, hasDocuments = false }: EntryStatusSelectProps) {
+export function EntryStatusSelect({ saleId, currentStatus, paymentDate, hasDocuments = false }: EntryStatusSelectProps) {
   const qc = useQueryClient();
-  const sb = getEntryStatusBadge(currentStatus);
+  const effectiveStatus = getEffectiveEntryStatus(currentStatus, paymentDate ?? null);
+  const sb = getEntryStatusBadge(effectiveStatus);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const doUpdate = async (value: string) => {
@@ -45,7 +47,7 @@ export function EntryStatusSelect({ saleId, currentStatus, hasDocuments = false 
 
   return (
     <>
-      <Select value={currentStatus} onValueChange={handleChange}>
+      <Select value={effectiveStatus} onValueChange={handleChange}>
         <SelectTrigger className="h-7 w-auto min-w-[140px] border-0 bg-transparent p-0 shadow-none focus:ring-0 [&>svg]:ml-1 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground" onClick={e => e.stopPropagation()}>
           <Badge variant="outline" className={sb.cls}>{sb.label}</Badge>
         </SelectTrigger>
