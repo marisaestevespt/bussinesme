@@ -407,7 +407,17 @@ export default function OperacaoPage() {
     [tasks]
   );
 
-  const totalAlerts = stalledProjects.length + clientsNearEndOfCycle.length + unassignedTasks.length;
+  const overdueDeliverables = useMemo(() =>
+    deliverables.filter(d => d.deadline && isBefore(new Date(d.deadline), today) && d.status !== 'entregue'),
+    [deliverables, today]
+  );
+
+  const recurrentesWithoutDeliverables = useMemo(() => {
+    const projectIdsWithDeliverables = new Set(deliverables.map(d => d.project_id));
+    return [...activeClientRecorrentes, ...activeInternoRecorrentes].filter(p => !projectIdsWithDeliverables.has(p.id));
+  }, [activeClientRecorrentes, activeInternoRecorrentes, deliverables]);
+
+  const totalAlerts = stalledProjects.length + clientsNearEndOfCycle.length + unassignedTasks.length + overdueDeliverables.length + recurrentesWithoutDeliverables.length;
 
   // ── Countdown — next delivery (deliverables first, then project deadlines) ──
   const nextDelivery = useMemo(() => {
