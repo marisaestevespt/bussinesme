@@ -34,7 +34,6 @@ const SOP_STATUSES: Record<string, { label: string; color: string }> = {
   em_revisao: { label: 'Em revisão', color: 'bg-blue-100 text-blue-800 border-blue-200' },
   off: { label: 'Off', color: 'bg-red-100 text-red-800 border-red-200' },
 };
-import { cn } from '@/lib/utils';
 
 export default function ProdutoDetailPage() {
   const { id } = useParams<{ id: string }>();
