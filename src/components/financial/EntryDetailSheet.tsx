@@ -23,6 +23,18 @@ export function getEntryStatusBadge(status: string) {
   return found || { value: status, label: status, cls: 'bg-muted text-muted-foreground' };
 }
 
+/** Returns the effective status, auto-upgrading to 'pagamento_em_atraso' when overdue */
+export function getEffectiveEntryStatus(status: string, paymentDate: string | null): string {
+  if (status === 'aguarda_pagamento' && paymentDate) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const due = new Date(paymentDate);
+    due.setHours(0, 0, 0, 0);
+    if (due < today) return 'pagamento_em_atraso';
+  }
+  return status;
+}
+
 export { ENTRY_STATUSES };
 
 type Sale = {
