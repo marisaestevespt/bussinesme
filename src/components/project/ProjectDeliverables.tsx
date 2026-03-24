@@ -279,9 +279,14 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                 <span className="text-xs text-muted-foreground font-normal">{doneCount}/{totalCount}</span>
               )}
             </CardTitle>
-            <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={() => setDialogOpen(true)}>
-              <Plus className="h-3.5 w-3.5" /> Nova Entrega
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={() => setImportOpen(true)}>
+                <Download className="h-3.5 w-3.5" /> Importar do Produto
+              </Button>
+              <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={() => setDialogOpen(true)}>
+                <Plus className="h-3.5 w-3.5" /> Nova Entrega
+              </Button>
+            </div>
           </div>
           {totalCount > 0 && (
             <div className="flex items-center gap-2 mt-1">
