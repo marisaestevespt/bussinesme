@@ -481,6 +481,7 @@ export type Database = {
           current_clients: number
           hours_per_client_month: number
           id: string
+          price_per_client: number
           product_id: string | null
           product_name: string
           scenario_id: string
@@ -490,6 +491,7 @@ export type Database = {
           current_clients?: number
           hours_per_client_month?: number
           id?: string
+          price_per_client?: number
           product_id?: string | null
           product_name: string
           scenario_id: string
@@ -499,6 +501,7 @@ export type Database = {
           current_clients?: number
           hours_per_client_month?: number
           id?: string
+          price_per_client?: number
           product_id?: string | null
           product_name?: string
           scenario_id?: string
@@ -523,28 +526,34 @@ export type Database = {
       capacity_scenarios: {
         Row: {
           admin_percent: number
+          client_facing_count: number
           created_at: string
           id: string
           name: string
           notes: string | null
+          team_size: number
           updated_at: string
           useful_hours_per_month: number
         }
         Insert: {
           admin_percent?: number
+          client_facing_count?: number
           created_at?: string
           id?: string
           name?: string
           notes?: string | null
+          team_size?: number
           updated_at?: string
           useful_hours_per_month?: number
         }
         Update: {
           admin_percent?: number
+          client_facing_count?: number
           created_at?: string
           id?: string
           name?: string
           notes?: string | null
+          team_size?: number
           updated_at?: string
           useful_hours_per_month?: number
         }
