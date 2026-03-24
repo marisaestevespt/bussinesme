@@ -20,6 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import type { Expense, Subscription, PayrollEntry, ContractorEntry, FinancialDocument } from '@/hooks/useFinancialData';
 import { getSubscriptionOccurrences } from '@/hooks/useFinancialData';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { InvoiceUpload } from './InvoiceUpload';
 import { CategorySelect } from './CategorySelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
@@ -48,11 +49,24 @@ const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2,
 
 export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: Props) {
   const { getCategoryLabel } = useFinancialCategories();
+  const qc = useQueryClient();
   const currentMonth = new Date().getMonth() + 1;
   const [month, setMonth] = useState(currentMonth.toString());
   const [selectedSale, setSelectedSale] = useState<any>(null);
   const [saleSheetOpen, setSaleSheetOpen] = useState(false);
   const m = parseInt(month);
+
+  // Active member contracts
+  const { data: activeContracts = [] } = useQuery({
+    queryKey: ['active-member-contracts'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('member_contracts')
+        .select('*, team_members(id, full_name, role_title)')
+        .in('status', ['ativo']);
+      return data || [];
+    },
+  });
 
   const monthSales = useMemo(() => sales.filter(s => s.sale_year === currentYear && s.sale_month === m), [sales, currentYear, m]);
   const monthExpenses = useMemo(() => expenses.filter(e => e.expense_year === currentYear && e.expense_month === m), [expenses, currentYear, m]);
@@ -74,6 +88,18 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
     });
     return map;
   }, [monthExpenses]);
+
+  // Check which contracts already have a confirmed expense for this month
+  const contractExpenseMap = useMemo(() => {
+    const map = new Map<string, Expense>();
+    monthExpenses.forEach(e => {
+      if (e.source_type === 'contract' && e.source_id) {
+        map.set(e.source_id, e);
+      }
+    });
+    return map;
+  }, [monthExpenses]);
+
 
   const totalEntradas = monthSales.reduce((s, v) => s + v.invoice_total, 0);
   const totalBaseEntradas = monthSales.reduce((s, v) => s + v.base_value, 0);
@@ -265,8 +291,8 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
           <Table>
             <TableHeader><TableRow><TableHead>Status</TableHead><TableHead className="whitespace-nowrap">ID</TableHead><TableHead>Descrição</TableHead><TableHead>Categoria</TableHead><TableHead>Localização</TableHead><TableHead className="text-right whitespace-nowrap">Base (€)</TableHead><TableHead className="text-right whitespace-nowrap">IVA %</TableHead><TableHead className="text-right whitespace-nowrap">Total c/ IVA</TableHead><TableHead>Ação</TableHead></TableRow></TableHeader>
             <TableBody>
-              {/* Regular expenses (excluding subscription-linked ones to avoid duplicates) */}
-              {monthExpenses.filter(e => e.source_type !== 'subscription').map(e => (
+              {/* Regular expenses (excluding subscription/contract-linked ones to avoid duplicates) */}
+              {monthExpenses.filter(e => e.source_type !== 'subscription' && e.source_type !== 'contract').map(e => (
                 <TableRow key={e.id}>
                   <TableCell>
                     <ExpenseStatusSelect
@@ -303,7 +329,24 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
                   />
                 );
               })}
-              {monthExpenses.filter(e => e.source_type !== 'subscription').length === 0 && dueSubscriptions.length === 0 && (
+              {/* Contract rows (ordenados) due this month */}
+              {activeContracts.map((contract: any) => {
+                const linkedExp = contractExpenseMap.get(contract.id);
+                const isPaid = linkedExp?.status === 'pago';
+                return (
+                  <ContractRow
+                    key={`contract-${contract.id}`}
+                    contract={contract}
+                    linkedExpense={linkedExp}
+                    isPaid={isPaid}
+                    month={m}
+                    currentYear={currentYear}
+                    fin={fin}
+                    qc={qc}
+                  />
+                );
+              })}
+              {monthExpenses.filter(e => e.source_type !== 'subscription' && e.source_type !== 'contract').length === 0 && dueSubscriptions.length === 0 && activeContracts.length === 0 && (
                 <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">Sem saídas</TableCell></TableRow>
               )}
             </TableBody>
@@ -481,6 +524,107 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin }: {
       <TableCell className="text-right">{fmt(displayBase)}</TableCell>
       <TableCell className="text-right">{vatRate}%</TableCell>
       <TableCell className="text-right">{fmt(displayTotal)}</TableCell>
+      <TableCell>
+        <Button
+          size="sm"
+          variant={isPaid ? 'ghost' : 'default'}
+          disabled={confirming}
+          onClick={handleConfirm}
+          className="text-xs"
+        >
+          <Check className="h-3.5 w-3.5 mr-1" />
+          {isPaid ? 'Desfazer' : 'Confirmar'}
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+const CONTRACT_TYPE_LABELS: Record<string, string> = {
+  contrato_trabalho: 'Colaborador',
+  prestacao_servicos: 'Prestador',
+  acordo: 'Acordo',
+  outro: 'Outro',
+};
+
+function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin, qc }: {
+  contract: any;
+  linkedExpense: Expense | undefined;
+  isPaid: boolean;
+  month: number;
+  currentYear: number;
+  fin: ReturnType<typeof useFinancialData>;
+  qc: ReturnType<typeof useQueryClient>;
+}) {
+  const MONTHS_LABEL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const [confirming, setConfirming] = useState(false);
+  const memberName = contract.team_members?.full_name || '—';
+  const value = contract.monthly_value || 0;
+  const contractType = contract.contract_type || 'outro';
+  const typeLabel = CONTRACT_TYPE_LABELS[contractType] || contractType;
+
+  const handleConfirm = async () => {
+    setConfirming(true);
+    const dateStr = `${currentYear}-${String(month).padStart(2, '0')}-${String(contract.payment_day || 15).padStart(2, '0')}`;
+    if (linkedExpense) {
+      // Toggle status
+      const newStatus = isPaid ? 'por_pagar' : 'pago';
+      await fin.upsertExpense.mutateAsync({
+        id: linkedExpense.id,
+        status: newStatus,
+      } as any);
+      // Update member_payments status too
+      await supabase.from('member_payments').update({ status: newStatus }).eq('member_id', contract.member_id).eq('month', month).eq('year', currentYear).eq('payment_type', contractType);
+    } else {
+      // Create expense
+      await fin.upsertExpense.mutateAsync({
+        description: `${memberName} — ${MONTHS_LABEL[month - 1]} ${currentYear}`,
+        category: contractType === 'contrato_trabalho' ? 'ordenados' : 'prestadores',
+        base_value: value,
+        vat_rate: 0,
+        total_with_vat: value,
+        location: 'portugal',
+        expense_date: dateStr,
+        expense_month: month,
+        expense_quarter: Math.ceil(month / 3),
+        expense_year: currentYear,
+        status: 'pago',
+        source_type: 'contract',
+        source_id: contract.id,
+      } as any);
+      // Create member_payment record
+      await supabase.from('member_payments').insert({
+        member_id: contract.member_id,
+        month,
+        year: currentYear,
+        gross_value: value,
+        net_value: value,
+        payment_type: contractType,
+        status: 'pago',
+      });
+    }
+    qc.invalidateQueries({ queryKey: ['my-payments'] });
+    setConfirming(false);
+    toast.success(isPaid ? 'Marcado como pendente' : 'Pagamento confirmado');
+  };
+
+  const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+
+  return (
+    <TableRow className={!isPaid ? 'bg-muted/30' : ''}>
+      <TableCell>
+        {isPaid
+          ? <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Pago</Badge>
+          : <Badge variant="outline" className="border-dashed text-muted-foreground">Pendente</Badge>
+        }
+      </TableCell>
+      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{typeLabel}</TableCell>
+      <TableCell className="font-medium">{memberName}</TableCell>
+      <TableCell className="text-xs text-muted-foreground">{contract.team_members?.role_title || '—'}</TableCell>
+      <TableCell>Dia {contract.payment_day || '—'}</TableCell>
+      <TableCell className="text-right">{fmt(value)}</TableCell>
+      <TableCell className="text-right">0%</TableCell>
+      <TableCell className="text-right">{fmt(value)}</TableCell>
       <TableCell>
         <Button
           size="sm"
