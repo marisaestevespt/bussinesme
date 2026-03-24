@@ -12,7 +12,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Trash2, Calculator, Users, Clock, AlertTriangle, CheckCircle2, TrendingUp } from 'lucide-react';
+import { Plus, Trash2, Calculator, Users, Clock, AlertTriangle, CheckCircle2, TrendingUp, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProducts, Product } from '@/hooks/useProducts';
 import { useClients } from '@/hooks/useClients';
@@ -24,7 +24,6 @@ export default function ExecutiveCapacidade() {
   const { clients } = useClients();
   const allClients = clients.data || [];
 
-  // Count active clients per product name
   const realClientCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     const activeStatuses = ['ativo', 'em_onboarding', 'altura_renovacao'];
@@ -37,7 +36,6 @@ export default function ExecutiveCapacidade() {
     return counts;
   }, [allClients]);
 
-  // Scenario data
   const scenario = useQuery({
     queryKey: ['capacity-scenario'],
     queryFn: async () => {
@@ -56,7 +54,6 @@ export default function ExecutiveCapacidade() {
     enabled: !!scenario.data?.id,
   });
 
-  // Local state for editing
   const [hoursPerMonth, setHoursPerMonth] = useState<number | null>(null);
   const [adminPercent, setAdminPercent] = useState<number | null>(null);
   const [teamSize, setTeamSize] = useState<number | null>(null);
@@ -72,7 +69,6 @@ export default function ExecutiveCapacidade() {
   const availableHoursPerPerson = effectiveHours * (1 - totalNonClientPercent / 100);
   const availableHours = availableHoursPerPerson * effectiveClientFacing;
 
-  // Ensure scenario exists
   const ensureScenario = useMutation({
     mutationFn: async () => {
       if (scenario.data) return scenario.data.id;
@@ -148,55 +144,99 @@ export default function ExecutiveCapacidade() {
   const hoursRemaining = availableHours - totalHoursUsed;
   const capacityPercent = availableHours > 0 ? Math.round((totalHoursUsed / availableHours) * 100) : 0;
 
-  // Revenue calculations
+  // Revenue: current vs max (proportional distribution)
   const currentRevenue = items.reduce((sum, p) => sum + (Number(p.price_per_client || 0) * Number(p.current_clients)), 0);
-  const maxRevenue = items.reduce((sum, p) => {
-    const price = Number(p.price_per_client || 0);
-    const hpc = Number(p.hours_per_client_month);
-    const maxClients = hpc > 0 ? Math.floor(availableHours / hpc) : 0;
-    return sum + (price * maxClients);
-  }, 0);
+
+  // Calculate additional clients each product can take with remaining hours
+  const perProductExtra = useMemo(() => {
+    const result: Record<string, number> = {};
+    let remainingHrs = hoursRemaining;
+    for (const p of items) {
+      const hpc = Number(p.hours_per_client_month);
+      if (hpc > 0 && remainingHrs > 0) {
+        const extra = Math.floor(remainingHrs / hpc);
+        result[p.id] = extra;
+      } else {
+        result[p.id] = 0;
+      }
+    }
+    return result;
+  }, [items, hoursRemaining]);
+
+  // Max revenue: keep current product mix ratio, fill remaining hours proportionally
+  const maxRevenue = useMemo(() => {
+    if (items.length === 0) return 0;
+    const totalCurrentClients = items.reduce((s, p) => s + Number(p.current_clients), 0);
+    if (totalCurrentClients === 0) {
+      // No clients yet — show max for each product independently (best case single-product)
+      let best = 0;
+      for (const p of items) {
+        const hpc = Number(p.hours_per_client_month);
+        const price = Number(p.price_per_client || 0);
+        if (hpc > 0) {
+          best = Math.max(best, Math.floor(availableHours / hpc) * price);
+        }
+      }
+      return best;
+    }
+    // Proportional fill: keep same ratio of clients across products
+    const weights = items.map(p => ({
+      hpc: Number(p.hours_per_client_month),
+      price: Number(p.price_per_client || 0),
+      ratio: Number(p.current_clients) / totalCurrentClients,
+    }));
+    // Cost per "unit" of the mix
+    const hoursPerUnit = weights.reduce((s, w) => s + w.hpc * w.ratio, 0);
+    const revenuePerUnit = weights.reduce((s, w) => s + w.price * w.ratio, 0);
+    if (hoursPerUnit <= 0) return currentRevenue;
+    const maxUnits = Math.floor(availableHours / hoursPerUnit);
+    return Math.round(revenuePerUnit * maxUnits);
+  }, [items, availableHours, currentRevenue]);
 
   const addedProductIds = items.map(p => p.product_id);
   const availableToAdd = allProducts.filter((p: Product) => !addedProductIds.includes(p.id));
-
   const internalCount = effectiveTeamSize - effectiveClientFacing;
+
+  // Compute hours breakdown for visual
+  const adminHours = Math.round(effectiveHours * effectiveAdmin / 100);
+  const businessHours = Math.round(effectiveHours * effectiveBusiness / 100);
+  const clientHours = Math.round(availableHoursPerPerson);
 
   return (
     <AppLayout>
       <div className="space-y-6">
         <BackNavigation parentRoute="/executive" parentLabel="Executive Room" />
-        <PageHeader title="Simulador de Capacidade" subtitle="Calcula quantos clientes podes servir em simultâneo, por produto." />
+        <PageHeader title="Simulador de Capacidade" subtitle="Simula diferentes cenários para entender quantos clientes podes servir e quanta receita podes gerar." />
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Settings */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <Clock className="h-4 w-4" /> Parâmetros
+                <Clock className="h-4 w-4" /> Parâmetros base
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="space-y-2">
                 <Label className="text-xs">Horas úteis por mês (por pessoa)</Label>
                 <Input type="number" value={effectiveHours} onChange={e => setHoursPerMonth(Number(e.target.value))} className="h-8" />
-                <p className="text-[10px] text-muted-foreground">Total de horas de trabalho no mês (ex: 160h = 8h × 20 dias)</p>
+                <p className="text-[10px] text-muted-foreground">Ex: 160h = 8h × 20 dias úteis</p>
               </div>
+
               <div className="space-y-2">
                 <Label className="text-xs">Tempo admin/gestão</Label>
                 <div className="flex items-center gap-2">
                   <Input
                     type="number"
                     className="h-8 w-20"
-                    value={Math.round(effectiveHours * effectiveAdmin / 100)}
+                    value={adminHours}
                     onChange={e => {
                       const hrs = Number(e.target.value);
-                      const pct = effectiveHours > 0 ? Math.round((hrs / effectiveHours) * 100) : 0;
-                      setAdminPercent(Math.min(pct, 100));
+                      setAdminPercent(effectiveHours > 0 ? Math.min(Math.round((hrs / effectiveHours) * 100), 100) : 0);
                     }}
                   />
-                  <span className="text-xs text-muted-foreground">horas</span>
-                  <span className="text-xs text-muted-foreground mx-1">=</span>
+                  <span className="text-xs text-muted-foreground">h</span>
+                  <span className="text-xs text-muted-foreground">=</span>
                   <Input
                     type="number"
                     className="h-8 w-16"
@@ -206,23 +246,23 @@ export default function ExecutiveCapacidade() {
                   <span className="text-xs text-muted-foreground">%</span>
                 </div>
                 <Slider value={[effectiveAdmin]} onValueChange={v => setAdminPercent(v[0])} min={0} max={50} step={5} className="mt-1" />
-                <p className="text-[10px] text-muted-foreground">Reuniões, admin, e-mails, gestão</p>
+                <p className="text-[10px] text-muted-foreground">Reuniões, emails, gestão interna</p>
               </div>
+
               <div className="space-y-2">
                 <Label className="text-xs">Tempo trabalho de negócio</Label>
                 <div className="flex items-center gap-2">
                   <Input
                     type="number"
                     className="h-8 w-20"
-                    value={Math.round(effectiveHours * effectiveBusiness / 100)}
+                    value={businessHours}
                     onChange={e => {
                       const hrs = Number(e.target.value);
-                      const pct = effectiveHours > 0 ? Math.round((hrs / effectiveHours) * 100) : 0;
-                      setBusinessPercent(Math.min(pct, 100));
+                      setBusinessPercent(effectiveHours > 0 ? Math.min(Math.round((hrs / effectiveHours) * 100), 100) : 0);
                     }}
                   />
-                  <span className="text-xs text-muted-foreground">horas</span>
-                  <span className="text-xs text-muted-foreground mx-1">=</span>
+                  <span className="text-xs text-muted-foreground">h</span>
+                  <span className="text-xs text-muted-foreground">=</span>
                   <Input
                     type="number"
                     className="h-8 w-16"
@@ -232,9 +272,11 @@ export default function ExecutiveCapacidade() {
                   <span className="text-xs text-muted-foreground">%</span>
                 </div>
                 <Slider value={[effectiveBusiness]} onValueChange={v => setBusinessPercent(v[0])} min={0} max={50} step={5} className="mt-1" />
-                <p className="text-[10px] text-muted-foreground">Marketing, comercial, estratégia — trabalho de negócio que não é entrega a clientes</p>
+                <p className="text-[10px] text-muted-foreground">Marketing, comercial, estratégia</p>
               </div>
+
               <Separator />
+
               {/* Team */}
               <div className="space-y-3">
                 <Label className="text-xs font-medium flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Equipa</Label>
@@ -267,14 +309,53 @@ export default function ExecutiveCapacidade() {
                 </div>
                 {internalCount > 0 && (
                   <p className="text-[10px] text-muted-foreground">
-                    {internalCount} pessoa{internalCount > 1 ? 's' : ''} em trabalho interno (não conta para capacidade de clientes)
+                    {internalCount} pessoa{internalCount > 1 ? 's' : ''} em trabalho interno
                   </p>
                 )}
               </div>
+
               <Separator />
-              <div className="space-y-1">
+
+              {/* Hours breakdown visual */}
+              <div className="space-y-2">
+                <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">Decomposição por pessoa</Label>
+                <div className="flex gap-1 h-6 rounded-md overflow-hidden">
+                  {effectiveAdmin > 0 && (
+                    <div
+                      className="bg-muted-foreground/30 flex items-center justify-center text-[9px] font-medium"
+                      style={{ width: `${effectiveAdmin}%` }}
+                      title={`Admin: ${adminHours}h`}
+                    >
+                      {effectiveAdmin >= 12 && `${adminHours}h`}
+                    </div>
+                  )}
+                  {effectiveBusiness > 0 && (
+                    <div
+                      className="bg-muted-foreground/20 flex items-center justify-center text-[9px] font-medium"
+                      style={{ width: `${effectiveBusiness}%` }}
+                      title={`Negócio: ${businessHours}h`}
+                    >
+                      {effectiveBusiness >= 12 && `${businessHours}h`}
+                    </div>
+                  )}
+                  <div
+                    className="bg-primary/20 flex items-center justify-center text-[9px] font-medium text-primary"
+                    style={{ width: `${100 - totalNonClientPercent}%` }}
+                    title={`Clientes: ${clientHours}h`}
+                  >
+                    {clientHours}h
+                  </div>
+                </div>
+                <div className="flex justify-between text-[9px] text-muted-foreground">
+                  <span>Admin {effectiveAdmin}%</span>
+                  {effectiveBusiness > 0 && <span>Negócio {effectiveBusiness}%</span>}
+                  <span className="text-primary font-medium">Clientes {100 - totalNonClientPercent}%</span>
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-muted/50 p-3 space-y-1">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Horas disponíveis (equipa)</span>
+                  <span className="text-muted-foreground">Horas para clientes (equipa)</span>
                   <span className="font-bold">{availableHours.toFixed(0)}h</span>
                 </div>
                 {effectiveClientFacing > 1 && (
@@ -283,6 +364,7 @@ export default function ExecutiveCapacidade() {
                   </p>
                 )}
               </div>
+
               <Button size="sm" className="w-full" onClick={() => saveSettings.mutate()}>Guardar parâmetros</Button>
             </CardContent>
           </Card>
@@ -295,13 +377,13 @@ export default function ExecutiveCapacidade() {
                 <CardContent className="p-4 text-center">
                   <p className="text-xs text-muted-foreground">Horas usadas</p>
                   <p className="text-2xl font-bold">{totalHoursUsed.toFixed(0)}h</p>
-                  <p className="text-[10px] text-muted-foreground">de {availableHours.toFixed(0)}h</p>
+                  <p className="text-[10px] text-muted-foreground">de {availableHours.toFixed(0)}h disponíveis</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
-                  <p className="text-xs text-muted-foreground">Capacidade</p>
-                  <p className={`text-2xl font-bold ${capacityPercent > 90 ? 'text-destructive' : 'text-foreground'}`}>
+                  <p className="text-xs text-muted-foreground">Ocupação</p>
+                  <p className={`text-2xl font-bold ${capacityPercent > 90 ? 'text-destructive' : capacityPercent > 70 ? 'text-amber-500' : 'text-foreground'}`}>
                     {capacityPercent}%
                   </p>
                   <Progress value={Math.min(capacityPercent, 100)} className="h-2 mt-1" />
@@ -327,20 +409,30 @@ export default function ExecutiveCapacidade() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-lg border p-4 text-center">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1 rounded-lg border p-4 text-center">
                       <p className="text-xs text-muted-foreground">Faturação atual</p>
                       <p className="text-2xl font-bold">{currentRevenue.toLocaleString('pt-PT')}€</p>
-                      <p className="text-[10px] text-muted-foreground">com {items.reduce((s, p) => s + Number(p.current_clients), 0)} clientes</p>
-                    </div>
-                    <div className="rounded-lg border p-4 text-center border-primary/30 bg-primary/5">
-                      <p className="text-xs text-muted-foreground">Faturação a capacidade máxima</p>
-                      <p className="text-2xl font-bold text-primary">{maxRevenue.toLocaleString('pt-PT')}€</p>
                       <p className="text-[10px] text-muted-foreground">
-                        potencial de +{(maxRevenue - currentRevenue).toLocaleString('pt-PT')}€
+                        {items.reduce((s, p) => s + Number(p.current_clients), 0)} clientes
                       </p>
                     </div>
+                    <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                    <div className="flex-1 rounded-lg border p-4 text-center border-primary/30 bg-primary/5">
+                      <p className="text-xs text-muted-foreground">Se lotares a capacidade</p>
+                      <p className="text-2xl font-bold text-primary">{maxRevenue.toLocaleString('pt-PT')}€</p>
+                      {maxRevenue > currentRevenue && (
+                        <p className="text-[10px] text-muted-foreground">
+                          +{(maxRevenue - currentRevenue).toLocaleString('pt-PT')}€ potencial
+                        </p>
+                      )}
+                    </div>
                   </div>
+                  {items.reduce((s, p) => s + Number(p.current_clients), 0) > 0 && (
+                    <p className="text-[10px] text-muted-foreground mt-2 text-center">
+                      Projeção baseada no mix atual de produtos (proporção mantida)
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -360,18 +452,19 @@ export default function ExecutiveCapacidade() {
                 ) : (
                   <div className="space-y-3">
                     {items.map(item => {
-                      const hoursUsed = Number(item.hours_per_client_month) * Number(item.current_clients);
-                      const maxClients = Number(item.hours_per_client_month) > 0
-                        ? Math.floor(availableHours / Number(item.hours_per_client_month))
-                        : 0;
+                      const hpc = Number(item.hours_per_client_month);
+                      const currentClients = Number(item.current_clients);
+                      const hoursUsed = hpc * currentClients;
+                      const extraPossible = hpc > 0 && hoursRemaining > 0 ? Math.floor(hoursRemaining / hpc) : 0;
                       const realCount = realClientCounts[item.product_name] || 0;
-                      const itemRevenue = Number(item.price_per_client || 0) * Number(item.current_clients);
+                      const itemRevenue = Number(item.price_per_client || 0) * currentClients;
+
                       return (
                         <div key={item.id} className="rounded-lg border p-4 space-y-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <h4 className="font-medium text-sm">{item.product_name}</h4>
-                              {Number(item.current_clients) > 0 && (
+                              {currentClients > 0 && (
                                 <Badge variant="outline" className="text-[10px]">{hoursUsed.toFixed(0)}h/mês</Badge>
                               )}
                               {itemRevenue > 0 && (
@@ -388,7 +481,7 @@ export default function ExecutiveCapacidade() {
                               <Input
                                 type="number"
                                 className="h-7 text-sm"
-                                defaultValue={Number(item.hours_per_client_month)}
+                                defaultValue={hpc}
                                 onBlur={e => updateScenarioProduct.mutate({ id: item.id, hours_per_client_month: Number(e.target.value) })}
                               />
                             </div>
@@ -420,15 +513,15 @@ export default function ExecutiveCapacidade() {
                               <Input
                                 type="number"
                                 className="h-7 text-sm"
-                                defaultValue={Number(item.current_clients)}
+                                defaultValue={currentClients}
                                 onBlur={e => updateScenarioProduct.mutate({ id: item.id, current_clients: Number(e.target.value) })}
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-[10px]">Máx. possível</Label>
+                              <Label className="text-[10px]">Podes aceitar +</Label>
                               <div className="h-7 flex items-center">
-                                <span className="text-sm font-semibold flex items-center gap-1">
-                                  <Users className="h-3 w-3 text-muted-foreground" /> {maxClients}
+                                <span className={`text-sm font-semibold flex items-center gap-1 ${extraPossible === 0 ? 'text-muted-foreground' : 'text-primary'}`}>
+                                  <Users className="h-3 w-3" /> {extraPossible}
                                 </span>
                               </div>
                             </div>
@@ -439,7 +532,6 @@ export default function ExecutiveCapacidade() {
                   </div>
                 )}
 
-                {/* Add product */}
                 {availableToAdd.length > 0 && (
                   <>
                     <Separator />
@@ -458,7 +550,7 @@ export default function ExecutiveCapacidade() {
               </CardContent>
             </Card>
 
-            {/* Insight card */}
+            {/* Insight card — global */}
             {items.length > 0 && (
               <Card className={hoursRemaining < 0 ? 'border-destructive/50 bg-destructive/5' : 'border-primary/30 bg-primary/5'}>
                 <CardContent className="p-4 flex items-start gap-3">
@@ -467,17 +559,29 @@ export default function ExecutiveCapacidade() {
                   ) : (
                     <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   )}
-                  <div className="text-sm">
+                  <div className="text-sm space-y-1">
                     {hoursRemaining < 0 ? (
-                      <p>Estás <strong>{Math.abs(hoursRemaining).toFixed(0)}h acima</strong> da tua capacidade mensal. Considera ajustar a carga ou expandir a equipa.</p>
+                      <p>Estás <strong>{Math.abs(hoursRemaining).toFixed(0)}h acima</strong> da capacidade mensal. Considera ajustar a carga ou expandir a equipa.</p>
                     ) : hoursRemaining < 10 ? (
-                      <p>Capacidade <strong>quase no limite</strong>. Tens apenas {hoursRemaining.toFixed(0)}h livres por mês.</p>
+                      <p>Capacidade <strong>quase no limite</strong> — apenas {hoursRemaining.toFixed(0)}h livres por mês.</p>
                     ) : (
-                      <p>Tens <strong>{hoursRemaining.toFixed(0)}h livres</strong> por mês. 
-                        {items.length > 0 && items[0].hours_per_client_month > 0 && (
-                          <> Podes aceitar mais ~{Math.floor(hoursRemaining / Number(items[0].hours_per_client_month))} clientes de "{items[0].product_name}".</>
-                        )}
-                      </p>
+                      <>
+                        <p>Tens <strong>{hoursRemaining.toFixed(0)}h livres</strong> por mês. Com essa margem podes aceitar:</p>
+                        <ul className="text-xs text-muted-foreground space-y-0.5 mt-1">
+                          {items.filter(p => Number(p.hours_per_client_month) > 0).map(p => {
+                            const extra = Number(p.hours_per_client_month) > 0 ? Math.floor(hoursRemaining / Number(p.hours_per_client_month)) : 0;
+                            return (
+                              <li key={p.id}>
+                                <strong>+{extra}</strong> clientes de <em>{p.product_name}</em>
+                                {Number(p.price_per_client || 0) > 0 && (
+                                  <span className="text-muted-foreground"> (+{(extra * Number(p.price_per_client)).toLocaleString('pt-PT')}€/mês)</span>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                        <p className="text-[10px] text-muted-foreground mt-1">(valores exclusivos — aceitar clientes de um produto reduz espaço para outros)</p>
+                      </>
                     )}
                   </div>
                 </CardContent>
