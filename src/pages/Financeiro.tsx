@@ -120,6 +120,40 @@ export default function FinanceiroPage() {
     return map[key] || key;
   };
 
+  // Monthly chart data
+  const monthlyData = useMemo(() => {
+    return Array.from({ length: 12 }, (_, i) => {
+      const m = i + 1;
+      const ent = yearSales.filter(s => s.sale_month === m).reduce((s, v) => s + v.invoice_total, 0);
+      const sai = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.total_with_vat, 0);
+      return { mes: ML[i], entradas: ent, saidas: sai };
+    });
+  }, [yearSales, yearExpenses]);
+
+  // Product distribution for pie chart
+  const productPieData = useMemo(() => {
+    const byProduct = new Map<string, number>();
+    yearSales.forEach(s => {
+      const name = s.product || 'Sem produto';
+      byProduct.set(name, (byProduct.get(name) || 0) + s.invoice_total);
+    });
+    return [...byProduct.entries()]
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [yearSales]);
+
+  // Category distribution for pie chart
+  const categoryPieData = useMemo(() => {
+    const byCat = new Map<string, number>();
+    yearExpenses.forEach(e => {
+      const cat = catLabel(e.category || 'outro');
+      byCat.set(cat, (byCat.get(cat) || 0) + e.total_with_vat);
+    });
+    return [...byCat.entries()]
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [yearExpenses]);
+
   return (
     <AppLayout>
       <div className="p-6 space-y-8">
