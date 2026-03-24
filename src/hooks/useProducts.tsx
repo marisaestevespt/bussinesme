@@ -104,13 +104,14 @@ export function useProducts() {
           'Fecho/Offboarding de Clientes',
         ];
         await supabase.from('sops').insert(
-          defaultSops.map(name => ({
+          defaultSops.map((name, idx) => ({
             name: `${name} — ${product.name}`,
             department: 'comercial',
             status: 'para_criar',
             linked_entity_type: 'produto',
             linked_entity_id: newId,
             product_name: product.name,
+            sort_order: idx,
           }))
         );
 

@@ -218,7 +218,7 @@ export default function ProdutoDetailPage() {
     queryKey: ['linked-sops', 'produto', id],
     queryFn: async () => {
       if (!id || isNew) return [];
-      const { data } = await supabase.from('sops').select('*').eq('linked_entity_type', 'produto').eq('linked_entity_id', id) as any;
+      const { data } = await supabase.from('sops').select('*').eq('linked_entity_type', 'produto').eq('linked_entity_id', id).order('sort_order') as any;
       return data || [];
     },
     enabled: !isNew && !!id,

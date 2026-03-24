@@ -5899,6 +5899,7 @@ export type Database = {
           product_name: string | null
           routine_id: string | null
           sop_id: string
+          sort_order: number
           status: string
           updated_at: string
           utilizacao_nao_usado: Json | null
@@ -5923,6 +5924,7 @@ export type Database = {
           product_name?: string | null
           routine_id?: string | null
           sop_id?: string
+          sort_order?: number
           status?: string
           updated_at?: string
           utilizacao_nao_usado?: Json | null
@@ -5947,6 +5949,7 @@ export type Database = {
           product_name?: string | null
           routine_id?: string | null
           sop_id?: string
+          sort_order?: number
           status?: string
           updated_at?: string
           utilizacao_nao_usado?: Json | null
