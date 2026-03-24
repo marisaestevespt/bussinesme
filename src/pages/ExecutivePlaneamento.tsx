@@ -112,15 +112,15 @@ export default function ExecutivePlaneamento() {
           {VIEW_CARDS.map(v => (
             <Card
               key={v.key}
-              className={`group cursor-pointer border bg-gradient-to-br ${v.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${viewMode === v.key ? 'ring-2 ring-primary shadow-md' : ''}`}
+              className={`group cursor-pointer border-2 bg-gradient-to-br ${v.color} transition-all duration-200 hover:shadow-lg hover:-translate-y-1 ${viewMode === v.key ? 'ring-2 ring-primary shadow-lg scale-[1.02]' : 'shadow-md'}`}
               onClick={() => setViewMode(prev => prev === v.key ? null : v.key)}
             >
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${v.iconColor}`}>
-                  <v.icon className="h-4 w-4" />
+              <CardContent className="p-5 flex items-center gap-3">
+                <div className={`h-10 w-10 rounded-xl bg-background flex items-center justify-center shadow shrink-0 ${v.iconColor}`}>
+                  <v.icon className="h-5 w-5" />
                 </div>
                 <div>
-                  <span className="font-medium text-sm text-foreground">{v.label}</span>
+                  <span className="font-semibold text-sm text-foreground">{v.label}</span>
                   <p className="text-[10px] text-muted-foreground">{v.desc}</p>
                 </div>
               </CardContent>
