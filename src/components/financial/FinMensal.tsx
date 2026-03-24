@@ -74,8 +74,16 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
     },
   });
 
-  const monthSales = useMemo(() => sales.filter(s => s.sale_year === currentYear && s.sale_month === m), [sales, currentYear, m]);
-  const monthExpenses = useMemo(() => expenses.filter(e => e.expense_year === currentYear && e.expense_month === m), [expenses, currentYear, m]);
+  const monthSales = useMemo(() => sales.filter(s => s.sale_year === currentYear && s.sale_month === m).sort((a, b) => {
+    const da = (a as any).payment_date || '';
+    const db = (b as any).payment_date || '';
+    return da.localeCompare(db);
+  }), [sales, currentYear, m]);
+  const monthExpenses = useMemo(() => expenses.filter(e => e.expense_year === currentYear && e.expense_month === m).sort((a, b) => {
+    const da = (a as any).expense_date || '';
+    const db = (b as any).expense_date || '';
+    return da.localeCompare(db);
+  }), [expenses, currentYear, m]);
 
   // Subscriptions due this month (based on start_date + periodicity)
   const dueSubscriptions = useMemo(() => {
