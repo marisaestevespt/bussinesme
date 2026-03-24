@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Check, Download } from 'lucide-react';
-import { exportCsv } from '@/lib/exportCsv';
+import { exportPdf } from '@/lib/exportPdf';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -218,15 +218,14 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
           <span className="text-muted-foreground text-sm">{currentYear}</span>
         </div>
         <Button size="sm" variant="outline" onClick={() => {
-          const headers = ['Tipo', 'Descrição', 'Cliente/Categoria', 'Base (€)', 'Total (€)', 'Status'];
-          const saleRows = monthSales.map((s: any) => ['Entrada', s.description || '', s.client || '', s.base_value, s.invoice_total, s.status || '']);
-          const expRows = monthExpenses.map(e => ['Saída', e.description || '', e.category || '', e.base_value, e.total_with_vat, e.status || '']);
-          exportCsv(`mensal-${currentYear}-${String(m).padStart(2, '0')}.csv`, headers, [...saleRows, ...expRows]);
+          const MONTHS_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+          exportPdf(`Relatório Mensal — ${MONTHS_NAMES[m - 1]} ${currentYear}`, 'fin-mensal-report');
         }}>
-          <Download className="h-3.5 w-3.5 mr-1" /> Exportar
+          <Download className="h-3.5 w-3.5 mr-1" /> Exportar PDF
         </Button>
       </div>
 
+      <div id="fin-mensal-report">
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Entradas</p><p className="text-2xl font-bold text-green-600">{fmt(totalEntradas)}</p></CardContent></Card>
@@ -480,6 +479,8 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
 
       {/* Saúde Financeira */}
       <FinancialHealthSection sales={monthSales} allSales={sales} currentYear={currentYear} month={m} />
+
+      </div>
 
       <SaleFormDialog
         open={saleOpen}

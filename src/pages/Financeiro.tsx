@@ -15,7 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { YearSelector } from '@/components/YearSelector';
 import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Settings, TrendingUp, TrendingDown, Users, Package, UserCheck, Download, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { exportCsv } from '@/lib/exportCsv';
+import { exportPdf } from '@/lib/exportPdf';
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 const ML = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -236,17 +236,13 @@ export default function FinanceiroPage() {
 
         <div className="flex items-center justify-between">
           <YearSelector year={year} onChange={setYear} />
-          <Button size="sm" variant="outline" onClick={() => {
-            const headers = ['Mês', 'Entradas (€)', 'Saídas (€)', 'Resultado (€)', 'IVA Cobrado (€)', 'IVA Pago (€)'];
-            const rows = monthlyData.map(d => [d.mes, d.entradas, d.saidas, d.resultado, d.ivaCobrado, d.ivaPago]);
-            rows.push(['TOTAL', totalEntradas, totalSaidas, resultado, ivaCobrado, ivaPago]);
-            exportCsv(`relatorio-anual-${year}.csv`, headers, rows);
-          }}>
-            <Download className="h-3.5 w-3.5 mr-1" /> Exportar
+          <Button size="sm" variant="outline" onClick={() => exportPdf(`Relatório Financeiro Anual — ${year}`, 'fin-annual-report')}>
+            <Download className="h-3.5 w-3.5 mr-1" /> Exportar PDF
           </Button>
         </div>
 
         {/* Summary Cards */}
+        <div id="fin-annual-report">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Entradas</p><p className="text-xl font-bold text-emerald-600">{fmt(totalEntradas)}</p></CardContent></Card>
           <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Saídas</p><p className="text-xl font-bold text-red-600">{fmt(totalSaidas)}</p></CardContent></Card>
@@ -494,6 +490,7 @@ export default function FinanceiroPage() {
               <p className="text-xl font-bold">{yearExpenses.length}</p>
             </CardContent>
           </Card>
+        </div>
         </div>
       </div>
     </AppLayout>
