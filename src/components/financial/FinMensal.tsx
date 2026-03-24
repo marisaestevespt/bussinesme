@@ -316,6 +316,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
                     <ExpenseStatusSelect
                       expenseId={e.id}
                       currentStatus={e.status}
+                      hasDocuments={Array.isArray(e.documents) ? e.documents.length > 0 : !!e.documents}
                       onUpdate={async (id, status) => {
                         await fin.upsertExpense.mutateAsync({ id, status } as any);
                       }}

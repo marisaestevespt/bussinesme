@@ -82,14 +82,24 @@ interface ExpenseStatusSelectProps {
   expenseId: string;
   currentStatus: string;
   onUpdate: (id: string, status: string) => Promise<void>;
+  hasDocuments?: boolean;
 }
 
-export function ExpenseStatusSelect({ expenseId, currentStatus, onUpdate }: ExpenseStatusSelectProps) {
+export function ExpenseStatusSelect({ expenseId, currentStatus, onUpdate, hasDocuments = false }: ExpenseStatusSelectProps) {
   const sb = getExpenseStatusBadge(currentStatus);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 
-  const handleChange = async (value: string) => {
+  const doUpdate = async (value: string) => {
     await onUpdate(expenseId, value);
     toast.success('Status atualizado');
+    if (value === 'pago' && !hasDocuments) {
+      toast.warning('Fatura em falta — lembra-te de anexar a fatura a esta despesa.', { duration: 5000 });
+    }
+  };
+
+  const handleChange = async (value: string) => {
+    await doUpdate(value);
   };
 
   return (
