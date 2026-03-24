@@ -159,7 +159,7 @@ export default function ProcessosPage() {
             onRename={(id, label) => renameView({ id, label })}
             onDelete={(id) => { if (activeTab.startsWith('custom_')) setActiveTab('galeria'); deleteView(id); }}
           />
-          <Button onClick={() => { if (selectedDept) setNewSopDept(selectedDept); setShowNewSop(true); }} size="sm">
+          <Button onClick={() => { if (selectedDept) setNewSopDepts([selectedDept]); setShowNewSop(true); }} size="sm">
             <Plus className="h-4 w-4 mr-1" /> Novo Processo
           </Button>
         </div>
