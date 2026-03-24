@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useKpiSettings } from '@/hooks/useKpiSettings';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
@@ -8,10 +8,11 @@ import { Separator } from '@/components/ui/separator';
 import { useNavigate } from 'react-router-dom';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCommercialData } from '@/hooks/useCommercialData';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Settings, TrendingUp, Users } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { YearSelector } from '@/components/YearSelector';
+import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Settings, TrendingUp, Users, Heart, Package, UserCheck } from 'lucide-react';
 
-const ML = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
 const SECTIONS_ROW1 = [
@@ -32,34 +33,97 @@ const SECTIONS_ROW2 = [
 
 export default function FinanceiroPage() {
   const fin = useFinancialData();
-  const com = useCommercialData();
+  const [year, setYear] = useState(new Date().getFullYear());
+  const com = useCommercialData(year);
   const navigate = useNavigate();
-  const { isKpiEnabled, isAreaEnabled } = useKpiSettings();
 
-  const currentYear = new Date().getFullYear();
   const sales = excludeCancelled(com.sales.data || []);
   const expenses = excludeCancelled(fin.expenses.data || []);
 
-  const marginData = useMemo(() => {
-    return Array.from({ length: 12 }, (_, i) => {
-      const m = i + 1;
-      const ent = sales.filter(s => s.sale_year === currentYear && s.sale_month === m).reduce((s, v) => s + v.invoice_total, 0);
-      const sai = expenses.filter(e => e.expense_year === currentYear && e.expense_month === m).reduce((s, v) => s + v.total_with_vat, 0);
-      const res = ent - sai;
-      return { mes: ML[i], margem: ent > 0 ? Math.round(res / ent * 10000) / 100 : 0 };
-    });
-  }, [sales, expenses, currentYear]);
+  // Fetch clients for counting
+  const { data: clients = [] } = useQuery({
+    queryKey: ['clients-fin-overview'],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients').select('id, status, start_date, current_product');
+      return data || [];
+    },
+  });
 
-  const { totalEntradas, totalSaidas, resultado } = useMemo(() => {
-    const ent = sales.filter(s => s.sale_year === currentYear).reduce((s, v) => s + v.invoice_total, 0);
-    const sai = expenses.filter(e => e.expense_year === currentYear).reduce((s, v) => s + v.total_with_vat, 0);
-    return { totalEntradas: ent, totalSaidas: sai, resultado: ent - sai };
-  }, [sales, expenses, currentYear]);
+  // Filter by year
+  const yearSales = useMemo(() => sales.filter(s => s.sale_year === year), [sales, year]);
+  const yearExpenses = useMemo(() => expenses.filter(e => e.expense_year === year), [expenses, year]);
+
+  // Summary
+  const totalEntradas = yearSales.reduce((s, v) => s + v.invoice_total, 0);
+  const totalBaseEntradas = yearSales.reduce((s, v) => s + v.base_value, 0);
+  const totalSaidas = yearExpenses.reduce((s, v) => s + v.total_with_vat, 0);
+  const totalBaseSaidas = yearExpenses.reduce((s, v) => s + v.base_value, 0);
+  const resultado = totalEntradas - totalSaidas;
+  const margem = totalEntradas > 0 ? Math.round(resultado / totalEntradas * 10000) / 100 : 0;
+
+  // IVA
+  const ivaCobrado = totalEntradas - totalBaseEntradas;
+  const ivaPago = totalSaidas - totalBaseSaidas;
+  const ivaBalanco = Math.round((ivaCobrado - ivaPago) * 100) / 100;
+
+  // SS balance
+  const ssTotal = useMemo(() => {
+    return yearExpenses
+      .filter(e => e.category === 'seguranca_social')
+      .reduce((s, v) => s + v.total_with_vat, 0);
+  }, [yearExpenses]);
+
+  // Product insights (from sales)
+  const productInsights = useMemo(() => {
+    const byProduct = new Map<string, number>();
+    yearSales.forEach(s => {
+      const name = s.product || 'Sem produto';
+      byProduct.set(name, (byProduct.get(name) || 0) + s.invoice_total);
+    });
+    const sorted = [...byProduct.entries()].sort((a, b) => b[1] - a[1]);
+    return {
+      best: sorted.length > 0 ? { name: sorted[0][0], value: sorted[0][1] } : null,
+      worst: sorted.length > 1 ? { name: sorted[sorted.length - 1][0], value: sorted[sorted.length - 1][1] } : null,
+    };
+  }, [yearSales]);
+
+  // Clients active in the year
+  const clientsInYear = useMemo(() => {
+    const clientSet = new Set<string>();
+    yearSales.forEach(s => { if (s.client) clientSet.add(s.client); });
+    return clientSet.size;
+  }, [yearSales]);
+
+  // Expense category insights
+  const categoryInsights = useMemo(() => {
+    const byCat = new Map<string, number>();
+    yearExpenses.forEach(e => {
+      const cat = e.category || 'outro';
+      byCat.set(cat, (byCat.get(cat) || 0) + e.total_with_vat);
+    });
+    const sorted = [...byCat.entries()].sort((a, b) => b[1] - a[1]);
+    return {
+      biggest: sorted.length > 0 ? { name: sorted[0][0], value: sorted[0][1] } : null,
+      smallest: sorted.length > 1 ? { name: sorted[sorted.length - 1][0], value: sorted[sorted.length - 1][1] } : null,
+    };
+  }, [yearExpenses]);
+
+  const catLabel = (key: string) => {
+    const map: Record<string, string> = {
+      plataformas: 'Plataformas', marketing: 'Marketing', material: 'Material', servicos: 'Serviços',
+      impostos: 'Impostos', seguranca_social: 'Segurança Social', ordenados: 'Ordenados',
+      prestadores: 'Prestadores', outro: 'Outro', escritorio: 'Escritório',
+    };
+    return map[key] || key;
+  };
 
   return (
     <AppLayout>
       <div className="p-6 space-y-8">
-        <PageHeader title="Contabilidade" subtitle="Gestão contabilística, entradas, saídas e obrigações fiscais." />
+        <div className="flex items-center justify-between">
+          <PageHeader title="Contabilidade" subtitle="Gestão contabilística, entradas, saídas e obrigações fiscais." />
+          <YearSelector year={year} onChange={setYear} />
+        </div>
 
         {/* Navigation cards */}
         <div className="space-y-3">
@@ -97,34 +161,156 @@ export default function FinanceiroPage() {
           </div>
         </div>
 
-        {/* Summary cards */}
-        {isAreaEnabled('financeiro') && isKpiEnabled('financeiro', 'entradas_vs_saidas') && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Entradas ({currentYear})</p><p className="text-xl font-bold text-green-600">{fmt(totalEntradas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Saídas ({currentYear})</p><p className="text-xl font-bold text-red-600">{fmt(totalSaidas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Balanço ({currentYear})</p><p className={`text-xl font-bold ${resultado >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(resultado)}</p></CardContent></Card>
-        </div>
-        )}
+        <Separator />
 
-        {/* Margin chart */}
-        {isAreaEnabled('financeiro') && isKpiEnabled('financeiro', 'margem_lucro') && (
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground mb-2">Margem de Lucro ao longo do ano — {currentYear}</p>
-            <div className="h-40">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={marginData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                  <YAxis tick={{ fontSize: 10 }} unit="%" stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip formatter={(v: number) => `${v}%`} />
-                  <Line type="monotone" dataKey="margem" name="Margem" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
-                </LineChart>
-              </ResponsiveContainer>
+        {/* Saúde Financeira do Ano */}
+        <Card className="bg-primary/10 border-primary/30">
+          <CardContent className="pt-5 space-y-1">
+            <div className="flex items-center gap-2">
+              <Heart className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-semibold">Saúde Financeira — {year}</h3>
             </div>
           </CardContent>
         </Card>
-        )}
+
+        {/* Summary Cards: Entradas | Saídas | Balanço | Margem */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <p className="text-xs text-muted-foreground">Entradas</p>
+              <p className="text-xl font-bold text-emerald-600">{fmt(totalEntradas)}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <p className="text-xs text-muted-foreground">Saídas</p>
+              <p className="text-xl font-bold text-red-600">{fmt(totalSaidas)}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <p className="text-xs text-muted-foreground">Balanço</p>
+              <p className={`text-xl font-bold ${resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(resultado)}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <p className="text-xs text-muted-foreground">Margem</p>
+              <p className={`text-xl font-bold ${margem >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{margem}%</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Entradas insights */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">Produto mais vendido</p>
+              </div>
+              {productInsights.best ? (
+                <>
+                  <p className="text-sm font-semibold truncate">{productInsights.best.name}</p>
+                  <p className="text-xs text-muted-foreground">{fmt(productInsights.best.value)}</p>
+                </>
+              ) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">Produto menos vendido</p>
+              </div>
+              {productInsights.worst ? (
+                <>
+                  <p className="text-sm font-semibold truncate">{productInsights.worst.name}</p>
+                  <p className="text-xs text-muted-foreground">{fmt(productInsights.worst.value)}</p>
+                </>
+              ) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <UserCheck className="h-3.5 w-3.5 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">Clientes no ano</p>
+              </div>
+              <p className="text-xl font-bold">{clientsInYear}</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Saídas insights */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">Maior categoria de despesa</p>
+              </div>
+              {categoryInsights.biggest ? (
+                <>
+                  <p className="text-sm font-semibold">{catLabel(categoryInsights.biggest.name)}</p>
+                  <p className="text-xs text-muted-foreground">{fmt(categoryInsights.biggest.value)}</p>
+                </>
+              ) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">Menor categoria de despesa</p>
+              </div>
+              {categoryInsights.smallest ? (
+                <>
+                  <p className="text-sm font-semibold">{catLabel(categoryInsights.smallest.name)}</p>
+                  <p className="text-xs text-muted-foreground">{fmt(categoryInsights.smallest.value)}</p>
+                </>
+              ) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* IVA & SS Balance */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-1.5 mb-2">
+                <Receipt className="h-3.5 w-3.5 text-amber-600" />
+                <p className="text-xs text-muted-foreground">Balanço IVA — {year}</p>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-sm">
+                <div>
+                  <p className="text-[10px] text-muted-foreground">Cobrado</p>
+                  <p className="font-semibold">{fmt(ivaCobrado)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground">Pago</p>
+                  <p className="font-semibold">{fmt(ivaPago)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground">Balanço</p>
+                  <p className={`font-semibold ${ivaBalanco > 0 ? 'text-amber-600' : ivaBalanco < 0 ? 'text-emerald-600' : ''}`}>
+                    {fmt(ivaBalanco)}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-1.5 mb-2">
+                <Shield className="h-3.5 w-3.5 text-cyan-600" />
+                <p className="text-xs text-muted-foreground">Segurança Social — {year}</p>
+              </div>
+              <p className="text-xl font-bold">{fmt(ssTotal)}</p>
+              <p className="text-[10px] text-muted-foreground">Total pago no ano</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </AppLayout>
   );
