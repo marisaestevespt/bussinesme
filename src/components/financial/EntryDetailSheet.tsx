@@ -81,7 +81,8 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
   if (!sale) return null;
 
   const canBeOk = docs.length > 0;
-  const statusBadge = getEntryStatusBadge(status);
+  const effectiveStatus = getEffectiveEntryStatus(status, sale?.payment_date ?? null);
+  const statusBadge = getEntryStatusBadge(effectiveStatus);
 
   const handleSave = async () => {
     setSaving(true);
