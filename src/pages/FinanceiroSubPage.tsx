@@ -71,7 +71,7 @@ export default function FinanceiroSubPage() {
       case 'saidas':
         return <FinSaidas fin={fin} currentYear={year} />;
       case 'ordenados':
-        return <FinPayroll fin={fin} profiles={profiles.data || []} />;
+        return <FinPayroll currentYear={year} />;
       case 'iva':
         return <FinIVA sales={sales} expenses={expenses} currentYear={year} fin={fin} />;
       case 'seguranca-social':
