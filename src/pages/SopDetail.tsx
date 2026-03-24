@@ -224,6 +224,12 @@ export default function SopDetailPage() {
     return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && sop.name?.toLowerCase().includes('pagamento');
   }, [sop]);
 
+  const isNpsSop = useMemo(() => {
+    if (!sop) return false;
+    const n = sop.name?.toLowerCase() || '';
+    return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && (n.includes('nps') || n.includes('feedback'));
+  }, [sop]);
+
   const templateTable = isOnboardingSop ? 'product_onboarding_templates' : isOffboardingSop ? 'product_offboarding_templates' : null;
   const linkedProductId = (sop as any)?.linked_entity_id;
 
@@ -236,6 +242,51 @@ export default function SopDetailPage() {
       return (data || []) as any[];
     },
     enabled: isPaymentSop && !!linkedProductId,
+  });
+
+  // NPS Config for "Recolha de NPS/Feedbacks" SOP
+  const { members } = useTeamData();
+  const teamMembers = members.data || [];
+
+  const { data: npsConfig } = useQuery({
+    queryKey: ['product-nps-config', linkedProductId],
+    queryFn: async () => {
+      if (!linkedProductId) return null;
+      const { data } = await supabase.from('product_nps_config' as any).select('*').eq('product_id', linkedProductId).maybeSingle();
+      return data as any;
+    },
+    enabled: isNpsSop && !!linkedProductId,
+  });
+
+  const [npsConfigForm, setNpsConfigForm] = useState<any>(null);
+  const effectiveNpsConfig = npsConfigForm ?? npsConfig;
+
+  useEffect(() => {
+    if (npsConfig && !npsConfigForm) setNpsConfigForm(npsConfig);
+  }, [npsConfig]);
+
+  const saveNpsConfig = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        product_id: linkedProductId,
+        cadence_days: effectiveNpsConfig?.cadence_days || 30,
+        collection_message: effectiveNpsConfig?.collection_message || '',
+        responsible_id: effectiveNpsConfig?.responsible_id || null,
+        nps_form_url: effectiveNpsConfig?.nps_form_url || null,
+      };
+      if (effectiveNpsConfig?.id) {
+        const { error } = await supabase.from('product_nps_config' as any).update(payload).eq('id', effectiveNpsConfig.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('product_nps_config' as any).insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['product-nps-config', linkedProductId] });
+      toast.success('Configuração NPS guardada');
+    },
+    onError: () => toast.error('Erro ao guardar configuração'),
   });
 
   const { data: templateRows = [] } = useQuery({
