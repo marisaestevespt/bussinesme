@@ -403,7 +403,7 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin }: {
       // Create expense linked to this subscription
       await fin.upsertExpense.mutateAsync({
         description: `${sub.platform_name} — ${MONTHS[month - 1]} ${currentYear}`,
-        category: 'ferramenta',
+        category: 'plataformas',
         base_value: sub.monthly_equivalent,
         vat_rate: 0,
         total_with_vat: sub.monthly_equivalent,
