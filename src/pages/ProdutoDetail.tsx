@@ -779,7 +779,6 @@ export default function ProdutoDetailPage() {
               <SectionButton sectionKey="processos" label="Processos" />
               <SectionButton sectionKey="backoffice" label="Backoffice" />
               <SectionButton sectionKey="customer-success" label="Customer Success" />
-              <SectionButton sectionKey="kpis" label="KPIs do Produto" />
               <SectionButton sectionKey="metricas" label="Métricas" />
               <SectionButton sectionKey="arquivo" label="Arquivo" />
             </div>
@@ -1338,12 +1337,6 @@ export default function ProdutoDetailPage() {
               </div>
             )}
 
-            {/* ===== KPIs DO PRODUTO ===== */}
-            {openSection === 'kpis' && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
-                <ProductKPIsTab productId={id!} productName={form.name || ''} isOwner={isOwner} />
-              </div>
-            )}
 
             {/* ===== MÉTRICAS ===== */}
             {openSection === 'metricas' && (
