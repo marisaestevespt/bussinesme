@@ -454,7 +454,7 @@ export default function SopDetailPage() {
     },
   });
 
-
+  const { data: templateRows = [] } = useQuery({
     queryKey: ['sop-template-rows', templateTable, linkedProductId],
     queryFn: async () => {
       if (!templateTable || !linkedProductId) return [];
