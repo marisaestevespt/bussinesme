@@ -57,7 +57,7 @@ export default function FinanceiroPage() {
         <PageHeader title="Contabilidade" subtitle="Gestão contabilística, entradas, saídas e obrigações fiscais." />
 
         {/* Navigation cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {SECTIONS.map(s => (
             <Card
               key={s.path}
