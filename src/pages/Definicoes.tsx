@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { cn } from '@/lib/utils';
 import { SettingsIdentity } from '@/components/settings/SettingsIdentity';
+import { FinSetupNegocio } from '@/components/financial/FinSetupNegocio';
 import { ChannelSettings } from '@/components/settings/ChannelSettings';
 import { SettingsUsers } from '@/components/settings/SettingsUsers';
 import { SettingsKpis } from '@/components/settings/SettingsKpis';
@@ -26,6 +27,7 @@ import { toast } from 'sonner';
 
 const TABS = [
   { key: 'identidade', label: 'Identidade' },
+  { key: 'setup-negocio', label: 'Setup de Negócio' },
   { key: 'marketing', label: 'Marketing' },
   { key: 'utilizadores', label: 'Utilizadores' },
   { key: 'kpis', label: 'KPIs e Análise' },
@@ -64,6 +66,7 @@ export default function DefinicoesPage() {
         {/* Tab content */}
         <div className="max-w-2xl">
           {tab === 'identidade' && <SettingsIdentity />}
+          {tab === 'setup-negocio' && <FinSetupNegocio />}
           {tab === 'marketing' && <ChannelSettings />}
           {tab === 'utilizadores' && <SettingsUsers />}
           {tab === 'kpis' && <SettingsKpis />}
