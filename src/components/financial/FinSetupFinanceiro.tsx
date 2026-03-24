@@ -32,6 +32,7 @@ const LOCATIONS = [
 const PERIODICITIES = [
   { value: 'semanal', label: 'Semanal' },
   { value: 'mensal', label: 'Mensal' },
+  { value: 'bimestral', label: 'Bimestral' },
   { value: 'trimestral', label: 'Trimestral' },
   { value: 'semestral', label: 'Semestral' },
   { value: 'anual', label: 'Anual' },

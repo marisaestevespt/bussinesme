@@ -94,6 +94,7 @@ export function calcMonthlyEquivalent(value: number, periodicity: string): numbe
   switch (periodicity) {
     case 'semanal': return Math.round(value * 4.33 * 100) / 100;
     case 'mensal': return value;
+    case 'bimestral': return Math.round(value / 2 * 100) / 100;
     case 'trimestral': return Math.round(value / 3 * 100) / 100;
     case 'semestral': return Math.round(value / 6 * 100) / 100;
     case 'anual': return Math.round(value / 12 * 100) / 100;
