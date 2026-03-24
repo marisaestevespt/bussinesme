@@ -79,7 +79,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
       toast.error('Erro ao guardar');
     } else {
       toast.success('Entrada atualizada');
-      qc.invalidateQueries({ queryKey: ['commercial-sales'] });
+      qc.invalidateQueries({ queryKey: ['commercial'] });
     }
     setSaving(false);
   };

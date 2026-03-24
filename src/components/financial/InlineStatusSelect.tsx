@@ -27,7 +27,7 @@ export function EntryStatusSelect({ saleId, currentStatus }: EntryStatusSelectPr
   const handleChange = async (value: string) => {
     const { error } = await supabase.from('commercial_sales').update({ status: value }).eq('id', saleId);
     if (error) { toast.error('Erro ao atualizar status'); return; }
-    qc.invalidateQueries({ queryKey: ['commercial-sales'] });
+    qc.invalidateQueries({ queryKey: ['commercial'] });
     toast.success('Status atualizado');
   };
 
