@@ -81,7 +81,7 @@ export default function FinanceiroSubPage() {
       case 'setup-financeiro':
         return <FinSetupFinanceiro fin={fin} />;
       case 'previsibilidade':
-        return <FinPrevisibilidade fin={fin} currentYear={year} />;
+        return <FinPrevisibilidade fin={fin} currentYear={year} sales={sales} />;
       default:
         return <EmptyModulePage title={title} />;
     }
