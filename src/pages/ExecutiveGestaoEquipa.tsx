@@ -1374,46 +1374,8 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
         </Card>
       )}
 
-      {/* Payments Table */}
-      <div className="space-y-3">
-        <div className="flex justify-between items-center">
-          <h3 className="text-sm font-semibold flex items-center gap-2"><CreditCard className="h-4 w-4" /> Pagamentos de Equipa — {currentYear}</h3>
-          <Button size="sm" onClick={() => setPaymentDialog({ month: currentMonth, year: currentYear })}><Plus className="h-4 w-4 mr-1" /> Novo</Button>
-        </div>
-        <Card><div className="overflow-x-auto">
-          <Table>
-            <TableHeader><TableRow>
-              <TableHead>Membro</TableHead><TableHead>Mês</TableHead><TableHead>Tipo</TableHead><TableHead>Bruto</TableHead><TableHead>Líquido</TableHead><TableHead>Status</TableHead><TableHead>Doc</TableHead><TableHead></TableHead>
-            </TableRow></TableHeader>
-            <TableBody>
-              {monthPayments.length === 0 ? (
-                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Sem pagamentos</TableCell></TableRow>
-              ) : monthPayments.map(p => {
-                const isOverdue = p.status === 'por_pagar' && (p.year < currentYear || (p.year === currentYear && p.month < currentMonth));
-                return (
-                  <TableRow key={p.id} className={isOverdue ? 'bg-destructive/5' : ''}>
-                    <TableCell className="text-sm">{memberName(p.member_id)}</TableCell>
-                    <TableCell className="text-xs">{p.month && p.year ? `${getMonthName(p.month)} ${p.year}` : '—'}</TableCell>
-                    <TableCell className="text-xs">{labelFor(PAYMENT_TYPES, p.payment_type)}</TableCell>
-                    <TableCell className="text-xs">€{Number(p.gross_value).toLocaleString()}</TableCell>
-                    <TableCell className="text-xs">€{Number(p.net_value).toLocaleString()}</TableCell>
-                    <TableCell>
-                      <Badge variant={p.status === 'pago' ? 'default' : isOverdue ? 'destructive' : 'secondary'} className="text-[10px]">
-                        {isOverdue ? 'Em atraso' : labelFor(PAYMENT_STATUSES, p.status)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{p.document_url ? <a href={p.document_url} target="_blank" rel="noopener" className="text-xs text-primary underline">Ver</a> : '—'}</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); setPaymentDialog(p); }}>Editar</Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div></Card>
-        {paymentDialog !== null && <RecordDialog open onClose={() => setPaymentDialog(null)} title={paymentDialog.id ? 'Editar Pagamento' : 'Novo Pagamento'} fields={paymentFields} initial={paymentDialog} onSave={(r: any) => team.upsertPayment.mutate(r)} />}
-      </div>
+
+
 
       {dialog !== null && <MemberDialog open onClose={() => setDialog(null)} initial={dialog} onSave={handleSave} />}
       {selected && <MemberDetailSheet open onClose={() => setSelected(null)} member={selected} team={team} />}
