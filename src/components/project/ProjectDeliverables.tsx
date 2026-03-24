@@ -220,6 +220,50 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
     },
   });
 
+  // Products with deliverable templates for import
+  const { data: productsWithTemplates = [] } = useQuery({
+    queryKey: ['products-with-templates'],
+    queryFn: async () => {
+      const { data: products } = await supabase.from('products').select('id, name').order('name');
+      if (!products?.length) return [];
+      const { data: templates } = await supabase.from('product_deliverable_templates' as any).select('id, product_id, name, description, sort_order');
+      const templatesByProduct = new Map<string, any[]>();
+      ((templates || []) as any[]).forEach((t: any) => {
+        if (!templatesByProduct.has(t.product_id)) templatesByProduct.set(t.product_id, []);
+        templatesByProduct.get(t.product_id)!.push(t);
+      });
+      return products.filter(p => templatesByProduct.has(p.id)).map(p => ({
+        ...p,
+        templates: templatesByProduct.get(p.id)!.sort((a: any, b: any) => a.sort_order - b.sort_order),
+      }));
+    },
+    enabled: importOpen,
+  });
+
+  const importMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      const product = productsWithTemplates.find(p => p.id === productId);
+      if (!product?.templates?.length) throw new Error('Sem templates');
+      const inserts = product.templates.map((t: any, i: number) => ({
+        project_id: projectId,
+        name: t.name,
+        description: t.description || null,
+        is_recurring: true,
+        sort_order: deliverables.length + i,
+        status: 'pendente',
+      }));
+      const { error } = await supabase.from('project_deliverables').insert(inserts);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['project-deliverables', projectId] });
+      toast.success('Entregas importadas do produto');
+      setImportOpen(false);
+      setSelectedProductId('');
+    },
+    onError: () => toast.error('Erro ao importar entregas'),
+  });
+
   const doneCount = deliverables.filter(d => d.status === 'entregue').length;
   const totalCount = deliverables.length;
   const progressPct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
