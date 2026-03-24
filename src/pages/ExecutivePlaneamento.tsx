@@ -107,46 +107,44 @@ export default function ExecutivePlaneamento() {
           </Card>
         </div>
 
-        {/* Tabs de navegação */}
-        <Tabs defaultValue="objetivos" className="space-y-6">
-          <TabsList className="w-full justify-start">
-            <TabsTrigger value="objetivos" className="gap-1.5">
-              <Target className="h-3.5 w-3.5" /> Objetivos
-            </TabsTrigger>
-            <TabsTrigger value="mensal" className="gap-1.5">
-              <Calendar className="h-3.5 w-3.5" /> Mensal
-            </TabsTrigger>
-            <TabsTrigger value="trimestral" className="gap-1.5">
-              <BarChart3 className="h-3.5 w-3.5" /> Trimestral
-            </TabsTrigger>
-            <TabsTrigger value="semestral" className="gap-1.5">
-              <PieChart className="h-3.5 w-3.5" /> Semestral
-            </TabsTrigger>
-            <TabsTrigger value="metas" className="gap-1.5">
-              <TrendingUp className="h-3.5 w-3.5" /> Metas
-            </TabsTrigger>
-          </TabsList>
+        {/* View mode cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {VIEW_CARDS.map(v => (
+            <Card
+              key={v.key}
+              className={`group cursor-pointer border bg-gradient-to-br ${v.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${viewMode === v.key ? 'ring-2 ring-primary shadow-md' : ''}`}
+              onClick={() => setViewMode(prev => prev === v.key ? null : v.key)}
+            >
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${v.iconColor}`}>
+                  <v.icon className="h-4 w-4" />
+                </div>
+                <div>
+                  <span className="font-medium text-sm text-foreground">{v.label}</span>
+                  <p className="text-[10px] text-muted-foreground">{v.desc}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-          <TabsContent value="objetivos">
-            <PlanningObjectivesTab planning={planning} />
-          </TabsContent>
+        {/* Back button when a view is active */}
+        {viewMode !== null && (
+          <Button variant="ghost" size="sm" onClick={() => setViewMode(null)} className="gap-1.5 text-muted-foreground hover:text-foreground -mt-2">
+            <ArrowLeft className="h-4 w-4" />
+            Voltar ao Planeamento
+          </Button>
+        )}
 
-          <TabsContent value="mensal">
-            <MonthlyGallery planning={planning} year={year} />
-          </TabsContent>
+        {/* Default: Objetivos */}
+        {viewMode === null && (
+          <PlanningObjectivesTab planning={planning} />
+        )}
 
-          <TabsContent value="trimestral">
-            <QuarterlyGallery planning={planning} year={year} />
-          </TabsContent>
-
-          <TabsContent value="semestral">
-            <SemesterGallery planning={planning} year={year} />
-          </TabsContent>
-
-          <TabsContent value="metas">
-            <PlanningGoalsTab planning={planning} viewMode="metas" />
-          </TabsContent>
-        </Tabs>
+        {viewMode === 'mensal' && <MonthlyGallery planning={planning} year={year} />}
+        {viewMode === 'trimestral' && <QuarterlyGallery planning={planning} year={year} />}
+        {viewMode === 'semestral' && <SemesterGallery planning={planning} year={year} />}
+        {viewMode === 'metas' && <PlanningGoalsTab planning={planning} viewMode="metas" />}
       </div>
     </AppLayout>
   );
