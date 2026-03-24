@@ -162,7 +162,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
     <div className="space-y-6 mt-4">
       <div className="flex items-center gap-3">
         <Select value={month} onValueChange={setMonth}>
-          <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-48 bg-secondary text-secondary-foreground border-secondary font-medium"><SelectValue /></SelectTrigger>
           <SelectContent>{MONTHS.map((label, i) => <SelectItem key={i} value={String(i + 1)}>{String(i + 1).padStart(2, '0')} {label}</SelectItem>)}</SelectContent>
         </Select>
         <span className="text-muted-foreground text-sm">{currentYear}</span>
