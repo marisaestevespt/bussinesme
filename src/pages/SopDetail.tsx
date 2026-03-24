@@ -218,8 +218,24 @@ export default function SopDetailPage() {
     return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && sop.name?.toLowerCase().includes('offboarding');
   }, [sop]);
 
+  const isPaymentSop = useMemo(() => {
+    if (!sop) return false;
+    return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && sop.name?.toLowerCase().includes('pagamento');
+  }, [sop]);
+
   const templateTable = isOnboardingSop ? 'product_onboarding_templates' : isOffboardingSop ? 'product_offboarding_templates' : null;
   const linkedProductId = (sop as any)?.linked_entity_id;
+
+  // Payment methods for "Gestão de Pagamentos" SOP
+  const { data: paymentMethods = [] } = useQuery({
+    queryKey: ['product-payment-methods', linkedProductId],
+    queryFn: async () => {
+      if (!linkedProductId) return [];
+      const { data } = await supabase.from('product_payment_methods' as any).select('*').eq('product_id', linkedProductId);
+      return (data || []) as any[];
+    },
+    enabled: isPaymentSop && !!linkedProductId,
+  });
 
   const { data: templateRows = [] } = useQuery({
     queryKey: ['sop-template-rows', templateTable, linkedProductId],
@@ -581,7 +597,50 @@ export default function SopDetailPage() {
           </section>
         )}
 
-        {/* 5. Decisões/Exceções */}
+        {/* Formas de Pagamento (for "Gestão de Pagamentos" SOP) */}
+        {isPaymentSop && (
+          <section>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Formas de Pagamento</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground mb-3">Seleciona as formas de pagamento disponíveis para este produto. Ao associar a um cliente, apenas estas opções aparecerão.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    { value: 'pagamento_total', label: 'Pagamento Total' },
+                    { value: 'entrada_prestacoes', label: 'Pagamento Entrada + Prestações' },
+                    { value: 'prestacoes', label: 'Pagamento Prestações' },
+                    { value: 'avenca_mensal', label: 'Pagamento Avença Mensal' },
+                  ].map(opt => {
+                    const isActive = paymentMethods.some((pm: any) => pm.payment_method === opt.value);
+                    return (
+                      <label key={opt.value} className={cn(
+                        "flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors",
+                        isActive ? "border-primary bg-primary/5" : "border-border"
+                      )}>
+                        <Checkbox
+                          checked={isActive}
+                          onCheckedChange={async (checked) => {
+                            if (checked) {
+                              await supabase.from('product_payment_methods' as any).insert({ product_id: linkedProductId, payment_method: opt.value });
+                            } else {
+                              const row = paymentMethods.find((pm: any) => pm.payment_method === opt.value);
+                              if (row) await supabase.from('product_payment_methods' as any).delete().eq('id', row.id);
+                            }
+                            queryClient.invalidateQueries({ queryKey: ['product-payment-methods', linkedProductId] });
+                          }}
+                        />
+                        <span className="text-sm">{opt.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
+
         <section>
           <h3 className="text-lg font-semibold mb-2">5. Decisões / Exceções</h3>
           <EditableBulletList items={decisoes} onChange={setDecisoes} placeholder="(se acontecer X, fazer Y)" />
