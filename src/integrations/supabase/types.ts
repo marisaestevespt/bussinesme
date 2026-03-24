@@ -418,6 +418,63 @@ export type Database = {
         }
         Relationships: []
       }
+      business_setup: {
+        Row: {
+          banco: string
+          business_legal_name: string
+          cae_principal: string
+          cae_secundarios: string
+          capital_social: string
+          contabilista: string
+          contabilista_contacto: string
+          created_at: string
+          iban: string
+          id: string
+          morada_fiscal: string
+          nif: string
+          notas: string
+          regime_fiscal: string
+          regime_iva: string
+          updated_at: string
+        }
+        Insert: {
+          banco?: string
+          business_legal_name?: string
+          cae_principal?: string
+          cae_secundarios?: string
+          capital_social?: string
+          contabilista?: string
+          contabilista_contacto?: string
+          created_at?: string
+          iban?: string
+          id?: string
+          morada_fiscal?: string
+          nif?: string
+          notas?: string
+          regime_fiscal?: string
+          regime_iva?: string
+          updated_at?: string
+        }
+        Update: {
+          banco?: string
+          business_legal_name?: string
+          cae_principal?: string
+          cae_secundarios?: string
+          capital_social?: string
+          contabilista?: string
+          contabilista_contacto?: string
+          created_at?: string
+          iban?: string
+          id?: string
+          morada_fiscal?: string
+          nif?: string
+          notas?: string
+          regime_fiscal?: string
+          regime_iva?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       channel_monthly_metrics: {
         Row: {
           channel_id: string
