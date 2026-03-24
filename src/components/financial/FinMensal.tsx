@@ -408,26 +408,35 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin }: {
   currentYear: number;
   fin: ReturnType<typeof useFinancialData>;
 }) {
-  const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const MONTHS_LABEL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const LOC_LABELS: Record<string, string> = { portugal: 'Portugal', ue: 'União Europeia', fora_ue: 'Fora da UE' };
   const [confirming, setConfirming] = useState(false);
 
   const handleConfirm = async () => {
     setConfirming(true);
     const dateStr = `${currentYear}-${String(month).padStart(2, '0')}-15`;
     if (linkedExpense) {
-      // Toggle status
       await fin.upsertExpense.mutateAsync({
         id: linkedExpense.id,
         status: isPaid ? 'por_pagar' : 'pago',
       } as any);
     } else {
-      // Create expense linked to this subscription
+      // Calculate proper base/total with VAT
+      const vatRate = sub.vat_rate || 0;
+      let base: number, total: number;
+      if (sub.includes_vat) {
+        total = sub.value;
+        base = Math.round(sub.value / (1 + vatRate / 100) * 100) / 100;
+      } else {
+        base = sub.value;
+        total = Math.round(sub.value * (1 + vatRate / 100) * 100) / 100;
+      }
       await fin.upsertExpense.mutateAsync({
-        description: `${sub.platform_name} — ${MONTHS[month - 1]} ${currentYear}`,
+        description: `${sub.platform_name} — ${MONTHS_LABEL[month - 1]} ${currentYear}`,
         category: 'plataformas',
-        base_value: sub.monthly_equivalent,
-        vat_rate: 0,
-        total_with_vat: sub.monthly_equivalent,
+        base_value: base,
+        vat_rate: vatRate,
+        total_with_vat: total,
         location: sub.location,
         expense_date: dateStr,
         expense_month: month,
@@ -442,31 +451,36 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin }: {
     toast.success(isPaid ? 'Marcado como pendente' : 'Confirmado como pago');
   };
 
-  // Invoice upload for this subscription expense
-  const handleDocsChange = async (docs: any[]) => {
-    if (linkedExpense) {
-      await fin.upsertExpense.mutateAsync({
-        id: linkedExpense.id,
-        documents: docs,
-      } as any);
-      toast.success('Fatura atualizada');
-    }
-  };
+  const vatRate = sub.vat_rate || 0;
+  let displayBase: number, displayTotal: number;
+  if (linkedExpense) {
+    displayBase = linkedExpense.base_value;
+    displayTotal = linkedExpense.total_with_vat;
+  } else if (sub.includes_vat) {
+    displayTotal = sub.value;
+    displayBase = Math.round(sub.value / (1 + vatRate / 100) * 100) / 100;
+  } else {
+    displayBase = sub.value;
+    displayTotal = Math.round(sub.value * (1 + vatRate / 100) * 100) / 100;
+  }
 
-  const docs = linkedExpense?.documents;
-  const docCount = Array.isArray(docs) ? docs.length : 0;
+  const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
   return (
-    <TableRow>
-      <TableCell className="font-medium">{sub.platform_name}</TableCell>
-      <TableCell>Subscrição</TableCell>
-      <TableCell className="text-right">{fmt(sub.monthly_equivalent)}</TableCell>
+    <TableRow className={!isPaid ? 'bg-muted/30' : ''}>
       <TableCell>
         {isPaid
           ? <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Pago</Badge>
-          : <Badge variant="outline" className="text-muted-foreground">Pendente</Badge>
+          : <Badge variant="outline" className="border-dashed text-muted-foreground">Pendente</Badge>
         }
       </TableCell>
+      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">SUB</TableCell>
+      <TableCell className="font-medium">{sub.platform_name}</TableCell>
+      <TableCell className="text-xs text-muted-foreground">Subscrição</TableCell>
+      <TableCell>{LOC_LABELS[sub.location] || sub.location}</TableCell>
+      <TableCell className="text-right">{fmt(displayBase)}</TableCell>
+      <TableCell className="text-right">{vatRate}%</TableCell>
+      <TableCell className="text-right">{fmt(displayTotal)}</TableCell>
       <TableCell>
         <Button
           size="sm"
