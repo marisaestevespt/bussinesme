@@ -182,14 +182,14 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
           <CardTitle className="text-sm">Entradas</CardTitle>
           <Button size="sm" variant="outline" onClick={() => setSaleOpen(true)}><Plus className="h-3.5 w-3.5 mr-1" /> Nova Entrada</Button>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           <Table>
-            <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead>Produto</TableHead><TableHead>Cliente</TableHead><TableHead className="text-right">Fatura Total</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead>Produto</TableHead><TableHead>Cliente</TableHead><TableHead className="text-right">Base</TableHead><TableHead className="text-right">Fatura Total</TableHead></TableRow></TableHeader>
             <TableBody>
               {monthSales.length === 0 ? (
-                <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-6">Sem entradas</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Sem entradas</TableCell></TableRow>
               ) : monthSales.map((s, i) => (
-                <TableRow key={i}><TableCell>{(s as any).description || '—'}</TableCell><TableCell>{(s as any).product || '—'}</TableCell><TableCell>{(s as any).client || '—'}</TableCell><TableCell className="text-right">{fmt(s.invoice_total)}</TableCell></TableRow>
+                <TableRow key={i}><TableCell>{(s as any).description || '—'}</TableCell><TableCell>{(s as any).product || '—'}</TableCell><TableCell>{(s as any).client || '—'}</TableCell><TableCell className="text-right">{fmt(s.base_value)}</TableCell><TableCell className="text-right">{fmt(s.invoice_total)}</TableCell></TableRow>
               ))}
             </TableBody>
           </Table>
@@ -245,12 +245,12 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
             <Button size="sm" variant="outline" onClick={() => setExpOpen(true)}><Plus className="h-3.5 w-3.5 mr-1" /> Nova Saída</Button>
           </div>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           <Table>
-            <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead>Categoria</TableHead><TableHead className="text-right">Total c/ IVA</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead>Categoria</TableHead><TableHead className="text-right">Base</TableHead><TableHead className="text-right">Total c/ IVA</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
             <TableBody>
               {monthExpenses.filter(e => e.source_type !== 'subscription').map(e => (
-                <TableRow key={e.id}><TableCell>{e.description || '—'}</TableCell><TableCell>{getCategoryLabel('expense', e.category)}</TableCell><TableCell className="text-right">{fmt(e.total_with_vat)}</TableCell><TableCell><Badge variant="outline">{e.status}</Badge></TableCell><TableCell /></TableRow>
+                <TableRow key={e.id}><TableCell>{e.description || '—'}</TableCell><TableCell>{getCategoryLabel('expense', e.category)}</TableCell><TableCell className="text-right">{fmt(e.base_value)}</TableCell><TableCell className="text-right">{fmt(e.total_with_vat)}</TableCell><TableCell><Badge variant="outline">{e.status}</Badge></TableCell><TableCell /></TableRow>
               ))}
               {activeSubs.map(sub => {
                 const linkedExpense = subExpenseMap.get(sub.id);
@@ -268,7 +268,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
                 );
               })}
               {monthExpenses.filter(e => e.source_type !== 'subscription').length === 0 && activeSubs.length === 0 && (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Sem saídas</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">Sem saídas</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
