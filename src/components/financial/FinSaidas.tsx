@@ -33,20 +33,6 @@ const LOCATIONS = [
   { value: 'fora_ue', label: 'Fora da UE' },
 ];
 
-const PERIODICITIES = [
-  { value: 'semanal', label: 'Semanal' },
-  { value: 'mensal', label: 'Mensal' },
-  { value: 'trimestral', label: 'Trimestral' },
-  { value: 'semestral', label: 'Semestral' },
-  { value: 'anual', label: 'Anual' },
-];
-
-const SUB_STATUS = [
-  { value: 'ativo', label: 'Ativo' },
-  { value: 'pausado', label: 'Pausado' },
-  { value: 'cancelado', label: 'Cancelado' },
-];
-
 interface Props { fin: ReturnType<typeof useFinancialData>; }
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
