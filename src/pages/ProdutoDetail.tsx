@@ -224,6 +224,7 @@ export default function ProdutoDetailPage() {
     enabled: !isNew && !!id,
   });
 
+  const { data: productEvents = [] } = useQuery({
     queryKey: ['product-events', form.name],
     queryFn: async () => {
       if (!form.name) return [];
