@@ -1138,10 +1138,6 @@ export default function ProdutoDetailPage() {
                   </CardContent>
                 </Card>
 
-                {/* Formas de Pagamento do Produto */}
-                <Card>
-                  <CardHeader className="flex-row items-center justify-between">
-                    <CardTitle className="text-base">Formas de Pagamento</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-xs text-muted-foreground mb-3">Seleciona as formas de pagamento disponíveis para este produto. Ao associar a um cliente, apenas estas opções aparecerão.</p>
