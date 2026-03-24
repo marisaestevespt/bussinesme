@@ -460,14 +460,18 @@ export default function ProjetosPage() {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className={cn("grid gap-3", fMode === 'recorrente' ? "grid-cols-1" : "grid-cols-2")}>
                 <div className="space-y-1.5">
                   <Label>Data de Início</Label>
                   <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !fStartDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{fStartDate ? format(fStartDate, 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={fStartDate} onSelect={setFStartDate} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Data de Fim</Label>
-                  <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !fDeadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{fDeadline ? format(fDeadline, 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={fDeadline} onSelect={setFDeadline} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+                {fMode === 'pontual' && (
+                  <div className="space-y-1.5">
+                    <Label>Data de Fim</Label>
+                    <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !fDeadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{fDeadline ? format(fDeadline, 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={fDeadline} onSelect={setFDeadline} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+                  </div>
+                )}
+              </div>
                 </div>
               </div>
               <MemberPicker selected={fMembers} onChange={setFMembers} profiles={profiles} />
