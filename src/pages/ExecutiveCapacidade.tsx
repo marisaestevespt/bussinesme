@@ -61,12 +61,15 @@ export default function ExecutiveCapacidade() {
   const [adminPercent, setAdminPercent] = useState<number | null>(null);
   const [teamSize, setTeamSize] = useState<number | null>(null);
   const [clientFacing, setClientFacing] = useState<number | null>(null);
+  const [businessPercent, setBusinessPercent] = useState<number | null>(null);
 
   const effectiveHours = hoursPerMonth ?? (Number(scenario.data?.useful_hours_per_month) || 160);
   const effectiveAdmin = adminPercent ?? (Number(scenario.data?.admin_percent) || 20);
+  const effectiveBusiness = businessPercent ?? (Number(scenario.data?.business_percent) || 0);
   const effectiveTeamSize = teamSize ?? (Number(scenario.data?.team_size) || 1);
   const effectiveClientFacing = clientFacing ?? (Number(scenario.data?.client_facing_count) || 1);
-  const availableHoursPerPerson = effectiveHours * (1 - effectiveAdmin / 100);
+  const totalNonClientPercent = Math.min(effectiveAdmin + effectiveBusiness, 100);
+  const availableHoursPerPerson = effectiveHours * (1 - totalNonClientPercent / 100);
   const availableHours = availableHoursPerPerson * effectiveClientFacing;
 
   // Ensure scenario exists
@@ -89,6 +92,7 @@ export default function ExecutiveCapacidade() {
       const { error } = await supabase.from('capacity_scenarios').update({
         useful_hours_per_month: effectiveHours,
         admin_percent: effectiveAdmin,
+        business_percent: effectiveBusiness,
         team_size: effectiveTeamSize,
         client_facing_count: effectiveClientFacing,
       } as any).eq('id', scenarioId);
@@ -202,7 +206,33 @@ export default function ExecutiveCapacidade() {
                   <span className="text-xs text-muted-foreground">%</span>
                 </div>
                 <Slider value={[effectiveAdmin]} onValueChange={v => setAdminPercent(v[0])} min={0} max={50} step={5} className="mt-1" />
-                <p className="text-[10px] text-muted-foreground">Reuniões, admin, e-mails, gestão — tempo que não é entrega ao cliente</p>
+                <p className="text-[10px] text-muted-foreground">Reuniões, admin, e-mails, gestão</p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">Tempo trabalho de negócio</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    className="h-8 w-20"
+                    value={Math.round(effectiveHours * effectiveBusiness / 100)}
+                    onChange={e => {
+                      const hrs = Number(e.target.value);
+                      const pct = effectiveHours > 0 ? Math.round((hrs / effectiveHours) * 100) : 0;
+                      setBusinessPercent(Math.min(pct, 100));
+                    }}
+                  />
+                  <span className="text-xs text-muted-foreground">horas</span>
+                  <span className="text-xs text-muted-foreground mx-1">=</span>
+                  <Input
+                    type="number"
+                    className="h-8 w-16"
+                    value={effectiveBusiness}
+                    onChange={e => setBusinessPercent(Math.min(Number(e.target.value), 100))}
+                  />
+                  <span className="text-xs text-muted-foreground">%</span>
+                </div>
+                <Slider value={[effectiveBusiness]} onValueChange={v => setBusinessPercent(v[0])} min={0} max={50} step={5} className="mt-1" />
+                <p className="text-[10px] text-muted-foreground">Marketing, comercial, estratégia — trabalho de negócio que não é entrega a clientes</p>
               </div>
               <Separator />
               {/* Team */}
