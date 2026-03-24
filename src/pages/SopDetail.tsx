@@ -693,7 +693,79 @@ export default function SopDetailPage() {
           </section>
         )}
 
-        <section>
+        {/* Configuração NPS (for "Recolha de NPS/Feedbacks" SOP) */}
+        {isNpsSop && (
+          <section>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Configuração de Recolha de NPS</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Cadência de recolha (dias)</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      placeholder="Ex: 30"
+                      value={effectiveNpsConfig?.cadence_days ?? 30}
+                      onChange={e => setNpsConfigForm((p: any) => ({ ...(p || {}), cadence_days: Number(e.target.value) }))}
+                      className="h-9"
+                    />
+                    <p className="text-xs text-muted-foreground">30 = mensal · 60 = bimensal · 90 = trimestral</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Responsável pela recolha</Label>
+                    <Select
+                      value={effectiveNpsConfig?.responsible_id || ''}
+                      onValueChange={v => setNpsConfigForm((p: any) => ({ ...(p || {}), responsible_id: v }))}
+                    >
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar membro" /></SelectTrigger>
+                      <SelectContent>
+                        {teamMembers.map((m: any) => (
+                          <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-end">
+                    <Button size="sm" onClick={() => saveNpsConfig.mutate()} disabled={saveNpsConfig.isPending}>
+                      <Save className="h-4 w-4 mr-1" /> Guardar Config
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Mensagem de recolha</Label>
+                  <Textarea
+                    placeholder="Mensagem ou pergunta a enviar ao cliente..."
+                    value={effectiveNpsConfig?.collection_message || ''}
+                    onChange={e => setNpsConfigForm((p: any) => ({ ...(p || {}), collection_message: e.target.value }))}
+                    className="min-h-[60px]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Link do formulário de recolha de NPS</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="https://forms.google.com/... ou outro link"
+                      value={effectiveNpsConfig?.nps_form_url || ''}
+                      onChange={e => setNpsConfigForm((p: any) => ({ ...(p || {}), nps_form_url: e.target.value }))}
+                      className="h-9"
+                    />
+                    {effectiveNpsConfig?.nps_form_url && (
+                      <Button variant="outline" size="sm" className="shrink-0" asChild>
+                        <a href={effectiveNpsConfig.nps_form_url} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
+
           <h3 className="text-lg font-semibold mb-2">5. Decisões / Exceções</h3>
           <EditableBulletList items={decisoes} onChange={setDecisoes} placeholder="(se acontecer X, fazer Y)" />
         </section>
