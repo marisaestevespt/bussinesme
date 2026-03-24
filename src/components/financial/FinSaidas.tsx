@@ -39,12 +39,8 @@ const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2,
 const FULL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 export function FinSaidas({ fin }: Props) {
-  const { expenseCategories, subscriptionCategories, getCategoryLabel } = useFinancialCategories();
+  const { getCategoryLabel } = useFinancialCategories();
   const expenses = fin.expenses.data || [];
-  const subscriptions = fin.subscriptions.data || [];
-  const payrollData = fin.payroll.data || [];
-  const contractorsData = fin.contractors.data || [];
-  const currentYear = new Date().getFullYear();
 
   // --- Expense Dialog ---
   const [expOpen, setExpOpen] = useState(false);
@@ -90,27 +86,6 @@ export function FinSaidas({ fin }: Props) {
     toast.success('Despesa guardada');
   };
 
-  const activeSubs = subscriptions.filter(s => s.status === 'ativo');
-  const totalMonthly = activeSubs.reduce((s, sub) => s + sub.monthly_equivalent, 0);
-
-  // Previsibilidade mensal
-  const predictability = useMemo(() => {
-    return Array.from({ length: 12 }, (_, i) => {
-      const m = i + 1;
-      const subsTotal = totalMonthly;
-      const pessoal = payrollData.filter(p => p.year === currentYear && p.month === m).reduce((s, v) => s + v.total_cost, 0);
-      const prest = contractorsData.filter(c => c.year === currentYear && c.month === m).reduce((s, v) => s + v.value, 0);
-      // Check for renewals this month
-      const renewals = subscriptions.filter(s => {
-        if (!s.renewal_date || s.status !== 'ativo') return false;
-        const rd = parseISO(s.renewal_date);
-        return rd.getMonth() + 1 === m;
-      });
-      return { mes: FULL[i], subs: subsTotal, pessoal, prestadores: prest, total: Math.round((subsTotal + pessoal + prest) * 100) / 100, renewals };
-    });
-  }, [totalMonthly, payrollData, contractorsData, subscriptions, currentYear]);
-
-  const today = new Date();
 
   return (
     <div className="space-y-8 mt-4">
