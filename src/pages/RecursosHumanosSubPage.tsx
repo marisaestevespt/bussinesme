@@ -18,7 +18,7 @@ const TITLES: Record<string, string> = {
   escala: 'Escala',
   performance: 'Gestão de Equipa',
   feedback: 'Feedback',
-  'contratos-pagamentos': 'Contratos & Pagamentos',
+  'contratos-pagamentos': 'Contratos',
 };
 
 export default function RecursosHumanosSubPage() {
