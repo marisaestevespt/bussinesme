@@ -22,6 +22,7 @@ import type { Expense, Subscription, PayrollEntry, ContractorEntry, FinancialDoc
 import { InvoiceUpload } from './InvoiceUpload';
 import { CategorySelect } from './CategorySelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
+import { EntryDetailSheet, getEntryStatusBadge } from './EntryDetailSheet';
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 const VAT_RATES = [0, 6, 13, 23];
