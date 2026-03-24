@@ -120,10 +120,7 @@ export default function FinanceiroPage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-8">
-        <div className="flex items-center justify-between">
-          <PageHeader title="Contabilidade" subtitle="Gestão contabilística, entradas, saídas e obrigações fiscais." />
-          <YearSelector year={year} onChange={setYear} />
-        </div>
+        <PageHeader title="Contabilidade" subtitle="Gestão contabilística, entradas, saídas e obrigações fiscais." />
 
         {/* Navigation cards */}
         <div className="space-y-3">
@@ -161,7 +158,7 @@ export default function FinanceiroPage() {
           </div>
         </div>
 
-        <Separator />
+        <YearSelector year={year} onChange={setYear} />
 
         {/* Saúde Financeira do Ano */}
         <Card className="bg-primary/10 border-primary/30">
