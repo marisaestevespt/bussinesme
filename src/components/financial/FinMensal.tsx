@@ -115,7 +115,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
       sale_month: m,
       sale_quarter: q,
       sale_year: currentYear,
-      status: 'pago',
+      status: 'aguarda_pagamento',
     });
     if (error) { toast.error('Erro ao guardar entrada'); return; }
     toast.success('Entrada adicionada');
