@@ -2,9 +2,11 @@ import { useMemo, useState, DragEvent } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 import { CRM_STATUSES, getFollowUpState, FollowUpState } from '@/hooks/useCrmData';
 import { format } from 'date-fns';
-import { AlertTriangle, Clock, Phone, Mail } from 'lucide-react';
+import { AlertTriangle, Clock, Phone, Mail, ArrowRightLeft } from 'lucide-react';
 
 interface CrmPipelineProps {
   leads: any[];
