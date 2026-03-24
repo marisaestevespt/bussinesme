@@ -45,39 +45,55 @@ export default function ExecutiveDashboard() {
 
         {/* 3-Column Layout */}
         <div className="grid gap-6 md:grid-cols-3">
-          <Card>
+          <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent shadow-md">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2"><Briefcase className="h-4 w-4" /> Gestão</CardTitle>
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-primary/10 p-2">
+                  <Briefcase className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-base">Gestão</CardTitle>
+                  <p className="text-xs text-muted-foreground">Planeamento & operações</p>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <Link to="/executive/planeamento" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
-                <Target className="h-4 w-4 text-muted-foreground" /> Planeamento Anual
+            <CardContent className="space-y-1">
+              <Link to="/executive/planeamento" className="flex items-center gap-3 rounded-lg p-2.5 text-sm font-medium hover:bg-primary/10 transition-colors group">
+                <Target className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Planeamento Anual
               </Link>
-              <Link to="/executive/capacidade" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
-                <Calculator className="h-4 w-4 text-muted-foreground" /> Simulador de Capacidade
+              <Link to="/executive/capacidade" className="flex items-center gap-3 rounded-lg p-2.5 text-sm font-medium hover:bg-primary/10 transition-colors group">
+                <Calculator className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Simulador de Capacidade
               </Link>
-              <Link to="/executive/weekly-align" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
-                <CalendarCheck className="h-4 w-4 text-muted-foreground" /> Weekly Align
+              <Link to="/executive/weekly-align" className="flex items-center gap-3 rounded-lg p-2.5 text-sm font-medium hover:bg-primary/10 transition-colors group">
+                <CalendarCheck className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Weekly Align
               </Link>
-              <Link to="/executive/productivity" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
-                <Clock className="h-4 w-4 text-muted-foreground" /> Análise de Produtividade
+              <Link to="/executive/productivity" className="flex items-center gap-3 rounded-lg p-2.5 text-sm font-medium hover:bg-primary/10 transition-colors group">
+                <Clock className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Análise de Produtividade
               </Link>
-              <Link to="/executive/recommendations" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
-                <MessageSquareHeart className="h-4 w-4 text-muted-foreground" /> Caixa das Recomendações
+              <Link to="/executive/recommendations" className="flex items-center gap-3 rounded-lg p-2.5 text-sm font-medium hover:bg-primary/10 transition-colors group">
+                <MessageSquareHeart className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Caixa das Recomendações
               </Link>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent shadow-md">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2"><Lightbulb className="h-4 w-4" /> Business</CardTitle>
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-primary/10 p-2">
+                  <Lightbulb className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-base">Business</CardTitle>
+                  <p className="text-xs text-muted-foreground">Estratégia & inovação</p>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <Link to="/executive/business-plan" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
-                <Rocket className="h-4 w-4 text-muted-foreground" /> Plano & Modelo de Negócio
+            <CardContent className="space-y-1">
+              <Link to="/executive/business-plan" className="flex items-center gap-3 rounded-lg p-2.5 text-sm font-medium hover:bg-primary/10 transition-colors group">
+                <Rocket className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Plano & Modelo de Negócio
               </Link>
-              <Link to="/executive/innovation" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
-                <Lightbulb className="h-4 w-4 text-muted-foreground" /> Desenvolvimento & Inovação
+              <Link to="/executive/innovation" className="flex items-center gap-3 rounded-lg p-2.5 text-sm font-medium hover:bg-primary/10 transition-colors group">
+                <Lightbulb className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Desenvolvimento & Inovação
               </Link>
             </CardContent>
           </Card>
