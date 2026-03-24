@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
-import { usePlanningData, planStatusLabel } from '@/hooks/usePlanningData';
+import { usePlanningData } from '@/hooks/usePlanningData';
 import { PlanningObjectivesTab } from '@/components/planning/PlanningObjectivesTab';
 import { BackNavigation } from '@/components/BackNavigation';
+import { Button } from '@/components/ui/button';
 import { PlanningGoalsTab } from '@/components/planning/PlanningGoalsTab';
 import { PlanningTrackingTab } from '@/components/planning/PlanningTrackingTab';
 import { MonthlyGallery } from '@/components/planning/MonthlyGallery';
