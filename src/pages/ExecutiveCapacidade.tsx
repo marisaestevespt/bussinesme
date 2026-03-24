@@ -282,7 +282,7 @@ export default function ExecutiveCapacidade() {
                   {hoursRemaining < 0 ? (
                     <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                   ) : (
-                    <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   )}
                   <div className="text-sm">
                     {hoursRemaining < 0 ? (
