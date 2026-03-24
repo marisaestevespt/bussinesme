@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { EntryDetailSheet, getEntryStatusBadge } from './EntryDetailSheet';
+import { EntryDetailSheet } from './EntryDetailSheet';
+import { EntryStatusSelect } from './InlineStatusSelect';
 
 type Sale = {
   id: string; sale_id: string; status: string; payment_date: string | null;
@@ -78,11 +79,9 @@ export function FinEntradas({ sales, currentYear }: Props) {
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground py-8">Sem entradas</TableCell></TableRow>
-              ) : filtered.map(s => {
-                const sb = getEntryStatusBadge(s.status);
-                return (
+              ) : filtered.map(s => (
                   <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openDetail(s)}>
-                    <TableCell><Badge variant="outline" className={sb.cls}>{sb.label}</Badge></TableCell>
+                    <TableCell onClick={e => e.stopPropagation()}><EntryStatusSelect saleId={s.id} currentStatus={s.status || 'aguarda_pagamento'} /></TableCell>
                     <TableCell className="font-mono text-xs">{s.sale_id}</TableCell>
                     <TableCell>{s.payment_date || '—'}</TableCell>
                     <TableCell className="truncate max-w-[200px]">{s.description || '—'}</TableCell>
@@ -95,8 +94,7 @@ export function FinEntradas({ sales, currentYear }: Props) {
                     <TableCell>T{s.sale_quarter || '—'}</TableCell>
                     <TableCell>{s.sale_year || '—'}</TableCell>
                   </TableRow>
-                );
-              })}
+              ))}
             </TableBody>
           </Table>
         </CardContent>
