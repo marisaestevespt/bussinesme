@@ -229,6 +229,44 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
               )}
             </TableBody>
           </Table>
+
+          {/* Segurança Social — inline within Saídas */}
+          <div className="border-t px-4 py-3 flex items-center gap-3">
+            <p className="text-xs font-medium text-muted-foreground whitespace-nowrap">Segurança Social</p>
+            <Input
+              type="number"
+              placeholder="0.00"
+              className="h-8 w-32 text-sm"
+              value={ssValue}
+              onChange={e => setSsValue(e.target.value)}
+            />
+            <span className="text-xs text-muted-foreground">€</span>
+            <Button size="icon" variant="outline" className="h-8 w-8 shrink-0" onClick={async () => {
+              const val = parseFloat(ssValue) || 0;
+              const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-15`;
+              if (ssExpense) {
+                await fin.upsertExpense.mutateAsync({ id: ssExpense.id, total_with_vat: val, base_value: val, description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}` } as any);
+              } else if (val > 0) {
+                await fin.upsertExpense.mutateAsync({
+                  description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}`,
+                  category: 'seguranca_social',
+                  base_value: val,
+                  vat_rate: 0,
+                  total_with_vat: val,
+                  location: 'portugal',
+                  expense_date: dateStr,
+                  expense_month: m,
+                  expense_quarter: Math.ceil(m / 3),
+                  expense_year: currentYear,
+                  status: 'pago',
+                } as any);
+              }
+              toast.success('Segurança Social guardada');
+            }}>
+              <Check className="h-3.5 w-3.5" />
+            </Button>
+            {ssExpense && <Badge variant="outline" className="text-[10px]">Registado: {fmt(ssExpense.total_with_vat)}</Badge>}
+          </div>
         </CardContent>
       </Card>
 
@@ -251,46 +289,6 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
         </CardContent>
       </Card>
 
-      {/* Segurança Social */}
-      <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Segurança Social</CardTitle></CardHeader>
-        <CardContent>
-          <div className="flex items-end gap-3">
-            <div className="flex-1">
-              <Label className="text-xs text-muted-foreground">Valor pago de SS neste mês (€)</Label>
-              <Input
-                type="number"
-                placeholder="0.00"
-                value={ssValue}
-                onChange={e => setSsValue(e.target.value)}
-              />
-            </div>
-            <Button size="sm" onClick={async () => {
-              const val = parseFloat(ssValue) || 0;
-              const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-15`;
-              if (ssExpense) {
-                await fin.upsertExpense.mutateAsync({ id: ssExpense.id, total_with_vat: val, base_value: val, description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}` } as any);
-              } else if (val > 0) {
-                await fin.upsertExpense.mutateAsync({
-                  description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}`,
-                  category: 'seguranca_social',
-                  base_value: val,
-                  vat_rate: 0,
-                  total_with_vat: val,
-                  location: 'portugal',
-                  expense_date: dateStr,
-                  expense_month: m,
-                  expense_quarter: Math.ceil(m / 3),
-                  expense_year: currentYear,
-                  status: 'pago',
-                } as any);
-              }
-              toast.success('Segurança Social guardada');
-            }}>Guardar</Button>
-          </div>
-          {ssExpense && <p className="text-xs text-muted-foreground mt-2">Registado: {fmt(ssExpense.total_with_vat)}</p>}
-        </CardContent>
-      </Card>
 
       {/* Saúde Financeira */}
       <FinancialHealthSection sales={monthSales} allSales={sales} currentYear={currentYear} month={m} />
