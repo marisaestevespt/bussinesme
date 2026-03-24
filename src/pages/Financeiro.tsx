@@ -13,7 +13,7 @@ import { useCommercialData } from '@/hooks/useCommercialData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { YearSelector } from '@/components/YearSelector';
-import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Settings, TrendingUp, Users, Heart, Package, UserCheck, Download } from 'lucide-react';
+import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Settings, TrendingUp, TrendingDown, Users, Package, UserCheck, Download, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { exportCsv } from '@/lib/exportCsv';
 
