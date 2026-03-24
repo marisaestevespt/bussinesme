@@ -176,7 +176,16 @@ export default function ProdutoDetailPage() {
     enabled: !isNew,
   });
 
-  const { data: salesActions = [] } = useQuery({
+  const { data: productPaymentMethods = [] } = useQuery({
+    queryKey: ['product-payment-methods', id],
+    queryFn: async () => {
+      if (!id || isNew) return [];
+      const { data } = await supabase.from('product_payment_methods' as any).select('*').eq('product_id', id);
+      return (data || []) as any[];
+    },
+    enabled: !isNew,
+  });
+
     queryKey: ['product-sales-actions', form.name],
     queryFn: async () => {
       if (!form.name) return [];
