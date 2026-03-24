@@ -206,8 +206,8 @@ export default function OperacaoPage() {
   const { data: projects = [] } = useQuery({
     queryKey: ['op-projects'],
     queryFn: async () => {
-      const { data } = await supabase.from('projects').select('id,name,type,status,department,client_name,deadline,progress,start_date,created_at,cover_url').order('deadline', { ascending: true });
-      return (data || []) as Project[];
+      const { data } = await supabase.from('projects').select('id,name,type,status,department,client_name,deadline,progress,start_date,created_at,cover_url,project_mode').order('deadline', { ascending: true });
+      return (data || []) as (Project & { project_mode: string | null })[];
     },
   });
 
@@ -275,6 +275,12 @@ export default function OperacaoPage() {
 
   const activeClientProjects = useMemo(() => clientProjects.filter(p => ACTIVE_STATUSES.includes(p.status)), [clientProjects]);
   const activeInternoProjects = useMemo(() => internoProjects.filter(p => ACTIVE_STATUSES.includes(p.status)), [internoProjects]);
+
+  // Split by mode
+  const activeClientPontuais = useMemo(() => activeClientProjects.filter(p => p.project_mode !== 'recorrente'), [activeClientProjects]);
+  const activeClientRecorrentes = useMemo(() => activeClientProjects.filter(p => p.project_mode === 'recorrente'), [activeClientProjects]);
+  const activeInternoPontuais = useMemo(() => activeInternoProjects.filter(p => p.project_mode !== 'recorrente'), [activeInternoProjects]);
+  const activeInternoRecorrentes = useMemo(() => activeInternoProjects.filter(p => p.project_mode === 'recorrente'), [activeInternoProjects]);
 
   const allActiveProjects = useMemo(() => projects.filter(p => ACTIVE_STATUSES.includes(p.status)), [projects]);
 
@@ -401,7 +407,17 @@ export default function OperacaoPage() {
     [tasks]
   );
 
-  const totalAlerts = stalledProjects.length + clientsNearEndOfCycle.length + unassignedTasks.length;
+  const overdueDeliverables = useMemo(() =>
+    deliverables.filter(d => d.deadline && isBefore(new Date(d.deadline), today) && d.status !== 'entregue'),
+    [deliverables, today]
+  );
+
+  const recurrentesWithoutDeliverables = useMemo(() => {
+    const projectIdsWithDeliverables = new Set(deliverables.map(d => d.project_id));
+    return [...activeClientRecorrentes, ...activeInternoRecorrentes].filter(p => !projectIdsWithDeliverables.has(p.id));
+  }, [activeClientRecorrentes, activeInternoRecorrentes, deliverables]);
+
+  const totalAlerts = stalledProjects.length + clientsNearEndOfCycle.length + unassignedTasks.length + overdueDeliverables.length + recurrentesWithoutDeliverables.length;
 
   // ── Countdown — next delivery (deliverables first, then project deadlines) ──
   const nextDelivery = useMemo(() => {
@@ -523,7 +539,9 @@ export default function OperacaoPage() {
                 <div>
                   <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Projetos Ativos</p>
                   <p className="text-2xl font-bold mt-1">{allActiveProjects.length}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{activeClientProjects.length} clientes · {activeInternoProjects.length} internos</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    {activeClientPontuais.length + activeInternoPontuais.length} pontuais · {activeClientRecorrentes.length + activeInternoRecorrentes.length} recorrentes
+                  </p>
                 </div>
                 <div className="p-2 rounded-md bg-primary/10">
                   <FolderOpen className="h-4 w-4 text-primary" />
@@ -602,7 +620,7 @@ export default function OperacaoPage() {
                   Ver detalhes →
                 </Button>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                 {stalledProjects.length > 0 && (
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="h-4 w-4 text-amber-600 shrink-0" />
@@ -624,6 +642,22 @@ export default function OperacaoPage() {
                     <UserX className="h-4 w-4 text-amber-600 shrink-0" />
                     <span className="text-amber-800 dark:text-amber-300">
                       <strong>{unassignedTasks.length}</strong> tarefa{unassignedTasks.length > 1 ? 's' : ''} sem responsável
+                    </span>
+                  </div>
+                )}
+                {overdueDeliverables.length > 0 && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                    <span className="text-amber-800 dark:text-amber-300">
+                      <strong>{overdueDeliverables.length}</strong> entrega{overdueDeliverables.length > 1 ? 's' : ''} atrasada{overdueDeliverables.length > 1 ? 's' : ''}
+                    </span>
+                  </div>
+                )}
+                {recurrentesWithoutDeliverables.length > 0 && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Rocket className="h-4 w-4 text-amber-600 shrink-0" />
+                    <span className="text-amber-800 dark:text-amber-300">
+                      <strong>{recurrentesWithoutDeliverables.length}</strong> recorrente{recurrentesWithoutDeliverables.length > 1 ? 's' : ''} sem entregas
                     </span>
                   </div>
                 )}
@@ -692,6 +726,35 @@ export default function OperacaoPage() {
                       </div>
                     ))}
                     {unassignedTasks.length > 20 && <p className="text-xs text-muted-foreground px-3 py-1">+{unassignedTasks.length - 20} mais</p>}
+                  </div>
+                </div>
+              )}
+              {overdueDeliverables.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold flex items-center gap-2 mb-2"><AlertTriangle className="h-4 w-4 text-muted-foreground" /> Entregas atrasadas</h4>
+                  <div className="space-y-0.5 max-h-[250px] overflow-y-auto">
+                    {overdueDeliverables.map(d => (
+                      <Link key={d.id} to={`/hub/projetos/${d.project_id}`} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 text-sm" onClick={() => setAlertsOpen(false)}>
+                        <span className="h-2 w-2 rounded-full bg-destructive shrink-0" />
+                        <span className="flex-1 truncate">{d.name}</span>
+                        <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">{projectNameMap.get(d.project_id)}</span>
+                        {d.deadline && <span className="text-[10px] text-destructive shrink-0">{format(new Date(d.deadline), 'dd/MM')}</span>}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {recurrentesWithoutDeliverables.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold flex items-center gap-2 mb-2"><Rocket className="h-4 w-4 text-muted-foreground" /> Recorrentes sem entregas definidas</h4>
+                  <div className="space-y-0.5 max-h-[250px] overflow-y-auto">
+                    {recurrentesWithoutDeliverables.map(p => (
+                      <Link key={p.id} to={`/hub/projetos/${p.id}`} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 text-sm" onClick={() => setAlertsOpen(false)}>
+                        <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+                        <span className="flex-1 truncate font-medium">{p.name}</span>
+                        {p.client_name && <span className="text-[10px] text-muted-foreground">{p.client_name}</span>}
+                      </Link>
+                    ))}
                   </div>
                 </div>
               )}
@@ -863,7 +926,7 @@ export default function OperacaoPage() {
                 </CardContent>
               </Card>
 
-              {/* Col 2: Projetos compactos */}
+              {/* Col 2: Projetos por modo */}
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
@@ -871,35 +934,80 @@ export default function OperacaoPage() {
                     <Badge variant="outline" className="text-[10px] ml-auto">{activeClientProjects.length}</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0 space-y-0.5 max-h-[320px] overflow-y-auto">
+                <CardContent className="pt-0 space-y-3 max-h-[400px] overflow-y-auto">
                   {activeClientProjects.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-3">Nenhum projeto ativo</p>
-                  ) : activeClientProjects.map(p => {
-                    const prog = projectProgress.get(p.id) ?? p.progress;
-                    const members = projectMembersMap.get(p.id) || [];
-                    return (
-                      <Link key={p.id} to={`/hub/projetos/${p.id}`} className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-muted/50 transition-colors group">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{p.name}</p>
-                          {p.client_name && <p className="text-[11px] text-muted-foreground truncate">{p.client_name}</p>}
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <div className="w-16 flex items-center gap-1">
-                            <Progress value={prog} className="h-1.5 flex-1" />
-                            <span className="text-[10px] text-muted-foreground w-6 text-right">{prog}%</span>
+                  ) : (
+                    <>
+                      {activeClientPontuais.length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">📌 Pontuais ({activeClientPontuais.length})</p>
+                          <div className="space-y-0.5">
+                            {activeClientPontuais.map(p => {
+                              const prog = projectProgress.get(p.id) ?? p.progress;
+                              const members = projectMembersMap.get(p.id) || [];
+                              return (
+                                <Link key={p.id} to={`/hub/projetos/${p.id}`} className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-muted/50 transition-colors group">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{p.name}</p>
+                                    {p.client_name && <p className="text-[11px] text-muted-foreground truncate">{p.client_name}</p>}
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <div className="w-16 flex items-center gap-1">
+                                      <Progress value={prog} className="h-1.5 flex-1" />
+                                      <span className="text-[10px] text-muted-foreground w-6 text-right">{prog}%</span>
+                                    </div>
+                                    <div className="flex -space-x-1">
+                                      {members.slice(0, 2).map(m => (
+                                        <Avatar key={m.id} className="h-5 w-5 border-2 border-background">
+                                          <AvatarImage src={m.avatar_url || ''} />
+                                          <AvatarFallback className="text-[7px]">{getInitials(m.full_name)}</AvatarFallback>
+                                        </Avatar>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </Link>
+                              );
+                            })}
                           </div>
-                          <div className="flex -space-x-1">
-                            {members.slice(0, 2).map(m => (
-                              <Avatar key={m.id} className="h-5 w-5 border-2 border-background">
-                                <AvatarImage src={m.avatar_url || ''} />
-                                <AvatarFallback className="text-[7px]">{getInitials(m.full_name)}</AvatarFallback>
-                              </Avatar>
-                            ))}
+                        </div>
+                      )}
+                      {activeClientRecorrentes.length > 0 && (
+                        <div>
+                          {activeClientPontuais.length > 0 && <Separator className="my-2" />}
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">🔄 Recorrentes ({activeClientRecorrentes.length})</p>
+                          <div className="space-y-0.5">
+                            {activeClientRecorrentes.map(p => {
+                              const prog = projectProgress.get(p.id) ?? p.progress;
+                              const members = projectMembersMap.get(p.id) || [];
+                              return (
+                                <Link key={p.id} to={`/hub/projetos/${p.id}`} className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-muted/50 transition-colors group">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{p.name}</p>
+                                    {p.client_name && <p className="text-[11px] text-muted-foreground truncate">{p.client_name}</p>}
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <div className="w-16 flex items-center gap-1">
+                                      <Progress value={prog} className="h-1.5 flex-1" />
+                                      <span className="text-[10px] text-muted-foreground w-6 text-right">{prog}%</span>
+                                    </div>
+                                    <div className="flex -space-x-1">
+                                      {members.slice(0, 2).map(m => (
+                                        <Avatar key={m.id} className="h-5 w-5 border-2 border-background">
+                                          <AvatarImage src={m.avatar_url || ''} />
+                                          <AvatarFallback className="text-[7px]">{getInitials(m.full_name)}</AvatarFallback>
+                                        </Avatar>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </Link>
+                              );
+                            })}
                           </div>
                         </div>
-                      </Link>
-                    );
-                  })}
+                      )}
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </div>
