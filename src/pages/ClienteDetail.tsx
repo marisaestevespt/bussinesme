@@ -34,6 +34,7 @@ import { BackNavigation } from '@/components/BackNavigation';
 import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 import { ClientContactsSection } from '@/components/client/ClientContactsSection';
 import { ClientFeedbackSection } from '@/components/client/ClientFeedbackSection';
+import { ClientDeliverablesTab } from '@/components/client/ClientDeliverablesTab';
 
 // ─── Meetings query for filtered view ───────────────────────────
 function useFilteredMeetings(clientId: string | undefined) {
@@ -633,11 +634,19 @@ export default function ClienteDetailPage() {
         <Tabs defaultValue="jornada" className="w-full">
           <TabsList className="bg-transparent gap-2 flex-wrap">
             <TabsTrigger value="jornada">Jornada</TabsTrigger>
+            <TabsTrigger value="entregas">Entregas e Tarefas</TabsTrigger>
             <TabsTrigger value="links">Links</TabsTrigger>
             <TabsTrigger value="gestao">Gestão do Cliente</TabsTrigger>
             <TabsTrigger value="customer-success">Customer Success</TabsTrigger>
             <TabsTrigger value="uteis">Úteis</TabsTrigger>
           </TabsList>
+
+          {/* ─── Entregas e Tarefas ──────────────────── */}
+          <TabsContent value="entregas" className="space-y-6 mt-4">
+            {!isNew && id && form.full_name && (
+              <ClientDeliverablesTab clientName={form.full_name} clientId={id} />
+            )}
+          </TabsContent>
 
           {/* ─── Jornada ───────────────────────────────── */}
           <TabsContent value="jornada" className="space-y-6 mt-4">
