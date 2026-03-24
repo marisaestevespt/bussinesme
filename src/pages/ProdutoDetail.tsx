@@ -880,7 +880,7 @@ export default function ProdutoDetailPage() {
                             />
                             <label className="flex items-center gap-1.5 shrink-0 cursor-pointer text-xs text-muted-foreground">
                               <Checkbox
-                                checked={t.is_recurring !== false}
+                                checked={!!t.is_recurring}
                                 onCheckedChange={(checked) => updateRow.mutate({ table: 'product_deliverable_templates', id: t.id, data: { is_recurring: !!checked } })}
                                 disabled={!isOwner}
                               />
