@@ -94,10 +94,26 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
         </SheetHeader>
 
         <div className="space-y-5 mt-6">
-          {/* Status prominently on top */}
+          {/* Status prominently on top — clickable dropdown */}
           <div className={`rounded-lg px-4 py-3 ${statusBadge.cls}`}>
-            <p className="text-xs opacity-70">Status</p>
-            <p className="font-semibold">{statusBadge.label}</p>
+            <p className="text-xs opacity-70 mb-1">Status</p>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="h-auto border-0 bg-transparent p-0 shadow-none focus:ring-0 font-semibold text-base [&>svg]:ml-2">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ENTRY_STATUSES.map(s => (
+                  <SelectItem
+                    key={s.value}
+                    value={s.value}
+                    disabled={s.value === 'tudo_ok' && !canBeOk}
+                  >
+                    <Badge variant="outline" className={`${s.cls} text-xs`}>{s.label}</Badge>
+                    {s.value === 'tudo_ok' && !canBeOk && <span className="text-xs text-muted-foreground ml-1">(anexar fatura)</span>}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Description & Client */}
