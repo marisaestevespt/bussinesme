@@ -294,6 +294,28 @@ export default function ClienteDetailPage() {
 
   const productList = products.data || [];
 
+  // Fetch allowed payment methods for selected product
+  const selectedProduct = productList.find(p => p.name === form.current_product);
+  const { data: allowedPaymentMethods = [] } = useQuery({
+    queryKey: ['product-payment-methods', selectedProduct?.id],
+    queryFn: async () => {
+      if (!selectedProduct?.id) return [];
+      const { data } = await supabase.from('product_payment_methods' as any).select('*').eq('product_id', selectedProduct.id);
+      return (data || []).map((pm: any) => pm.payment_method as string);
+    },
+    enabled: !!selectedProduct?.id,
+  });
+
+  const allPaymentOptions = [
+    { value: 'pagamento_total', label: 'Pagamento Total' },
+    { value: 'entrada_prestacoes', label: 'Pagamento Entrada + Prestações' },
+    { value: 'prestacoes', label: 'Pagamento Prestações' },
+    { value: 'avenca_mensal', label: 'Pagamento Avença Mensal' },
+  ];
+  const availablePaymentOptions = allowedPaymentMethods.length > 0
+    ? allPaymentOptions.filter(o => allowedPaymentMethods.includes(o.value))
+    : allPaymentOptions;
+
   if (!isNew && isLoading) {
     return <AppLayout><div className="flex items-center justify-center min-h-[60vh]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div></AppLayout>;
   }
