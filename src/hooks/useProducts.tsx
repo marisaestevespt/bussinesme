@@ -107,6 +107,7 @@ export function useProducts() {
           defaultSops.map((name, idx) => ({
             name: `${name} — ${product.name}`,
             department: 'produtos',
+            departments: ['produtos'],
             status: 'para_criar',
             linked_entity_type: 'produto',
             linked_entity_id: newId,

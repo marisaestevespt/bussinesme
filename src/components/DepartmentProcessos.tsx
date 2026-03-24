@@ -63,7 +63,7 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
   const { data: sops = [] } = useQuery({
     queryKey: ['sops', department],
     queryFn: async () => {
-      const { data } = await supabase.from('sops').select('*').eq('department', department).order('sop_id');
+      const { data } = await supabase.from('sops').select('*').contains('departments', [department]).order('sop_id');
       return data || [];
     },
   });

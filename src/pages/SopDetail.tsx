@@ -193,6 +193,7 @@ export default function SopDetailPage() {
   const [sopId, setSopId] = useState('');
   const [status, setStatus] = useState('para_criar');
   const [department, setDepartment] = useState('administrativo');
+  const [departments, setDepartments] = useState<string[]>([]);
   const [roleId, setRoleId] = useState<string>('');
   const [productName, setProductName] = useState('');
   const [createdAt, setCreatedAt] = useState('');
@@ -319,6 +320,7 @@ export default function SopDetailPage() {
     setSopId(sop.sop_id);
     setStatus(sop.status);
     setDepartment(sop.department);
+    setDepartments((sop as any).departments?.length ? (sop as any).departments : [sop.department]);
     setRoleId(sop.custom_role_id || '');
     setProductName(sop.product_name || '');
     setCreatedAt(sop.created_at ? format(new Date(sop.created_at), 'yyyy-MM-dd') : '');
@@ -342,7 +344,8 @@ export default function SopDetailPage() {
         name,
         sop_id: sopId,
         status,
-        department,
+        department: departments[0] || department,
+        departments,
         custom_role_id: roleId || null,
         product_name: productName || null,
         objetivo: objetivo || null,
@@ -460,13 +463,24 @@ export default function SopDetailPage() {
             </Select>
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Departamento</Label>
-            <Select value={department} onValueChange={setDepartment}>
-              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <Label className="text-xs text-muted-foreground">Departamentos</Label>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {DEPARTMENTS.map(d => (
+                <button
+                  key={d.value}
+                  type="button"
+                  onClick={() => setDepartments(prev => prev.includes(d.value) ? prev.filter(v => v !== d.value) : [...prev, d.value])}
+                  className={cn(
+                    'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors',
+                    departments.includes(d.value)
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-muted text-muted-foreground border-border hover:bg-accent'
+                  )}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">Função associada</Label>
