@@ -12,7 +12,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Trash2, Calculator, Users, Clock, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, Calculator, Users, Clock, AlertTriangle, CheckCircle2, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProducts, Product } from '@/hooks/useProducts';
 import { useClients } from '@/hooks/useClients';
@@ -59,10 +59,15 @@ export default function ExecutiveCapacidade() {
   // Local state for editing
   const [hoursPerMonth, setHoursPerMonth] = useState<number | null>(null);
   const [adminPercent, setAdminPercent] = useState<number | null>(null);
+  const [teamSize, setTeamSize] = useState<number | null>(null);
+  const [clientFacing, setClientFacing] = useState<number | null>(null);
 
   const effectiveHours = hoursPerMonth ?? (Number(scenario.data?.useful_hours_per_month) || 160);
   const effectiveAdmin = adminPercent ?? (Number(scenario.data?.admin_percent) || 20);
-  const availableHours = effectiveHours * (1 - effectiveAdmin / 100);
+  const effectiveTeamSize = teamSize ?? (Number(scenario.data?.team_size) || 1);
+  const effectiveClientFacing = clientFacing ?? (Number(scenario.data?.client_facing_count) || 1);
+  const availableHoursPerPerson = effectiveHours * (1 - effectiveAdmin / 100);
+  const availableHours = availableHoursPerPerson * effectiveClientFacing;
 
   // Ensure scenario exists
   const ensureScenario = useMutation({
@@ -84,6 +89,8 @@ export default function ExecutiveCapacidade() {
       const { error } = await supabase.from('capacity_scenarios').update({
         useful_hours_per_month: effectiveHours,
         admin_percent: effectiveAdmin,
+        team_size: effectiveTeamSize,
+        client_facing_count: effectiveClientFacing,
       } as any).eq('id', scenarioId);
       if (error) throw error;
     },
@@ -105,6 +112,7 @@ export default function ExecutiveCapacidade() {
         product_name: product.name,
         hours_per_client_month: product.monthly_hours_per_client || 0,
         current_clients: 0,
+        price_per_client: 0,
       } as any);
       if (error) throw error;
     },
@@ -115,7 +123,7 @@ export default function ExecutiveCapacidade() {
   });
 
   const updateScenarioProduct = useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; hours_per_client_month?: number; current_clients?: number }) => {
+    mutationFn: async ({ id, ...updates }: { id: string; hours_per_client_month?: number; current_clients?: number; price_per_client?: number }) => {
       const { error } = await supabase.from('capacity_scenario_products').update(updates as any).eq('id', id);
       if (error) throw error;
     },
@@ -136,8 +144,19 @@ export default function ExecutiveCapacidade() {
   const hoursRemaining = availableHours - totalHoursUsed;
   const capacityPercent = availableHours > 0 ? Math.round((totalHoursUsed / availableHours) * 100) : 0;
 
+  // Revenue calculations
+  const currentRevenue = items.reduce((sum, p) => sum + (Number(p.price_per_client || 0) * Number(p.current_clients)), 0);
+  const maxRevenue = items.reduce((sum, p) => {
+    const price = Number(p.price_per_client || 0);
+    const hpc = Number(p.hours_per_client_month);
+    const maxClients = hpc > 0 ? Math.floor(availableHours / hpc) : 0;
+    return sum + (price * maxClients);
+  }, 0);
+
   const addedProductIds = items.map(p => p.product_id);
   const availableToAdd = allProducts.filter((p: Product) => !addedProductIds.includes(p.id));
+
+  const internalCount = effectiveTeamSize - effectiveClientFacing;
 
   return (
     <AppLayout>
@@ -155,7 +174,7 @@ export default function ExecutiveCapacidade() {
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="space-y-2">
-                <Label className="text-xs">Horas úteis por mês</Label>
+                <Label className="text-xs">Horas úteis por mês (por pessoa)</Label>
                 <Input type="number" value={effectiveHours} onChange={e => setHoursPerMonth(Number(e.target.value))} className="h-8" />
                 <p className="text-[10px] text-muted-foreground">Total de horas de trabalho no mês (ex: 160h = 8h × 20 dias)</p>
               </div>
@@ -186,11 +205,53 @@ export default function ExecutiveCapacidade() {
                 <p className="text-[10px] text-muted-foreground">Reuniões, admin, e-mails, gestão — tempo que não é entrega ao cliente</p>
               </div>
               <Separator />
+              {/* Team */}
+              <div className="space-y-3">
+                <Label className="text-xs font-medium flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Equipa</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-[10px]">Total de pessoas</Label>
+                    <Input
+                      type="number"
+                      className="h-8"
+                      min={1}
+                      value={effectiveTeamSize}
+                      onChange={e => {
+                        const val = Math.max(1, Number(e.target.value));
+                        setTeamSize(val);
+                        if (effectiveClientFacing > val) setClientFacing(val);
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px]">Em entrega a clientes</Label>
+                    <Input
+                      type="number"
+                      className="h-8"
+                      min={0}
+                      max={effectiveTeamSize}
+                      value={effectiveClientFacing}
+                      onChange={e => setClientFacing(Math.min(Number(e.target.value), effectiveTeamSize))}
+                    />
+                  </div>
+                </div>
+                {internalCount > 0 && (
+                  <p className="text-[10px] text-muted-foreground">
+                    {internalCount} pessoa{internalCount > 1 ? 's' : ''} em trabalho interno (não conta para capacidade de clientes)
+                  </p>
+                )}
+              </div>
+              <Separator />
               <div className="space-y-1">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Horas disponíveis para clientes</span>
+                  <span className="text-muted-foreground">Horas disponíveis (equipa)</span>
                   <span className="font-bold">{availableHours.toFixed(0)}h</span>
                 </div>
+                {effectiveClientFacing > 1 && (
+                  <p className="text-[10px] text-muted-foreground">
+                    {availableHoursPerPerson.toFixed(0)}h/pessoa × {effectiveClientFacing} pessoas
+                  </p>
+                )}
               </div>
               <Button size="sm" className="w-full" onClick={() => saveSettings.mutate()}>Guardar parâmetros</Button>
             </CardContent>
@@ -219,13 +280,40 @@ export default function ExecutiveCapacidade() {
               <Card>
                 <CardContent className="p-4 text-center">
                   <p className="text-xs text-muted-foreground">Horas livres</p>
-                  <p className={`text-2xl font-bold ${hoursRemaining < 0 ? 'text-destructive' : ''}`}>
+                  <p className={`text-2xl font-bold ${hoursRemaining < 0 ? 'text-destructive' : 'text-foreground'}`}>
                     {hoursRemaining.toFixed(0)}h
                   </p>
                   {hoursRemaining < 0 && <p className="text-[10px] text-destructive font-medium">Sobre-capacidade!</p>}
                 </CardContent>
               </Card>
             </div>
+
+            {/* Revenue projection */}
+            {items.some(p => Number(p.price_per_client || 0) > 0) && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" /> Projeção de faturação mensal
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="rounded-lg border p-4 text-center">
+                      <p className="text-xs text-muted-foreground">Faturação atual</p>
+                      <p className="text-2xl font-bold">{currentRevenue.toLocaleString('pt-PT')}€</p>
+                      <p className="text-[10px] text-muted-foreground">com {items.reduce((s, p) => s + Number(p.current_clients), 0)} clientes</p>
+                    </div>
+                    <div className="rounded-lg border p-4 text-center border-primary/30 bg-primary/5">
+                      <p className="text-xs text-muted-foreground">Faturação a capacidade máxima</p>
+                      <p className="text-2xl font-bold text-primary">{maxRevenue.toLocaleString('pt-PT')}€</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        potencial de +{(maxRevenue - currentRevenue).toLocaleString('pt-PT')}€
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Products table */}
             <Card>
@@ -247,6 +335,7 @@ export default function ExecutiveCapacidade() {
                         ? Math.floor(availableHours / Number(item.hours_per_client_month))
                         : 0;
                       const realCount = realClientCounts[item.product_name] || 0;
+                      const itemRevenue = Number(item.price_per_client || 0) * Number(item.current_clients);
                       return (
                         <div key={item.id} className="rounded-lg border p-4 space-y-3">
                           <div className="flex items-center justify-between">
@@ -255,12 +344,15 @@ export default function ExecutiveCapacidade() {
                               {Number(item.current_clients) > 0 && (
                                 <Badge variant="outline" className="text-[10px]">{hoursUsed.toFixed(0)}h/mês</Badge>
                               )}
+                              {itemRevenue > 0 && (
+                                <Badge variant="secondary" className="text-[10px]">{itemRevenue.toLocaleString('pt-PT')}€/mês</Badge>
+                              )}
                             </div>
                             <button onClick={() => deleteScenarioProduct.mutate(item.id)} className="text-muted-foreground hover:text-destructive">
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
                           </div>
-                          <div className="grid grid-cols-4 gap-3">
+                          <div className="grid grid-cols-5 gap-3">
                             <div className="space-y-1">
                               <Label className="text-[10px]">Horas/cliente/mês</Label>
                               <Input
@@ -268,6 +360,15 @@ export default function ExecutiveCapacidade() {
                                 className="h-7 text-sm"
                                 defaultValue={Number(item.hours_per_client_month)}
                                 onBlur={e => updateScenarioProduct.mutate({ id: item.id, hours_per_client_month: Number(e.target.value) })}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-[10px]">€/cliente/mês</Label>
+                              <Input
+                                type="number"
+                                className="h-7 text-sm"
+                                defaultValue={Number(item.price_per_client || 0)}
+                                onBlur={e => updateScenarioProduct.mutate({ id: item.id, price_per_client: Number(e.target.value) })}
                               />
                             </div>
                             <div className="space-y-1">
