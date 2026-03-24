@@ -1,10 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, AlertTriangle, CheckCircle, TrendingDown } from 'lucide-react';
+import { Plus, Trash2, AlertTriangle, CheckCircle, TrendingDown, Check } from 'lucide-react';
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
@@ -99,22 +99,7 @@ export function OfferCalculator({ vatRate, costs, isOwner, onAddCost, onUpdateCo
                 <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-4">Sem custos</TableCell></TableRow>
               )}
               {costs.map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell>
-                    <Input defaultValue={c.name} onBlur={e => onUpdateCost(c.id, { name: e.target.value })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} />
-                  </TableCell>
-                  <TableCell>
-                    <Input defaultValue={c.usage_desc} onBlur={e => onUpdateCost(c.id, { usage_desc: e.target.value })} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} />
-                  </TableCell>
-                  <TableCell>
-                    <Input type="number" defaultValue={c.value} onBlur={e => onUpdateCost(c.id, { value: Number(e.target.value) })} className="border-none shadow-none h-auto p-0 text-sm w-20" readOnly={!isOwner} />
-                  </TableCell>
-                  {isOwner && (
-                    <TableCell>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDeleteCost(c.id)}><Trash2 className="h-3 w-3" /></Button>
-                    </TableCell>
-                  )}
-                </TableRow>
+                <CostRow key={c.id} cost={c} isOwner={isOwner} onUpdate={onUpdateCost} onDelete={onDeleteCost} />
               ))}
             </TableBody>
           </Table>
