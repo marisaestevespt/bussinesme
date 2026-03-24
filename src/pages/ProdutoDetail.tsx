@@ -214,7 +214,16 @@ export default function ProdutoDetailPage() {
     enabled: !isNew,
   });
 
-  const { data: productEvents = [] } = useQuery({
+  const { data: productSops = [] } = useQuery({
+    queryKey: ['linked-sops', 'produto', id],
+    queryFn: async () => {
+      if (!id || isNew) return [];
+      const { data } = await supabase.from('sops').select('*').eq('linked_entity_type', 'produto').eq('linked_entity_id', id) as any;
+      return data || [];
+    },
+    enabled: !isNew && !!id,
+  });
+
     queryKey: ['product-events', form.name],
     queryFn: async () => {
       if (!form.name) return [];
