@@ -59,7 +59,7 @@ export default function ClientesPage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
-        <PageHeader title="Clientes" />
+        <PageHeader title="Clientes" subtitle="Gestão de clientes, acompanhamento e satisfação." />
         <div className="flex items-center justify-between">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 flex-1 mr-4">
             {[
