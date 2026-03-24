@@ -587,7 +587,7 @@ export default function ProdutoDetailPage() {
         </Card>
 
         {/* Feedbacks */}
-        {!isNew && (
+        {(
           <Card>
             <CardHeader className="flex-row items-center justify-between">
               <CardTitle className="text-base">Feedbacks</CardTitle>
@@ -676,7 +676,7 @@ export default function ProdutoDetailPage() {
         )}
 
         {/* Datas Importantes — from Agenda */}
-        {!isNew && (
+        {(
           <>
           <Card className="bg-background border-secondary">
             <CardHeader className="flex flex-row items-center justify-between">
@@ -752,7 +752,7 @@ export default function ProdutoDetailPage() {
         )}
 
         {/* Processos (SOPs) */}
-        {!isNew && id && (
+        {id && !isNew && (
           <Card>
             <CardHeader><CardTitle className="text-base">Processos</CardTitle></CardHeader>
             <CardContent>
@@ -762,7 +762,7 @@ export default function ProdutoDetailPage() {
         )}
 
         {/* ═══════ SECTION BUTTONS ═══════ */}
-        {!isNew && (
+        {(
           <div className="space-y-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               <SectionButton sectionKey="comercial" label="Comercial & Mkt" />
