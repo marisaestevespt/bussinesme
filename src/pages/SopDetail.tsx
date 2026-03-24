@@ -1091,7 +1091,107 @@ export default function SopDetailPage() {
           </section>
         )}
 
-        <section>
+        {/* KPIs de Produto (for "KPIs de Produto" SOP) */}
+        {isKpisSop && (
+          <section>
+            <Card>
+              <CardHeader className="flex-row items-center justify-between">
+                <CardTitle className="text-base">KPIs do Produto</CardTitle>
+                <Button size="sm" onClick={() => setShowKpiForm(true)} disabled={showKpiForm}>
+                  <Plus className="h-4 w-4 mr-1" /> Novo KPI
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {showKpiForm && (
+                  <Card>
+                    <CardContent className="p-4 space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Nome do KPI</Label>
+                          <Input value={kpiForm.name} onChange={e => setKpiForm(f => ({ ...f, name: e.target.value }))} placeholder="Ex: Taxa de retenção" autoFocus />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Tipo</Label>
+                          <Select value={kpiForm.kpi_type} onValueChange={v => setKpiForm(f => ({ ...f, kpi_type: v }))}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {KPI_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Fonte</Label>
+                          <Select value={kpiForm.source} onValueChange={v => setKpiForm(f => ({ ...f, source: v as any }))}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="manual">Manual</SelectItem>
+                              <SelectItem value="automatico">Automático</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {kpiForm.source === 'automatico' && (
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">Fonte automática</Label>
+                            <Select value={kpiForm.auto_source} onValueChange={v => setKpiForm(f => ({ ...f, auto_source: v }))}>
+                              <SelectTrigger><SelectValue placeholder="Selecionar fonte" /></SelectTrigger>
+                              <SelectContent>
+                                {AUTO_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Meta mensal (opcional)</Label>
+                          <Input type="number" value={kpiForm.monthly_goal} onChange={e => setKpiForm(f => ({ ...f, monthly_goal: e.target.value }))} placeholder="Ex: 5000" />
+                        </div>
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <Button variant="outline" size="sm" onClick={() => setShowKpiForm(false)}>Cancelar</Button>
+                        <Button size="sm" onClick={() => createKpi.mutate()} disabled={createKpi.isPending}>Criar KPI</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {kpis.length === 0 && !showKpiForm ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    Nenhum KPI definido. Cria o primeiro KPI para acompanhar o desempenho deste produto.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {kpis.map((kpi: any) => (
+                      <Card key={kpi.id} className={kpi.active ? '' : 'opacity-50'}>
+                        <CardContent className="p-3 flex items-center gap-3">
+                          <GripVertical className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm truncate">{kpi.name}</span>
+                              <Badge variant="outline" className="text-[10px] shrink-0">{KPI_TYPES.find(t => t.value === kpi.kpi_type)?.label || kpi.kpi_type}</Badge>
+                              <Badge variant={kpi.source === 'automatico' ? 'default' : 'secondary'} className="text-[10px] shrink-0">
+                                {kpi.source === 'automatico' ? 'Auto' : 'Manual'}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                              <span>Fonte: {kpi.source === 'manual' ? 'Manual' : (AUTO_SOURCES.find(s => s.value === kpi.auto_source)?.label || 'Automático')}</span>
+                              {kpi.monthly_goal != null && <span>Meta: {kpi.kpi_type === 'monetario' ? `${Number(kpi.monthly_goal).toLocaleString('pt-PT')} €` : kpi.kpi_type === 'percentagem' ? `${kpi.monthly_goal}%` : kpi.monthly_goal}</span>}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Switch checked={kpi.active} onCheckedChange={v => toggleKpiActive.mutate({ id: kpi.id, active: v })} />
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => { if (confirm('Eliminar este KPI?')) deleteKpi.mutate(kpi.id); }}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </section>
+        )}
+
           <h3 className="text-lg font-semibold mb-2">5. Decisões / Exceções</h3>
           <EditableBulletList items={decisoes} onChange={setDecisoes} placeholder="(se acontecer X, fazer Y)" />
         </section>
