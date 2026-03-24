@@ -1,20 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Save, ExternalLink, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTeamData } from '@/hooks/useTeamData';
 import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
-
+import { format, differenceInDays, isPast, isFuture } from 'date-fns';
+import { pt } from 'date-fns/locale';
+import { AlertTriangle, CheckCircle2, Clock, User } from 'lucide-react';
 
 const NPS_STATUS_OPTIONS = [
   { value: 'por_fazer', label: 'Por fazer' },
@@ -22,12 +17,21 @@ const NPS_STATUS_OPTIONS = [
   { value: 'em_atraso', label: 'Em atraso' },
 ];
 
+const CLIENT_STATUS_LABELS: Record<string, { label: string; className: string }> = {
+  ativo: { label: 'Ativo', className: 'bg-emerald-100 text-emerald-700' },
+  em_onboarding: { label: 'Em Onboarding', className: 'bg-blue-100 text-blue-700' },
+  em_pausa: { label: 'Em Pausa', className: 'bg-amber-100 text-amber-700' },
+  churned: { label: 'Churned', className: 'bg-red-100 text-red-700' },
+  concluido: { label: 'Concluído', className: 'bg-muted text-muted-foreground' },
+};
+
 interface Props {
   productId: string;
+  productName: string;
   isOwner: boolean;
 }
 
-export function ProductCustomerSuccess({ productId, isOwner }: Props) {
+export function ProductCustomerSuccess({ productId, productName, isOwner }: Props) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { members } = useTeamData();
@@ -90,10 +94,24 @@ export function ProductCustomerSuccess({ productId, isOwner }: Props) {
     },
   });
 
+  // ---- Clients of this product ----
+  const { data: productClients = [] } = useQuery({
+    queryKey: ['product-clients-cs', productName],
+    queryFn: async () => {
+      if (!productName) return [];
+      const { data } = await supabase
+        .from('clients')
+        .select('id, full_name, status, start_date, end_of_cycle, email')
+        .eq('current_product', productName)
+        .order('end_of_cycle', { ascending: true, nullsFirst: false });
+      return (data || []) as any[];
+    },
+    enabled: !!productName,
+  });
+
   const avgNps = npsRecords.length > 0
     ? (npsRecords.reduce((s: number, r: any) => s + Number(r.nps_score || 0), 0) / npsRecords.length).toFixed(1)
     : '—';
-
 
   const getMemberName = (id: string | null) => {
     if (!id) return '—';
@@ -112,8 +130,24 @@ export function ProductCustomerSuccess({ productId, isOwner }: Props) {
     return <Badge variant="outline" className={cls}>{label}</Badge>;
   };
 
+  const getRenewalInfo = (endOfCycle: string | null) => {
+    if (!endOfCycle) return { label: 'Sem data definida', icon: <Clock className="h-3.5 w-3.5 text-muted-foreground" />, className: 'text-muted-foreground' };
+    const date = new Date(endOfCycle);
+    const days = differenceInDays(date, new Date());
+    if (isPast(date)) {
+      return { label: `Expirou há ${Math.abs(days)} dias`, icon: <AlertTriangle className="h-3.5 w-3.5 text-destructive" />, className: 'text-destructive font-medium' };
+    }
+    if (days <= 30) {
+      return { label: `Faltam ${days} dias`, icon: <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />, className: 'text-amber-600 font-medium' };
+    }
+    return { label: `Faltam ${days} dias`, icon: <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />, className: 'text-emerald-600' };
+  };
+
+  const activeClients = productClients.filter((c: any) => c.status === 'ativo' || c.status === 'em_onboarding');
+
   return (
     <div className="space-y-6">
+      {/* NPS History */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -159,6 +193,69 @@ export function ProductCustomerSuccess({ productId, isOwner }: Props) {
         </CardContent>
       </Card>
 
+      {/* Client Renewal Overview */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Clientes — Visão de Renovação
+            </CardTitle>
+            <div className="text-sm text-muted-foreground">
+              {activeClients.length} cliente{activeClients.length !== 1 ? 's' : ''} ativo{activeClients.length !== 1 ? 's' : ''}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {productClients.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">
+              Nenhum cliente associado a este produto.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Data de Início</TableHead>
+                  <TableHead>Data de Renovação</TableHead>
+                  <TableHead>Tempo até Renovação</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {productClients.map((c: any) => {
+                  const renewal = getRenewalInfo(c.end_of_cycle);
+                  const st = CLIENT_STATUS_LABELS[c.status] || { label: c.status, className: 'bg-muted text-muted-foreground' };
+                  return (
+                    <TableRow
+                      key={c.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => navigate(`/hub/clientes/${c.id}`)}
+                    >
+                      <TableCell className="font-medium">{c.full_name}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={st.className}>{st.label}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}
+                      </TableCell>
+                      <TableCell>
+                        {c.end_of_cycle ? format(new Date(c.end_of_cycle), 'dd/MM/yyyy') : '—'}
+                      </TableCell>
+                      <TableCell>
+                        <div className={`flex items-center gap-1.5 ${renewal.className}`}>
+                          {renewal.icon}
+                          <span className="text-sm">{renewal.label}</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
