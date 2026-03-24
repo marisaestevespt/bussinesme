@@ -329,7 +329,24 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
                   />
                 );
               })}
-              {monthExpenses.filter(e => e.source_type !== 'subscription').length === 0 && dueSubscriptions.length === 0 && (
+              {/* Contract rows (ordenados) due this month */}
+              {activeContracts.map((contract: any) => {
+                const linkedExp = contractExpenseMap.get(contract.id);
+                const isPaid = linkedExp?.status === 'pago';
+                return (
+                  <ContractRow
+                    key={`contract-${contract.id}`}
+                    contract={contract}
+                    linkedExpense={linkedExp}
+                    isPaid={isPaid}
+                    month={m}
+                    currentYear={currentYear}
+                    fin={fin}
+                    qc={qc}
+                  />
+                );
+              })}
+              {monthExpenses.filter(e => e.source_type !== 'subscription' && e.source_type !== 'contract').length === 0 && dueSubscriptions.length === 0 && activeContracts.length === 0 && (
                 <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">Sem saídas</TableCell></TableRow>
               )}
             </TableBody>
