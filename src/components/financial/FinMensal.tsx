@@ -196,7 +196,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
                 const docs = Array.isArray(s.documents) ? s.documents : [];
                 return (
                   <TableRow key={i} className="cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedSale(s); setSaleSheetOpen(true); }}>
-                    <TableCell onClick={e => e.stopPropagation()}><EntryStatusSelect saleId={s.id} currentStatus={s.status || 'aguarda_pagamento'} hasDocuments={docs.length > 0} /></TableCell>
+                    <TableCell onClick={e => e.stopPropagation()}><EntryStatusSelect saleId={s.id} currentStatus={s.status || 'aguarda_pagamento'} paymentDate={s.payment_date} hasDocuments={docs.length > 0} /></TableCell>
                     <TableCell className="whitespace-nowrap">{s.payment_date || '—'}</TableCell>
                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{s.sale_id || '—'}</TableCell>
                     <TableCell>{s.description || '—'}</TableCell>
