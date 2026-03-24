@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ArrowLeft, Plus, Trash2, Save } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -205,6 +207,30 @@ export default function SopDetailPage() {
   const [linkedEntityId, setLinkedEntityId] = useState<string>('');
   const [applyToAllActiveClients, setApplyToAllActiveClients] = useState(false);
 
+  // Detect if this is an onboarding/offboarding SOP linked to a product
+  const isOnboardingSop = useMemo(() => {
+    if (!sop) return false;
+    return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && sop.name?.toLowerCase().includes('onboarding') && !sop.name?.toLowerCase().includes('offboarding');
+  }, [sop]);
+
+  const isOffboardingSop = useMemo(() => {
+    if (!sop) return false;
+    return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && sop.name?.toLowerCase().includes('offboarding');
+  }, [sop]);
+
+  const templateTable = isOnboardingSop ? 'product_onboarding_templates' : isOffboardingSop ? 'product_offboarding_templates' : null;
+  const linkedProductId = (sop as any)?.linked_entity_id;
+
+  const { data: templateRows = [] } = useQuery({
+    queryKey: ['sop-template-rows', templateTable, linkedProductId],
+    queryFn: async () => {
+      if (!templateTable || !linkedProductId) return [];
+      const { data } = await supabase.from(templateTable as any).select('*').eq('product_id', linkedProductId).order('sort_order');
+      return (data || []) as any[];
+    },
+    enabled: !!templateTable && !!linkedProductId,
+  });
+
   // Entity lists for selects
   const { data: productsList = [] } = useQuery({
     queryKey: ['products-list'],
@@ -271,6 +297,32 @@ export default function SopDetailPage() {
       toast.success('Processo guardado');
     },
     onError: () => toast.error('Erro ao guardar'),
+  });
+
+  // ─── Template row mutations (for onboarding/offboarding SOPs) ──
+  const addTemplateRow = useMutation({
+    mutationFn: async () => {
+      if (!templateTable || !linkedProductId) return;
+      const nextOrder = templateRows.length;
+      await supabase.from(templateTable as any).insert({ product_id: linkedProductId, activity: '', sort_order: nextOrder } as any);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-template-rows', templateTable, linkedProductId] }),
+  });
+
+  const updateTemplateRow = useMutation({
+    mutationFn: async ({ rowId, data }: { rowId: string; data: Record<string, any> }) => {
+      if (!templateTable) return;
+      await supabase.from(templateTable as any).update(data).eq('id', rowId);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-template-rows', templateTable, linkedProductId] }),
+  });
+
+  const deleteTemplateRow = useMutation({
+    mutationFn: async (rowId: string) => {
+      if (!templateTable) return;
+      await supabase.from(templateTable as any).delete().eq('id', rowId);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-template-rows', templateTable, linkedProductId] }),
   });
 
   const deleteMutation = useMutation({
@@ -470,6 +522,64 @@ export default function SopDetailPage() {
           <h3 className="text-lg font-semibold mb-2">4. Passos do Processo</h3>
           <EditableTextList items={passos} onChange={setPassos} placeholder="Descrever passo..." />
         </section>
+
+        {/* Template de Onboarding/Offboarding (structured steps for client automation) */}
+        {(isOnboardingSop || isOffboardingSop) && (
+          <section>
+            <Card>
+              <CardHeader className="flex-row items-center justify-between">
+                <CardTitle className="text-base">
+                  {isOnboardingSop ? 'Template de Onboarding de Clientes' : 'Template de Offboarding de Clientes'}
+                </CardTitle>
+                <Button size="sm" variant="outline" onClick={() => addTemplateRow.mutate()}>
+                  <Plus className="h-3 w-3 mr-1" /> Adicionar Passo
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Estes passos serão copiados automaticamente para cada cliente associado a este produto.
+                </p>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Fase</TableHead>
+                      <TableHead>Atividade</TableHead>
+                      <TableHead>Responsável</TableHead>
+                      <TableHead>Regra</TableHead>
+                      <TableHead className="w-10" />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {templateRows.length === 0 && (
+                      <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-4">Sem passos definidos</TableCell></TableRow>
+                    )}
+                    {templateRows.map((row: any) => (
+                      <TableRow key={row.id}>
+                        <TableCell>
+                          <Input defaultValue={row.phase || ''} placeholder="Fase" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { phase: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
+                        </TableCell>
+                        <TableCell>
+                          <Input defaultValue={row.activity || ''} placeholder="Atividade" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { activity: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
+                        </TableCell>
+                        <TableCell>
+                          <Input defaultValue={row.responsible || ''} placeholder="Responsável" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { responsible: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
+                        </TableCell>
+                        <TableCell>
+                          <Input defaultValue={row.rule || ''} placeholder="Regra" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { rule: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteTemplateRow.mutate(row.id)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </section>
+        )}
 
         {/* 5. Decisões/Exceções */}
         <section>
