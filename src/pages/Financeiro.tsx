@@ -15,7 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { YearSelector } from '@/components/YearSelector';
 import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Settings, TrendingUp, TrendingDown, Users, Package, UserCheck, Download, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { exportCsv } from '@/lib/exportCsv';
+import { exportPdf } from '@/lib/exportPdf';
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 const ML = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -236,13 +236,8 @@ export default function FinanceiroPage() {
 
         <div className="flex items-center justify-between">
           <YearSelector year={year} onChange={setYear} />
-          <Button size="sm" variant="outline" onClick={() => {
-            const headers = ['Mês', 'Entradas (€)', 'Saídas (€)', 'Resultado (€)', 'IVA Cobrado (€)', 'IVA Pago (€)'];
-            const rows = monthlyData.map(d => [d.mes, d.entradas, d.saidas, d.resultado, d.ivaCobrado, d.ivaPago]);
-            rows.push(['TOTAL', totalEntradas, totalSaidas, resultado, ivaCobrado, ivaPago]);
-            exportCsv(`relatorio-anual-${year}.csv`, headers, rows);
-          }}>
-            <Download className="h-3.5 w-3.5 mr-1" /> Exportar
+          <Button size="sm" variant="outline" onClick={() => exportPdf(`Relatório Financeiro Anual — ${year}`, 'fin-annual-report')}>
+            <Download className="h-3.5 w-3.5 mr-1" /> Exportar PDF
           </Button>
         </div>
 
