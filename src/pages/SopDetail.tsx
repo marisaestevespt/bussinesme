@@ -839,6 +839,98 @@ export default function SopDetailPage() {
           </section>
         )}
 
+        {/* Marcos de Acompanhamento (for "Acompanhamento de Cliente" SOP) */}
+        {isAcompanhamentoSop && (
+          <section>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">Marcos de Acompanhamento</CardTitle>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Estes marcos são aplicados automaticamente à ficha de cada cliente associado a este produto.
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => addMilestone.mutate()}>
+                    <Plus className="h-4 w-4 mr-1" /> Adicionar Marco
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {milestones.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center">Sem marcos definidos.</p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Marco</TableHead>
+                        <TableHead className="w-[120px]">Dias após início</TableHead>
+                        <TableHead className="w-[160px]">Tipo</TableHead>
+                        <TableHead className="w-[180px]">Responsável</TableHead>
+                        <TableHead className="w-[50px]" />
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {milestones.map((m: any) => (
+                        <TableRow key={m.id}>
+                          <TableCell>
+                            <Input
+                              value={m.milestone}
+                              onChange={e => updateMilestone.mutate({ id: m.id, data: { milestone: e.target.value } })}
+                              className="h-8 text-sm"
+                              placeholder="Ex: Check-in semana 2"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              min={0}
+                              value={m.days_after_start}
+                              onChange={e => updateMilestone.mutate({ id: m.id, data: { days_after_start: Number(e.target.value) } })}
+                              className="h-8 text-sm w-20"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={m.milestone_type}
+                              onValueChange={v => updateMilestone.mutate({ id: m.id, data: { milestone_type: v } })}
+                            >
+                              <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {MILESTONE_TYPE_OPTIONS.map(o => (
+                                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={m.responsible_id || ''}
+                              onValueChange={v => updateMilestone.mutate({ id: m.id, data: { responsible_id: v } })}
+                            >
+                              <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                              <SelectContent>
+                                {teamMembers.map((t: any) => (
+                                  <SelectItem key={t.id} value={t.id}>{t.full_name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteMilestone.mutate(m.id)}>
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </section>
+        )}
+
         <section>
           <h3 className="text-lg font-semibold mb-2">5. Decisões / Exceções</h3>
           <EditableBulletList items={decisoes} onChange={setDecisoes} placeholder="(se acontecer X, fazer Y)" />
