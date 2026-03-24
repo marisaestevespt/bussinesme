@@ -1142,25 +1142,6 @@ export default function ProdutoDetailPage() {
               </div>
             )}
 
-
-                      </Button>
-                    )}
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Ação</TableHead>
-                          <TableHead>Data/Período</TableHead>
-                          <TableHead>Produto</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {salesActions.length === 0 && (
-                          <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-4">Sem ações para este produto</TableCell></TableRow>
-                        )}
-                        {salesActions.map((a: any) => (
                           <TableRow key={a.id}>
                             <TableCell><Badge variant="outline" className="text-xs">{a.status}</Badge></TableCell>
                             <TableCell className="font-medium">{a.action_name}</TableCell>
