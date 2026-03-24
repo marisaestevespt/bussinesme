@@ -21,7 +21,7 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText, LayoutDashboard, AlertTriangle, Clock, CreditCard, Upload, ExternalLink, CheckSquare, ListTodo, CalendarIcon, Palmtree, CalendarDays, Save, Eye, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { format, parseISO, startOfWeek, eachDayOfInterval, addDays, isWithinInterval, isSameDay } from 'date-fns';
+import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, addDays, isWithinInterval, isSameDay } from 'date-fns';
 import { pt as ptLocale } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
@@ -1289,11 +1289,12 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
     },
   });
 
-  // Current week days (Mon-Fri)
-  const weekDays = useMemo(() => {
+  // Current month days (weekdays only)
+  const monthDays = useMemo(() => {
     const today = new Date();
-    const start = startOfWeek(today, { weekStartsOn: 1 });
-    return eachDayOfInterval({ start, end: addDays(start, 4) }); // Mon-Fri
+    const start = startOfMonth(today);
+    const end = endOfMonth(today);
+    return eachDayOfInterval({ start, end }).filter(d => d.getDay() >= 1 && d.getDay() <= 5);
   }, []);
 
   // Portuguese holidays for current year
@@ -1449,7 +1450,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
         <Card>
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">Escala da Semana</h3>
+              <h3 className="text-sm font-semibold">Escala do Mês — {format(new Date(), 'MMMM yyyy', { locale: ptLocale })}</h3>
               <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-green-500 inline-block" /> Disponível</span>
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-500 inline-block" /> Férias</span>
@@ -1461,11 +1462,10 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
               <table className="w-full text-xs">
                 <thead>
                   <tr>
-                    <th className="text-left font-medium text-muted-foreground py-1 pr-3 w-[140px]">Membro</th>
-                    {weekDays.map(d => (
-                      <th key={d.toISOString()} className={cn("text-center font-medium py-1 px-2 min-w-[60px]", isSameDay(d, new Date()) && "text-primary")}>
-                        <div>{DAY_NAMES[d.getDay()]}</div>
-                        <div className="text-[10px] text-muted-foreground">{format(d, 'd MMM', { locale: ptLocale })}</div>
+                    <th className="text-left font-medium text-muted-foreground py-1 pr-3 w-[140px] sticky left-0 bg-card z-10">Membro</th>
+                    {monthDays.map(d => (
+                      <th key={d.toISOString()} className={cn("text-center font-medium py-1 px-1 min-w-[32px]", isSameDay(d, new Date()) && "text-primary")}>
+                        <div className="text-[10px]">{format(d, 'd')}</div>
                       </th>
                     ))}
                   </tr>
@@ -1473,7 +1473,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
                 <tbody>
                   {(escalaMembers.data || []).map((m: any) => (
                     <tr key={m.id} className="border-t border-border/50">
-                      <td className="py-1.5 pr-3">
+                      <td className="py-1.5 pr-3 sticky left-0 bg-card z-10">
                         <div className="flex items-center gap-2">
                           <Avatar className="h-6 w-6">
                             <AvatarImage src={m.photo_url || undefined} />
@@ -1482,12 +1482,12 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
                           <span className="truncate font-medium">{m.full_name?.split(' ')[0]}</span>
                         </div>
                       </td>
-                      {weekDays.map(d => {
+                      {monthDays.map(d => {
                         const avail = getAvail(m, d);
                         return (
-                          <td key={d.toISOString()} className="py-1.5 px-2 text-center">
-                            <div className={cn("mx-auto h-6 w-6 rounded-full flex items-center justify-center", availColors[avail])}>
-                              <span className={cn("h-2 w-2 rounded-full", availDots[avail])} />
+                          <td key={d.toISOString()} className="py-1.5 px-1 text-center">
+                            <div className={cn("mx-auto h-5 w-5 rounded-full flex items-center justify-center", availColors[avail])}>
+                              <span className={cn("h-1.5 w-1.5 rounded-full", availDots[avail])} />
                             </div>
                           </td>
                         );
