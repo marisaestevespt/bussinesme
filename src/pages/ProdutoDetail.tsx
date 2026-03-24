@@ -25,8 +25,15 @@ import { ProductMetricsTab } from '@/components/product/ProductMetricsTab';
 import { ProductCustomerSuccess } from '@/components/product/ProductCustomerSuccess';
 import { format, parseISO, isPast, isFuture, isToday } from 'date-fns';
 import { BackNavigation } from '@/components/BackNavigation';
-import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 import { cn } from '@/lib/utils';
+
+const SOP_STATUSES: Record<string, { label: string; color: string }> = {
+  para_criar: { label: 'Para criar', color: 'bg-muted text-muted-foreground' },
+  em_criacao: { label: 'Em criação', color: 'bg-amber-100 text-amber-800 border-amber-200' },
+  ativo: { label: 'Ativo', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+  em_revisao: { label: 'Em revisão', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+  off: { label: 'Off', color: 'bg-red-100 text-red-800 border-red-200' },
+};
 
 export default function ProdutoDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -205,6 +212,16 @@ export default function ProdutoDetailPage() {
       return (data || []) as any[];
     },
     enabled: !isNew,
+  });
+
+  const { data: productSops = [] } = useQuery({
+    queryKey: ['linked-sops', 'produto', id],
+    queryFn: async () => {
+      if (!id || isNew) return [];
+      const { data } = await supabase.from('sops').select('*').eq('linked_entity_type', 'produto').eq('linked_entity_id', id) as any;
+      return data || [];
+    },
+    enabled: !isNew && !!id,
   });
 
   const { data: productEvents = [] } = useQuery({
@@ -751,15 +768,7 @@ export default function ProdutoDetailPage() {
           </>
         )}
 
-        {/* Processos (SOPs) */}
-        {id && !isNew && (
-          <Card>
-            <CardHeader><CardTitle className="text-base">Processos</CardTitle></CardHeader>
-            <CardContent>
-              <LinkedSopsSection entityType="produto" entityId={id} title="" />
-            </CardContent>
-          </Card>
-        )}
+        {/* Processos moved to section button */}
 
         {/* ═══════ SECTION BUTTONS ═══════ */}
         {(
@@ -1055,6 +1064,39 @@ export default function ProdutoDetailPage() {
             {/* ===== PROCESSOS ===== */}
             {openSection === 'processos' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                {/* SOPs do Produto */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Processos (SOPs)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>ID</TableHead>
+                          <TableHead>Nome</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {productSops.length === 0 && (
+                          <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-4">Sem processos associados</TableCell></TableRow>
+                        )}
+                        {productSops.map((sop: any) => {
+                          const st = SOP_STATUSES[sop.status] || SOP_STATUSES.para_criar;
+                          return (
+                            <TableRow key={sop.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/processos/${sop.id}`)}>
+                              <TableCell className="text-xs font-mono text-muted-foreground">{sop.sop_id}</TableCell>
+                              <TableCell className="font-medium text-sm">{sop.name}</TableCell>
+                              <TableCell><Badge className={cn('text-xs', st.color)}>{st.label}</Badge></TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+
                 {/* Formas de Pagamento do Produto */}
                 <Card>
                   <CardHeader className="flex-row items-center justify-between">
@@ -1099,7 +1141,7 @@ export default function ProdutoDetailPage() {
                 {/* Templates de Onboarding */}
                 <Card>
                   <CardHeader className="flex-row items-center justify-between">
-                    <CardTitle className="text-base">Template de Onboarding</CardTitle>
+                    <CardTitle className="text-base">SOP: Entrada/Onboarding de Clientes</CardTitle>
                     {isOwner && (
                       <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_onboarding_templates', data: { product_id: id, activity: '' } })}>
                         <Plus className="h-3 w-3 mr-1" /> Adicionar Passo
@@ -1107,7 +1149,7 @@ export default function ProdutoDetailPage() {
                     )}
                   </CardHeader>
                   <CardContent>
-                    <p className="text-xs text-muted-foreground mb-3">Template de onboarding que será aplicado a cada cliente deste produto.</p>
+                    <p className="text-xs text-muted-foreground mb-3">Passos de onboarding que serão aplicados a cada cliente deste produto.</p>
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -1143,7 +1185,7 @@ export default function ProdutoDetailPage() {
                 {/* Template de Offboarding */}
                 <Card>
                   <CardHeader className="flex-row items-center justify-between">
-                    <CardTitle className="text-base">Template de Offboarding</CardTitle>
+                    <CardTitle className="text-base">SOP: Fecho/Offboarding de Clientes</CardTitle>
                     {isOwner && (
                       <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_offboarding_templates', data: { product_id: id, activity: '' } })}>
                         <Plus className="h-3 w-3 mr-1" /> Adicionar Passo
@@ -1151,7 +1193,7 @@ export default function ProdutoDetailPage() {
                     )}
                   </CardHeader>
                   <CardContent>
-                    <p className="text-xs text-muted-foreground mb-3">Template de offboarding que será aplicado a cada cliente deste produto.</p>
+                    <p className="text-xs text-muted-foreground mb-3">Passos de offboarding que serão aplicados a cada cliente deste produto.</p>
                     <Table>
                       <TableHeader>
                         <TableRow>
