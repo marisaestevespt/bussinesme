@@ -22,6 +22,7 @@ import { CategorySelect } from './CategorySelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 import { EntryStatusSelect, ExpenseStatusSelect } from './InlineStatusSelect';
 import { EntryDetailSheet } from './EntryDetailSheet';
+import { ExpenseDetailSheet } from './ExpenseDetailSheet';
 import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
