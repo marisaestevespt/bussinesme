@@ -207,6 +207,30 @@ export default function SopDetailPage() {
   const [linkedEntityId, setLinkedEntityId] = useState<string>('');
   const [applyToAllActiveClients, setApplyToAllActiveClients] = useState(false);
 
+  // Detect if this is an onboarding/offboarding SOP linked to a product
+  const isOnboardingSop = useMemo(() => {
+    if (!sop) return false;
+    return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && sop.name?.toLowerCase().includes('onboarding') && !sop.name?.toLowerCase().includes('offboarding');
+  }, [sop]);
+
+  const isOffboardingSop = useMemo(() => {
+    if (!sop) return false;
+    return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && sop.name?.toLowerCase().includes('offboarding');
+  }, [sop]);
+
+  const templateTable = isOnboardingSop ? 'product_onboarding_templates' : isOffboardingSop ? 'product_offboarding_templates' : null;
+  const linkedProductId = (sop as any)?.linked_entity_id;
+
+  const { data: templateRows = [] } = useQuery({
+    queryKey: ['sop-template-rows', templateTable, linkedProductId],
+    queryFn: async () => {
+      if (!templateTable || !linkedProductId) return [];
+      const { data } = await supabase.from(templateTable as any).select('*').eq('product_id', linkedProductId).order('sort_order');
+      return (data || []) as any[];
+    },
+    enabled: !!templateTable && !!linkedProductId,
+  });
+
   // Entity lists for selects
   const { data: productsList = [] } = useQuery({
     queryKey: ['products-list'],
