@@ -259,6 +259,14 @@ export default function OperacaoPage() {
     },
   });
 
+  const { data: deliverables = [] } = useQuery({
+    queryKey: ['op-deliverables'],
+    queryFn: async () => {
+      const { data } = await supabase.from('project_deliverables').select('id,name,deadline,status,project_id,assigned_to').neq('status', 'entregue').order('deadline', { ascending: true });
+      return (data || []) as { id: string; name: string; deadline: string | null; status: string; project_id: string; assigned_to: string | null }[];
+    },
+  });
+
   // ── Derived data ────────────────────────────────────────────
   const profileMap = useMemo(() => new Map(profiles.map(p => [p.id, p])), [profiles]);
 
