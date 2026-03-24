@@ -1149,7 +1149,7 @@ export default function ProdutoDetailPage() {
                     )}
                   </CardHeader>
                   <CardContent>
-                    <p className="text-xs text-muted-foreground mb-3">Template de onboarding que será aplicado a cada cliente deste produto.</p>
+                    <p className="text-xs text-muted-foreground mb-3">Passos de onboarding que serão aplicados a cada cliente deste produto.</p>
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -1193,7 +1193,7 @@ export default function ProdutoDetailPage() {
                     )}
                   </CardHeader>
                   <CardContent>
-                    <p className="text-xs text-muted-foreground mb-3">Template de offboarding que será aplicado a cada cliente deste produto.</p>
+                    <p className="text-xs text-muted-foreground mb-3">Passos de offboarding que serão aplicados a cada cliente deste produto.</p>
                     <Table>
                       <TableHeader>
                         <TableRow>
