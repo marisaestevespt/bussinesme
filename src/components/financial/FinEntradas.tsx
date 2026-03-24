@@ -81,7 +81,7 @@ export function FinEntradas({ sales, currentYear }: Props) {
                 <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground py-8">Sem entradas</TableCell></TableRow>
               ) : filtered.map(s => (
                   <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openDetail(s)}>
-                    <TableCell onClick={e => e.stopPropagation()}><EntryStatusSelect saleId={s.id} currentStatus={s.status || 'aguarda_pagamento'} /></TableCell>
+                    <TableCell onClick={e => e.stopPropagation()}><EntryStatusSelect saleId={s.id} currentStatus={s.status || 'aguarda_pagamento'} hasDocuments={Array.isArray(s.documents) && s.documents.length > 0} /></TableCell>
                     <TableCell className="font-mono text-xs">{s.sale_id}</TableCell>
                     <TableCell>{s.payment_date || '—'}</TableCell>
                     <TableCell className="truncate max-w-[200px]">{s.description || '—'}</TableCell>
