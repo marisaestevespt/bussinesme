@@ -18,17 +18,10 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { BackNavigation } from '@/components/BackNavigation';
+import { ENTRY_STATUSES, getEntryStatusBadge, getEffectiveEntryStatus } from '@/components/financial/EntryDetailSheet';
+import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
 
-const STATUS_OPTIONS = [
-  { value: 'na', label: 'N.A.', className: 'bg-muted text-muted-foreground' },
-  { value: 'aguarda_pagamento', label: 'Aguarda Pagamento', className: 'bg-orange-100 text-orange-800 border-orange-200' },
-  { value: 'em_atraso', label: 'Em Atraso', className: 'bg-red-100 text-red-800 border-red-200' },
-  { value: 'fatura_emitida', label: 'Fatura Emitida', className: 'bg-amber-100 text-amber-800 border-amber-200' },
-  { value: 'pagamento_ok', label: 'Pagamento OK', className: 'bg-green-100 text-green-800 border-green-200' },
-  { value: 'recibo_enviado', label: 'Recibo Enviado', className: 'bg-blue-100 text-blue-800 border-blue-200' },
-  { value: 'contabilidade_ok', label: 'Contabilidade OK', className: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-];
-
+const STATUS_OPTIONS = ENTRY_STATUSES;
 const DEFAULT_SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
