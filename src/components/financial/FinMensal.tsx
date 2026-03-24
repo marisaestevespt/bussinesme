@@ -92,7 +92,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
   // Sync SS value when month changes
   useMemo(() => {
     setSsValue(ssExpense ? String(ssExpense.total_with_vat) : '');
-    setSsLoaded(true);
+    setSsEditing(false);
   }, [ssExpense, m]);
 
   // Sale dialog
