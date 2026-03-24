@@ -263,9 +263,10 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
           <Table>
-            <TableHeader><TableRow><TableHead>Status</TableHead><TableHead className="whitespace-nowrap">ID</TableHead><TableHead>Descrição</TableHead><TableHead>Categoria</TableHead><TableHead>Localização</TableHead><TableHead className="text-right whitespace-nowrap">Base (€)</TableHead><TableHead className="text-right whitespace-nowrap">IVA %</TableHead><TableHead className="text-right whitespace-nowrap">Total c/ IVA</TableHead><TableHead>Data</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Status</TableHead><TableHead className="whitespace-nowrap">ID</TableHead><TableHead>Descrição</TableHead><TableHead>Categoria</TableHead><TableHead>Localização</TableHead><TableHead className="text-right whitespace-nowrap">Base (€)</TableHead><TableHead className="text-right whitespace-nowrap">IVA %</TableHead><TableHead className="text-right whitespace-nowrap">Total c/ IVA</TableHead><TableHead>Ação</TableHead></TableRow></TableHeader>
             <TableBody>
-              {monthExpenses.map(e => (
+              {/* Regular expenses (excluding subscription-linked ones to avoid duplicates) */}
+              {monthExpenses.filter(e => e.source_type !== 'subscription').map(e => (
                 <TableRow key={e.id}>
                   <TableCell>
                     <ExpenseStatusSelect
@@ -286,7 +287,23 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
                   <TableCell className="whitespace-nowrap">{(e as any).expense_date || '—'}</TableCell>
                 </TableRow>
               ))}
-              {monthExpenses.length === 0 && (
+              {/* Subscription rows due this month */}
+              {dueSubscriptions.map(sub => {
+                const linkedExp = subExpenseMap.get(sub.id);
+                const isPaid = linkedExp?.status === 'pago';
+                return (
+                  <SubRow
+                    key={`sub-${sub.id}`}
+                    sub={sub}
+                    linkedExpense={linkedExp}
+                    isPaid={isPaid}
+                    month={m}
+                    currentYear={currentYear}
+                    fin={fin}
+                  />
+                );
+              })}
+              {monthExpenses.filter(e => e.source_type !== 'subscription').length === 0 && dueSubscriptions.length === 0 && (
                 <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">Sem saídas</TableCell></TableRow>
               )}
             </TableBody>
