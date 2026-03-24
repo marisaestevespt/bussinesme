@@ -1141,7 +1141,7 @@ export default function ProdutoDetailPage() {
                 {/* Templates de Onboarding */}
                 <Card>
                   <CardHeader className="flex-row items-center justify-between">
-                    <CardTitle className="text-base">Template de Onboarding</CardTitle>
+                    <CardTitle className="text-base">SOP: Entrada/Onboarding de Clientes</CardTitle>
                     {isOwner && (
                       <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_onboarding_templates', data: { product_id: id, activity: '' } })}>
                         <Plus className="h-3 w-3 mr-1" /> Adicionar Passo
