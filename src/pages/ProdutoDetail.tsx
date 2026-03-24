@@ -1480,6 +1480,18 @@ export default function ProdutoDetailPage() {
                   </CardContent>
                 </Card>
 
+                {/* Notas */}
+                <Card>
+                  <CardHeader><CardTitle className="text-base">Notas</CardTitle></CardHeader>
+                  <CardContent>
+                    <RichTextEditor
+                      content={form.archive_notes || ''}
+                      onChange={v => update('archive_notes', v)}
+                      editable={isOwner}
+                    />
+                  </CardContent>
+                </Card>
+
                 {/* Brainstorming */}
                 <Card>
                   <CardHeader><CardTitle className="text-base">Brainstorming</CardTitle></CardHeader>
