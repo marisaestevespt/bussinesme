@@ -309,7 +309,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
             <TableBody>
               {/* Regular expenses (excluding subscription/contract-linked ones to avoid duplicates) */}
               {monthExpenses.filter(e => e.source_type !== 'subscription' && e.source_type !== 'contract').map(e => (
-                <TableRow key={e.id}>
+                <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedExpense(e); setExpenseSheetOpen(true); }}>
                   <TableCell>
                     <ExpenseStatusSelect
                       expenseId={e.id}
