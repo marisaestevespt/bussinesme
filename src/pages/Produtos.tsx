@@ -54,8 +54,8 @@ export default function ProdutosPage() {
     return items
       .filter(p => p.escada && p.status !== 'off')
       .sort((a, b) => {
-        const ai = ESCADA_ORDER.indexOf(a.escada!);
-        const bi = ESCADA_ORDER.indexOf(b.escada!);
+        const ai = ESCADA_ORDER.indexOf(a.escada as any);
+        const bi = ESCADA_ORDER.indexOf(b.escada as any);
         return ai - bi;
       });
   }, [items]);
