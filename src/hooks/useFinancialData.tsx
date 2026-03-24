@@ -102,6 +102,46 @@ export function calcMonthlyEquivalent(value: number, periodicity: string): numbe
   }
 }
 
+/**
+ * Determines how many times a subscription occurs in a given month/year,
+ * based on its start_date and periodicity.
+ * Returns the number of occurrences (0 if not due, 1 for most, ~4 for weekly).
+ */
+export function getSubscriptionOccurrences(
+  startDate: string | null,
+  periodicity: string,
+  month: number,
+  year: number
+): number {
+  if (!startDate) return 0;
+  const start = new Date(startDate + 'T00:00:00');
+  const startYear = start.getFullYear();
+  const startMonth = start.getMonth() + 1; // 1-based
+
+  // If the target month/year is before the start, no occurrences
+  if (year < startYear || (year === startYear && month < startMonth)) return 0;
+
+  const monthsDiff = (year - startYear) * 12 + (month - startMonth);
+
+  switch (periodicity) {
+    case 'semanal':
+      // Approximately 4 occurrences per month
+      return 4;
+    case 'mensal':
+      return 1;
+    case 'bimestral':
+      return monthsDiff % 2 === 0 ? 1 : 0;
+    case 'trimestral':
+      return monthsDiff % 3 === 0 ? 1 : 0;
+    case 'semestral':
+      return monthsDiff % 6 === 0 ? 1 : 0;
+    case 'anual':
+      return monthsDiff % 12 === 0 ? 1 : 0;
+    default:
+      return 1;
+  }
+}
+
 export function useFinancialData() {
   const qc = useQueryClient();
 

@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import type { Expense, Subscription, PayrollEntry, ContractorEntry, FinancialDocument } from '@/hooks/useFinancialData';
+import { getSubscriptionOccurrences } from '@/hooks/useFinancialData';
 import { InvoiceUpload } from './InvoiceUpload';
 import { CategorySelect } from './CategorySelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
@@ -56,10 +57,12 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
   const monthSales = useMemo(() => sales.filter(s => s.sale_year === currentYear && s.sale_month === m), [sales, currentYear, m]);
   const monthExpenses = useMemo(() => expenses.filter(e => e.expense_year === currentYear && e.expense_month === m), [expenses, currentYear, m]);
 
-  // Active subscriptions that apply to this month
-  const activeSubs = useMemo(() => {
-    return (subscriptions || []).filter(s => s.status === 'ativo');
-  }, [subscriptions]);
+  // Subscriptions due this month (based on start_date + periodicity)
+  const dueSubscriptions = useMemo(() => {
+    return (subscriptions || []).filter(s => 
+      s.status === 'ativo' && getSubscriptionOccurrences(s.start_date, s.periodicity, m, currentYear) > 0
+    );
+  }, [subscriptions, m, currentYear]);
 
   // Check which subs already have a confirmed expense for this month
   const subExpenseMap = useMemo(() => {
@@ -71,9 +74,6 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
     });
     return map;
   }, [monthExpenses]);
-
-  // Include subscription costs in totals
-  const subsTotalThisMonth = activeSubs.reduce((s, sub) => s + sub.monthly_equivalent, 0);
 
   const totalEntradas = monthSales.reduce((s, v) => s + v.invoice_total, 0);
   const totalBaseEntradas = monthSales.reduce((s, v) => s + v.base_value, 0);
@@ -263,9 +263,10 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
           <Table>
-            <TableHeader><TableRow><TableHead>Status</TableHead><TableHead className="whitespace-nowrap">ID</TableHead><TableHead>Descrição</TableHead><TableHead>Categoria</TableHead><TableHead>Localização</TableHead><TableHead className="text-right whitespace-nowrap">Base (€)</TableHead><TableHead className="text-right whitespace-nowrap">IVA %</TableHead><TableHead className="text-right whitespace-nowrap">Total c/ IVA</TableHead><TableHead>Data</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Status</TableHead><TableHead className="whitespace-nowrap">ID</TableHead><TableHead>Descrição</TableHead><TableHead>Categoria</TableHead><TableHead>Localização</TableHead><TableHead className="text-right whitespace-nowrap">Base (€)</TableHead><TableHead className="text-right whitespace-nowrap">IVA %</TableHead><TableHead className="text-right whitespace-nowrap">Total c/ IVA</TableHead><TableHead>Ação</TableHead></TableRow></TableHeader>
             <TableBody>
-              {monthExpenses.map(e => (
+              {/* Regular expenses (excluding subscription-linked ones to avoid duplicates) */}
+              {monthExpenses.filter(e => e.source_type !== 'subscription').map(e => (
                 <TableRow key={e.id}>
                   <TableCell>
                     <ExpenseStatusSelect
@@ -286,7 +287,23 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
                   <TableCell className="whitespace-nowrap">{(e as any).expense_date || '—'}</TableCell>
                 </TableRow>
               ))}
-              {monthExpenses.length === 0 && (
+              {/* Subscription rows due this month */}
+              {dueSubscriptions.map(sub => {
+                const linkedExp = subExpenseMap.get(sub.id);
+                const isPaid = linkedExp?.status === 'pago';
+                return (
+                  <SubRow
+                    key={`sub-${sub.id}`}
+                    sub={sub}
+                    linkedExpense={linkedExp}
+                    isPaid={isPaid}
+                    month={m}
+                    currentYear={currentYear}
+                    fin={fin}
+                  />
+                );
+              })}
+              {monthExpenses.filter(e => e.source_type !== 'subscription').length === 0 && dueSubscriptions.length === 0 && (
                 <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">Sem saídas</TableCell></TableRow>
               )}
             </TableBody>
@@ -391,26 +408,35 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin }: {
   currentYear: number;
   fin: ReturnType<typeof useFinancialData>;
 }) {
-  const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const MONTHS_LABEL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const LOC_LABELS: Record<string, string> = { portugal: 'Portugal', ue: 'União Europeia', fora_ue: 'Fora da UE' };
   const [confirming, setConfirming] = useState(false);
 
   const handleConfirm = async () => {
     setConfirming(true);
     const dateStr = `${currentYear}-${String(month).padStart(2, '0')}-15`;
     if (linkedExpense) {
-      // Toggle status
       await fin.upsertExpense.mutateAsync({
         id: linkedExpense.id,
         status: isPaid ? 'por_pagar' : 'pago',
       } as any);
     } else {
-      // Create expense linked to this subscription
+      // Calculate proper base/total with VAT
+      const vatRate = sub.vat_rate || 0;
+      let base: number, total: number;
+      if (sub.includes_vat) {
+        total = sub.value;
+        base = Math.round(sub.value / (1 + vatRate / 100) * 100) / 100;
+      } else {
+        base = sub.value;
+        total = Math.round(sub.value * (1 + vatRate / 100) * 100) / 100;
+      }
       await fin.upsertExpense.mutateAsync({
-        description: `${sub.platform_name} — ${MONTHS[month - 1]} ${currentYear}`,
+        description: `${sub.platform_name} — ${MONTHS_LABEL[month - 1]} ${currentYear}`,
         category: 'plataformas',
-        base_value: sub.monthly_equivalent,
-        vat_rate: 0,
-        total_with_vat: sub.monthly_equivalent,
+        base_value: base,
+        vat_rate: vatRate,
+        total_with_vat: total,
         location: sub.location,
         expense_date: dateStr,
         expense_month: month,
@@ -425,31 +451,36 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin }: {
     toast.success(isPaid ? 'Marcado como pendente' : 'Confirmado como pago');
   };
 
-  // Invoice upload for this subscription expense
-  const handleDocsChange = async (docs: any[]) => {
-    if (linkedExpense) {
-      await fin.upsertExpense.mutateAsync({
-        id: linkedExpense.id,
-        documents: docs,
-      } as any);
-      toast.success('Fatura atualizada');
-    }
-  };
+  const vatRate = sub.vat_rate || 0;
+  let displayBase: number, displayTotal: number;
+  if (linkedExpense) {
+    displayBase = linkedExpense.base_value;
+    displayTotal = linkedExpense.total_with_vat;
+  } else if (sub.includes_vat) {
+    displayTotal = sub.value;
+    displayBase = Math.round(sub.value / (1 + vatRate / 100) * 100) / 100;
+  } else {
+    displayBase = sub.value;
+    displayTotal = Math.round(sub.value * (1 + vatRate / 100) * 100) / 100;
+  }
 
-  const docs = linkedExpense?.documents;
-  const docCount = Array.isArray(docs) ? docs.length : 0;
+  const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
   return (
-    <TableRow>
-      <TableCell className="font-medium">{sub.platform_name}</TableCell>
-      <TableCell>Subscrição</TableCell>
-      <TableCell className="text-right">{fmt(sub.monthly_equivalent)}</TableCell>
+    <TableRow className={!isPaid ? 'bg-muted/30' : ''}>
       <TableCell>
         {isPaid
           ? <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Pago</Badge>
-          : <Badge variant="outline" className="text-muted-foreground">Pendente</Badge>
+          : <Badge variant="outline" className="border-dashed text-muted-foreground">Pendente</Badge>
         }
       </TableCell>
+      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">SUB</TableCell>
+      <TableCell className="font-medium">{sub.platform_name}</TableCell>
+      <TableCell className="text-xs text-muted-foreground">Subscrição</TableCell>
+      <TableCell>{LOC_LABELS[sub.location] || sub.location}</TableCell>
+      <TableCell className="text-right">{fmt(displayBase)}</TableCell>
+      <TableCell className="text-right">{vatRate}%</TableCell>
+      <TableCell className="text-right">{fmt(displayTotal)}</TableCell>
       <TableCell>
         <Button
           size="sm"
