@@ -161,7 +161,8 @@ export default function VendaDetailPage() {
     );
   }
 
-  const statusInfo = STATUS_OPTIONS.find(s => s.value === form.status) || STATUS_OPTIONS[0];
+  const effectiveStatus = getEffectiveEntryStatus(form.status || 'aguarda_pagamento', form.payment_date || null);
+  const statusInfo = getEntryStatusBadge(effectiveStatus);
 
   return (
     <AppLayout>
@@ -171,7 +172,7 @@ export default function VendaDetailPage() {
           <BackNavigation parentRoute="/hub/comercial/vendas" parentLabel="Vendas" />
           <div className="flex items-center gap-2">
             <span className="font-mono text-lg font-bold">{form.sale_id}</span>
-            <Badge variant="outline" className={statusInfo.className}>{statusInfo.label}</Badge>
+            <Badge variant="outline" className={statusInfo.cls}>{statusInfo.label}</Badge>
           </div>
           <div className="flex-1" />
           {isOwner && (
