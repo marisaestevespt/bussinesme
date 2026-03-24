@@ -16,7 +16,6 @@ import { FinMensal } from '@/components/financial/FinMensal';
 import { FinTrimestral } from '@/components/financial/FinTrimestral';
 import { FinSegurancaSocial } from '@/components/financial/FinSegurancaSocial';
 import { FinAllDocuments } from '@/components/financial/FinAllDocuments';
-import { FinSetupNegocio } from '@/components/financial/FinSetupNegocio';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 import { YearSelector } from '@/components/YearSelector';
 
@@ -28,7 +27,6 @@ const TITLES: Record<string, string> = {
   iva: 'IVA',
   'seguranca-social': 'Segurança Social',
   documentos: 'Documentos',
-  'setup-negocio': 'Setup de Negócio',
 };
 
 const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'iva', 'seguranca-social'];
@@ -73,8 +71,6 @@ export default function FinanceiroSubPage() {
         return <FinSegurancaSocial fin={fin} expenses={expenses} currentYear={year} sales={sales} />;
       case 'documentos':
         return <FinAllDocuments />;
-      case 'setup-negocio':
-        return <FinSetupNegocio />;
       default:
         return <EmptyModulePage title={title} />;
     }
