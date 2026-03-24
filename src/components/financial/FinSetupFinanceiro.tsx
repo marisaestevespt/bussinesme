@@ -83,7 +83,7 @@ export function FinSetupFinanceiro({ fin }: Props) {
       const { data } = await supabase
         .from('product_payment_methods' as any)
         .select('product_id, payment_method');
-      return (data || []) as { product_id: string; payment_method: string }[];
+      return (data || []) as unknown as { product_id: string; payment_method: string }[];
     },
   });
 
