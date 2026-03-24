@@ -529,7 +529,7 @@ const CONTRACT_TYPE_LABELS: Record<string, string> = {
   outro: 'Outro',
 };
 
-function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin, qc }: {
+function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin, qc, onExpenseClick }: {
   contract: any;
   linkedExpense: Expense | undefined;
   isPaid: boolean;
@@ -537,6 +537,7 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
   currentYear: number;
   fin: ReturnType<typeof useFinancialData>;
   qc: ReturnType<typeof useQueryClient>;
+  onExpenseClick?: () => void;
 }) {
   const MONTHS_LABEL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
   const [confirming, setConfirming] = useState(false);
@@ -574,8 +575,8 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
   };
 
   return (
-    <TableRow className={currentStatus !== 'pago' ? 'bg-muted/30' : ''}>
-      <TableCell>
+    <TableRow className={cn(currentStatus !== 'pago' ? 'bg-muted/30' : '', onExpenseClick && 'cursor-pointer hover:bg-muted/50')} onClick={onExpenseClick}>
+      <TableCell onClick={e => e.stopPropagation()}>
         <ExpenseStatusSelect expenseId={linkedExpense?.id || `contract-${contract.id}`} currentStatus={currentStatus} onUpdate={handleStatusChange} />
       </TableCell>
       <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{typeLabel}</TableCell>
