@@ -495,10 +495,7 @@ export default function ClienteDetailPage() {
                 <Select value={form.payment_method || ''} onValueChange={v => { update('payment_method', v); setEntradaValue(''); setNumPrestacoes(''); setDiaPagamento(''); setValorAvenca(''); setTotalValue(''); }}>
                   <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pagamento_total">Pagamento Total</SelectItem>
-                    <SelectItem value="entrada_prestacoes">Pagamento Entrada + Prestações</SelectItem>
-                    <SelectItem value="prestacoes">Pagamento Prestações</SelectItem>
-                    <SelectItem value="avenca_mensal">Pagamento Avença Mensal</SelectItem>
+                    {availablePaymentOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
