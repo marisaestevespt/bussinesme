@@ -128,8 +128,10 @@ export default function FinanceiroPage() {
     return Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
       const ent = yearSales.filter(s => s.sale_month === m).reduce((s, v) => s + v.invoice_total, 0);
+      const entBase = yearSales.filter(s => s.sale_month === m).reduce((s, v) => s + v.base_value, 0);
       const sai = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.total_with_vat, 0);
-      return { mes: ML[i], entradas: ent, saidas: sai };
+      const saiBase = yearExpenses.filter(e => e.expense_month === m).reduce((s, v) => s + v.base_value, 0);
+      return { mes: ML[i], entradas: ent, saidas: sai, resultado: ent - sai, ivaCobrado: ent - entBase, ivaPago: sai - saiBase };
     });
   }, [yearSales, yearExpenses]);
 
@@ -156,6 +158,40 @@ export default function FinanceiroPage() {
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
   }, [yearExpenses]);
+
+  // Quarterly data
+  const QUARTERS = [
+    { label: 'T1', months: [1, 2, 3] },
+    { label: 'T2', months: [4, 5, 6] },
+    { label: 'T3', months: [7, 8, 9] },
+    { label: 'T4', months: [10, 11, 12] },
+  ];
+
+  const quarterlyData = useMemo(() => {
+    return QUARTERS.map(q => {
+      const ent = yearSales.filter(s => q.months.includes(s.sale_month || 0)).reduce((s, v) => s + v.invoice_total, 0);
+      const sai = yearExpenses.filter(e => q.months.includes(e.expense_month || 0)).reduce((s, v) => s + v.total_with_vat, 0);
+      const res = ent - sai;
+      return { label: q.label, entradas: ent, saidas: sai, resultado: res, margem: ent > 0 ? Math.round(res / ent * 10000) / 100 : 0 };
+    });
+  }, [yearSales, yearExpenses]);
+
+  // Best/worst month
+  const bestMonth = useMemo(() => {
+    let best = monthlyData[0];
+    monthlyData.forEach(d => { if (d.resultado > best.resultado) best = d; });
+    return best;
+  }, [monthlyData]);
+
+  const worstMonth = useMemo(() => {
+    let worst = monthlyData[0];
+    monthlyData.forEach(d => { if (d.resultado < worst.resultado) worst = d; });
+    return worst;
+  }, [monthlyData]);
+
+  // Average monthly
+  const avgEntradas = totalEntradas / 12;
+  const avgSaidas = totalSaidas / 12;
 
   return (
     <AppLayout>
