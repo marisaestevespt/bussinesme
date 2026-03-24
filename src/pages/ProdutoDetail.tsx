@@ -1141,9 +1141,8 @@ export default function ProdutoDetailPage() {
                 </Card>
               </div>
             )}
-                    {isOwner && (
-                      <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'commercial_sales_actions', data: { action_name: `Nova Ação — ${form.name}`, product: form.name, status: 'planeada', action_type: 'campanha' } })}>
-                        <Plus className="h-3 w-3 mr-1" /> Nova Ação
+
+
                       </Button>
                     )}
                   </CardHeader>
