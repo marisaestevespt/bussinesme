@@ -453,13 +453,14 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
   );
 }
 
-function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin }: {
+function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpenseClick }: {
   sub: Subscription;
   linkedExpense: Expense | undefined;
   isPaid: boolean;
   month: number;
   currentYear: number;
   fin: ReturnType<typeof useFinancialData>;
+  onExpenseClick?: () => void;
 }) {
   const MONTHS_LABEL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
   const LOC_LABELS: Record<string, string> = { portugal: 'Portugal', ue: 'União Europeia', fora_ue: 'Fora da UE' };
@@ -505,8 +506,8 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin }: {
   };
 
   return (
-    <TableRow className={currentStatus !== 'pago' ? 'bg-muted/30' : ''}>
-      <TableCell>
+    <TableRow className={cn(currentStatus !== 'pago' ? 'bg-muted/30' : '', onExpenseClick && 'cursor-pointer hover:bg-muted/50')} onClick={onExpenseClick}>
+      <TableCell onClick={e => e.stopPropagation()}>
         <ExpenseStatusSelect expenseId={linkedExpense?.id || `sub-${sub.id}`} currentStatus={currentStatus} onUpdate={handleStatusChange} />
       </TableCell>
       <TableCell className="text-xs text-muted-foreground whitespace-nowrap">SUB</TableCell>
