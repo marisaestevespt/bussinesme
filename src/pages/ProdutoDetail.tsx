@@ -1381,7 +1381,7 @@ export default function ProdutoDetailPage() {
             {/* ===== CUSTOMER SUCCESS ===== */}
             {openSection === 'customer-success' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
-                <ProductCustomerSuccess productId={id!} isOwner={isOwner} />
+                <ProductCustomerSuccess productId={id!} productName={form.name || ''} isOwner={isOwner} />
               </div>
             )}
 
