@@ -87,6 +87,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
   };
 
   return (
+    <>
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-lg overflow-y-auto">
         <SheetHeader>
