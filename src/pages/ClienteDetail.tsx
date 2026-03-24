@@ -151,28 +151,6 @@ export default function ClienteDetailPage() {
   const [diaPagamento, setDiaPagamento] = useState('');
   const [valorAvenca, setValorAvenca] = useState('');
 
-  // Fetch allowed payment methods for selected product
-  const selectedProduct = productList.find(p => p.name === form.current_product);
-  const { data: allowedPaymentMethods = [] } = useQuery({
-    queryKey: ['product-payment-methods', selectedProduct?.id],
-    queryFn: async () => {
-      if (!selectedProduct?.id) return [];
-      const { data } = await supabase.from('product_payment_methods' as any).select('*').eq('product_id', selectedProduct.id);
-      return (data || []).map((pm: any) => pm.payment_method as string);
-    },
-    enabled: !!selectedProduct?.id,
-  });
-
-  const allPaymentOptions = [
-    { value: 'pagamento_total', label: 'Pagamento Total' },
-    { value: 'entrada_prestacoes', label: 'Pagamento Entrada + Prestações' },
-    { value: 'prestacoes', label: 'Pagamento Prestações' },
-    { value: 'avenca_mensal', label: 'Pagamento Avença Mensal' },
-  ];
-  const availablePaymentOptions = allowedPaymentMethods.length > 0
-    ? allPaymentOptions.filter(o => allowedPaymentMethods.includes(o.value))
-    : allPaymentOptions;
-
   const queryClient = useQueryClient();
 
   if (client && !initialized) { setForm(client); setInitialized(true); }
