@@ -250,7 +250,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
             <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead>Categoria</TableHead><TableHead className="text-right">Base</TableHead><TableHead className="text-right">Total c/ IVA</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
             <TableBody>
               {monthExpenses.filter(e => e.source_type !== 'subscription').map(e => (
-                <TableRow key={e.id}><TableCell>{e.description || '—'}</TableCell><TableCell>{getCategoryLabel('expense', e.category)}</TableCell><TableCell className="text-right">{fmt(e.total_with_vat)}</TableCell><TableCell><Badge variant="outline">{e.status}</Badge></TableCell><TableCell /></TableRow>
+                <TableRow key={e.id}><TableCell>{e.description || '—'}</TableCell><TableCell>{getCategoryLabel('expense', e.category)}</TableCell><TableCell className="text-right">{fmt(e.base_value)}</TableCell><TableCell className="text-right">{fmt(e.total_with_vat)}</TableCell><TableCell><Badge variant="outline">{e.status}</Badge></TableCell><TableCell /></TableRow>
               ))}
               {activeSubs.map(sub => {
                 const linkedExpense = subExpenseMap.get(sub.id);
