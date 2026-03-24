@@ -112,6 +112,8 @@ function getInitials(name: string | null) {
 
 export function ProjectDeliverables({ projectId, profiles }: { projectId: string; profiles: Profile[] }) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState('');
   const [name, setName] = useState('');
   const [deadline, setDeadline] = useState<Date | undefined>();
   const [assignedTo, setAssignedTo] = useState('');
