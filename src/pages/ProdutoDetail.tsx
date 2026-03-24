@@ -203,6 +203,16 @@ export default function ProdutoDetailPage() {
     enabled: !!form.name,
   });
 
+  const { data: productContents = [] } = useQuery({
+    queryKey: ['product-content-items', id],
+    queryFn: async () => {
+      if (!id || isNew) return [];
+      const { data } = await supabase.from('content_items').select('*').eq('product_id', id as any).order('scheduled_at', { ascending: false });
+      return data || [];
+    },
+    enabled: !isNew && !!id,
+  });
+
   // Events linked to this product (Datas Importantes)
   const { data: improvements = [] } = useQuery({
     queryKey: ['product-improvements', id],
@@ -774,7 +784,8 @@ export default function ProdutoDetailPage() {
         {(
           <div className="space-y-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              <SectionButton sectionKey="comercial" label="Comercial & Mkt" />
+              <SectionButton sectionKey="comercial" label="Comercial" />
+              <SectionButton sectionKey="marketing" label="Marketing" />
               <SectionButton sectionKey="contabilidade" label="Contabilidade" />
               <SectionButton sectionKey="processos" label="Processos" />
               <SectionButton sectionKey="backoffice" label="Backoffice" />
