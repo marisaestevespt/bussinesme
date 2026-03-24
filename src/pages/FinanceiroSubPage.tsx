@@ -33,7 +33,7 @@ const TITLES: Record<string, string> = {
   previsibilidade: 'Previsibilidade Financeira',
 };
 
-const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'iva', 'seguranca-social', 'previsibilidade'];
+const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'saidas', 'iva', 'seguranca-social', 'previsibilidade'];
 
 export default function FinanceiroSubPage() {
   const { section } = useParams<{ section: string }>();
@@ -68,7 +68,7 @@ export default function FinanceiroSubPage() {
       case 'entradas':
         return <FinEntradas sales={sales} currentYear={year} />;
       case 'saidas':
-        return <FinSaidas fin={fin} />;
+        return <FinSaidas fin={fin} currentYear={year} />;
       case 'iva':
         return <FinIVA sales={sales} expenses={expenses} currentYear={year} fin={fin} />;
       case 'seguranca-social':
