@@ -381,6 +381,8 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
           </div>
         </DialogContent>
       </Dialog>
+
+      <EntryDetailSheet sale={selectedSale} open={saleSheetOpen} onOpenChange={setSaleSheetOpen} />
     </div>
   );
 }
