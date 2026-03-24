@@ -434,7 +434,7 @@ export default function ClienteDetailPage() {
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">F. de Pagamento</Label>
+              <Label className="text-xs text-muted-foreground">Forma de Pagamento</Label>
               <Select value={form.payment_method || ''} onValueChange={v => update('payment_method', v)}>
                 <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                 <SelectContent>
