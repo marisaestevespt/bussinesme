@@ -202,8 +202,8 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
           <CardTitle className="text-sm">Saídas</CardTitle>
           <div className="flex items-center gap-2">
             {/* SS inline — compact when already saved */}
-            {ssExpense ? (
-              <Badge variant="outline" className="text-[10px] text-muted-foreground cursor-default">SS: {fmt(ssExpense.total_with_vat)}</Badge>
+            {ssExpense && !ssEditing ? (
+              <Badge variant="outline" className="text-[10px] text-muted-foreground cursor-pointer hover:bg-muted" onClick={() => setSsEditing(true)}>SS: {fmt(ssExpense.total_with_vat)}</Badge>
             ) : (
               <div className="flex items-center gap-1.5">
                 <span className="text-[10px] text-muted-foreground whitespace-nowrap">SS</span>
@@ -216,21 +216,26 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
                 />
                 <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={async () => {
                   const val = parseFloat(ssValue) || 0;
-                  if (val <= 0) return;
+                  if (val <= 0 && !ssExpense) return;
                   const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-15`;
-                  await fin.upsertExpense.mutateAsync({
-                    description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}`,
-                    category: 'seguranca_social',
-                    base_value: val,
-                    vat_rate: 0,
-                    total_with_vat: val,
-                    location: 'portugal',
-                    expense_date: dateStr,
-                    expense_month: m,
-                    expense_quarter: Math.ceil(m / 3),
-                    expense_year: currentYear,
-                    status: 'pago',
-                  } as any);
+                  if (ssExpense) {
+                    await fin.upsertExpense.mutateAsync({ id: ssExpense.id, total_with_vat: val, base_value: val, description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}` } as any);
+                  } else {
+                    await fin.upsertExpense.mutateAsync({
+                      description: `Segurança Social — ${MONTHS[m - 1]} ${currentYear}`,
+                      category: 'seguranca_social',
+                      base_value: val,
+                      vat_rate: 0,
+                      total_with_vat: val,
+                      location: 'portugal',
+                      expense_date: dateStr,
+                      expense_month: m,
+                      expense_quarter: Math.ceil(m / 3),
+                      expense_year: currentYear,
+                      status: 'pago',
+                    } as any);
+                  }
+                  setSsEditing(false);
                   toast.success('Segurança Social guardada');
                 }}>
                   <Check className="h-3 w-3" />
