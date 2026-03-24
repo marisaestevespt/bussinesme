@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { ArrowLeft, Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, ChevronDown, FileText, Download } from 'lucide-react';
+import { ArrowLeft, Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, ChevronDown, FileText, Download, Video } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, Product } from '@/hooks/useProducts';
@@ -252,6 +252,20 @@ export default function ProdutoDetailPage() {
       return data || [];
     },
     enabled: !!form.name,
+  });
+
+  const { data: productMeetings = [] } = useQuery({
+    queryKey: ['product-meetings', id],
+    queryFn: async () => {
+      if (!id) return [];
+      const { data } = await supabase
+        .from('meetings')
+        .select('id, title, date_time, status, client_name, project_name')
+        .eq('product_id', id)
+        .order('date_time', { ascending: false });
+      return (data || []) as any[];
+    },
+    enabled: !!id,
   });
 
   // Mutations for sub-tables
