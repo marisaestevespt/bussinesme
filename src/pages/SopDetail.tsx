@@ -299,7 +299,32 @@ export default function SopDetailPage() {
     onError: () => toast.error('Erro ao guardar'),
   });
 
-  const deleteMutation = useMutation({
+  // ─── Template row mutations (for onboarding/offboarding SOPs) ──
+  const addTemplateRow = useMutation({
+    mutationFn: async () => {
+      if (!templateTable || !linkedProductId) return;
+      const nextOrder = templateRows.length;
+      await supabase.from(templateTable as any).insert({ product_id: linkedProductId, activity: '', sort_order: nextOrder } as any);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-template-rows', templateTable, linkedProductId] }),
+  });
+
+  const updateTemplateRow = useMutation({
+    mutationFn: async ({ rowId, data }: { rowId: string; data: Record<string, any> }) => {
+      if (!templateTable) return;
+      await supabase.from(templateTable as any).update(data).eq('id', rowId);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-template-rows', templateTable, linkedProductId] }),
+  });
+
+  const deleteTemplateRow = useMutation({
+    mutationFn: async (rowId: string) => {
+      if (!templateTable) return;
+      await supabase.from(templateTable as any).delete().eq('id', rowId);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-template-rows', templateTable, linkedProductId] }),
+  });
+
     mutationFn: async () => {
       const { error } = await supabase.from('sops').delete().eq('id', id!);
       if (error) throw error;
