@@ -926,7 +926,7 @@ export default function OperacaoPage() {
                 </CardContent>
               </Card>
 
-              {/* Col 2: Projetos compactos */}
+              {/* Col 2: Projetos por modo */}
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
@@ -934,35 +934,80 @@ export default function OperacaoPage() {
                     <Badge variant="outline" className="text-[10px] ml-auto">{activeClientProjects.length}</Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0 space-y-0.5 max-h-[320px] overflow-y-auto">
+                <CardContent className="pt-0 space-y-3 max-h-[400px] overflow-y-auto">
                   {activeClientProjects.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-3">Nenhum projeto ativo</p>
-                  ) : activeClientProjects.map(p => {
-                    const prog = projectProgress.get(p.id) ?? p.progress;
-                    const members = projectMembersMap.get(p.id) || [];
-                    return (
-                      <Link key={p.id} to={`/hub/projetos/${p.id}`} className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-muted/50 transition-colors group">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{p.name}</p>
-                          {p.client_name && <p className="text-[11px] text-muted-foreground truncate">{p.client_name}</p>}
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <div className="w-16 flex items-center gap-1">
-                            <Progress value={prog} className="h-1.5 flex-1" />
-                            <span className="text-[10px] text-muted-foreground w-6 text-right">{prog}%</span>
+                  ) : (
+                    <>
+                      {activeClientPontuais.length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">📌 Pontuais ({activeClientPontuais.length})</p>
+                          <div className="space-y-0.5">
+                            {activeClientPontuais.map(p => {
+                              const prog = projectProgress.get(p.id) ?? p.progress;
+                              const members = projectMembersMap.get(p.id) || [];
+                              return (
+                                <Link key={p.id} to={`/hub/projetos/${p.id}`} className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-muted/50 transition-colors group">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{p.name}</p>
+                                    {p.client_name && <p className="text-[11px] text-muted-foreground truncate">{p.client_name}</p>}
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <div className="w-16 flex items-center gap-1">
+                                      <Progress value={prog} className="h-1.5 flex-1" />
+                                      <span className="text-[10px] text-muted-foreground w-6 text-right">{prog}%</span>
+                                    </div>
+                                    <div className="flex -space-x-1">
+                                      {members.slice(0, 2).map(m => (
+                                        <Avatar key={m.id} className="h-5 w-5 border-2 border-background">
+                                          <AvatarImage src={m.avatar_url || ''} />
+                                          <AvatarFallback className="text-[7px]">{getInitials(m.full_name)}</AvatarFallback>
+                                        </Avatar>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </Link>
+                              );
+                            })}
                           </div>
-                          <div className="flex -space-x-1">
-                            {members.slice(0, 2).map(m => (
-                              <Avatar key={m.id} className="h-5 w-5 border-2 border-background">
-                                <AvatarImage src={m.avatar_url || ''} />
-                                <AvatarFallback className="text-[7px]">{getInitials(m.full_name)}</AvatarFallback>
-                              </Avatar>
-                            ))}
+                        </div>
+                      )}
+                      {activeClientRecorrentes.length > 0 && (
+                        <div>
+                          {activeClientPontuais.length > 0 && <Separator className="my-2" />}
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">🔄 Recorrentes ({activeClientRecorrentes.length})</p>
+                          <div className="space-y-0.5">
+                            {activeClientRecorrentes.map(p => {
+                              const prog = projectProgress.get(p.id) ?? p.progress;
+                              const members = projectMembersMap.get(p.id) || [];
+                              return (
+                                <Link key={p.id} to={`/hub/projetos/${p.id}`} className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-muted/50 transition-colors group">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{p.name}</p>
+                                    {p.client_name && <p className="text-[11px] text-muted-foreground truncate">{p.client_name}</p>}
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <div className="w-16 flex items-center gap-1">
+                                      <Progress value={prog} className="h-1.5 flex-1" />
+                                      <span className="text-[10px] text-muted-foreground w-6 text-right">{prog}%</span>
+                                    </div>
+                                    <div className="flex -space-x-1">
+                                      {members.slice(0, 2).map(m => (
+                                        <Avatar key={m.id} className="h-5 w-5 border-2 border-background">
+                                          <AvatarImage src={m.avatar_url || ''} />
+                                          <AvatarFallback className="text-[7px]">{getInitials(m.full_name)}</AvatarFallback>
+                                        </Avatar>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </Link>
+                              );
+                            })}
                           </div>
                         </div>
-                      </Link>
-                    );
-                  })}
+                      )}
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </div>
