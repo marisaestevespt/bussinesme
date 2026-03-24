@@ -139,41 +139,6 @@ export function FinSaidas({ fin }: Props) {
       </div>
 
 
-      {/* PREVISIBILIDADE */}
-      <div>
-        <h3 className="text-lg font-semibold mb-3">Previsibilidade Mensal</h3>
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Mês</TableHead>
-                  <TableHead className="text-right">Subscrições (€)</TableHead>
-                  <TableHead className="text-right">Pessoal Fixo (€)</TableHead>
-                  <TableHead className="text-right">Prestadores (€)</TableHead>
-                  <TableHead className="text-right">Total Previsto (€)</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {predictability.map((p, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="font-medium">{p.mes}</TableCell>
-                    <TableCell className="text-right">{fmt(p.subs)}</TableCell>
-                    <TableCell className="text-right">{fmt(p.pessoal)}</TableCell>
-                    <TableCell className="text-right">{fmt(p.prestadores)}</TableCell>
-                    <TableCell className="text-right font-medium">{fmt(p.total)}</TableCell>
-                    <TableCell>
-                      {p.renewals.length > 0 && <Badge variant="outline" className="bg-amber-100 text-amber-800 text-xs">{p.renewals.length} renovação(ões)</Badge>}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* EXPENSE DIALOG */}
       <Dialog open={expOpen} onOpenChange={setExpOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
