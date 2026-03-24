@@ -228,7 +228,7 @@ export function FinSetupFinanceiro({ fin }: Props) {
             </Table>
           </CardContent>
         </Card>
-        <p className="text-sm text-muted-foreground mt-2">Total fixo em plataformas por mês: <strong className="text-foreground">{fmt(totalMonthly)}</strong></p>
+        
       </div>
 
       {/* SUBSCRIPTION DIALOG */}
