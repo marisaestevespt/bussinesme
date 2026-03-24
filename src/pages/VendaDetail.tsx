@@ -194,7 +194,7 @@ export default function VendaDetailPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">Status</Label>
-                    <Select value={form.status || 'na'} onValueChange={v => setForm((f: any) => ({ ...f, status: v }))} disabled={!isOwner}>
+                    <Select value={form.status || 'aguarda_pagamento'} onValueChange={v => setForm((f: any) => ({ ...f, status: v }))} disabled={!isOwner}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>{STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
                     </Select>
