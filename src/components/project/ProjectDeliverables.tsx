@@ -226,7 +226,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
     queryFn: async () => {
       const { data: products } = await supabase.from('products').select('id, name').order('name');
       if (!products?.length) return [];
-      const { data: templates } = await supabase.from('product_deliverable_templates' as any).select('id, product_id, name, description, sort_order');
+      const { data: templates } = await supabase.from('product_deliverable_templates' as any).select('id, product_id, name, description, sort_order, is_recurring');
       const templatesByProduct = new Map<string, any[]>();
       ((templates || []) as any[]).forEach((t: any) => {
         if (!templatesByProduct.has(t.product_id)) templatesByProduct.set(t.product_id, []);
@@ -248,7 +248,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
         project_id: projectId,
         name: t.name,
         description: t.description || null,
-        is_recurring: true,
+        is_recurring: t.is_recurring !== false,
         sort_order: deliverables.length + i,
         status: 'pendente',
       }));
