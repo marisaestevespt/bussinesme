@@ -102,7 +102,7 @@ export function FinSetupFinanceiro({ fin }: Props) {
   const [subForm, setSubForm] = useState<any>({});
 
   const openNewSub = () => {
-    setSubForm({ category: 'outro', periodicity: 'mensal', location: 'portugal', status: 'ativo', value: '', platform_name: '', vat_rate: 0, includes_vat: false });
+    setSubForm({ category: 'outro', periodicity: 'mensal', location: 'portugal', country: 'Portugal', status: 'ativo', value: '', platform_name: '', vat_rate: 0, includes_vat: false, nif: '' });
     setSubOpen(true);
   };
 
@@ -118,13 +118,15 @@ export function FinSetupFinanceiro({ fin }: Props) {
       periodicity: subForm.periodicity,
       location: subForm.location,
       start_date: subForm.start_date ? (typeof subForm.start_date === 'string' ? subForm.start_date : format(subForm.start_date, 'yyyy-MM-dd')) : null,
-      renewal_date: subForm.renewal_date ? (typeof subForm.renewal_date === 'string' ? subForm.renewal_date : format(subForm.renewal_date, 'yyyy-MM-dd')) : null,
+      renewal_date: null,
       status: subForm.status,
       notes: subForm.notes || null,
       documents: subForm.documents || [],
       vat_rate: vatRate,
       includes_vat: !!subForm.includes_vat,
-    });
+      nif: subForm.nif || '',
+      country: subForm.country || '',
+    } as any);
     setSubOpen(false);
     toast.success('Subscrição guardada');
   };
