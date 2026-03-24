@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import { calcMonthlyEquivalent, type Subscription } from '@/hooks/useFinancialData';
-import { InvoiceUpload } from './InvoiceUpload';
+
 import { CategorySelect } from './CategorySelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 
