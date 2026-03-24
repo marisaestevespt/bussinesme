@@ -18,7 +18,7 @@ import { CRM_STATUSES, CRM_SOURCES, INTERACTION_TYPES, statusLabel, getFollowUpS
 import { useCrmData } from '@/hooks/useCrmData';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 interface LeadDetailSheetProps {
@@ -383,12 +383,16 @@ function InteractionDialog({ open, onOpenChange, leadId, onSave }: { open: boole
   );
 }
 
-/* ─── Pipeline History ─── */
+/* ─── Pipeline History + Move ─── */
 function PipelineHistory({ leadId }: { leadId: string }) {
+  const qc = useQueryClient();
+  const [moveOpen, setMoveOpen] = useState(false);
+  const [selectedPipeline, setSelectedPipeline] = useState('');
+  const [selectedStage, setSelectedStage] = useState('');
+
   const { data: history = [] } = useQuery({
     queryKey: ['crm-lead-pipeline-history', leadId],
     queryFn: async () => {
-      // Get all pipeline_leads for this lead
       const { data: plData } = await supabase
         .from('crm_pipeline_leads')
         .select('pipeline_id, stage_id, created_at, updated_at')
@@ -396,7 +400,6 @@ function PipelineHistory({ leadId }: { leadId: string }) {
         .order('created_at', { ascending: false });
       if (!plData || plData.length === 0) return [];
 
-      // Fetch pipeline names and stage names
       const pipelineIds = [...new Set(plData.map(pl => pl.pipeline_id))];
       const stageIds = [...new Set(plData.map(pl => pl.stage_id))];
 
@@ -409,6 +412,7 @@ function PipelineHistory({ leadId }: { leadId: string }) {
       const stageMap = Object.fromEntries((stages || []).map(s => [s.id, { name: s.name, color: s.color }]));
 
       return plData.map(pl => ({
+        pipelineId: pl.pipeline_id,
         pipelineName: pipelineMap[pl.pipeline_id] || 'Pipeline removido',
         stageName: stageMap[pl.stage_id]?.name || 'Etapa removida',
         stageColor: stageMap[pl.stage_id]?.color || '#94a3b8',
@@ -419,28 +423,126 @@ function PipelineHistory({ leadId }: { leadId: string }) {
     enabled: !!leadId,
   });
 
-  if (history.length === 0) return null;
+  // All pipelines for move dialog
+  const { data: allPipelines = [] } = useQuery({
+    queryKey: ['crm-all-pipelines'],
+    queryFn: async () => {
+      const { data } = await supabase.from('crm_pipelines').select('id, name').order('name');
+      return data || [];
+    },
+  });
+
+  const { data: allStages = [] } = useQuery({
+    queryKey: ['crm-all-pipeline-stages'],
+    queryFn: async () => {
+      const { data } = await supabase.from('crm_pipeline_stages').select('id, name, pipeline_id, sort_order').order('sort_order');
+      return data || [];
+    },
+  });
+
+  const stagesForSelected = allStages.filter(s => s.pipeline_id === selectedPipeline);
+
+  const moveLead = useMutation({
+    mutationFn: async () => {
+      if (!selectedPipeline || !selectedStage) return;
+      // Check if already in this pipeline
+      const existing = history.find(h => h.pipelineId === selectedPipeline);
+      if (existing) {
+        const { error } = await supabase.from('crm_pipeline_leads')
+          .update({ stage_id: selectedStage })
+          .eq('pipeline_id', selectedPipeline)
+          .eq('lead_id', leadId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('crm_pipeline_leads')
+          .insert({ pipeline_id: selectedPipeline, lead_id: leadId, stage_id: selectedStage });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['crm-lead-pipeline-history', leadId] });
+      qc.invalidateQueries({ queryKey: ['crm'] });
+      qc.invalidateQueries({ queryKey: ['crm-pipeline-leads'] });
+      toast.success('Lead movida para pipeline');
+      setMoveOpen(false);
+      setSelectedPipeline('');
+      setSelectedStage('');
+    },
+    onError: () => toast.error('Erro ao mover lead'),
+  });
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <GitBranch className="h-4 w-4 text-muted-foreground" />
-        <h3 className="text-sm font-semibold">Histórico de Pipelines</h3>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <GitBranch className="h-4 w-4 text-muted-foreground" />
+          <h3 className="text-sm font-semibold">Pipelines</h3>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => setMoveOpen(true)}>
+          <Plus className="h-3 w-3 mr-1" /> Mover para Pipeline
+        </Button>
       </div>
-      <div className="space-y-2">
-        {history.map((h, i) => (
-          <div key={i} className="flex items-center gap-3 text-sm">
-            <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: h.stageColor }} />
-            <div className="min-w-0 flex-1">
-              <span className="font-medium">{h.pipelineName}</span>
-              <span className="text-muted-foreground"> → {h.stageName}</span>
+
+      {history.length > 0 && (
+        <div className="space-y-2">
+          {history.map((h, i) => (
+            <div key={i} className="flex items-center gap-3 text-sm">
+              <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: h.stageColor }} />
+              <div className="min-w-0 flex-1">
+                <span className="font-medium">{h.pipelineName}</span>
+                <span className="text-muted-foreground"> → {h.stageName}</span>
+              </div>
+              <span className="text-xs text-muted-foreground flex-shrink-0">
+                {format(new Date(h.updatedAt || h.addedAt), 'dd/MM/yyyy')}
+              </span>
             </div>
-            <span className="text-xs text-muted-foreground flex-shrink-0">
-              {format(new Date(h.updatedAt || h.addedAt), 'dd/MM/yyyy')}
-            </span>
+          ))}
+        </div>
+      )}
+
+      {history.length === 0 && (
+        <p className="text-sm text-muted-foreground">Esta lead ainda não está em nenhuma pipeline.</p>
+      )}
+
+      {/* Move Dialog */}
+      <Dialog open={moveOpen} onOpenChange={setMoveOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Mover para Pipeline</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Pipeline</Label>
+              <Select value={selectedPipeline} onValueChange={v => { setSelectedPipeline(v); setSelectedStage(''); }}>
+                <SelectTrigger><SelectValue placeholder="Selecionar pipeline" /></SelectTrigger>
+                <SelectContent>
+                  {allPipelines.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedPipeline && stagesForSelected.length > 0 && (
+              <div>
+                <Label>Etapa</Label>
+                <Select value={selectedStage} onValueChange={setSelectedStage}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar etapa" /></SelectTrigger>
+                  <SelectContent>
+                    {stagesForSelected.map(s => (
+                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <Button
+              className="w-full"
+              disabled={!selectedPipeline || !selectedStage || moveLead.isPending}
+              onClick={() => moveLead.mutate()}
+            >
+              {moveLead.isPending ? 'A mover...' : 'Confirmar'}
+            </Button>
           </div>
-        ))}
-      </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
