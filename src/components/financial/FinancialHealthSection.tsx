@@ -147,7 +147,7 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
   }, [clients, products, currentYear, month]);
 
   return (
-    <Card>
+    <Card className="bg-accent/30 border-accent">
       <CardContent className="pt-5 space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
