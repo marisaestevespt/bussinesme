@@ -878,6 +878,14 @@ export default function ProdutoDetailPage() {
                               placeholder="Descrição (opcional)"
                               readOnly={!isOwner}
                             />
+                            <label className="flex items-center gap-1.5 shrink-0 cursor-pointer text-xs text-muted-foreground">
+                              <Checkbox
+                                checked={t.is_recurring !== false}
+                                onCheckedChange={(checked) => updateRow.mutate({ table: 'product_deliverable_templates', id: t.id, data: { is_recurring: !!checked } })}
+                                disabled={!isOwner}
+                              />
+                              Recorrente
+                            </label>
                             {isOwner && (
                               <Button size="icon" variant="ghost" className="h-8 w-8 opacity-0 group-hover:opacity-100" onClick={() => deleteRow.mutate({ table: 'product_deliverable_templates', id: t.id })}>
                                 <X className="h-3 w-3" />
