@@ -472,8 +472,6 @@ export default function ProjetosPage() {
                   </div>
                 )}
               </div>
-                </div>
-              </div>
               <MemberPicker selected={fMembers} onChange={setFMembers} profiles={profiles} />
               <div className="space-y-1.5">
                 <Label>Notas</Label>
