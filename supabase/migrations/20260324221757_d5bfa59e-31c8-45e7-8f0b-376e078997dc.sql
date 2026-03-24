@@ -1,0 +1,1 @@
+ALTER TABLE public.product_deliverable_templates ALTER COLUMN is_recurring SET DEFAULT false;
