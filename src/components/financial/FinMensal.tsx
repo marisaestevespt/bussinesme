@@ -48,6 +48,8 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
   const { getCategoryLabel } = useFinancialCategories();
   const currentMonth = new Date().getMonth() + 1;
   const [month, setMonth] = useState(currentMonth.toString());
+  const [selectedSale, setSelectedSale] = useState<any>(null);
+  const [saleSheetOpen, setSaleSheetOpen] = useState(false);
   const m = parseInt(month);
 
   const monthSales = useMemo(() => sales.filter(s => s.sale_year === currentYear && s.sale_month === m), [sales, currentYear, m]);
