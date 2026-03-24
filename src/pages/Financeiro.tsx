@@ -237,187 +237,261 @@ export default function FinanceiroPage() {
         <div className="flex items-center justify-between">
           <YearSelector year={year} onChange={setYear} />
           <Button size="sm" variant="outline" onClick={() => {
-            const headers = ['Mês', 'Entradas (€)', 'Saídas (€)', 'Resultado (€)'];
-            const rows = monthlyData.map(d => [d.mes, d.entradas, d.saidas, d.entradas - d.saidas]);
-            rows.push(['TOTAL', totalEntradas, totalSaidas, resultado]);
-            exportCsv(`resumo-anual-${year}.csv`, headers, rows);
+            const headers = ['Mês', 'Entradas (€)', 'Saídas (€)', 'Resultado (€)', 'IVA Cobrado (€)', 'IVA Pago (€)'];
+            const rows = monthlyData.map(d => [d.mes, d.entradas, d.saidas, d.resultado, d.ivaCobrado, d.ivaPago]);
+            rows.push(['TOTAL', totalEntradas, totalSaidas, resultado, ivaCobrado, ivaPago]);
+            exportCsv(`relatorio-anual-${year}.csv`, headers, rows);
           }}>
             <Download className="h-3.5 w-3.5 mr-1" /> Exportar
           </Button>
         </div>
 
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Entradas</p><p className="text-xl font-bold text-emerald-600">{fmt(totalEntradas)}</p></CardContent></Card>
+          <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Saídas</p><p className="text-xl font-bold text-red-600">{fmt(totalSaidas)}</p></CardContent></Card>
+          <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Resultado</p><p className={`text-xl font-bold ${resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(resultado)}</p></CardContent></Card>
+          <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Margem</p><p className={`text-xl font-bold ${margem >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{margem}%</p></CardContent></Card>
+          <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Média Mensal Ent.</p><p className="text-xl font-bold">{fmt(avgEntradas)}</p></CardContent></Card>
+          <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Média Mensal Saí.</p><p className="text-xl font-bold">{fmt(avgSaidas)}</p></CardContent></Card>
+        </div>
 
-        {/* Summary Cards: Entradas | Saídas | Balanço | Margem */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <p className="text-xs text-muted-foreground">Entradas</p>
-              <p className="text-xl font-bold text-emerald-600">{fmt(totalEntradas)}</p>
+        {/* Best/Worst month */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800">
+            <CardContent className="pt-4 flex items-center gap-3">
+              <TrendingUp className="h-5 w-5 text-emerald-600 shrink-0" />
+              <div><p className="text-xs text-muted-foreground">Melhor mês</p><p className="font-semibold">{bestMonth.mes}</p><p className="text-sm text-emerald-600">{fmt(bestMonth.resultado)}</p></div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <p className="text-xs text-muted-foreground">Saídas</p>
-              <p className="text-xl font-bold text-red-600">{fmt(totalSaidas)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <p className="text-xs text-muted-foreground">Balanço</p>
-              <p className={`text-xl font-bold ${resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(resultado)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <p className="text-xs text-muted-foreground">Margem</p>
-              <p className={`text-xl font-bold ${margem >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{margem}%</p>
+          <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20 dark:border-red-800">
+            <CardContent className="pt-4 flex items-center gap-3">
+              <TrendingDown className="h-5 w-5 text-red-600 shrink-0" />
+              <div><p className="text-xs text-muted-foreground">Pior mês</p><p className="font-semibold">{worstMonth.mes}</p><p className="text-sm text-red-600">{fmt(worstMonth.resultado)}</p></div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Entradas: chart + insights */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <Card className="lg:col-span-2">
-            <CardContent className="pt-4 pb-3">
-              <p className="text-xs text-muted-foreground mb-3">Entradas por mês — {year}</p>
-              <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="mes" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                    <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                    <Tooltip formatter={(v: number) => fmt(v)} />
-                    <Bar dataKey="entradas" name="Entradas" fill="#10b981" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+        {/* Entradas vs Saídas chart */}
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm">Entradas vs Saídas — Evolução Mensal</CardTitle></CardHeader>
+          <CardContent className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="mes" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                <Tooltip formatter={(v: number) => fmt(v)} />
+                <Legend />
+                <Bar dataKey="entradas" name="Entradas" fill="#10b981" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="saidas" name="Saídas" fill="#ef4444" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Resultado mensal chart */}
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm">Resultado Mensal (Lucro / Prejuízo)</CardTitle></CardHeader>
+          <CardContent className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="mes" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                <Tooltip formatter={(v: number) => fmt(v)} />
+                <Bar dataKey="resultado" name="Resultado" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Monthly detail table */}
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm">Detalhe Mensal — {year}</CardTitle></CardHeader>
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Mês</TableHead>
+                  <TableHead className="text-right">Entradas</TableHead>
+                  <TableHead className="text-right">Saídas</TableHead>
+                  <TableHead className="text-right">Resultado</TableHead>
+                  <TableHead className="text-right">IVA Cobrado</TableHead>
+                  <TableHead className="text-right">IVA Pago</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {monthlyData.map(d => (
+                  <TableRow key={d.mes}>
+                    <TableCell className="font-medium">{d.mes}</TableCell>
+                    <TableCell className="text-right">{fmt(d.entradas)}</TableCell>
+                    <TableCell className="text-right">{fmt(d.saidas)}</TableCell>
+                    <TableCell className={`text-right font-medium ${d.resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(d.resultado)}</TableCell>
+                    <TableCell className="text-right">{fmt(d.ivaCobrado)}</TableCell>
+                    <TableCell className="text-right">{fmt(d.ivaPago)}</TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="bg-muted/50 font-semibold">
+                  <TableCell>TOTAL</TableCell>
+                  <TableCell className="text-right">{fmt(totalEntradas)}</TableCell>
+                  <TableCell className="text-right">{fmt(totalSaidas)}</TableCell>
+                  <TableCell className={`text-right ${resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(resultado)}</TableCell>
+                  <TableCell className="text-right">{fmt(ivaCobrado)}</TableCell>
+                  <TableCell className="text-right">{fmt(ivaPago)}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        {/* Quarterly comparison table */}
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm">Comparativo Trimestral</CardTitle></CardHeader>
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Trimestre</TableHead>
+                  <TableHead className="text-right">Entradas</TableHead>
+                  <TableHead className="text-right">Saídas</TableHead>
+                  <TableHead className="text-right">Resultado</TableHead>
+                  <TableHead className="text-right">Margem</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {quarterlyData.map(d => (
+                  <TableRow key={d.label}>
+                    <TableCell className="font-medium">{d.label}</TableCell>
+                    <TableCell className="text-right">{fmt(d.entradas)}</TableCell>
+                    <TableCell className="text-right">{fmt(d.saidas)}</TableCell>
+                    <TableCell className={`text-right font-medium ${d.resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(d.resultado)}</TableCell>
+                    <TableCell className="text-right">{d.margem}%</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        {/* Pie charts: Products & Categories */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-1.5"><Package className="h-3.5 w-3.5" /> Receita por Produto</CardTitle></CardHeader>
+            <CardContent>
+              {productPieData.length > 0 ? (
+                <div className="flex items-center gap-4">
+                  <div className="h-48 w-48 shrink-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart><Pie data={productPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={1}>{productPieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><Tooltip formatter={(v: number) => fmt(v)} /></PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="space-y-1.5 text-sm flex-1 min-w-0">
+                    {productPieData.map((p, i) => (
+                      <div key={p.name} className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                        <span className="truncate flex-1">{p.name}</span>
+                        <span className="text-muted-foreground text-xs shrink-0">{fmt(p.value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : <p className="text-sm text-muted-foreground">Sem dados</p>}
             </CardContent>
           </Card>
-          <div className="space-y-4">
-            <Card>
-              <CardContent className="pt-4 pb-3">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Package className="h-3.5 w-3.5 text-muted-foreground" />
-                  <p className="text-xs text-muted-foreground">Produto mais vendido</p>
+
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-1.5"><ArrowUpRight className="h-3.5 w-3.5" /> Despesas por Categoria</CardTitle></CardHeader>
+            <CardContent>
+              {categoryPieData.length > 0 ? (
+                <div className="flex items-center gap-4">
+                  <div className="h-48 w-48 shrink-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart><Pie data={categoryPieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={1}>{categoryPieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}</Pie><Tooltip formatter={(v: number) => fmt(v)} /></PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="space-y-1.5 text-sm flex-1 min-w-0">
+                    {categoryPieData.map((c, i) => (
+                      <div key={c.name} className="flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                        <span className="truncate flex-1">{c.name}</span>
+                        <span className="text-muted-foreground text-xs shrink-0">{fmt(c.value)}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                {productInsights.best ? (
-                  <>
-                    <p className="text-sm font-semibold truncate">{productInsights.best.name}</p>
-                    <p className="text-xs text-muted-foreground">{fmt(productInsights.best.value)}</p>
-                  </>
-                ) : <p className="text-xs text-muted-foreground">Sem dados</p>}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4 pb-3">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Package className="h-3.5 w-3.5 text-muted-foreground" />
-                  <p className="text-xs text-muted-foreground">Produto menos vendido</p>
-                </div>
-                {productInsights.worst ? (
-                  <>
-                    <p className="text-sm font-semibold truncate">{productInsights.worst.name}</p>
-                    <p className="text-xs text-muted-foreground">{fmt(productInsights.worst.value)}</p>
-                  </>
-                ) : <p className="text-xs text-muted-foreground">Sem dados</p>}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4 pb-3">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <UserCheck className="h-3.5 w-3.5 text-muted-foreground" />
-                  <p className="text-xs text-muted-foreground">Clientes no ano</p>
-                </div>
-                <p className="text-xl font-bold">{clientsInYear}</p>
-              </CardContent>
-            </Card>
-          </div>
+              ) : <p className="text-sm text-muted-foreground">Sem dados</p>}
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Saídas: chart + insights */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <Card className="lg:col-span-2">
+        {/* Insights row */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <Card>
             <CardContent className="pt-4 pb-3">
-              <p className="text-xs text-muted-foreground mb-3">Saídas por mês — {year}</p>
-              <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="mes" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                    <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-                    <Tooltip formatter={(v: number) => fmt(v)} />
-                    <Bar dataKey="saidas" name="Saídas" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <div className="flex items-center gap-1.5 mb-1"><Package className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Produto + vendido</p></div>
+              {productInsights.best ? (<><p className="text-sm font-semibold truncate">{productInsights.best.name}</p><p className="text-xs text-muted-foreground">{fmt(productInsights.best.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
             </CardContent>
           </Card>
-          <div className="space-y-4">
-            <Card>
-              <CardContent className="pt-4 pb-3">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
-                  <p className="text-xs text-muted-foreground">Maior categoria de despesa</p>
-                </div>
-                {categoryInsights.biggest ? (
-                  <>
-                    <p className="text-sm font-semibold">{catLabel(categoryInsights.biggest.name)}</p>
-                    <p className="text-xs text-muted-foreground">{fmt(categoryInsights.biggest.value)}</p>
-                  </>
-                ) : <p className="text-xs text-muted-foreground">Sem dados</p>}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-4 pb-3">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
-                  <p className="text-xs text-muted-foreground">Menor categoria de despesa</p>
-                </div>
-                {categoryInsights.smallest ? (
-                  <>
-                    <p className="text-sm font-semibold">{catLabel(categoryInsights.smallest.name)}</p>
-                    <p className="text-xs text-muted-foreground">{fmt(categoryInsights.smallest.value)}</p>
-                  </>
-                ) : <p className="text-xs text-muted-foreground">Sem dados</p>}
-              </CardContent>
-            </Card>
-          </div>
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-1.5 mb-1"><Package className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Produto - vendido</p></div>
+              {productInsights.worst ? (<><p className="text-sm font-semibold truncate">{productInsights.worst.name}</p><p className="text-xs text-muted-foreground">{fmt(productInsights.worst.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-1.5 mb-1"><ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Maior despesa</p></div>
+              {categoryInsights.biggest ? (<><p className="text-sm font-semibold">{catLabel(categoryInsights.biggest.name)}</p><p className="text-xs text-muted-foreground">{fmt(categoryInsights.biggest.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-1.5 mb-1"><ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Menor despesa</p></div>
+              {categoryInsights.smallest ? (<><p className="text-sm font-semibold">{catLabel(categoryInsights.smallest.name)}</p><p className="text-xs text-muted-foreground">{fmt(categoryInsights.smallest.value)}</p></>) : <p className="text-xs text-muted-foreground">Sem dados</p>}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-1.5 mb-1"><UserCheck className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Clientes no ano</p></div>
+              <p className="text-xl font-bold">{clientsInYear}</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* IVA & SS Balance */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
             <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-1.5 mb-2">
-                <Receipt className="h-3.5 w-3.5 text-amber-600" />
-                <p className="text-xs text-muted-foreground">Balanço IVA — {year}</p>
-              </div>
+              <div className="flex items-center gap-1.5 mb-2"><Receipt className="h-3.5 w-3.5 text-amber-600" /><p className="text-xs text-muted-foreground">Balanço IVA — {year}</p></div>
               <div className="grid grid-cols-3 gap-2 text-sm">
-                <div>
-                  <p className="text-[10px] text-muted-foreground">Cobrado</p>
-                  <p className="font-semibold">{fmt(ivaCobrado)}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted-foreground">Pago</p>
-                  <p className="font-semibold">{fmt(ivaPago)}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted-foreground">Balanço</p>
-                  <p className={`font-semibold ${ivaBalanco > 0 ? 'text-amber-600' : ivaBalanco < 0 ? 'text-emerald-600' : ''}`}>
-                    {fmt(ivaBalanco)}
-                  </p>
-                </div>
+                <div><p className="text-[10px] text-muted-foreground">Cobrado</p><p className="font-semibold">{fmt(ivaCobrado)}</p></div>
+                <div><p className="text-[10px] text-muted-foreground">Pago</p><p className="font-semibold">{fmt(ivaPago)}</p></div>
+                <div><p className="text-[10px] text-muted-foreground">Balanço</p><p className={`font-semibold ${ivaBalanco > 0 ? 'text-amber-600' : ivaBalanco < 0 ? 'text-emerald-600' : ''}`}>{fmt(ivaBalanco)}</p></div>
               </div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4 pb-3">
-              <div className="flex items-center gap-1.5 mb-2">
-                <Shield className="h-3.5 w-3.5 text-cyan-600" />
-                <p className="text-xs text-muted-foreground">Segurança Social — {year}</p>
-              </div>
+              <div className="flex items-center gap-1.5 mb-2"><Shield className="h-3.5 w-3.5 text-cyan-600" /><p className="text-xs text-muted-foreground">Segurança Social — {year}</p></div>
               <p className="text-xl font-bold">{fmt(ssTotal)}</p>
               <p className="text-[10px] text-muted-foreground">Total pago no ano</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Nº vendas & despesas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-1.5 mb-1"><BarChart3 className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Total de vendas registadas</p></div>
+              <p className="text-xl font-bold">{yearSales.length}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-1.5 mb-1"><BarChart3 className="h-3.5 w-3.5 text-muted-foreground" /><p className="text-xs text-muted-foreground">Total de despesas registadas</p></div>
+              <p className="text-xl font-bold">{yearExpenses.length}</p>
             </CardContent>
           </Card>
         </div>
