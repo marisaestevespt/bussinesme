@@ -10,27 +10,34 @@ Product detail page layout (reorganized)
 
 ## Section buttons (toggle open/close, not tabs)
 - Comercial & Mkt: Ações de Venda, Funis, Automações, Concorrentes, Tráfego Pago
-- Contabilidade: Dados de Faturação, Calculadora de Oferta, Formas de Pagamento
+- Contabilidade: Dados de Faturação, Calculadora de Oferta (includes Custos do Produto)
 - Processos: SOPs table (from sops table, linked_entity_type=produto), Template de Projeto
-- Backoffice: Cliente do Produto, Links Úteis, Drive, Melhorias, Custos
-- Customer Success: ProductCustomerSuccess component
-- KPIs do Produto: ProductKPIsTab component
+- Backoffice: Cliente do Produto, Links Úteis, Drive, Melhorias
+- Customer Success: ProductCustomerSuccess component (NPS history only)
 - Métricas: ProductMetricsTab (gallery of months with year nav)
 - Arquivo: Brainstorming
 
 ## Auto-created SOPs on new product
-When a product is created, 4 default SOPs are auto-inserted:
+When a product is created, 6 default SOPs are auto-inserted:
 1. Entrada/Onboarding de Clientes
 2. Gestão de Pagamentos
 3. Recolha de NPS/Feedbacks
-4. Fecho/Offboarding de Clientes
+4. Acompanhamento de Cliente
+5. KPIs de Produto
+6. Fecho/Offboarding de Clientes
 
-## SOP ↔ Template Sync (Onboarding & Offboarding)
-- SOPs with "onboarding" in name + linked_entity_type=produto show a structured template table (phase, activity, responsible, rule) inside the SOP detail page
-- These read/write directly to `product_onboarding_templates` / `product_offboarding_templates`
-- The existing automation in ClienteDetail copies template rows to `client_onboarding` / `client_offboarding` when a client is associated with a product — this remains unchanged
+## SOP-specific embedded UIs (inside SOP detail page)
+- Onboarding SOP → Template de Onboarding table (product_onboarding_templates)
+- Offboarding SOP → Template de Offboarding table + Antecedência de Renovação
+- Pagamentos SOP → Formas de Pagamento checkboxes
+- NPS/Feedbacks SOP → NPS config (cadence, responsible, message, form URL)
+- Acompanhamento SOP → Marcos de Acompanhamento table (product_milestones)
+- KPIs SOP → KPIs config (create/toggle/delete KPIs with type, source, goals)
 
-## Removed
-- Standalone "Processos" card from main page — moved to Processos section
-- Standalone Onboarding/Offboarding cards from Processos section — now inside SOP detail
+## Removed/moved
+- Standalone "Processos" card from main page → Processos section
+- Standalone Onboarding/Offboarding cards → inside SOP detail
+- KPIs do Produto tab → inside KPIs de Produto SOP
+- Custos do Produto standalone card → merged into Calculadora de Oferta
+- Antecedência de Renovação → inside Offboarding SOP
 - Tabs UI replaced by toggle buttons that expand sections below
