@@ -1399,6 +1399,43 @@ export default function ProdutoDetailPage() {
                   </CardContent>
                 </Card>
 
+                {/* Reuniões */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Video className="h-4 w-4" /> Reuniões
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {productMeetings.length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-4 text-center">Sem reuniões associadas a este produto.</p>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Título</TableHead>
+                            <TableHead>Data</TableHead>
+                            <TableHead>Cliente</TableHead>
+                            <TableHead>Estado</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {productMeetings.map((mt: any) => (
+                            <TableRow key={mt.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/reunioes/${mt.id}`)}>
+                              <TableCell className="font-medium">{mt.title}</TableCell>
+                              <TableCell>{mt.date_time ? format(new Date(mt.date_time), 'dd/MM/yyyy HH:mm') : '—'}</TableCell>
+                              <TableCell>{mt.client_name || '—'}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline">{mt.status}</Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </CardContent>
+                </Card>
+
               </div>
             )}
 
