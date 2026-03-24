@@ -62,8 +62,8 @@ export function FinEntradas({ sales, currentYear }: Props) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>ID</TableHead>
                 <TableHead>Data Pgto.</TableHead>
                 <TableHead>Descrição</TableHead>
                 <TableHead className="text-right">Valor Base</TableHead>
@@ -81,8 +81,8 @@ export function FinEntradas({ sales, currentYear }: Props) {
                 <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground py-8">Sem entradas</TableCell></TableRow>
               ) : filtered.map(s => (
                 <TableRow key={s.id}>
-                  <TableCell className="font-mono text-xs">{s.sale_id}</TableCell>
                   <TableCell><Badge variant="outline" className={STATUS_BADGE[s.status]?.cls || ''}>{STATUS_BADGE[s.status]?.label || s.status}</Badge></TableCell>
+                  <TableCell className="font-mono text-xs">{s.sale_id}</TableCell>
                   <TableCell>{s.payment_date || '—'}</TableCell>
                   <TableCell className="truncate max-w-[200px]">{s.description || '—'}</TableCell>
                   <TableCell className="text-right">{fmt(s.base_value)}</TableCell>
