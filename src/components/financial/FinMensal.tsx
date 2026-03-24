@@ -268,7 +268,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
                 );
               })}
               {monthExpenses.filter(e => e.source_type !== 'subscription').length === 0 && activeSubs.length === 0 && (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Sem saídas</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">Sem saídas</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
