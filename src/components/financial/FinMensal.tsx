@@ -413,7 +413,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
                   const iva = Math.round((s.invoice_total - s.base_value) * 100) / 100;
                   return (
                     <TableRow key={idx}>
-                      <TableCell className="text-sm">{s.client || s.product || s.sale_id || `Venda ${idx + 1}`}</TableCell>
+                      <TableCell className="text-sm">{s.client || s.product || `Venda ${idx + 1}`}</TableCell>
                       <TableCell className="text-right text-sm">{fmt(s.invoice_total)}</TableCell>
                       <TableCell className="text-right text-sm">{fmt(s.base_value)}</TableCell>
                       <TableCell className="text-right text-sm font-medium">{fmt(iva)}</TableCell>
@@ -435,7 +435,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
       {/* IVA Pago Detail */}
       <Dialog open={ivaPagoOpen} onOpenChange={setIvaPagoOpen}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle className="text-base">IVA Pago — {FULL[m - 1]}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="text-base">IVA Pago — {MONTHS[m - 1]}</DialogTitle></DialogHeader>
           {monthExpenses.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4">Sem despesas registadas neste mês.</p>
           ) : (
