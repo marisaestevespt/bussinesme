@@ -102,7 +102,7 @@ export function FinSetupFinanceiro({ fin }: Props) {
   const [subForm, setSubForm] = useState<any>({});
 
   const openNewSub = () => {
-    setSubForm({ category: 'outro', periodicity: 'mensal', location: 'portugal', status: 'ativo', value: '', platform_name: '', vat_rate: 0, includes_vat: false });
+    setSubForm({ category: 'outro', periodicity: 'mensal', location: 'portugal', country: 'Portugal', status: 'ativo', value: '', platform_name: '', vat_rate: 0, includes_vat: false, nif: '' });
     setSubOpen(true);
   };
 
@@ -118,13 +118,15 @@ export function FinSetupFinanceiro({ fin }: Props) {
       periodicity: subForm.periodicity,
       location: subForm.location,
       start_date: subForm.start_date ? (typeof subForm.start_date === 'string' ? subForm.start_date : format(subForm.start_date, 'yyyy-MM-dd')) : null,
-      renewal_date: subForm.renewal_date ? (typeof subForm.renewal_date === 'string' ? subForm.renewal_date : format(subForm.renewal_date, 'yyyy-MM-dd')) : null,
+      renewal_date: null,
       status: subForm.status,
       notes: subForm.notes || null,
       documents: subForm.documents || [],
       vat_rate: vatRate,
       includes_vat: !!subForm.includes_vat,
-    });
+      nif: subForm.nif || '',
+      country: subForm.country || '',
+    } as any);
     setSubOpen(false);
     toast.success('Subscrição guardada');
   };
@@ -238,9 +240,26 @@ export function FinSetupFinanceiro({ fin }: Props) {
             <div><Label>Categoria</Label>
               <CategorySelect type="subscription" value={subForm.category || 'outro'} onValueChange={v => setSubForm((f: any) => ({ ...f, category: v }))} />
             </div>
-            <div className="flex items-center gap-2 py-1">
-              <Switch checked={subForm.includes_vat || false} onCheckedChange={v => setSubForm((f: any) => ({ ...f, includes_vat: v }))} />
-              <Label className="text-sm font-normal">Valor inclui IVA</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Status</Label>
+                <Select value={subForm.status || 'ativo'} onValueChange={v => setSubForm((f: any) => ({ ...f, status: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{SUB_STATUS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div><Label>Data de Início</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start", !subForm.start_date && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {subForm.start_date ? format(subForm.start_date instanceof Date ? subForm.start_date : new Date(subForm.start_date), 'dd/MM/yyyy') : 'Selecionar'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={subForm.start_date instanceof Date ? subForm.start_date : undefined} onSelect={d => setSubForm((f: any) => ({ ...f, start_date: d }))} className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div><Label>{subForm.includes_vat ? 'Valor c/ IVA (€)' : 'Valor (€)'}</Label><Input type="number" step="0.01" value={subForm.value || ''} onChange={e => setSubForm((f: any) => ({ ...f, value: e.target.value }))} /></div>
@@ -257,6 +276,10 @@ export function FinSetupFinanceiro({ fin }: Props) {
                 </Select>
               </div>
             </div>
+            <div className="flex items-center gap-2 py-1">
+              <Switch checked={subForm.includes_vat || false} onCheckedChange={v => setSubForm((f: any) => ({ ...f, includes_vat: v }))} />
+              <Label className="text-sm font-normal">Valor inclui IVA</Label>
+            </div>
             {subForm.value && parseFloat(subForm.value) > 0 && (subForm.vat_rate ?? 0) > 0 && (
               <p className="text-xs text-muted-foreground">
                 {subForm.includes_vat
@@ -265,30 +288,17 @@ export function FinSetupFinanceiro({ fin }: Props) {
                 }
               </p>
             )}
-            <div><Label>Localização</Label>
-              <Select value={subForm.location || 'portugal'} onValueChange={v => setSubForm((f: any) => ({ ...f, location: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div><Label>Data de Início</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start", !subForm.start_date && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {subForm.start_date ? format(subForm.start_date instanceof Date ? subForm.start_date : new Date(subForm.start_date), 'dd/MM/yyyy') : 'Selecionar'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={subForm.start_date instanceof Date ? subForm.start_date : undefined} onSelect={d => setSubForm((f: any) => ({ ...f, start_date: d }))} className="p-3 pointer-events-auto" />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div><Label>Status</Label>
-              <Select value={subForm.status || 'ativo'} onValueChange={v => setSubForm((f: any) => ({ ...f, status: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{SUB_STATUS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>NIF da Plataforma</Label><Input value={subForm.nif || ''} onChange={e => setSubForm((f: any) => ({ ...f, nif: e.target.value }))} placeholder="Ex: 123456789" /></div>
+              <div><Label>País</Label>
+                <Select value={subForm.location || 'portugal'} onValueChange={v => {
+                  const countryMap: Record<string, string> = { portugal: 'Portugal', ue: 'União Europeia', fora_ue: 'Fora da UE' };
+                  setSubForm((f: any) => ({ ...f, location: v, country: countryMap[v] || '' }));
+                }}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
             </div>
             <div><Label>Notas</Label><Input value={subForm.notes || ''} onChange={e => setSubForm((f: any) => ({ ...f, notes: e.target.value }))} /></div>
             <div className="flex gap-2">
