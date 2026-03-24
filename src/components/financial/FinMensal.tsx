@@ -87,7 +87,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
   // SS value for this month (stored as expense with category 'seguranca_social')
   const ssExpense = useMemo(() => monthExpenses.find(e => e.category === 'seguranca_social'), [monthExpenses]);
   const [ssValue, setSsValue] = useState('');
-  const [ssLoaded, setSsLoaded] = useState(false);
+  const [ssEditing, setSsEditing] = useState(false);
   
   // Sync SS value when month changes
   useMemo(() => {
