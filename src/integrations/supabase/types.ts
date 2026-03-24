@@ -5887,6 +5887,7 @@ export type Database = {
           custom_role_id: string | null
           decisoes: Json | null
           department: string
+          departments: string[] | null
           id: string
           inputs: Json | null
           linked_entity_id: string | null
@@ -5912,6 +5913,7 @@ export type Database = {
           custom_role_id?: string | null
           decisoes?: Json | null
           department?: string
+          departments?: string[] | null
           id?: string
           inputs?: Json | null
           linked_entity_id?: string | null
@@ -5937,6 +5939,7 @@ export type Database = {
           custom_role_id?: string | null
           decisoes?: Json | null
           department?: string
+          departments?: string[] | null
           id?: string
           inputs?: Json | null
           linked_entity_id?: string | null

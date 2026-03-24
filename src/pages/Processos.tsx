@@ -73,7 +73,7 @@ export default function ProcessosPage() {
   const [selectedDept, setSelectedDept] = useState<string | null>(null);
   const [showNewSop, setShowNewSop] = useState(false);
   const [newSopName, setNewSopName] = useState('');
-  const [newSopDept, setNewSopDept] = useState('administrativo');
+  const [newSopDepts, setNewSopDepts] = useState<string[]>(['marketing']);
   const [newSopStatus, setNewSopStatus] = useState('para_criar');
   const [activeTab, setActiveTab] = useState('galeria');
 
@@ -105,16 +105,18 @@ export default function ProcessosPage() {
     mutationFn: async () => {
       const { error } = await supabase.from('sops').insert({
         name: newSopName,
-        department: newSopDept,
+        department: newSopDepts[0] || 'marketing',
+        departments: newSopDepts,
         status: newSopStatus,
         created_by: user?.id,
-      });
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sops'] });
       setShowNewSop(false);
       setNewSopName('');
+      setNewSopDepts(['marketing']);
       toast.success('Processo criado');
     },
     onError: () => toast.error('Erro ao criar processo'),
@@ -128,10 +130,10 @@ export default function ProcessosPage() {
 
   const sopCountByDept = DEPARTMENTS.map(d => ({
     ...d,
-    count: sops.filter(s => s.department === d.value).length,
+    count: sops.filter(s => (s as any).departments?.includes(d.value) || s.department === d.value).length,
   }));
 
-  const deptSops = selectedDept ? sops.filter(s => s.department === selectedDept) : [];
+  const deptSops = selectedDept ? sops.filter(s => (s as any).departments?.includes(selectedDept) || s.department === selectedDept) : [];
 
   const allSopsSorted = [...sops].sort((a, b) => {
     const numA = parseInt(a.sop_id?.replace('SOP-', '') || '0');
@@ -157,7 +159,7 @@ export default function ProcessosPage() {
             onRename={(id, label) => renameView({ id, label })}
             onDelete={(id) => { if (activeTab.startsWith('custom_')) setActiveTab('galeria'); deleteView(id); }}
           />
-          <Button onClick={() => { if (selectedDept) setNewSopDept(selectedDept); setShowNewSop(true); }} size="sm">
+          <Button onClick={() => { if (selectedDept) setNewSopDepts([selectedDept]); setShowNewSop(true); }} size="sm">
             <Plus className="h-4 w-4 mr-1" /> Novo Processo
           </Button>
         </div>
@@ -312,7 +314,7 @@ export default function ProcessosPage() {
                       <TableRow key={sop.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/processos/${sop.id}`)}>
                         <TableCell className="font-mono text-sm">{sop.sop_id}</TableCell>
                         <TableCell className="font-medium">{sop.name}</TableCell>
-                        <TableCell className="text-muted-foreground">{getDeptLabel(sop.department)}</TableCell>
+                        <TableCell className="text-muted-foreground">{((sop as any).departments?.length ? (sop as any).departments : [sop.department]).map((d: string) => getDeptLabel(d)).join(', ')}</TableCell>
                         <TableCell><Badge className={cn('text-xs', statusInfo.color)}>{statusInfo.label}</Badge></TableCell>
                       </TableRow>
                     );
@@ -334,11 +336,24 @@ export default function ProcessosPage() {
               <Input value={newSopName} onChange={e => setNewSopName(e.target.value)} placeholder="Ex: Onboarding de cliente" />
             </div>
             <div>
-              <Label>Departamento</Label>
-              <Select value={newSopDept} onValueChange={setNewSopDept}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{PROCESS_DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
-              </Select>
+              <Label>Departamentos</Label>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {PROCESS_DEPARTMENTS.map(d => (
+                  <button
+                    key={d.value}
+                    type="button"
+                    onClick={() => setNewSopDepts(prev => prev.includes(d.value) ? prev.filter(v => v !== d.value) : [...prev, d.value])}
+                    className={cn(
+                      'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors',
+                      newSopDepts.includes(d.value)
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-muted text-muted-foreground border-border hover:bg-accent'
+                    )}
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </div>
             </div>
             <div>
               <Label>Status</Label>
@@ -347,7 +362,7 @@ export default function ProcessosPage() {
                 <SelectContent>{SOP_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <Button className="w-full" disabled={!newSopName.trim()} onClick={() => createSop.mutate()}>Criar Processo</Button>
+            <Button className="w-full" disabled={!newSopName.trim() || newSopDepts.length === 0} onClick={() => createSop.mutate()}>Criar Processo</Button>
           </div>
         </DialogContent>
       </Dialog>
