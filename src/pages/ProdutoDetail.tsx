@@ -1185,7 +1185,7 @@ export default function ProdutoDetailPage() {
                 {/* Template de Offboarding */}
                 <Card>
                   <CardHeader className="flex-row items-center justify-between">
-                    <CardTitle className="text-base">Template de Offboarding</CardTitle>
+                    <CardTitle className="text-base">SOP: Fecho/Offboarding de Clientes</CardTitle>
                     {isOwner && (
                       <Button size="sm" variant="outline" onClick={() => addRow.mutate({ table: 'product_offboarding_templates', data: { product_id: id, activity: '' } })}>
                         <Plus className="h-3 w-3 mr-1" /> Adicionar Passo
