@@ -70,8 +70,8 @@ export default function ProdutosPage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <PageHeader title="Produtos" />
+        <PageHeader title="Produtos" />
+        <div className="flex items-center justify-end">
           <Button size="sm" onClick={() => navigate('/hub/produtos/novo')}>
             <Plus className="h-4 w-4 mr-1" /> Novo Produto
           </Button>
