@@ -259,35 +259,32 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
           <Table>
             <TableHeader><TableRow><TableHead className="whitespace-nowrap">ID</TableHead><TableHead>Descrição</TableHead><TableHead>Categoria</TableHead><TableHead>Localização</TableHead><TableHead className="text-right whitespace-nowrap">Base (€)</TableHead><TableHead className="text-right whitespace-nowrap">IVA %</TableHead><TableHead className="text-right whitespace-nowrap">Total c/ IVA</TableHead><TableHead>Data</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
             <TableBody>
-              {monthExpenses.filter(e => e.source_type !== 'subscription').map(e => (
+              {monthExpenses.map(e => (
                 <TableRow key={e.id}>
                   <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{(e as any).expense_id || '—'}</TableCell>
                   <TableCell>{e.description || '—'}</TableCell>
                   <TableCell>{getCategoryLabel('expense', e.category)}</TableCell>
-                  <TableCell>{(e as any).location === 'portugal' ? 'Portugal' : (e as any).location === 'ue' ? 'UE' : (e as any).location === 'fora_ue' ? 'Fora UE' : (e as any).location || '—'}</TableCell>
+                  <TableCell>{LOC_LABELS[(e as any).location] || (e as any).location || '—'}</TableCell>
                   <TableCell className="text-right">{fmt(e.base_value)}</TableCell>
                   <TableCell className="text-right">{(e as any).vat_rate ?? 0}%</TableCell>
                   <TableCell className="text-right">{fmt(e.total_with_vat)}</TableCell>
                   <TableCell className="whitespace-nowrap">{(e as any).expense_date || '—'}</TableCell>
-                  <TableCell><Badge variant="outline">{e.status}</Badge></TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className={`cursor-pointer ${e.status === 'pago' ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'}`}
+                      onClick={async () => {
+                        const newStatus = e.status === 'pago' ? 'pendente' : 'pago';
+                        await fin.upsertExpense.mutateAsync({ id: e.id, status: newStatus } as any);
+                        toast.success(`Status alterado para ${newStatus}`);
+                      }}
+                    >
+                      {e.status === 'pago' ? '✓ Pago' : 'Pendente'}
+                    </Badge>
+                  </TableCell>
                 </TableRow>
               ))}
-              {activeSubs.map(sub => {
-                const linkedExpense = subExpenseMap.get(sub.id);
-                const isPaid = !!linkedExpense && linkedExpense.status === 'pago';
-                return (
-                  <SubRow
-                    key={sub.id}
-                    sub={sub}
-                    linkedExpense={linkedExpense}
-                    isPaid={isPaid}
-                    month={m}
-                    currentYear={currentYear}
-                    fin={fin}
-                  />
-                );
-              })}
-              {monthExpenses.filter(e => e.source_type !== 'subscription').length === 0 && activeSubs.length === 0 && (
+              {monthExpenses.length === 0 && (
                 <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">Sem saídas</TableCell></TableRow>
               )}
             </TableBody>
