@@ -30,6 +30,7 @@ import { MentionTextarea } from '@/components/MentionTextarea';
 import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 import { PROJECT_TYPES, PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel, getDeptInfo, getInitials } from './Projetos';
 import { LaunchDashboard } from '@/components/launch/LaunchDashboard';
+import { ProjectDeliverables } from '@/components/project/ProjectDeliverables';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -653,6 +654,9 @@ export default function ProjetoDetailPage() {
             </div>
             <div><Label className="text-xs">Equipa</Label><div className="flex gap-1 mt-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div></div>
             <Separator />
+            {/* Deliverables */}
+            <ProjectDeliverables projectId={id!} profiles={profiles} />
+            <Separator />
             <div><Label className="text-xs">Notas</Label><MentionTextarea value={local.notes || ''} onChange={v => updateField('notes', v)} rows={6} placeholder="Notas do projeto..." /></div>
           </div>
           {dirty && <div className="sticky bottom-4"><Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="gap-2 shadow-lg"><Save className="h-4 w-4" /> Guardar</Button></div>}
@@ -716,6 +720,11 @@ export default function ProjetoDetailPage() {
             )}
           </div>
         </div>
+
+        <Separator />
+
+        {/* Deliverables */}
+        <ProjectDeliverables projectId={id!} profiles={profiles} />
 
         <Separator />
 
