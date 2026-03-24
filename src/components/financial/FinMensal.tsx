@@ -22,6 +22,7 @@ import { CategorySelect } from './CategorySelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 import { EntryStatusSelect, ExpenseStatusSelect } from './InlineStatusSelect';
 import { EntryDetailSheet } from './EntryDetailSheet';
+import { ExpenseDetailSheet } from './ExpenseDetailSheet';
 import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -51,6 +52,8 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
   const [month, setMonth] = useState(currentMonth.toString());
   const [selectedSale, setSelectedSale] = useState<any>(null);
   const [saleSheetOpen, setSaleSheetOpen] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
+  const [expenseSheetOpen, setExpenseSheetOpen] = useState(false);
   const m = parseInt(month);
 
   // Active member contracts
@@ -306,8 +309,8 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
             <TableBody>
               {/* Regular expenses (excluding subscription/contract-linked ones to avoid duplicates) */}
               {monthExpenses.filter(e => e.source_type !== 'subscription' && e.source_type !== 'contract').map(e => (
-                <TableRow key={e.id}>
-                  <TableCell>
+                <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedExpense(e); setExpenseSheetOpen(true); }}>
+                  <TableCell onClick={e => e.stopPropagation()}>
                     <ExpenseStatusSelect
                       expenseId={e.id}
                       currentStatus={e.status}
@@ -443,6 +446,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
       </Dialog>
 
       <EntryDetailSheet sale={selectedSale} open={saleSheetOpen} onOpenChange={setSaleSheetOpen} />
+      <ExpenseDetailSheet expense={selectedExpense} open={expenseSheetOpen} onOpenChange={setExpenseSheetOpen} fin={fin} />
     </div>
   );
 }
