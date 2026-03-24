@@ -475,6 +475,81 @@ export type Database = {
         }
         Relationships: []
       }
+      capacity_scenario_products: {
+        Row: {
+          created_at: string
+          current_clients: number
+          hours_per_client_month: number
+          id: string
+          product_id: string | null
+          product_name: string
+          scenario_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_clients?: number
+          hours_per_client_month?: number
+          id?: string
+          product_id?: string | null
+          product_name: string
+          scenario_id: string
+        }
+        Update: {
+          created_at?: string
+          current_clients?: number
+          hours_per_client_month?: number
+          id?: string
+          product_id?: string | null
+          product_name?: string
+          scenario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "capacity_scenario_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "capacity_scenario_products_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "capacity_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      capacity_scenarios: {
+        Row: {
+          admin_percent: number
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          updated_at: string
+          useful_hours_per_month: number
+        }
+        Insert: {
+          admin_percent?: number
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          updated_at?: string
+          useful_hours_per_month?: number
+        }
+        Update: {
+          admin_percent?: number
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          updated_at?: string
+          useful_hours_per_month?: number
+        }
+        Relationships: []
+      }
       channel_monthly_metrics: {
         Row: {
           channel_id: string
