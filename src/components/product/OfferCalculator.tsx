@@ -24,6 +24,51 @@ interface Props {
   onDeleteCost: (id: string) => void;
 }
 
+function CostRow({ cost, isOwner, onUpdate, onDelete }: {
+  cost: PersistedCost;
+  isOwner: boolean;
+  onUpdate: (id: string, data: Partial<PersistedCost>) => void;
+  onDelete: (id: string) => void;
+}) {
+  const [name, setName] = useState(cost.name);
+  const [usageDesc, setUsageDesc] = useState(cost.usage_desc);
+  const [value, setValue] = useState(String(cost.value || ''));
+  const [dirty, setDirty] = useState(false);
+
+  const handleSave = () => {
+    onUpdate(cost.id, { name, usage_desc: usageDesc, value: Number(value) || 0 });
+    setDirty(false);
+  };
+
+  return (
+    <TableRow>
+      <TableCell>
+        <Input value={name} onChange={e => { setName(e.target.value); setDirty(true); }} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} />
+      </TableCell>
+      <TableCell>
+        <Input value={usageDesc} onChange={e => { setUsageDesc(e.target.value); setDirty(true); }} className="border-none shadow-none h-auto p-0 text-sm" readOnly={!isOwner} />
+      </TableCell>
+      <TableCell>
+        <Input type="number" value={value} onChange={e => { setValue(e.target.value); setDirty(true); }} className="border-none shadow-none h-auto p-0 text-sm w-20" readOnly={!isOwner} />
+      </TableCell>
+      {isOwner && (
+        <TableCell>
+          <div className="flex gap-1">
+            {dirty && (
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-green-600 hover:text-green-700" onClick={handleSave}>
+                <Check className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDelete(cost.id)}>
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </div>
+        </TableCell>
+      )}
+    </TableRow>
+  );
+}
+
 export function OfferCalculator({ vatRate, costs, isOwner, onAddCost, onUpdateCost, onDeleteCost }: Props) {
   const [desiredMargin, setDesiredMargin] = useState('80');
   const [taxRate, setTaxRate] = useState('25');
