@@ -161,6 +161,7 @@ export default function ProjetosPage() {
   const [fDeadline, setFDeadline] = useState<Date | undefined>();
   const [fMembers, setFMembers] = useState<string[]>([]);
   const [fNotes, setFNotes] = useState('');
+  const [fMode, setFMode] = useState('pontual');
 
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ['projects'],
@@ -254,10 +255,11 @@ export default function ProjetosPage() {
         department: fDept || null,
         client_name: fClient || null,
         start_date: fStartDate ? format(fStartDate, 'yyyy-MM-dd') : null,
-        deadline: fDeadline ? format(fDeadline, 'yyyy-MM-dd') : null,
+        deadline: fMode === 'recorrente' ? null : (fDeadline ? format(fDeadline, 'yyyy-MM-dd') : null),
         notes: fNotes || null,
         created_by: user.id,
-      }).select().single();
+        project_mode: fMode,
+      } as any).select().single();
       if (error) throw error;
 
       if (fMembers.length > 0) {
@@ -300,7 +302,7 @@ export default function ProjetosPage() {
   });
 
   function resetForm() {
-    setFName(''); setFType('interno'); setFStatus('em_ideia'); setFDept(''); setFClient(''); setFStartDate(undefined); setFDeadline(undefined); setFMembers([]); setFNotes('');
+    setFName(''); setFType('interno'); setFStatus('em_ideia'); setFDept(''); setFClient(''); setFStartDate(undefined); setFDeadline(undefined); setFMembers([]); setFNotes(''); setFMode('pontual');
     setDialogOpen(false);
   }
 
@@ -395,6 +397,19 @@ export default function ProjetosPage() {
               <div className="space-y-1.5">
                 <Label>Nome do projeto *</Label>
                 <Input value={fName} onChange={e => setFName(e.target.value)} placeholder="Nome do projeto" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Modo do projeto</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" onClick={() => setFMode('pontual')} className={cn("flex flex-col items-start gap-1 p-3 rounded-lg border-2 transition-colors text-left", fMode === 'pontual' ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30")}>
+                    <span className="text-sm font-semibold">📌 Pontual</span>
+                    <span className="text-[11px] text-muted-foreground">Início, meio e fim definidos</span>
+                  </button>
+                  <button type="button" onClick={() => setFMode('recorrente')} className={cn("flex flex-col items-start gap-1 p-3 rounded-lg border-2 transition-colors text-left", fMode === 'recorrente' ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/30")}>
+                    <span className="text-sm font-semibold">🔄 Recorrente</span>
+                    <span className="text-[11px] text-muted-foreground">Entregas cíclicas mensais</span>
+                  </button>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
