@@ -617,8 +617,8 @@ export default function OperacaoPage() {
           </TabsList>
 
           {/* ─── TAB CLIENTES ─── */}
-          <TabsContent value="clientes">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <TabsContent value="clientes" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Col 1: Status resumo */}
               <Card>
                 <CardHeader className="pb-2">
@@ -682,30 +682,30 @@ export default function OperacaoPage() {
                   })}
                 </CardContent>
               </Card>
-
-              {/* Col 3: Tarefas */}
-              <Card>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <ListTodo className="h-4 w-4" /> Tarefas
-                      <Badge variant="outline" className="text-[10px]">{clientTasks.length}</Badge>
-                    </CardTitle>
-                    <TaskDynamicFilters filters={clientFilters} onChange={setClientFilters} profiles={profiles} projects={clientProjectOptions} />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0 space-y-0.5 max-h-[320px] overflow-y-auto">
-                  {filteredClientTasks.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-3">Nenhuma tarefa neste filtro</p>
-                  ) : filteredClientTasks.map(t => renderTaskRow(t))}
-                </CardContent>
-              </Card>
             </div>
+
+            {/* Tarefas — full width below */}
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <ListTodo className="h-4 w-4" /> Tarefas de Clientes
+                    <Badge variant="outline" className="text-[10px]">{clientTasks.length}</Badge>
+                  </CardTitle>
+                  <TaskDynamicFilters filters={clientFilters} onChange={setClientFilters} profiles={profiles} projects={clientProjectOptions} />
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-0.5 max-h-[400px] overflow-y-auto">
+                {filteredClientTasks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-3">Nenhuma tarefa neste filtro</p>
+                ) : filteredClientTasks.map(t => renderTaskRow(t))}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* ─── TAB INTERNO ─── */}
-          <TabsContent value="interno">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <TabsContent value="interno" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Col 1: Gráfico por departamento */}
               <Card>
                 <CardHeader className="pb-2">
@@ -736,25 +736,7 @@ export default function OperacaoPage() {
                 </CardContent>
               </Card>
 
-              {/* Col 2: Tarefas internas */}
-              <Card>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <ListTodo className="h-4 w-4" /> Tarefas
-                      <Badge variant="outline" className="text-[10px]">{internoTasks.length}</Badge>
-                    </CardTitle>
-                    <TaskDynamicFilters filters={internoFilters} onChange={setInternoFilters} profiles={profiles} projects={internoProjectOptions} />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0 space-y-0.5 max-h-[320px] overflow-y-auto">
-                  {filteredInternoTasks.length === 0 ? (
-                    <p className="text-sm text-muted-foreground py-3">Nenhuma tarefa neste filtro</p>
-                  ) : filteredInternoTasks.map(t => renderTaskRow(t))}
-                </CardContent>
-              </Card>
-
-              {/* Col 3: Equipa */}
+              {/* Col 2: Equipa */}
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
@@ -780,6 +762,24 @@ export default function OperacaoPage() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Tarefas internas — full width below */}
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <ListTodo className="h-4 w-4" /> Tarefas Internas
+                    <Badge variant="outline" className="text-[10px]">{internoTasks.length}</Badge>
+                  </CardTitle>
+                  <TaskDynamicFilters filters={internoFilters} onChange={setInternoFilters} profiles={profiles} projects={internoProjectOptions} />
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-0.5 max-h-[400px] overflow-y-auto">
+                {filteredInternoTasks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-3">Nenhuma tarefa neste filtro</p>
+                ) : filteredInternoTasks.map(t => renderTaskRow(t))}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 
