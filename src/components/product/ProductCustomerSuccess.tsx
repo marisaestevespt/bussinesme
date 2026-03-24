@@ -15,13 +15,6 @@ import { useTeamData } from '@/hooks/useTeamData';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 
-const MILESTONE_TYPE_OPTIONS = [
-  { value: 'check_in', label: 'Check-in' },
-  { value: 'feedback', label: 'Recolha de Feedback' },
-  { value: 'reuniao', label: 'Reunião' },
-  { value: 'email', label: 'Email' },
-  { value: 'outro', label: 'Outro' },
-];
 
 const NPS_STATUS_OPTIONS = [
   { value: 'por_fazer', label: 'Por fazer' },
@@ -150,48 +143,6 @@ export function ProductCustomerSuccess({ productId, isOwner }: Props) {
     ? (npsRecords.reduce((s: number, r: any) => s + Number(r.nps_score || 0), 0) / npsRecords.length).toFixed(1)
     : '—';
 
-  // ---- Milestones ----
-  const { data: milestones = [] } = useQuery({
-    queryKey: ['product-milestones', productId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('product_milestones' as any)
-        .select('*')
-        .eq('product_id', productId)
-        .order('days_after_start');
-      return (data || []) as any[];
-    },
-  });
-
-  const addMilestone = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from('product_milestones' as any).insert({
-        product_id: productId,
-        milestone: '',
-        days_after_start: 0,
-        milestone_type: 'check_in',
-        sort_order: milestones.length,
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['product-milestones', productId] }),
-  });
-
-  const updateMilestone = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      const { error } = await supabase.from('product_milestones' as any).update(data).eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['product-milestones', productId] }),
-  });
-
-  const deleteMilestone = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('product_milestones' as any).delete().eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['product-milestones', productId] }),
-  });
 
   const getMemberName = (id: string | null) => {
     if (!id) return '—';
@@ -310,113 +261,6 @@ export function ProductCustomerSuccess({ productId, isOwner }: Props) {
         </CardContent>
       </Card>
 
-      {/* Milestones */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-base">Marcos de Acompanhamento</CardTitle>
-              <p className="text-xs text-muted-foreground mt-1">
-                Estes marcos são aplicados automaticamente à ficha de cada cliente associado a este produto.
-              </p>
-            </div>
-            {isOwner && (
-              <Button variant="outline" size="sm" onClick={() => addMilestone.mutate()}>
-                <Plus className="h-4 w-4 mr-1" /> Adicionar Marco
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {milestones.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">Sem marcos definidos.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Marco</TableHead>
-                  <TableHead className="w-[120px]">Dias após início</TableHead>
-                  <TableHead className="w-[160px]">Tipo</TableHead>
-                  <TableHead className="w-[180px]">Responsável</TableHead>
-                  {isOwner && <TableHead className="w-[50px]" />}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {milestones.map((m: any) => (
-                  <TableRow key={m.id}>
-                    <TableCell>
-                      {isOwner ? (
-                        <Input
-                          value={m.milestone}
-                          onChange={e => updateMilestone.mutate({ id: m.id, data: { milestone: e.target.value } })}
-                          className="h-8 text-sm"
-                          placeholder="Ex: Check-in semana 2"
-                        />
-                      ) : (
-                        <span className="text-sm">{m.milestone || '—'}</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {isOwner ? (
-                        <Input
-                          type="number"
-                          min={0}
-                          value={m.days_after_start}
-                          onChange={e => updateMilestone.mutate({ id: m.id, data: { days_after_start: Number(e.target.value) } })}
-                          className="h-8 text-sm w-20"
-                        />
-                      ) : (
-                        <span className="text-sm">{m.days_after_start}</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {isOwner ? (
-                        <Select
-                          value={m.milestone_type}
-                          onValueChange={v => updateMilestone.mutate({ id: m.id, data: { milestone_type: v } })}
-                        >
-                          <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {MILESTONE_TYPE_OPTIONS.map(o => (
-                              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <span className="text-sm">{MILESTONE_TYPE_OPTIONS.find(o => o.value === m.milestone_type)?.label || m.milestone_type}</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {isOwner ? (
-                        <Select
-                          value={m.responsible_id || ''}
-                          onValueChange={v => updateMilestone.mutate({ id: m.id, data: { responsible_id: v } })}
-                        >
-                          <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                          <SelectContent>
-                            {teamMembers.map((t: any) => (
-                              <SelectItem key={t.id} value={t.id}>{t.full_name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <span className="text-sm">{getMemberName(m.responsible_id)}</span>
-                      )}
-                    </TableCell>
-                    {isOwner && (
-                      <TableCell>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteMilestone.mutate(m.id)}>
-                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                        </Button>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
