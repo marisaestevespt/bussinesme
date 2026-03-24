@@ -11,16 +11,10 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { ENTRY_STATUSES } from '@/components/financial/EntryDetailSheet';
+import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
 
-const STATUS_OPTIONS = [
-  { value: 'na', label: 'N.A.' },
-  { value: 'aguarda_pagamento', label: 'Aguarda Pagamento' },
-  { value: 'em_atraso', label: 'Em Atraso' },
-  { value: 'fatura_emitida', label: 'Fatura Emitida' },
-  { value: 'pagamento_ok', label: 'Pagamento OK' },
-  { value: 'recibo_enviado', label: 'Recibo Enviado' },
-  { value: 'contabilidade_ok', label: 'Contabilidade OK' },
-];
+const STATUS_OPTIONS = ENTRY_STATUSES.map(s => ({ value: s.value, label: s.label }));
 
 const DEFAULT_SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
 
@@ -36,7 +30,7 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
   const [form, setForm] = useState({
     id: '',
     sale_id: '',
-    status: 'na',
+    status: 'aguarda_pagamento',
     payment_date: undefined as Date | undefined,
     description: '',
     base_value: '',
@@ -44,15 +38,16 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
     product: '',
     client: '',
     source: '',
-    documents: '',
+    documents: [] as DocEntry[],
   });
 
   useEffect(() => {
     if (initialData) {
+      const rawDocs = initialData.documents;
       setForm({
         id: initialData.id || '',
         sale_id: initialData.sale_id || '',
-        status: initialData.status || 'na',
+        status: initialData.status || 'aguarda_pagamento',
         payment_date: initialData.payment_date ? new Date(initialData.payment_date) : undefined,
         description: initialData.description || '',
         base_value: initialData.base_value?.toString() || '',
@@ -60,10 +55,10 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
         product: initialData.product || '',
         client: initialData.client || '',
         source: initialData.source || '',
-        documents: initialData.documents || '',
+        documents: Array.isArray(rawDocs) ? rawDocs : [],
       });
     } else {
-      setForm({ id: '', sale_id: '', status: 'na', payment_date: undefined, description: '', base_value: '', invoice_total: '', product: '', client: '', source: '', documents: '' });
+      setForm({ id: '', sale_id: '', status: 'aguarda_pagamento', payment_date: undefined, description: '', base_value: '', invoice_total: '', product: '', client: '', source: '', documents: [] });
     }
   }, [initialData, open]);
 
@@ -138,7 +133,7 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
       product: form.product || null,
       client: form.client || null,
       source: form.source || null,
-      documents: form.documents ? [{ type: 'link', url: form.documents, name: form.documents }] : [],
+      documents: form.documents,
     });
   };
 
@@ -236,7 +231,11 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
               </SelectContent>
             </Select>
           </div>
-          <div><Label>Documentos (link)</Label><Input value={form.documents} onChange={e => setForm(f => ({ ...f, documents: e.target.value }))} placeholder="https://..." /></div>
+          <InvoiceUpload
+            documents={form.documents}
+            onChange={docs => setForm(f => ({ ...f, documents: docs }))}
+            label="Ficheiros (faturas, comprovativos, recibos)"
+          />
           <Button className="w-full" onClick={handleSave}>Guardar</Button>
         </div>
       </DialogContent>
