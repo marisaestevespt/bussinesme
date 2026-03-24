@@ -146,6 +146,10 @@ export default function ClienteDetailPage() {
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [meetingForm, setMeetingForm] = useState({ title: '', date_time: '', meeting_url: '' });
   const [totalValue, setTotalValue] = useState('');
+  const [entradaValue, setEntradaValue] = useState('');
+  const [numPrestacoes, setNumPrestacoes] = useState('');
+  const [diaPagamento, setDiaPagamento] = useState('');
+  const [valorAvenca, setValorAvenca] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -201,17 +205,44 @@ export default function ClienteDetailPage() {
 
   // Auto-generate installment payments
   const generateInstallments = async () => {
-    const numPayments = parseInt(form.payment_method?.replace('x', '') || '0');
-    if (!numPayments || numPayments < 1) { toast.error('Seleciona uma forma de pagamento (1x-6x)'); return; }
-    if (!form.start_date) { toast.error('Define a Data de Início primeiro'); return; }
+    const method = form.payment_method;
+    if (!method || method === 'pagamento_total') { toast.error('Seleciona uma forma de pagamento com prestações'); return; }
     if (!form.full_name) { toast.error('Nome do cliente é obrigatório'); return; }
 
-    const startDate = parseISO(form.start_date);
+    const day = parseInt(diaPagamento);
+    if (!day || day < 1 || day > 31) { toast.error('Define o dia de pagamento'); return; }
+
     const product = form.current_product || '';
     const client = form.full_name;
 
+    // Determine payments to create
+    let payments: { baseValue: number; index: number }[] = [];
+    const num = parseInt(numPrestacoes) || 0;
+
+    if (method === 'entrada_prestacoes') {
+      const total = parseFloat(totalValue);
+      const entrada = parseFloat(entradaValue);
+      if (!total || !entrada) { toast.error('Preenche o valor total e o valor de entrada'); return; }
+      if (num < 2) { toast.error('Define a quantidade de prestações'); return; }
+      const remainder = total - entrada;
+      const perInstallment = Math.round((remainder / num) * 100) / 100;
+      for (let i = 0; i < num; i++) payments.push({ baseValue: perInstallment, index: i });
+    } else if (method === 'prestacoes') {
+      const total = parseFloat(totalValue);
+      if (!total) { toast.error('Preenche o valor total'); return; }
+      if (num < 2) { toast.error('Define a quantidade de prestações'); return; }
+      const perInstallment = Math.round((total / num) * 100) / 100;
+      for (let i = 0; i < num; i++) payments.push({ baseValue: perInstallment, index: i });
+    } else if (method === 'avenca_mensal') {
+      const monthly = parseFloat(valorAvenca);
+      if (!monthly) { toast.error('Preenche o valor da avença mensal'); return; }
+      if (num < 2) { toast.error('Define a quantidade de meses'); return; }
+      for (let i = 0; i < num; i++) payments.push({ baseValue: monthly, index: i });
+    }
+
+    if (payments.length === 0) return;
+
     try {
-      // Fetch product VAT rate
       let vatMultiplier = 1.23;
       if (product) {
         const { data: prodData } = await supabase.from('products').select('vat_rate').eq('name', product).maybeSingle();
@@ -220,29 +251,25 @@ export default function ClienteDetailPage() {
         else if (rate) vatMultiplier = 1 + parseFloat(rate) / 100;
       }
 
-      for (let i = 0; i < numPayments; i++) {
-        const payDate = new Date(startDate);
-        payDate.setMonth(payDate.getMonth() + i);
+      const now = new Date();
+      for (const p of payments) {
+        const payDate = new Date(now.getFullYear(), now.getMonth() + 1 + p.index, day);
         const payMonth = payDate.getMonth() + 1;
         const payQuarter = Math.ceil(payMonth / 3);
         const payYear = payDate.getFullYear();
         const payDateStr = format(payDate, 'yyyy-MM-dd');
 
-        // Generate sale_id
         const { data: countData } = await supabase.from('commercial_sales').select('id').eq('sale_year', payYear);
         const nextNum = ((countData?.length || 0) + 1).toString().padStart(2, '0');
         const saleId = `V${payYear}-${nextNum}`;
-
-          const installmentValue = totalValue ? parseFloat(totalValue) / numPayments : 0;
-          const installmentRounded = Math.round(installmentValue * 100) / 100;
 
         await supabase.from('commercial_sales').insert({
           sale_id: saleId,
           status: 'na',
           payment_date: payDateStr,
           description: `${form.client_id}_Pagamento_${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][payMonth - 1]}`,
-          base_value: installmentRounded,
-          invoice_total: Math.round(installmentRounded * vatMultiplier * 100) / 100,
+          base_value: p.baseValue,
+          invoice_total: Math.round(p.baseValue * vatMultiplier * 100) / 100,
           product,
           client,
           source: null,
@@ -253,7 +280,7 @@ export default function ClienteDetailPage() {
         });
       }
       queryClient.invalidateQueries({ queryKey: ['commercial'] });
-      toast.success(`${numPayments} pagamentos criados com sucesso`);
+      toast.success(`${payments.length} pagamentos criados com sucesso`);
     } catch (e) {
       toast.error('Erro ao gerar pagamentos');
     }
@@ -439,27 +466,98 @@ export default function ClienteDetailPage() {
               }} />
               <DateField label="Fim de Ciclo" value={form.end_of_cycle || null} onChange={v => update('end_of_cycle', v)} />
             </div>
-            {/* Row 4: Forma de Pagamento | Valor Total */}
+            {/* Row 4: Forma de Pagamento */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Forma de Pagamento</Label>
-                <Select value={form.payment_method || ''} onValueChange={v => update('payment_method', v)}>
+                <Select value={form.payment_method || ''} onValueChange={v => { update('payment_method', v); setEntradaValue(''); setNumPrestacoes(''); setDiaPagamento(''); setValorAvenca(''); setTotalValue(''); }}>
                   <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                   <SelectContent>
-                    {['1x', '2x', '3x', '4x', '5x', '6x'].map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                    <SelectItem value="pagamento_total">Pagamento Total</SelectItem>
+                    <SelectItem value="entrada_prestacoes">Pagamento Entrada + Prestações</SelectItem>
+                    <SelectItem value="prestacoes">Pagamento Prestações</SelectItem>
+                    <SelectItem value="avenca_mensal">Pagamento Avença Mensal</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Valor Total (s/ IVA) (€)</Label>
-                <Input type="number" step="0.01" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="Ex: 900" />
-                {totalValue && form.payment_method && parseInt(form.payment_method) > 1 && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    = {(parseFloat(totalValue) / parseInt(form.payment_method)).toFixed(2)}€ + IVA × {form.payment_method} ({(parseFloat(totalValue) / parseInt(form.payment_method) * 1.23).toFixed(2)}€ c/ IVA)
+              {/* Valor Total — shown for pagamento_total, entrada_prestacoes, prestacoes */}
+              {form.payment_method && form.payment_method !== 'avenca_mensal' && (
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Valor Total (s/ IVA) (€)</Label>
+                  <Input type="number" step="0.01" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="Ex: 900" />
+                </div>
+              )}
+            </div>
+            {/* Conditional fields based on payment method */}
+            {form.payment_method === 'entrada_prestacoes' && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Valor Entrada (s/ IVA) (€)</Label>
+                  <Input type="number" step="0.01" value={entradaValue} onChange={e => setEntradaValue(e.target.value)} placeholder="Ex: 300" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Quantidade de Prestações</Label>
+                  <Select value={numPrestacoes} onValueChange={setNumPrestacoes}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 11 }, (_, i) => i + 2).map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
+                  <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
+                </div>
+                {totalValue && entradaValue && numPrestacoes && (
+                  <p className="text-xs text-muted-foreground md:col-span-3">
+                    Entrada: {parseFloat(entradaValue).toFixed(2)}€ + {numPrestacoes}× {((parseFloat(totalValue) - parseFloat(entradaValue)) / parseInt(numPrestacoes)).toFixed(2)}€ (s/ IVA)
                   </p>
                 )}
               </div>
-            </div>
+            )}
+            {form.payment_method === 'prestacoes' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Quantidade de Prestações</Label>
+                  <Select value={numPrestacoes} onValueChange={setNumPrestacoes}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 11 }, (_, i) => i + 2).map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
+                  <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
+                </div>
+                {totalValue && numPrestacoes && (
+                  <p className="text-xs text-muted-foreground md:col-span-2">
+                    {numPrestacoes}× {(parseFloat(totalValue) / parseInt(numPrestacoes)).toFixed(2)}€ (s/ IVA)
+                  </p>
+                )}
+              </div>
+            )}
+            {form.payment_method === 'avenca_mensal' && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Meses de Contrato</Label>
+                  <Select value={numPrestacoes} onValueChange={setNumPrestacoes}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 11 }, (_, i) => i + 2).map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
+                  <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Valor Avença Mensal (s/ IVA) (€)</Label>
+                  <Input type="number" step="0.01" value={valorAvenca} onChange={e => setValorAvenca(e.target.value)} placeholder="Ex: 150" />
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -666,9 +764,9 @@ export default function ClienteDetailPage() {
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm">Pagamentos</CardTitle>
                 <div className="flex items-center gap-2">
-                  {form.payment_method && parseInt(form.payment_method) > 1 && (
+                  {form.payment_method && form.payment_method !== 'pagamento_total' && (
                     <Button size="sm" variant="secondary" onClick={generateInstallments}>
-                      Gerar {form.payment_method} Pagamentos
+                      Gerar Pagamentos
                     </Button>
                   )}
                   <Button size="sm" variant="outline" onClick={() => setSaleOpen(true)}><Plus className="h-3 w-3 mr-1" />Novo Pagamento</Button>
