@@ -619,7 +619,7 @@ export default function ProjetoDetailPage() {
     const isRecorrente = (local as any).project_mode === 'recorrente';
     return (
       <AppLayout>
-        <div className="space-y-6 max-w-3xl">
+        <div className="space-y-6">
           <BackNavigation />
 
           {/* Cover image */}
