@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 import { Download, TrendingUp, TrendingDown, Package, ArrowUpRight, Receipt, Shield } from 'lucide-react';
-import { exportCsv } from '@/lib/exportCsv';
+import { exportPdf } from '@/lib/exportPdf';
 import type { Expense } from '@/hooks/useFinancialData';
 
 const QUARTERS = [
@@ -125,10 +125,7 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
   }, [yearSales]);
 
   const handleExport = () => {
-    const headers = ['Trimestre', 'Período', 'Entradas (€)', 'Saídas (€)', 'Resultado (€)', 'Margem (%)', 'IVA Cobrado (€)', 'IVA Pago (€)', 'Balanço IVA (€)', 'Seg. Social (€)', 'Nº Vendas', 'Nº Despesas', 'Clientes'];
-    const rows = data.map(d => [d.label, d.range, d.entradas, d.saidas, d.resultado, d.margem, d.ivaCobrado, d.ivaPago, d.ivaBalanco, d.ss, d.numSales, d.numExpenses, d.clients]);
-    rows.push(['TOTAL', '', totals.entradas, totals.saidas, totals.resultado, totals.margem, totals.ivaCobrado, totals.ivaPago, totals.ivaBalanco, totals.ss, '', '', '']);
-    exportCsv(`relatorio-trimestral-${currentYear}.csv`, headers, rows);
+    exportPdf(`Relatório Financeiro Trimestral — ${currentYear}`, 'fin-trimestral-report');
   };
 
   const bestQuarter = data.reduce((best, d) => d.resultado > best.resultado ? d : best, data[0]);
