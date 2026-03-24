@@ -829,7 +829,8 @@ export default function ProdutoDetailPage() {
         {/* ═══════ SECTION BUTTONS ═══════ */}
         {(
           <div className="space-y-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              <SectionButton sectionKey="entregas" label="Entregas" />
               <SectionButton sectionKey="comercial" label="Comercial" />
               <SectionButton sectionKey="marketing" label="Marketing" />
               <SectionButton sectionKey="contabilidade" label="Contabilidade" />
