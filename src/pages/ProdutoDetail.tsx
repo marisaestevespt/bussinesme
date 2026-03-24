@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { ArrowLeft, Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Copy, Trash2, Plus, ExternalLink, X, Upload, ImageIcon, ChevronDown, FileText, Download } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS, Product } from '@/hooks/useProducts';
@@ -219,6 +219,16 @@ export default function ProdutoDetailPage() {
     queryFn: async () => {
       if (!id || isNew) return [];
       const { data } = await supabase.from('product_improvements' as any).select('*').eq('product_id', id).order('sort_order').order('created_at');
+      return (data || []) as any[];
+    },
+    enabled: !isNew,
+  });
+
+  const { data: productDocuments = [] } = useQuery({
+    queryKey: ['product-documents', id],
+    queryFn: async () => {
+      if (!id || isNew) return [];
+      const { data } = await supabase.from('product_documents' as any).select('*').eq('product_id', id).order('sort_order').order('created_at');
       return (data || []) as any[];
     },
     enabled: !isNew,
@@ -1396,6 +1406,81 @@ export default function ProdutoDetailPage() {
             {/* ===== ARQUIVO ===== */}
             {openSection === 'arquivo' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+
+                {/* Documentos */}
+                <Card>
+                  <CardHeader className="flex-row items-center justify-between">
+                    <CardTitle className="text-base flex items-center gap-2"><FileText className="h-4 w-4" /> Documentos</CardTitle>
+                    {isOwner && (
+                      <label className="cursor-pointer">
+                        <Button size="sm" variant="outline" asChild>
+                          <span><Upload className="h-3 w-3 mr-1" /> Carregar</span>
+                        </Button>
+                        <input
+                          type="file"
+                          multiple
+                          className="hidden"
+                          onChange={async (e) => {
+                            const files = Array.from(e.target.files || []);
+                            if (!files.length) return;
+                            for (const file of files) {
+                              const path = `documents/${id}/${Date.now()}-${file.name}`;
+                              const { error } = await supabase.storage.from('product-files').upload(path, file);
+                              if (error) { toast.error(`Erro ao enviar ${file.name}`); continue; }
+                              const { data: urlData } = supabase.storage.from('product-files').getPublicUrl(path);
+                              await supabase.from('product_documents' as any).insert({
+                                product_id: id,
+                                file_name: file.name,
+                                file_url: urlData.publicUrl,
+                                file_type: file.type || 'application/octet-stream',
+                                sort_order: productDocuments.length,
+                              });
+                            }
+                            qc.invalidateQueries({ queryKey: ['product-documents', id] });
+                            toast.success('Documento(s) carregado(s)');
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    {productDocuments.length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-4 text-center">Sem documentos. Carrega ficheiros para os guardar aqui.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {productDocuments.map((doc: any) => (
+                          <div key={doc.id} className="flex items-center justify-between gap-3 rounded-md border px-3 py-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                              <span className="text-sm truncate">{doc.file_name}</span>
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
+                                <Button variant="ghost" size="icon" className="h-7 w-7"><Download className="h-3.5 w-3.5" /></Button>
+                              </a>
+                              {isOwner && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-destructive"
+                                  onClick={async () => {
+                                    await supabase.from('product_documents' as any).delete().eq('id', doc.id);
+                                    qc.invalidateQueries({ queryKey: ['product-documents', id] });
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Brainstorming */}
                 <Card>
                   <CardHeader><CardTitle className="text-base">Brainstorming</CardTitle></CardHeader>
                   <CardContent>
