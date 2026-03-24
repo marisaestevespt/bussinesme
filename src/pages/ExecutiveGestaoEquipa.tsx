@@ -1462,11 +1462,10 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
               <table className="w-full text-xs">
                 <thead>
                   <tr>
-                    <th className="text-left font-medium text-muted-foreground py-1 pr-3 w-[140px]">Membro</th>
-                    {weekDays.map(d => (
-                      <th key={d.toISOString()} className={cn("text-center font-medium py-1 px-2 min-w-[60px]", isSameDay(d, new Date()) && "text-primary")}>
-                        <div>{DAY_NAMES[d.getDay()]}</div>
-                        <div className="text-[10px] text-muted-foreground">{format(d, 'd MMM', { locale: ptLocale })}</div>
+                    <th className="text-left font-medium text-muted-foreground py-1 pr-3 w-[140px] sticky left-0 bg-card z-10">Membro</th>
+                    {monthDays.map(d => (
+                      <th key={d.toISOString()} className={cn("text-center font-medium py-1 px-1 min-w-[32px]", isSameDay(d, new Date()) && "text-primary")}>
+                        <div className="text-[10px]">{format(d, 'd')}</div>
                       </th>
                     ))}
                   </tr>
@@ -1474,7 +1473,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
                 <tbody>
                   {(escalaMembers.data || []).map((m: any) => (
                     <tr key={m.id} className="border-t border-border/50">
-                      <td className="py-1.5 pr-3">
+                      <td className="py-1.5 pr-3 sticky left-0 bg-card z-10">
                         <div className="flex items-center gap-2">
                           <Avatar className="h-6 w-6">
                             <AvatarImage src={m.photo_url || undefined} />
@@ -1483,12 +1482,12 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
                           <span className="truncate font-medium">{m.full_name?.split(' ')[0]}</span>
                         </div>
                       </td>
-                      {weekDays.map(d => {
+                      {monthDays.map(d => {
                         const avail = getAvail(m, d);
                         return (
-                          <td key={d.toISOString()} className="py-1.5 px-2 text-center">
-                            <div className={cn("mx-auto h-6 w-6 rounded-full flex items-center justify-center", availColors[avail])}>
-                              <span className={cn("h-2 w-2 rounded-full", availDots[avail])} />
+                          <td key={d.toISOString()} className="py-1.5 px-1 text-center">
+                            <div className={cn("mx-auto h-5 w-5 rounded-full flex items-center justify-center", availColors[avail])}>
+                              <span className={cn("h-1.5 w-1.5 rounded-full", availDots[avail])} />
                             </div>
                           </td>
                         );
