@@ -70,7 +70,7 @@ export default function ProdutosPage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
-        <PageHeader title="Produtos" />
+        <PageHeader title="Produtos" subtitle="Catálogo de produtos, escada de valor e entregas." />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
