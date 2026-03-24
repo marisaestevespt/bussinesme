@@ -299,158 +299,174 @@ export default function ClienteDetailPage() {
         {/* Properties grid */}
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm">Propriedades</CardTitle></CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">ID</Label>
-              <Input value={form.client_id || ''} onChange={e => update('client_id', e.target.value)} placeholder="Auto" />
+          <CardContent className="space-y-4">
+            {/* Row 1: ID | Status | Produto Atual */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">ID</Label>
+                <Input value={form.client_id || ''} onChange={e => update('client_id', e.target.value)} placeholder="Auto" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Status</Label>
+                <Select value={form.status || 'ativo'} onValueChange={v => update('status', v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {CLIENT_STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Produto Atual</Label>
+                <Select value={form.current_product || ''} onValueChange={async (v) => {
+                  update('current_product', v);
+                  if (form.start_date) {
+                    const prod = productList.find(p => p.name === v);
+                    if (prod?.cycle_duration) {
+                      const start = parseISO(form.start_date);
+                      const end = new Date(start);
+                      end.setDate(end.getDate() + prod.cycle_duration);
+                      update('end_of_cycle', format(end, 'yyyy-MM-dd'));
+                    }
+                  }
+                  if (!isNew && id) {
+                    const prod = productList.find(p => p.name === v);
+                    if (prod) {
+                      const currentOnb = onboarding.data || [];
+                      if (currentOnb.length === 0) {
+                        const { data: onbTemplate } = await supabase.from('product_onboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
+                        if (onbTemplate && onbTemplate.length > 0) {
+                          for (const t of onbTemplate as any[]) {
+                            await addOnboarding.mutateAsync({ client_id: id, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
+                          }
+                          toast.success('Checklist de onboarding copiada automaticamente');
+                        }
+                      }
+                      const currentOffb = offboarding.data || [];
+                      if (currentOffb.length === 0) {
+                        const { data: offbTemplate } = await supabase.from('product_offboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
+                        if (offbTemplate && offbTemplate.length > 0) {
+                          for (const t of offbTemplate as any[]) {
+                            await addOffboarding.mutateAsync({ client_id: id, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
+                          }
+                          toast.success('Checklist de offboarding copiada automaticamente');
+                        }
+                      }
+                      const { data: projData, error: projErr } = await supabase.from('projects').insert({
+                        name: `${form.full_name || 'Cliente'} — ${v}`,
+                        type: 'clientes',
+                        status: 'em_curso',
+                        department: 'clientes',
+                        client_name: form.full_name || null,
+                      }).select('id').single();
+                      if (!projErr && projData) {
+                        const { data: taskTemplates } = await supabase.from('product_project_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
+                        if (taskTemplates && taskTemplates.length > 0) {
+                          for (const t of taskTemplates as any[]) {
+                            await supabase.from('tasks').insert({
+                              name: t.task_name || '',
+                              project_id: projData.id,
+                              department: 'clientes',
+                              status: 'pendente',
+                              priority: 'media',
+                            });
+                          }
+                        }
+                        toast.success('Projeto criado automaticamente');
+                      }
+                      if (form.start_date) {
+                        const { data: npsConf } = await supabase.from('product_nps_config' as any).select('*').eq('product_id', prod.id).maybeSingle();
+                        if (npsConf) {
+                          await supabase.from('client_nps_records' as any).delete().eq('client_id', id).eq('is_manual', false);
+                          const startD = parseISO(form.start_date);
+                          const cadence = (npsConf as any).cadence_days || 30;
+                          const npsRows = [];
+                          for (let i = 1; i <= Math.floor(730 / cadence); i++) {
+                            const d = new Date(startD);
+                            d.setDate(d.getDate() + cadence * i);
+                            npsRows.push({ client_id: id, product_id: prod.id, expected_date: format(d, 'yyyy-MM-dd'), status: 'por_fazer', is_manual: false });
+                          }
+                          if (npsRows.length) await supabase.from('client_nps_records' as any).insert(npsRows);
+                        }
+                        await supabase.from('client_milestones' as any).delete().eq('client_id', id).eq('product_id', prod.id);
+                        const { data: prodMs } = await supabase.from('product_milestones' as any).select('*').eq('product_id', prod.id).order('days_after_start');
+                        if (prodMs?.length) {
+                          const startD = parseISO(form.start_date);
+                          const msRows = (prodMs as any[]).map(m => ({
+                            client_id: id, product_id: prod.id, milestone: m.milestone,
+                            expected_date: format(new Date(startD.getTime() + m.days_after_start * 86400000), 'yyyy-MM-dd'),
+                            milestone_type: m.milestone_type, responsible_id: m.responsible_id, status: 'por_fazer',
+                          }));
+                          await supabase.from('client_milestones' as any).insert(msRows);
+                        }
+                        queryClient.invalidateQueries({ queryKey: ['client-nps-records', id] });
+                        queryClient.invalidateQueries({ queryKey: ['client-milestones', id] });
+                      }
+                    }
+                  }
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    {productList.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Status</Label>
-              <Select value={form.status || 'ativo'} onValueChange={v => update('status', v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {CLIENT_STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
+            {/* Row 2: Aniversário | E-mail | Whatsapp */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <DateField label="Aniversário" value={form.birthday || null} onChange={v => update('birthday', v)} />
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">E-mail</Label>
+                <Input type="email" value={form.email || ''} onChange={e => update('email', e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Whatsapp</Label>
+                <Input value={form.whatsapp || ''} onChange={e => update('whatsapp', e.target.value)} />
+              </div>
             </div>
-            <DateField label="Data de Início" value={form.start_date || null} onChange={v => {
-              update('start_date', v);
-              // Auto-calculate end_of_cycle if product has cycle_duration
-              if (v && form.current_product) {
-                const prod = productList.find(p => p.name === form.current_product);
-                if (prod?.cycle_duration) {
-                  const start = parseISO(v);
-                  const end = new Date(start);
-                  end.setDate(end.getDate() + prod.cycle_duration);
-                  update('end_of_cycle', format(end, 'yyyy-MM-dd'));
-                }
-              }
-            }} />
-            <DateField label="Fim de Ciclo" value={form.end_of_cycle || null} onChange={v => update('end_of_cycle', v)} />
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Produto Atual</Label>
-              <Select value={form.current_product || ''} onValueChange={async (v) => {
-                update('current_product', v);
-                // Auto-calculate end_of_cycle if start_date exists and product has cycle_duration
-                if (form.start_date) {
-                  const prod = productList.find(p => p.name === v);
+            {/* Row 3: Data de Início | Fim de Ciclo */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <DateField label="Data de Início" value={form.start_date || null} onChange={v => {
+                update('start_date', v);
+                if (v && form.current_product) {
+                  const prod = productList.find(p => p.name === form.current_product);
                   if (prod?.cycle_duration) {
-                    const start = parseISO(form.start_date);
+                    const start = parseISO(v);
                     const end = new Date(start);
                     end.setDate(end.getDate() + prod.cycle_duration);
                     update('end_of_cycle', format(end, 'yyyy-MM-dd'));
                   }
                 }
-                // Auto-copy onboarding & offboarding templates from product
-                if (!isNew && id) {
-                  const prod = productList.find(p => p.name === v);
-                  if (prod) {
-                    // Only copy if client has no existing onboarding entries
-                    const currentOnb = onboarding.data || [];
-                    if (currentOnb.length === 0) {
-                      const { data: onbTemplate } = await supabase.from('product_onboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
-                      if (onbTemplate && onbTemplate.length > 0) {
-                        for (const t of onbTemplate as any[]) {
-                          await addOnboarding.mutateAsync({ client_id: id, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
-                        }
-                        toast.success('Checklist de onboarding copiada automaticamente');
-                      }
-                    }
-                    // Only copy if client has no existing offboarding entries
-                    const currentOffb = offboarding.data || [];
-                    if (currentOffb.length === 0) {
-                      const { data: offbTemplate } = await supabase.from('product_offboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
-                      if (offbTemplate && offbTemplate.length > 0) {
-                        for (const t of offbTemplate as any[]) {
-                          await addOffboarding.mutateAsync({ client_id: id, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
-                        }
-                        toast.success('Checklist de offboarding copiada automaticamente');
-                      }
-                    }
-
-                    // Auto-create project of type "clientes" with tasks from product template
-                    const { data: projData, error: projErr } = await supabase.from('projects').insert({
-                      name: `${form.full_name || 'Cliente'} — ${v}`,
-                      type: 'clientes',
-                      status: 'em_curso',
-                      department: 'clientes',
-                      client_name: form.full_name || null,
-                    }).select('id').single();
-                    if (!projErr && projData) {
-                      const { data: taskTemplates } = await supabase.from('product_project_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
-                      if (taskTemplates && taskTemplates.length > 0) {
-                        for (const t of taskTemplates as any[]) {
-                          await supabase.from('tasks').insert({
-                            name: t.task_name || '',
-                            project_id: projData.id,
-                            department: 'clientes',
-                            status: 'pendente',
-                            priority: 'media',
-                          });
-                        }
-                      }
-                      toast.success('Projeto criado automaticamente');
-                    }
-
-                    // Auto-generate Customer Success records (NPS + Milestones)
-                    if (form.start_date) {
-                      // Generate NPS records
-                      const { data: npsConf } = await supabase.from('product_nps_config' as any).select('*').eq('product_id', prod.id).maybeSingle();
-                      if (npsConf) {
-                        await supabase.from('client_nps_records' as any).delete().eq('client_id', id).eq('is_manual', false);
-                        const startD = parseISO(form.start_date);
-                        const cadence = (npsConf as any).cadence_days || 30;
-                        const npsRows = [];
-                        for (let i = 1; i <= Math.floor(730 / cadence); i++) {
-                          const d = new Date(startD);
-                          d.setDate(d.getDate() + cadence * i);
-                          npsRows.push({ client_id: id, product_id: prod.id, expected_date: format(d, 'yyyy-MM-dd'), status: 'por_fazer', is_manual: false });
-                        }
-                        if (npsRows.length) await supabase.from('client_nps_records' as any).insert(npsRows);
-                      }
-
-                      // Generate milestones
-                      await supabase.from('client_milestones' as any).delete().eq('client_id', id).eq('product_id', prod.id);
-                      const { data: prodMs } = await supabase.from('product_milestones' as any).select('*').eq('product_id', prod.id).order('days_after_start');
-                      if (prodMs?.length) {
-                        const startD = parseISO(form.start_date);
-                        const msRows = (prodMs as any[]).map(m => ({
-                          client_id: id, product_id: prod.id, milestone: m.milestone,
-                          expected_date: format(new Date(startD.getTime() + m.days_after_start * 86400000), 'yyyy-MM-dd'),
-                          milestone_type: m.milestone_type, responsible_id: m.responsible_id, status: 'por_fazer',
-                        }));
-                        await supabase.from('client_milestones' as any).insert(msRows);
-                      }
-                      queryClient.invalidateQueries({ queryKey: ['client-nps-records', id] });
-                      queryClient.invalidateQueries({ queryKey: ['client-milestones', id] });
-                    }
-                  }
-                }
-              }}>
-                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>
-                  {productList.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              }} />
+              <DateField label="Fim de Ciclo" value={form.end_of_cycle || null} onChange={v => update('end_of_cycle', v)} />
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Forma de Pagamento</Label>
-              <Select value={form.payment_method || ''} onValueChange={v => update('payment_method', v)}>
-                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>
-                  {['1x', '2x', '3x', '4x', '5x', '6x'].map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-                </SelectContent>
-              </Select>
+            {/* Row 4: Forma de Pagamento | Valor Total */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Forma de Pagamento</Label>
+                <Select value={form.payment_method || ''} onValueChange={v => update('payment_method', v)}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                  <SelectContent>
+                    {['1x', '2x', '3x', '4x', '5x', '6x'].map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Valor Total (s/ IVA) (€)</Label>
+                <Input type="number" step="0.01" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="Ex: 900" />
+                {totalValue && form.payment_method && parseInt(form.payment_method) > 1 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    = {(parseFloat(totalValue) / parseInt(form.payment_method)).toFixed(2)}€ + IVA × {form.payment_method} ({(parseFloat(totalValue) / parseInt(form.payment_method) * 1.23).toFixed(2)}€ c/ IVA)
+                  </p>
+                )}
+              </div>
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Valor Total (€)</Label>
-              <Input type="number" step="0.01" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="Ex: 900" />
-              {totalValue && form.payment_method && parseInt(form.payment_method) > 1 && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  = {(parseFloat(totalValue) / parseInt(form.payment_method)).toFixed(2)}€ + IVA × {form.payment_method} ({(parseFloat(totalValue) / parseInt(form.payment_method) * 1.23).toFixed(2)}€ c/ IVA)
-                </p>
-              )}
-            </div>
+          </CardContent>
+        </Card>
+
+        {/* Dados Fiscais */}
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm">Dados Fiscais</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Nome Completo</Label>
               <Input value={form.full_name || ''} onChange={e => update('full_name', e.target.value)} />
@@ -459,24 +475,22 @@ export default function ClienteDetailPage() {
               <Label className="text-xs text-muted-foreground">NIF</Label>
               <Input value={form.nif || ''} onChange={e => update('nif', e.target.value)} />
             </div>
-            <div className="space-y-1 md:col-span-2">
+            <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Morada Fiscal</Label>
               <Input value={form.fiscal_address || ''} onChange={e => update('fiscal_address', e.target.value)} />
             </div>
-            <DateField label="Aniversário" value={form.birthday || null} onChange={v => update('birthday', v)} />
+          </CardContent>
+        </Card>
+
+        {/* Observações e Documentos */}
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm">Observações e Documentos</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">E-mail</Label>
-              <Input type="email" value={form.email || ''} onChange={e => update('email', e.target.value)} />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Whatsapp</Label>
-              <Input value={form.whatsapp || ''} onChange={e => update('whatsapp', e.target.value)} />
-            </div>
-            <div className="space-y-1 md:col-span-3">
               <Label className="text-xs text-muted-foreground">Observações</Label>
               <Textarea value={form.observations || ''} onChange={e => update('observations', e.target.value)} rows={2} />
             </div>
-            <div className="space-y-1 md:col-span-3">
+            <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Documentos (link)</Label>
               <Input value={form.documents || ''} onChange={e => update('documents', e.target.value)} placeholder="URL ou referência" />
             </div>
