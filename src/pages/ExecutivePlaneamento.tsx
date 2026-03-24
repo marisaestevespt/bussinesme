@@ -28,6 +28,7 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
 
 export default function ExecutivePlaneamento() {
   const [year, setYear] = useState(new Date().getFullYear());
+  const [viewMode, setViewMode] = useState<ViewMode>(null);
   const planning = usePlanningData(year);
 
   const stats = useMemo(() => {
