@@ -382,8 +382,79 @@ export default function SopDetailPage() {
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['product-milestones', linkedProductId] }),
   });
+  // KPIs for "KPIs de Produto" SOP
+  const KPI_TYPES = [
+    { value: 'numerico', label: 'Numérico' },
+    { value: 'percentagem', label: 'Percentagem' },
+    { value: 'monetario', label: 'Monetário' },
+  ];
+  const AUTO_SOURCES = [
+    { value: 'vendas_count', label: 'Vendas do mês (número)' },
+    { value: 'vendas_valor', label: 'Faturação do mês (valor)' },
+    { value: 'novos_clientes', label: 'Novos clientes' },
+    { value: 'clientes_ativos', label: 'Clientes ativos' },
+    { value: 'churn', label: 'Churn' },
+    { value: 'taxa_renovacao', label: 'Taxa de renovação' },
+    { value: 'nps_medio', label: 'NPS médio atual' },
+    { value: 'ticket_medio', label: 'Ticket médio' },
+  ];
 
-  const { data: templateRows = [] } = useQuery({
+  const { data: kpis = [] } = useQuery({
+    queryKey: ['product-kpis', linkedProductId],
+    queryFn: async () => {
+      if (!linkedProductId) return [];
+      const { data } = await supabase.from('product_kpis' as any).select('*').eq('product_id', linkedProductId).order('sort_order');
+      return (data || []) as any[];
+    },
+    enabled: isKpisSop && !!linkedProductId,
+  });
+
+  const [showKpiForm, setShowKpiForm] = useState(false);
+  const [kpiForm, setKpiForm] = useState({ name: '', kpi_type: 'numerico', source: 'manual' as 'manual' | 'automatico', auto_source: '', monthly_goal: '' });
+
+  const createKpi = useMutation({
+    mutationFn: async () => {
+      if (!kpiForm.name.trim()) throw new Error('Nome é obrigatório');
+      const { error } = await supabase.from('product_kpis' as any).insert({
+        product_id: linkedProductId,
+        name: kpiForm.name.trim(),
+        kpi_type: kpiForm.kpi_type,
+        source: kpiForm.source,
+        auto_source: kpiForm.source === 'automatico' ? kpiForm.auto_source : null,
+        monthly_goal: kpiForm.monthly_goal ? Number(kpiForm.monthly_goal) : null,
+        sort_order: kpis.length,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['product-kpis', linkedProductId] });
+      setShowKpiForm(false);
+      setKpiForm({ name: '', kpi_type: 'numerico', source: 'manual', auto_source: '', monthly_goal: '' });
+      toast.success('KPI criado');
+    },
+    onError: (e: any) => toast.error(e.message || 'Erro ao criar KPI'),
+  });
+
+  const toggleKpiActive = useMutation({
+    mutationFn: async ({ id: kId, active }: { id: string; active: boolean }) => {
+      const { error } = await supabase.from('product_kpis' as any).update({ active }).eq('id', kId);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['product-kpis', linkedProductId] }),
+  });
+
+  const deleteKpi = useMutation({
+    mutationFn: async (kId: string) => {
+      const { error } = await supabase.from('product_kpis' as any).delete().eq('id', kId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['product-kpis', linkedProductId] });
+      toast.success('KPI eliminado');
+    },
+  });
+
+
     queryKey: ['sop-template-rows', templateTable, linkedProductId],
     queryFn: async () => {
       if (!templateTable || !linkedProductId) return [];
