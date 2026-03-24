@@ -47,6 +47,8 @@ interface MeetingFull {
   client_name: string | null;
   project_id: string | null;
   project_name: string | null;
+  product_id: string | null;
+  product_name: string | null;
   department: string | null;
   transcript_url: string | null;
   discussion_points: CheckItem[];
@@ -118,6 +120,17 @@ function useProjectsList() {
       const { data, error } = await supabase.from('projects').select('id, name').order('name');
       if (error) throw error;
       return data as ProjectOption[];
+    },
+  });
+}
+
+function useProductsList() {
+  return useQuery({
+    queryKey: ['products_list'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('products').select('id, name').order('name');
+      if (error) throw error;
+      return (data || []) as { id: string; name: string }[];
     },
   });
 }
@@ -259,6 +272,7 @@ export default function ReuniaoDetailPage() {
   const { data: profiles = [] } = useProfiles();
   const { data: ownerName } = useOwnerProfile();
   const { data: projectsList = [] } = useProjectsList();
+  const { data: productsList = [] } = useProductsList();
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Local editable state
@@ -289,6 +303,8 @@ export default function ReuniaoDetailPage() {
         client_name: m.client_name,
         project_id: m.project_id,
         project_name: m.project_name,
+        product_id: m.product_id,
+        product_name: m.product_name,
         department: m.department,
         transcript_url: m.transcript_url,
         discussion_points: m.discussion_points as any,
@@ -480,7 +496,11 @@ export default function ReuniaoDetailPage() {
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Departamento</Label>
-              <Select value={m.department ?? ''} onValueChange={v => update({ department: v || null })}>
+              <Select value={m.department ?? ''} onValueChange={v => {
+                const patch: Partial<MeetingFull> = { department: v || null };
+                if (v !== 'produtos') { patch.product_id = null; patch.product_name = null; }
+                update(patch);
+              }}>
                 <SelectTrigger className="h-7 text-xs w-44"><SelectValue placeholder="Nenhum" /></SelectTrigger>
                 <SelectContent>
                   {Object.entries(MODULES).filter(([, v]) => v.section === 'departamentos').map(([key, v]) => (
@@ -489,6 +509,22 @@ export default function ReuniaoDetailPage() {
                 </SelectContent>
               </Select>
             </div>
+            {m.department === 'produtos' && (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Produto</Label>
+                <Select value={m.product_id ?? ''} onValueChange={v => {
+                  const prod = productsList.find(p => p.id === v);
+                  update({ product_id: v || null, product_name: prod?.name || null });
+                }}>
+                  <SelectTrigger className="h-7 text-xs w-48"><SelectValue placeholder="Sem produto" /></SelectTrigger>
+                  <SelectContent>
+                    {productsList.map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Projeto</Label>
               <Select value={m.project_id ?? ''} onValueChange={v => {

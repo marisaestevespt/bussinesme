@@ -3635,6 +3635,8 @@ export type Database = {
           meeting_url: string | null
           owner_actions: Json | null
           priorities: Json | null
+          product_id: string | null
+          product_name: string | null
           project_id: string | null
           project_name: string | null
           status: Database["public"]["Enums"]["meeting_status"]
@@ -3657,6 +3659,8 @@ export type Database = {
           meeting_url?: string | null
           owner_actions?: Json | null
           priorities?: Json | null
+          product_id?: string | null
+          product_name?: string | null
           project_id?: string | null
           project_name?: string | null
           status?: Database["public"]["Enums"]["meeting_status"]
@@ -3679,6 +3683,8 @@ export type Database = {
           meeting_url?: string | null
           owner_actions?: Json | null
           priorities?: Json | null
+          product_id?: string | null
+          product_name?: string | null
           project_id?: string | null
           project_name?: string | null
           status?: Database["public"]["Enums"]["meeting_status"]
@@ -3692,6 +3698,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
           {
