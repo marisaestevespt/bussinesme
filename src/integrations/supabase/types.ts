@@ -5879,6 +5879,7 @@ export type Database = {
           notes: string | null
           objetivo: string | null
           progress: number
+          project_mode: string
           project_notes: string | null
           recursos: string | null
           start_date: string | null
@@ -5907,6 +5908,7 @@ export type Database = {
           notes?: string | null
           objetivo?: string | null
           progress?: number
+          project_mode?: string
           project_notes?: string | null
           recursos?: string | null
           start_date?: string | null
@@ -5935,6 +5937,7 @@ export type Database = {
           notes?: string | null
           objetivo?: string | null
           progress?: number
+          project_mode?: string
           project_notes?: string | null
           recursos?: string | null
           start_date?: string | null

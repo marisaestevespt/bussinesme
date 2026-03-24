@@ -1,0 +1,1 @@
+ALTER TABLE public.projects ADD COLUMN project_mode text NOT NULL DEFAULT 'pontual';
