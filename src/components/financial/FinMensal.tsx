@@ -54,6 +54,8 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
   const [saleSheetOpen, setSaleSheetOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [expenseSheetOpen, setExpenseSheetOpen] = useState(false);
+  const [ivaCobradoOpen, setIvaCobradoOpen] = useState(false);
+  const [ivaPagoOpen, setIvaPagoOpen] = useState(false);
   const m = parseInt(month);
 
   // Active member contracts
@@ -377,8 +379,14 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
         <CardHeader className="pb-2"><CardTitle className="text-sm">Balanço IVA</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-4 text-sm">
-            <div><p className="text-muted-foreground">IVA Cobrado (vendas)</p><p className="font-semibold">{fmt(ivaCobrado)}</p></div>
-            <div><p className="text-muted-foreground">IVA Pago (despesas)</p><p className="font-semibold">{fmt(ivaPago)}</p></div>
+            <div className="cursor-pointer hover:opacity-80" onClick={() => setIvaCobradoOpen(true)}>
+              <p className="text-muted-foreground">IVA Cobrado (vendas)</p>
+              <p className="font-semibold underline decoration-dotted underline-offset-2">{fmt(ivaCobrado)}</p>
+            </div>
+            <div className="cursor-pointer hover:opacity-80" onClick={() => setIvaPagoOpen(true)}>
+              <p className="text-muted-foreground">IVA Pago (despesas)</p>
+              <p className="font-semibold underline decoration-dotted underline-offset-2">{fmt(ivaPago)}</p>
+            </div>
             <div>
               <p className="text-muted-foreground">Balanço</p>
               <p className={`font-semibold ${ivaBalanco > 0 ? 'text-amber-600' : ivaBalanco < 0 ? 'text-green-600' : ''}`}>
@@ -390,6 +398,72 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
           </div>
         </CardContent>
       </Card>
+
+      {/* IVA Cobrado Detail */}
+      <Dialog open={ivaCobradoOpen} onOpenChange={setIvaCobradoOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle className="text-base">IVA Cobrado — {MONTHS[m - 1]}</DialogTitle></DialogHeader>
+          {monthSales.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">Sem vendas registadas neste mês.</p>
+          ) : (
+            <Table>
+              <TableHeader><TableRow><TableHead>Venda</TableHead><TableHead className="text-right">Total Fatura</TableHead><TableHead className="text-right">Base</TableHead><TableHead className="text-right">IVA</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {monthSales.map((s, idx) => {
+                  const iva = Math.round((s.invoice_total - s.base_value) * 100) / 100;
+                  return (
+                    <TableRow key={idx}>
+                      <TableCell className="text-sm">{s.client || s.product || `Venda ${idx + 1}`}</TableCell>
+                      <TableCell className="text-right text-sm">{fmt(s.invoice_total)}</TableCell>
+                      <TableCell className="text-right text-sm">{fmt(s.base_value)}</TableCell>
+                      <TableCell className="text-right text-sm font-medium">{fmt(iva)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+                <TableRow className="border-t-2 font-semibold">
+                  <TableCell>Total</TableCell>
+                  <TableCell className="text-right">{fmt(totalEntradas)}</TableCell>
+                  <TableCell className="text-right">{fmt(totalBaseEntradas)}</TableCell>
+                  <TableCell className="text-right">{fmt(ivaCobrado)}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* IVA Pago Detail */}
+      <Dialog open={ivaPagoOpen} onOpenChange={setIvaPagoOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle className="text-base">IVA Pago — {MONTHS[m - 1]}</DialogTitle></DialogHeader>
+          {monthExpenses.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">Sem despesas registadas neste mês.</p>
+          ) : (
+            <Table>
+              <TableHeader><TableRow><TableHead>Despesa</TableHead><TableHead className="text-right">Total c/ IVA</TableHead><TableHead className="text-right">Base</TableHead><TableHead className="text-right">IVA</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {monthExpenses.map((e, idx) => {
+                  const iva = Math.round((e.total_with_vat - e.base_value) * 100) / 100;
+                  return (
+                    <TableRow key={idx}>
+                      <TableCell className="text-sm">{e.description || `Despesa ${idx + 1}`}</TableCell>
+                      <TableCell className="text-right text-sm">{fmt(e.total_with_vat)}</TableCell>
+                      <TableCell className="text-right text-sm">{fmt(e.base_value)}</TableCell>
+                      <TableCell className="text-right text-sm font-medium">{fmt(iva)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+                <TableRow className="border-t-2 font-semibold">
+                  <TableCell>Total</TableCell>
+                  <TableCell className="text-right">{fmt(totalSaidas)}</TableCell>
+                  <TableCell className="text-right">{fmt(totalBaseSaidas)}</TableCell>
+                  <TableCell className="text-right">{fmt(ivaPago)}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          )}
+        </DialogContent>
+      </Dialog>
 
 
       {/* Saúde Financeira */}
