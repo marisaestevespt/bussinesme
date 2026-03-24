@@ -368,6 +368,26 @@ export default function ClienteDetailPage() {
                 <Label className="text-xs text-muted-foreground">Produto Atual</Label>
                 <Select value={form.current_product || ''} onValueChange={async (v) => {
                   update('current_product', v);
+                  // Auto-fill payment method and ticket from product
+                  const selectedProd = productList.find(p => p.name === v);
+                  if (selectedProd) {
+                    // Pre-fill total value from product ticket
+                    if (selectedProd.ticket) {
+                      const ticketNum = parseFloat(selectedProd.ticket);
+                      if (!isNaN(ticketNum)) setTotalValue(String(ticketNum));
+                    }
+                    // Fetch allowed payment methods and auto-select if only one
+                    const { data: pmData } = await supabase.from('product_payment_methods' as any).select('payment_method').eq('product_id', selectedProd.id);
+                    const methods = (pmData || []).map((pm: any) => pm.payment_method);
+                    if (methods.length === 1) {
+                      update('payment_method', methods[0]);
+                      setEntradaValue(''); setNumPrestacoes(''); setDiaPagamento(''); setValorAvenca('');
+                    } else {
+                      update('payment_method', '');
+                      setEntradaValue(''); setNumPrestacoes(''); setDiaPagamento(''); setValorAvenca('');
+                    }
+                    queryClient.invalidateQueries({ queryKey: ['product-payment-methods', selectedProd.id] });
+                  }
                   if (form.start_date) {
                     const prod = productList.find(p => p.name === v);
                     if (prod?.cycle_duration) {
