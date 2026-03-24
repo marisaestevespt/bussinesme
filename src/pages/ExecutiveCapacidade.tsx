@@ -44,8 +44,8 @@ export default function ExecutiveCapacidade() {
   const [hoursPerMonth, setHoursPerMonth] = useState<number | null>(null);
   const [adminPercent, setAdminPercent] = useState<number | null>(null);
 
-  const effectiveHours = hoursPerMonth ?? Number(scenario.data?.useful_hours_per_month) || 160;
-  const effectiveAdmin = adminPercent ?? Number(scenario.data?.admin_percent) || 20;
+  const effectiveHours = hoursPerMonth ?? (Number(scenario.data?.useful_hours_per_month) || 160);
+  const effectiveAdmin = adminPercent ?? (Number(scenario.data?.admin_percent) || 20);
   const availableHours = effectiveHours * (1 - effectiveAdmin / 100);
 
   // Ensure scenario exists
@@ -126,7 +126,7 @@ export default function ExecutiveCapacidade() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <BackNavigation to="/executive" label="Executive Room" />
+        <BackNavigation parentRoute="/executive" parentLabel="Executive Room" />
         <PageHeader title="Simulador de Capacidade" subtitle="Calcula quantos clientes podes servir em simultâneo, por produto." />
 
         <div className="grid gap-6 lg:grid-cols-3">

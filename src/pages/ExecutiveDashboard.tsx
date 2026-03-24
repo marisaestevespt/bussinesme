@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Target, CalendarCheck, Lightbulb, Rocket, Clock, Trash2, Plus, Briefcase, MessageSquareHeart, AlertTriangle } from 'lucide-react';
+import { Target, CalendarCheck, Lightbulb, Rocket, Clock, Trash2, Plus, Briefcase, MessageSquareHeart, AlertTriangle, Calculator } from 'lucide-react';
 import { useExecutiveData, getMonthName } from '@/hooks/useExecutiveData';
 import { usePlanningData, planAreaLabel, planStatusLabel } from '@/hooks/usePlanningData';
 import { ExecutiveKpiAlerts } from '@/components/executive/ExecutiveKpiAlerts';
