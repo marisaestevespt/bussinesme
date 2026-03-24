@@ -248,7 +248,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
         project_id: projectId,
         name: t.name,
         description: t.description || null,
-        is_recurring: t.is_recurring !== false,
+        is_recurring: !!t.is_recurring,
         sort_order: deliverables.length + i,
         status: 'pendente',
       }));
