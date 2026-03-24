@@ -208,10 +208,9 @@ export function FinSetupFinanceiro({ fin }: Props) {
               <TableBody>
                 {subscriptions.length === 0 ? (
                   <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Sem subscrições</TableCell></TableRow>
-                 const renewalWarning = false;
-                  return (
+                ) : subscriptions.map(s => (
                     <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
-                      setSubForm({ ...s, value: s.value.toString(), start_date: s.start_date ? new Date(s.start_date + 'T00:00:00') : undefined, renewal_date: s.renewal_date ? new Date(s.renewal_date + 'T00:00:00') : undefined });
+                      setSubForm({ ...s, value: s.value.toString(), start_date: s.start_date ? new Date(s.start_date + 'T00:00:00') : undefined });
                       setSubOpen(true);
                     }}>
                       <TableCell className="font-medium">{s.platform_name}</TableCell>
@@ -220,16 +219,9 @@ export function FinSetupFinanceiro({ fin }: Props) {
                       <TableCell>{PERIODICITIES.find(p => p.value === s.periodicity)?.label || s.periodicity}</TableCell>
                       <TableCell className="text-right font-medium">{fmt(s.monthly_equivalent)}</TableCell>
                       <TableCell>{LOCATIONS.find(l => l.value === s.location)?.label || s.location}</TableCell>
-                      <TableCell>
-                        <span className="flex items-center gap-1">
-                          {s.renewal_date || '—'}
-                          {renewalWarning && <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />}
-                        </span>
-                      </TableCell>
                       <TableCell><Badge variant="outline" className={s.status === 'ativo' ? 'bg-green-100 text-green-800' : s.status === 'pausado' ? 'bg-amber-100 text-amber-800' : 'bg-muted text-muted-foreground'}>{SUB_STATUS.find(st => st.value === s.status)?.label || s.status}</Badge></TableCell>
                     </TableRow>
-                  );
-                })}
+                ))}
               </TableBody>
             </Table>
           </CardContent>
