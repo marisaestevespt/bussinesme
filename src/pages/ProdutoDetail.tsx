@@ -751,15 +751,7 @@ export default function ProdutoDetailPage() {
           </>
         )}
 
-        {/* Processos (SOPs) */}
-        {id && !isNew && (
-          <Card>
-            <CardHeader><CardTitle className="text-base">Processos</CardTitle></CardHeader>
-            <CardContent>
-              <LinkedSopsSection entityType="produto" entityId={id} title="" />
-            </CardContent>
-          </Card>
-        )}
+        {/* Processos moved to section button */}
 
         {/* ═══════ SECTION BUTTONS ═══════ */}
         {(
