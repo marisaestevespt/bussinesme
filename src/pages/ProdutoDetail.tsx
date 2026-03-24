@@ -1142,9 +1142,6 @@ export default function ProdutoDetailPage() {
               </div>
             )}
 
-                          <TableRow key={a.id}>
-                            <TableCell><Badge variant="outline" className="text-xs">{a.status}</Badge></TableCell>
-                            <TableCell className="font-medium">{a.action_name}</TableCell>
                             <TableCell className="text-sm">{a.start_date ? format(new Date(a.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
                             <TableCell className="text-sm">{a.product || '—'}</TableCell>
                           </TableRow>
