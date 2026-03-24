@@ -209,15 +209,6 @@ export default function FinanceiroPage() {
           </Button>
         </div>
 
-        {/* Saúde Financeira do Ano */}
-        <Card className="bg-primary/10 border-primary/30">
-          <CardContent className="pt-5 space-y-1">
-            <div className="flex items-center gap-2">
-              <Heart className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-semibold">Saúde Financeira — {year}</h3>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Summary Cards: Entradas | Saídas | Balanço | Margem */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
