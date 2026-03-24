@@ -1265,65 +1265,23 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
 
   return (
     <div className="space-y-6">
-      {/* Team Gallery */}
-      <div className="space-y-3">
-        <div className="flex justify-between items-center">
-          <h2 className="text-base font-semibold">Equipa</h2>
-          <Button size="sm" onClick={() => setDialog({})}><Plus className="h-4 w-4 mr-1" /> Novo Membro</Button>
-        </div>
-        {allMembers.length === 0 ? (
-          <Card><CardContent className="py-8 text-center text-sm text-muted-foreground">Sem membros ativos.</CardContent></Card>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {allMembers.map((m: any) => {
-              const hasOverdue = !!overdueByMember[m.id];
-              return (
-                <Card key={m.id} className={`cursor-pointer hover:shadow-md transition-shadow ${hasOverdue ? 'border-destructive/50' : ''}`} onClick={() => setSelected(m)}>
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={m.photo_url || undefined} />
-                        <AvatarFallback className="text-xs font-semibold">{getInitials(m.full_name)}</AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-sm truncate">{m.full_name}</p>
-                        {m.role_title && <p className="text-xs text-muted-foreground truncate">{m.role_title}</p>}
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      <DeptBadge dept={m.department} />
-                    </div>
-                    {hasOverdue && (
-                      <div className="flex items-center gap-1.5 text-destructive">
-                        <AlertTriangle className="h-3.5 w-3.5" />
-                        <span className="text-xs font-medium">{overdueByMember[m.id]} pagamento(s) em atraso</span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
       {/* Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"><Clock className="h-5 w-5 text-primary" /></div>
-            <div>
-              <p className="text-xs text-muted-foreground">Horas trabalhadas (mês)</p>
-              <p className="text-lg font-bold">{totalHoursMonth.toFixed(1)}h</p>
-            </div>
-          </CardContent>
-        </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"><Users className="h-5 w-5 text-primary" /></div>
             <div>
               <p className="text-xs text-muted-foreground">Membros ativos</p>
               <p className="text-lg font-bold">{allMembers.length}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"><Clock className="h-5 w-5 text-primary" /></div>
+            <div>
+              <p className="text-xs text-muted-foreground">Horas trabalhadas (mês)</p>
+              <p className="text-lg font-bold">{totalHoursMonth.toFixed(1)}h</p>
             </div>
           </CardContent>
         </Card>
@@ -1356,29 +1314,23 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
         </Card>
       )}
 
-      {/* Hours Chart */}
-      {hoursPerMember.length > 0 && (
-        <Card>
-          <CardContent className="p-4 space-y-3">
-            <h3 className="text-sm font-semibold">Horas por membro — {getMonthName(currentMonth)} {currentYear}</h3>
-            <ChartContainer config={chartConfig} className="h-[250px] w-full">
-              <BarChart data={hoursPerMember}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="hours" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ChartContainer>
+      {/* Overdue Payment Warnings */}
+      {overduePayments.length > 0 && (
+        <Card className="border-destructive/50 bg-red-50/50 dark:bg-red-950/20">
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <h3 className="text-sm font-semibold">Pagamentos em atraso</h3>
+            </div>
+            {Object.entries(overdueByMember).map(([memberId, count]) => (
+              <div key={memberId} className="flex items-center justify-between text-sm">
+                <span className="font-medium">{memberName(memberId)}</span>
+                <span className="text-xs text-muted-foreground">{count} pagamento(s) pendente(s)</span>
+              </div>
+            ))}
           </CardContent>
         </Card>
       )}
-
-
-
-
-      {dialog !== null && <MemberDialog open onClose={() => setDialog(null)} initial={dialog} onSave={handleSave} />}
-      {selected && <MemberDetailSheet open onClose={() => setSelected(null)} member={selected} team={team} />}
     </div>
   );
 }
