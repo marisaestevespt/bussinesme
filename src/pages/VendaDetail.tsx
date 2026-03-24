@@ -18,17 +18,10 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { BackNavigation } from '@/components/BackNavigation';
+import { ENTRY_STATUSES, getEntryStatusBadge, getEffectiveEntryStatus } from '@/components/financial/EntryDetailSheet';
+import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
 
-const STATUS_OPTIONS = [
-  { value: 'na', label: 'N.A.', className: 'bg-muted text-muted-foreground' },
-  { value: 'aguarda_pagamento', label: 'Aguarda Pagamento', className: 'bg-orange-100 text-orange-800 border-orange-200' },
-  { value: 'em_atraso', label: 'Em Atraso', className: 'bg-red-100 text-red-800 border-red-200' },
-  { value: 'fatura_emitida', label: 'Fatura Emitida', className: 'bg-amber-100 text-amber-800 border-amber-200' },
-  { value: 'pagamento_ok', label: 'Pagamento OK', className: 'bg-green-100 text-green-800 border-green-200' },
-  { value: 'recibo_enviado', label: 'Recibo Enviado', className: 'bg-blue-100 text-blue-800 border-blue-200' },
-  { value: 'contabilidade_ok', label: 'Contabilidade OK', className: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-];
-
+const STATUS_OPTIONS = ENTRY_STATUSES;
 const DEFAULT_SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -168,7 +161,8 @@ export default function VendaDetailPage() {
     );
   }
 
-  const statusInfo = STATUS_OPTIONS.find(s => s.value === form.status) || STATUS_OPTIONS[0];
+  const effectiveStatus = getEffectiveEntryStatus(form.status || 'aguarda_pagamento', form.payment_date || null);
+  const statusInfo = getEntryStatusBadge(effectiveStatus);
 
   return (
     <AppLayout>
@@ -178,7 +172,7 @@ export default function VendaDetailPage() {
           <BackNavigation parentRoute="/hub/comercial/vendas" parentLabel="Vendas" />
           <div className="flex items-center gap-2">
             <span className="font-mono text-lg font-bold">{form.sale_id}</span>
-            <Badge variant="outline" className={statusInfo.className}>{statusInfo.label}</Badge>
+            <Badge variant="outline" className={statusInfo.cls}>{statusInfo.label}</Badge>
           </div>
           <div className="flex-1" />
           {isOwner && (
@@ -200,7 +194,7 @@ export default function VendaDetailPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">Status</Label>
-                    <Select value={form.status || 'na'} onValueChange={v => setForm((f: any) => ({ ...f, status: v }))} disabled={!isOwner}>
+                    <Select value={form.status || 'aguarda_pagamento'} onValueChange={v => setForm((f: any) => ({ ...f, status: v }))} disabled={!isOwner}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>{STATUS_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
                     </Select>
@@ -282,59 +276,11 @@ export default function VendaDetailPage() {
                   </Select>
                 </div>
 
-                <div className="space-y-3">
-                  <Label className="text-xs text-muted-foreground">Documentos</Label>
-                  {(() => {
-                    const docs: { type: string; url: string; name: string }[] = Array.isArray(form.documents) ? form.documents : [];
-                    return (
-                      <div className="space-y-2">
-                        {docs.map((doc, i) => (
-                          <div key={i} className="flex items-center gap-2 rounded-md border border-border p-2 text-sm">
-                            {doc.type === 'link' ? <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0" /> : <FileText className="h-4 w-4 text-muted-foreground shrink-0" />}
-                            <a href={doc.url} target="_blank" rel="noopener noreferrer" className="truncate flex-1 text-primary hover:underline">
-                              {doc.name || doc.url}
-                            </a>
-                            {isOwner && (
-                              <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => {
-                                const next = docs.filter((_, j) => j !== i);
-                                setForm((f: any) => ({ ...f, documents: next }));
-                              }}>
-                                <X className="h-3 w-3" />
-                              </Button>
-                            )}
-                          </div>
-                        ))}
-                        {isOwner && (
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => {
-                              const url = prompt('Cole o link do documento:');
-                              if (!url) return;
-                              const name = prompt('Nome do documento (opcional):') || url;
-                              setForm((f: any) => ({ ...f, documents: [...(Array.isArray(f.documents) ? f.documents : []), { type: 'link', url, name }] }));
-                            }}>
-                              <Plus className="h-3 w-3 mr-1" /> Link
-                            </Button>
-                            <label>
-                              <Button variant="outline" size="sm" asChild>
-                                <span><Upload className="h-3 w-3 mr-1" /> Ficheiro</span>
-                              </Button>
-                              <input type="file" className="hidden" onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (!file) return;
-                                const path = `sales/${id}/${Date.now()}-${file.name}`;
-                                const { error } = await supabase.storage.from('commercial-files').upload(path, file);
-                                if (error) { toast.error('Erro ao enviar ficheiro'); return; }
-                                const { data: urlData } = supabase.storage.from('commercial-files').getPublicUrl(path);
-                                setForm((f: any) => ({ ...f, documents: [...(Array.isArray(f.documents) ? f.documents : []), { type: 'file', url: urlData.publicUrl, name: file.name }] }));
-                                toast.success('Ficheiro enviado');
-                              }} />
-                            </label>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
+                <InvoiceUpload
+                  documents={Array.isArray(form.documents) ? form.documents : []}
+                  onChange={docs => setForm((f: any) => ({ ...f, documents: docs }))}
+                  label="Ficheiros (faturas, comprovativos, recibos)"
+                />
               </CardContent>
             </Card>
           </div>

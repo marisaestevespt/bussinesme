@@ -13,18 +13,10 @@ import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { ViewTabs } from '@/components/ViewTabs';
 import { SaleFormDialog } from './SaleFormDialog';
 import { useAuth } from '@/hooks/useAuth';
+import { ENTRY_STATUSES, getEntryStatusBadge, getEffectiveEntryStatus } from '@/components/financial/EntryDetailSheet';
+import { EntryStatusSelect } from '@/components/financial/InlineStatusSelect';
 
-const STATUS_MAP: Record<string, { label: string; className: string }> = {
-  na: { label: 'N.A.', className: 'bg-muted text-muted-foreground' },
-  aguarda_pagamento: { label: 'Aguarda Pagamento', className: 'bg-orange-100 text-orange-800 border-orange-200' },
-  em_atraso: { label: 'Em Atraso', className: 'bg-red-100 text-red-800 border-red-200' },
-  fatura_emitida: { label: 'Fatura Emitida', className: 'bg-amber-100 text-amber-800 border-amber-200' },
-  pagamento_ok: { label: 'Pagamento OK', className: 'bg-green-100 text-green-800 border-green-200' },
-  recibo_enviado: { label: 'Recibo Enviado', className: 'bg-blue-100 text-blue-800 border-blue-200' },
-  contabilidade_ok: { label: 'Contabilidade OK', className: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-};
-
-const STATUS_OPTIONS = Object.entries(STATUS_MAP).map(([value, { label }]) => ({ value, label }));
+const STATUS_OPTIONS = ENTRY_STATUSES.map(s => ({ value: s.value, label: s.label }));
 const SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
 const QUARTER_LABEL = (q: number | null) => q ? `T${q}` : '—';
 const MONTH_NAMES_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -74,7 +66,10 @@ export function CommercialVendas() {
 
     // Default view filters
     if (activeView === 'overdue') {
-      result = result.filter(s => s.status === 'em_atraso' || (['na', 'aguarda_pagamento', 'fatura_emitida'].includes(s.status) && s.payment_date && s.payment_date < todayStr));
+      result = result.filter(s => {
+        const eff = getEffectiveEntryStatus(s.status, s.payment_date);
+        return eff === 'pagamento_em_atraso';
+      });
     }
 
     // Search text (across description, client, product, sale_id)
@@ -209,11 +204,11 @@ export function CommercialVendas() {
               <TableRow><TableCell colSpan={14} className="text-center text-muted-foreground py-8">Sem vendas registadas</TableCell></TableRow>
             )}
             {filteredSales.map(s => {
-              const st = STATUS_MAP[s.status] || STATUS_MAP.na;
+              const docs = Array.isArray(s.documents) ? s.documents : [];
               return (
                 <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/comercial/vendas/${s.id}`)}>
                   <TableCell className="font-mono text-sm">{s.sale_id}</TableCell>
-                  <TableCell><Badge variant="outline" className={st.className}>{st.label}</Badge></TableCell>
+                  <TableCell onClick={e => e.stopPropagation()}><EntryStatusSelect saleId={s.id} currentStatus={s.status || 'aguarda_pagamento'} paymentDate={s.payment_date} hasDocuments={docs.length > 0} /></TableCell>
                   <TableCell>{s.payment_date ? format(new Date(s.payment_date), 'dd/MM/yyyy') : '—'}</TableCell>
                   <TableCell className="max-w-[200px] truncate">{s.description || '—'}</TableCell>
                   <TableCell className="text-right">€{fmt(Number(s.base_value))}</TableCell>
