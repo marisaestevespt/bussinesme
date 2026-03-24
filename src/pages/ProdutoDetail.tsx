@@ -20,7 +20,7 @@ import { useProduct, useProducts, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_O
 import { useAuth } from '@/hooks/useAuth';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { OfferCalculator } from '@/components/product/OfferCalculator';
-import { ProductKPIsTab } from '@/components/product/ProductKPIsTab';
+
 import { ProductMetricsTab } from '@/components/product/ProductMetricsTab';
 import { ProductCustomerSuccess } from '@/components/product/ProductCustomerSuccess';
 import { format, parseISO, isPast, isFuture, isToday } from 'date-fns';
