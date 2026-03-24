@@ -47,6 +47,8 @@ interface MeetingFull {
   client_name: string | null;
   project_id: string | null;
   project_name: string | null;
+  product_id: string | null;
+  product_name: string | null;
   department: string | null;
   transcript_url: string | null;
   discussion_points: CheckItem[];
@@ -118,6 +120,17 @@ function useProjectsList() {
       const { data, error } = await supabase.from('projects').select('id, name').order('name');
       if (error) throw error;
       return data as ProjectOption[];
+    },
+  });
+}
+
+function useProductsList() {
+  return useQuery({
+    queryKey: ['products_list'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('products').select('id, name').order('name');
+      if (error) throw error;
+      return (data || []) as { id: string; name: string }[];
     },
   });
 }
@@ -259,6 +272,7 @@ export default function ReuniaoDetailPage() {
   const { data: profiles = [] } = useProfiles();
   const { data: ownerName } = useOwnerProfile();
   const { data: projectsList = [] } = useProjectsList();
+  const { data: productsList = [] } = useProductsList();
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Local editable state
@@ -289,6 +303,8 @@ export default function ReuniaoDetailPage() {
         client_name: m.client_name,
         project_id: m.project_id,
         project_name: m.project_name,
+        product_id: m.product_id,
+        product_name: m.product_name,
         department: m.department,
         transcript_url: m.transcript_url,
         discussion_points: m.discussion_points as any,
