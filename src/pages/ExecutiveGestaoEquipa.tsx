@@ -21,7 +21,7 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Plus, Trash2, Star, Users, BarChart3, MessageSquare, FileText, LayoutDashboard, AlertTriangle, Clock, CreditCard, Upload, ExternalLink, CheckSquare, ListTodo, CalendarIcon, Palmtree, CalendarDays, Save, Eye, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { format, parseISO, startOfWeek, eachDayOfInterval, addDays, isWithinInterval, isSameDay } from 'date-fns';
+import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, addDays, isWithinInterval, isSameDay } from 'date-fns';
 import { pt as ptLocale } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
@@ -1450,7 +1450,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
         <Card>
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">Escala da Semana</h3>
+              <h3 className="text-sm font-semibold">Escala do Mês — {format(new Date(), 'MMMM yyyy', { locale: ptLocale })}</h3>
               <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-green-500 inline-block" /> Disponível</span>
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-500 inline-block" /> Férias</span>
