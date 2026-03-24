@@ -184,12 +184,13 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
           <Table>
-            <TableHeader><TableRow><TableHead className="whitespace-nowrap">ID</TableHead><TableHead>Descrição</TableHead><TableHead>Produto</TableHead><TableHead>Cliente</TableHead><TableHead>Origem</TableHead><TableHead className="text-right whitespace-nowrap">Base (€)</TableHead><TableHead className="text-right whitespace-nowrap">Fatura Total</TableHead><TableHead>Pagamento</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Status</TableHead><TableHead className="whitespace-nowrap">ID</TableHead><TableHead>Descrição</TableHead><TableHead>Produto</TableHead><TableHead>Cliente</TableHead><TableHead>Origem</TableHead><TableHead className="text-right whitespace-nowrap">Base (€)</TableHead><TableHead className="text-right whitespace-nowrap">Fatura Total</TableHead><TableHead>Pagamento</TableHead></TableRow></TableHeader>
             <TableBody>
               {monthSales.length === 0 ? (
                 <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">Sem entradas</TableCell></TableRow>
               ) : monthSales.map((s: any, i) => (
                 <TableRow key={i}>
+                  <TableCell><Badge variant="outline">{s.status}</Badge></TableCell>
                   <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{s.sale_id || '—'}</TableCell>
                   <TableCell>{s.description || '—'}</TableCell>
                   <TableCell>{s.product || '—'}</TableCell>
@@ -198,7 +199,6 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
                   <TableCell className="text-right">{fmt(s.base_value)}</TableCell>
                   <TableCell className="text-right">{fmt(s.invoice_total)}</TableCell>
                   <TableCell className="whitespace-nowrap">{s.payment_date || '—'}</TableCell>
-                  <TableCell><Badge variant="outline">{s.status}</Badge></TableCell>
                 </TableRow>
               ))}
             </TableBody>
