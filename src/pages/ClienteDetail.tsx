@@ -541,12 +541,7 @@ export default function ClienteDetailPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Meses de Contrato</Label>
-                  <Select value={numPrestacoes} onValueChange={setNumPrestacoes}>
-                    <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 11 }, (_, i) => i + 2).map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <Input type="number" min="2" value={numPrestacoes} onChange={e => setNumPrestacoes(e.target.value)} placeholder="Ex: 12" />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
