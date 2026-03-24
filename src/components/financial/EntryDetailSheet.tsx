@@ -175,5 +175,27 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
         </div>
       </SheetContent>
     </Sheet>
+
+    <AlertDialog open={confirmNoDocsOpen} onOpenChange={setConfirmNoDocsOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Nenhuma fatura anexada</AlertDialogTitle>
+          <AlertDialogDescription>
+            Nenhuma fatura está anexada a esta transação. De certeza que pretende finalizar?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setPendingStatus(null)}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={() => {
+            if (pendingStatus) setStatus(pendingStatus);
+            setPendingStatus(null);
+            setConfirmNoDocsOpen(false);
+          }}>
+            Sim, finalizar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
