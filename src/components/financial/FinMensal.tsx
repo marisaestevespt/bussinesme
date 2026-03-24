@@ -188,23 +188,25 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
           <Table>
-            <TableHeader><TableRow><TableHead>Status</TableHead><TableHead className="whitespace-nowrap">ID</TableHead><TableHead>Descrição</TableHead><TableHead>Produto</TableHead><TableHead>Cliente</TableHead><TableHead>Origem</TableHead><TableHead className="text-right whitespace-nowrap">Base (€)</TableHead><TableHead className="text-right whitespace-nowrap">Fatura Total</TableHead><TableHead>Pagamento</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Status</TableHead><TableHead>Data Pgto.</TableHead><TableHead className="whitespace-nowrap">ID</TableHead><TableHead>Descrição</TableHead><TableHead>Cliente</TableHead><TableHead className="text-right whitespace-nowrap">Base (€)</TableHead><TableHead className="text-right whitespace-nowrap">Fatura Total</TableHead><TableHead>Ficheiros</TableHead></TableRow></TableHeader>
             <TableBody>
               {monthSales.length === 0 ? (
-                <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">Sem entradas</TableCell></TableRow>
-              ) : monthSales.map((s: any, i) => (
+                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-6">Sem entradas</TableCell></TableRow>
+              ) : monthSales.map((s: any, i) => {
+                const docs = Array.isArray(s.documents) ? s.documents : [];
+                return (
                   <TableRow key={i} className="cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedSale(s); setSaleSheetOpen(true); }}>
                     <TableCell onClick={e => e.stopPropagation()}><EntryStatusSelect saleId={s.id} currentStatus={s.status || 'aguarda_pagamento'} /></TableCell>
+                    <TableCell className="whitespace-nowrap">{s.payment_date || '—'}</TableCell>
                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{s.sale_id || '—'}</TableCell>
                     <TableCell>{s.description || '—'}</TableCell>
-                    <TableCell>{s.product || '—'}</TableCell>
                     <TableCell>{s.client || '—'}</TableCell>
-                    <TableCell>{s.source || '—'}</TableCell>
                     <TableCell className="text-right">{fmt(s.base_value)}</TableCell>
                     <TableCell className="text-right">{fmt(s.invoice_total)}</TableCell>
-                    <TableCell className="whitespace-nowrap">{s.payment_date || '—'}</TableCell>
+                    <TableCell>{docs.length > 0 ? <Badge variant="outline" className="text-xs">{docs.length} ficheiro{docs.length > 1 ? 's' : ''}</Badge> : <span className="text-muted-foreground text-xs">—</span>}</TableCell>
                   </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
