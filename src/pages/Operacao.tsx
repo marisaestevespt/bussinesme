@@ -259,6 +259,14 @@ export default function OperacaoPage() {
     },
   });
 
+  const { data: deliverables = [] } = useQuery({
+    queryKey: ['op-deliverables'],
+    queryFn: async () => {
+      const { data } = await supabase.from('project_deliverables').select('id,name,deadline,status,project_id,assigned_to').neq('status', 'entregue').order('deadline', { ascending: true });
+      return (data || []) as { id: string; name: string; deadline: string | null; status: string; project_id: string; assigned_to: string | null }[];
+    },
+  });
+
   // ── Derived data ────────────────────────────────────────────
   const profileMap = useMemo(() => new Map(profiles.map(p => [p.id, p])), [profiles]);
 
@@ -395,16 +403,37 @@ export default function OperacaoPage() {
 
   const totalAlerts = stalledProjects.length + clientsNearEndOfCycle.length + unassignedTasks.length;
 
-  // ── Countdown — next delivery ──────────────────────────────
+  // ── Countdown — next delivery (deliverables first, then project deadlines) ──
   const nextDelivery = useMemo(() => {
-    const upcoming = allActiveProjects
-      .filter(p => p.deadline && !isBefore(new Date(p.deadline), today))
-      .sort((a, b) => new Date(a.deadline!).getTime() - new Date(b.deadline!).getTime());
-    if (upcoming.length === 0) return null;
-    const p = upcoming[0];
-    const daysLeft = differenceInDays(new Date(p.deadline!), today);
-    return { ...p, daysLeft };
-  }, [allActiveProjects, today]);
+    type NextItem = { id: string; name: string; daysLeft: number; deadline: string; projectName?: string; type: 'deliverable' | 'project'; projectId?: string };
+    const candidates: NextItem[] = [];
+
+    // Deliverables
+    deliverables.forEach(d => {
+      if (d.deadline && !isBefore(new Date(d.deadline), today)) {
+        const proj = allActiveProjects.find(p => p.id === d.project_id);
+        candidates.push({
+          id: d.id, name: d.name, deadline: d.deadline,
+          daysLeft: differenceInDays(new Date(d.deadline), today),
+          projectName: proj?.name || '', type: 'deliverable', projectId: d.project_id,
+        });
+      }
+    });
+
+    // Project deadlines
+    allActiveProjects.forEach(p => {
+      if (p.deadline && !isBefore(new Date(p.deadline), today)) {
+        candidates.push({
+          id: p.id, name: p.name, deadline: p.deadline,
+          daysLeft: differenceInDays(new Date(p.deadline), today),
+          type: 'project', projectId: p.id,
+        });
+      }
+    });
+
+    candidates.sort((a, b) => a.daysLeft - b.daysLeft);
+    return candidates[0] || null;
+  }, [allActiveProjects, deliverables, today]);
 
   // ── Project health indicators ──────────────────────────────
   const projectHealth = useMemo(() => {
@@ -425,19 +454,30 @@ export default function OperacaoPage() {
     });
   }, [allActiveProjects, projectProgress, today]);
 
-  // ── Delivery timeline (next 14 days) ──────────────────────
+  // ── Delivery timeline (next 14 days) — includes deliverables ──
   const deliveryTimeline = useMemo(() => {
-    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task'; id: string }[] }[] = [];
+    const days: { date: Date; label: string; items: { name: string; type: 'project' | 'task' | 'deliverable'; id: string }[] }[] = [];
     for (let i = 0; i < 14; i++) {
       const d = new Date(today);
       d.setDate(d.getDate() + i);
       const dateStr = format(d, 'yyyy-MM-dd');
-      const items: { name: string; type: 'project' | 'task'; id: string }[] = [];
+      const items: { name: string; type: 'project' | 'task' | 'deliverable'; id: string }[] = [];
+
+      // Deliverables
+      deliverables.forEach(del => {
+        if (del.deadline && format(new Date(del.deadline), 'yyyy-MM-dd') === dateStr) {
+          items.push({ name: del.name, type: 'deliverable', id: del.id });
+        }
+      });
+
+      // Projects
       allActiveProjects.forEach(p => {
         if (p.deadline && format(new Date(p.deadline), 'yyyy-MM-dd') === dateStr) {
           items.push({ name: p.name, type: 'project', id: p.id });
         }
       });
+
+      // Tasks
       tasks.filter(t => t.status !== 'concluida').forEach(t => {
         if (t.deadline && format(new Date(t.deadline), 'yyyy-MM-dd') === dateStr) {
           items.push({ name: t.name, type: 'task', id: t.id });
@@ -448,7 +488,7 @@ export default function OperacaoPage() {
       }
     }
     return days;
-  }, [allActiveProjects, tasks, today]);
+  }, [allActiveProjects, deliverables, tasks, today]);
 
   function renderTaskRow(t: Task) {
     const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
@@ -677,11 +717,11 @@ export default function OperacaoPage() {
                   </span>
                   <span className="text-sm text-muted-foreground font-medium">dias</span>
                 </div>
-                <Link to={`/hub/projetos/${nextDelivery.id}`} className="group">
+                <Link to={`/hub/projetos/${nextDelivery.projectId || nextDelivery.id}`} className="group">
                   <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">{nextDelivery.name}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {nextDelivery.client_name && `${nextDelivery.client_name} · `}
-                    {format(new Date(nextDelivery.deadline!), 'dd MMM yyyy', { locale: pt })}
+                    {nextDelivery.projectName && `${nextDelivery.projectName} · `}
+                    {format(new Date(nextDelivery.deadline), 'dd MMM yyyy', { locale: pt })}
                   </p>
                 </Link>
               </CardContent>
@@ -720,6 +760,7 @@ export default function OperacaoPage() {
                       <div className="mt-1 space-y-0.5 w-full px-0.5">
                         {day.items.slice(0, 3).map((item, i) => (
                           <div key={i} className={`text-[9px] leading-tight px-1.5 py-1 rounded-md truncate text-center ${
+                            item.type === 'deliverable' ? 'bg-accent/20 text-accent-foreground font-semibold ring-1 ring-accent/30' :
                             item.type === 'project' ? 'bg-primary/10 text-primary font-medium' : 'bg-muted text-muted-foreground'
                           }`} title={item.name}>
                             {item.name.length > 12 ? item.name.slice(0, 12) + '…' : item.name}
