@@ -5756,6 +5756,66 @@ export type Database = {
         }
         Relationships: []
       }
+      project_deliverables: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          deadline: string | null
+          description: string | null
+          id: string
+          is_recurring: boolean
+          name: string
+          project_id: string
+          recurrence_label: string | null
+          sort_order: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          is_recurring?: boolean
+          name?: string
+          project_id: string
+          recurrence_label?: string | null
+          sort_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          is_recurring?: boolean
+          name?: string
+          project_id?: string
+          recurrence_label?: string | null
+          sort_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_deliverables_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_deliverables_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_members: {
         Row: {
           created_at: string
