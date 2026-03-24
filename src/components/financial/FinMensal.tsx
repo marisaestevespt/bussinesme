@@ -509,13 +509,33 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin }: {
 
   const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
+  const currentStatus = linkedExpense?.status || 'pendente';
+
+  const handleStatusChange = async (_id: string, newStatus: string) => {
+    setConfirming(true);
+    const dateStr = `${currentYear}-${String(month).padStart(2, '0')}-15`;
+    if (linkedExpense) {
+      await fin.upsertExpense.mutateAsync({ id: linkedExpense.id, status: newStatus } as any);
+    } else {
+      const vr = sub.vat_rate || 0;
+      let base: number, total: number;
+      if (sub.includes_vat) { total = sub.value; base = Math.round(sub.value / (1 + vr / 100) * 100) / 100; }
+      else { base = sub.value; total = Math.round(sub.value * (1 + vr / 100) * 100) / 100; }
+      await fin.upsertExpense.mutateAsync({
+        description: `${sub.platform_name} — ${MONTHS_LABEL[month - 1]} ${currentYear}`,
+        category: 'plataformas', base_value: base, vat_rate: vr, total_with_vat: total,
+        location: sub.location, expense_date: dateStr, expense_month: month,
+        expense_quarter: Math.ceil(month / 3), expense_year: currentYear,
+        status: newStatus, source_type: 'subscription', source_id: sub.id,
+      } as any);
+    }
+    setConfirming(false);
+  };
+
   return (
-    <TableRow className={!isPaid ? 'bg-muted/30' : ''}>
+    <TableRow className={currentStatus !== 'pago' ? 'bg-muted/30' : ''}>
       <TableCell>
-        {isPaid
-          ? <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Pago</Badge>
-          : <Badge variant="outline" className="border-dashed text-muted-foreground">Pendente</Badge>
-        }
+        <ExpenseStatusSelect expenseId={linkedExpense?.id || `sub-${sub.id}`} currentStatus={currentStatus} onUpdate={handleStatusChange} />
       </TableCell>
       <TableCell className="text-xs text-muted-foreground whitespace-nowrap">SUB</TableCell>
       <TableCell className="font-medium">{sub.platform_name}</TableCell>
@@ -524,18 +544,7 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin }: {
       <TableCell className="text-right">{fmt(displayBase)}</TableCell>
       <TableCell className="text-right">{vatRate}%</TableCell>
       <TableCell className="text-right">{fmt(displayTotal)}</TableCell>
-      <TableCell>
-        <Button
-          size="sm"
-          variant={isPaid ? 'ghost' : 'default'}
-          disabled={confirming}
-          onClick={handleConfirm}
-          className="text-xs"
-        >
-          <Check className="h-3.5 w-3.5 mr-1" />
-          {isPaid ? 'Desfazer' : 'Confirmar'}
-        </Button>
-      </TableCell>
+      <TableCell>—</TableCell>
     </TableRow>
   );
 }
@@ -610,13 +619,35 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
 
   const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
+  const currentStatus = linkedExpense?.status || 'pendente';
+
+  const handleStatusChange = async (_id: string, newStatus: string) => {
+    setConfirming(true);
+    const dateStr = `${currentYear}-${String(month).padStart(2, '0')}-${String(contract.payment_day || 15).padStart(2, '0')}`;
+    if (linkedExpense) {
+      await fin.upsertExpense.mutateAsync({ id: linkedExpense.id, status: newStatus } as any);
+      await supabase.from('member_payments').update({ status: newStatus }).eq('member_id', contract.member_id).eq('month', month).eq('year', currentYear).eq('payment_type', contractType);
+    } else {
+      await fin.upsertExpense.mutateAsync({
+        description: `${memberName} — ${MONTHS_LABEL[month - 1]} ${currentYear}`,
+        category: contractType === 'contrato_trabalho' ? 'ordenados' : 'prestadores',
+        base_value: value, vat_rate: 0, total_with_vat: value, location: 'portugal',
+        expense_date: dateStr, expense_month: month, expense_quarter: Math.ceil(month / 3),
+        expense_year: currentYear, status: newStatus, source_type: 'contract', source_id: contract.id,
+      } as any);
+      await supabase.from('member_payments').insert({
+        member_id: contract.member_id, month, year: currentYear,
+        gross_value: value, net_value: value, payment_type: contractType, status: newStatus,
+      });
+    }
+    qc.invalidateQueries({ queryKey: ['my-payments'] });
+    setConfirming(false);
+  };
+
   return (
-    <TableRow className={!isPaid ? 'bg-muted/30' : ''}>
+    <TableRow className={currentStatus !== 'pago' ? 'bg-muted/30' : ''}>
       <TableCell>
-        {isPaid
-          ? <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Pago</Badge>
-          : <Badge variant="outline" className="border-dashed text-muted-foreground">Pendente</Badge>
-        }
+        <ExpenseStatusSelect expenseId={linkedExpense?.id || `contract-${contract.id}`} currentStatus={currentStatus} onUpdate={handleStatusChange} />
       </TableCell>
       <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{typeLabel}</TableCell>
       <TableCell className="font-medium">{memberName}</TableCell>
@@ -625,18 +656,7 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
       <TableCell className="text-right">{fmt(value)}</TableCell>
       <TableCell className="text-right">0%</TableCell>
       <TableCell className="text-right">{fmt(value)}</TableCell>
-      <TableCell>
-        <Button
-          size="sm"
-          variant={isPaid ? 'ghost' : 'default'}
-          disabled={confirming}
-          onClick={handleConfirm}
-          className="text-xs"
-        >
-          <Check className="h-3.5 w-3.5 mr-1" />
-          {isPaid ? 'Desfazer' : 'Confirmar'}
-        </Button>
-      </TableCell>
+      <TableCell>—</TableCell>
     </TableRow>
   );
 }
