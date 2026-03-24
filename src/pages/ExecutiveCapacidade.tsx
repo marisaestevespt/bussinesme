@@ -160,8 +160,29 @@ export default function ExecutiveCapacidade() {
                 <p className="text-[10px] text-muted-foreground">Total de horas de trabalho no mês (ex: 160h = 8h × 20 dias)</p>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs">% tempo admin/gestão: {effectiveAdmin}%</Label>
-                <Slider value={[effectiveAdmin]} onValueChange={v => setAdminPercent(v[0])} min={0} max={50} step={5} />
+                <Label className="text-xs">Tempo admin/gestão</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    className="h-8 w-20"
+                    value={Math.round(effectiveHours * effectiveAdmin / 100)}
+                    onChange={e => {
+                      const hrs = Number(e.target.value);
+                      const pct = effectiveHours > 0 ? Math.round((hrs / effectiveHours) * 100) : 0;
+                      setAdminPercent(Math.min(pct, 100));
+                    }}
+                  />
+                  <span className="text-xs text-muted-foreground">horas</span>
+                  <span className="text-xs text-muted-foreground mx-1">=</span>
+                  <Input
+                    type="number"
+                    className="h-8 w-16"
+                    value={effectiveAdmin}
+                    onChange={e => setAdminPercent(Math.min(Number(e.target.value), 100))}
+                  />
+                  <span className="text-xs text-muted-foreground">%</span>
+                </div>
+                <Slider value={[effectiveAdmin]} onValueChange={v => setAdminPercent(v[0])} min={0} max={50} step={5} className="mt-1" />
                 <p className="text-[10px] text-muted-foreground">Reuniões, admin, e-mails, gestão — tempo que não é entrega ao cliente</p>
               </div>
               <Separator />
