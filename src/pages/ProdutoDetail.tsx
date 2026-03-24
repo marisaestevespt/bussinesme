@@ -1138,9 +1138,8 @@ export default function ProdutoDetailPage() {
                   </CardContent>
                 </Card>
 
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-xs text-muted-foreground mb-3">Seleciona as formas de pagamento disponíveis para este produto. Ao associar a um cliente, apenas estas opções aparecerão.</p>
+
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {[
                         { value: 'pagamento_total', label: 'Pagamento Total' },
