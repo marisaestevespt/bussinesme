@@ -20,6 +20,10 @@ const DEFAULT_EXP_CATEGORIES = [
   { value: 'formacao', label: 'Formação' },
   { value: 'servico_contratado', label: 'Serviço Contratado' },
   { value: 'plataformas', label: 'Plataformas' },
+  { value: 'impostos', label: 'Impostos' },
+  { value: 'seguranca_social', label: 'Segurança Social' },
+  { value: 'ordenados', label: 'Ordenados' },
+  { value: 'prestadores', label: 'Prestadores' },
   { value: 'outro', label: 'Outro' },
 ];
 
