@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTeamData } from '@/hooks/useTeamData';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Plus, Trash2, Save } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, ExternalLink } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -223,6 +224,12 @@ export default function SopDetailPage() {
     return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && sop.name?.toLowerCase().includes('pagamento');
   }, [sop]);
 
+  const isNpsSop = useMemo(() => {
+    if (!sop) return false;
+    const n = sop.name?.toLowerCase() || '';
+    return (sop as any).linked_entity_type === 'produto' && (sop as any).linked_entity_id && (n.includes('nps') || n.includes('feedback'));
+  }, [sop]);
+
   const templateTable = isOnboardingSop ? 'product_onboarding_templates' : isOffboardingSop ? 'product_offboarding_templates' : null;
   const linkedProductId = (sop as any)?.linked_entity_id;
 
@@ -235,6 +242,51 @@ export default function SopDetailPage() {
       return (data || []) as any[];
     },
     enabled: isPaymentSop && !!linkedProductId,
+  });
+
+  // NPS Config for "Recolha de NPS/Feedbacks" SOP
+  const { members } = useTeamData();
+  const teamMembers = members.data || [];
+
+  const { data: npsConfig } = useQuery({
+    queryKey: ['product-nps-config', linkedProductId],
+    queryFn: async () => {
+      if (!linkedProductId) return null;
+      const { data } = await supabase.from('product_nps_config' as any).select('*').eq('product_id', linkedProductId).maybeSingle();
+      return data as any;
+    },
+    enabled: isNpsSop && !!linkedProductId,
+  });
+
+  const [npsConfigForm, setNpsConfigForm] = useState<any>(null);
+  const effectiveNpsConfig = npsConfigForm ?? npsConfig;
+
+  useEffect(() => {
+    if (npsConfig && !npsConfigForm) setNpsConfigForm(npsConfig);
+  }, [npsConfig]);
+
+  const saveNpsConfig = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        product_id: linkedProductId,
+        cadence_days: effectiveNpsConfig?.cadence_days || 30,
+        collection_message: effectiveNpsConfig?.collection_message || '',
+        responsible_id: effectiveNpsConfig?.responsible_id || null,
+        nps_form_url: effectiveNpsConfig?.nps_form_url || null,
+      };
+      if (effectiveNpsConfig?.id) {
+        const { error } = await supabase.from('product_nps_config' as any).update(payload).eq('id', effectiveNpsConfig.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('product_nps_config' as any).insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['product-nps-config', linkedProductId] });
+      toast.success('Configuração NPS guardada');
+    },
+    onError: () => toast.error('Erro ao guardar configuração'),
   });
 
   const { data: templateRows = [] } = useQuery({
@@ -635,6 +687,79 @@ export default function SopDetailPage() {
                       </label>
                     );
                   })}
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
+
+        {/* Configuração NPS (for "Recolha de NPS/Feedbacks" SOP) */}
+        {isNpsSop && (
+          <section>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Configuração de Recolha de NPS</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Cadência de recolha (dias)</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      placeholder="Ex: 30"
+                      value={effectiveNpsConfig?.cadence_days ?? 30}
+                      onChange={e => setNpsConfigForm((p: any) => ({ ...(p || {}), cadence_days: Number(e.target.value) }))}
+                      className="h-9"
+                    />
+                    <p className="text-xs text-muted-foreground">30 = mensal · 60 = bimensal · 90 = trimestral</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Responsável pela recolha</Label>
+                    <Select
+                      value={effectiveNpsConfig?.responsible_id || ''}
+                      onValueChange={v => setNpsConfigForm((p: any) => ({ ...(p || {}), responsible_id: v }))}
+                    >
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar membro" /></SelectTrigger>
+                      <SelectContent>
+                        {teamMembers.map((m: any) => (
+                          <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-end">
+                    <Button size="sm" onClick={() => saveNpsConfig.mutate()} disabled={saveNpsConfig.isPending}>
+                      <Save className="h-4 w-4 mr-1" /> Guardar Config
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Mensagem de recolha</Label>
+                  <Textarea
+                    placeholder="Mensagem ou pergunta a enviar ao cliente..."
+                    value={effectiveNpsConfig?.collection_message || ''}
+                    onChange={e => setNpsConfigForm((p: any) => ({ ...(p || {}), collection_message: e.target.value }))}
+                    className="min-h-[60px]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Link do formulário de recolha de NPS</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="https://forms.google.com/... ou outro link"
+                      value={effectiveNpsConfig?.nps_form_url || ''}
+                      onChange={e => setNpsConfigForm((p: any) => ({ ...(p || {}), nps_form_url: e.target.value }))}
+                      className="h-9"
+                    />
+                    {effectiveNpsConfig?.nps_form_url && (
+                      <Button variant="outline" size="sm" className="shrink-0" asChild>
+                        <a href={effectiveNpsConfig.nps_form_url} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
