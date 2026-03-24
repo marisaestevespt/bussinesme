@@ -277,7 +277,7 @@ export default function ExecutiveCapacidade() {
 
             {/* Insight card */}
             {items.length > 0 && (
-              <Card className={hoursRemaining < 0 ? 'border-destructive/50 bg-destructive/5' : 'border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20'}>
+              <Card className={hoursRemaining < 0 ? 'border-destructive/50 bg-destructive/5' : 'border-primary/30 bg-primary/5'}>
                 <CardContent className="p-4 flex items-start gap-3">
                   {hoursRemaining < 0 ? (
                     <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
