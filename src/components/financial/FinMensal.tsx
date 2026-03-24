@@ -191,19 +191,22 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
             <TableBody>
               {monthSales.length === 0 ? (
                 <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">Sem entradas</TableCell></TableRow>
-              ) : monthSales.map((s: any, i) => (
-                <TableRow key={i}>
-                  <TableCell><Badge variant="outline">{s.status}</Badge></TableCell>
-                  <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{s.sale_id || '—'}</TableCell>
-                  <TableCell>{s.description || '—'}</TableCell>
-                  <TableCell>{s.product || '—'}</TableCell>
-                  <TableCell>{s.client || '—'}</TableCell>
-                  <TableCell>{s.source || '—'}</TableCell>
-                  <TableCell className="text-right">{fmt(s.base_value)}</TableCell>
-                  <TableCell className="text-right">{fmt(s.invoice_total)}</TableCell>
-                  <TableCell className="whitespace-nowrap">{s.payment_date || '—'}</TableCell>
-                </TableRow>
-              ))}
+              ) : monthSales.map((s: any, i) => {
+                const sb = getEntryStatusBadge(s.status);
+                return (
+                  <TableRow key={i} className="cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedSale(s); setSaleSheetOpen(true); }}>
+                    <TableCell><Badge variant="outline" className={sb.cls}>{sb.label}</Badge></TableCell>
+                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{s.sale_id || '—'}</TableCell>
+                    <TableCell>{s.description || '—'}</TableCell>
+                    <TableCell>{s.product || '—'}</TableCell>
+                    <TableCell>{s.client || '—'}</TableCell>
+                    <TableCell>{s.source || '—'}</TableCell>
+                    <TableCell className="text-right">{fmt(s.base_value)}</TableCell>
+                    <TableCell className="text-right">{fmt(s.invoice_total)}</TableCell>
+                    <TableCell className="whitespace-nowrap">{s.payment_date || '—'}</TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
