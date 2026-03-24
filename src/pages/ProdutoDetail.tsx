@@ -163,6 +163,16 @@ export default function ProdutoDetailPage() {
     enabled: !isNew,
   });
 
+  const { data: deliverableTemplates = [] } = useQuery({
+    queryKey: ['product-deliverable-templates', id],
+    queryFn: async () => {
+      if (!id || isNew) return [];
+      const { data } = await supabase.from('product_deliverable_templates' as any).select('*').eq('product_id', id).order('sort_order');
+      return data || [];
+    },
+    enabled: !isNew,
+  });
+
   const { data: offboardingTemplate = [] } = useQuery({
     queryKey: ['product-offboarding-template', id],
     queryFn: async () => {
@@ -281,6 +291,7 @@ export default function ProdutoDetailPage() {
     qc.invalidateQueries({ queryKey: ['product-costs', id] });
     qc.invalidateQueries({ queryKey: ['product-onboarding-template', id] });
     qc.invalidateQueries({ queryKey: ['product-improvements', id] });
+    qc.invalidateQueries({ queryKey: ['product-deliverable-templates', id] });
   };
 
   const addRow = useMutation({
