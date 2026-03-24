@@ -53,6 +53,9 @@ export default function ExecutiveDashboard() {
               <Link to="/executive/planeamento" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
                 <Target className="h-4 w-4 text-muted-foreground" /> Planeamento Anual
               </Link>
+              <Link to="/executive/capacidade" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
+                <Calculator className="h-4 w-4 text-muted-foreground" /> Simulador de Capacidade
+              </Link>
               <Link to="/executive/weekly-align" className="flex items-center gap-2 rounded-md p-2 text-sm hover:bg-accent transition-colors">
                 <CalendarCheck className="h-4 w-4 text-muted-foreground" /> Weekly Align
               </Link>
