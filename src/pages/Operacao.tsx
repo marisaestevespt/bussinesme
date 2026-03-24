@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Users, FolderOpen, CheckCircle2, Clock, AlertTriangle, Briefcase, Building2, ListTodo, Filter, X, TrendingUp, UserX, CalendarClock } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -604,268 +605,167 @@ export default function OperacaoPage() {
           </DialogContent>
         </Dialog>
 
-        {/* ═══════════════ LADO A LADO — CLIENTES + INTERNO ═══════════════ */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* ═══════════════ CONTEÚDO PRINCIPAL — TABS ═══════════════ */}
+        <Tabs defaultValue="clientes" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="clientes" className="gap-1.5">
+              <Briefcase className="h-3.5 w-3.5" /> Clientes
+            </TabsTrigger>
+            <TabsTrigger value="interno" className="gap-1.5">
+              <Building2 className="h-3.5 w-3.5" /> Interno
+            </TabsTrigger>
+          </TabsList>
 
-          {/* ─── COLUNA ESQUERDA — CLIENTES ─── */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-1">
-              <Briefcase className="h-5 w-5 text-primary" />
-              <h2 className="text-lg font-semibold">Clientes</h2>
-            </div>
+          {/* ─── TAB CLIENTES ─── */}
+          <TabsContent value="clientes">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Col 1: Status resumo */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Estado dos Clientes</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0 space-y-1.5">
+                  {[
+                    { value: 'em_onboarding', label: 'Em onboarding', className: 'bg-blue-100 text-blue-800' },
+                    { value: 'ativo', label: 'Ativos', className: 'bg-green-100 text-green-800' },
+                    { value: 'pausado', label: 'Pausados', className: 'bg-amber-100 text-amber-800' },
+                    { value: 'altura_renovacao', label: 'Renovação', className: 'bg-purple-100 text-purple-800' },
+                    { value: 'em_offboarding', label: 'Em offboarding', className: 'bg-orange-100 text-orange-800' },
+                  ].map(s => {
+                    const count = clients.filter(c => c.status === s.value).length;
+                    return (
+                      <button key={s.value} onClick={() => setExpandedStatus(s.value)} className="flex items-center justify-between w-full py-1.5 px-2 rounded-md hover:bg-muted/50 transition-colors">
+                        <Badge variant="outline" className={`${s.className} border-0 text-xs`}>{s.label}</Badge>
+                        <span className="text-sm font-semibold">{count}</span>
+                      </button>
+                    );
+                  })}
+                </CardContent>
+              </Card>
 
-            {/* Resumo */}
-            <Card>
-              <CardContent className="pt-4 pb-3 space-y-2">
-                {[
-                  { value: 'em_onboarding', label: 'Em onboarding', className: 'bg-blue-100 text-blue-800' },
-                  { value: 'ativo', label: 'Ativos', className: 'bg-green-100 text-green-800' },
-                  { value: 'pausado', label: 'Pausados', className: 'bg-amber-100 text-amber-800' },
-                  { value: 'altura_renovacao', label: 'Altura de renovação', className: 'bg-purple-100 text-purple-800' },
-                  { value: 'em_offboarding', label: 'Em offboarding', className: 'bg-orange-100 text-orange-800' },
-                ].map(s => {
-                  const count = clients.filter(c => c.status === s.value).length;
-                  return (
-                    <button
-                      key={s.value}
-                      onClick={() => setExpandedStatus(s.value)}
-                      className="flex items-center justify-between w-full py-1 rounded hover:bg-muted/50 transition-colors"
-                    >
-                      <Badge variant="outline" className={`${s.className} border-0 text-xs`}>{s.label}</Badge>
-                      <span className="text-sm font-semibold">{count}</span>
-                    </button>
-                  );
-                })}
-
-                <Dialog open={!!expandedStatus} onOpenChange={(open) => !open && setExpandedStatus(null)}>
-                   <DialogContent className={expandedStatus === 'altura_renovacao' ? 'max-w-2xl' : (expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding') ? 'max-w-2xl' : 'max-w-md'}>
-                    <DialogHeader>
-                      <DialogTitle className="text-base">
-                        {expandedStatus && {
-                          em_onboarding: 'Em onboarding',
-                          ativo: 'Ativos',
-                          pausado: 'Pausados',
-                          altura_renovacao: 'Altura de renovação',
-                          em_offboarding: 'Em offboarding',
-                        }[expandedStatus]}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="max-h-[400px] overflow-y-auto">
-                      {clients.filter(c => c.status === expandedStatus).length === 0 ? (
-                        <p className="text-sm text-muted-foreground py-3">Nenhum cliente neste status</p>
-                      ) : expandedStatus === 'altura_renovacao' ? (
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="text-xs">Nome</TableHead>
-                              <TableHead className="text-xs">Data de Início</TableHead>
-                              <TableHead className="text-xs">Fim de Ciclo</TableHead>
-                              <TableHead className="text-xs">Produto Atual</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {clients.filter(c => c.status === expandedStatus).map(c => (
-                              <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setExpandedStatus(null); window.location.href = `/hub/clientes/${c.id}`; }}>
-                                <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
-                                <TableCell className="text-xs text-muted-foreground">{c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
-                                <TableCell className="text-xs text-muted-foreground">{c.end_of_cycle ? format(new Date(c.end_of_cycle), 'dd/MM/yyyy') : '—'}</TableCell>
-                                <TableCell className="text-xs">{c.current_product || '—'}</TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      ) : (
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="text-xs">ID</TableHead>
-                              <TableHead className="text-xs">Nome</TableHead>
-                              <TableHead className="text-xs">Data de Início</TableHead>
-                              {(expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding') && <TableHead className="text-xs">Por concluir</TableHead>}
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {clients.filter(c => c.status === expandedStatus).map(c => {
-                              const pendingItems = expandedStatus === 'em_onboarding'
-                                ? allOnboarding.filter(o => o.client_id === c.id)
-                                : expandedStatus === 'em_offboarding'
-                                ? allOffboarding.filter(o => o.client_id === c.id)
-                                : [];
-                              return (
-                                <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 align-top" onClick={() => { setExpandedStatus(null); window.location.href = `/hub/clientes/${c.id}`; }}>
-                                  <TableCell className="text-xs font-mono">{c.client_id}</TableCell>
-                                  <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
-                                  <TableCell className="text-xs text-muted-foreground">{c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
-                                  {(expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding') && (
-                                    <TableCell>
-                                      {pendingItems.length === 0 ? (
-                                        <span className="text-xs text-muted-foreground">Sem checklist</span>
-                                      ) : (
-                                        <ul className="space-y-0.5">
-                                          {pendingItems.map((item, i) => (
-                                            <li key={i} className="text-xs text-destructive flex items-center gap-1">
-                                              <span className="h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
-                                              {item.phase ? `${item.phase}: ` : ''}{item.activity}
-                                            </li>
-                                          ))}
-                                        </ul>
-                                      )}
-                                    </TableCell>
-                                  )}
-                                </TableRow>
-                              );
-                            })}
-                          </TableBody>
-                        </Table>
-                      )}
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </CardContent>
-            </Card>
-
-            {/* Projetos de cliente — Gallery */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <FolderOpen className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-semibold">Projetos de Clientes</span>
-                <Badge variant="outline" className="text-[10px]">{activeClientProjects.length}</Badge>
-              </div>
-              {activeClientProjects.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-3">Nenhum projeto de cliente ativo</p>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  {activeClientProjects.map(p => {
+              {/* Col 2: Projetos compactos */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <FolderOpen className="h-4 w-4" /> Projetos Ativos
+                    <Badge variant="outline" className="text-[10px] ml-auto">{activeClientProjects.length}</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0 space-y-0.5 max-h-[320px] overflow-y-auto">
+                  {activeClientProjects.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-3">Nenhum projeto ativo</p>
+                  ) : activeClientProjects.map(p => {
                     const prog = projectProgress.get(p.id) ?? p.progress;
                     const members = projectMembersMap.get(p.id) || [];
                     return (
-                      <Link key={p.id} to={`/hub/projetos/${p.id}`} className="group rounded-xl border bg-card overflow-hidden hover:shadow-md transition-shadow">
-                        <div className="aspect-[16/9] bg-muted relative overflow-hidden">
-                          {p.cover_url ? (
-                            <img src={p.cover_url} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
-                              <FolderOpen className="h-8 w-8 text-muted-foreground/40" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="p-3 space-y-2">
+                      <Link key={p.id} to={`/hub/projetos/${p.id}`} className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-muted/50 transition-colors group">
+                        <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{p.name}</p>
-                          {p.client_name && <p className="text-xs text-muted-foreground truncate">{p.client_name}</p>}
-                          <div className="flex items-center gap-2">
+                          {p.client_name && <p className="text-[11px] text-muted-foreground truncate">{p.client_name}</p>}
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="w-16 flex items-center gap-1">
                             <Progress value={prog} className="h-1.5 flex-1" />
-                            <span className="text-[10px] text-muted-foreground">{prog}%</span>
+                            <span className="text-[10px] text-muted-foreground w-6 text-right">{prog}%</span>
                           </div>
-                          {members.length > 0 && (
-                            <div className="flex -space-x-1.5">
-                              {members.slice(0, 3).map(m => (
-                                <Avatar key={m.id} className="h-5 w-5 border-2 border-background">
-                                  <AvatarImage src={m.avatar_url || ''} />
-                                  <AvatarFallback className="text-[8px]">{getInitials(m.full_name)}</AvatarFallback>
-                                </Avatar>
-                              ))}
-                              {members.length > 3 && <span className="text-[9px] text-muted-foreground ml-1">+{members.length - 3}</span>}
-                            </div>
-                          )}
+                          <div className="flex -space-x-1">
+                            {members.slice(0, 2).map(m => (
+                              <Avatar key={m.id} className="h-5 w-5 border-2 border-background">
+                                <AvatarImage src={m.avatar_url || ''} />
+                                <AvatarFallback className="text-[7px]">{getInitials(m.full_name)}</AvatarFallback>
+                              </Avatar>
+                            ))}
+                          </div>
                         </div>
                       </Link>
                     );
                   })}
-                </div>
-              )}
-            </div>
+                </CardContent>
+              </Card>
 
-            {/* Tarefas de cliente */}
-            <Card>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <ListTodo className="h-4 w-4" /> Tarefas de Clientes
-                    <Badge variant="outline" className="text-[10px]">{clientTasks.length}</Badge>
-                  </CardTitle>
-                  <TaskDynamicFilters filters={clientFilters} onChange={setClientFilters} profiles={profiles} projects={clientProjectOptions} />
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0 space-y-0.5 max-h-[350px] overflow-y-auto">
-                {filteredClientTasks.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-3">Nenhuma tarefa neste filtro</p>
-                ) : (
-                  filteredClientTasks.map(t => renderTaskRow(t))
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* ─── COLUNA DIREITA — INTERNO ─── */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-1">
-              <Building2 className="h-5 w-5 text-primary" />
-              <h2 className="text-lg font-semibold">Interno</h2>
-            </div>
-
-            {/* Projetos internos ativos — Bar chart by department */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <FolderOpen className="h-4 w-4" /> Projetos Internos Ativos
-                  <Badge variant="outline" className="ml-auto text-[10px]">{activeInternoProjects.length}</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                {activeInternoProjects.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-3">Nenhum projeto interno ativo</p>
-                ) : (
-                  <div className="h-[250px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={internoByDept} margin={{ top: 8, right: 8, bottom: 4, left: -16 }}>
-                        <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-20} textAnchor="end" height={50} />
-                        <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                        <Tooltip formatter={(value: number) => [`${value} projeto${value !== 1 ? 's' : ''}`, 'Ativos']} />
-                        <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={48}>
-                          {internoByDept.map((entry, i) => (
-                            <Cell key={i} fill={entry.color} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
+              {/* Col 3: Tarefas */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <ListTodo className="h-4 w-4" /> Tarefas
+                      <Badge variant="outline" className="text-[10px]">{clientTasks.length}</Badge>
+                    </CardTitle>
+                    <TaskDynamicFilters filters={clientFilters} onChange={setClientFilters} profiles={profiles} projects={clientProjectOptions} />
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="pt-0 space-y-0.5 max-h-[320px] overflow-y-auto">
+                  {filteredClientTasks.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-3">Nenhuma tarefa neste filtro</p>
+                  ) : filteredClientTasks.map(t => renderTaskRow(t))}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
-            {/* Tarefas internas */}
-            <Card>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between flex-wrap gap-2">
+          {/* ─── TAB INTERNO ─── */}
+          <TabsContent value="interno">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Col 1: Gráfico por departamento */}
+              <Card>
+                <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
-                    <ListTodo className="h-4 w-4" /> Tarefas Internas
-                    <Badge variant="outline" className="text-[10px]">{internoTasks.length}</Badge>
+                    <FolderOpen className="h-4 w-4" /> Por Departamento
+                    <Badge variant="outline" className="text-[10px] ml-auto">{activeInternoProjects.length}</Badge>
                   </CardTitle>
-                  <TaskDynamicFilters filters={internoFilters} onChange={setInternoFilters} profiles={profiles} projects={internoProjectOptions} />
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0 space-y-0.5 max-h-[350px] overflow-y-auto">
-                {filteredInternoTasks.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-3">Nenhuma tarefa neste filtro</p>
-                ) : (
-                  filteredInternoTasks.map(t => renderTaskRow(t))
-                )}
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  {activeInternoProjects.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-3">Nenhum projeto interno ativo</p>
+                  ) : (
+                    <div className="h-[250px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={internoByDept} margin={{ top: 8, right: 8, bottom: 4, left: -16 }}>
+                          <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-25} textAnchor="end" height={50} />
+                          <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                          <Tooltip formatter={(value: number) => [`${value} projeto${value !== 1 ? 's' : ''}`, 'Ativos']} />
+                          <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={40}>
+                            {internoByDept.map((entry, i) => (
+                              <Cell key={i} fill={entry.color} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-            {/* Membros em projetos internos */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Users className="h-4 w-4" /> Equipa em Projetos Internos
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0 space-y-1 max-h-[250px] overflow-y-auto">
-                {internoMembers.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-3">Sem membros associados</p>
-                ) : (
-                  internoMembers.map(m => (
-                    <div key={m.profile!.id} className="flex items-center gap-2.5 py-2 px-3 rounded-lg hover:bg-muted/40">
+              {/* Col 2: Tarefas internas */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <ListTodo className="h-4 w-4" /> Tarefas
+                      <Badge variant="outline" className="text-[10px]">{internoTasks.length}</Badge>
+                    </CardTitle>
+                    <TaskDynamicFilters filters={internoFilters} onChange={setInternoFilters} profiles={profiles} projects={internoProjectOptions} />
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0 space-y-0.5 max-h-[320px] overflow-y-auto">
+                  {filteredInternoTasks.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-3">Nenhuma tarefa neste filtro</p>
+                  ) : filteredInternoTasks.map(t => renderTaskRow(t))}
+                </CardContent>
+              </Card>
+
+              {/* Col 3: Equipa */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Users className="h-4 w-4" /> Equipa
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0 space-y-0.5 max-h-[320px] overflow-y-auto">
+                  {internoMembers.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-3">Sem membros associados</p>
+                  ) : internoMembers.map(m => (
+                    <div key={m.profile!.id} className="flex items-center gap-2.5 py-2 px-2 rounded-lg hover:bg-muted/40">
                       <Avatar className="h-7 w-7">
                         <AvatarImage src={m.profile!.avatar_url || ''} />
                         <AvatarFallback className="text-[10px]">{getInitials(m.profile!.full_name)}</AvatarFallback>
@@ -876,12 +776,98 @@ export default function OperacaoPage() {
                       </div>
                       <Badge variant="outline" className="text-[10px] shrink-0">{m.openTasks} tarefas</Badge>
                     </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Client status dialog */}
+        <Dialog open={!!expandedStatus} onOpenChange={(open) => !open && setExpandedStatus(null)}>
+          <DialogContent className={expandedStatus === 'altura_renovacao' ? 'max-w-2xl' : (expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding') ? 'max-w-2xl' : 'max-w-md'}>
+            <DialogHeader>
+              <DialogTitle className="text-base">
+                {expandedStatus && {
+                  em_onboarding: 'Em onboarding',
+                  ativo: 'Ativos',
+                  pausado: 'Pausados',
+                  altura_renovacao: 'Altura de renovação',
+                  em_offboarding: 'Em offboarding',
+                }[expandedStatus]}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="max-h-[400px] overflow-y-auto">
+              {clients.filter(c => c.status === expandedStatus).length === 0 ? (
+                <p className="text-sm text-muted-foreground py-3">Nenhum cliente neste status</p>
+              ) : expandedStatus === 'altura_renovacao' ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">Nome</TableHead>
+                      <TableHead className="text-xs">Data de Início</TableHead>
+                      <TableHead className="text-xs">Fim de Ciclo</TableHead>
+                      <TableHead className="text-xs">Produto Atual</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {clients.filter(c => c.status === expandedStatus).map(c => (
+                      <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setExpandedStatus(null); window.location.href = `/hub/clientes/${c.id}`; }}>
+                        <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{c.end_of_cycle ? format(new Date(c.end_of_cycle), 'dd/MM/yyyy') : '—'}</TableCell>
+                        <TableCell className="text-xs">{c.current_product || '—'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">ID</TableHead>
+                      <TableHead className="text-xs">Nome</TableHead>
+                      <TableHead className="text-xs">Data de Início</TableHead>
+                      {(expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding') && <TableHead className="text-xs">Por concluir</TableHead>}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {clients.filter(c => c.status === expandedStatus).map(c => {
+                      const pendingItems = expandedStatus === 'em_onboarding'
+                        ? allOnboarding.filter(o => o.client_id === c.id)
+                        : expandedStatus === 'em_offboarding'
+                        ? allOffboarding.filter(o => o.client_id === c.id)
+                        : [];
+                      return (
+                        <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 align-top" onClick={() => { setExpandedStatus(null); window.location.href = `/hub/clientes/${c.id}`; }}>
+                          <TableCell className="text-xs font-mono">{c.client_id}</TableCell>
+                          <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
+                          {(expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding') && (
+                            <TableCell>
+                              {pendingItems.length === 0 ? (
+                                <span className="text-xs text-muted-foreground">Sem checklist</span>
+                              ) : (
+                                <ul className="space-y-0.5">
+                                  {pendingItems.map((item, i) => (
+                                    <li key={i} className="text-xs text-destructive flex items-center gap-1">
+                                      <span className="h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
+                                      {item.phase ? `${item.phase}: ` : ''}{item.activity}
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
