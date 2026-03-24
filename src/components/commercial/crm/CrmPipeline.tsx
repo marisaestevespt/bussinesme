@@ -2,9 +2,11 @@ import { useMemo, useState, DragEvent } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 import { CRM_STATUSES, getFollowUpState, FollowUpState } from '@/hooks/useCrmData';
 import { format } from 'date-fns';
-import { AlertTriangle, Clock, Phone, Mail } from 'lucide-react';
+import { AlertTriangle, Clock, Phone, Mail, ArrowRightLeft } from 'lucide-react';
 
 interface CrmPipelineProps {
   leads: any[];
@@ -79,7 +81,23 @@ export function CrmPipeline({ leads, onOpenLead, onUpdateStatus }: CrmPipelinePr
                     className="p-3 cursor-pointer hover:shadow-md transition-shadow"
                   >
                     <div className="space-y-1">
-                      <p className="font-medium text-sm truncate">{lead.name}</p>
+                      <div className="flex items-center justify-between gap-1">
+                        <p className="font-medium text-sm truncate flex-1">{lead.name}</p>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
+                              <ArrowRightLeft className="h-3.5 w-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" onClick={e => e.stopPropagation()}>
+                            {CRM_STATUSES.filter(s => s.value !== lead.status).map(s => (
+                              <DropdownMenuItem key={s.value} onClick={() => onUpdateStatus(lead.id, s.value)}>
+                                {s.label}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                       {lead.email && (
                         <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
                           <Mail className="h-3 w-3 shrink-0" />{lead.email}
