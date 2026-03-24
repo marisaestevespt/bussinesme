@@ -1,280 +1,177 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import type { useFinancialData } from '@/hooks/useFinancialData';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
-const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-const PAY_STATUS = [{ value: 'por_pagar', label: 'Por Pagar' }, { value: 'pago', label: 'Pago' }];
-const LOCATIONS = [
-  { value: 'portugal', label: 'Portugal' },
-  { value: 'ue', label: 'União Europeia' },
-  { value: 'fora_ue', label: 'Fora da UE' },
-];
-
+const MONTHS_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
+const CONTRACT_LABELS: Record<string, string> = {
+  contrato_trabalho: 'Contrato de Trabalho',
+  prestacao_servicos: 'Prestação de Serviços',
+  acordo: 'Acordo',
+  outro: 'Outro',
+};
+
+const STATUS_LABELS: Record<string, { label: string; className: string }> = {
+  ativo: { label: 'Ativo', className: 'bg-green-100 text-green-800' },
+  terminado: { label: 'Terminado', className: 'bg-muted text-muted-foreground' },
+  suspenso: { label: 'Suspenso', className: 'bg-amber-100 text-amber-800' },
+};
+
 interface Props {
-  fin: ReturnType<typeof useFinancialData>;
-  profiles: { id: string; full_name: string | null }[];
+  currentYear: number;
 }
 
-export function FinPayroll({ fin, profiles }: Props) {
-  const payrollData = fin.payroll.data || [];
-  const contractorsData = fin.contractors.data || [];
-  const currentYear = new Date().getFullYear();
+type ContractWithMember = {
+  id: string;
+  contract_type: string;
+  contracted_hours: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  monthly_value: number | null;
+  payment_day: number | null;
+  status: string;
+  notes: string | null;
+  member_id: string;
+  team_members: {
+    id: string;
+    full_name: string;
+    role_title: string | null;
+    department: string | null;
+  } | null;
+};
 
-  // --- Payroll Dialog ---
-  const [payOpen, setPayOpen] = useState(false);
-  const [payForm, setPayForm] = useState<any>({});
+export function FinPayroll({ currentYear }: Props) {
+  const { data: contracts = [] } = useQuery({
+    queryKey: ['member-contracts-with-members'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('member_contracts')
+        .select('*, team_members(id, full_name, role_title, department)')
+        .order('start_date', { ascending: false });
+      return (data || []) as ContractWithMember[];
+    },
+  });
 
-  const openNewPay = () => {
-    setPayForm({ collaborator_name: '', month: String(new Date().getMonth() + 1), year: String(currentYear), gross_salary: '', withholding_rate: '', status: 'por_pagar' });
-    setPayOpen(true);
-  };
-
-  const savePay = async () => {
-    if (!payForm.collaborator_name?.trim()) { toast.error('Nome é obrigatório'); return; }
-    const profile = profiles.find(p => p.full_name === payForm.collaborator_name);
-    await fin.upsertPayroll.mutateAsync({
-      ...(payForm.id ? { id: payForm.id, expense_id: payForm.expense_id } : {}),
-      collaborator_name: payForm.collaborator_name,
-      profile_id: profile?.id || null,
-      month: parseInt(payForm.month),
-      year: parseInt(payForm.year),
-      gross_salary: parseFloat(payForm.gross_salary) || 0,
-      withholding_rate: parseFloat(payForm.withholding_rate) || 0,
-      status: payForm.status,
+  // Filter active contracts (or ones that were active during the current year)
+  const relevantContracts = useMemo(() => {
+    return contracts.filter(c => {
+      if (c.status === 'ativo') return true;
+      // Show terminated contracts if they ended during or after current year
+      if (c.end_date) {
+        const endYear = parseInt(c.end_date.slice(0, 4));
+        return endYear >= currentYear;
+      }
+      return false;
     });
-    setPayOpen(false);
-    toast.success('Registo guardado');
-  };
+  }, [contracts, currentYear]);
 
-  // --- Contractor Dialog ---
-  const [conOpen, setConOpen] = useState(false);
-  const [conForm, setConForm] = useState<any>({});
-
-  const openNewCon = () => {
-    setConForm({ contractor_name: '', month: String(new Date().getMonth() + 1), year: String(currentYear), value: '', location: 'portugal', status: 'por_pagar', service: '' });
-    setConOpen(true);
-  };
-
-  const saveCon = async () => {
-    if (!conForm.contractor_name?.trim()) { toast.error('Nome é obrigatório'); return; }
-    await fin.upsertContractor.mutateAsync({
-      ...(conForm.id ? { id: conForm.id, expense_id: conForm.expense_id } : {}),
-      contractor_name: conForm.contractor_name,
-      month: parseInt(conForm.month),
-      year: parseInt(conForm.year),
-      service: conForm.service || null,
-      value: parseFloat(conForm.value) || 0,
-      location: conForm.location,
-      documents: conForm.documents || [],
-      status: conForm.status,
+  const grouped = useMemo(() => {
+    const groups: Record<string, ContractWithMember[]> = {};
+    relevantContracts.forEach(c => {
+      const type = c.contract_type || 'outro';
+      if (!groups[type]) groups[type] = [];
+      groups[type].push(c);
     });
-    setConOpen(false);
-    toast.success('Prestador guardado');
+    return groups;
+  }, [relevantContracts]);
+
+  const hasContratoTrabalho = (grouped['contrato_trabalho'] || []).length > 0;
+  const hasPrestacao = (grouped['prestacao_servicos'] || []).length > 0;
+  const hasAcordo = (grouped['acordo'] || []).length > 0;
+  const hasOutro = (grouped['outro'] || []).length > 0;
+
+  const totalMensal = relevantContracts
+    .filter(c => c.status === 'ativo')
+    .reduce((s, c) => s + (c.monthly_value || 0), 0);
+
+  const totalTrabalho = (grouped['contrato_trabalho'] || [])
+    .filter(c => c.status === 'ativo')
+    .reduce((s, c) => s + (c.monthly_value || 0), 0);
+
+  const totalPrestacao = (grouped['prestacao_servicos'] || [])
+    .filter(c => c.status === 'ativo')
+    .reduce((s, c) => s + (c.monthly_value || 0), 0);
+
+  const formatDate = (d: string | null) => {
+    if (!d) return '—';
+    const [y, m, day] = d.split('-');
+    return `${day}/${m}/${y}`;
   };
+
+  const renderSection = (type: string, contracts: ContractWithMember[]) => (
+    <div key={type}>
+      <h3 className="text-lg font-semibold mb-3">{CONTRACT_LABELS[type] || type}</h3>
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Função</TableHead>
+                <TableHead className="text-right">Valor Mensal</TableHead>
+                <TableHead>Dia Pgto.</TableHead>
+                <TableHead>Início</TableHead>
+                <TableHead>Fim</TableHead>
+                <TableHead>Horas</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {contracts.length === 0 ? (
+                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Sem registos</TableCell></TableRow>
+              ) : contracts.map(c => {
+                const st = STATUS_LABELS[c.status] || { label: c.status, className: '' };
+                return (
+                  <TableRow key={c.id}>
+                    <TableCell className="font-medium">{c.team_members?.full_name || '—'}</TableCell>
+                    <TableCell className="text-muted-foreground">{c.team_members?.role_title || '—'}</TableCell>
+                    <TableCell className="text-right font-medium">{c.monthly_value ? fmt(c.monthly_value) : '—'}</TableCell>
+                    <TableCell>{c.payment_day ? `Dia ${c.payment_day}` : '—'}</TableCell>
+                    <TableCell>{formatDate(c.start_date)}</TableCell>
+                    <TableCell>{formatDate(c.end_date)}</TableCell>
+                    <TableCell>{c.contracted_hours || '—'}</TableCell>
+                    <TableCell><Badge variant="outline" className={st.className}>{st.label}</Badge></TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
 
   return (
     <div className="space-y-8 mt-4">
-      {/* EMPLOYEES */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold">Colaboradores Fixos</h3>
-          <Button size="sm" onClick={openNewPay}><Plus className="h-4 w-4 mr-1" /> Novo Registo</Button>
-        </div>
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Colaborador</TableHead>
-                  <TableHead>Mês</TableHead>
-                  <TableHead className="text-right">Bruto</TableHead>
-                  <TableHead className="text-right">Ret. Fonte</TableHead>
-                  <TableHead className="text-right">SS Colab. (11%)</TableHead>
-                  <TableHead className="text-right">SS Ent. (23,75%)</TableHead>
-                  <TableHead className="text-right">Líquido</TableHead>
-                  <TableHead className="text-right">Custo Total</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {payrollData.length === 0 ? (
-                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Sem registos</TableCell></TableRow>
-                ) : payrollData.map(p => (
-                  <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
-                    setPayForm({ ...p, month: String(p.month), year: String(p.year), gross_salary: p.gross_salary.toString(), withholding_rate: p.withholding_rate.toString() });
-                    setPayOpen(true);
-                  }}>
-                    <TableCell className="font-medium">{p.collaborator_name}</TableCell>
-                    <TableCell>{MONTHS[p.month - 1]} {p.year}</TableCell>
-                    <TableCell className="text-right">{fmt(p.gross_salary)}</TableCell>
-                    <TableCell className="text-right">{p.withholding_rate}% ({fmt(p.withholding_value)})</TableCell>
-                    <TableCell className="text-right">{fmt(p.ss_employee)}</TableCell>
-                    <TableCell className="text-right">{fmt(p.ss_employer)}</TableCell>
-                    <TableCell className="text-right">{fmt(p.net_salary)}</TableCell>
-                    <TableCell className="text-right font-medium">{fmt(p.total_cost)}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={p.status === 'pago' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}>
-                        {PAY_STATUS.find(s => s.value === p.status)?.label || p.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+      {/* Summary */}
+      <div className="grid grid-cols-3 gap-4">
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Mensal (Ativos)</p><p className="text-lg font-bold">{fmt(totalMensal)}</p></CardContent></Card>
+        {hasContratoTrabalho && (
+          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Colaboradores Fixos</p><p className="text-lg font-bold">{fmt(totalTrabalho)}</p></CardContent></Card>
+        )}
+        {hasPrestacao && (
+          <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Prestadores de Serviços</p><p className="text-lg font-bold">{fmt(totalPrestacao)}</p></CardContent></Card>
+        )}
       </div>
 
-      {/* CONTRACTORS */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold">Prestadores de Serviços</h3>
-          <Button size="sm" onClick={openNewCon}><Plus className="h-4 w-4 mr-1" /> Novo Prestador</Button>
-        </div>
+      {/* Sections by contract type — only show if there are contracts */}
+      {hasContratoTrabalho && renderSection('contrato_trabalho', grouped['contrato_trabalho'])}
+      {hasPrestacao && renderSection('prestacao_servicos', grouped['prestacao_servicos'])}
+      {hasAcordo && renderSection('acordo', grouped['acordo'])}
+      {hasOutro && renderSection('outro', grouped['outro'])}
+
+      {relevantContracts.length === 0 && (
         <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Prestador</TableHead>
-                  <TableHead>Mês</TableHead>
-                  <TableHead>Serviço</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
-                  <TableHead>Localização</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {contractorsData.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Sem prestadores</TableCell></TableRow>
-                ) : contractorsData.map(c => (
-                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
-                    setConForm({ ...c, month: String(c.month), year: String(c.year), value: c.value.toString() });
-                    setConOpen(true);
-                  }}>
-                    <TableCell className="font-medium">{c.contractor_name}</TableCell>
-                    <TableCell>{MONTHS[c.month - 1]} {c.year}</TableCell>
-                    <TableCell>{c.service || '—'}</TableCell>
-                    <TableCell className="text-right font-medium">{fmt(c.value)}</TableCell>
-                    <TableCell>{LOCATIONS.find(l => l.value === c.location)?.label || c.location}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={c.status === 'pago' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}>
-                        {PAY_STATUS.find(s => s.value === c.status)?.label || c.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            <p>Sem contratos configurados.</p>
+            <p className="text-sm mt-1">Adicione membros de equipa e os seus contratos na secção Pessoas.</p>
           </CardContent>
         </Card>
-      </div>
-
-      {/* PAYROLL DIALOG */}
-      <Dialog open={payOpen} onOpenChange={setPayOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>{payForm.id ? 'Editar Registo' : 'Novo Registo de Salário'}</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <div><Label>Colaborador</Label>
-              <Select value={payForm.collaborator_name || ''} onValueChange={v => setPayForm((f: any) => ({ ...f, collaborator_name: v }))}>
-                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>
-                  {profiles.filter(p => p.full_name).map(p => <SelectItem key={p.id} value={p.full_name!}>{p.full_name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label>Mês</Label>
-                <Select value={payForm.month || ''} onValueChange={v => setPayForm((f: any) => ({ ...f, month: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div><Label>Ano</Label><Input type="number" value={payForm.year || ''} onChange={e => setPayForm((f: any) => ({ ...f, year: e.target.value }))} /></div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label>Salário Bruto (€)</Label><Input type="number" step="0.01" value={payForm.gross_salary || ''} onChange={e => setPayForm((f: any) => ({ ...f, gross_salary: e.target.value }))} /></div>
-              <div><Label>Retenção na Fonte (%)</Label><Input type="number" step="0.1" value={payForm.withholding_rate || ''} onChange={e => setPayForm((f: any) => ({ ...f, withholding_rate: e.target.value }))} /></div>
-            </div>
-            {payForm.gross_salary && (() => {
-              const gross = parseFloat(payForm.gross_salary) || 0;
-              const wh = parseFloat(payForm.withholding_rate) || 0;
-              const whVal = Math.round(gross * wh / 100 * 100) / 100;
-              const ssE = Math.round(gross * 0.11 * 100) / 100;
-              const ssEr = Math.round(gross * 0.2375 * 100) / 100;
-              const net = Math.round((gross - whVal - ssE) * 100) / 100;
-              const total = Math.round((gross + ssEr) * 100) / 100;
-              return (
-                <div className="rounded-lg border border-border bg-muted/50 p-3 space-y-1 text-sm">
-                  <div className="flex justify-between"><span>Retenção:</span><span>{fmt(whVal)}</span></div>
-                  <div className="flex justify-between"><span>SS Colaborador (11%):</span><span>{fmt(ssE)}</span></div>
-                  <div className="flex justify-between"><span>SS Entidade (23,75%):</span><span>{fmt(ssEr)}</span></div>
-                  <div className="flex justify-between font-medium"><span>Salário Líquido:</span><span>{fmt(net)}</span></div>
-                  <div className="flex justify-between font-medium text-primary"><span>Custo Total:</span><span>{fmt(total)}</span></div>
-                </div>
-              );
-            })()}
-            <div><Label>Status</Label>
-              <Select value={payForm.status || 'por_pagar'} onValueChange={v => setPayForm((f: any) => ({ ...f, status: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{PAY_STATUS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div className="flex gap-2">
-              <Button className="flex-1" onClick={savePay}>Guardar</Button>
-              {payForm.id && <Button variant="destructive" size="icon" onClick={async () => { await fin.deletePayroll.mutateAsync(payForm); setPayOpen(false); toast.success('Eliminado'); }}><Trash2 className="h-4 w-4" /></Button>}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* CONTRACTOR DIALOG */}
-      <Dialog open={conOpen} onOpenChange={setConOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>{conForm.id ? 'Editar Prestador' : 'Novo Prestador'}</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <div><Label>Nome do Prestador</Label><Input value={conForm.contractor_name || ''} onChange={e => setConForm((f: any) => ({ ...f, contractor_name: e.target.value }))} /></div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label>Mês</Label>
-                <Select value={conForm.month || ''} onValueChange={v => setConForm((f: any) => ({ ...f, month: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{MONTHS.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div><Label>Ano</Label><Input type="number" value={conForm.year || ''} onChange={e => setConForm((f: any) => ({ ...f, year: e.target.value }))} /></div>
-            </div>
-            <div><Label>Serviço</Label><Input value={conForm.service || ''} onChange={e => setConForm((f: any) => ({ ...f, service: e.target.value }))} /></div>
-            <div><Label>Valor Pago (€)</Label><Input type="number" step="0.01" value={conForm.value || ''} onChange={e => setConForm((f: any) => ({ ...f, value: e.target.value }))} /></div>
-            <div><Label>Localização</Label>
-              <Select value={conForm.location || 'portugal'} onValueChange={v => setConForm((f: any) => ({ ...f, location: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div><Label>Status</Label>
-              <Select value={conForm.status || 'por_pagar'} onValueChange={v => setConForm((f: any) => ({ ...f, status: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{PAY_STATUS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div className="flex gap-2">
-              <Button className="flex-1" onClick={saveCon}>Guardar</Button>
-              {conForm.id && <Button variant="destructive" size="icon" onClick={async () => { await fin.deleteContractor.mutateAsync(conForm); setConOpen(false); toast.success('Eliminado'); }}><Trash2 className="h-4 w-4" /></Button>}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      )}
     </div>
   );
 }
