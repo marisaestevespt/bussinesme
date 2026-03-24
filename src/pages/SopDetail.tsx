@@ -523,6 +523,64 @@ export default function SopDetailPage() {
           <EditableTextList items={passos} onChange={setPassos} placeholder="Descrever passo..." />
         </section>
 
+        {/* Template de Onboarding/Offboarding (structured steps for client automation) */}
+        {(isOnboardingSop || isOffboardingSop) && (
+          <section>
+            <Card>
+              <CardHeader className="flex-row items-center justify-between">
+                <CardTitle className="text-base">
+                  {isOnboardingSop ? 'Template de Onboarding de Clientes' : 'Template de Offboarding de Clientes'}
+                </CardTitle>
+                <Button size="sm" variant="outline" onClick={() => addTemplateRow.mutate()}>
+                  <Plus className="h-3 w-3 mr-1" /> Adicionar Passo
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Estes passos serão copiados automaticamente para cada cliente associado a este produto.
+                </p>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Fase</TableHead>
+                      <TableHead>Atividade</TableHead>
+                      <TableHead>Responsável</TableHead>
+                      <TableHead>Regra</TableHead>
+                      <TableHead className="w-10" />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {templateRows.length === 0 && (
+                      <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-4">Sem passos definidos</TableCell></TableRow>
+                    )}
+                    {templateRows.map((row: any) => (
+                      <TableRow key={row.id}>
+                        <TableCell>
+                          <Input defaultValue={row.phase || ''} placeholder="Fase" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { phase: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
+                        </TableCell>
+                        <TableCell>
+                          <Input defaultValue={row.activity || ''} placeholder="Atividade" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { activity: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
+                        </TableCell>
+                        <TableCell>
+                          <Input defaultValue={row.responsible || ''} placeholder="Responsável" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { responsible: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
+                        </TableCell>
+                        <TableCell>
+                          <Input defaultValue={row.rule || ''} placeholder="Regra" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { rule: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteTemplateRow.mutate(row.id)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </section>
+        )}
+
         {/* 5. Decisões/Exceções */}
         <section>
           <h3 className="text-lg font-semibold mb-2">5. Decisões / Exceções</h3>
