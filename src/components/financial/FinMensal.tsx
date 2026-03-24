@@ -89,7 +89,18 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
     return map;
   }, [monthExpenses]);
 
-  const totalEntradas = monthSales.reduce((s, v) => s + v.invoice_total, 0);
+  // Check which contracts already have a confirmed expense for this month
+  const contractExpenseMap = useMemo(() => {
+    const map = new Map<string, Expense>();
+    monthExpenses.forEach(e => {
+      if (e.source_type === 'contract' && e.source_id) {
+        map.set(e.source_id, e);
+      }
+    });
+    return map;
+  }, [monthExpenses]);
+
+
   const totalBaseEntradas = monthSales.reduce((s, v) => s + v.base_value, 0);
   const ivaCobrado = totalEntradas - totalBaseEntradas;
 
