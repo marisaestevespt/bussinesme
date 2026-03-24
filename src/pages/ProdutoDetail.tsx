@@ -1064,6 +1064,39 @@ export default function ProdutoDetailPage() {
             {/* ===== PROCESSOS ===== */}
             {openSection === 'processos' && (
               <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                {/* SOPs do Produto */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Processos (SOPs)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>ID</TableHead>
+                          <TableHead>Nome</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {productSops.length === 0 && (
+                          <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-4">Sem processos associados</TableCell></TableRow>
+                        )}
+                        {productSops.map((sop: any) => {
+                          const st = SOP_STATUSES[sop.status] || SOP_STATUSES.para_criar;
+                          return (
+                            <TableRow key={sop.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/processos/${sop.id}`)}>
+                              <TableCell className="text-xs font-mono text-muted-foreground">{sop.sop_id}</TableCell>
+                              <TableCell className="font-medium text-sm">{sop.name}</TableCell>
+                              <TableCell><Badge className={cn('text-xs', st.color)}>{st.label}</Badge></TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+
                 {/* Formas de Pagamento do Produto */}
                 <Card>
                   <CardHeader className="flex-row items-center justify-between">
