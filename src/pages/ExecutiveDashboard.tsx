@@ -40,10 +40,7 @@ export default function ExecutiveDashboard() {
         {/* Cover Header */}
         <PageHeader title="Executive Room" subtitle="Planeamento estratégico & visão do negócio" />
 
-        {/* Cross-departmental KPIs & Alerts */}
-        <ExecutiveKpiAlerts />
-
-        {/* 3-Column Layout */}
+        {/* 3-Column Layout — Subpages + Brain Dump */}
         <div className="grid gap-6 md:grid-cols-3">
           <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent shadow-md">
             <CardHeader className="pb-3">
