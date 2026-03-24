@@ -281,33 +281,18 @@ export function FinSetupFinanceiro({ fin }: Props) {
                 <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label>Data de Início</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start", !subForm.start_date && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {subForm.start_date ? format(subForm.start_date instanceof Date ? subForm.start_date : new Date(subForm.start_date), 'dd/MM/yyyy') : 'Selecionar'}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={subForm.start_date instanceof Date ? subForm.start_date : undefined} onSelect={d => setSubForm((f: any) => ({ ...f, start_date: d }))} className="p-3 pointer-events-auto" />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div><Label>Data de Renovação</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start", !subForm.renewal_date && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {subForm.renewal_date ? format(subForm.renewal_date instanceof Date ? subForm.renewal_date : new Date(subForm.renewal_date), 'dd/MM/yyyy') : 'Selecionar'}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={subForm.renewal_date instanceof Date ? subForm.renewal_date : undefined} onSelect={d => setSubForm((f: any) => ({ ...f, renewal_date: d }))} className="p-3 pointer-events-auto" />
-                  </PopoverContent>
-                </Popover>
-              </div>
+            <div><Label>Data de Início</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start", !subForm.start_date && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {subForm.start_date ? format(subForm.start_date instanceof Date ? subForm.start_date : new Date(subForm.start_date), 'dd/MM/yyyy') : 'Selecionar'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={subForm.start_date instanceof Date ? subForm.start_date : undefined} onSelect={d => setSubForm((f: any) => ({ ...f, start_date: d }))} className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
             </div>
             <div><Label>Status</Label>
               <Select value={subForm.status || 'ativo'} onValueChange={v => setSubForm((f: any) => ({ ...f, status: v }))}>
