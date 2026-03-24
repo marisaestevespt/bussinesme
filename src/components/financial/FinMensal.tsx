@@ -225,7 +225,7 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
         </Button>
       </div>
 
-      <div id="fin-mensal-report">
+      <div id="fin-mensal-report" className="space-y-6">
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Entradas</p><p className="text-2xl font-bold text-green-600">{fmt(totalEntradas)}</p></CardContent></Card>

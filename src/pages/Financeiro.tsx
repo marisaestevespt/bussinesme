@@ -242,7 +242,7 @@ export default function FinanceiroPage() {
         </div>
 
         {/* Summary Cards */}
-        <div id="fin-annual-report">
+        <div id="fin-annual-report" className="space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Entradas</p><p className="text-xl font-bold text-emerald-600">{fmt(totalEntradas)}</p></CardContent></Card>
           <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Saídas</p><p className="text-xl font-bold text-red-600">{fmt(totalSaidas)}</p></CardContent></Card>

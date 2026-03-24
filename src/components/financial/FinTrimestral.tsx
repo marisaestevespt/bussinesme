@@ -195,7 +195,7 @@ export function FinTrimestral({ sales, expenses, currentYear }: Props) {
         </TabsList>
       </Tabs>
 
-      <div id="fin-trimestral-report">
+      <div id="fin-trimestral-report" className="space-y-6">
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">{selectedQ === 'todos' ? 'Total' : selectedQ} Entradas</p><p className="text-xl font-bold text-emerald-600">{fmt(dv.entradas)}</p></CardContent></Card>
