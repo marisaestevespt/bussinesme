@@ -30,10 +30,14 @@ const OWNER_DEFAULT_SECTIONS: Record<string, boolean> = {
 };
 
 const MEMBER_DEFAULT_SECTIONS: Record<string, boolean> = {
-  tarefas_concluidas: true,
+  tarefas_hoje: true,
   tarefas_atraso: true,
-  reunioes_periodo: true,
+  reunioes_hoje: true,
+  followups_leads: true,
+  aniversarios: true,
+  renovacoes_clientes: true,
   rotinas: true,
+  tarefas_concluidas: true,
   tempo_registado: true,
 };
 
