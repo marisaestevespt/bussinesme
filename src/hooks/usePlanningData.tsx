@@ -739,7 +739,7 @@ export function usePlanningData(year = currentYear) {
     metricHistory, addMetricRecord,
     actions, allActions: actions.data || [],
     upsertAction, deleteAction, convertActionToTask,
-    getAutoValue, objectiveProgress, objectiveCurrentValue,
+    getAutoValue, goalAutoValue, objectiveProgress, objectiveCurrentValue,
     computeGoalStatus, getGoalsWithDeviations,
     isMetricOverdue, isMetricDueToday, getMetricTrend,
     invalidate, year,
