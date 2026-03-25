@@ -33,6 +33,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <main className="flex-1 p-6 overflow-auto">
               {children}
             </main>
+            <OnboardingTour />
           </div>
         </div>
       </SidebarProvider>
