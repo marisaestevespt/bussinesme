@@ -636,6 +636,19 @@ export default function SopDetailPage() {
             </Select>
           </div>
           <div>
+            <Label className="text-xs text-muted-foreground">Tipo de SOP</Label>
+            <Select value={sopType} onValueChange={setSopType}>
+              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="operacional">Operacional</SelectItem>
+                <SelectItem value="onboarding">Onboarding</SelectItem>
+                <SelectItem value="rotina">Rotina</SelectItem>
+                <SelectItem value="entrega">Entrega</SelectItem>
+                <SelectItem value="outro">Outro</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
             <Label className="text-xs text-muted-foreground">Departamentos</Label>
             <Popover>
               <PopoverTrigger asChild>
@@ -660,20 +673,15 @@ export default function SopDetailPage() {
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">Função associada</Label>
-            <Select value={roleId} onValueChange={setRoleId}>
-              <SelectTrigger className="h-9"><SelectValue placeholder="Nenhuma" /></SelectTrigger>
-              <SelectContent>
-                {roles.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <Input value={sopRoleTitle} onChange={e => setSopRoleTitle(e.target.value)} placeholder="Ex: Designer, Psicóloga..." className="h-9" />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Produto associado</Label>
-            <Select value={productName || '_none_'} onValueChange={v => setProductName(v === '_none_' ? '' : v)}>
+            <Label className="text-xs text-muted-foreground">Produto/Serviço</Label>
+            <Select value={sopProductId || '_none_'} onValueChange={v => setSopProductId(v === '_none_' ? '' : v)}>
               <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="_none_">Nenhum</SelectItem>
-                {productsList.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
+                {productsList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>

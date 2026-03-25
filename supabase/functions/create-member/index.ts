@@ -116,81 +116,84 @@ Deno.serve(async (req) => {
         priority: "alta",
       });
 
-      // ── Onboarding checklist from SOP template ──
+      // ── Onboarding checklist from SOPs with sop_type='onboarding' ──
       let onboarding_created = false;
       let onboarding_warning: string | null = null;
 
       if (role_title && team_member_id) {
-        // Find template matching role_title (case-insensitive)
-        const { data: template } = await supabase
-          .from("sop_onboarding_templates")
-          .select("id, role_title")
-          .ilike("role_title", role_title.trim())
-          .maybeSingle();
+        // Find SOPs with sop_type='onboarding' matching role_title (case-insensitive)
+        const { data: onboardingSops } = await supabase
+          .from("sops")
+          .select("id, name, role_title")
+          .eq("sop_type", "onboarding")
+          .ilike("role_title", role_title.trim());
 
-        if (template) {
-          // Get template items
-          const { data: items } = await supabase
-            .from("sop_onboarding_items")
-            .select("task, deadline_days, sort_order")
-            .eq("template_id", template.id)
-            .order("sort_order");
+        if (onboardingSops && onboardingSops.length > 0) {
+          // For each onboarding SOP, check if there's a linked template with items
+          for (const onbSop of onboardingSops) {
+            // Try getting items from sop_onboarding_templates linked via sop_id
+            const { data: template } = await supabase
+              .from("sop_onboarding_templates")
+              .select("id")
+              .eq("sop_id", onbSop.id)
+              .maybeSingle();
 
-          if (items && items.length > 0) {
-            const todayDate = new Date();
-            const onboardingRows = items.map((item) => {
-              const deadlineDate = new Date(todayDate);
-              deadlineDate.setDate(deadlineDate.getDate() + item.deadline_days);
-              return {
-                member_id: team_member_id,
-                task: item.task,
-                sort_order: item.sort_order,
-                completed: false,
-                deadline_date: deadlineDate.toISOString().split("T")[0],
-                source_template_id: template.id,
-              };
-            });
-            await supabase.from("member_onboarding").insert(onboardingRows);
-            onboarding_created = true;
-          } else {
-            onboarding_warning = `O SOP de onboarding para "${role_title}" existe mas não tem itens de checklist.`;
+            if (template) {
+              const { data: items } = await supabase
+                .from("sop_onboarding_items")
+                .select("task, deadline_days, sort_order")
+                .eq("template_id", template.id)
+                .order("sort_order");
+
+              if (items && items.length > 0) {
+                const todayDate = new Date();
+                const onboardingRows = items.map((item) => {
+                  const deadlineDate = new Date(todayDate);
+                  deadlineDate.setDate(deadlineDate.getDate() + item.deadline_days);
+                  return {
+                    member_id: team_member_id,
+                    task: item.task,
+                    sort_order: item.sort_order,
+                    completed: false,
+                    deadline_date: deadlineDate.toISOString().split("T")[0],
+                    source_template_id: template.id,
+                  };
+                });
+                await supabase.from("member_onboarding").insert(onboardingRows);
+                onboarding_created = true;
+              }
+            }
+
+            // Also use the SOP's own checklist (inputs field) as onboarding items if no template items
+            if (!onboarding_created) {
+              const checklist = Array.isArray((onbSop as any).inputs) ? (onbSop as any).inputs : [];
+              if (checklist.length > 0) {
+                const todayDate = new Date();
+                const onboardingRows = checklist.map((item: any, idx: number) => {
+                  const text = typeof item === 'string' ? item : item.text || '';
+                  const deadlineDate = new Date(todayDate);
+                  deadlineDate.setDate(deadlineDate.getDate() + 7); // default 7 days
+                  return {
+                    member_id: team_member_id,
+                    task: text,
+                    sort_order: idx,
+                    completed: false,
+                    deadline_date: deadlineDate.toISOString().split("T")[0],
+                  };
+                }).filter((r: any) => r.task);
+                if (onboardingRows.length > 0) {
+                  await supabase.from("member_onboarding").insert(onboardingRows);
+                  onboarding_created = true;
+                }
+              }
+            }
+          }
+
+          if (!onboarding_created) {
+            onboarding_warning = `Os SOPs de onboarding para "${role_title}" existem mas não têm itens de checklist.`;
           }
         } else {
-          // Try generic "Onboarding Geral" template
-          const { data: genericTemplate } = await supabase
-            .from("sop_onboarding_templates")
-            .select("id, role_title")
-            .ilike("role_title", "geral")
-            .maybeSingle();
-
-          if (genericTemplate) {
-            const { data: items } = await supabase
-              .from("sop_onboarding_items")
-              .select("task, deadline_days, sort_order")
-              .eq("template_id", genericTemplate.id)
-              .order("sort_order");
-
-            if (items && items.length > 0) {
-              const todayDate = new Date();
-              const onboardingRows = items.map((item) => {
-                const deadlineDate = new Date(todayDate);
-                deadlineDate.setDate(deadlineDate.getDate() + item.deadline_days);
-                return {
-                  member_id: team_member_id,
-                  task: item.task,
-                  sort_order: item.sort_order,
-                  completed: false,
-                  deadline_date: deadlineDate.toISOString().split("T")[0],
-                  source_template_id: genericTemplate.id,
-                };
-              });
-              await supabase.from("member_onboarding").insert(onboardingRows);
-              onboarding_created = true;
-              onboarding_warning = `Não existe SOP de onboarding para "${role_title}". Foi usado o template "Geral".`;
-            }
-          } else {
-            onboarding_warning = `Não existe SOP de onboarding para a função "${role_title}". Cria um para automatizar o onboarding.`;
-          }
+          onboarding_warning = `Não existe SOP de onboarding para a função "${role_title}". Cria um SOP com tipo "Onboarding" e função "${role_title}" para automatizar.`;
         }
       }
 
