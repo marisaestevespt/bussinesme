@@ -27,6 +27,7 @@ import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResu
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { DEPARTMENTS } from '@/lib/departments';
+import { logAudit } from '@/lib/auditLog';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -503,6 +504,7 @@ function MeetingFormDialog({
     onSuccess: (id) => {
       qc.invalidateQueries({ queryKey: ['meetings'] });
       qc.invalidateQueries({ queryKey: ['events'] });
+      logAudit('created', 'meeting', id, { title: title.trim(), meeting_type: meetingType, is_recurring: isRecurring });
       toast.success('Reunião criada');
       resetForm();
       onOpenChange(false);
