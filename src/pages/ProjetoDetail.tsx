@@ -851,6 +851,19 @@ export default function ProjetoDetailPage() {
               </Badge>
             )}
           </div>
+          {/* WhatsApp group link */}
+          {((local as any).whatsapp_group_url || true) && (
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+              <Label className="text-xs text-muted-foreground shrink-0">Grupo WhatsApp:</Label>
+              <Input value={(local as any).whatsapp_group_url || ''} onChange={e => updateField('whatsapp_group_url', e.target.value)} placeholder="https://chat.whatsapp.com/..." className="h-7 text-xs max-w-sm" />
+              {(local as any).whatsapp_group_url && (
+                <a href={(local as any).whatsapp_group_url} target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-700 hover:underline flex items-center gap-1 shrink-0">
+                  Abrir <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+            </div>
+          )}
         </div>
 
         <Separator />
