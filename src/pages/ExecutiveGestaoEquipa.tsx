@@ -34,7 +34,7 @@ import {
 } from '@/hooks/useTeamData';
 import { getMonthName } from '@/hooks/useExecutiveData';
 import { DEPARTMENTS, getDept } from '@/lib/departments';
-import { RolePagePicker } from '@/components/RolePagePicker';
+import { InlineDeptPagePicker } from '@/components/InlineDeptPagePicker';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
@@ -374,6 +374,7 @@ const DEFAULT_MEMBER_FORM = {
   member_type: 'colaborador_fixo',
   department: '',
   departments: [] as string[],
+  deptExtraPages: {} as Record<string, string[]>,
   start_date: '',
   presentation: '',
   responsibilities: '',
@@ -517,27 +518,45 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
             )}
           </div>
           <div className="space-y-1.5">
-            <span className="text-xs text-muted-foreground font-medium">Departamentos</span>
-            <p className="text-[10px] text-muted-foreground">Seleciona um ou mais departamentos.</p>
-            <div className="grid grid-cols-2 gap-1.5">
+            <span className="text-xs text-muted-foreground font-medium">Departamentos & Acessos</span>
+            <p className="text-[10px] text-muted-foreground">Seleciona departamentos e escolhe as páginas a que este membro terá acesso.</p>
+            <div className="space-y-1">
               {DEPARTMENTS.map(d => {
                 const depts: string[] = Array.isArray(f.departments) ? f.departments : (f.department ? [f.department] : []);
                 const checked = depts.includes(d.value);
+                const extraPages: Record<string, string[]> = f.deptExtraPages || {};
                 return (
-                  <label key={d.value} className={cn(
-                    'flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer transition-colors text-xs',
-                    checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
-                  )}>
-                    <Checkbox
-                      checked={checked}
-                      onCheckedChange={(v) => {
-                        const next = v ? [...depts, d.value] : depts.filter(x => x !== d.value);
-                        set('departments', next);
-                        set('department', next[0] || '');
-                      }}
-                    />
-                    <span>{d.icon} {d.label}</span>
-                  </label>
+                  <div key={d.value}>
+                    <label className={cn(
+                      'flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer transition-colors text-xs',
+                      checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
+                    )}>
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(v) => {
+                          const next = v ? [...depts, d.value] : depts.filter(x => x !== d.value);
+                          set('departments', next);
+                          set('department', next[0] || '');
+                          if (!v) {
+                            const newExtra = { ...extraPages };
+                            delete newExtra[d.value];
+                            set('deptExtraPages', newExtra);
+                          }
+                        }}
+                      />
+                      <span>{d.icon} {d.label}</span>
+                    </label>
+                    {checked && (
+                      <InlineDeptPagePicker
+                        department={d.value}
+                        departmentLabel={d.label}
+                        selectedExtras={extraPages[d.value] || []}
+                        onExtrasChange={(extras) => {
+                          set('deptExtraPages', { ...extraPages, [d.value]: extras });
+                        }}
+                      />
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -1350,6 +1369,21 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
           toast.error('Membro criado mas sem conta de acesso');
         }
       }
+      // Apply inline extra pages from deptExtraPages
+      const deptExtraPages: Record<string, string[]> = member.deptExtraPages || {};
+      const allExtraModules = new Set<string>();
+      Object.values(deptExtraPages).forEach(pages => pages.forEach(p => allExtraModules.add(p)));
+      if (allExtraModules.size > 0) {
+        const depts5 = Array.isArray(member.departments) && member.departments.length > 0
+          ? member.departments
+          : (member.department ? [member.department] : []);
+        const roleName5 = `dept_${[...depts5].sort().join('_')}`;
+        const { data: role5 } = await supabase.from('custom_roles').select('id').eq('name', roleName5).maybeSingle();
+        if (role5) {
+          const perms = [...allExtraModules].map(mk => ({ custom_role_id: role5.id, module_key: mk, can_view: true }));
+          await supabase.from('role_permissions').upsert(perms, { onConflict: 'custom_role_id,module_key' });
+        }
+      }
       qc.invalidateQueries({ queryKey: ['team'] });
       toast.success(isNew ? 'Membro criado com contrato e pagamentos!' : 'Membro atualizado');
     } catch (err: any) {
@@ -1662,7 +1696,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
 export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
   const [dialog, setDialog] = useState<any>(null);
   const [selected, setSelected] = useState<any>(null);
-  const [pagePicker, setPagePicker] = useState<{ memberName: string; department: string; memberId: string } | null>(null);
+  
   const allMembers = team.members.data || [];
   const qc = useQueryClient();
 
@@ -1759,33 +1793,26 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
       qc.invalidateQueries({ queryKey: ['team'] });
       toast.success(isNew ? 'Membro criado!' : 'Membro atualizado');
 
-      // Show page picker for custom roles with department
-      const pickerDepts: string[] = Array.isArray(member.departments) && member.departments.length > 0
-        ? member.departments
-        : (member.department ? [member.department] : []);
-      if (pickerDepts.length > 0) {
-        setPagePicker({ memberName: member.full_name, department: pickerDepts[0], memberId });
+      // Apply inline extra pages from deptExtraPages
+      const deptExtraPages: Record<string, string[]> = member.deptExtraPages || {};
+      const allExtraModules = new Set<string>();
+      Object.values(deptExtraPages).forEach(pages => pages.forEach(p => allExtraModules.add(p)));
+      if (allExtraModules.size > 0) {
+        const depts4 = Array.isArray(member.departments) && member.departments.length > 0
+          ? member.departments
+          : (member.department ? [member.department] : []);
+        const roleName4 = `dept_${depts4.sort().join('_')}`;
+        const { data: role4 } = await supabase.from('custom_roles').select('id').eq('name', roleName4).maybeSingle();
+        if (role4) {
+          const perms = [...allExtraModules].map(mk => ({ custom_role_id: role4.id, module_key: mk, can_view: true }));
+          await supabase.from('role_permissions').upsert(perms, { onConflict: 'custom_role_id,module_key' });
+        }
       }
     } catch (err: any) {
       toast.error('Erro: ' + (err.message || err));
     }
   };
 
-  const handleExtraModules = async (extraModules: string[]) => {
-    if (!pagePicker || extraModules.length === 0) return;
-    try {
-      const depts3 = pagePicker.department;
-      const roleName = `dept_${depts3}`;
-      const { data: role } = await supabase.from('custom_roles').select('id').ilike('name', `dept_%${depts3}%`).maybeSingle();
-      if (role) {
-        const perms = extraModules.map(mk => ({ custom_role_id: role.id, module_key: mk, can_view: true }));
-        await supabase.from('role_permissions').upsert(perms, { onConflict: 'custom_role_id,module_key' });
-        toast.success(`${extraModules.length} página(s) extra adicionada(s)`);
-      }
-    } catch (err: any) {
-      toast.error('Erro ao adicionar acessos extra');
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -1828,15 +1855,6 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
       )}
       {dialog !== null && <MemberDialog open onClose={() => setDialog(null)} initial={dialog} onSave={handleSave} />}
       {selected && <MemberDetailSheet open onClose={() => setSelected(null)} member={selected} team={team} />}
-      {pagePicker && (
-        <RolePagePicker
-          open
-          onClose={() => setPagePicker(null)}
-          memberName={pagePicker.memberName}
-          department={pagePicker.department}
-          onConfirm={handleExtraModules}
-        />
-      )}
     </div>
   );
 }
