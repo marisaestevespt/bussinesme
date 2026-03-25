@@ -194,14 +194,13 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
     savedSimsQ.refetch();
   };
 
-  // Fetch open tasks grouped by department for delegation
+  // Fetch all tasks by department (including done) for delegation analysis
   const tasksQ = useQuery({
     queryKey: ['simulator-dept-tasks'],
     queryFn: async () => {
       const { data } = await supabase.from('tasks').select('id, name, department, priority, deadline, estimated_time, assigned_to, status')
-        .neq('status', 'done')
         .not('department', 'is', null)
-        .order('priority')
+        .order('estimated_time', { ascending: false, nullsFirst: false })
         .limit(500);
       return data || [];
     },
