@@ -1,15 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface TourStep {
   title: string;
   description: string;
   icon: string;
+  /** If set, step only shows when user can access this module OR is owner */
+  requireModule?: string;
+  /** If true, step only shows for the owner */
+  ownerOnly?: boolean;
 }
 
-const TOUR_STEPS: TourStep[] = [
+const ALL_STEPS: TourStep[] = [
   {
     title: 'Bem-vindo à sua plataforma!',
     description: 'Vamos fazer um tour rápido para conhecer as áreas principais. Demora menos de 1 minuto.',
@@ -26,19 +32,58 @@ const TOUR_STEPS: TourStep[] = [
     icon: '🏠',
   },
   {
-    title: 'Departamentos',
-    description: 'Cada departamento (Marketing, Comercial, Clientes, Financeiro, etc.) tem o seu espaço dedicado com métricas, processos e ferramentas específicas.',
-    icon: '🏢',
+    title: 'Marketing',
+    description: 'Estratégia de conteúdo, canais, calendário editorial e métricas de desempenho dos seus canais de comunicação.',
+    icon: '📣',
+    requireModule: 'marketing',
+  },
+  {
+    title: 'Comercial',
+    description: 'Pipeline de vendas, CRM, metas comerciais e biblioteca de estratégias. Tudo para gerir o processo de vendas.',
+    icon: '🛒',
+    requireModule: 'comercial',
+  },
+  {
+    title: 'Clientes',
+    description: 'Gestão de clientes, onboarding, feedback e portal do cliente. Acompanhe todo o ciclo de vida.',
+    icon: '👤',
+    requireModule: 'clientes',
+  },
+  {
+    title: 'Contabilidade',
+    description: 'Entradas, saídas, balanço mensal, IVA e documentos fiscais. A saúde financeira do negócio.',
+    icon: '💰',
+    requireModule: 'financeiro',
+  },
+  {
+    title: 'Operação',
+    description: 'Gestão operacional do dia-a-dia, processos e entregáveis dos seus serviços.',
+    icon: '🎧',
+    requireModule: 'operacao',
+  },
+  {
+    title: 'Produtos',
+    description: 'Catálogo de produtos e serviços, KPIs, métricas de sucesso e calculadora de oferta.',
+    icon: '📦',
+    requireModule: 'produtos',
+  },
+  {
+    title: 'Recursos Humanos',
+    description: 'Gestão de equipa, escalas, ausências, desempenho e desenvolvimento profissional.',
+    icon: '👥',
+    requireModule: 'recursos-humanos',
   },
   {
     title: 'Sala Executiva',
-    description: 'Visão geral do negócio: planeamento, produtividade, capacidade, KPIs e alinhamento semanal. Tudo para tomar decisões informadas.',
+    description: 'Visão geral do negócio: planeamento, produtividade, capacidade, KPIs e alinhamento semanal.',
     icon: '👑',
+    ownerOnly: true,
   },
   {
     title: 'Definições',
     description: 'Configure o nome do negócio, cores, utilizadores, digestos e KPIs. Tudo personalizável ao seu gosto.',
     icon: '⚙️',
+    ownerOnly: true,
   },
   {
     title: 'Está pronto!',
@@ -52,16 +97,26 @@ const TOUR_STORAGE_KEY = 'onboarding_tour_completed';
 export function OnboardingTour() {
   const [isVisible, setIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const { isOwner } = useAuth();
+  const { canAccess, loading: permLoading } = usePermissions();
+
+  const steps = useMemo(() => {
+    if (permLoading) return [];
+    return ALL_STEPS.filter((s) => {
+      if (s.ownerOnly && !isOwner) return false;
+      if (s.requireModule && !isOwner && !canAccess(s.requireModule)) return false;
+      return true;
+    });
+  }, [isOwner, canAccess, permLoading]);
 
   useEffect(() => {
-    // Check if tour was already completed
+    if (permLoading) return;
     const completed = localStorage.getItem(TOUR_STORAGE_KEY);
-    if (!completed) {
-      // Small delay so the app renders first
+    if (!completed && steps.length > 0) {
       const timer = setTimeout(() => setIsVisible(true), 1500);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [permLoading, steps.length]);
 
   const completeTour = () => {
     localStorage.setItem(TOUR_STORAGE_KEY, 'true');
@@ -69,23 +124,23 @@ export function OnboardingTour() {
   };
 
   const nextStep = () => {
-    if (currentStep < TOUR_STEPS.length - 1) {
-      setCurrentStep(prev => prev + 1);
+    if (currentStep < steps.length - 1) {
+      setCurrentStep((prev) => prev + 1);
     } else {
       completeTour();
     }
   };
 
   const prevStep = () => {
-    if (currentStep > 0) setCurrentStep(prev => prev - 1);
+    if (currentStep > 0) setCurrentStep((prev) => prev - 1);
   };
 
-  if (!isVisible) return null;
+  if (!isVisible || steps.length === 0) return null;
 
-  const step = TOUR_STEPS[currentStep];
-  const isLast = currentStep === TOUR_STEPS.length - 1;
+  const step = steps[currentStep];
+  const isLast = currentStep === steps.length - 1;
   const isFirst = currentStep === 0;
-  const progress = ((currentStep + 1) / TOUR_STEPS.length) * 100;
+  const progress = ((currentStep + 1) / steps.length) * 100;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
@@ -117,7 +172,7 @@ export function OnboardingTour() {
 
         {/* Step indicators */}
         <div className="flex justify-center gap-1.5 pb-4">
-          {TOUR_STEPS.map((_, i) => (
+          {steps.map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrentStep(i)}
