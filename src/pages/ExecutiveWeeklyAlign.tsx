@@ -576,7 +576,7 @@ export default function ExecutiveWeeklyAlign() {
         <section className="space-y-4">
           <h2 className="text-base font-semibold">1 // Metas</h2>
           <Tabs defaultValue="metas">
-            <TabsList><TabsTrigger value="metas">Metas do mês</TabsTrigger><TabsTrigger value="metricas_atraso">Métricas em atraso</TabsTrigger><TabsTrigger value="agenda">Agenda do mês</TabsTrigger></TabsList>
+            <TabsList><TabsTrigger value="metas">Metas do mês</TabsTrigger><TabsTrigger value="metricas_atraso">Métricas em atraso</TabsTrigger></TabsList>
             <TabsContent value="metas">
               {(() => {
                 const currentMonthName = MONTH_NAMES[currentMonth - 1];
@@ -646,31 +646,36 @@ export default function ExecutiveWeeklyAlign() {
                 );
               })()}
             </TabsContent>
-            <TabsContent value="agenda">
-              <Card><div className="overflow-x-auto">
-                <Table>
-                  <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Evento</TableHead></TableRow></TableHeader>
-                  <TableBody>
-                    {(events.data || []).length === 0 ? <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground text-sm py-6">Sem eventos</TableCell></TableRow> :
-                      (events.data || []).map(e => (
-                        <TableRow key={e.id} className={clickableRow} onClick={() => openEventDetail(e)}>
-                          <TableCell className="text-xs">{e.start_date?.slice(0, 10)}</TableCell><TableCell className="text-sm">{e.title}</TableCell>
-                        </TableRow>
-                      ))
-                    }
-                  </TableBody>
-                </Table>
-              </div></Card>
-            </TabsContent>
           </Tabs>
         </section>
 
         <Separator />
 
-        {/* 2 // Vendas & Faturação */}
+        {/* 2 // Agenda do mês */}
+        <section className="space-y-4">
+          <h2 className="text-base font-semibold">2 // Agenda do mês</h2>
+          <Card><div className="overflow-x-auto">
+            <Table>
+              <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Evento</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {(events.data || []).length === 0 ? <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground text-sm py-6">Sem eventos</TableCell></TableRow> :
+                  (events.data || []).map(e => (
+                    <TableRow key={e.id} className={clickableRow} onClick={() => openEventDetail(e)}>
+                      <TableCell className="text-xs">{e.start_date?.slice(0, 10)}</TableCell><TableCell className="text-sm">{e.title}</TableCell>
+                    </TableRow>
+                  ))
+                }
+              </TableBody>
+            </Table>
+          </div></Card>
+        </section>
+
+        <Separator />
+
+        {/* 3 // Vendas & Faturação */}
         <section className="space-y-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-base font-semibold">2 // Vendas & Faturação</h2>
+            <h2 className="text-base font-semibold">3 // Vendas & Faturação</h2>
             <DeltaBadge current={salesWeekTotal} previous={prevSalesWeekTotal} isCurrency />
           </div>
           <Card><CardContent className="p-4 space-y-3">
@@ -725,9 +730,9 @@ export default function ExecutiveWeeklyAlign() {
 
         <Separator />
 
-        {/* 3 // Leads & Oportunidades */}
+        {/* 4 // Leads & Oportunidades */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">3 // Leads & Oportunidades</h2>
+          <h2 className="text-base font-semibold">4 // Leads & Oportunidades</h2>
           <Tabs defaultValue="aberto">
             <TabsList><TabsTrigger value="aberto">Leads em aberto</TabsTrigger><TabsTrigger value="followups">Follow-ups a fazer</TabsTrigger></TabsList>
             <TabsContent value="aberto">
@@ -779,9 +784,9 @@ export default function ExecutiveWeeklyAlign() {
 
         <Separator />
 
-        {/* 4 // Clientes */}
+        {/* 5 // Clientes */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">4 // Clientes</h2>
+          <h2 className="text-base font-semibold">5 // Clientes</h2>
           <Tabs defaultValue="onboarding">
             <TabsList><TabsTrigger value="onboarding">Em onboarding</TabsTrigger><TabsTrigger value="renovacoes">Próximas renovações</TabsTrigger></TabsList>
             <TabsContent value="onboarding">
@@ -835,9 +840,9 @@ export default function ExecutiveWeeklyAlign() {
 
         <Separator />
 
-        {/* 4.1 // NPS desta semana */}
+        {/* 5.1 // NPS desta semana */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">4.1 // NPS desta semana</h2>
+          <h2 className="text-base font-semibold">5.1 // NPS desta semana</h2>
           <p className="text-xs text-muted-foreground">Acompanhamento de NPS e marcos de Customer Success da semana corrente.</p>
 
           <Card><CardContent className="p-4">
@@ -913,10 +918,10 @@ export default function ExecutiveWeeklyAlign() {
 
         <Separator />
 
-        {/* 5 // Operação & Esta semana */}
+        {/* 6 // Operação & Esta semana */}
         <section className="space-y-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-base font-semibold">5 // Operação & Esta semana</h2>
+            <h2 className="text-base font-semibold">6 // Operação & Esta semana</h2>
             <span className="text-xs text-muted-foreground">{tasksWeekDone}/{tasksWeekCount} tarefas • {meetingsWeekCount} reuniões • {contentWeekCount} conteúdos</span>
           </div>
 
