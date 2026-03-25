@@ -402,7 +402,18 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
   });
 
   useEffect(() => {
-    setF({ ...DEFAULT_MEMBER_FORM, ...(initial || {}) });
+    const init = { ...DEFAULT_MEMBER_FORM, ...(initial || {}) };
+    setF(init);
+    // Load existing sensitive access for edit mode
+    if (initial?.id) {
+      supabase.from('member_sensitive_access').select('category, granted').eq('member_id', initial.id).then(({ data }) => {
+        if (data && data.length > 0) {
+          const sa: Record<string, boolean> = {};
+          data.forEach(r => { sa[r.category] = r.granted; });
+          setF((prev: any) => ({ ...prev, sensitiveAccess: sa }));
+        }
+      });
+    }
   }, [initial]);
 
   const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
