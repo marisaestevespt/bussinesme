@@ -357,45 +357,6 @@ export default function ExecutiveCapacidade() {
 
               <Separator />
 
-              {/* Team */}
-              <div className="space-y-3">
-                <Label className="text-xs font-medium flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Equipa</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-[10px]">Total de pessoas</Label>
-                    <Input
-                      type="number"
-                      className="h-8"
-                      min={1}
-                      value={effectiveTeamSize}
-                      onChange={e => {
-                        const val = Math.max(1, Number(e.target.value));
-                        setTeamSize(val);
-                        if (effectiveClientFacing > val) setClientFacing(val);
-                      }}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[10px]">Em entrega a clientes</Label>
-                    <Input
-                      type="number"
-                      className="h-8"
-                      min={0}
-                      max={effectiveTeamSize}
-                      value={effectiveClientFacing}
-                      onChange={e => setClientFacing(Math.min(Number(e.target.value), effectiveTeamSize))}
-                    />
-                  </div>
-                </div>
-                {internalCount > 0 && (
-                  <p className="text-[10px] text-muted-foreground">
-                    {internalCount} pessoa{internalCount > 1 ? 's' : ''} em trabalho interno
-                  </p>
-                )}
-              </div>
-
-              <Separator />
-
               {/* Hours breakdown visual */}
               <div className="space-y-2">
                 <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">Decomposição por pessoa</Label>
@@ -438,11 +399,9 @@ export default function ExecutiveCapacidade() {
                   <span className="text-muted-foreground">Horas para clientes (equipa)</span>
                   <span className="font-bold">{availableHours.toFixed(0)}h</span>
                 </div>
-                {effectiveClientFacing > 1 && (
-                  <p className="text-[10px] text-muted-foreground">
-                    {availableHoursPerPerson.toFixed(0)}h/pessoa × {effectiveClientFacing} pessoas
-                  </p>
-                )}
+                <p className="text-[10px] text-muted-foreground">
+                  {Math.round(clientFacingMonthlyHours)}h totais − {adminHours + businessHours}h overhead = {availableHours.toFixed(0)}h disponíveis
+                </p>
               </div>
 
               <Button size="sm" className="w-full" onClick={() => saveSettings.mutate()}>Guardar parâmetros</Button>
