@@ -427,7 +427,10 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
                                 <p className="text-xs text-muted-foreground py-2 pl-5">Sem tarefas abertas neste departamento.</p>
                               ) : (
                                 <div className="py-2 pl-5 space-y-1 max-h-48 overflow-y-auto">
-                                  {deptTasks.map(task => (
+                                  <p className="text-[10px] text-muted-foreground/60 mb-1">Ordenado por tempo estimado (maior primeiro)</p>
+                                  {[...deptTasks]
+                                    .sort((a, b) => (Number(b.estimated_time) || 0) - (Number(a.estimated_time) || 0))
+                                    .map(task => (
                                     <label key={task.id} className="flex items-start gap-2 text-xs cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5">
                                       <Checkbox
                                         checked={p.delegatedTaskIds.includes(task.id)}
@@ -437,8 +440,12 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
                                       <div className="flex-1 min-w-0">
                                         <span className="text-foreground">{task.name}</span>
                                         <div className="flex items-center gap-2 text-muted-foreground">
+                                          {task.estimated_time ? (
+                                            <Badge variant="outline" className="text-[10px] h-4 px-1">{task.estimated_time}h</Badge>
+                                          ) : (
+                                            <span className="text-muted-foreground/50 italic">sem estimativa</span>
+                                          )}
                                           {task.priority && <span className="capitalize">{task.priority}</span>}
-                                          {task.estimated_time && <span>{task.estimated_time}h</span>}
                                           {task.deadline && <span>até {new Date(task.deadline + 'T00:00:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })}</span>}
                                         </div>
                                       </div>
