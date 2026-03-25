@@ -180,20 +180,6 @@ export function SetupPage() {
         }
       }
 
-      // Link to Owner custom_role
-      const { data: ownerRole } = await supabase
-        .from('custom_roles')
-        .select('id')
-        .eq('is_owner', true)
-        .single();
-
-      if (ownerRole) {
-        await supabase.from('members').insert({
-          user_id: user.id,
-          custom_role_id: ownerRole.id,
-        });
-      }
-
       // Save settings
       const { error } = await supabase.from('business_settings').insert({
         business_name: businessName.trim(),
@@ -207,6 +193,12 @@ export function SetupPage() {
       });
 
       if (error) throw error;
+
+      // Seed default data (roles, categories, channels, etc.)
+      const { data: sessionData } = await supabase.auth.getSession();
+      await supabase.functions.invoke('seed-instance', {
+        headers: { Authorization: `Bearer ${sessionData.session?.access_token}` },
+      });
 
       toast.success('HQ configurado com sucesso!');
       await refetch();
