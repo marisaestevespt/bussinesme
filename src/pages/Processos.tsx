@@ -100,6 +100,25 @@ export default function ProcessosPage() {
 
   const existingRoles = [...new Set(teamMembers.map(m => m.role_title).filter(Boolean))] as string[];
 
+  // Onboarding templates for selected department
+  const { data: onboardingTemplates = [] } = useQuery({
+    queryKey: ['onboarding-templates', selectedDept],
+    enabled: !!selectedDept,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('sop_onboarding_templates')
+        .select('*, sop_onboarding_items(id, task, deadline_days, sort_order)')
+        .eq('department', selectedDept!)
+        .order('role_title');
+      return (data || []) as any[];
+    },
+  });
+
+  // Onboarding dialog state
+  const [showNewOnboarding, setShowNewOnboarding] = useState(false);
+  const [obRoleTitle, setObRoleTitle] = useState('');
+  const [obItems, setObItems] = useState<{ task: string; deadline_days: number }[]>([{ task: '', deadline_days: 2 }]);
+
   // ─── Mutations ────────────────────────────────────────────────
 
   const createSop = useMutation({
