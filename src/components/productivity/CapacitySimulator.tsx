@@ -136,7 +136,7 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
     setPhantoms(prev => [...prev, {
       id: crypto.randomUUID(),
       name: `Novo membro ${prev.length + 1}`,
-      department: departments[0] || '',
+      department: departments[0] || '__none__',
       weeklyHours: 40,
       clientPct: 70,
     }]);
@@ -180,7 +180,7 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
       deptImpact[dept].current += (Number(m.expected_weekly_hours) || 0) * WEEKS_PER_MONTH;
     });
     phantoms.forEach(p => {
-      const dept = p.department || 'Sem departamento';
+      const dept = (!p.department || p.department === '__none__') ? 'Sem departamento' : p.department;
       if (!deptImpact[dept]) deptImpact[dept] = { current: 0, added: 0 };
       deptImpact[dept].added += p.weeklyHours * WEEKS_PER_MONTH;
     });
@@ -233,7 +233,7 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
                         <SelectTrigger className="h-7 text-sm w-36"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                          <SelectItem value="">Sem departamento</SelectItem>
+                          <SelectItem value="__none__">Sem departamento</SelectItem>
                         </SelectContent>
                       </Select>
                     </TableCell>
