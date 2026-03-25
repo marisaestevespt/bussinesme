@@ -1,6 +1,4 @@
 import { useState, useMemo } from 'react';
-import { TasksByMemberKanban, TasksByPriority, OverdueTasks } from '@/components/hr/PerformanceTaskViews';
-import { GestaoSummaryCards } from '@/components/hr/GestaoSummaryCards';
 
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
@@ -13,10 +11,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, Users, BarChart3, MessageSquare, FileText, AlertTriangle, Clock, CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, Users, MessageSquare, FileText, AlertTriangle, CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, isSameDay, isWithinInterval, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths } from 'date-fns';
 import { pt as ptLocale } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -25,7 +22,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
-  useTeamData, MEMBER_STATUSES, CONTRACT_TYPES, CONTRACT_STATUSES,
+  useTeamData, CONTRACT_TYPES, CONTRACT_STATUSES,
   PAYMENT_TYPES, PAYMENT_STATUSES, FEEDBACK_TYPES, WORK_AREAS, labelFor,
 } from '@/hooks/useTeamData';
 import { getMonthName } from '@/hooks/useExecutiveData';
@@ -74,12 +71,13 @@ function RecordDialog({ open, onClose, title, fields, initial, onSave }: any) {
   );
 }
 
-// ─── Dashboard (stats + alerts + escala, NO duplicate gallery) ──────
+// ─── Dashboard (stats + escala + alerts — people-focused) ──────
 function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
   const [escalaMonth, setEscalaMonth] = useState(new Date());
   const allMembers = (team.members.data || []).filter((m: any) => m.status === 'ativo');
   const allPayments = team.payments.data || [];
   const allContracts = team.contracts.data || [];
+  const allFeedback = team.feedback.data || [];
 
   const expiringContracts = useMemo(() => {
     const now = new Date();
@@ -101,6 +99,13 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
     overduePayments.forEach((p: any) => { map[p.member_id] = (map[p.member_id] || 0) + 1; });
     return map;
   }, [overduePayments]);
+
+  // Feedback stats
+  const recentFeedback = useMemo(() => {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    return allFeedback.filter((f: any) => f.session_date && new Date(f.session_date) >= thirtyDaysAgo);
+  }, [allFeedback]);
 
   const memberName = (id: string) => allMembers.find((m: any) => m.id === id)?.full_name || (team.members.data || []).find((m: any) => m.id === id)?.full_name || '—';
 
@@ -158,13 +163,13 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
   };
 
   const availColors: Record<string, string> = {
-    available: 'bg-green-100 dark:bg-green-900/30',
+    available: 'bg-emerald-100 dark:bg-emerald-900/30',
     off: 'bg-muted',
     vacation: 'bg-amber-100 dark:bg-amber-900/30',
     holiday: 'bg-blue-100 dark:bg-blue-900/30',
   };
   const availDots: Record<string, string> = {
-    available: 'bg-green-500',
+    available: 'bg-emerald-500',
     off: 'bg-muted-foreground/30',
     vacation: 'bg-amber-500',
     holiday: 'bg-blue-500',
@@ -172,26 +177,36 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
 
   return (
     <div className="space-y-6">
-      {/* Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
+      {/* Stats Row — people-focused */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Card className="border-l-4 border-l-primary">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"><Users className="h-5 w-5 text-primary" /></div>
-            <div><p className="text-xs text-muted-foreground">Membros ativos</p><p className="text-lg font-bold">{allMembers.length}</p></div>
+            <div><p className="text-[11px] text-muted-foreground uppercase tracking-wide">Membros ativos</p><p className="text-xl font-bold">{allMembers.length}</p></div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className={cn("border-l-4", expiringContracts.length > 0 ? "border-l-amber-500" : "border-l-emerald-500")}>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${expiringContracts.length > 0 ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-primary/10'}`}>
-              <FileText className={`h-5 w-5 ${expiringContracts.length > 0 ? 'text-amber-600' : 'text-primary'}`} />
+            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${expiringContracts.length > 0 ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-emerald-100 dark:bg-emerald-900/30'}`}>
+              <FileText className={`h-5 w-5 ${expiringContracts.length > 0 ? 'text-amber-600' : 'text-emerald-600'}`} />
             </div>
-            <div><p className="text-xs text-muted-foreground">Contratos a expirar (30d)</p><p className="text-lg font-bold">{expiringContracts.length}</p></div>
+            <div><p className="text-[11px] text-muted-foreground uppercase tracking-wide">Contratos (30d)</p><p className="text-xl font-bold">{expiringContracts.length > 0 ? expiringContracts.length : '✓'}</p></div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className={cn("border-l-4", overduePayments.length > 0 ? "border-l-destructive" : "border-l-emerald-500")}>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-destructive/10 flex items-center justify-center"><AlertTriangle className="h-5 w-5 text-destructive" /></div>
-            <div><p className="text-xs text-muted-foreground">Pagamentos em atraso</p><p className="text-lg font-bold">{overduePayments.length}</p></div>
+            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${overduePayments.length > 0 ? 'bg-destructive/10' : 'bg-emerald-100 dark:bg-emerald-900/30'}`}>
+              <AlertTriangle className={`h-5 w-5 ${overduePayments.length > 0 ? 'text-destructive' : 'text-emerald-600'}`} />
+            </div>
+            <div><p className="text-[11px] text-muted-foreground uppercase tracking-wide">Pagamentos</p><p className="text-xl font-bold">{overduePayments.length > 0 ? `${overduePayments.length} atraso` : '✓'}</p></div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-violet-500">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
+              <MessageSquare className="h-5 w-5 text-violet-600" />
+            </div>
+            <div><p className="text-[11px] text-muted-foreground uppercase tracking-wide">Feedback (30d)</p><p className="text-xl font-bold">{recentFeedback.length}</p></div>
           </CardContent>
         </Card>
       </div>
@@ -207,7 +222,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEscalaMonth(m => addMonths(m, 1))}><ChevronRight className="h-4 w-4" /></Button>
               </div>
               <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-green-500 inline-block" /> Disponível</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500 inline-block" /> Disponível</span>
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-500 inline-block" /> Férias</span>
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-500 inline-block" /> Feriado</span>
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-muted-foreground/30 inline-block" /> Folga</span>
@@ -254,7 +269,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
       )}
 
       {overduePayments.length > 0 && (
-        <Card className="border-destructive/50 bg-red-50/50 dark:bg-red-950/20">
+        <Card className="border-destructive/50 bg-destructive/5">
           <CardContent className="p-4 space-y-2">
             <div className="flex items-center gap-2 text-destructive"><AlertTriangle className="h-4 w-4" /><h3 className="text-sm font-semibold">Pagamentos em atraso</h3></div>
             {Object.entries(overdueByMember).map(([memberId, count]) => (
@@ -302,7 +317,7 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
                     </div>
                   </div>
                   <Badge variant={m.status === 'ativo' ? 'default' : 'secondary'} className="text-[10px] shrink-0">
-                    {labelFor(MEMBER_STATUSES, m.status)}
+                    {m.status === 'ativo' ? 'Ativo' : m.status}
                   </Badge>
                 </div>
                 <div className="flex flex-wrap gap-1">
@@ -328,40 +343,7 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
   );
 }
 
-// ─── Tab: Performance (automatic data only, no manual records) ──────
-export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> }) {
-  const [perfTab, setPerfTab] = useState('prioridade');
-
-  return (
-    <div className="space-y-6">
-      {/* Summary Cards */}
-      <GestaoSummaryCards />
-
-      {/* Tarefas por Membro */}
-      <Card>
-        <CardContent className="pt-5 space-y-4">
-          <h3 className="text-sm font-semibold">Tarefas por Membro</h3>
-          <TasksByMemberKanban />
-        </CardContent>
-      </Card>
-
-      {/* Task views tabs */}
-      <Tabs value={perfTab} onValueChange={setPerfTab}>
-        <TabsList className="flex-wrap">
-          <TabsTrigger value="prioridade"><AlertTriangle className="h-3.5 w-3.5 mr-1" />Por Prioridade</TabsTrigger>
-          <TabsTrigger value="atraso"><Clock className="h-3.5 w-3.5 mr-1" />Em Atraso</TabsTrigger>
-        </TabsList>
-        <TabsContent value="prioridade"><TasksByPriority /></TabsContent>
-        <TabsContent value="atraso"><OverdueTasks /></TabsContent>
-      </Tabs>
-
-    </div>
-  );
-}
-
 // ─── Feedback Session Dialog ──────
-// Event type ID resolved dynamically by slug instead of hardcoded UUID
-
 function FeedbackDialog({ open, onClose, initial, members, onSave }: any) {
   const isEdit = !!initial?.id;
   const [f, setF] = useState(initial || {
@@ -414,7 +396,6 @@ export function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) 
   const { user } = useAuth();
   const qc = useQueryClient();
 
-  // Resolve feedback event type ID dynamically by slug
   const { data: feedbackEventType } = useQuery({
     queryKey: ['event-type', 'feedback'],
     queryFn: async () => {
@@ -513,7 +494,7 @@ export function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) 
   );
 }
 
-// ─── Tab: Contratos & Pagamentos (now includes payments table) ──────
+// ─── Tab: Contratos & Pagamentos ──────
 export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> }) {
   const allMembers = team.members.data || [];
   const [filterMember, setFilterMember] = useState('');
@@ -562,7 +543,6 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
         <div className="w-48"><MemberSelect value={filterMember} onChange={setFilterMember} members={allMembers} /></div>
       </div>
 
-      {/* Contratos */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <h3 className="text-sm font-semibold">Contratos</h3>
@@ -596,7 +576,6 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
         {contractDialog !== null && <RecordDialog open onClose={() => setContractDialog(null)} title={contractDialog.id ? 'Editar Contrato' : 'Novo Contrato'} fields={contractFields} initial={contractDialog} onSave={(r: any) => team.upsertContract.mutate(r)} />}
       </div>
 
-      {/* Pagamentos */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <h3 className="text-sm font-semibold">Pagamentos</h3>
@@ -640,7 +619,6 @@ export function TabContracts({ team }: { team: ReturnType<typeof useTeamData> })
 const HR_SECTIONS = [
   { path: '/hub/recursos-humanos/equipa', label: 'Equipa', icon: Users, iconColor: 'text-blue-600', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
   { path: '/hub/recursos-humanos/escala', label: 'Escala', icon: CalendarIcon, iconColor: 'text-orange-600', color: 'from-orange-500/10 to-orange-600/5 hover:from-orange-500/20 hover:to-orange-600/10' },
-  { path: '/hub/recursos-humanos/performance', label: 'Gestão de Equipa', icon: BarChart3, iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10' },
   { path: '/hub/recursos-humanos/feedback', label: 'Feedback', icon: MessageSquare, iconColor: 'text-amber-600', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10' },
   { path: '/hub/recursos-humanos/contratos-pagamentos', label: 'Contratos & Pagamentos', icon: FileText, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
 ];
@@ -653,9 +631,9 @@ export default function ExecutiveGestaoEquipa() {
   return (
     <AppLayout>
       <div className="p-6 space-y-8">
-        <PageHeader title="Recursos Humanos" subtitle="Central de gestão de todos os membros do negócio" />
+        <PageHeader title="Gestão de Equipa" subtitle="Pessoas, contratos, horários e feedback — tudo sobre a tua equipa" />
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {HR_SECTIONS.map(s => (
             <Card
               key={s.path}
@@ -674,7 +652,6 @@ export default function ExecutiveGestaoEquipa() {
 
         <Separator />
 
-        {/* Dashboard — stats + alerts + escala only (no duplicate member gallery) */}
         <TabDashboard team={team} />
       </div>
     </AppLayout>

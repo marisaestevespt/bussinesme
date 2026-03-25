@@ -8,7 +8,6 @@ import { TabEscala } from '@/components/hr/TabEscala';
 
 import {
   TabEquipa,
-  TabPerformance,
   TabFeedback,
   TabContracts,
 } from '@/pages/ExecutiveGestaoEquipa';
@@ -16,7 +15,6 @@ import {
 const TITLES: Record<string, string> = {
   equipa: 'Equipa',
   escala: 'Escala',
-  performance: 'Gestão de Equipa',
   feedback: 'Feedback',
   'contratos-pagamentos': 'Contratos',
 };
@@ -31,7 +29,6 @@ export default function RecursosHumanosSubPage() {
     switch (section) {
       case 'equipa': return <TabEquipa team={team} />;
       case 'escala': return <TabEscala />;
-      case 'performance': return <TabPerformance team={team} />;
       case 'feedback': return <TabFeedback team={team} />;
       case 'contratos-pagamentos': return <TabContracts team={team} />;
       default: return <EmptyModulePage title={title} description="Conteúdo será construído em breve." />;
