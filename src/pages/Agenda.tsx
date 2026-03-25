@@ -998,8 +998,8 @@ export default function AgendaPage() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [typesManagerOpen, setTypesManagerOpen] = useState(false);
 
-  const { isOwner } = useAuth();
-  const { data: events = [], isLoading } = useEvents();
+  const { isOwner, user } = useAuth();
+  const { data: events = [], isLoading } = useEvents(user?.id, isOwner);
   const { data: types = [] } = useEventTypes();
   const { data: profiles = [] } = useProfiles();
 
