@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
+import { MessageSquare as WhatsAppIcon, ExternalLink, Pencil, Check, X as XIcon } from 'lucide-react';
+import { Input as InputField } from '@/components/ui/input';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -95,6 +97,66 @@ function AnalogClock() {
 
 // ─── Page ──────────────────────────────────────────────────
 
+// ─── Team WhatsApp Link (header) ──────────────────────────────────────
+function TeamWhatsAppLink() {
+  const { isOwner } = useAuth();
+  const { canAccess } = usePermissions();
+  const isAdmin = isOwner || canAccess('admin' as any);
+  const qc = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
+
+  const { data: settings } = useQuery({
+    queryKey: ['business-settings-whatsapp'],
+    queryFn: async () => {
+      const { data } = await supabase.from('business_settings').select('whatsapp_team_url').limit(1).maybeSingle();
+      return data;
+    },
+  });
+
+  const url = (settings as any)?.whatsapp_team_url || '';
+
+  const saveMut = useMutation({
+    mutationFn: async (newUrl: string) => {
+      const { data: existing } = await supabase.from('business_settings').select('id').limit(1).maybeSingle();
+      if (existing) {
+        await supabase.from('business_settings').update({ whatsapp_team_url: newUrl } as any).eq('id', existing.id);
+      }
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['business-settings-whatsapp'] }); toast.success('Link guardado'); setEditing(false); },
+    onError: () => toast.error('Erro ao guardar'),
+  });
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-2 mt-2">
+        <InputField value={draft} onChange={e => setDraft(e.target.value)} placeholder="https://chat.whatsapp.com/..." className="h-7 text-xs bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/40 flex-1 max-w-sm" autoFocus />
+        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-primary-foreground hover:bg-primary-foreground/10" onClick={() => saveMut.mutate(draft.trim())} disabled={saveMut.isPending}><Check className="h-3.5 w-3.5" /></Button>
+        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-primary-foreground/60 hover:bg-primary-foreground/10" onClick={() => setEditing(false)}><XIcon className="h-3.5 w-3.5" /></Button>
+      </div>
+    );
+  }
+
+  if (!url && !isAdmin) return null;
+
+  return (
+    <div className="flex items-center gap-2 mt-2">
+      {url ? (
+        <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs font-medium text-primary-foreground/80 hover:text-primary-foreground flex items-center gap-1.5 transition-colors">
+          <WhatsAppIcon className="h-3.5 w-3.5" /> Grupo de Equipa (WhatsApp) <ExternalLink className="h-3 w-3" />
+        </a>
+      ) : (
+        <span className="text-xs text-primary-foreground/50 italic flex items-center gap-1.5"><WhatsAppIcon className="h-3.5 w-3.5" /> Sem link de grupo</span>
+      )}
+      {isAdmin && (
+        <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-primary-foreground/50 hover:text-primary-foreground hover:bg-primary-foreground/10" onClick={() => { setDraft(url); setEditing(true); }}>
+          <Pencil className="h-3 w-3" />
+        </Button>
+      )}
+    </div>
+  );
+}
+
 export default function HubEquipaPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -123,6 +185,7 @@ export default function HubEquipaPage() {
             <p className="text-sm text-primary-foreground/70 mt-1">
               Olá! Bem-vindo(a) ao nosso espaço. Este é o lugar onde organizamos, colaboramos e crescemos juntos.
             </p>
+            <TeamWhatsAppLink />
           </div>
           <AnalogClock />
         </div>

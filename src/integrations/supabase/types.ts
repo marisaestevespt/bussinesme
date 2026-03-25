@@ -377,6 +377,7 @@ export type Database = {
           text_color: string
           updated_at: string
           welcome_text: string | null
+          whatsapp_team_url: string | null
         }
         Insert: {
           about_text?: string | null
@@ -396,6 +397,7 @@ export type Database = {
           text_color?: string
           updated_at?: string
           welcome_text?: string | null
+          whatsapp_team_url?: string | null
         }
         Update: {
           about_text?: string | null
@@ -415,6 +417,7 @@ export type Database = {
           text_color?: string
           updated_at?: string
           welcome_text?: string | null
+          whatsapp_team_url?: string | null
         }
         Relationships: []
       }
@@ -2318,6 +2321,30 @@ export type Database = {
           updated_at?: string
           view_name?: string
           visible_columns?: string[] | null
+        }
+        Relationships: []
+      }
+      department_whatsapp_links: {
+        Row: {
+          department: string
+          id: string
+          updated_at: string
+          updated_by: string | null
+          whatsapp_url: string
+        }
+        Insert: {
+          department: string
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+          whatsapp_url?: string
+        }
+        Update: {
+          department?: string
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+          whatsapp_url?: string
         }
         Relationships: []
       }
@@ -6110,6 +6137,7 @@ export type Database = {
           total_time_minutes: number | null
           type: string
           updated_at: string
+          whatsapp_group_url: string | null
         }
         Insert: {
           client_id?: string | null
@@ -6139,6 +6167,7 @@ export type Database = {
           total_time_minutes?: number | null
           type?: string
           updated_at?: string
+          whatsapp_group_url?: string | null
         }
         Update: {
           client_id?: string | null
@@ -6168,6 +6197,7 @@ export type Database = {
           total_time_minutes?: number | null
           type?: string
           updated_at?: string
+          whatsapp_group_url?: string | null
         }
         Relationships: [
           {

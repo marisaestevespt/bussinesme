@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
 import { usePlanningRoutines, generateTasksForRoutine } from '@/hooks/usePlanningRoutines';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -18,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Plus, Trash2, FileText, RotateCw, UserPlus } from 'lucide-react';
+import { Plus, Trash2, FileText, RotateCw, UserPlus, MessageSquare, ExternalLink, Pencil, Check, X } from 'lucide-react';
 
 const SOP_STATUSES = [
   { value: 'para_criar', label: 'Para criar', color: 'bg-muted text-muted-foreground' },
@@ -176,6 +177,9 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
   return (
     <>
       <div className="space-y-8">
+        {/* WhatsApp department link */}
+        <DeptWhatsAppCard department={department} />
+
         {/* SOPs */}
         <section>
           <div className="flex items-center justify-between mb-3">
@@ -592,5 +596,72 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+// ─── Dept WhatsApp Card ──────────────────────────────────────────
+function DeptWhatsAppCard({ department }: { department: string }) {
+  const { isOwner } = useAuth();
+  const { canAccess } = usePermissions();
+  const isAdmin = isOwner || canAccess('admin' as any);
+  const qc = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
+
+  const { data: linkRow } = useQuery({
+    queryKey: ['dept-whatsapp', department],
+    queryFn: async () => {
+      const { data } = await supabase.from('department_whatsapp_links').select('*').eq('department', department).maybeSingle();
+      return data;
+    },
+  });
+
+  const url = (linkRow as any)?.whatsapp_url || '';
+
+  const saveMut = useMutation({
+    mutationFn: async (newUrl: string) => {
+      if (linkRow) {
+        await supabase.from('department_whatsapp_links').update({ whatsapp_url: newUrl, updated_at: new Date().toISOString() } as any).eq('id', (linkRow as any).id);
+      } else {
+        await supabase.from('department_whatsapp_links').insert({ department, whatsapp_url: newUrl } as any);
+      }
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['dept-whatsapp', department] }); toast.success('Link guardado'); setEditing(false); },
+    onError: () => toast.error('Erro ao guardar'),
+  });
+
+  if (!url && !isAdmin) return null;
+
+  if (editing) {
+    return (
+      <Card>
+        <CardContent className="p-4 flex items-center gap-3">
+          <MessageSquare className="h-4 w-4 text-emerald-600 shrink-0" />
+          <Input value={draft} onChange={e => setDraft(e.target.value)} placeholder="https://chat.whatsapp.com/..." className="h-8 text-sm flex-1" autoFocus />
+          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => saveMut.mutate(draft.trim())} disabled={saveMut.isPending}><Check className="h-4 w-4 text-emerald-600" /></Button>
+          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setEditing(false)}><X className="h-4 w-4 text-muted-foreground" /></Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardContent className="p-4 flex items-center gap-3">
+        <MessageSquare className="h-4 w-4 text-emerald-600 shrink-0" />
+        {url ? (
+          <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-emerald-700 hover:text-emerald-800 hover:underline flex items-center gap-1.5">
+            Grupo de WhatsApp do Departamento <ExternalLink className="h-3 w-3" />
+          </a>
+        ) : (
+          <span className="text-sm text-muted-foreground italic">Sem link de grupo de WhatsApp</span>
+        )}
+        {isAdmin && (
+          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 ml-auto" onClick={() => { setDraft(url); setEditing(true); }}>
+            <Pencil className="h-3 w-3 text-muted-foreground" />
+          </Button>
+        )}
+      </CardContent>
+    </Card>
   );
 }
