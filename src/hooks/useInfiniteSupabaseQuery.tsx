@@ -42,8 +42,7 @@ export function useInfiniteSupabaseQuery<T = Record<string, unknown>>(
       const from = (pageParam as number) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      let query = supabase
-        .from(tableName)
+      let query = (supabase.from as any)(tableName)
         .select(select, { count: 'exact' })
         .order(orderBy, { ascending })
         .range(from, to);
