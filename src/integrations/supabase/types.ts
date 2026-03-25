@@ -5720,6 +5720,45 @@ export type Database = {
           },
         ]
       }
+      product_team_members: {
+        Row: {
+          created_at: string | null
+          id: string
+          member_id: string
+          product_id: string
+          role_title: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          member_id: string
+          product_id: string
+          role_title: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          member_id?: string
+          product_id?: string
+          role_title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_team_members_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_team_members_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_traffic_ads: {
         Row: {
           created_at: string
@@ -6347,9 +6386,12 @@ export type Database = {
           objetivo: string | null
           outputs: Json | null
           passos: Json | null
+          product_id: string | null
           product_name: string | null
+          role_title: string | null
           routine_id: string | null
           sop_id: string
+          sop_type: string
           sort_order: number
           status: string
           updated_at: string
@@ -6373,9 +6415,12 @@ export type Database = {
           objetivo?: string | null
           outputs?: Json | null
           passos?: Json | null
+          product_id?: string | null
           product_name?: string | null
+          role_title?: string | null
           routine_id?: string | null
           sop_id?: string
+          sop_type?: string
           sort_order?: number
           status?: string
           updated_at?: string
@@ -6399,9 +6444,12 @@ export type Database = {
           objetivo?: string | null
           outputs?: Json | null
           passos?: Json | null
+          product_id?: string | null
           product_name?: string | null
+          role_title?: string | null
           routine_id?: string | null
           sop_id?: string
+          sop_type?: string
           sort_order?: number
           status?: string
           updated_at?: string
@@ -6414,6 +6462,13 @@ export type Database = {
             columns: ["custom_role_id"]
             isOneToOne: false
             referencedRelation: "custom_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sops_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
           {
