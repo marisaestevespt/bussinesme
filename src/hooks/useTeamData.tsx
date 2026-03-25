@@ -41,6 +41,13 @@ export const PAYMENT_STATUSES = [
   { value: 'pago', label: 'Pago' },
 ];
 
+export const WORK_AREAS = [
+  { value: 'interno', label: 'Trabalho Interno', description: 'Marketing, contabilidade, operações, etc.' },
+  { value: 'cliente_administrativo', label: 'Cliente — Administrativo', description: 'Onboarding, envio de documentos, etc.' },
+  { value: 'cliente_servico', label: 'Cliente — Serviço', description: 'Consultoria, criação, prestação de serviço' },
+  { value: 'cliente_comercial', label: 'Cliente — Comercial', description: 'Vendas, renovações, contacto com clientes' },
+];
+
 export const FEEDBACK_TYPES = [
   { value: 'feedback_formal', label: 'Feedback Formal' },
   { value: 'checkin_rapido', label: 'Check-in Rápido' },
