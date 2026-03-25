@@ -1241,12 +1241,11 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <h4 className="font-medium text-sm">{item.product_name}</h4>
-                          {currentClients > 0 && <Badge variant="outline" className="text-[10px]">{hoursUsed.toFixed(0)}h/mês</Badge>}
                           {itemRevenue > 0 && <Badge variant="secondary" className="text-[10px]">{itemRevenue.toLocaleString('pt-PT')}€/mês</Badge>}
                         </div>
                         <button onClick={() => deleteScenarioProduct.mutate(item.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
                       </div>
-                      <div className="grid grid-cols-5 gap-3">
+                      <div className="grid grid-cols-6 gap-3">
                         <div className="space-y-1">
                           <Label className="text-[10px]">Horas/cliente/mês</Label>
                           <Input type="number" className="h-7 text-sm" defaultValue={hpc} onBlur={e => { const val = parseFloat(e.target.value); if (!isNaN(val) && val !== hpc) updateScenarioProduct.mutate({ id: item.id, hours_per_client_month: val }); }} />
@@ -1260,6 +1259,12 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
                           <div className="h-7 flex items-center gap-1.5">
                             <span className="text-sm font-semibold">{realCount}</span>
                             <Button size="sm" variant="ghost" className="h-5 px-1.5 text-[10px]" onClick={() => updateScenarioProduct.mutate({ id: item.id, current_clients: realCount })}>Usar</Button>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[10px]">Carga atual</Label>
+                          <div className="h-7 flex items-center">
+                            <span className={`text-sm font-semibold ${hoursUsed > 0 ? 'text-foreground' : 'text-muted-foreground'}`}>{hoursUsed.toFixed(0)}h/mês</span>
                           </div>
                         </div>
                         <div className="space-y-1">
