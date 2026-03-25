@@ -530,6 +530,7 @@ export type Database = {
           client_facing_count: number
           created_at: string
           id: string
+          member_overheads: Json | null
           name: string
           notes: string | null
           team_size: number
@@ -542,6 +543,7 @@ export type Database = {
           client_facing_count?: number
           created_at?: string
           id?: string
+          member_overheads?: Json | null
           name?: string
           notes?: string | null
           team_size?: number
@@ -554,6 +556,7 @@ export type Database = {
           client_facing_count?: number
           created_at?: string
           id?: string
+          member_overheads?: Json | null
           name?: string
           notes?: string | null
           team_size?: number
