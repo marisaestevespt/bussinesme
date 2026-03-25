@@ -203,7 +203,7 @@ Deno.serve(async (req) => {
 
       const { data: activeMembers } = await supabase
         .from("team_members")
-        .select("id, full_name, weekly_hours")
+        .select("id, full_name, expected_weekly_hours")
         .eq("status", "ativo");
 
       if (activeMembers && activeMembers.length > 0) {
@@ -226,7 +226,7 @@ Deno.serve(async (req) => {
 
         let capacityAlerts = 0;
         for (const member of activeMembers) {
-          const weeklyCapacity = member.weekly_hours || 40;
+          const weeklyCapacity = member.expected_weekly_hours || 40;
           const hoursUsed = hoursPerMember.get(member.id) || 0;
           const occupancy = weeklyCapacity > 0 ? (hoursUsed / weeklyCapacity) * 100 : 0;
 
