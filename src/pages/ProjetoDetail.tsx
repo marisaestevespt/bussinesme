@@ -650,6 +650,15 @@ export default function ProjetoDetailPage() {
               <div><Label className="text-xs">Cliente</Label><Input value={local.client_name || ''} onChange={e => updateField('client_name', e.target.value)} /></div>
               <div><Label className="text-xs">Departamento</Label><Select value={local.department || ''} onValueChange={v => updateField('department', v)}><SelectTrigger><SelectValue placeholder="—" /></SelectTrigger><SelectContent>{DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent></Select></div>
             </div>
+            <div>
+              <Label className="text-xs flex items-center gap-1.5"><MessageSquare className="h-3 w-3" /> Grupo WhatsApp</Label>
+              <Input value={(local as any).whatsapp_group_url || ''} onChange={e => updateField('whatsapp_group_url', e.target.value)} placeholder="https://chat.whatsapp.com/..." className="mt-1" />
+              {(local as any).whatsapp_group_url && (
+                <a href={(local as any).whatsapp_group_url} target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-700 hover:underline flex items-center gap-1 mt-1">
+                  Abrir grupo <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+            </div>
             {!isRecorrente && (
               <div className="grid grid-cols-2 gap-4">
                 <div><Label className="text-xs">Prazo</Label>
