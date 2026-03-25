@@ -1420,6 +1420,16 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
           await supabase.from('role_permissions').upsert(perms, { onConflict: 'custom_role_id,module_key' });
         }
       }
+      // Save sensitive access toggles
+      const sensitiveAccess: Record<string, boolean> = member.sensitiveAccess || {};
+      const sensitiveRows = Object.entries(sensitiveAccess).map(([category, granted]) => ({
+        member_id: memberId,
+        category,
+        granted: !!granted,
+      }));
+      if (sensitiveRows.length > 0) {
+        await supabase.from('member_sensitive_access').upsert(sensitiveRows, { onConflict: 'member_id,category' });
+      }
       qc.invalidateQueries({ queryKey: ['team'] });
       toast.success(isNew ? 'Membro criado com contrato e pagamentos!' : 'Membro atualizado');
     } catch (err: any) {
