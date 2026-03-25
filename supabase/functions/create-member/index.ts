@@ -116,6 +116,84 @@ Deno.serve(async (req) => {
         priority: "alta",
       });
 
+      // ── Onboarding checklist from SOP template ──
+      let onboarding_created = false;
+      let onboarding_warning: string | null = null;
+
+      if (role_title && team_member_id) {
+        // Find template matching role_title (case-insensitive)
+        const { data: template } = await supabase
+          .from("sop_onboarding_templates")
+          .select("id, role_title")
+          .ilike("role_title", role_title.trim())
+          .maybeSingle();
+
+        if (template) {
+          // Get template items
+          const { data: items } = await supabase
+            .from("sop_onboarding_items")
+            .select("task, deadline_days, sort_order")
+            .eq("template_id", template.id)
+            .order("sort_order");
+
+          if (items && items.length > 0) {
+            const todayDate = new Date();
+            const onboardingRows = items.map((item) => {
+              const deadlineDate = new Date(todayDate);
+              deadlineDate.setDate(deadlineDate.getDate() + item.deadline_days);
+              return {
+                member_id: team_member_id,
+                task: item.task,
+                sort_order: item.sort_order,
+                completed: false,
+                deadline_date: deadlineDate.toISOString().split("T")[0],
+                source_template_id: template.id,
+              };
+            });
+            await supabase.from("member_onboarding").insert(onboardingRows);
+            onboarding_created = true;
+          } else {
+            onboarding_warning = `O SOP de onboarding para "${role_title}" existe mas não tem itens de checklist.`;
+          }
+        } else {
+          // Try generic "Onboarding Geral" template
+          const { data: genericTemplate } = await supabase
+            .from("sop_onboarding_templates")
+            .select("id, role_title")
+            .ilike("role_title", "geral")
+            .maybeSingle();
+
+          if (genericTemplate) {
+            const { data: items } = await supabase
+              .from("sop_onboarding_items")
+              .select("task, deadline_days, sort_order")
+              .eq("template_id", genericTemplate.id)
+              .order("sort_order");
+
+            if (items && items.length > 0) {
+              const todayDate = new Date();
+              const onboardingRows = items.map((item) => {
+                const deadlineDate = new Date(todayDate);
+                deadlineDate.setDate(deadlineDate.getDate() + item.deadline_days);
+                return {
+                  member_id: team_member_id,
+                  task: item.task,
+                  sort_order: item.sort_order,
+                  completed: false,
+                  deadline_date: deadlineDate.toISOString().split("T")[0],
+                  source_template_id: genericTemplate.id,
+                };
+              });
+              await supabase.from("member_onboarding").insert(onboardingRows);
+              onboarding_created = true;
+              onboarding_warning = `Não existe SOP de onboarding para "${role_title}". Foi usado o template "Geral".`;
+            }
+          } else {
+            onboarding_warning = `Não existe SOP de onboarding para a função "${role_title}". Cria um para automatizar o onboarding.`;
+          }
+        }
+      }
+
       // Generate invite link (recovery link so user can set password)
       const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink({
         type: "recovery",
@@ -134,6 +212,8 @@ Deno.serve(async (req) => {
           user_id: newUser.user.id,
           profile_id: profile?.id || null,
           invite_url,
+          onboarding_created,
+          onboarding_warning,
         }),
         {
           status: 200,
