@@ -410,6 +410,20 @@ export function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) 
   const { user } = useAuth();
   const qc = useQueryClient();
 
+  // Resolve feedback event type ID dynamically by slug
+  const { data: feedbackEventType } = useQuery({
+    queryKey: ['event-type', 'feedback'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('event_types')
+        .select('id')
+        .eq('slug', 'feedback')
+        .maybeSingle();
+      return data;
+    },
+    staleTime: Infinity,
+  });
+
   const data = useMemo(() => {
     let d = team.feedback.data || [];
     if (filterMember) d = d.filter(r => r.member_id === filterMember);
