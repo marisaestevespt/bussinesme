@@ -564,7 +564,8 @@ export function usePlanningData(year = currentYear) {
   const objectiveProgress = (obj: any) => {
     if (obj.objective_type === 'quantitativo') {
       const pName = obj.product_name ?? resolveProductName(obj.product_id);
-      const cv = obj.value_source === 'manual' ? Number(obj.current_value || 0) : (getAutoValue(obj.value_source, pName, obj.primary_metric_id) ?? 0);
+      const sf = obj.source_filter || null;
+      const cv = obj.value_source === 'manual' ? Number(obj.current_value || 0) : (getAutoValue(obj.value_source, pName, obj.primary_metric_id, sf) ?? 0);
       const tv = Number(obj.target_value || 0);
       if (tv <= 0) return 0;
       return Math.min(100, Math.round((cv / tv) * 100));
@@ -579,7 +580,8 @@ export function usePlanningData(year = currentYear) {
   const objectiveCurrentValue = (obj: any) => {
     if (obj.value_source === 'manual') return Number(obj.current_value || 0);
     const pName = obj.product_name ?? resolveProductName(obj.product_id);
-    return getAutoValue(obj.value_source, pName, obj.primary_metric_id) ?? 0;
+    const sf = obj.source_filter || null;
+    return getAutoValue(obj.value_source, pName, obj.primary_metric_id, sf) ?? 0;
   };
 
   // Helper: auto-compute goal status based on actual vs target
