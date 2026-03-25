@@ -139,6 +139,11 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
     return depts;
   }, []);
 
+  const nextMonth = new Date();
+  nextMonth.setMonth(nextMonth.getMonth() + 1);
+  nextMonth.setDate(1);
+  const defaultStartDate = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}-01`;
+
   const addPhantom = () => {
     setPhantoms(prev => [...prev, {
       id: crypto.randomUUID(),
@@ -148,6 +153,7 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
       clientPct: 70,
       contractType: 'colaborador',
       grossSalary: 1000,
+      startDate: defaultStartDate,
     }]);
   };
 
