@@ -332,7 +332,7 @@ export default function ProdutoDetailPage() {
   // JSONB helpers
   const includedItems: string[] = Array.isArray(form.included_items) ? (form.included_items as unknown as string[]) : [];
   const faqs: { question: string; answer: string }[] = Array.isArray(form.faqs) ? (form.faqs as unknown as { question: string; answer: string }[]) : [];
-  const clientProfile = (form.client_profile || {}) as Record<string, unknown>;
+  const clientProfile = (form.client_profile || {}) as Record<string, string[]>;
   const competitors: { name: string; notes: string }[] = Array.isArray(form.competitors) ? (form.competitors as unknown as { name: string; notes: string }[]) : [];
 
   const updateIncludedItems = (items: string[]) => update('included_items', items);
