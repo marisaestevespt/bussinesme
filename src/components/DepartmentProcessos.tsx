@@ -216,6 +216,69 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
 
         <Separator />
 
+        {/* Onboarding por Função */}
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <UserPlus className="h-4 w-4 text-primary" /> Onboarding por Função
+            </h3>
+            <Button size="sm" variant="outline" onClick={() => setShowNewOnboarding(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Novo Template
+            </Button>
+          </div>
+          {onboardingTemplates.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground text-sm">
+                Sem templates de onboarding neste departamento. Cria um para automatizar a entrada de novos membros.
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-3">
+              {onboardingTemplates.map((tpl: any) => {
+                const items = (tpl.sop_onboarding_items || []).sort((a: any, b: any) => a.sort_order - b.sort_order);
+                return (
+                  <Card key={tpl.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="text-xs">{tpl.role_title}</Badge>
+                          <span className="text-sm text-muted-foreground">{items.length} itens</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={async () => {
+                            await supabase.from('sop_onboarding_items').delete().eq('template_id', tpl.id);
+                            await supabase.from('sop_onboarding_templates').delete().eq('id', tpl.id);
+                            qc.invalidateQueries({ queryKey: ['onboarding-templates'] });
+                            toast.success('Template eliminado');
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                      {items.length > 0 && (
+                        <div className="space-y-1.5">
+                          {items.map((item: any, idx: number) => (
+                            <div key={item.id} className="flex items-center gap-2 text-sm">
+                              <span className="text-muted-foreground w-5 shrink-0">{idx + 1}.</span>
+                              <span className="flex-1">{item.task}</span>
+                              <Badge variant="outline" className="text-[10px] shrink-0">{item.deadline_days}d</Badge>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        <Separator />
+
         {/* Rotinas */}
         <section>
           <div className="flex items-center justify-between mb-3">
