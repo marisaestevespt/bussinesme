@@ -6722,6 +6722,7 @@ export type Database = {
       }
       team_members: {
         Row: {
+          birthday: string | null
           created_at: string
           custom_holidays: Json | null
           department: string | null
@@ -6745,6 +6746,7 @@ export type Database = {
           works_holidays: boolean
         }
         Insert: {
+          birthday?: string | null
           created_at?: string
           custom_holidays?: Json | null
           department?: string | null
@@ -6768,6 +6770,7 @@ export type Database = {
           works_holidays?: boolean
         }
         Update: {
+          birthday?: string | null
           created_at?: string
           custom_holidays?: Json | null
           department?: string | null
