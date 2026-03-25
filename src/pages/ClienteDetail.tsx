@@ -26,6 +26,7 @@ import {
 import { useProducts } from '@/hooks/useProducts';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
+import { EntryDetailSheet } from '@/components/financial/EntryDetailSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ClientCustomerSuccess } from '@/components/client/ClientCustomerSuccess';
@@ -144,6 +145,8 @@ export default function ClienteDetailPage() {
   const [form, setForm] = useState<Partial<Client>>({});
   const [initialized, setInitialized] = useState(false);
   const [saleOpen, setSaleOpen] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<any>(null);
+  const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [meetingForm, setMeetingForm] = useState({ title: '', date_time: '', meeting_url: '' });
   const [totalValue, setTotalValue] = useState('');
@@ -225,6 +228,9 @@ export default function ClienteDetailPage() {
       const entrada = parseFloat(entradaValue);
       if (!total || !entrada) { toast.error('Preenche o valor total e o valor de entrada'); return; }
       if (num < 2) { toast.error('Define a quantidade de prestações'); return; }
+      // First: entrada payment (index -1 to flag it)
+      payments.push({ baseValue: entrada, index: -1 });
+      // Then: installments
       const remainder = total - entrada;
       const perInstallment = Math.round((remainder / num) * 100) / 100;
       for (let i = 0; i < num; i++) payments.push({ baseValue: perInstallment, index: i });
@@ -254,7 +260,13 @@ export default function ClienteDetailPage() {
 
       const now = new Date();
       for (const p of payments) {
-        const payDate = new Date(now.getFullYear(), now.getMonth() + 1 + p.index, day);
+        let payDate: Date;
+        if (p.index === -1) {
+          // Entrada: use client start_date or today
+          payDate = form.start_date ? new Date(form.start_date + 'T00:00:00') : now;
+        } else {
+          payDate = new Date(now.getFullYear(), now.getMonth() + 1 + p.index, day);
+        }
         const payMonth = payDate.getMonth() + 1;
         const payQuarter = Math.ceil(payMonth / 3);
         const payYear = payDate.getFullYear();
@@ -268,7 +280,7 @@ export default function ClienteDetailPage() {
           sale_id: saleId,
           status: 'na',
           payment_date: payDateStr,
-          description: `${form.client_id}_Pagamento_${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][payMonth - 1]}`,
+          description: p.index === -1 ? `${form.client_id}_Entrada` : `${form.client_id}_Pagamento_${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][payMonth - 1]}`,
           base_value: p.baseValue,
           invoice_total: Math.round(p.baseValue * vatMultiplier * 100) / 100,
           product,
@@ -821,8 +833,8 @@ export default function ClienteDetailPage() {
                 </div>
                 {clientSales.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8 text-sm">Sem pagamentos associados</p>
-                ) : clientSales.map(s => (
-                  <div key={s.id} className="px-4 py-2 text-xs grid grid-cols-9 gap-2 border-b items-center">
+                 ) : clientSales.map(s => (
+                  <div key={s.id} className="px-4 py-2 text-xs grid grid-cols-9 gap-2 border-b items-center cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedPayment(s); setPaymentSheetOpen(true); }}>
                     <span>{s.status}</span>
                     <span>{s.payment_date || '—'}</span>
                     <span className="truncate">{s.description || '—'}</span>
@@ -836,6 +848,8 @@ export default function ClienteDetailPage() {
                 ))}
               </CardContent>
             </Card>
+
+            <EntryDetailSheet sale={selectedPayment} open={paymentSheetOpen} onOpenChange={setPaymentSheetOpen} />
 
             {/* Feedback recebido */}
             <ClientFeedbackSection clientId={isNew ? undefined : id} clientName={form.full_name || ''} />
