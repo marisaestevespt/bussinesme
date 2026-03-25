@@ -144,7 +144,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
       } catch {}
     }
     const isNational = holidays.some(h => isSameDay(h, day));
-    if (isNational) return member.works_holidays ? 'available' : 'holiday';
+    if (isNational) return 'holiday';
     if (!member.work_schedule) return 'off';
     try {
       const schedule = JSON.parse(member.work_schedule);

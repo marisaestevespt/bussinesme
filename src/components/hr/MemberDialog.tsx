@@ -41,7 +41,7 @@ const DEFAULT_MEMBER_FORM = {
   start_date: '',
   presentation: '',
   responsibilities: '',
-  works_holidays: false,
+  works_holidays: false, // kept for DB compatibility
   custom_holidays: [] as string[],
   work_areas: [] as string[],
 };
@@ -393,11 +393,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
           {/* ═══ BLOCO 4: HORÁRIO ═══ */}
           <div className="space-y-3">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🕐 Horário</h3>
-            <ScheduleSelector value={f.work_schedule || ''} onChange={v => set('work_schedule', v)} />
-            <div className="flex items-center justify-between">
-              <label className="text-sm">Trabalha em feriados?</label>
-              <Switch checked={!!f.works_holidays} onCheckedChange={v => set('works_holidays', v)} />
-            </div>
+             <ScheduleSelector value={f.work_schedule || ''} onChange={v => set('work_schedule', v)} />
           </div>
 
           {/* Contrato (só para novos membros) */}

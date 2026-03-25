@@ -13,7 +13,8 @@ import { Plus, Trash2, CheckSquare, CalendarIcon, CalendarDays, ExternalLink, Fi
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { format, parseISO, isWithinInterval } from 'date-fns';
+import { format, parseISO, isWithinInterval, getDay, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { getHolidaySet } from '@/lib/holidays';
 import {
   MEMBER_STATUSES, MEMBER_TYPES, CONTRACT_TYPES, CONTRACT_STATUSES,
   PAYMENT_TYPES, PAYMENT_STATUSES, FEEDBACK_TYPES, labelFor,
@@ -332,13 +333,8 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
                 <span className="text-xs text-muted-foreground">de férias marcados em {currentYear}</span>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Trabalha em feriados</span>
-                  <Badge variant={member.works_holidays ? 'default' : 'secondary'} className="text-[10px]">{member.works_holidays ? 'Sim' : 'Não'}</Badge>
-                </div>
-              </div>
-
+              {/* Holiday/weekend work detection */}
+              <HolidayWeekendWorkCards memberId={member.id} />
               <Separator />
 
               <div className="space-y-2">
@@ -374,5 +370,54 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function HolidayWeekendWorkCards({ memberId }: { memberId: string }) {
+  const now = new Date();
+  const monthStart = startOfMonth(now);
+  const monthEnd = endOfMonth(now);
+  const holidaySet = getHolidaySet(now.getFullYear());
+
+  const { data: entries = [] } = useQuery({
+    queryKey: ['member-time-entries-holidays', memberId, format(now, 'yyyy-MM')],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('time_entries')
+        .select('entry_date, duration')
+        .eq('member_id', memberId)
+        .gte('entry_date', format(monthStart, 'yyyy-MM-dd'))
+        .lte('entry_date', format(monthEnd, 'yyyy-MM-dd'));
+      return data || [];
+    },
+  });
+
+  const weekendEntries = entries.filter(e => {
+    const d = new Date(e.entry_date);
+    return getDay(d) === 0 || getDay(d) === 6;
+  });
+  const holidayEntries = entries.filter(e => holidaySet.has(e.entry_date));
+  const weekendDays = new Set(weekendEntries.map(e => e.entry_date)).size;
+  const holidayDays = new Set(holidayEntries.map(e => e.entry_date)).size;
+  const weekendHours = weekendEntries.reduce((s, e) => s + Number(e.duration || 0), 0);
+  const holidayHours = holidayEntries.reduce((s, e) => s + Number(e.duration || 0), 0);
+
+  if (weekendDays === 0 && holidayDays === 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {weekendDays > 0 && (
+        <div className="flex items-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 px-3 py-2">
+          <CalendarDays className="h-4 w-4 text-amber-500" />
+          <div><p className="text-xs text-muted-foreground">Fins-de-semana este mês</p><p className="text-sm font-medium">{weekendDays} dia{weekendDays > 1 ? 's' : ''} · {weekendHours.toFixed(1)}h</p></div>
+        </div>
+      )}
+      {holidayDays > 0 && (
+        <div className="flex items-center gap-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 px-3 py-2">
+          <CalendarDays className="h-4 w-4 text-blue-500" />
+          <div><p className="text-xs text-muted-foreground">Feriados este mês</p><p className="text-sm font-medium">{holidayDays} dia{holidayDays > 1 ? 's' : ''} · {holidayHours.toFixed(1)}h</p></div>
+        </div>
+      )}
+    </div>
   );
 }
