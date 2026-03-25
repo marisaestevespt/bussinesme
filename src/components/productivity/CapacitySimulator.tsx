@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Plus, Trash2, Users, Building2, TrendingUp, ArrowLeftRight, UserPlus } from 'lucide-react';
+import { PROCESS_DEPARTMENTS } from '@/lib/departments';
 
 const WEEKS_PER_MONTH = 4.33;
 
