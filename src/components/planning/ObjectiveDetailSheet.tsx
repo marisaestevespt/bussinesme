@@ -40,6 +40,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
         target_unit: obj.target_unit || '€', current_value: obj.current_value || '',
         value_source: obj.value_source || 'manual', product_id: obj.product_id || '',
         measurement_type: obj.measurement_type || 'acumulativo',
+        primary_metric_id: obj.primary_metric_id || '',
       });
       setEditing(false);
     }
@@ -136,6 +137,19 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                     </div>
                     {form.value_source === 'manual' && (
                       <div><Label>Valor atual</Label><Input type="number" value={form.current_value} onChange={e => set('current_value', e.target.value)} /></div>
+                    )}
+                    {form.value_source === 'metrica' && (
+                      <div className="col-span-3">
+                        <Label>Métrica principal</Label>
+                        <Select value={form.primary_metric_id || 'none'} onValueChange={v => set('primary_metric_id', v === 'none' ? '' : v)}>
+                          <SelectTrigger><SelectValue placeholder="Selecionar métrica" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Nenhuma</SelectItem>
+                            {objMetrics.map((m: any) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground mt-1">O progresso será calculado a partir do valor atual desta métrica.</p>
+                      </div>
                     )}
                     {(form.value_source === 'bd_vendas' || form.value_source === 'bd_crm') && (
                       <div><Label>Produto associado</Label>
