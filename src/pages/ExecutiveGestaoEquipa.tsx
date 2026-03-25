@@ -528,7 +528,38 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
             </div>
           </div>
 
-          {/* Email + Telefone + NIF */}
+          {/* Áreas de trabalho */}
+          <div className="space-y-1.5">
+            <span className="text-xs text-muted-foreground font-medium">Áreas de trabalho</span>
+            <p className="text-[10px] text-muted-foreground">Seleciona uma ou mais áreas em que este membro vai atuar.</p>
+            <div className="grid grid-cols-1 gap-1.5">
+              {WORK_AREAS.map(wa => {
+                const areas: string[] = Array.isArray(f.work_areas) ? f.work_areas : [];
+                const checked = areas.includes(wa.value);
+                return (
+                  <label key={wa.value} className={cn(
+                    'flex items-start gap-2.5 rounded-md border px-3 py-2 cursor-pointer transition-colors',
+                    checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
+                  )}>
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={(v) => {
+                        const next = v ? [...areas, wa.value] : areas.filter(a => a !== wa.value);
+                        set('work_areas', next);
+                      }}
+                      className="mt-0.5"
+                    />
+                    <div>
+                      <span className="text-xs font-medium">{wa.label}</span>
+                      <p className="text-[10px] text-muted-foreground leading-tight">{wa.description}</p>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+
           <div className="grid grid-cols-3 gap-2">
             <Input placeholder="Email" value={f.email || ''} onChange={e => set('email', e.target.value)} />
             <Input placeholder="Telefone" value={f.whatsapp || ''} onChange={e => set('whatsapp', e.target.value)} />
