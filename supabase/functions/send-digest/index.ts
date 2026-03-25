@@ -163,28 +163,51 @@ async function buildOwnerDigest(
   let html = "";
   let hasContent = false;
 
-  // Tarefas concluídas hoje
-  if (sections.tarefas_concluidas) {
-    const { data: tasks } = await supabase
-      .from("tasks")
-      .select("name, assigned_to, profiles!tasks_assigned_to_fkey(full_name)")
-      .eq("status", "done")
-      .gte("updated_at", todayStr + "T00:00:00")
-      .lte("updated_at", todayStr + "T23:59:59");
+  // ── Reuniões do dia (primeiro — o que vai acontecer) ──
+  if (sections.reunioes_dia) {
+    const { data: meetings } = await supabase
+      .from("meetings")
+      .select("title, date_time, client_name")
+      .gte("date_time", todayStr + "T00:00:00")
+      .lte("date_time", todayStr + "T23:59:59")
+      .order("date_time");
 
-    if (tasks?.length) {
+    if (meetings?.length) {
       hasContent = true;
-      html += sectionHeader("✅ Tarefas concluídas hoje");
+      html += sectionHeader("📅 Reuniões do dia");
       html += "<ul>";
-      for (const t of tasks) {
-        const assignee = t.profiles?.full_name || "—";
-        html += `<li>${esc(t.name)} <span style="color:#888">(${esc(assignee)})</span></li>`;
+      for (const m of meetings) {
+        const time = new Date(m.date_time).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+        html += `<li>${time} — ${esc(m.title)}${m.client_name ? ` (${esc(m.client_name)})` : ""}</li>`;
       }
       html += "</ul>";
     }
   }
 
-  // Tarefas em atraso
+  // ── Tarefas da equipa para hoje ──
+  if (sections.tarefas_equipa_hoje) {
+    const { data: tasks } = await supabase
+      .from("tasks")
+      .select("name, assigned_to, priority, profiles!tasks_assigned_to_fkey(full_name)")
+      .neq("status", "done")
+      .neq("status", "concluida")
+      .gte("deadline", todayStr)
+      .lte("deadline", todayStr);
+
+    if (tasks?.length) {
+      hasContent = true;
+      html += sectionHeader("📋 Tarefas da equipa para hoje");
+      html += "<ul>";
+      for (const t of tasks) {
+        const assignee = t.profiles?.full_name || "—";
+        const prio = t.priority === "alta" ? " 🔴" : t.priority === "media" ? " 🟡" : "";
+        html += `<li>${esc(t.name)} <span style="color:#888">(${esc(assignee)})</span>${prio}</li>`;
+      }
+      html += "</ul>";
+    }
+  }
+
+  // ── Tarefas em atraso ──
   if (sections.tarefas_atraso) {
     const { data: tasks } = await supabase
       .from("tasks")
@@ -207,101 +230,104 @@ async function buildOwnerDigest(
     }
   }
 
-  // Reuniões do dia
-  if (sections.reunioes_dia) {
-    const { data: meetings } = await supabase
-      .from("meetings")
-      .select("title, date_time, client_name")
-      .gte("date_time", todayStr + "T00:00:00")
-      .lte("date_time", todayStr + "T23:59:59")
-      .order("date_time");
-
-    if (meetings?.length) {
-      hasContent = true;
-      html += sectionHeader("📅 Reuniões do dia");
-      html += "<ul>";
-      for (const m of meetings) {
-        const time = new Date(m.date_time).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
-        html += `<li>${time} — ${esc(m.title)}${m.client_name ? ` (${esc(m.client_name)})` : ""}</li>`;
-      }
-      html += "</ul>";
-    }
-  }
-
-  // Vendas hoje
-  if (sections.vendas_hoje) {
-    const { data: sales } = await supabase
-      .from("commercial_sales")
-      .select("invoice_total, client, product")
-      .gte("created_at", todayStr + "T00:00:00")
-      .lte("created_at", todayStr + "T23:59:59");
-
-    if (sales?.length) {
-      hasContent = true;
-      const total = sales.reduce((s: number, v: any) => s + (v.invoice_total || 0), 0);
-      html += sectionHeader("💰 Vendas registadas hoje");
-      html += `<p><strong>${sales.length}</strong> venda(s) · Total: <strong>${formatCurrency(total)}</strong></p>`;
-    }
-  }
-
-  // Leads novas
-  if (sections.leads_novas) {
+  // ── Follow-ups de leads pendentes ──
+  if (sections.followups_leads) {
     const { data: leads } = await supabase
       .from("crm_leads")
-      .select("name")
-      .gte("created_at", todayStr + "T00:00:00")
-      .lte("created_at", todayStr + "T23:59:59");
+      .select("name, next_followup, potential_product")
+      .lte("next_followup", todayStr)
+      .not("next_followup", "is", null)
+      .not("status", "in", '("ganho","perdido")');
 
     if (leads?.length) {
       hasContent = true;
-      html += sectionHeader("🎯 Leads novas no CRM");
-      html += `<p><strong>${leads.length}</strong> lead(s): ${leads.map((l: any) => esc(l.name)).join(", ")}</p>`;
-    }
-  }
-
-  // NPS recebidos
-  if (sections.nps_recebidos) {
-    const { data: nps } = await supabase
-      .from("client_nps_records")
-      .select("nps_score, clients(full_name)")
-      .eq("status", "respondido")
-      .gte("actual_date", todayStr)
-      .lte("actual_date", todayStr);
-
-    if (nps?.length) {
-      hasContent = true;
-      html += sectionHeader("⭐ NPS recebidos");
+      html += sectionHeader("📞 Follow-ups de leads pendentes");
       html += "<ul>";
-      for (const n of nps) {
-        const clientName = (n as any).clients?.full_name || "—";
-        html += `<li>Score: ${n.nps_score} — ${esc(clientName)}</li>`;
+      for (const l of leads) {
+        const isToday = l.next_followup === todayStr;
+        const label = isToday ? "hoje" : `${daysDiff(l.next_followup, todayStr)} dias em atraso`;
+        html += `<li>${esc(l.name)} <span style="color:#888">(${label})</span></li>`;
       }
       html += "</ul>";
     }
   }
 
-  // Pagamentos recebidos
-  if (sections.pagamentos_recebidos) {
-    const { data: payments } = await supabase
-      .from("commercial_sales")
-      .select("invoice_total, client")
-      .eq("status", "pago")
-      .eq("payment_date", todayStr);
+  // ── Aniversários (equipa e clientes) ──
+  if (sections.aniversarios) {
+    const upcoming7 = [];
+    for (let i = 0; i <= 7; i++) {
+      const d = new Date(now);
+      d.setDate(d.getDate() + i);
+      upcoming7.push(formatDate(d).substring(5));
+    }
+    const monthDay = todayStr.substring(5);
 
-    if (payments?.length) {
+    const { data: members } = await supabase
+      .from("team_members")
+      .select("full_name, birthday")
+      .eq("status", "activo")
+      .not("birthday", "is", null);
+
+    const { data: clients } = await supabase
+      .from("clients")
+      .select("full_name, birthday")
+      .eq("status", "activo")
+      .not("birthday", "is", null);
+
+    const items: string[] = [];
+    for (const m of (members || [])) {
+      const bd = (m.birthday || "").substring(5);
+      if (upcoming7.includes(bd)) {
+        const isToday = bd === monthDay;
+        items.push(`🎂 ${esc(m.full_name)} (equipa)${isToday ? " — <strong>HOJE!</strong>" : ` — ${m.birthday?.substring(8)}/${m.birthday?.substring(5, 7)}`}`);
+      }
+    }
+    for (const c of (clients || [])) {
+      const bd = (c.birthday || "").substring(5);
+      if (upcoming7.includes(bd)) {
+        const isToday = bd === monthDay;
+        items.push(`🎂 ${esc(c.full_name)} (cliente)${isToday ? " — <strong>HOJE!</strong>" : ` — ${c.birthday?.substring(8)}/${c.birthday?.substring(5, 7)}`}`);
+      }
+    }
+
+    if (items.length) {
       hasContent = true;
-      const total = payments.reduce((s: number, p: any) => s + (p.invoice_total || 0), 0);
-      html += sectionHeader("💳 Pagamentos recebidos hoje");
-      html += `<p>Total: <strong>${formatCurrency(total)}</strong></p>`;
+      html += sectionHeader("🎉 Aniversários próximos");
       html += "<ul>";
-      for (const p of payments) {
-        html += `<li>${esc(p.client || "—")} — ${formatCurrency(p.invoice_total)}</li>`;
+      for (const item of items) html += `<li>${item}</li>`;
+      html += "</ul>";
+    }
+  }
+
+  // ── Renovações de clientes ──
+  if (sections.renovacoes_clientes) {
+    const thirtyDaysLater = new Date(now);
+    thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
+    const thirtyStr = formatDate(thirtyDaysLater);
+
+    const { data: renewals } = await supabase
+      .from("clients")
+      .select("full_name, end_of_cycle")
+      .eq("status", "activo")
+      .not("end_of_cycle", "is", null)
+      .gte("end_of_cycle", todayStr)
+      .lte("end_of_cycle", thirtyStr)
+      .order("end_of_cycle");
+
+    if (renewals?.length) {
+      hasContent = true;
+      html += sectionHeader("🔄 Renovações próximas");
+      html += "<ul>";
+      for (const r of renewals) {
+        const days = daysDiff(todayStr, r.end_of_cycle);
+        const label = days === 0 ? "HOJE" : `em ${days} dias`;
+        html += `<li>${esc(r.full_name)} — ${label}</li>`;
       }
       html += "</ul>";
     }
   }
 
-  // Rotinas do dia
+  // ── Rotinas do dia ──
   if (sections.rotinas_dia) {
     const { data: routines } = await supabase
       .from("tasks")
@@ -327,7 +353,80 @@ async function buildOwnerDigest(
     }
   }
 
-  // Projetos fechados hoje
+  // ── Vendas hoje ──
+  if (sections.vendas_hoje) {
+    const { data: sales } = await supabase
+      .from("commercial_sales")
+      .select("invoice_total, client, product")
+      .gte("created_at", todayStr + "T00:00:00")
+      .lte("created_at", todayStr + "T23:59:59");
+
+    if (sales?.length) {
+      hasContent = true;
+      const total = sales.reduce((s: number, v: any) => s + (v.invoice_total || 0), 0);
+      html += sectionHeader("💰 Vendas registadas hoje");
+      html += `<p><strong>${sales.length}</strong> venda(s) · Total: <strong>${formatCurrency(total)}</strong></p>`;
+    }
+  }
+
+  // ── Leads novas ──
+  if (sections.leads_novas) {
+    const { data: leads } = await supabase
+      .from("crm_leads")
+      .select("name")
+      .gte("created_at", todayStr + "T00:00:00")
+      .lte("created_at", todayStr + "T23:59:59");
+
+    if (leads?.length) {
+      hasContent = true;
+      html += sectionHeader("🎯 Leads novas no CRM");
+      html += `<p><strong>${leads.length}</strong> lead(s): ${leads.map((l: any) => esc(l.name)).join(", ")}</p>`;
+    }
+  }
+
+  // ── NPS recebidos ──
+  if (sections.nps_recebidos) {
+    const { data: nps } = await supabase
+      .from("client_nps_records")
+      .select("nps_score, clients(full_name)")
+      .eq("status", "respondido")
+      .gte("actual_date", todayStr)
+      .lte("actual_date", todayStr);
+
+    if (nps?.length) {
+      hasContent = true;
+      html += sectionHeader("⭐ NPS recebidos");
+      html += "<ul>";
+      for (const n of nps) {
+        const clientName = (n as any).clients?.full_name || "—";
+        html += `<li>Score: ${n.nps_score} — ${esc(clientName)}</li>`;
+      }
+      html += "</ul>";
+    }
+  }
+
+  // ── Pagamentos recebidos ──
+  if (sections.pagamentos_recebidos) {
+    const { data: payments } = await supabase
+      .from("commercial_sales")
+      .select("invoice_total, client")
+      .eq("status", "pago")
+      .eq("payment_date", todayStr);
+
+    if (payments?.length) {
+      hasContent = true;
+      const total = payments.reduce((s: number, p: any) => s + (p.invoice_total || 0), 0);
+      html += sectionHeader("💳 Pagamentos recebidos hoje");
+      html += `<p>Total: <strong>${formatCurrency(total)}</strong></p>`;
+      html += "<ul>";
+      for (const p of payments) {
+        html += `<li>${esc(p.client || "—")} — ${formatCurrency(p.invoice_total)}</li>`;
+      }
+      html += "</ul>";
+    }
+  }
+
+  // ── Projetos fechados hoje ──
   if (sections.projetos_fechados) {
     const { data: closed } = await supabase
       .from("projects")
@@ -347,7 +446,7 @@ async function buildOwnerDigest(
     }
   }
 
-  // Projetos criados hoje
+  // ── Projetos criados hoje ──
   if (sections.projetos_novos) {
     const { data: created } = await supabase
       .from("projects")
@@ -366,7 +465,7 @@ async function buildOwnerDigest(
     }
   }
 
-  // Tempo trabalhado hoje (total equipa)
+  // ── Tempo trabalhado hoje ──
   if (sections.tempo_trabalhado) {
     const { data: entries } = await supabase
       .from("time_entries")
@@ -379,7 +478,6 @@ async function buildOwnerDigest(
       const totalMin = entries.reduce((s: number, e: any) => s + (e.duration || 0), 0);
       html += sectionHeader("⏱️ Tempo trabalhado hoje");
       html += `<p>Total equipa: <strong>${(totalMin / 60).toFixed(1)}h</strong></p>`;
-      // Group by member
       const byMember: Record<string, number> = {};
       for (const e of entries) {
         const name = e.team_members?.full_name || "—";
@@ -393,7 +491,7 @@ async function buildOwnerDigest(
     }
   }
 
-  // Resumo por membro
+  // ── Resumo por membro ──
   if (sections.resumo_membros) {
     const { data: members } = await supabase
       .from("team_members")
@@ -406,13 +504,14 @@ async function buildOwnerDigest(
       for (const m of members) {
         if (!m.profile_id) continue;
 
-        const { data: doneTasks } = await supabase
+        const { data: todayTasks } = await supabase
           .from("tasks")
           .select("name")
           .eq("assigned_to", m.profile_id)
-          .eq("status", "done")
-          .gte("updated_at", todayStr + "T00:00:00")
-          .lte("updated_at", todayStr + "T23:59:59");
+          .neq("status", "done")
+          .neq("status", "concluida")
+          .gte("deadline", todayStr)
+          .lte("deadline", todayStr);
 
         const { data: overdue } = await supabase
           .from("tasks")
@@ -424,7 +523,7 @@ async function buildOwnerDigest(
           .not("deadline", "is", null);
 
         html += `<p style="margin-top:8px"><strong>${esc(m.full_name)}</strong>: `;
-        html += `${doneTasks?.length || 0} concluída(s), ${overdue?.length || 0} em atraso</p>`;
+        html += `${todayTasks?.length || 0} para hoje, ${overdue?.length || 0} em atraso</p>`;
       }
     }
   }
