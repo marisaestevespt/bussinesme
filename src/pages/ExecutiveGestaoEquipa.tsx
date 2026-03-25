@@ -569,7 +569,34 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
             </div>
             </div>
           </div>
-          <div>
+
+          {/* Permissões Sensíveis */}
+          <div className="space-y-2">
+            <span className="text-xs text-muted-foreground font-medium">Permissões Sensíveis</span>
+            <p className="text-[10px] text-muted-foreground">Define que tipo de informação sensível este membro pode ver. Tudo OFF por defeito.</p>
+            <div className="space-y-1">
+              {SENSITIVE_CATEGORIES.map(cat => {
+                const checked = !!(f.sensitiveAccess || {})[cat.key];
+                return (
+                  <label key={cat.key} className={cn(
+                    'flex items-center gap-3 rounded-md border px-3 py-2 cursor-pointer transition-colors',
+                    checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
+                  )}>
+                    <Switch
+                      checked={checked}
+                      onCheckedChange={(v) => {
+                        set('sensitiveAccess', { ...(f.sensitiveAccess || {}), [cat.key]: !!v });
+                      }}
+                    />
+                    <div>
+                      <span className="text-xs font-medium">{cat.label}</span>
+                      <p className="text-[10px] text-muted-foreground leading-tight">{cat.description}</p>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
               <label className="text-xs text-muted-foreground">Tipo</label>
               <Select value={f.member_type} onValueChange={v => set('member_type', v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
