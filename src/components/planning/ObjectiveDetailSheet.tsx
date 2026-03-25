@@ -326,15 +326,19 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
           <TableBody>{allRows.map((g: any) => {
             const dev = g.isQuarter ? g.deviation : (g.actual_value && g.target_value ? (Number(g.actual_value) - Number(g.target_value)) : null);
             const hasDeviation = dev !== null && dev < 0;
+            const autoStatus = !g.isQuarter ? planning.computeGoalStatus(g) : g.status;
             return (
-              <TableRow key={g.isQuarter ? g.period : g.id} className={`${!g.isQuarter ? 'cursor-pointer hover:bg-muted/60' : ''} ${g.isQuarter ? 'bg-muted/40 font-medium' : ''} ${hasDeviation ? 'bg-red-50/50' : ''}`} onClick={() => { if (!g.isQuarter) openEdit(g); }}>
+              <TableRow key={g.isQuarter ? g.period : g.id} className={`${!g.isQuarter ? 'cursor-pointer hover:bg-muted/60' : ''} ${g.isQuarter ? 'bg-muted/40 font-medium' : ''} ${hasDeviation ? 'bg-destructive/5' : ''}`} onClick={() => { if (!g.isQuarter) openEdit(g); }}>
                 <TableCell className="text-sm">
                   {g.period}
                 </TableCell>
                 <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
                 <TableCell className="text-xs">{g.actual_value || '—'}</TableCell>
                 <TableCell className={`text-xs ${hasDeviation ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
-                <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(g.status)}</Badge></TableCell>
+                <TableCell>
+                  <Badge variant={autoStatus === 'atingido' ? 'default' : autoStatus === 'nao_atingido' ? 'destructive' : 'secondary'} className="text-[10px]">{planStatusLabel(autoStatus)}</Badge>
+                  {autoStatus !== g.status && !g.isQuarter && <span className="text-[9px] text-muted-foreground ml-1">(auto)</span>}
+                </TableCell>
                 <TableCell>
                   {!g.isQuarter && (
                     <button onClick={(e) => { e.stopPropagation(); planning.deleteGoal.mutate(g.id); }}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>

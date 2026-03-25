@@ -12,7 +12,7 @@ import { QuarterlyGallery } from '@/components/planning/QuarterlyGallery';
 import { SemesterGallery } from '@/components/planning/SemesterGallery';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Calendar, BarChart3, PieChart, Target, TrendingUp, CheckCircle2, Clock, ArrowLeft } from 'lucide-react';
+import { Calendar, BarChart3, PieChart, Target, TrendingUp, CheckCircle2, Clock, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { YearSelector } from '@/components/YearSelector';
 
 type ViewMode = 'mensal' | 'trimestral' | 'semestral' | 'metas' | null;
@@ -43,8 +43,9 @@ export default function ExecutivePlaneamento() {
 
     const monthsWithGoals = new Set(goals.filter((g: any) => MONTHS.includes(g.period)).map((g: any) => g.period)).size;
     const goalsAchieved = goals.filter((g: any) => g.status === 'atingido').length;
+    const goalsWithDeviation = planning.getGoalsWithDeviations();
 
-    return { totalObjs, achieved, inProgress, avgProgress, monthsWithGoals, totalGoals: goals.length, goalsAchieved };
+    return { totalObjs, achieved, inProgress, avgProgress, monthsWithGoals, totalGoals: goals.length, goalsAchieved, deviationCount: goalsWithDeviation.length };
   }, [planning.allObjectives, planning.allGoals]);
 
   return (
@@ -56,7 +57,7 @@ export default function ExecutivePlaneamento() {
         <YearSelector year={year} onChange={setYear} />
 
         {/* Pulse — resumo rápido do ano */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card>
             <CardContent className="p-4 flex items-start gap-3">
               <div className="rounded-lg bg-primary/10 p-2 text-primary">
@@ -102,6 +103,18 @@ export default function ExecutivePlaneamento() {
                 <p className="text-xs text-muted-foreground">Cobertura</p>
                 <p className="text-lg font-bold">{stats.monthsWithGoals}<span className="text-sm font-normal text-muted-foreground">/12 meses</span></p>
                 <p className="text-[10px] text-muted-foreground">{stats.totalGoals} metas definidas</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className={stats.deviationCount > 0 ? 'border-destructive/50' : ''}>
+            <CardContent className="p-4 flex items-start gap-3">
+              <div className={`rounded-lg p-2 ${stats.deviationCount > 0 ? 'bg-destructive/10 text-destructive' : 'bg-muted text-muted-foreground'}`}>
+                <AlertTriangle className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Desvios</p>
+                <p className="text-lg font-bold">{stats.deviationCount}</p>
+                <p className="text-[10px] text-muted-foreground">{stats.deviationCount > 0 ? 'Metas abaixo do alvo' : 'Tudo no caminho'}</p>
               </div>
             </CardContent>
           </Card>
