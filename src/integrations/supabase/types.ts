@@ -4162,6 +4162,38 @@ export type Database = {
         }
         Relationships: []
       }
+      member_sensitive_access: {
+        Row: {
+          category: string
+          granted: boolean
+          id: string
+          member_id: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          granted?: boolean
+          id?: string
+          member_id: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          granted?: boolean
+          id?: string
+          member_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_sensitive_access_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       members: {
         Row: {
           created_at: string

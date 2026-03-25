@@ -35,6 +35,7 @@ import {
 import { getMonthName } from '@/hooks/useExecutiveData';
 import { DEPARTMENTS, getDept } from '@/lib/departments';
 import { InlineDeptPagePicker } from '@/components/InlineDeptPagePicker';
+import { SENSITIVE_CATEGORIES, type SensitiveCategory } from '@/hooks/useSensitiveAccess';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
@@ -375,6 +376,7 @@ const DEFAULT_MEMBER_FORM = {
   department: '',
   departments: [] as string[],
   deptExtraPages: {} as Record<string, string[]>,
+  sensitiveAccess: {} as Record<string, boolean>,
   start_date: '',
   presentation: '',
   responsibilities: '',
@@ -400,7 +402,18 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
   });
 
   useEffect(() => {
-    setF({ ...DEFAULT_MEMBER_FORM, ...(initial || {}) });
+    const init = { ...DEFAULT_MEMBER_FORM, ...(initial || {}) };
+    setF(init);
+    // Load existing sensitive access for edit mode
+    if (initial?.id) {
+      supabase.from('member_sensitive_access').select('category, granted').eq('member_id', initial.id).then(({ data }) => {
+        if (data && data.length > 0) {
+          const sa: Record<string, boolean> = {};
+          data.forEach(r => { sa[r.category] = r.granted; });
+          setF((prev: any) => ({ ...prev, sensitiveAccess: sa }));
+        }
+      });
+    }
   }, [initial]);
 
   const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
@@ -565,6 +578,34 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
                 );
               })}
             </div>
+            </div>
+          </div>
+
+          {/* Permissões Sensíveis */}
+          <div className="space-y-2">
+            <span className="text-xs text-muted-foreground font-medium">Permissões Sensíveis</span>
+            <p className="text-[10px] text-muted-foreground">Define que tipo de informação sensível este membro pode ver. Tudo OFF por defeito.</p>
+            <div className="space-y-1">
+              {SENSITIVE_CATEGORIES.map(cat => {
+                const checked = !!(f.sensitiveAccess || {})[cat.key];
+                return (
+                  <label key={cat.key} className={cn(
+                    'flex items-center gap-3 rounded-md border px-3 py-2 cursor-pointer transition-colors',
+                    checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
+                  )}>
+                    <Switch
+                      checked={checked}
+                      onCheckedChange={(v) => {
+                        set('sensitiveAccess', { ...(f.sensitiveAccess || {}), [cat.key]: !!v });
+                      }}
+                    />
+                    <div>
+                      <span className="text-xs font-medium">{cat.label}</span>
+                      <p className="text-[10px] text-muted-foreground leading-tight">{cat.description}</p>
+                    </div>
+                  </label>
+                );
+              })}
             </div>
           </div>
           <div>
@@ -1390,6 +1431,16 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
           await supabase.from('role_permissions').upsert(perms, { onConflict: 'custom_role_id,module_key' });
         }
       }
+      // Save sensitive access toggles
+      const sensitiveAccess: Record<string, boolean> = member.sensitiveAccess || {};
+      const sensitiveRows = Object.entries(sensitiveAccess).map(([category, granted]) => ({
+        member_id: memberId,
+        category,
+        granted: !!granted,
+      }));
+      if (sensitiveRows.length > 0) {
+        await supabase.from('member_sensitive_access').upsert(sensitiveRows, { onConflict: 'member_id,category' });
+      }
       qc.invalidateQueries({ queryKey: ['team'] });
       toast.success(isNew ? 'Membro criado com contrato e pagamentos!' : 'Membro atualizado');
     } catch (err: any) {
@@ -1813,6 +1864,16 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
           const perms = [...allExtraModules].map(mk => ({ custom_role_id: role4.id, module_key: mk, can_view: true }));
           await supabase.from('role_permissions').upsert(perms, { onConflict: 'custom_role_id,module_key' });
         }
+      }
+      // Save sensitive access toggles
+      const sensitiveAccess2: Record<string, boolean> = member.sensitiveAccess || {};
+      const sensitiveRows2 = Object.entries(sensitiveAccess2).map(([category, granted]) => ({
+        member_id: memberId,
+        category,
+        granted: !!granted,
+      }));
+      if (sensitiveRows2.length > 0) {
+        await supabase.from('member_sensitive_access').upsert(sensitiveRows2, { onConflict: 'member_id,category' });
       }
     } catch (err: any) {
       toast.error('Erro: ' + (err.message || err));
