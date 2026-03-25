@@ -1299,6 +1299,12 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
                 await autoAssignPermissions(memberId, member.department);
               }
             }
+            // Show onboarding warning if no SOP template found
+            if (authData.onboarding_warning) {
+              toast.warning(authData.onboarding_warning, { duration: 10000 });
+            } else if (authData.onboarding_created) {
+              toast.success('Checklist de onboarding criada automaticamente!', { duration: 5000 });
+            }
             if (authData.invite_url) {
               await navigator.clipboard.writeText(authData.invite_url);
               toast.success('Conta criada! Link de convite copiado para a área de transferência.', { duration: 8000 });
