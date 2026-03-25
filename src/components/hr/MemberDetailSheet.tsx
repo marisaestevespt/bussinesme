@@ -13,7 +13,8 @@ import { Plus, Trash2, CheckSquare, CalendarIcon, CalendarDays, ExternalLink, Fi
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { format, parseISO, isWithinInterval } from 'date-fns';
+import { format, parseISO, isWithinInterval, getDay, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { getHolidaySet } from '@/lib/holidays';
 import {
   MEMBER_STATUSES, MEMBER_TYPES, CONTRACT_TYPES, CONTRACT_STATUSES,
   PAYMENT_TYPES, PAYMENT_STATUSES, FEEDBACK_TYPES, labelFor,
@@ -332,7 +333,8 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
                 <span className="text-xs text-muted-foreground">de férias marcados em {currentYear}</span>
               </div>
 
-
+              {/* Holiday/weekend work detection */}
+              <HolidayWeekendWorkCards memberId={member.id} />
               <Separator />
 
               <div className="space-y-2">
