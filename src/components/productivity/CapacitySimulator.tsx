@@ -384,7 +384,7 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
             <CardTitle className="text-sm flex items-center gap-2"><Euro className="h-4 w-4" /> Impacto financeiro</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
               <div className="rounded-lg border p-3 space-y-1">
                 <p className="text-xs text-muted-foreground">Custo mensal adicional</p>
                 <p className="text-lg font-bold text-destructive">{fmt(simulation.totalMonthlyCost)}</p>
@@ -394,15 +394,22 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
                 <p className="text-lg font-bold text-destructive">{fmt(simulation.totalAnnualCost)}</p>
                 <p className="text-[10px] text-muted-foreground">Colaboradores: 14 meses · Prestadores: 12 meses</p>
               </div>
+              <div className="rounded-lg border p-3 space-y-1">
+                <p className="text-xs text-muted-foreground">Custo restante do ano</p>
+                <p className="text-lg font-bold">{fmt(simulation.costByMonth[simulation.costByMonth.length - 1]?.cumulative || 0)}</p>
+                <p className="text-[10px] text-muted-foreground">Acumulado até dezembro</p>
+              </div>
             </div>
 
             <Table>
               <TableHeader><TableRow>
                 <TableHead>Membro</TableHead>
                 <TableHead>Tipo</TableHead>
-                <TableHead className="text-right">Bruto</TableHead>
-                <TableHead className="text-right">SS Empresa</TableHead>
+                <TableHead>Início</TableHead>
+                <TableHead className="text-right">Valor base</TableHead>
+                <TableHead className="text-right">SS Empresa (23,75%)</TableHead>
                 <TableHead className="text-right">Sub. Alimentação</TableHead>
+                <TableHead className="text-right">IVA (23%)</TableHead>
                 <TableHead className="text-right font-semibold">Custo/mês</TableHead>
                 <TableHead className="text-right font-semibold">Custo/ano</TableHead>
               </TableRow></TableHeader>
@@ -411,20 +418,39 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
                   <TableRow key={f.id}>
                     <TableCell className="text-sm">{f.name}</TableCell>
                     <TableCell><Badge variant="outline" className="text-xs">{f.type}</Badge></TableCell>
+                    <TableCell className="text-xs">{f.startDate ? new Date(f.startDate + 'T00:00:00').toLocaleDateString('pt-PT', { month: 'short', year: 'numeric' }) : '—'}</TableCell>
                     <TableCell className="text-right text-sm">{fmt(f.gross)}</TableCell>
-                    <TableCell className="text-right text-sm">{f.ssEmployer > 0 ? fmt(f.ssEmployer) : '—'}</TableCell>
-                    <TableCell className="text-right text-sm">{f.mealAllowance > 0 ? fmt(f.mealAllowance) : '—'}</TableCell>
+                    <TableCell className="text-right text-sm">{f.type === 'Colaborador' ? fmt(f.ssEmployer) : <span className="text-muted-foreground">n/a</span>}</TableCell>
+                    <TableCell className="text-right text-sm">{f.type === 'Colaborador' ? fmt(f.mealAllowance) : <span className="text-muted-foreground">n/a</span>}</TableCell>
+                    <TableCell className="text-right text-sm">{f.type === 'Prestador' ? fmt(f.iva) : <span className="text-muted-foreground">n/a</span>}</TableCell>
                     <TableCell className="text-right text-sm font-medium">{fmt(f.totalCostMonth)}</TableCell>
                     <TableCell className="text-right text-sm font-medium">{fmt(f.totalCostYear)}</TableCell>
                   </TableRow>
                 ))}
                 <TableRow className="border-t-2">
-                  <TableCell colSpan={5} className="text-sm font-semibold text-right">Total</TableCell>
+                  <TableCell colSpan={7} className="text-sm font-semibold text-right">Total</TableCell>
                   <TableCell className="text-right font-bold text-destructive">{fmt(simulation.totalMonthlyCost)}</TableCell>
                   <TableCell className="text-right font-bold text-destructive">{fmt(simulation.totalAnnualCost)}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
+
+            {/* Cost timeline chart */}
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">Projeção de custo mensal (a partir da data de início)</p>
+              <div className="h-40">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={simulation.costByMonth}>
+                    <XAxis dataKey="month" fontSize={10} />
+                    <YAxis fontSize={10} tickFormatter={v => `${v}€`} />
+                    <Tooltip formatter={(v: number) => fmt(v)} />
+                    <Legend />
+                    <Bar dataKey="cost" name="Custo mensal" fill="hsl(var(--destructive))" radius={[4,4,0,0]} />
+                    <Bar dataKey="cumulative" name="Acumulado" fill="hsl(var(--muted-foreground) / 0.3)" radius={[4,4,0,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
