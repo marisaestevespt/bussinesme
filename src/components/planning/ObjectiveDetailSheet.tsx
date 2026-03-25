@@ -172,6 +172,16 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                         </Select>
                       </div>
                     )}
+                    {getSourceFilters(form.value_source).length > 0 && (
+                      <div className="col-span-3">
+                        <Label className="text-xs text-muted-foreground">Filtros (opcional)</Label>
+                        <SourceFilterFields
+                          source={form.value_source}
+                          sourceFilter={form.source_filter || {}}
+                          onChange={sf => set('source_filter', sf)}
+                        />
+                      </div>
+                    )}
                   </div>
                 </>
               )}
