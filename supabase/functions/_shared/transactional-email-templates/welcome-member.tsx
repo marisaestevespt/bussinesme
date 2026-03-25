@@ -126,10 +126,9 @@ const WelcomeMemberEmail = ({
 
             <Section style={stepCard}>
               <Text style={stepNumber}>3</Text>
-              <Text style={stepTitle}>Verifica as tuas tarefas de onboarding</Text>
+              <Text style={stepTitle}>Consulta as tuas primeiras tarefas</Text>
               <Text style={stepDesc}>
-                Já tens tarefas de onboarding atribuídas para te ajudar a integrar.
-                Vai a <strong>"Tarefas"</strong> para veres o que preparámos para ti — passo a passo, sem stress! 📋
+                Vai à <strong>"Secretária"</strong> — já tens tarefas preparadas para os teus primeiros dias, incluindo o teu onboarding. Passo a passo, sem stress! 📋
               </Text>
             </Section>
           </Section>
