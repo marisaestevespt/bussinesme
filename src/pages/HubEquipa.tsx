@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
+import { MessageSquare as WhatsAppIcon, ExternalLink, Pencil, Check, X as XIcon } from 'lucide-react';
+import { Input as InputField } from '@/components/ui/input';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -123,6 +125,7 @@ export default function HubEquipaPage() {
             <p className="text-sm text-primary-foreground/70 mt-1">
               Olá! Bem-vindo(a) ao nosso espaço. Este é o lugar onde organizamos, colaboramos e crescemos juntos.
             </p>
+            <TeamWhatsAppLink />
           </div>
           <AnalogClock />
         </div>
