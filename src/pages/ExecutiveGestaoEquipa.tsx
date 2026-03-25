@@ -180,7 +180,7 @@ const PRESET_ROLES = [
   { label: 'Contabilista', color: '#64748b' },
   { label: 'Advogada', color: '#ef4444' },
   { label: 'Assistente Virtual', color: '#f97316' },
-  { label: 'Administrativa', color: '#3b82f6' },
+  { label: 'Assistente Administrativa', color: '#3b82f6' },
 ];
 
 const WEEK_DAYS = [

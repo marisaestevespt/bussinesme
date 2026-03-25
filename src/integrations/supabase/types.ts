@@ -4517,6 +4517,33 @@ export type Database = {
           },
         ]
       }
+      page_access_grants: {
+        Row: {
+          created_at: string
+          granted_by: string | null
+          id: string
+          page_path: string
+          page_title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          page_path: string
+          page_title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          page_path?: string
+          page_title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       performance_monthly: {
         Row: {
           comments: string | null
