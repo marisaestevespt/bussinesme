@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
-import { Clock, Users, Briefcase, AlertTriangle, Plus, BarChart3, Timer, ArrowLeftRight } from 'lucide-react';
+import { Clock, Users, Briefcase, AlertTriangle, Plus, BarChart3, Timer, ArrowLeftRight, Building2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -141,6 +141,7 @@ export default function ExecutiveProductivity() {
         <Tabs defaultValue="overview">
           <TabsList className="flex-wrap">
             <TabsTrigger value="overview"><BarChart3 className="h-3.5 w-3.5 mr-1.5" />Visão Geral</TabsTrigger>
+            <TabsTrigger value="capacity"><Building2 className="h-3.5 w-3.5 mr-1.5" />Capacidade Empresa</TabsTrigger>
             <TabsTrigger value="split"><ArrowLeftRight className="h-3.5 w-3.5 mr-1.5" />Interno vs Cliente</TabsTrigger>
             <TabsTrigger value="by-client"><Briefcase className="h-3.5 w-3.5 mr-1.5" />Tempo por Cliente</TabsTrigger>
             <TabsTrigger value="by-member"><Users className="h-3.5 w-3.5 mr-1.5" />Tempo por Membro</TabsTrigger>
@@ -150,6 +151,9 @@ export default function ExecutiveProductivity() {
 
           <TabsContent value="overview">
             <OverviewTab entries={entries.data || []} members={members.data || []} clients={clients.data || []} products={productsQ.data || []} tasks={tasks.data || []} projects={projects.data || []} profiles={profiles.data || []} />
+          </TabsContent>
+          <TabsContent value="capacity">
+            <CompanyCapacityTab members={members.data || []} entries={entries.data || []} />
           </TabsContent>
           <TabsContent value="split">
             <TimeSplitTab entries={entries.data || []} members={members.data || []} scenario={capacityScenarios.data?.[0] || null} scenarioProducts={capacityProducts.data || []} />
