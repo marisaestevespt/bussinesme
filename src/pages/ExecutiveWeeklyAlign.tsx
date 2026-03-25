@@ -899,7 +899,10 @@ export default function ExecutiveWeeklyAlign() {
 
         {/* 5 // Operação & Esta semana */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">5 // Operação & Esta semana</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-base font-semibold">5 // Operação & Esta semana</h2>
+            <span className="text-xs text-muted-foreground">{tasksWeekDone}/{tasksWeekCount} tarefas • {meetingsWeekCount} reuniões • {contentWeekCount} conteúdos</span>
+          </div>
 
           <Card><CardContent className="p-4">
             <h3 className="text-sm font-medium mb-2">Projetos a acontecer</h3>
