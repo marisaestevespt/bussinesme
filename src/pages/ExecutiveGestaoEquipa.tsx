@@ -373,6 +373,7 @@ const DEFAULT_MEMBER_FORM = {
   status: 'ativo',
   member_type: 'colaborador_fixo',
   department: '',
+  departments: [] as string[],
   start_date: '',
   presentation: '',
   responsibilities: '',
@@ -515,18 +516,33 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
               <Badge className="text-xs text-white mt-1" style={{ backgroundColor: f.role_color || '#6366f1' }}>{f.role_title}</Badge>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="text-xs text-muted-foreground">Departamento</label>
-              <Select value={f.department || '_none'} onValueChange={v => set('department', v === '_none' ? '' : v)}>
-                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_none">Sem departamento</SelectItem>
-                  {DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
+          <div className="space-y-1.5">
+            <span className="text-xs text-muted-foreground font-medium">Departamentos</span>
+            <p className="text-[10px] text-muted-foreground">Seleciona um ou mais departamentos.</p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {DEPARTMENTS.map(d => {
+                const depts: string[] = Array.isArray(f.departments) ? f.departments : (f.department ? [f.department] : []);
+                const checked = depts.includes(d.value);
+                return (
+                  <label key={d.value} className={cn(
+                    'flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer transition-colors text-xs',
+                    checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
+                  )}>
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={(v) => {
+                        const next = v ? [...depts, d.value] : depts.filter(x => x !== d.value);
+                        set('departments', next);
+                        set('department', next[0] || '');
+                      }}
+                    />
+                    <span>{d.icon} {d.label}</span>
+                  </label>
+                );
+              })}
             </div>
-            <div>
+          </div>
+          <div>
               <label className="text-xs text-muted-foreground">Tipo</label>
               <Select value={f.member_type} onValueChange={v => set('member_type', v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -536,7 +552,6 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
                   <SelectItem value="socio">Sócio</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
           </div>
 
           {/* Áreas de trabalho */}
