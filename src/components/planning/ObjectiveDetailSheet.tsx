@@ -40,6 +40,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
         target_unit: obj.target_unit || '€', current_value: obj.current_value || '',
         value_source: obj.value_source || 'manual', product_id: obj.product_id || '',
         measurement_type: obj.measurement_type || 'acumulativo',
+        primary_metric_id: obj.primary_metric_id || '',
       });
       setEditing(false);
     }
@@ -57,7 +58,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
   const set = (k: string, v: any) => setForm((p: any) => ({ ...p, [k]: v }));
 
   const handleSaveHeader = () => {
-    planning.upsertObjective.mutate({ id: obj.id, ...form });
+    planning.upsertObjective.mutate({ id: obj.id, ...form, product_id: form.product_id || null, primary_metric_id: form.primary_metric_id || null });
     setEditing(false);
   };
 
@@ -136,6 +137,19 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                     </div>
                     {form.value_source === 'manual' && (
                       <div><Label>Valor atual</Label><Input type="number" value={form.current_value} onChange={e => set('current_value', e.target.value)} /></div>
+                    )}
+                    {form.value_source === 'metrica' && (
+                      <div className="col-span-3">
+                        <Label>Métrica principal</Label>
+                        <Select value={form.primary_metric_id || 'none'} onValueChange={v => set('primary_metric_id', v === 'none' ? '' : v)}>
+                          <SelectTrigger><SelectValue placeholder="Selecionar métrica" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Nenhuma</SelectItem>
+                            {objMetrics.map((m: any) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground mt-1">O progresso será calculado a partir do valor atual desta métrica.</p>
+                      </div>
                     )}
                     {(form.value_source === 'bd_vendas' || form.value_source === 'bd_crm') && (
                       <div><Label>Produto associado</Label>
@@ -312,15 +326,19 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
           <TableBody>{allRows.map((g: any) => {
             const dev = g.isQuarter ? g.deviation : (g.actual_value && g.target_value ? (Number(g.actual_value) - Number(g.target_value)) : null);
             const hasDeviation = dev !== null && dev < 0;
+            const autoStatus = !g.isQuarter ? planning.computeGoalStatus(g) : g.status;
             return (
-              <TableRow key={g.isQuarter ? g.period : g.id} className={`${!g.isQuarter ? 'cursor-pointer hover:bg-muted/60' : ''} ${g.isQuarter ? 'bg-muted/40 font-medium' : ''} ${hasDeviation ? 'bg-red-50/50' : ''}`} onClick={() => { if (!g.isQuarter) openEdit(g); }}>
+              <TableRow key={g.isQuarter ? g.period : g.id} className={`${!g.isQuarter ? 'cursor-pointer hover:bg-muted/60' : ''} ${g.isQuarter ? 'bg-muted/40 font-medium' : ''} ${hasDeviation ? 'bg-destructive/5' : ''}`} onClick={() => { if (!g.isQuarter) openEdit(g); }}>
                 <TableCell className="text-sm">
                   {g.period}
                 </TableCell>
                 <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
                 <TableCell className="text-xs">{g.actual_value || '—'}</TableCell>
                 <TableCell className={`text-xs ${hasDeviation ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
-                <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(g.status)}</Badge></TableCell>
+                <TableCell>
+                  <Badge variant={autoStatus === 'atingido' ? 'default' : autoStatus === 'nao_atingido' ? 'destructive' : 'secondary'} className="text-[10px]">{planStatusLabel(autoStatus)}</Badge>
+                  {autoStatus !== g.status && !g.isQuarter && <span className="text-[9px] text-muted-foreground ml-1">(auto)</span>}
+                </TableCell>
                 <TableCell>
                   {!g.isQuarter && (
                     <button onClick={(e) => { e.stopPropagation(); planning.deleteGoal.mutate(g.id); }}><Trash2 className="h-3 w-3 text-muted-foreground" /></button>

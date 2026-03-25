@@ -163,6 +163,7 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
     const hasDeviation = dev !== null && dev < 0 && (g.isAggregated ? g.periodEnded : isPeriodEnded(g.period));
     const area = getObjectiveArea(g.objective_id);
     const deadline = getObjectiveDeadline(g.objective_id);
+    const autoStatus = !g.isAggregated ? planning.computeGoalStatus(g) : g.status;
     return (
       <TableRow
         key={g.id || g.period}
@@ -180,10 +181,11 @@ export function PlanningGoalsTab({ planning, viewMode = 'mensal' }: { planning: 
           {dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}
         </TableCell>
         <TableCell>
-          <Badge variant={g.status === 'atingido' ? 'default' : g.status === 'nao_atingido' ? 'destructive' : 'secondary'} className="text-[10px]">
-            {planStatusLabel(g.status)}
+          <Badge variant={autoStatus === 'atingido' ? 'default' : autoStatus === 'nao_atingido' ? 'destructive' : 'secondary'} className="text-[10px]">
+            {planStatusLabel(autoStatus)}
           </Badge>
-          {hasDeviation && g.status !== 'atingido' && <Badge variant="destructive" className="text-[9px] ml-1">Desvio</Badge>}
+          {hasDeviation && autoStatus !== 'atingido' && <Badge variant="destructive" className="text-[9px] ml-1">Desvio</Badge>}
+          {autoStatus !== g.status && !g.isAggregated && <span className="text-[9px] text-muted-foreground ml-1">(auto)</span>}
         </TableCell>
         {opts.showDelete && (
           <TableCell>
