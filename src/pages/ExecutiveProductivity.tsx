@@ -1136,7 +1136,7 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
         <CardContent className="space-y-5">
           <div className="space-y-3">
             <Label className="text-xs font-medium flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Equipa ({effectiveTeamSize} membros)</Label>
-            <p className="text-[10px] text-muted-foreground">Seleciona quem faz entrega a clientes e define o overhead de cada pessoa.</p>
+            <p className="text-[10px] text-muted-foreground">Membros com área de trabalho de cliente são pré-selecionados automaticamente. Podes ajustar manualmente.</p>
             <div className="space-y-2 max-h-[400px] overflow-y-auto">
               {members.map(m => {
                 const weeklyH = Number(m.expected_weekly_hours) || 0;
