@@ -207,7 +207,10 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
               )}
             </TabsContent>
 
-            <TabsContent value="tempo" className="space-y-2 mt-3">
+            <TabsContent value="tempo" className="space-y-3 mt-3">
+              {/* Holiday/weekend work detection */}
+              <HolidayWeekendWorkCards memberId={member.id} />
+
               {(memberTime.data || []).length === 0 ? (
                 <p className="text-xs text-muted-foreground">Sem registos de tempo.</p>
               ) : (
@@ -333,8 +336,6 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
                 <span className="text-xs text-muted-foreground">de férias marcados em {currentYear}</span>
               </div>
 
-              {/* Holiday/weekend work detection */}
-              <HolidayWeekendWorkCards memberId={member.id} />
               <Separator />
 
               <div className="space-y-2">
