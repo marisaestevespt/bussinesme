@@ -10,7 +10,7 @@ const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2,
 
 const CONTRACT_LABELS: Record<string, string> = {
   contrato_trabalho: 'Contrato de Trabalho',
-  prestacao_servicos: 'Prestação de Serviços',
+  contrato_prestacao: 'Prestação de Serviços',
   acordo: 'Acordo',
   outro: 'Outro',
 };
