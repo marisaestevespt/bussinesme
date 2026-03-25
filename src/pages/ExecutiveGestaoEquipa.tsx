@@ -1779,12 +1779,20 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
       qc.invalidateQueries({ queryKey: ['team'] });
       toast.success(isNew ? 'Membro criado!' : 'Membro atualizado');
 
-      // Show page picker for custom roles with department
-      const pickerDepts: string[] = Array.isArray(member.departments) && member.departments.length > 0
-        ? member.departments
-        : (member.department ? [member.department] : []);
-      if (pickerDepts.length > 0) {
-        setPagePicker({ memberName: member.full_name, department: pickerDepts[0], memberId });
+      // Apply inline extra pages from deptExtraPages
+      const deptExtraPages: Record<string, string[]> = member.deptExtraPages || {};
+      const allExtraModules = new Set<string>();
+      Object.values(deptExtraPages).forEach(pages => pages.forEach(p => allExtraModules.add(p)));
+      if (allExtraModules.size > 0) {
+        const depts4 = Array.isArray(member.departments) && member.departments.length > 0
+          ? member.departments
+          : (member.department ? [member.department] : []);
+        const roleName4 = `dept_${depts4.sort().join('_')}`;
+        const { data: role4 } = await supabase.from('custom_roles').select('id').eq('name', roleName4).maybeSingle();
+        if (role4) {
+          const perms = [...allExtraModules].map(mk => ({ custom_role_id: role4.id, module_key: mk, can_view: true }));
+          await supabase.from('role_permissions').upsert(perms, { onConflict: 'custom_role_id,module_key' });
+        }
       }
     } catch (err: any) {
       toast.error('Erro: ' + (err.message || err));
