@@ -61,14 +61,50 @@ function useEventTypes() {
   });
 }
 
-function useEvents() {
+function useEvents(userId: string | undefined, isOwner: boolean) {
   return useQuery({
-    queryKey: ['events'],
+    queryKey: ['events', userId, isOwner],
     queryFn: async () => {
-      const { data, error } = await supabase.from('events').select('*').order('start_date', { ascending: true });
-      if (error) throw error;
-      return data as EventRow[];
+      if (isOwner || !userId) {
+        // Owners see everything
+        const { data, error } = await supabase.from('events').select('*').order('start_date', { ascending: true });
+        if (error) throw error;
+        return data as EventRow[];
+      }
+
+      // Non-owners: events they created OR are a participant of
+      const { data: participations } = await supabase
+        .from('event_members')
+        .select('event_id')
+        .eq('profile_id', userId);
+      const participantIds = participations?.map(p => p.event_id) || [];
+
+      const { data: createdEvents, error: e1 } = await supabase
+        .from('events')
+        .select('*')
+        .eq('created_by', userId)
+        .order('start_date', { ascending: true });
+      if (e1) throw e1;
+
+      let participantEvents: EventRow[] = [];
+      if (participantIds.length > 0) {
+        const { data, error: e2 } = await supabase
+          .from('events')
+          .select('*')
+          .in('id', participantIds)
+          .order('start_date', { ascending: true });
+        if (e2) throw e2;
+        participantEvents = (data as EventRow[]) || [];
+      }
+
+      // Merge and deduplicate
+      const map = new Map<string, EventRow>();
+      for (const ev of [...(createdEvents || []), ...participantEvents]) {
+        map.set(ev.id, ev as EventRow);
+      }
+      return Array.from(map.values()).sort((a, b) => a.start_date.localeCompare(b.start_date));
     },
+    enabled: !!userId,
   });
 }
 
