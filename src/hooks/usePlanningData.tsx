@@ -546,7 +546,85 @@ export function usePlanningData(year = currentYear) {
     return null;
   };
 
-  // Products for resolving product_id → name
+  // Helper: filter rows by month (1-based) using various date fields
+  const filterByMonth = (rows: any[], month: number, dateField: string) => {
+    return rows.filter((r: any) => {
+      const val = r[dateField];
+      if (!val) return false;
+      if (typeof val === 'number') return val === month; // e.g. entry_month, sale_month
+      const d = new Date(val);
+      return d.getMonth() + 1 === month;
+    });
+  };
+
+  // Helper: get auto value for a goal (period-filtered version of getAutoValue)
+  const goalAutoValue = (obj: any, goalPeriod: string) => {
+    if (!obj || obj.value_source === 'manual' || obj.value_source === 'metrica') return null;
+    const source = obj.value_source;
+    const sf = obj.source_filter || {};
+    const monthIdx = MONTH_NAMES.indexOf(goalPeriod);
+    if (monthIdx === -1) return null; // quarters handled differently
+    const month = monthIdx + 1;
+
+    if (source === 'bd_vendas') {
+      let rows = autoSalesRaw.data || [];
+      const pName = obj.product_name || resolveProductName(obj.product_id);
+      if (pName) rows = rows.filter((r: any) => r.product === pName);
+      return filterByMonth(rows, month, 'sale_month').reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0);
+    }
+    if (source === 'bd_crm') {
+      let rows = autoCrmRaw.data || [];
+      const pName = obj.product_name || resolveProductName(obj.product_id);
+      if (pName) rows = rows.filter((r: any) => r.potential_product === pName);
+      return filterByMonth(rows, month, 'created_at').length;
+    }
+    if (source === 'bd_tempo') {
+      let rows = autoTimeEntries.data || [];
+      if (sf.category) rows = rows.filter((r: any) => r.category === sf.category);
+      if (sf.client_id) rows = rows.filter((r: any) => r.client_id === sf.client_id);
+      return filterByMonth(rows, month, 'entry_month').reduce((s: number, r: any) => s + Number(r.duration || 0), 0);
+    }
+    if (source === 'bd_tarefas') {
+      let rows = autoTasksCompleted.data || [];
+      if (sf.department) rows = rows.filter((r: any) => r.department === sf.department);
+      return filterByMonth(rows, month, 'updated_at').length;
+    }
+    if (source === 'bd_conteudos') {
+      let rows = autoContentRaw.data || [];
+      if (sf.channel_id) {
+        const links = autoContentChannels.data || [];
+        const contentIds = new Set(links.filter((l: any) => l.channel_id === sf.channel_id).map((l: any) => l.content_id));
+        rows = rows.filter((r: any) => contentIds.has(r.id));
+      }
+      return filterByMonth(rows, month, 'scheduled_at').length;
+    }
+    if (source === 'bd_reunioes') {
+      let rows = autoMeetingsRaw.data || [];
+      if (sf.department) rows = rows.filter((r: any) => r.department === sf.department);
+      return filterByMonth(rows, month, 'date_time').length;
+    }
+    if (source === 'bd_nps') {
+      let rows = autoNpsRaw.data || [];
+      if (sf.client_id) rows = rows.filter((r: any) => r.client_id === sf.client_id);
+      const monthRows = filterByMonth(rows, month, 'actual_date');
+      if (monthRows.length === 0) return null;
+      const sum = monthRows.reduce((s: number, r: any) => s + Number(r.nps_score), 0);
+      return Math.round((sum / monthRows.length) * 10) / 10;
+    }
+    if (source === 'bd_despesas') {
+      let rows = autoExpensesRaw.data || [];
+      if (sf.category) rows = rows.filter((r: any) => r.category === sf.category);
+      return filterByMonth(rows, month, 'expense_date').reduce((s: number, r: any) => s + Number(r.total_amount || 0), 0);
+    }
+    if (source === 'bd_projetos') {
+      let rows = autoProjectsRaw.data || [];
+      if (sf.type) rows = rows.filter((r: any) => r.type === sf.type);
+      return filterByMonth(rows, month, 'updated_at').length;
+    }
+    // bd_clientes, bd_equipa, bd_marketing are point-in-time, not period-filterable
+    return null;
+  };
+
   const productsQuery = useQuery({
     queryKey: ['products-names'],
     queryFn: async () => {
