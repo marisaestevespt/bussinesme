@@ -194,14 +194,13 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
     savedSimsQ.refetch();
   };
 
-  // Fetch open tasks grouped by department for delegation
+  // Fetch all tasks by department (including done) for delegation analysis
   const tasksQ = useQuery({
     queryKey: ['simulator-dept-tasks'],
     queryFn: async () => {
       const { data } = await supabase.from('tasks').select('id, name, department, priority, deadline, estimated_time, assigned_to, status')
-        .neq('status', 'done')
         .not('department', 'is', null)
-        .order('priority')
+        .order('estimated_time', { ascending: false, nullsFirst: false })
         .limit(500);
       return data || [];
     },
@@ -507,22 +506,24 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
                               {p.department === '__none__' ? (
                                 <p className="text-xs text-muted-foreground py-2 pl-5">Seleciona um departamento para ver as tarefas.</p>
                               ) : deptTasks.length === 0 ? (
-                                <p className="text-xs text-muted-foreground py-2 pl-5">Sem tarefas abertas neste departamento.</p>
+                                <p className="text-xs text-muted-foreground py-2 pl-5">Sem tarefas neste departamento.</p>
                               ) : (
-                                <div className="py-2 pl-5 space-y-1 max-h-48 overflow-y-auto">
-                                  <p className="text-[10px] text-muted-foreground/60 mb-1">Ordenado por tempo estimado (maior primeiro)</p>
+                                <div className="py-2 pl-5 space-y-1 max-h-56 overflow-y-auto">
+                                  <p className="text-[10px] text-muted-foreground/60 mb-1">Ordenado por tempo estimado · Inclui tarefas concluídas para referência</p>
                                   {[...deptTasks]
                                     .sort((a, b) => (Number(b.estimated_time) || 0) - (Number(a.estimated_time) || 0))
                                     .map(task => (
-                                    <label key={task.id} className="flex items-start gap-2 text-xs cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5">
+                                    <label key={task.id} className={`flex items-start gap-2 text-xs cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 ${task.status === 'done' ? 'opacity-70' : ''}`}>
                                       <Checkbox
                                         checked={p.delegatedTaskIds.includes(task.id)}
                                         onCheckedChange={() => toggleTaskDelegation(p.id, task.id)}
                                         className="mt-0.5 h-3.5 w-3.5"
                                       />
                                       <div className="flex-1 min-w-0">
-                                        <span className="text-foreground">{task.name}</span>
-                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                        <span className={`text-foreground ${task.status === 'done' ? 'line-through' : ''}`}>{task.name}</span>
+                                        <div className="flex items-center gap-2 text-muted-foreground flex-wrap">
+                                          {task.status === 'done' && <Badge variant="secondary" className="text-[10px] h-4 px-1">concluída</Badge>}
+                                          {task.status === 'in_progress' && <Badge className="text-[10px] h-4 px-1 bg-primary/15 text-primary border-0">em curso</Badge>}
                                           {task.estimated_time ? (
                                             <Badge variant="outline" className="text-[10px] h-4 px-1">{task.estimated_time}h</Badge>
                                           ) : (
