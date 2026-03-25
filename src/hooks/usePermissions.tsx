@@ -7,12 +7,16 @@ export function usePermissions() {
   const { user, isOwner } = useAuth();
   const [allowedModules, setAllowedModules] = useState<Set<string>>(new Set());
   const [grantedPages, setGrantedPages] = useState<Set<string>>(new Set());
+  const [userDepartments, setUserDepartments] = useState<string[]>([]);
+  const [userRoleTitle, setUserRoleTitle] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
       setAllowedModules(new Set());
       setGrantedPages(new Set());
+      setUserDepartments([]);
+      setUserRoleTitle('');
       setLoading(false);
       return;
     }
@@ -20,19 +24,40 @@ export function usePermissions() {
     if (isOwner) {
       setAllowedModules(new Set(['*']));
       setGrantedPages(new Set());
+      setUserDepartments(['admin']);
+      setUserRoleTitle('Owner');
       setLoading(false);
       return;
     }
 
     const fetchPermissions = async () => {
-      // Check if user's team_member has department = 'admin' (full access like owner)
       const { data: profile } = await supabase.from('profiles').select('id').eq('user_id', user.id).maybeSingle();
       if (profile) {
-        const { data: teamMember } = await supabase.from('team_members').select('department').eq('profile_id', profile.id).maybeSingle();
-        if (teamMember?.department === 'admin') {
-          setAllowedModules(new Set(['*']));
-          setLoading(false);
-          return;
+        const { data: teamMember } = await supabase
+          .from('team_members')
+          .select('department, departments, role_title')
+          .eq('profile_id', profile.id)
+          .maybeSingle();
+
+        if (teamMember) {
+          // Get departments from array or fallback to single
+          const depts: string[] = Array.isArray(teamMember.departments) && teamMember.departments.length > 0
+            ? teamMember.departments as string[]
+            : (teamMember.department ? [teamMember.department] : []);
+          setUserDepartments(depts);
+          setUserRoleTitle(teamMember.role_title || '');
+
+          if (depts.includes('admin')) {
+            setAllowedModules(new Set(['*']));
+            setLoading(false);
+            // Still fetch page grants
+            const { data: grants } = await supabase
+              .from('page_access_grants')
+              .select('page_path')
+              .eq('user_id', user.id);
+            setGrantedPages(new Set(grants?.map(g => g.page_path) || []));
+            return;
+          }
         }
       }
 
@@ -69,7 +94,7 @@ export function usePermissions() {
   }, [user, isOwner]);
 
   const canAccess = (moduleKey: ModuleKey | string): boolean => {
-    if (moduleKey === 'hub-equipa') return true; // Always accessible
+    if (moduleKey === 'hub-equipa') return true;
     if (isOwner) return true;
     if (allowedModules.has('*')) return true;
     return allowedModules.has(moduleKey);
@@ -81,5 +106,5 @@ export function usePermissions() {
     return grantedPages.has(pagePath);
   };
 
-  return { canAccess, hasPageAccess, loading };
+  return { canAccess, hasPageAccess, userDepartments, userRoleTitle, loading };
 }
