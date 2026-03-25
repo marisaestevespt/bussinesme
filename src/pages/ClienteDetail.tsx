@@ -523,6 +523,7 @@ export default function ClienteDetailPage() {
               }} />
               <DateField label="Fim de Ciclo" value={form.end_of_cycle || null} onChange={v => update('end_of_cycle', v)} />
             </div>
+            {canSee('financial') && <>
             {/* Row 4: Forma de Pagamento */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
@@ -609,6 +610,7 @@ export default function ClienteDetailPage() {
             )}
           </CardContent>
         </Card>
+        </>}
 
         {/* Dados Fiscais */}
         <Card>
