@@ -444,7 +444,7 @@ export function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) 
           : `${rec.session_date}T09:00:00`;
         const { data: eventData } = await supabase.from('events').insert({
           title: `Sessão de Feedback — ${memberObj?.full_name || 'Membro'}`,
-          start_date: startDate, event_type_id: FEEDBACK_EVENT_TYPE_ID,
+          start_date: startDate, event_type_id: feedbackEventType?.id || null,
           department: 'recursos-humanos', created_by: user?.id || null, notes: rec.summary || null,
         }).select('id').single();
         if (eventData?.id) {
