@@ -374,6 +374,7 @@ export default function ReuniaoDetailPage() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['meetings'] });
+      logAudit('deleted', 'meeting', id, { title: m?.title });
       toast.success('Reunião eliminada');
       navigate('/hub/reunioes');
     },
