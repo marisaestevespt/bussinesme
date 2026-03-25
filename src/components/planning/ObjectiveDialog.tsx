@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 const DEFAULTS = {
   title: '', description: '', area: 'outro', status: 'por_iniciar', deadline: '',
   objective_type: 'quantitativo', target_value: '', target_unit: '€', current_value: '', value_source: 'manual', product_id: '',
-  measurement_type: 'acumulativo',
+  measurement_type: 'acumulativo', primary_metric_id: '',
 };
 
 export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
@@ -84,6 +84,9 @@ export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
               {form.value_source === 'manual' && (
                 <div><Label>Valor atual (manual)</Label><Input type="number" value={form.current_value || ''} onChange={e => set('current_value', e.target.value)} /></div>
               )}
+              {form.value_source === 'metrica' && (
+                <p className="text-xs text-muted-foreground">O progresso será calculado a partir da métrica principal associada ao objetivo. Pode associá-la depois de criar o objetivo.</p>
+              )}
               {(form.value_source === 'bd_vendas' || form.value_source === 'bd_crm') && (
                 <div><Label>Produto associado</Label>
                   <Select value={form.product_id || 'none'} onValueChange={v => set('product_id', v === 'none' ? '' : v)}>
@@ -98,7 +101,7 @@ export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
             </>
           )}
 
-          <Button className="w-full" onClick={() => onSave({ ...initial, ...form, product_id: form.product_id || null, measurement_type: form.objective_type === 'quantitativo' ? (form.measurement_type || 'acumulativo') : null })} disabled={!form.title?.toString().trim()}>
+          <Button className="w-full" onClick={() => onSave({ ...initial, ...form, product_id: form.product_id || null, primary_metric_id: form.primary_metric_id || null, measurement_type: form.objective_type === 'quantitativo' ? (form.measurement_type || 'acumulativo') : null })} disabled={!form.title?.toString().trim()}>
             Guardar
           </Button>
         </div>

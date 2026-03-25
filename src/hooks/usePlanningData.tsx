@@ -36,6 +36,7 @@ export const GOAL_STATUSES = [
 
 export const VALUE_SOURCES = [
   { value: 'manual', label: 'Manual' },
+  { value: 'metrica', label: 'Métrica associada' },
   { value: 'bd_vendas', label: 'BD Vendas' },
   { value: 'bd_crm', label: 'BD CRM' },
   { value: 'bd_clientes', label: 'BD Clientes' },
@@ -363,7 +364,11 @@ export function usePlanningData(year = currentYear) {
   });
 
   // Helper: get auto value for a source, optionally filtered by product name
-  const getAutoValue = (source: string, productName?: string | null) => {
+  const getAutoValue = (source: string, productName?: string | null, metricId?: string | null) => {
+    if (source === 'metrica' && metricId) {
+      const metric = (metrics.data || []).find((m: any) => m.id === metricId);
+      return metric ? Number(metric.current_value || 0) : null;
+    }
     if (source === 'bd_vendas') {
       const rows = autoSalesRaw.data || [];
       const filtered = productName ? rows.filter((r: any) => r.product === productName) : rows;
@@ -396,7 +401,7 @@ export function usePlanningData(year = currentYear) {
   const objectiveProgress = (obj: any) => {
     if (obj.objective_type === 'quantitativo') {
       const pName = obj.product_name ?? resolveProductName(obj.product_id);
-      const cv = obj.value_source === 'manual' ? Number(obj.current_value || 0) : (getAutoValue(obj.value_source, pName) ?? 0);
+      const cv = obj.value_source === 'manual' ? Number(obj.current_value || 0) : (getAutoValue(obj.value_source, pName, obj.primary_metric_id) ?? 0);
       const tv = Number(obj.target_value || 0);
       if (tv <= 0) return 0;
       return Math.min(100, Math.round((cv / tv) * 100));
@@ -411,7 +416,37 @@ export function usePlanningData(year = currentYear) {
   const objectiveCurrentValue = (obj: any) => {
     if (obj.value_source === 'manual') return Number(obj.current_value || 0);
     const pName = obj.product_name ?? resolveProductName(obj.product_id);
-    return getAutoValue(obj.value_source, pName) ?? 0;
+    return getAutoValue(obj.value_source, pName, obj.primary_metric_id) ?? 0;
+  };
+
+  // Helper: auto-compute goal status based on actual vs target
+  const computeGoalStatus = (goal: any) => {
+    const actual = Number(goal.actual_value || 0);
+    const target = Number(goal.target_value || 0);
+    if (!target) return goal.status;
+    const monthIdx = MONTH_NAMES.indexOf(goal.period);
+    const monthEnded = monthIdx !== -1 && monthIdx < new Date().getMonth() && (goal.year || year) <= new Date().getFullYear();
+    if (actual >= target) return 'atingido';
+    if (monthEnded && actual < target) return 'nao_atingido';
+    if (actual > 0) return 'em_curso';
+    return goal.status;
+  };
+
+  // Helper: get goals with deviation info for alerts
+  const getGoalsWithDeviations = () => {
+    const allG = goals.data || [];
+    const now = new Date();
+    const currentMonthIdx = now.getMonth();
+    return allG.filter((g: any) => {
+      const monthIdx = MONTH_NAMES.indexOf(g.period);
+      if (monthIdx === -1) return false;
+      const target = Number(g.target_value || 0);
+      const actual = Number(g.actual_value || 0);
+      if (!target) return false;
+      // Current or past month with actual < target
+      if (monthIdx <= currentMonthIdx && actual < target) return true;
+      return false;
+    });
   };
 
   // Computed: metrics with overdue check
@@ -461,6 +496,7 @@ export function usePlanningData(year = currentYear) {
     actions, allActions: actions.data || [],
     upsertAction, deleteAction, convertActionToTask,
     getAutoValue, objectiveProgress, objectiveCurrentValue,
+    computeGoalStatus, getGoalsWithDeviations,
     isMetricOverdue, isMetricDueToday, getMetricTrend,
     invalidate, year,
   };
