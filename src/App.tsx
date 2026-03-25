@@ -24,6 +24,7 @@ import ExecutiveProductivity from "./pages/ExecutiveProductivity";
 import ExecutiveCapacidade from "./pages/ExecutiveCapacidade";
 import ExecutivePage from "./pages/Executive";
 import ExecutiveRecommendations from "./pages/ExecutiveRecommendations";
+import ExecutiveProcessos from "./pages/ExecutiveProcessos";
 import DefinicoesPage from "./pages/Definicoes";
 import AgendaPage from "./pages/Agenda";
 import ReunioesPage from "./pages/Reunioes";
@@ -181,7 +182,8 @@ function AppRoutes() {
       <Route path="/executive/innovation" element={<ExecutiveInnovation />} />
        <Route path="/executive/productivity" element={<ExecutiveProductivity />} />
        <Route path="/executive/capacidade" element={<ExecutiveCapacidade />} />
-       <Route path="/executive/recommendations" element={<ExecutiveRecommendations />} />
+        <Route path="/executive/recommendations" element={<ExecutiveRecommendations />} />
+        <Route path="/executive/processos" element={<ExecutiveProcessos />} />
       <Route path="/executive/:section" element={<ExecutivePage />} />
       <Route path="/definicoes" element={<DefinicoesPage />} />
       <Route path="*" element={<NotFound />} />
