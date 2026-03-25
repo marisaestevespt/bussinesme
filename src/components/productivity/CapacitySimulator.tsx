@@ -12,8 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Plus, Trash2, Users, Building2, TrendingUp, ArrowLeftRight, UserPlus, Euro, AlertTriangle, Sparkles, Loader2 } from 'lucide-react';
-import { PROCESS_DEPARTMENTS } from '@/lib/departments';
+import { Plus, Trash2, Users, Building2, TrendingUp, ArrowLeftRight, UserPlus, Euro, AlertTriangle, Sparkles, Loader2, ChevronDown, ChevronRight, ListChecks } from 'lucide-react';
+import { PROCESS_DEPARTMENTS, getDeptLabel } from '@/lib/departments';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 
 const WEEKS_PER_MONTH = 4.33;
