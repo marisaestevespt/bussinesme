@@ -135,7 +135,7 @@ export default function ExecutiveCapacidade() {
         scenarioId = await ensureScenario.mutateAsync();
       }
       const { error } = await supabase.from('capacity_scenarios').update({
-        useful_hours_per_month: effectiveHours,
+        useful_hours_per_month: Math.round(clientFacingMonthlyHours),
         admin_percent: effectiveAdmin,
         business_percent: effectiveBusiness,
         team_size: effectiveTeamSize,
@@ -246,10 +246,10 @@ export default function ExecutiveCapacidade() {
   const availableToAdd = allProducts.filter((p: Product) => !addedProductIds.includes(p.id));
   const internalCount = effectiveTeamSize - effectiveClientFacing;
 
-  // Compute hours breakdown for visual
-  const adminHours = Math.round(effectiveHours * effectiveAdmin / 100);
-  const businessHours = Math.round(effectiveHours * effectiveBusiness / 100);
-  const clientHours = Math.round(availableHoursPerPerson);
+  // Compute hours breakdown for visual (based on total client-facing hours)
+  const adminHours = Math.round(clientFacingMonthlyHours * effectiveAdmin / 100);
+  const businessHours = Math.round(clientFacingMonthlyHours * effectiveBusiness / 100);
+  const clientHours = Math.round(clientFacingMonthlyHours * (1 - totalNonClientPercent / 100));
 
   return (
     <AppLayout>
@@ -266,11 +266,42 @@ export default function ExecutiveCapacidade() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
-              <div className="space-y-2">
-                <Label className="text-xs">Horas úteis por mês (por pessoa)</Label>
-                <Input type="number" value={effectiveHours} onChange={e => setHoursPerMonth(Number(e.target.value))} className="h-8" />
-                <p className="text-[10px] text-muted-foreground">Ex: 160h = 8h × 20 dias úteis</p>
+              {/* Team members with hours */}
+              <div className="space-y-3">
+                <Label className="text-xs font-medium flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Equipa ({effectiveTeamSize} membros)</Label>
+                <p className="text-[10px] text-muted-foreground">Seleciona quem faz entrega a clientes. As horas vêm da ficha de cada membro.</p>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {members.map(m => {
+                    const weeklyH = Number(m.expected_weekly_hours) || 0;
+                    const monthlyH = Math.round(weeklyH * WEEKS_PER_MONTH);
+                    const isSelected = clientFacingIds.has(m.id);
+                    return (
+                      <label key={m.id} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted/50 cursor-pointer text-sm">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={(checked) => {
+                            const next = new Set(clientFacingIds);
+                            if (checked) next.add(m.id); else next.delete(m.id);
+                            setClientFacingIds(next);
+                          }}
+                        />
+                        <span className="flex-1 truncate">{m.full_name}</span>
+                        <span className="text-xs text-muted-foreground tabular-nums">{weeklyH}h/sem</span>
+                        <span className="text-[10px] text-muted-foreground">≈{monthlyH}h/mês</span>
+                      </label>
+                    );
+                  })}
+                  {members.length === 0 && (
+                    <p className="text-xs text-muted-foreground py-2">Nenhum membro ativo encontrado</p>
+                  )}
+                </div>
+                <div className="rounded-md bg-muted/50 px-3 py-2 flex justify-between text-xs">
+                  <span className="text-muted-foreground">{effectiveClientFacing} em entrega</span>
+                  <span className="font-medium">{Math.round(clientFacingMonthlyHours)}h/mês</span>
+                </div>
               </div>
+
+              <Separator />
 
               <div className="space-y-2">
                 <Label className="text-xs">Tempo admin/gestão</Label>
@@ -281,7 +312,7 @@ export default function ExecutiveCapacidade() {
                     value={adminHours}
                     onChange={e => {
                       const hrs = Number(e.target.value);
-                      setAdminPercent(effectiveHours > 0 ? Math.min(Math.round((hrs / effectiveHours) * 100), 100) : 0);
+                      setAdminPercent(clientFacingMonthlyHours > 0 ? Math.min(Math.round((hrs / clientFacingMonthlyHours) * 100), 100) : 0);
                     }}
                   />
                   <span className="text-xs text-muted-foreground">h</span>
@@ -307,7 +338,7 @@ export default function ExecutiveCapacidade() {
                     value={businessHours}
                     onChange={e => {
                       const hrs = Number(e.target.value);
-                      setBusinessPercent(effectiveHours > 0 ? Math.min(Math.round((hrs / effectiveHours) * 100), 100) : 0);
+                      setBusinessPercent(clientFacingMonthlyHours > 0 ? Math.min(Math.round((hrs / clientFacingMonthlyHours) * 100), 100) : 0);
                     }}
                   />
                   <span className="text-xs text-muted-foreground">h</span>
