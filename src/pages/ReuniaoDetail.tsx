@@ -25,6 +25,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { toast } from 'sonner';
+import { logAudit } from '@/lib/auditLog';
 import { BackNavigation } from '@/components/BackNavigation';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
