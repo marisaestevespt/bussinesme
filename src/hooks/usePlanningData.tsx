@@ -431,7 +431,7 @@ export function usePlanningData(year = currentYear) {
     queryFn: async () => {
       const startDate = `${year}-01-01T00:00:00`;
       const endDate = `${year}-12-31T23:59:59`;
-      const { data } = await supabase.from('meetings').select('id').in('status', ['realizada', 'confirmada']).gte('date_time', startDate).lte('date_time', endDate);
+      const { data } = await supabase.from('meetings').select('id').in('status', ['terminada', 'confirmada']).gte('date_time', startDate).lte('date_time', endDate);
       return (data || []).length;
     },
   });
