@@ -35,12 +35,19 @@ export default function ExecutiveWeeklyAlign() {
   const weekStartStr = format(weekStart, 'yyyy-MM-dd');
   const weekEndStr = format(weekEnd, 'yyyy-MM-dd');
 
+  // Previous week for comparison
+  const prevWeekStart = useMemo(() => subWeeks(weekStart, 1), [weekStart]);
+  const prevWeekEnd = useMemo(() => endOfWeek(prevWeekStart, { weekStartsOn: 1 }), [prevWeekStart]);
+  const prevWeekStartStr = format(prevWeekStart, 'yyyy-MM-dd');
+  const prevWeekEndStr = format(prevWeekEnd, 'yyyy-MM-dd');
+
   const currentYear = weekStart.getFullYear();
   const currentMonth = weekStart.getMonth() + 1;
   const monthStart = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
   const monthEnd = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${new Date(currentYear, currentMonth, 0).getDate()}`;
 
   const isCurrentWeek = weekOffset === 0;
+  const qc = useQueryClient();
 
   const exec = useExecutiveData(currentYear);
   const planning = usePlanningData(currentYear);
