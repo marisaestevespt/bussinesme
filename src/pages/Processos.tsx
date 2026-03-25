@@ -76,6 +76,10 @@ export default function ProcessosPage() {
   const [newSopName, setNewSopName] = useState('');
   const [newSopDepts, setNewSopDepts] = useState<string[]>(['marketing']);
   const [newSopStatus, setNewSopStatus] = useState('para_criar');
+  const [newSopType, setNewSopType] = useState('operacional');
+  const [newSopRoleTitle, setNewSopRoleTitle] = useState('');
+  const [newSopRoleOpen, setNewSopRoleOpen] = useState(false);
+  const [newSopProductId, setNewSopProductId] = useState('');
   const [activeTab, setActiveTab] = useState('galeria');
 
   // ─── Queries ──────────────────────────────────────────────────
@@ -100,44 +104,50 @@ export default function ProcessosPage() {
 
   const existingRoles = [...new Set(teamMembers.map(m => m.role_title).filter(Boolean))] as string[];
 
-  // Onboarding templates for selected department
-  const { data: onboardingTemplates = [] } = useQuery({
-    queryKey: ['onboarding-templates', selectedDept],
-    enabled: !!selectedDept,
+  // Products list for SOP linking
+  const { data: productsList = [] } = useQuery({
+    queryKey: ['products-list'],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('sop_onboarding_templates')
-        .select('*, sop_onboarding_items(id, task, deadline_days, sort_order)')
-        .eq('department', selectedDept!)
-        .order('role_title');
-      return (data || []) as any[];
+      const { data } = await supabase.from('products').select('id, name');
+      return data || [];
     },
   });
 
-  // Onboarding dialog state
-  const [showNewOnboarding, setShowNewOnboarding] = useState(false);
-  const [obRoleTitle, setObRoleTitle] = useState('');
-  const [obItems, setObItems] = useState<{ task: string; deadline_days: number }[]>([{ task: '', deadline_days: 2 }]);
+  const SOP_TYPES = [
+    { value: 'operacional', label: 'Operacional' },
+    { value: 'onboarding', label: 'Onboarding' },
+    { value: 'rotina', label: 'Rotina' },
+    { value: 'entrega', label: 'Entrega' },
+    { value: 'outro', label: 'Outro' },
+  ];
 
   // ─── Mutations ────────────────────────────────────────────────
 
   const createSop = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('sops').insert({
+      const { data: sopData, error } = await supabase.from('sops').insert({
         name: newSopName,
         department: newSopDepts[0] || 'marketing',
         departments: newSopDepts,
         status: newSopStatus,
+        sop_type: newSopType,
+        role_title: newSopRoleTitle || null,
+        product_id: newSopProductId || null,
         created_by: user?.id,
-      } as any);
+      } as any).select('id').single();
       if (error) throw error;
+      return sopData;
     },
-    onSuccess: () => {
+    onSuccess: (sopData) => {
       queryClient.invalidateQueries({ queryKey: ['sops'] });
       setShowNewSop(false);
       setNewSopName('');
       setNewSopDepts(['marketing']);
+      setNewSopType('operacional');
+      setNewSopRoleTitle('');
+      setNewSopProductId('');
       toast.success('Processo criado');
+      if (sopData?.id) navigate(`/hub/processos/${sopData.id}`);
     },
     onError: () => toast.error('Erro ao criar processo'),
   });
@@ -230,6 +240,8 @@ export default function ProcessosPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {deptSops.map(sop => {
                       const statusInfo = getStatusInfo(sop.status);
+                      const sopType = (sop as any).sop_type || 'operacional';
+                      const sopRole = (sop as any).role_title;
                       return (
                         <Card key={sop.id} className="cursor-pointer hover:shadow-md hq-transition" onClick={() => navigate(`/hub/processos/${sop.id}`)}>
                           <CardContent className="p-4">
@@ -241,6 +253,14 @@ export default function ProcessosPage() {
                               <FileText className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                               <p className="font-medium text-sm line-clamp-2">{sop.name}</p>
                             </div>
+                            <div className="flex items-center gap-1 mt-2 flex-wrap">
+                              {sopType !== 'operacional' && (
+                                <Badge variant="outline" className="text-[10px]">{SOP_TYPES.find(t => t.value === sopType)?.label || sopType}</Badge>
+                              )}
+                              {sopRole && (
+                                <Badge variant="secondary" className="text-[10px]">{sopRole}</Badge>
+                              )}
+                            </div>
                           </CardContent>
                         </Card>
                       );
@@ -248,61 +268,6 @@ export default function ProcessosPage() {
                   </div>
                 )}
 
-                {/* Onboarding por Função */}
-                <Separator className="my-6" />
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <UserPlus className="h-4 w-4 text-primary" /> Onboarding por Função
-                  </h3>
-                  <Button size="sm" variant="outline" onClick={() => setShowNewOnboarding(true)}>
-                    <Plus className="h-4 w-4 mr-1" /> Novo Template
-                  </Button>
-                </div>
-                {onboardingTemplates.length === 0 ? (
-                  <Card>
-                    <CardContent className="py-8 text-center text-muted-foreground text-sm">
-                      Sem templates de onboarding neste departamento.
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {onboardingTemplates.map((tpl: any) => {
-                      const items = (tpl.sop_onboarding_items || []).sort((a: any, b: any) => a.sort_order - b.sort_order);
-                      return (
-                        <Card key={tpl.id}>
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between mb-3">
-                              <Badge variant="secondary" className="text-xs">{tpl.role_title}</Badge>
-                              <div className="flex items-center gap-1">
-                                <span className="text-xs text-muted-foreground">{items.length} itens</span>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-7 w-7"
-                                  onClick={async () => {
-                                    await supabase.from('sop_onboarding_items').delete().eq('template_id', tpl.id);
-                                    await supabase.from('sop_onboarding_templates').delete().eq('id', tpl.id);
-                                    queryClient.invalidateQueries({ queryKey: ['onboarding-templates'] });
-                                    toast.success('Template eliminado');
-                                  }}
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                              </div>
-                            </div>
-                            {items.map((item: any, idx: number) => (
-                              <div key={item.id} className="flex items-center gap-2 text-sm py-0.5">
-                                <span className="text-muted-foreground w-5 shrink-0">{idx + 1}.</span>
-                                <span className="flex-1">{item.task}</span>
-                                <Badge variant="outline" className="text-[10px] shrink-0">{item.deadline_days}d</Badge>
-                              </div>
-                            ))}
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                )}
               </>
             )}
           </section>
@@ -403,14 +368,24 @@ export default function ProcessosPage() {
       </Tabs>
 
       {/* ═══ Dialog: Novo Processo ═══ */}
-      <Dialog open={showNewSop} onOpenChange={setShowNewSop}>
-        <DialogContent className="sm:max-w-2xl">
+      <Dialog open={showNewSop} onOpenChange={v => { if (!v) { setShowNewSop(false); setNewSopName(''); setNewSopType('operacional'); setNewSopRoleTitle(''); setNewSopProductId(''); } else setShowNewSop(true); }}>
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Novo Processo (SOP)</DialogTitle></DialogHeader>
           <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Nome do processo *</Label>
-              <Input value={newSopName} onChange={e => setNewSopName(e.target.value)} placeholder="Ex: Onboarding de cliente" />
+              <Input value={newSopName} onChange={e => setNewSopName(e.target.value)} placeholder="Ex: Onboarding Designer" />
             </div>
+            <div>
+              <Label>Tipo de SOP</Label>
+              <Select value={newSopType} onValueChange={setNewSopType}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{SOP_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Departamentos</Label>
               <Popover>
@@ -440,6 +415,48 @@ export default function ProcessosPage() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{SOP_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
               </Select>
+            </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Função associada</Label>
+              <Popover open={newSopRoleOpen} onOpenChange={setNewSopRoleOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start font-normal">
+                    {newSopRoleTitle || <span className="text-muted-foreground">Selecionar ou escrever...</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[280px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Pesquisar função..." value={newSopRoleTitle} onValueChange={setNewSopRoleTitle} />
+                    <CommandList>
+                      <CommandEmpty>
+                        {newSopRoleTitle.trim() && (
+                          <p className="px-3 py-2 text-sm text-muted-foreground">Função: <strong>{newSopRoleTitle.trim()}</strong></p>
+                        )}
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {existingRoles.map(role => (
+                          <CommandItem key={role} value={role} onSelect={() => { setNewSopRoleTitle(role); setNewSopRoleOpen(false); }}>
+                            {role}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <Label>Produto/Serviço associado</Label>
+              <Select value={newSopProductId || '_none_'} onValueChange={v => setNewSopProductId(v === '_none_' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none_">Nenhum</SelectItem>
+                  {productsList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             </div>
             <Button className="w-full" disabled={!newSopName.trim() || newSopDepts.length === 0} onClick={() => createSop.mutate()}>Criar Processo</Button>
           </div>
@@ -656,122 +673,6 @@ export default function ProcessosPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog: Novo Template Onboarding */}
-      <Dialog open={showNewOnboarding} onOpenChange={v => { if (!v) { setShowNewOnboarding(false); setObRoleTitle(''); setObItems([{ task: '', deadline_days: 2 }]); } else setShowNewOnboarding(true); }}>
-        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Novo Template de Onboarding</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Função *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start font-normal">
-                    {obRoleTitle || <span className="text-muted-foreground">Selecionar ou escrever...</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[280px] p-0" align="start">
-                  <Command>
-                    <CommandInput placeholder="Pesquisar ou criar função..." value={obRoleTitle} onValueChange={setObRoleTitle} />
-                    <CommandList>
-                      <CommandEmpty>
-                        {obRoleTitle.trim() && (
-                          <p className="px-3 py-2 text-sm text-muted-foreground">Função: <strong>{obRoleTitle.trim()}</strong></p>
-                        )}
-                      </CommandEmpty>
-                      <CommandGroup>
-                        {existingRoles.map(role => (
-                          <CommandItem key={role} value={role} onSelect={() => setObRoleTitle(role)}>
-                            {role}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div>
-              <Label>Checklist de Onboarding</Label>
-              <div className="space-y-2 mt-2">
-                {obItems.map((item, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="text-muted-foreground text-sm w-5 shrink-0">{i + 1}.</span>
-                    <Input
-                      value={item.task}
-                      onChange={e => { const n = [...obItems]; n[i] = { ...n[i], task: e.target.value }; setObItems(n); }}
-                      placeholder="Ex: Aceder à plataforma e preencher perfil"
-                      className="flex-1"
-                    />
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Input
-                        type="number"
-                        min={0}
-                        value={item.deadline_days}
-                        onChange={e => { const n = [...obItems]; n[i] = { ...n[i], deadline_days: parseInt(e.target.value) || 0 }; setObItems(n); }}
-                        className="w-16 text-center"
-                      />
-                      <span className="text-xs text-muted-foreground">dias</span>
-                    </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setObItems(obItems.filter((_, idx) => idx !== i))} disabled={obItems.length <= 1}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
-                <Button variant="outline" size="sm" onClick={() => setObItems([...obItems, { task: '', deadline_days: 2 }])}>
-                  <Plus className="h-3 w-3 mr-1" /> Adicionar item
-                </Button>
-              </div>
-            </div>
-
-            <Button
-              className="w-full"
-              disabled={!obRoleTitle.trim() || !selectedDept || obItems.every(i => !i.task.trim())}
-              onClick={async () => {
-                const validItems = obItems.filter(i => i.task.trim());
-                const { data: tpl, error } = await supabase
-                  .from('sop_onboarding_templates')
-                  .insert({ role_title: obRoleTitle.trim(), department: selectedDept! })
-                  .select('id')
-                  .single();
-                if (error) {
-                  toast.error(error.message.includes('unique') ? 'Já existe um template para esta função neste departamento.' : 'Erro ao criar template');
-                  return;
-                }
-                const rows = validItems.map((item, i) => ({
-                  template_id: tpl.id,
-                  task: item.task.trim(),
-                  deadline_days: item.deadline_days,
-                  sort_order: i,
-                }));
-                await supabase.from('sop_onboarding_items').insert(rows);
-
-                // Also create a linked SOP
-                const { data: sopData } = await supabase.from('sops').insert({
-                  name: `Onboarding — ${obRoleTitle.trim()}`,
-                  department: selectedDept!,
-                  departments: [selectedDept!],
-                  status: 'ativo',
-                  created_by: user?.id,
-                } as any).select('id').single();
-
-                if (sopData) {
-                  await supabase.from('sop_onboarding_templates').update({ sop_id: sopData.id }).eq('id', tpl.id);
-                }
-
-                queryClient.invalidateQueries({ queryKey: ['onboarding-templates'] });
-                queryClient.invalidateQueries({ queryKey: ['sops'] });
-                setShowNewOnboarding(false);
-                setObRoleTitle('');
-                setObItems([{ task: '', deadline_days: 2 }]);
-                toast.success('Template de onboarding criado!');
-              }}
-            >
-              Criar Template
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </AppLayout>
   );
 }
