@@ -127,10 +127,9 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
   const [phantoms, setPhantoms] = useState<PhantomMember[]>([]);
 
   const departments = useMemo(() => {
-    const depts = new Set<string>();
-    members.forEach(m => { if (m.department) depts.add(m.department); });
-    return Array.from(depts).sort();
-  }, [members]);
+    const depts = PROCESS_DEPARTMENTS.map(d => d.label);
+    return depts;
+  }, []);
 
   const addPhantom = () => {
     setPhantoms(prev => [...prev, {
