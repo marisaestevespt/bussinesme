@@ -332,12 +332,6 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
                 <span className="text-xs text-muted-foreground">de férias marcados em {currentYear}</span>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Trabalha em feriados</span>
-                  <Badge variant={member.works_holidays ? 'default' : 'secondary'} className="text-[10px]">{member.works_holidays ? 'Sim' : 'Não'}</Badge>
-                </div>
-              </div>
 
               <Separator />
 

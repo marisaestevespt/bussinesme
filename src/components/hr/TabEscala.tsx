@@ -140,7 +140,7 @@ function getAvailability(
   const isNational = nationalHolidays.some(h => isSameDay(h, day));
 
   if (isNational) {
-    return member.works_holidays ? 'available' : 'holiday';
+    return 'holiday';
   }
 
   // Check work schedule

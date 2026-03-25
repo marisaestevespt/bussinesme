@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { ArrowLeft, AlertTriangle, ChevronLeft, ChevronRight, CalendarIcon, Clock, CheckCircle2, Users } from 'lucide-react';
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addWeeks, subWeeks, eachDayOfInterval, parseISO, isSameDay, isAfter, isBefore, startOfDay, subDays, addDays } from 'date-fns';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addWeeks, subWeeks, eachDayOfInterval, parseISO, isSameDay, isAfter, isBefore, startOfDay, subDays, addDays, getDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { sendNotification } from '@/hooks/useNotifications';
 import { useAuth } from '@/hooks/useAuth';
+import { getHolidaySet, getPortugueseHolidays } from '@/lib/holidays';
 
 type MemberRow = {
   id: string;
@@ -169,6 +170,31 @@ function OverviewTab({ memberTasks, memberEntries, weeklyHours, dailyHours, prof
         <Button size="sm" variant={period === 'week' ? 'default' : 'outline'} onClick={() => setPeriod('week')}>Esta semana</Button>
         <Button size="sm" variant={period === 'month' ? 'default' : 'outline'} onClick={() => setPeriod('month')}>Este mês</Button>
       </div>
+
+      {/* Holiday/weekend work detection */}
+      {(() => {
+        const holidaySet = getHolidaySet(now.getFullYear());
+        const weekendEntries = periodEntries.filter((e: any) => {
+          const d = new Date(e.entry_date);
+          return getDay(d) === 0 || getDay(d) === 6;
+        });
+        const holidayEntries = periodEntries.filter((e: any) => holidaySet.has(e.entry_date));
+        const weekendDays = new Set(weekendEntries.map((e: any) => e.entry_date)).size;
+        const holidayDays = new Set(holidayEntries.map((e: any) => e.entry_date)).size;
+        const weekendHours = weekendEntries.reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
+        const holidayHours = holidayEntries.reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
+        if (weekendDays === 0 && holidayDays === 0) return null;
+        return (
+          <div className="flex flex-wrap gap-3">
+            {weekendDays > 0 && (
+              <Card className="border-amber-200 dark:border-amber-800"><CardContent className="p-3 flex items-center gap-2"><CalendarIcon className="h-4 w-4 text-amber-500" /><div><p className="text-xs text-muted-foreground">Trabalhou em fins-de-semana</p><p className="text-sm font-semibold">{weekendDays} dia{weekendDays > 1 ? 's' : ''} · {weekendHours.toFixed(1)}h</p></div></CardContent></Card>
+            )}
+            {holidayDays > 0 && (
+              <Card className="border-blue-200 dark:border-blue-800"><CardContent className="p-3 flex items-center gap-2"><CalendarIcon className="h-4 w-4 text-blue-500" /><div><p className="text-xs text-muted-foreground">Trabalhou em feriados</p><p className="text-sm font-semibold">{holidayDays} dia{holidayDays > 1 ? 's' : ''} · {holidayHours.toFixed(1)}h</p></div></CardContent></Card>
+            )}
+          </div>
+        );
+      })()}
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <Card><CardContent className="p-3"><p className="text-xs text-muted-foreground">Horas registadas</p><p className="text-xl font-bold">{totalReal.toFixed(1)}h</p></CardContent></Card>
