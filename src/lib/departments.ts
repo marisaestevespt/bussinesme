@@ -1,7 +1,7 @@
 // Shared department constants used across sidebar, processos, and other pages
 
 export const DEPARTMENTS = [
-  { value: 'admin', label: 'Admin (Acesso Total)', gradient: 'from-yellow-500 to-amber-700', icon: '👑', lucideIcon: 'Crown' },
+  { value: 'admin', label: 'Administração', gradient: 'from-yellow-500 to-amber-700', icon: '👑', lucideIcon: 'Crown' },
   { value: 'marketing', label: 'Marketing', gradient: 'from-pink-500 to-rose-700', icon: '📣', lucideIcon: 'Megaphone' },
   { value: 'comercial', label: 'Comercial', gradient: 'from-amber-500 to-orange-700', icon: '🤝', lucideIcon: 'ShoppingCart' },
   { value: 'clientes', label: 'Clientes', gradient: 'from-cyan-500 to-teal-700', icon: '⭐', lucideIcon: 'UserCheck' },
@@ -11,8 +11,8 @@ export const DEPARTMENTS = [
   { value: 'recursos-humanos', label: 'Pessoas', gradient: 'from-rose-500 to-pink-800', icon: '👥', lucideIcon: 'UsersRound' },
 ] as const;
 
-/** Departments available for processes, routines, SOPs (excludes admin role) */
-export const PROCESS_DEPARTMENTS = DEPARTMENTS.filter(d => d.value !== 'admin');
+/** Departments available for processes, routines, SOPs */
+export const PROCESS_DEPARTMENTS = DEPARTMENTS;
 
 export type DepartmentValue = (typeof DEPARTMENTS)[number]['value'];
 
