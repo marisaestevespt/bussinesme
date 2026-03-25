@@ -83,6 +83,19 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
 
   const existingRoles = [...new Set(teamMembers.map(m => m.role_title).filter(Boolean))] as string[];
 
+  // Onboarding templates for this department
+  const { data: onboardingTemplates = [] } = useQuery({
+    queryKey: ['onboarding-templates', department],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('sop_onboarding_templates')
+        .select('*, sop_onboarding_items(id, task, deadline_days, sort_order)')
+        .eq('department', department)
+        .order('role_title');
+      return (data || []) as any[];
+    },
+  });
+
   const routinesData = (planningRoutines.routines.data || []).filter((r: any) => r.department === department);
 
   // Mutations
