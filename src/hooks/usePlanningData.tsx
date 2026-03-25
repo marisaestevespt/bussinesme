@@ -35,11 +35,15 @@ export const GOAL_STATUSES = [
 ];
 
 export const VALUE_SOURCES = [
-  { value: 'manual', label: 'Manual' },
-  { value: 'metrica', label: 'Métrica associada' },
-  { value: 'bd_vendas', label: 'BD Vendas' },
-  { value: 'bd_crm', label: 'BD CRM' },
-  { value: 'bd_clientes', label: 'BD Clientes' },
+  { value: 'manual', label: 'Manual', area: null, desc: 'Introduzir valores manualmente' },
+  { value: 'metrica', label: 'Métrica associada', area: null, desc: 'Progresso via métrica com tracking periódico' },
+  { value: 'bd_vendas', label: 'Faturação (Vendas)', area: 'financeiro', desc: 'Soma de vendas registadas no período' },
+  { value: 'bd_crm', label: 'Leads ganhos (CRM)', area: 'comercial', desc: 'Contagem de leads com status ganho' },
+  { value: 'bd_clientes', label: 'Clientes ativos', area: 'comercial', desc: 'Nº de clientes com status ativo' },
+  { value: 'bd_tempo', label: 'Horas registadas (Timer)', area: 'operacao', desc: 'Soma de horas do time tracker no ano' },
+  { value: 'bd_tarefas', label: 'Tarefas concluídas', area: 'operacao', desc: 'Contagem de tarefas com status concluída' },
+  { value: 'bd_equipa', label: 'Membros da equipa', area: 'equipa', desc: 'Nº de membros ativos na equipa' },
+  { value: 'bd_marketing', label: 'Seguidores (Marketing)', area: 'marketing', desc: 'Total de seguidores dos canais de marketing' },
 ];
 
 export const MEASUREMENT_TYPES = [
@@ -363,6 +367,48 @@ export function usePlanningData(year = currentYear) {
     },
   });
 
+  // Time entries (hours tracked) for the year
+  const autoTimeEntries = useQuery({
+    queryKey: ['auto-time-entries', year],
+    queryFn: async () => {
+      const { data } = await supabase.from('time_entries').select('duration,entry_month').eq('entry_year', year);
+      return data || [];
+    },
+  });
+
+  // Tasks completed in the year
+  const autoTasksCompleted = useQuery({
+    queryKey: ['auto-tasks-completed', year],
+    queryFn: async () => {
+      const startDate = `${year}-01-01`;
+      const endDate = `${year}-12-31`;
+      const { data } = await supabase.from('tasks').select('id,updated_at').eq('status', 'concluida').gte('updated_at', startDate).lte('updated_at', endDate + 'T23:59:59');
+      return data || [];
+    },
+  });
+
+  // Team members count
+  const autoTeamMembers = useQuery({
+    queryKey: ['auto-team-members'],
+    queryFn: async () => {
+      const { data } = await supabase.from('team_members').select('id').eq('status', 'ativo');
+      return (data || []).length;
+    },
+  });
+
+  // Marketing followers (sum across all channels, latest month)
+  const autoMarketingFollowers = useQuery({
+    queryKey: ['auto-marketing-followers', year],
+    queryFn: async () => {
+      const { data } = await supabase.from('channel_monthly_metrics').select('followers,channel_id,month').eq('year', year).order('month', { ascending: false });
+      if (!data || data.length === 0) return 0;
+      // Get the latest month's data, sum followers across channels
+      const latestMonth = data[0].month;
+      const latestData = data.filter((d: any) => d.month === latestMonth);
+      return latestData.reduce((s: number, d: any) => s + Number(d.followers || 0), 0);
+    },
+  });
+
   // Helper: get auto value for a source, optionally filtered by product name
   const getAutoValue = (source: string, productName?: string | null, metricId?: string | null) => {
     if (source === 'metrica' && metricId) {
@@ -380,6 +426,13 @@ export function usePlanningData(year = currentYear) {
       return filtered.length;
     }
     if (source === 'bd_clientes') return autoActiveClients.data ?? null;
+    if (source === 'bd_tempo') {
+      const rows = autoTimeEntries.data || [];
+      return rows.reduce((s: number, r: any) => s + Number(r.duration || 0), 0);
+    }
+    if (source === 'bd_tarefas') return (autoTasksCompleted.data || []).length;
+    if (source === 'bd_equipa') return autoTeamMembers.data ?? null;
+    if (source === 'bd_marketing') return autoMarketingFollowers.data ?? null;
     return null;
   };
 

@@ -134,6 +134,9 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                       </Select>
+                      {VALUE_SOURCES.find(s => s.value === form.value_source)?.desc && (
+                        <p className="text-[10px] text-muted-foreground mt-1">{VALUE_SOURCES.find(s => s.value === form.value_source)?.desc}</p>
+                      )}
                     </div>
                     {form.value_source === 'manual' && (
                       <div><Label>Valor atual</Label><Input type="number" value={form.current_value} onChange={e => set('current_value', e.target.value)} /></div>
