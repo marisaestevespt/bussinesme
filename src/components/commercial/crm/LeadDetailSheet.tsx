@@ -161,7 +161,20 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                 <Select value={form.responsible_id || ''} onValueChange={v => set({ responsible_id: v })}>
                   <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                   <SelectContent>
-                    {profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}
+                    {commercialMembers.length > 0 && (
+                      <SelectGroup>
+                        <SelectLabel className="text-[10px] text-muted-foreground">Equipa Comercial</SelectLabel>
+                        {commercialMembers.map(cm => (
+                          <SelectItem key={`cm-${cm.profile_id || cm.id}`} value={cm.profile_id || cm.id}>
+                            {cm.full_name} <span className="text-muted-foreground ml-1">⭐</span>
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    )}
+                    <SelectGroup>
+                      <SelectLabel className="text-[10px] text-muted-foreground">Todos</SelectLabel>
+                      {profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </div>
