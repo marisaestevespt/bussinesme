@@ -790,7 +790,7 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
                 </TableRow>
               ))}
               {memberCapacity.length === 0 && (
-                <TableRow><TableCell colSpan={8} className="text-center text-sm text-muted-foreground py-8">Sem membros ativos</TableCell></TableRow>
+                <TableRow><TableCell colSpan={10} className="text-center text-sm text-muted-foreground py-8">Sem membros ativos</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
