@@ -295,7 +295,7 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
                 <TableHead>Nome</TableHead>
                 <TableHead>Departamento</TableHead>
                 <TableHead>Tipo</TableHead>
-                <TableHead className="text-right">{'{'}Colaborador: Salário bruto / Prestador: Valor fatura{'}'}</TableHead>
+                <TableHead className="text-right">Valor mensal (€)</TableHead>
                 <TableHead>Data início</TableHead>
                 <TableHead className="text-right">h/semana</TableHead>
                 <TableHead className="text-right">% Cliente</TableHead>
