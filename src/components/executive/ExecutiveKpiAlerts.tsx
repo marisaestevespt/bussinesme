@@ -70,9 +70,9 @@ export function ExecutiveKpiAlerts() {
 
   const alerts: { label: string; count: number; variant: 'destructive' | 'default' | 'secondary'; link: string; icon: React.ElementType }[] = [];
 
-  if (overdueSales > 0) alerts.push({ label: 'Pagamentos em atraso', count: overdueSales, variant: 'destructive', link: '/comercial/vendas', icon: AlertTriangle });
-  if (renewalClients > 0) alerts.push({ label: 'Clientes em renovação', count: renewalClients, variant: 'default', link: '/clientes', icon: RefreshCw });
-  if (onboardingClients > 0) alerts.push({ label: 'Em onboarding', count: onboardingClients, variant: 'secondary', link: '/clientes', icon: UserPlus });
+  if (overdueSales > 0) alerts.push({ label: 'Pagamentos em atraso', count: overdueSales, variant: 'destructive', link: '/hub/comercial/vendas', icon: AlertTriangle });
+  if (renewalClients > 0) alerts.push({ label: 'Clientes em renovação', count: renewalClients, variant: 'default', link: '/hub/clientes', icon: RefreshCw });
+  if (onboardingClients > 0) alerts.push({ label: 'Em onboarding', count: onboardingClients, variant: 'secondary', link: '/hub/clientes', icon: UserPlus });
 
   return (
     <div className="space-y-4">
