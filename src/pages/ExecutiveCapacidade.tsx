@@ -16,6 +16,7 @@ import { Plus, Trash2, Calculator, Users, Clock, AlertTriangle, CheckCircle2, Tr
 import { toast } from 'sonner';
 import { useProducts, Product } from '@/hooks/useProducts';
 import { useClients } from '@/hooks/useClients';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function ExecutiveCapacidade() {
   const qc = useQueryClient();
