@@ -117,18 +117,17 @@ const WelcomeMemberEmail = ({
 
             <Section style={stepCard}>
               <Text style={stepNumber}>2</Text>
-              <Text style={stepTitle}>Preenche a tua apresentação</Text>
+              <Text style={stepTitle}>Acede à Secretária</Text>
               <Text style={stepDesc}>
-                Depois de entrares, vai à página <strong>"Começa Aqui"</strong> no menu lateral.
-                Lá podes preencher a tua apresentação para a equipa te conhecer melhor — conta-nos quem és! ✨
+                Vai à <strong>"Secretária"</strong> — já tens tarefas preparadas para os teus primeiros dias, incluindo o teu onboarding. Passo a passo, sem stress! 📋
               </Text>
             </Section>
 
             <Section style={stepCard}>
               <Text style={stepNumber}>3</Text>
-              <Text style={stepTitle}>Consulta as tuas primeiras tarefas</Text>
+              <Text style={stepTitle}>Entra nos grupos de WhatsApp</Text>
               <Text style={stepDesc}>
-                Vai à <strong>"Secretária"</strong> — já tens tarefas preparadas para os teus primeiros dias, incluindo o teu onboarding. Passo a passo, sem stress! 📋
+                Junta-te aos grupos de WhatsApp da equipa para ficares ligado(a) desde o primeiro dia! Os links foram-te enviados separadamente. 💬
               </Text>
             </Section>
           </Section>
