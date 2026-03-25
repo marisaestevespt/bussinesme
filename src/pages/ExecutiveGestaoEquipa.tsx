@@ -34,6 +34,7 @@ import {
 } from '@/hooks/useTeamData';
 import { getMonthName } from '@/hooks/useExecutiveData';
 import { DEPARTMENTS, getDept } from '@/lib/departments';
+import { RolePagePicker } from '@/components/RolePagePicker';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
@@ -180,7 +181,7 @@ const PRESET_ROLES = [
   { label: 'Contabilista', color: '#64748b' },
   { label: 'Advogada', color: '#ef4444' },
   { label: 'Assistente Virtual', color: '#f97316' },
-  { label: 'Administrativa', color: '#3b82f6' },
+  { label: 'Assistente Administrativa', color: '#3b82f6' },
 ];
 
 const WEEK_DAYS = [
@@ -1630,6 +1631,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
 export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
   const [dialog, setDialog] = useState<any>(null);
   const [selected, setSelected] = useState<any>(null);
+  const [pagePicker, setPagePicker] = useState<{ memberName: string; department: string; memberId: string } | null>(null);
   const allMembers = team.members.data || [];
   const qc = useQueryClient();
 
@@ -1719,8 +1721,29 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
       }
       qc.invalidateQueries({ queryKey: ['team'] });
       toast.success(isNew ? 'Membro criado!' : 'Membro atualizado');
+
+      // Show page picker for custom roles with department
+      if (member.department) {
+        setPagePicker({ memberName: member.full_name, department: member.department, memberId });
+      }
     } catch (err: any) {
       toast.error('Erro: ' + (err.message || err));
+    }
+  };
+
+  const handleExtraModules = async (extraModules: string[]) => {
+    if (!pagePicker || extraModules.length === 0) return;
+    try {
+      // Get the dept role for this member and add extra permissions
+      const roleName = `dept_${pagePicker.department}`;
+      const { data: role } = await supabase.from('custom_roles').select('id').eq('name', roleName).maybeSingle();
+      if (role) {
+        const perms = extraModules.map(mk => ({ custom_role_id: role.id, module_key: mk, can_view: true }));
+        await supabase.from('role_permissions').upsert(perms, { onConflict: 'custom_role_id,module_key' });
+        toast.success(`${extraModules.length} página(s) extra adicionada(s)`);
+      }
+    } catch (err: any) {
+      toast.error('Erro ao adicionar acessos extra');
     }
   };
 
@@ -1765,6 +1788,15 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
       )}
       {dialog !== null && <MemberDialog open onClose={() => setDialog(null)} initial={dialog} onSave={handleSave} />}
       {selected && <MemberDetailSheet open onClose={() => setSelected(null)} member={selected} team={team} />}
+      {pagePicker && (
+        <RolePagePicker
+          open
+          onClose={() => setPagePicker(null)}
+          memberName={pagePicker.memberName}
+          department={pagePicker.department}
+          onConfirm={handleExtraModules}
+        />
+      )}
     </div>
   );
 }
