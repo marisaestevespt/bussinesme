@@ -7188,6 +7188,36 @@ export type Database = {
           },
         ]
       }
+      weekly_align_notes: {
+        Row: {
+          blockers: string | null
+          created_at: string | null
+          decisions: string | null
+          id: string
+          key_points: string | null
+          updated_at: string | null
+          week_start: string
+        }
+        Insert: {
+          blockers?: string | null
+          created_at?: string | null
+          decisions?: string | null
+          id?: string
+          key_points?: string | null
+          updated_at?: string | null
+          week_start: string
+        }
+        Update: {
+          blockers?: string | null
+          created_at?: string | null
+          decisions?: string | null
+          id?: string
+          key_points?: string | null
+          updated_at?: string | null
+          week_start?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
