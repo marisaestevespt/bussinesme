@@ -96,20 +96,27 @@ export default function ExecutiveCapacidade() {
     };
   }, [scenarioProductsRaw.data, allProducts]);
 
-  const [hoursPerMonth, setHoursPerMonth] = useState<number | null>(null);
   const [adminPercent, setAdminPercent] = useState<number | null>(null);
-  const [teamSize, setTeamSize] = useState<number | null>(null);
-  const [clientFacing, setClientFacing] = useState<number | null>(null);
   const [businessPercent, setBusinessPercent] = useState<number | null>(null);
 
-  const effectiveHours = hoursPerMonth ?? (Number(scenario.data?.useful_hours_per_month) || 160);
+  // Compute total monthly hours from selected (client-facing) members
+  const WEEKS_PER_MONTH = 4.33;
+  const totalTeamMonthlyHours = useMemo(() => {
+    return members.reduce((sum, m) => sum + (Number(m.expected_weekly_hours) || 0) * WEEKS_PER_MONTH, 0);
+  }, [members]);
+
+  const clientFacingMonthlyHours = useMemo(() => {
+    return members
+      .filter(m => clientFacingIds.has(m.id))
+      .reduce((sum, m) => sum + (Number(m.expected_weekly_hours) || 0) * WEEKS_PER_MONTH, 0);
+  }, [members, clientFacingIds]);
+
   const effectiveAdmin = adminPercent ?? (Number(scenario.data?.admin_percent) || 20);
   const effectiveBusiness = businessPercent ?? (Number(scenario.data?.business_percent) || 0);
-  const effectiveTeamSize = teamSize ?? (Number(scenario.data?.team_size) || 1);
-  const effectiveClientFacing = clientFacing ?? (Number(scenario.data?.client_facing_count) || 1);
+  const effectiveTeamSize = members.length;
+  const effectiveClientFacing = members.filter(m => clientFacingIds.has(m.id)).length;
   const totalNonClientPercent = Math.min(effectiveAdmin + effectiveBusiness, 100);
-  const availableHoursPerPerson = effectiveHours * (1 - totalNonClientPercent / 100);
-  const availableHours = availableHoursPerPerson * effectiveClientFacing;
+  const availableHours = clientFacingMonthlyHours * (1 - totalNonClientPercent / 100);
 
   const ensureScenario = useMutation({
     mutationFn: async () => {
