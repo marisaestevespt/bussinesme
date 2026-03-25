@@ -209,6 +209,9 @@ export default function SopDetailPage() {
   const [linkedEntityType, setLinkedEntityType] = useState('geral');
   const [linkedEntityId, setLinkedEntityId] = useState<string>('');
   const [applyToAllActiveClients, setApplyToAllActiveClients] = useState(false);
+  const [sopType, setSopType] = useState('operacional');
+  const [sopRoleTitle, setSopRoleTitle] = useState('');
+  const [sopProductId, setSopProductId] = useState('');
 
   // Detect if this is an onboarding/offboarding SOP linked to a product
   const isOnboardingSop = useMemo(() => {
