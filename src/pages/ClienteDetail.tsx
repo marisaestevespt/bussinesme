@@ -612,24 +612,26 @@ export default function ClienteDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Dados Fiscais */}
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Dados Fiscais</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Nome Completo</Label>
-              <Input value={form.full_name || ''} onChange={e => update('full_name', e.target.value)} />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">NIF</Label>
-              <Input value={form.nif || ''} onChange={e => update('nif', e.target.value)} />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Morada Fiscal</Label>
-              <Input value={form.fiscal_address || ''} onChange={e => update('fiscal_address', e.target.value)} />
-            </div>
-          </CardContent>
-        </Card>
+        {/* Dados Fiscais — financial sensitive */}
+        {canSee('financial') && (
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm">Dados Fiscais</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Nome Completo</Label>
+                <Input value={form.full_name || ''} onChange={e => update('full_name', e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">NIF</Label>
+                <Input value={form.nif || ''} onChange={e => update('nif', e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Morada Fiscal</Label>
+                <Input value={form.fiscal_address || ''} onChange={e => update('fiscal_address', e.target.value)} />
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Observações e Documentos */}
         <Card>
@@ -818,40 +820,42 @@ export default function ClienteDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Payments filtered view */}
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm">Pagamentos</CardTitle>
-                <div className="flex items-center gap-2">
-                  {form.payment_method && form.payment_method !== 'pagamento_total' && (
-                    <Button size="sm" variant="secondary" onClick={generateInstallments}>
-                      Gerar Pagamentos
-                    </Button>
-                  )}
-                  <Button size="sm" variant="outline" onClick={() => setSaleOpen(true)}><Plus className="h-3 w-3 mr-1" />Novo Pagamento</Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-9 gap-2">
-                  <span>Status</span><span>Data</span><span>Descrição</span><span>Valor Base</span><span>Fatura</span><span>Produto</span><span>Mês</span><span>Ano</span><span>Docs</span>
-                </div>
-                {clientSales.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8 text-sm">Sem pagamentos associados</p>
-                 ) : clientSales.map(s => (
-                  <div key={s.id} className="px-4 py-2 text-xs grid grid-cols-9 gap-2 border-b items-center cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedPayment(s); setPaymentSheetOpen(true); }}>
-                    <span>{s.status}</span>
-                    <span>{s.payment_date || '—'}</span>
-                    <span className="truncate">{s.description || '—'}</span>
-                    <span>{Number(s.base_value).toFixed(2)}€</span>
-                    <span>{Number(s.invoice_total).toFixed(2)}€</span>
-                    <span className="truncate">{s.product || '—'}</span>
-                    <span>{s.sale_month || '—'}</span>
-                    <span>{s.sale_year || '—'}</span>
-                    <span className="truncate">{Array.isArray(s.documents) && s.documents.length > 0 ? `${s.documents.length} doc(s)` : '—'}</span>
+            {/* Payments filtered view — financial sensitive */}
+            {canSee('financial') && (
+              <Card>
+                <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                  <CardTitle className="text-sm">Pagamentos</CardTitle>
+                  <div className="flex items-center gap-2">
+                    {form.payment_method && form.payment_method !== 'pagamento_total' && (
+                      <Button size="sm" variant="secondary" onClick={generateInstallments}>
+                        Gerar Pagamentos
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline" onClick={() => setSaleOpen(true)}><Plus className="h-3 w-3 mr-1" />Novo Pagamento</Button>
                   </div>
-                ))}
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-9 gap-2">
+                    <span>Status</span><span>Data</span><span>Descrição</span><span>Valor Base</span><span>Fatura</span><span>Produto</span><span>Mês</span><span>Ano</span><span>Docs</span>
+                  </div>
+                  {clientSales.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8 text-sm">Sem pagamentos associados</p>
+                   ) : clientSales.map(s => (
+                    <div key={s.id} className="px-4 py-2 text-xs grid grid-cols-9 gap-2 border-b items-center cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedPayment(s); setPaymentSheetOpen(true); }}>
+                      <span>{s.status}</span>
+                      <span>{s.payment_date || '—'}</span>
+                      <span className="truncate">{s.description || '—'}</span>
+                      <span>{Number(s.base_value).toFixed(2)}€</span>
+                      <span>{Number(s.invoice_total).toFixed(2)}€</span>
+                      <span className="truncate">{s.product || '—'}</span>
+                      <span>{s.sale_month || '—'}</span>
+                      <span>{s.sale_year || '—'}</span>
+                      <span className="truncate">{Array.isArray(s.documents) && s.documents.length > 0 ? `${s.documents.length} doc(s)` : '—'}</span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
 
             <EntryDetailSheet sale={selectedPayment} open={paymentSheetOpen} onOpenChange={setPaymentSheetOpen} />
 
