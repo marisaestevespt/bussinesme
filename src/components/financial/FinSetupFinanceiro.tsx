@@ -221,7 +221,7 @@ export function FinSetupFinanceiro({ fin }: Props) {
                       <TableCell>{PERIODICITIES.find(p => p.value === s.periodicity)?.label || s.periodicity}</TableCell>
                       <TableCell className="text-right font-medium">{fmt(s.monthly_equivalent)}</TableCell>
                       <TableCell>{LOCATIONS.find(l => l.value === s.location)?.label || s.location}</TableCell>
-                      <TableCell><Badge variant="outline" className={s.status === 'ativo' ? 'bg-green-100 text-green-800' : s.status === 'pausado' ? 'bg-amber-100 text-amber-800' : 'bg-muted text-muted-foreground'}>{SUB_STATUS.find(st => st.value === s.status)?.label || s.status}</Badge></TableCell>
+                      <TableCell><Badge variant="outline" className={s.status === 'ativo' ? 'bg-success/10 text-success' : s.status === 'pausado' ? 'bg-warning/10 text-warning' : 'bg-muted text-muted-foreground'}>{SUB_STATUS.find(st => st.value === s.status)?.label || s.status}</Badge></TableCell>
                     </TableRow>
                 ))}
               </TableBody>
