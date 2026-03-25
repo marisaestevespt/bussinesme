@@ -18,14 +18,15 @@ import { startOfWeek, endOfWeek, format, subDays, addDays, parseISO, differenceI
 import { useTeamData } from '@/hooks/useTeamData';
 import { cn } from '@/lib/utils';
 import { WeeklyAlignDetailSheet, type DetailField } from '@/components/executive/WeeklyAlignDetailSheet';
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus, DollarSign, Users, Target, AlertTriangle, Save, UserPlus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus, DollarSign, Users, Target, AlertTriangle, Save, UserPlus, ExternalLink, Wallet, ArrowUpRight } from 'lucide-react';
 import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 export default function ExecutiveWeeklyAlign() {
   const now = new Date();
+  const navigate = useNavigate();
   const [weekOffset, setWeekOffset] = useState(0);
 
   const weekStart = useMemo(() => {
@@ -307,6 +308,34 @@ export default function ExecutiveWeeklyAlign() {
     },
   });
 
+  // ─── Financial summary for the month ───
+  const monthExpenses = useQuery({
+    queryKey: ['wa-expenses-month', currentMonth, currentYear],
+    queryFn: async () => {
+      const { data } = await supabase.from('financial_expenses').select('total_with_vat, category, status').eq('expense_month', currentMonth).eq('expense_year', currentYear);
+      return data || [];
+    },
+  });
+
+  const monthPayroll = useQuery({
+    queryKey: ['wa-payroll-month', currentMonth, currentYear],
+    queryFn: async () => {
+      const { data } = await supabase.from('financial_payroll').select('total_cost, status').eq('month', currentMonth).eq('year', currentYear);
+      return data || [];
+    },
+  });
+
+  const financialSummary = useMemo(() => {
+    const totalExpenses = (monthExpenses.data || []).reduce((s, e) => s + Number(e.total_with_vat || 0), 0);
+    const pendingExpenses = (monthExpenses.data || []).filter(e => e.status === 'por_pagar').reduce((s, e) => s + Number(e.total_with_vat || 0), 0);
+    const totalPayroll = (monthPayroll.data || []).reduce((s, p) => s + Number(p.total_cost || 0), 0);
+    const pendingPayroll = (monthPayroll.data || []).filter(p => p.status === 'por_pagar').reduce((s, p) => s + Number(p.total_cost || 0), 0);
+    const totalCosts = totalExpenses + totalPayroll;
+    const totalPending = pendingExpenses + pendingPayroll;
+    const balance = totalBilled - totalCosts;
+    return { totalExpenses, totalPayroll, totalCosts, totalPending, balance };
+  }, [monthExpenses.data, monthPayroll.data, totalBilled]);
+
   const capacityAlert = useMemo(() => {
     const activeMembers = teamMembers.filter((m: any) => m.status === 'ativo' || m.status === 'prestador');
     if (activeMembers.length === 0) return null;
@@ -579,44 +608,89 @@ export default function ExecutiveWeeklyAlign() {
           </CardContent></Card>
         </div>
 
-        {/* Capacity Alert */}
-        {capacityAlert && capacityAlert.pct >= 75 && (
-          <Card className={cn(
-            "border-l-4",
-            capacityAlert.pct >= 95 ? "border-l-destructive bg-destructive/5" : "border-l-amber-500 bg-amber-50/50"
-          )}>
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-4">
+        {/* Capacity & Financial Summary */}
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Capacity Alert - always visible */}
+          {capacityAlert && (
+            <Card className={cn(
+              "border-l-4",
+              capacityAlert.pct >= 95 ? "border-l-destructive bg-destructive/5" :
+              capacityAlert.pct >= 75 ? "border-l-amber-500 bg-amber-50/50" :
+              "border-l-emerald-500 bg-emerald-50/50"
+            )}>
+              <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <div className={cn(
                     "rounded-lg p-2 mt-0.5",
-                    capacityAlert.pct >= 95 ? "bg-destructive/10 text-destructive" : "bg-amber-100 text-amber-600"
+                    capacityAlert.pct >= 95 ? "bg-destructive/10 text-destructive" :
+                    capacityAlert.pct >= 75 ? "bg-amber-100 text-amber-600" :
+                    "bg-emerald-100 text-emerald-600"
                   )}>
-                    <UserPlus className="h-5 w-5" />
+                    <Users className="h-5 w-5" />
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-1 flex-1">
                     <p className="text-sm font-semibold">
                       {capacityAlert.pct >= 95
-                        ? '⚠️ Capacidade da equipa esgotada — considerar contratação'
-                        : '📊 Capacidade da equipa a ficar limitada'}
+                        ? '⚠️ Capacidade esgotada'
+                        : capacityAlert.pct >= 75
+                        ? '📊 Capacidade limitada'
+                        : '✅ Capacidade saudável'}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      A equipa está a {capacityAlert.pct}% de ocupação este mês ({capacityAlert.totalUsed}h de {capacityAlert.totalCapacity}h).
-                      {capacityAlert.overloadedCount > 0 && ` ${capacityAlert.overloadedCount} de ${capacityAlert.total} membros com ocupação acima de 85%.`}
+                      {capacityAlert.pct}% ocupação — {capacityAlert.totalUsed}h de {capacityAlert.totalCapacity}h
+                      {capacityAlert.overloadedCount > 0 && ` • ${capacityAlert.overloadedCount} membro(s) acima de 85%`}
                     </p>
-                    <Progress value={Math.min(capacityAlert.pct, 100)} className="h-2 w-48 mt-1" />
+                    <Progress value={Math.min(capacityAlert.pct, 100)} className="h-2 mt-1" />
+                    <Link to="/executive/productivity?tab=simulation" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1">
+                      Ver simulador <ArrowUpRight className="h-3 w-3" />
+                    </Link>
                   </div>
                 </div>
-                <Link to="/executive/productivity?tab=simulation">
-                  <Button variant="outline" size="sm" className="shrink-0 text-xs">
-                    <UserPlus className="h-3.5 w-3.5 mr-1.5" />
-                    Simular contratação
-                  </Button>
-                </Link>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Financial Summary */}
+          <Card className="border-l-4 border-l-primary">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="rounded-lg p-2 mt-0.5 bg-primary/10 text-primary">
+                  <Wallet className="h-5 w-5" />
+                </div>
+                <div className="space-y-2 flex-1">
+                  <p className="text-sm font-semibold">Financeiro — {MONTH_NAMES[currentMonth - 1]}</p>
+                  <div className="grid grid-cols-3 gap-3 text-xs">
+                    <div>
+                      <p className="text-muted-foreground">Faturação</p>
+                      <p className="font-semibold text-emerald-600">€{totalBilled.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Custos</p>
+                      <p className="font-semibold text-destructive">€{financialSummary.totalCosts.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Saldo</p>
+                      <p className={cn("font-semibold", financialSummary.balance >= 0 ? "text-emerald-600" : "text-destructive")}>
+                        €{financialSummary.balance.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                  {financialSummary.totalPending > 0 && (
+                    <p className="text-xs text-amber-600">⚠ €{financialSummary.totalPending.toLocaleString()} por pagar</p>
+                  )}
+                  <div className="flex gap-3 mt-1">
+                    <Link to="/hub/financeiro/entradas" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      Entradas <ArrowUpRight className="h-3 w-3" />
+                    </Link>
+                    <Link to="/hub/financeiro/saidas" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      Saídas <ArrowUpRight className="h-3 w-3" />
+                    </Link>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
-        )}
+        </div>
 
         <Separator />
 
@@ -763,9 +837,12 @@ export default function ExecutiveWeeklyAlign() {
 
         {/* 3 // Vendas & Faturação */}
         <section className="space-y-4">
-          <div className="flex items-center gap-3">
-            <h2 className="text-base font-semibold">3 // Vendas & Faturação</h2>
-            <DeltaBadge current={salesWeekTotal} previous={prevSalesWeekTotal} isCurrency />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h2 className="text-base font-semibold">3 // Vendas & Faturação</h2>
+              <DeltaBadge current={salesWeekTotal} previous={prevSalesWeekTotal} isCurrency />
+            </div>
+            <Link to="/hub/comercial/vendas" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">Ver vendas <ArrowUpRight className="h-3 w-3" /></Link>
           </div>
           <Card><CardContent className="p-4 space-y-3">
               <h3 className="text-sm font-medium">Status faturação — {getMonthName(currentMonth)}</h3>
@@ -795,7 +872,7 @@ export default function ExecutiveWeeklyAlign() {
             {(salesWeek.data || []).length === 0 ? <p className="text-xs text-muted-foreground">Sem vendas esta semana</p> :
               <Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Total</TableHead></TableRow></TableHeader>
                 <TableBody>{(salesWeek.data || []).map(s => (
-                  <TableRow key={s.id} className={clickableRow} onClick={() => openSaleDetail(s)}>
+                  <TableRow key={s.id} className={clickableRow} onClick={() => navigate(`/hub/comercial/vendas/${s.id}`)}>
                     <TableCell className="text-xs">{s.sale_id}</TableCell><TableCell className="text-xs">{s.client}</TableCell><TableCell className="text-xs">{s.product}</TableCell><TableCell className="text-xs">€{Number(s.invoice_total).toLocaleString()}</TableCell>
                   </TableRow>
                 ))}</TableBody>
@@ -875,8 +952,12 @@ export default function ExecutiveWeeklyAlign() {
 
         {/* 5 // Clientes */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">5 // Clientes</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold">5 // Clientes</h2>
+            <Link to="/hub/clientes" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">Ver todos <ArrowUpRight className="h-3 w-3" /></Link>
+          </div>
           <Tabs defaultValue="onboarding">
+            <TabsList><TabsTrigger value="onboarding">Em onboarding</TabsTrigger><TabsTrigger value="renovacoes">Próximas renovações</TabsTrigger></TabsList>
             <TabsList><TabsTrigger value="onboarding">Em onboarding</TabsTrigger><TabsTrigger value="renovacoes">Próximas renovações</TabsTrigger></TabsList>
             <TabsContent value="onboarding">
               <Card><div className="overflow-x-auto">
@@ -886,7 +967,7 @@ export default function ExecutiveWeeklyAlign() {
                 <TableBody>
                   {onboardingClients.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Nenhum</TableCell></TableRow> :
                     onboardingClients.map(c => (
-                      <TableRow key={c.id} className={clickableRow} onClick={() => openClientDetail(c)}>
+                      <TableRow key={c.id} className={clickableRow} onClick={() => navigate(`/hub/clientes/${c.id}`)}>
                         <TableCell className="text-xs">{c.client_id}</TableCell>
                         <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
                         <TableCell><Badge variant="secondary" className="text-[10px]">{c.status}</Badge></TableCell>
@@ -909,7 +990,7 @@ export default function ExecutiveWeeklyAlign() {
                 <TableBody>
                   {renewalClients.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Nenhum</TableCell></TableRow> :
                     renewalClients.map(c => (
-                      <TableRow key={c.id} className={clickableRow} onClick={() => openClientDetail(c)}>
+                      <TableRow key={c.id} className={clickableRow} onClick={() => navigate(`/hub/clientes/${c.id}`)}>
                         <TableCell className="text-xs">{c.client_id}</TableCell>
                         <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
                         <TableCell><Badge variant="secondary" className="text-[10px]">{c.status}</Badge></TableCell>
@@ -1046,9 +1127,16 @@ export default function ExecutiveWeeklyAlign() {
 
         {/* 6 // Operação & Esta semana */}
         <section className="space-y-4">
-          <div className="flex items-center gap-3">
-            <h2 className="text-base font-semibold">6 // Operação & Esta semana</h2>
-            <span className="text-xs text-muted-foreground">{tasksWeekDone}/{tasksWeekCount} tarefas • {meetingsWeekCount} reuniões • {contentWeekCount} conteúdos</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h2 className="text-base font-semibold">6 // Operação & Esta semana</h2>
+              <span className="text-xs text-muted-foreground">{tasksWeekDone}/{tasksWeekCount} tarefas • {meetingsWeekCount} reuniões • {contentWeekCount} conteúdos</span>
+            </div>
+            <div className="flex gap-3">
+              <Link to="/hub/projetos" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">Projetos <ArrowUpRight className="h-3 w-3" /></Link>
+              <Link to="/hub/tarefas" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">Tarefas <ArrowUpRight className="h-3 w-3" /></Link>
+              <Link to="/hub/reunioes" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">Reuniões <ArrowUpRight className="h-3 w-3" /></Link>
+            </div>
           </div>
 
           <Card><CardContent className="p-4">
@@ -1059,7 +1147,7 @@ export default function ExecutiveWeeklyAlign() {
                   <TableHead>Status</TableHead><TableHead>Projeto</TableHead><TableHead>Departamento</TableHead><TableHead>Deadline</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>{(projects.data || []).slice(0, 10).map(p => (
-                  <TableRow key={p.id} className={clickableRow} onClick={() => openProjectDetail(p)}>
+                  <TableRow key={p.id} className={clickableRow} onClick={() => navigate(`/hub/projetos/${p.id}`)}>
                     <TableCell><Badge variant="secondary" className="text-[10px]">{p.status}</Badge></TableCell>
                     <TableCell className="text-sm">{p.name}</TableCell>
                     <TableCell className="text-xs">{p.department || '—'}</TableCell>
