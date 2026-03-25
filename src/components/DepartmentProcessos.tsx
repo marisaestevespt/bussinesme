@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Plus, Trash2, FileText, RotateCw } from 'lucide-react';
+import { Plus, Trash2, FileText, RotateCw, UserPlus } from 'lucide-react';
 
 const SOP_STATUSES = [
   { value: 'para_criar', label: 'Para criar', color: 'bg-muted text-muted-foreground' },

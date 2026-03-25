@@ -1,0 +1,2 @@
+ALTER TABLE public.sop_onboarding_templates DROP CONSTRAINT IF EXISTS sop_onboarding_templates_role_title_key;
+ALTER TABLE public.sop_onboarding_templates ADD CONSTRAINT sop_onboarding_templates_role_dept_unique UNIQUE(role_title, department);
