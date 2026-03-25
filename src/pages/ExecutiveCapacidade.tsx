@@ -496,10 +496,15 @@ export default function ExecutiveCapacidade() {
                               <Label className="text-[10px]">Horas/cliente/mês</Label>
                               <Input
                                 type="number"
-                                className="h-7 text-sm bg-muted"
-                                value={hpc}
-                                readOnly
-                                title="Sincronizado do produto"
+                                className="h-7 text-sm"
+                                defaultValue={hpc}
+                                onBlur={e => {
+                                  const val = parseFloat(e.target.value);
+                                  if (!isNaN(val) && val !== hpc) {
+                                    updateScenarioProduct.mutate({ id: item.id, hours_per_client_month: val });
+                                  }
+                                }}
+                                title="Valor do produto (editável para override)"
                               />
                             </div>
                             <div className="space-y-1">
