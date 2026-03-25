@@ -869,7 +869,7 @@ export default function ExecutiveWeeklyAlign() {
             {(salesWeek.data || []).length === 0 ? <p className="text-xs text-muted-foreground">Sem vendas esta semana</p> :
               <Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Total</TableHead></TableRow></TableHeader>
                 <TableBody>{(salesWeek.data || []).map(s => (
-                  <TableRow key={s.id} className={clickableRow} onClick={() => openSaleDetail(s)}>
+                  <TableRow key={s.id} className={clickableRow} onClick={() => navigate(`/hub/comercial/vendas/${s.id}`)}>
                     <TableCell className="text-xs">{s.sale_id}</TableCell><TableCell className="text-xs">{s.client}</TableCell><TableCell className="text-xs">{s.product}</TableCell><TableCell className="text-xs">€{Number(s.invoice_total).toLocaleString()}</TableCell>
                   </TableRow>
                 ))}</TableBody>
@@ -1144,7 +1144,7 @@ export default function ExecutiveWeeklyAlign() {
                   <TableHead>Status</TableHead><TableHead>Projeto</TableHead><TableHead>Departamento</TableHead><TableHead>Deadline</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>{(projects.data || []).slice(0, 10).map(p => (
-                  <TableRow key={p.id} className={clickableRow} onClick={() => openProjectDetail(p)}>
+                  <TableRow key={p.id} className={clickableRow} onClick={() => navigate(`/hub/projetos/${p.id}`)}>
                     <TableCell><Badge variant="secondary" className="text-[10px]">{p.status}</Badge></TableCell>
                     <TableCell className="text-sm">{p.name}</TableCell>
                     <TableCell className="text-xs">{p.department || '—'}</TableCell>
