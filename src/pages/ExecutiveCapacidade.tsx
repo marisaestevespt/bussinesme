@@ -25,6 +25,31 @@ export default function ExecutiveCapacidade() {
   const { clients } = useClients();
   const allClients = clients.data || [];
 
+  // Fetch active team members with their weekly hours
+  const teamMembers = useQuery({
+    queryKey: ['team-members-capacity'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('id, full_name, expected_weekly_hours, status, role_title')
+        .in('status', ['ativo', 'prestador'])
+        .order('full_name');
+      if (error) throw error;
+      return (data || []) as { id: string; full_name: string; expected_weekly_hours: number | null; status: string; role_title: string | null }[];
+    },
+  });
+  const members = teamMembers.data || [];
+
+  // Track which members are "client-facing" (selected for capacity)
+  const [clientFacingIds, setClientFacingIds] = useState<Set<string>>(new Set());
+  const [cfInitialized, setCfInitialized] = useState(false);
+
+  // Initialize: all members are client-facing by default
+  if (members.length > 0 && !cfInitialized) {
+    setClientFacingIds(new Set(members.map(m => m.id)));
+    setCfInitialized(true);
+  }
+
   const realClientCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     const activeStatuses = ['ativo', 'em_onboarding', 'altura_renovacao'];
