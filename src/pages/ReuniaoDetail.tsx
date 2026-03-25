@@ -566,7 +566,7 @@ export default function ReuniaoDetailPage() {
             </div>
 
             {/* Add to Calendar */}
-            <AddToCalendarButtons event={{ title: m.title, startDate: m.date_time, notes: m.notes, meetingUrl: m.meeting_url }} />
+            <AddToCalendarButtons event={{ title: m.title, startDate: m.date_time, meetingUrl: m.meeting_url }} />
 
 
             {participantProfiles.length > 0 && (
