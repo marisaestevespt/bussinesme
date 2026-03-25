@@ -134,6 +134,8 @@ const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2,
 
 function HiringSimulator({ members, entries }: { members: any[]; entries: any[] }) {
   const [phantoms, setPhantoms] = useState<PhantomMember[]>([]);
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const departments = useMemo(() => {
     const depts = PROCESS_DEPARTMENTS.map(d => d.label);
