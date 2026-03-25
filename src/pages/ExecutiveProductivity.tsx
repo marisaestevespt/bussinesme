@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subWeeks } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { MemberProductivityDetail } from '@/components/productivity/MemberProductivityDetail';
+
 
 const CATEGORIES = [
   { value: 'cliente', label: 'Cliente' },
@@ -84,13 +84,8 @@ export default function ExecutiveProductivity() {
     },
   });
 
-  const productsQ = useQuery({
-    queryKey: ['products'],
-    queryFn: async () => {
-      const { data } = await supabase.from('products').select('id, name, monthly_hours_per_client');
-      return (data || []) as any[];
-    },
-  });
+
+
 
   const projects = useQuery({
     queryKey: ['projects_list'],
@@ -108,13 +103,8 @@ export default function ExecutiveProductivity() {
     },
   });
 
-  const profiles = useQuery({
-    queryKey: ['profiles_list'],
-    queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id, full_name');
-      return (data || []) as any[];
-    },
-  });
+
+
 
   const capacityScenarios = useQuery({
     queryKey: ['capacity_scenarios'],
