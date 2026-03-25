@@ -709,6 +709,8 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
   const { start, end } = getDateRange('month');
   const monthEntries = entries.filter(e => { const d = new Date(e.entry_date); return d >= start && d <= end; });
 
+  const CLIENT_WORK_AREAS = ['cliente_servico', 'cliente_comercial', 'cliente_administrativo'];
+
   const memberCapacity = useMemo(() => {
     return activeMembers.map(m => {
       const weeklyH = Number(m.expected_weekly_hours) || 0;
@@ -717,7 +719,10 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
       const clientH = monthEntries.filter(e => e.member_id === m.id && (e.client_id || e.category === 'cliente')).reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
       const internalH = actualH - clientH;
       const usagePct = monthlyH > 0 ? Math.round((actualH / monthlyH) * 100) : 0;
-      return { id: m.id, name: m.full_name, role: m.role_title || '—', weeklyH, monthlyH, actualH: Number(actualH.toFixed(1)), clientH: Number(clientH.toFixed(1)), internalH: Number(internalH.toFixed(1)), usagePct, remainingH: Number((monthlyH - actualH).toFixed(1)) };
+      const areas: string[] = Array.isArray((m as any).work_areas) ? (m as any).work_areas : [];
+      const isClientFacing = areas.some(a => CLIENT_WORK_AREAS.includes(a));
+      const areaLabel = isClientFacing ? 'Cliente' : areas.includes('interno') ? 'Interno' : '—';
+      return { id: m.id, name: m.full_name, role: m.role_title || '—', weeklyH, monthlyH, actualH: Number(actualH.toFixed(1)), clientH: Number(clientH.toFixed(1)), internalH: Number(internalH.toFixed(1)), usagePct, remainingH: Number((monthlyH - actualH).toFixed(1)), areaLabel, isClientFacing };
     }).sort((a, b) => b.usagePct - a.usagePct);
   }, [activeMembers, monthEntries]);
 
@@ -810,7 +815,14 @@ function GrowthScenarioSection({ members, clients, products }: { members: any[];
   const [newClients, setNewClients] = useState(5);
   const [selectedProduct, setSelectedProduct] = useState(products[0]?.id || '');
 
-  const activeMembers = members.filter((m: any) => m.status === 'ativo' || m.status === 'prestador');
+  const CLIENT_WORK_AREAS = ['cliente_servico', 'cliente_comercial', 'cliente_administrativo'];
+  const allActive = members.filter((m: any) => m.status === 'ativo' || m.status === 'prestador');
+  // Only consider members who work with clients; fall back to all if no one has work_areas yet
+  const clientFacingActive = allActive.filter((m: any) => {
+    const areas: string[] = Array.isArray(m.work_areas) ? m.work_areas : [];
+    return areas.some(a => CLIENT_WORK_AREAS.includes(a));
+  });
+  const activeMembers = clientFacingActive.length > 0 ? clientFacingActive : allActive;
   const activeClients = clients.filter((c: any) => c.status === 'ativo');
 
   const product = products.find((p: Product) => p.id === selectedProduct);
