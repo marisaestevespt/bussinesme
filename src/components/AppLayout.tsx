@@ -6,6 +6,7 @@ import { NotificationBell } from '@/components/NotificationBell';
 import { FavoriteButton } from '@/components/FavoriteButton';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useSystemNotifications } from '@/hooks/useSystemNotifications';
+import { OnboardingTour } from '@/components/OnboardingTour';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { settings } = useBusinessSettings();
