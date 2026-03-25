@@ -13,25 +13,10 @@ function cleanPayload(obj: Record<string, any>): Record<string, any> {
 
 const currentYear = new Date().getFullYear();
 
-export const OBJECTIVE_AREAS = [
-  { value: 'financeiro', label: 'Financeiro' },
-  { value: 'inovacao', label: 'Inovação & Desenvolvimento' },
-  { value: 'reconhecimento', label: 'Reconhecimento & Autoridade' },
-  { value: 'operacao', label: 'Operação' },
-  { value: 'outro', label: 'Outro' },
-];
-
-export const OBJECTIVE_STATUSES = [
-  { value: 'por_iniciar', label: 'Por iniciar' },
-  { value: 'doing', label: 'Doing' },
-  { value: 'atingido', label: 'Atingido' },
-];
-
-export const GOAL_STATUSES = [
-  { value: 'por_iniciar', label: 'Por iniciar' },
-  { value: 'doing', label: 'Doing' },
-  { value: 'atingido', label: 'Atingido!!' },
-];
+/** Shared month name helper */
+export function getMonthName(m: number) {
+  return ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][m - 1] || '';
+}
 
 export const SALES_ROUTINES = [
   { key: 'followups_leads', label: 'Follow-ups de Leads' },
@@ -40,105 +25,13 @@ export const SALES_ROUTINES = [
   { key: 'atualizacao_crm', label: 'Atualização CRM' },
 ];
 
-export function areaLabel(val: string) {
-  return OBJECTIVE_AREAS.find(a => a.value === val)?.label || val;
-}
-
-export function statusLabel(val: string) {
-  return [...OBJECTIVE_STATUSES, ...GOAL_STATUSES].find(s => s.value === val)?.label || val;
-}
-
-export function getMonthName(m: number) {
-  return ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][m - 1] || '';
-}
-
-export function getQuarterMonths(q: number) {
-  const start = (q - 1) * 3 + 1;
-  return [start, start + 1, start + 2];
-}
-
-export function getMonthRange(m: number, year: number) {
-  const start = new Date(year, m - 1, 1);
-  const end = new Date(year, m, 0);
-  return { start, end };
-}
-
+/**
+ * Executive data hook — Brain Dump, Monthly Checklists, Quarterly Analysis, Weekly Routines.
+ * Planning objectives/goals are handled by usePlanningData.
+ */
 export function useExecutiveData(year = currentYear) {
   const qc = useQueryClient();
-  const key = ['executive', year];
   const invalidate = () => qc.invalidateQueries({ queryKey: ['executive'] });
-
-  // Objectives
-  const objectives = useQuery({
-    queryKey: [...key, 'objectives'],
-    queryFn: async () => {
-      const { data } = await supabase.from('executive_objectives').select('*').eq('year', year).order('created_at');
-      return data || [];
-    },
-  });
-
-  const upsertObjective = useMutation({
-    mutationFn: async (raw: any) => {
-      const obj = cleanPayload(raw);
-      if (obj.id) {
-        const { error } = await supabase.from('executive_objectives').update(obj as any).eq('id', obj.id);
-        if (error) throw error;
-      } else {
-        delete obj.id;
-        const { error } = await supabase.from('executive_objectives').insert({ ...obj, year } as any);
-        if (error) throw error;
-      }
-    },
-    onSuccess: invalidate,
-    onError: (e: any) => toast.error('Erro ao guardar objetivo: ' + (e.message || e)),
-  });
-
-  const deleteObjective = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('executive_objectives').delete().eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: invalidate,
-  });
-
-  // Goals (Metas)
-  const goals = useQuery({
-    queryKey: [...key, 'goals'],
-    queryFn: async () => {
-      const { data } = await supabase.from('executive_goals').select('*').eq('year', year).order('target_date');
-      return data || [];
-    },
-  });
-
-  const upsertGoal = useMutation({
-    mutationFn: async (raw: any) => {
-      const g = cleanPayload(raw);
-      // Auto-calculate month and quarter from target_date
-      if (g.target_date) {
-        const d = new Date(g.target_date as string);
-        g.month = d.getMonth() + 1;
-        g.quarter = Math.ceil((d.getMonth() + 1) / 3);
-      }
-      if (g.id) {
-        const { error } = await supabase.from('executive_goals').update(g as any).eq('id', g.id);
-        if (error) throw error;
-      } else {
-        delete g.id;
-        const { error } = await supabase.from('executive_goals').insert({ ...g, year } as any);
-        if (error) throw error;
-      }
-    },
-    onSuccess: invalidate,
-    onError: (e: any) => toast.error('Erro ao guardar meta: ' + (e.message || e)),
-  });
-
-  const deleteGoal = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('executive_goals').delete().eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: invalidate,
-  });
 
   // Brain Dump
   const brainDump = useQuery({
@@ -175,7 +68,7 @@ export function useExecutiveData(year = currentYear) {
 
   // Monthly Checklists
   const monthlyChecklists = useQuery({
-    queryKey: [...key, 'monthly_checklists'],
+    queryKey: ['executive', year, 'monthly_checklists'],
     queryFn: async () => {
       const { data } = await supabase.from('executive_monthly_checklists').select('*').eq('year', year).order('created_at');
       return data || [];
@@ -208,7 +101,7 @@ export function useExecutiveData(year = currentYear) {
 
   // Quarterly Analysis
   const quarterlyAnalysis = useQuery({
-    queryKey: [...key, 'quarterly_analysis'],
+    queryKey: ['executive', year, 'quarterly_analysis'],
     queryFn: async () => {
       const { data } = await supabase.from('executive_quarterly_analysis').select('*').eq('year', year).order('quarter');
       return data || [];
@@ -259,41 +152,11 @@ export function useExecutiveData(year = currentYear) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['executive', 'routines'] }),
   });
 
-  // Computed helpers
-  const allObjectives = objectives.data || [];
-  const allGoals = goals.data || [];
-
-  const goalsForMonth = (m: number) => allGoals.filter(g => g.month === m);
-  const goalsForQuarter = (q: number) => allGoals.filter(g => g.quarter === q);
-  const goalsForObjective = (objId: string) => allGoals.filter(g => g.objective_id === objId);
-
-  const monthProgress = (m: number) => {
-    const mg = goalsForMonth(m);
-    if (mg.length === 0) return 0;
-    return Math.round((mg.filter(g => g.status === 'atingido').length / mg.length) * 100);
-  };
-
-  const quarterProgress = (q: number) => {
-    const qg = goalsForQuarter(q);
-    if (qg.length === 0) return 0;
-    return Math.round((qg.filter(g => g.status === 'atingido').length / qg.length) * 100);
-  };
-
-  const objectiveProgress = (objId: string) => {
-    const og = goalsForObjective(objId);
-    if (og.length === 0) return 0;
-    return Math.round((og.filter(g => g.status === 'atingido').length / og.length) * 100);
-  };
-
   return {
-    objectives, allObjectives, upsertObjective, deleteObjective,
-    goals, allGoals, upsertGoal, deleteGoal,
     brainDump, addBrainDump, toggleBrainDump, deleteBrainDump,
     monthlyChecklists, addMonthlyCheckItem, toggleMonthlyCheckItem, deleteMonthlyCheckItem,
     quarterlyAnalysis, upsertQuarterlyAnalysis,
     weeklyRoutines, toggleRoutine, currentWeekStart,
-    goalsForMonth, goalsForQuarter, goalsForObjective,
-    monthProgress, quarterProgress, objectiveProgress,
     invalidate,
   };
 }
