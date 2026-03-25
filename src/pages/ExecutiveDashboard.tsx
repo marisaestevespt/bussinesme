@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Target, CalendarCheck, Lightbulb, Rocket, Clock, Trash2, Plus, Briefcase, MessageSquareHeart, AlertTriangle, Calculator, Zap } from 'lucide-react';
+import { Target, CalendarCheck, Lightbulb, Rocket, Clock, Trash2, Plus, Briefcase, MessageSquareHeart, AlertTriangle, Calculator, Zap, FileText } from 'lucide-react';
 import { useExecutiveData } from '@/hooks/useExecutiveData';
 import { usePlanningData, planAreaLabel, planStatusLabel } from '@/hooks/usePlanningData';
 import { ExecutiveKpiAlerts } from '@/components/executive/ExecutiveKpiAlerts';
@@ -67,6 +67,9 @@ export default function ExecutiveDashboard() {
               </Link>
               <Link to="/executive/recommendations" className="flex items-center gap-3 rounded-lg p-2.5 text-sm font-medium hover:bg-primary/10 transition-colors group">
                 <MessageSquareHeart className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Caixa das Recomendações
+              </Link>
+              <Link to="/executive/processos" className="flex items-center gap-3 rounded-lg p-2.5 text-sm font-medium hover:bg-primary/10 transition-colors group">
+                <FileText className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Processos da Administração
               </Link>
             </CardContent>
           </Card>
