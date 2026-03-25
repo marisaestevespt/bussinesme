@@ -124,7 +124,11 @@ interface PhantomMember {
   department: string;
   weeklyHours: number;
   clientPct: number;
+  contractType: 'colaborador' | 'prestador';
+  grossSalary: number;
 }
+
+const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
 function HiringSimulator({ members, entries }: { members: any[]; entries: any[] }) {
   const [phantoms, setPhantoms] = useState<PhantomMember[]>([]);
@@ -141,6 +145,8 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
       department: departments[0] || '__none__',
       weeklyHours: 40,
       clientPct: 70,
+      contractType: 'colaborador',
+      grossSalary: 1000,
     }]);
   };
 
@@ -161,12 +167,10 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
   });
 
   const simulation = useMemo(() => {
-    // Current state
     const currentCapacity = members.reduce((s, m) => s + (Number(m.expected_weekly_hours) || 0) * WEEKS_PER_MONTH, 0);
     const currentRegistered = monthEntries.reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
     const currentClientH = monthEntries.filter(e => e.client_id || e.category === 'cliente').reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
 
-    // With phantoms
     const phantomCapacity = phantoms.reduce((s, p) => s + p.weeklyHours * WEEKS_PER_MONTH, 0);
     const phantomClientH = phantoms.reduce((s, p) => s + p.weeklyHours * WEEKS_PER_MONTH * (p.clientPct / 100), 0);
 
@@ -174,7 +178,6 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
     const newUsage = newCapacity > 0 ? Math.round((currentRegistered / newCapacity) * 100) : 0;
     const currentUsage = currentCapacity > 0 ? Math.round((currentRegistered / currentCapacity) * 100) : 0;
 
-    // By department impact
     const deptImpact: Record<string, { current: number; added: number }> = {};
     members.forEach(m => {
       const dept = m.department || 'Sem departamento';
@@ -186,6 +189,43 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
       if (!deptImpact[dept]) deptImpact[dept] = { current: 0, added: 0 };
       deptImpact[dept].added += p.weeklyHours * WEEKS_PER_MONTH;
     });
+
+    // Financial calculations
+    const financialPerMember = phantoms.map(p => {
+      const gross = p.grossSalary;
+      if (p.contractType === 'colaborador') {
+        const ssEmployer = Math.round(gross * 0.2375 * 100) / 100;
+        const ssEmployee = Math.round(gross * 0.11 * 100) / 100;
+        const mealAllowance = 6 * 22; // ~132€/month (6€/day * 22 days)
+        const totalCostMonth = gross + ssEmployer + mealAllowance;
+        const totalCostYear = totalCostMonth * 14; // 14 months (with holiday & christmas bonus)
+        return {
+          id: p.id,
+          name: p.name,
+          type: 'Colaborador',
+          gross,
+          ssEmployer,
+          mealAllowance,
+          totalCostMonth: Math.round(totalCostMonth * 100) / 100,
+          totalCostYear: Math.round(totalCostYear * 100) / 100,
+        };
+      } else {
+        // Prestador — no SS employer, no meal, 12 months
+        return {
+          id: p.id,
+          name: p.name,
+          type: 'Prestador',
+          gross,
+          ssEmployer: 0,
+          mealAllowance: 0,
+          totalCostMonth: gross,
+          totalCostYear: gross * 12,
+        };
+      }
+    });
+
+    const totalMonthlyCost = financialPerMember.reduce((s, f) => s + f.totalCostMonth, 0);
+    const totalAnnualCost = financialPerMember.reduce((s, f) => s + f.totalCostYear, 0);
 
     return {
       currentCapacity: Math.round(currentCapacity),
@@ -203,13 +243,16 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
         atual: Math.round(data.current),
         novo: Math.round(data.current + data.added),
       })),
+      financialPerMember,
+      totalMonthlyCost,
+      totalAnnualCost,
     };
   }, [members, monthEntries, phantoms]);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">Adicione membros fictícios para simular o impacto na capacidade.</p>
+        <p className="text-sm text-muted-foreground">Adicione membros fictícios para simular o impacto na capacidade e nos custos.</p>
         <Button size="sm" onClick={addPhantom}><UserPlus className="h-3.5 w-3.5 mr-1.5" />Adicionar membro</Button>
       </div>
 
@@ -220,6 +263,8 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
               <TableHeader><TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Departamento</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead className="text-right">Salário bruto (€)</TableHead>
                 <TableHead className="text-right">h/semana</TableHead>
                 <TableHead className="text-right">% Cliente</TableHead>
                 <TableHead className="w-10"></TableHead>
@@ -228,16 +273,28 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
                 {phantoms.map(p => (
                   <TableRow key={p.id}>
                     <TableCell>
-                      <Input value={p.name} onChange={e => updatePhantom(p.id, 'name', e.target.value)} className="h-7 text-sm w-40" />
+                      <Input value={p.name} onChange={e => updatePhantom(p.id, 'name', e.target.value)} className="h-7 text-sm w-36" />
                     </TableCell>
                     <TableCell>
                       <Select value={p.department} onValueChange={v => updatePhantom(p.id, 'department', v)}>
-                        <SelectTrigger className="h-7 text-sm w-36"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="h-7 text-sm w-32"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                           <SelectItem value="__none__">Sem departamento</SelectItem>
                         </SelectContent>
                       </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Select value={p.contractType} onValueChange={v => updatePhantom(p.id, 'contractType', v)}>
+                        <SelectTrigger className="h-7 text-sm w-28"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="colaborador">Colaborador</SelectItem>
+                          <SelectItem value="prestador">Prestador</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Input type="number" value={p.grossSalary} onChange={e => updatePhantom(p.id, 'grossSalary', Number(e.target.value))} className="h-7 text-sm w-24 text-right ml-auto" />
                     </TableCell>
                     <TableCell className="text-right">
                       <Input type="number" value={p.weeklyHours} onChange={e => updatePhantom(p.id, 'weeklyHours', Number(e.target.value))} className="h-7 text-sm w-16 text-right ml-auto" />
@@ -258,7 +315,7 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
         </Card>
       )}
 
-      {/* Before / After comparison */}
+      {/* Before / After comparison — Capacity */}
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Situação atual</CardTitle></CardHeader>
@@ -284,6 +341,58 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
           </CardContent>
         </Card>
       </div>
+
+      {/* Financial Impact */}
+      {phantoms.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2"><Euro className="h-4 w-4" /> Impacto financeiro</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border p-3 space-y-1">
+                <p className="text-xs text-muted-foreground">Custo mensal adicional</p>
+                <p className="text-lg font-bold text-destructive">{fmt(simulation.totalMonthlyCost)}</p>
+              </div>
+              <div className="rounded-lg border p-3 space-y-1">
+                <p className="text-xs text-muted-foreground">Custo anual adicional</p>
+                <p className="text-lg font-bold text-destructive">{fmt(simulation.totalAnnualCost)}</p>
+                <p className="text-[10px] text-muted-foreground">Colaboradores: 14 meses · Prestadores: 12 meses</p>
+              </div>
+            </div>
+
+            <Table>
+              <TableHeader><TableRow>
+                <TableHead>Membro</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead className="text-right">Bruto</TableHead>
+                <TableHead className="text-right">SS Empresa</TableHead>
+                <TableHead className="text-right">Sub. Alimentação</TableHead>
+                <TableHead className="text-right font-semibold">Custo/mês</TableHead>
+                <TableHead className="text-right font-semibold">Custo/ano</TableHead>
+              </TableRow></TableHeader>
+              <TableBody>
+                {simulation.financialPerMember.map(f => (
+                  <TableRow key={f.id}>
+                    <TableCell className="text-sm">{f.name}</TableCell>
+                    <TableCell><Badge variant="outline" className="text-xs">{f.type}</Badge></TableCell>
+                    <TableCell className="text-right text-sm">{fmt(f.gross)}</TableCell>
+                    <TableCell className="text-right text-sm">{f.ssEmployer > 0 ? fmt(f.ssEmployer) : '—'}</TableCell>
+                    <TableCell className="text-right text-sm">{f.mealAllowance > 0 ? fmt(f.mealAllowance) : '—'}</TableCell>
+                    <TableCell className="text-right text-sm font-medium">{fmt(f.totalCostMonth)}</TableCell>
+                    <TableCell className="text-right text-sm font-medium">{fmt(f.totalCostYear)}</TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="border-t-2">
+                  <TableCell colSpan={5} className="text-sm font-semibold text-right">Total</TableCell>
+                  <TableCell className="text-right font-bold text-destructive">{fmt(simulation.totalMonthlyCost)}</TableCell>
+                  <TableCell className="text-right font-bold text-destructive">{fmt(simulation.totalAnnualCost)}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Department impact */}
       {phantoms.length > 0 && simulation.deptImpact.some(d => d.novo !== d.atual) && (
