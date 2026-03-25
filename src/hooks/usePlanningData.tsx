@@ -376,7 +376,7 @@ export function usePlanningData(year = currentYear) {
   const autoTimeEntries = useQuery({
     queryKey: ['auto-time-entries', year],
     queryFn: async () => {
-      const { data } = await supabase.from('time_entries').select('duration,entry_month').eq('entry_year', year);
+      const { data } = await supabase.from('time_entries').select('duration,entry_month,category,client_id').eq('entry_year', year);
       return data || [];
     },
   });
@@ -387,7 +387,7 @@ export function usePlanningData(year = currentYear) {
     queryFn: async () => {
       const startDate = `${year}-01-01`;
       const endDate = `${year}-12-31`;
-      const { data } = await supabase.from('tasks').select('id,updated_at').eq('status', 'concluida').gte('updated_at', startDate).lte('updated_at', endDate + 'T23:59:59');
+      const { data } = await supabase.from('tasks').select('id,updated_at,department').eq('status', 'concluida').gte('updated_at', startDate).lte('updated_at', endDate + 'T23:59:59');
       return data || [];
     },
   });
