@@ -117,6 +117,21 @@ function useMyTeamMember() {
   });
 }
 
+function useMyOnboarding(teamMemberId: string | undefined) {
+  return useQuery({
+    queryKey: ['my-onboarding', teamMemberId],
+    enabled: !!teamMemberId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('member_onboarding')
+        .select('*')
+        .eq('member_id', teamMemberId!)
+        .order('sort_order');
+      return data || [];
+    },
+  });
+}
+
 function useMyTasks() {
   const { user } = useAuth();
   return useQuery({
