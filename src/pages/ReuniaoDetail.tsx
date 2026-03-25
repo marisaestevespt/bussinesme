@@ -27,6 +27,7 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { toast } from 'sonner';
 import { logAudit } from '@/lib/auditLog';
 import { BackNavigation } from '@/components/BackNavigation';
+import { AddToCalendarButtons } from '@/components/AddToCalendarButtons';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
@@ -564,7 +565,10 @@ export default function ReuniaoDetailPage() {
               />
             </div>
 
-            {/* Participants */}
+            {/* Add to Calendar */}
+            <AddToCalendarButtons event={{ title: m.title, startDate: m.date_time, meetingUrl: m.meeting_url }} />
+
+
             {participantProfiles.length > 0 && (
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> Participantes</Label>
