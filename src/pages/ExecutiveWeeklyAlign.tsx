@@ -487,7 +487,92 @@ export default function ExecutiveWeeklyAlign() {
           <p className="text-xs text-muted-foreground text-center -mt-2">Dados de semanas anteriores são apenas de leitura.</p>
         )}
 
-        {/* 1 // Metas */}
+        {/* KPI Summary Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Card><CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Faturação (semana)</span>
+            </div>
+            <p className="text-lg font-bold">€{salesWeekTotal.toLocaleString()}</p>
+            <DeltaBadge current={salesWeekTotal} previous={prevSalesWeekTotal} isCurrency />
+          </CardContent></Card>
+
+          <Card><CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Target className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Tarefas (semana)</span>
+            </div>
+            <p className="text-lg font-bold">{tasksWeekDone}/{tasksWeekCount}</p>
+            <DeltaBadge current={tasksWeekCount} previous={prevTasksWeekCount} />
+          </CardContent></Card>
+
+          <Card><CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Leads ativas</span>
+            </div>
+            <p className="text-lg font-bold">{leadsCount}</p>
+            <span className="text-xs text-muted-foreground">{followUps.length} follow-ups pendentes</span>
+          </CardContent></Card>
+
+          <Card><CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">NPS em atraso</span>
+            </div>
+            <p className={cn("text-lg font-bold", overdueCount > 0 && "text-destructive")}>{overdueCount}</p>
+            <div className="flex gap-2">
+              <span className="text-xs text-muted-foreground">{meetingsWeekCount} reuniões</span>
+              <DeltaBadge current={meetingsWeekCount} previous={prevMeetingsWeekCount} />
+            </div>
+          </CardContent></Card>
+        </div>
+
+        <Separator />
+
+        {/* Notas & Decisões */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold">Notas & Decisões</h2>
+            <Button size="sm" variant="outline" onClick={() => saveNotes.mutate()} disabled={saveNotes.isPending}>
+              <Save className="h-3.5 w-3.5 mr-1.5" />
+              Guardar
+            </Button>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Decisões tomadas</label>
+              <Textarea
+                placeholder="Decisões desta semana..."
+                value={notesForm.decisions}
+                onChange={e => setNotesForm(p => ({ ...p, decisions: e.target.value }))}
+                className="min-h-[80px] text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Bloqueios / Riscos</label>
+              <Textarea
+                placeholder="Bloqueios identificados..."
+                value={notesForm.blockers}
+                onChange={e => setNotesForm(p => ({ ...p, blockers: e.target.value }))}
+                className="min-h-[80px] text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Pontos-chave</label>
+              <Textarea
+                placeholder="Destaques da semana..."
+                value={notesForm.key_points}
+                onChange={e => setNotesForm(p => ({ ...p, key_points: e.target.value }))}
+                className="min-h-[80px] text-sm"
+              />
+            </div>
+          </div>
+        </section>
+
+        <Separator />
+
         <section className="space-y-4">
           <h2 className="text-base font-semibold">1 // Metas</h2>
           <Tabs defaultValue="metas">
