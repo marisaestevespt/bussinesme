@@ -833,8 +833,8 @@ export default function ClienteDetailPage() {
                 </div>
                 {clientSales.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8 text-sm">Sem pagamentos associados</p>
-                ) : clientSales.map(s => (
-                  <div key={s.id} className="px-4 py-2 text-xs grid grid-cols-9 gap-2 border-b items-center">
+                 ) : clientSales.map(s => (
+                  <div key={s.id} className="px-4 py-2 text-xs grid grid-cols-9 gap-2 border-b items-center cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedPayment(s); setPaymentSheetOpen(true); }}>
                     <span>{s.status}</span>
                     <span>{s.payment_date || '—'}</span>
                     <span className="truncate">{s.description || '—'}</span>
@@ -848,6 +848,8 @@ export default function ClienteDetailPage() {
                 ))}
               </CardContent>
             </Card>
+
+            <EntryDetailSheet sale={selectedPayment} open={paymentSheetOpen} onOpenChange={setPaymentSheetOpen} />
 
             {/* Feedback recebido */}
             <ClientFeedbackSection clientId={isNew ? undefined : id} clientName={form.full_name || ''} />
