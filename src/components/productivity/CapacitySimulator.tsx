@@ -126,6 +126,7 @@ interface PhantomMember {
   clientPct: number;
   contractType: 'colaborador' | 'prestador';
   grossSalary: number;
+  startDate: string; // yyyy-MM-dd
 }
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
