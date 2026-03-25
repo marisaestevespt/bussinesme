@@ -1,4 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useMemo } from 'react';
@@ -65,13 +66,23 @@ export function useCrmData() {
   const qc = useQueryClient();
   const key = ['crm'];
 
-  const leads = useQuery({
+  const leadsQuery = useInfiniteQuery<InfinitePageResult<CrmLead>>({
     queryKey: [...key, 'leads'],
-    queryFn: async () => {
-      const { data } = await supabase.from('crm_leads').select('*').order('created_at', { ascending: false });
-      return data || [];
+    initialPageParam: 0,
+    queryFn: async ({ pageParam = 0 }) => {
+      const from = (pageParam as number) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const { data, count } = await supabase.from('crm_leads').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to);
+      return { data: data || [], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },
+    getNextPageParam: (last) => last.nextPage,
   });
+
+  const leads = {
+    ...leadsQuery,
+    data: flattenInfiniteData(leadsQuery.data?.pages),
+    totalCount: getInfiniteCount(leadsQuery.data?.pages),
+  };
 
   const invalidate = () => qc.invalidateQueries({ queryKey: key });
 

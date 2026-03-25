@@ -1,4 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -52,14 +53,24 @@ export function getSubscriptionOccurrences(
 export function useFinancialData() {
   const qc = useQueryClient();
 
-  const expenses = useQuery({
+  const expensesQuery = useInfiniteQuery<InfinitePageResult<Expense>>({
     queryKey: ['financial-expenses'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('financial_expenses').select('*').order('expense_date', { ascending: false });
+    initialPageParam: 0,
+    queryFn: async ({ pageParam = 0 }) => {
+      const from = (pageParam as number) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const { data, error, count } = await supabase.from('financial_expenses').select('*', { count: 'exact' }).order('expense_date', { ascending: false }).range(from, to);
       if (error) throw error;
-      return (data || []) as Expense[];
+      return { data: (data || []) as Expense[], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },
+    getNextPageParam: (last) => last.nextPage,
   });
+
+  const expenses = {
+    ...expensesQuery,
+    data: flattenInfiniteData(expensesQuery.data?.pages),
+    totalCount: getInfiniteCount(expensesQuery.data?.pages),
+  };
 
   const subscriptions = useQuery({
     queryKey: ['financial-subscriptions'],
