@@ -26,6 +26,7 @@ import {
 import { useProducts } from '@/hooks/useProducts';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
+import { EntryDetailSheet } from '@/components/financial/EntryDetailSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ClientCustomerSuccess } from '@/components/client/ClientCustomerSuccess';
