@@ -218,7 +218,7 @@ export default function ExecutiveWeeklyAlign() {
     check_in: 'Check-in', feedback: 'Recolha de Feedback', reuniao: 'Reunião', email: 'Email', outro: 'Outro',
   };
 
-  const routineMap = Object.fromEntries((exec.weeklyRoutines.data || []).map(r => [r.routine_key, r.completed]));
+  
 
   // --- Detail openers for each section ---
   const openGoalDetail = (g: any) => {
