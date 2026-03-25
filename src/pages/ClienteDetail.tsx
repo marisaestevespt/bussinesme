@@ -523,94 +523,94 @@ export default function ClienteDetailPage() {
               }} />
               <DateField label="Fim de Ciclo" value={form.end_of_cycle || null} onChange={v => update('end_of_cycle', v)} />
             </div>
-            {canSee('financial') && <>
-            {/* Row 4: Forma de Pagamento */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Forma de Pagamento</Label>
-                <Select value={form.payment_method || ''} onValueChange={v => { update('payment_method', v); setEntradaValue(''); setNumPrestacoes(''); setDiaPagamento(''); setValorAvenca(''); setTotalValue(''); }}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                  <SelectContent>
-                    {availablePaymentOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              {/* Valor Total — shown for pagamento_total, entrada_prestacoes, prestacoes */}
-              {form.payment_method && form.payment_method !== 'avenca_mensal' && (
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Valor Total (s/ IVA) (€)</Label>
-                  <Input type="number" step="0.01" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="Ex: 900" />
+            {canSee('financial') && (
+              <>
+                {/* Row 4: Forma de Pagamento */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Forma de Pagamento</Label>
+                    <Select value={form.payment_method || ''} onValueChange={v => { update('payment_method', v); setEntradaValue(''); setNumPrestacoes(''); setDiaPagamento(''); setValorAvenca(''); setTotalValue(''); }}>
+                      <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                      <SelectContent>
+                        {availablePaymentOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {form.payment_method && form.payment_method !== 'avenca_mensal' && (
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Valor Total (s/ IVA) (€)</Label>
+                      <Input type="number" step="0.01" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="Ex: 900" />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            {/* Conditional fields based on payment method */}
-            {form.payment_method === 'entrada_prestacoes' && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Valor Entrada (s/ IVA) (€)</Label>
-                  <Input type="number" step="0.01" value={entradaValue} onChange={e => setEntradaValue(e.target.value)} placeholder="Ex: 300" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Quantidade de Prestações</Label>
-                  <Select value={numPrestacoes} onValueChange={setNumPrestacoes}>
-                    <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 11 }, (_, i) => i + 2).map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
-                  <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
-                </div>
-                {totalValue && entradaValue && numPrestacoes && (
-                  <p className="text-xs text-muted-foreground md:col-span-3">
-                    Entrada: {parseFloat(entradaValue).toFixed(2)}€ + {numPrestacoes}× {((parseFloat(totalValue) - parseFloat(entradaValue)) / parseInt(numPrestacoes)).toFixed(2)}€ (s/ IVA)
-                  </p>
+                {form.payment_method === 'entrada_prestacoes' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Valor Entrada (s/ IVA) (€)</Label>
+                      <Input type="number" step="0.01" value={entradaValue} onChange={e => setEntradaValue(e.target.value)} placeholder="Ex: 300" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Quantidade de Prestações</Label>
+                      <Select value={numPrestacoes} onValueChange={setNumPrestacoes}>
+                        <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 11 }, (_, i) => i + 2).map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
+                      <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
+                    </div>
+                    {totalValue && entradaValue && numPrestacoes && (
+                      <p className="text-xs text-muted-foreground md:col-span-3">
+                        Entrada: {parseFloat(entradaValue).toFixed(2)}€ + {numPrestacoes}× {((parseFloat(totalValue) - parseFloat(entradaValue)) / parseInt(numPrestacoes)).toFixed(2)}€ (s/ IVA)
+                      </p>
+                    )}
+                  </div>
                 )}
-              </div>
-            )}
-            {form.payment_method === 'prestacoes' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Quantidade de Prestações</Label>
-                  <Select value={numPrestacoes} onValueChange={setNumPrestacoes}>
-                    <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 11 }, (_, i) => i + 2).map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
-                  <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
-                </div>
-                {totalValue && numPrestacoes && (
-                  <p className="text-xs text-muted-foreground md:col-span-2">
-                    {numPrestacoes}× {(parseFloat(totalValue) / parseInt(numPrestacoes)).toFixed(2)}€ (s/ IVA)
-                  </p>
+                {form.payment_method === 'prestacoes' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Quantidade de Prestações</Label>
+                      <Select value={numPrestacoes} onValueChange={setNumPrestacoes}>
+                        <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 11 }, (_, i) => i + 2).map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
+                      <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
+                    </div>
+                    {totalValue && numPrestacoes && (
+                      <p className="text-xs text-muted-foreground md:col-span-2">
+                        {numPrestacoes}× {(parseFloat(totalValue) / parseInt(numPrestacoes)).toFixed(2)}€ (s/ IVA)
+                      </p>
+                    )}
+                  </div>
                 )}
-              </div>
-            )}
-            {form.payment_method === 'avenca_mensal' && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Meses de Contrato</Label>
-                  <Input type="number" min="2" value={numPrestacoes} onChange={e => setNumPrestacoes(e.target.value)} placeholder="Ex: 12" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
-                  <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Valor Avença Mensal (s/ IVA) (€)</Label>
-                  <Input type="number" step="0.01" value={valorAvenca} onChange={e => setValorAvenca(e.target.value)} placeholder="Ex: 150" />
-                </div>
-              </div>
+                {form.payment_method === 'avenca_mensal' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Meses de Contrato</Label>
+                      <Input type="number" min="2" value={numPrestacoes} onChange={e => setNumPrestacoes(e.target.value)} placeholder="Ex: 12" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
+                      <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Valor Avença Mensal (s/ IVA) (€)</Label>
+                      <Input type="number" step="0.01" value={valorAvenca} onChange={e => setValorAvenca(e.target.value)} placeholder="Ex: 150" />
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
-        </>}
 
         {/* Dados Fiscais */}
         <Card>
