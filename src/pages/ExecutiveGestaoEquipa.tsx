@@ -441,270 +441,244 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{isEdit ? 'Editar Membro' : 'Novo Membro'}</DialogTitle></DialogHeader>
-        <div className="space-y-4">
-          {/* Foto + Nome */}
-          <div className="flex items-center gap-4">
-            <div className="relative group">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={f.photo_url || undefined} />
-                <AvatarFallback className="text-lg">{f.full_name ? f.full_name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() : '?'}</AvatarFallback>
-              </Avatar>
-              <label className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
-                <Upload className="h-4 w-4 text-white" />
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    setUploading(true);
-                    const ext = file.name.split('.').pop();
-                    const path = `team/${Date.now()}.${ext}`;
-                    const { error } = await supabase.storage.from('personal-images').upload(path, file);
-                    if (error) { toast.error('Erro ao carregar foto'); setUploading(false); return; }
-                    const { data: urlData } = supabase.storage.from('personal-images').getPublicUrl(path);
-                    set('photo_url', urlData.publicUrl);
-                    setUploading(false);
-                  }}
-                />
-              </label>
-              {uploading && <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full"><span className="text-[10px] text-white">...</span></div>}
-            </div>
-            <div className="flex-1">
-              <Input placeholder="Nome completo *" value={f.full_name} onChange={e => set('full_name', e.target.value)} />
-            </div>
-          </div>
+        <div className="space-y-5">
 
-          {/* Status */}
-          <div>
-            <label className="text-xs text-muted-foreground">Status</label>
-            <Select value={f.status} onValueChange={v => set('status', v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{MEMBER_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-
-          {/* Função + Departamento + Tipo */}
-          <div className="space-y-1.5">
-            <span className="text-xs text-muted-foreground font-medium">Função</span>
-            <div className="flex flex-wrap gap-1.5">
-              {PRESET_ROLES.map(r => {
-                const isSelected = f.role_title === r.label;
-                return (
-                  <button
-                    key={r.label}
-                    type="button"
-                    onClick={() => { set('role_title', isSelected ? '' : r.label); set('role_color', r.color); }}
-                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${isSelected ? 'text-white border-transparent ring-2 ring-offset-1 ring-foreground/20' : 'text-foreground/70 border-border hover:border-foreground/30'}`}
-                    style={isSelected ? { backgroundColor: r.color } : {}}
-                  >
-                    {r.label}
-                  </button>
-                );
-              })}
-            </div>
-            {/* Custom role input */}
-            {!PRESET_ROLES.some(r => r.label === f.role_title) && f.role_title ? (
-              <div className="flex gap-2 items-center mt-2">
-                <Input className="flex-1 h-8 text-xs" value={f.role_title} onChange={e => set('role_title', e.target.value)} />
-                <div className="flex gap-1">
-                  {ROLE_COLORS.map(c => (
-                    <button key={c.value} type="button" onClick={() => set('role_color', c.value)}
-                      className={`h-5 w-5 rounded-full border-2 transition-all shrink-0 ${f.role_color === c.value ? 'border-foreground scale-110' : 'border-transparent'}`}
-                      style={{ backgroundColor: c.value }} title={c.label} />
-                  ))}
-                </div>
-                <button type="button" className="text-xs text-destructive hover:underline" onClick={() => { set('role_title', ''); set('role_color', '#6366f1'); }}>Limpar</button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="mt-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-                onClick={() => { set('role_title', 'Nova função'); set('role_color', '#6366f1'); }}
-              >
-                <Plus className="h-3 w-3" /> Adicionar outra função
-              </button>
-            )}
-            {f.role_title && (
-              <Badge className="text-xs text-white mt-1" style={{ backgroundColor: f.role_color || '#6366f1' }}>{f.role_title}</Badge>
-            )}
-          </div>
+          {/* ═══ BLOCO 1: IDENTIDADE ═══ */}
           <div className="space-y-3">
-            <span className="text-xs text-muted-foreground font-medium">Departamentos & Acessos</span>
-            <div>
-              <p className="text-[10px] text-muted-foreground mb-1">Acesso automático:</p>
-              <p className="text-xs">Começa Aqui, Mural de Comunicações, Hub de Equipa, Agenda do Negócio, Reuniões, Processos, Projetos, Tarefas, Acessos, Biblioteca de Documentos, Secretaria</p>
-            </div>
-            <div>
-              <p className="text-[10px] text-muted-foreground mb-1.5">Departamentos:</p>
-            <div className="space-y-1">
-              {DEPARTMENTS.map(d => {
-                const depts: string[] = Array.isArray(f.departments) ? f.departments : (f.department ? [f.department] : []);
-                const checked = depts.includes(d.value);
-                return (
-                  <label key={d.value} className={cn(
-                    'flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer transition-colors text-xs',
-                    checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
-                  )}>
-                    <Checkbox
-                      checked={checked}
-                      onCheckedChange={(v) => {
-                        const next = v ? [...depts, d.value] : depts.filter(x => x !== d.value);
-                        set('departments', next);
-                        set('department', next[0] || '');
-                      }}
-                    />
-                    <span>{d.icon} {d.label}</span>
-                  </label>
-                );
-              })}
-            </div>
-            </div>
-          </div>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">👤 Identidade</h3>
 
-          {/* Permissões Sensíveis */}
-          <div className="space-y-2">
-            <span className="text-xs text-muted-foreground font-medium">Permissões Sensíveis</span>
-            <p className="text-[10px] text-muted-foreground">Define que tipo de informação sensível este membro pode ver. Tudo OFF por defeito.</p>
-            <div className="space-y-1">
-              {SENSITIVE_CATEGORIES.map(cat => {
-                const checked = !!(f.sensitiveAccess || {})[cat.key];
-                return (
-                  <label key={cat.key} className={cn(
-                    'flex items-center gap-3 rounded-md border px-3 py-2 cursor-pointer transition-colors',
-                    checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
-                  )}>
-                    <Switch
-                      checked={checked}
-                      onCheckedChange={(v) => {
-                        set('sensitiveAccess', { ...(f.sensitiveAccess || {}), [cat.key]: !!v });
-                      }}
-                    />
-                    <div>
-                      <span className="text-xs font-medium">{cat.label}</span>
-                      <p className="text-[10px] text-muted-foreground leading-tight">{cat.description}</p>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-          <div>
-              <label className="text-xs text-muted-foreground">Tipo</label>
-              <Select value={f.member_type} onValueChange={v => set('member_type', v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="colaborador_fixo">Equipa Interna</SelectItem>
-                  <SelectItem value="prestador_servicos">Freelancer</SelectItem>
-                  <SelectItem value="socio">Sócio</SelectItem>
-                </SelectContent>
-              </Select>
-          </div>
-
-          {/* Áreas de trabalho */}
-          <div className="space-y-1.5">
-            <span className="text-xs text-muted-foreground font-medium">Áreas de trabalho</span>
-            <p className="text-[10px] text-muted-foreground">Seleciona uma ou mais áreas em que este membro vai atuar.</p>
-            <div className="grid grid-cols-1 gap-1.5">
-              {WORK_AREAS.map(wa => {
-                const areas: string[] = Array.isArray(f.work_areas) ? f.work_areas : [];
-                const checked = areas.includes(wa.value);
-                return (
-                  <label key={wa.value} className={cn(
-                    'flex items-start gap-2.5 rounded-md border px-3 py-2 cursor-pointer transition-colors',
-                    checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
-                  )}>
-                    <Checkbox
-                      checked={checked}
-                      onCheckedChange={(v) => {
-                        const next = v ? [...areas, wa.value] : areas.filter(a => a !== wa.value);
-                        set('work_areas', next);
-                      }}
-                      className="mt-0.5"
-                    />
-                    <div>
-                      <span className="text-xs font-medium">{wa.label}</span>
-                      <p className="text-[10px] text-muted-foreground leading-tight">{wa.description}</p>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-
-
-          <div className="grid grid-cols-3 gap-2">
-            <Input placeholder="Email" value={f.email || ''} onChange={e => set('email', e.target.value)} />
-            <Input placeholder="Telefone" value={f.whatsapp || ''} onChange={e => set('whatsapp', e.target.value)} />
-            <Input placeholder="NIF / Identificação" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
-          </div>
-
-          {/* Aniversário */}
-          <div>
-            <label className="text-xs text-muted-foreground">Data de nascimento</label>
-            <Input type="date" value={(f as any).birthday || ''} onChange={e => set('birthday' as any, e.target.value)} />
-          </div>
-
-          {/* Responsabilidades */}
-          <Textarea placeholder="Responsabilidades" value={f.responsibilities || ''} onChange={e => set('responsibilities', e.target.value)} rows={2} />
-
-          <Separator />
-
-          {/* Horário de trabalho + Feriados */}
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Horário</h3>
-          <ScheduleSelector value={f.work_schedule || ''} onChange={v => set('work_schedule', v)} />
-          <div className="flex items-center justify-between">
-            <label className="text-sm">Trabalha em feriados?</label>
-            <Switch checked={!!f.works_holidays} onCheckedChange={v => set('works_holidays', v)} />
-          </div>
-
-          <Separator />
-
-          {/* Férias */}
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Férias</h3>
-          <div className="space-y-1.5">
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-[10px] text-muted-foreground">Início</label>
-                <Input type="date" id="vacation-start-input" />
+            {/* Foto + Nome */}
+            <div className="flex items-center gap-4">
+              <div className="relative group">
+                <Avatar className="h-16 w-16">
+                  <AvatarImage src={f.photo_url || undefined} />
+                  <AvatarFallback className="text-lg">{f.full_name ? f.full_name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() : '?'}</AvatarFallback>
+                </Avatar>
+                <label className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                  <Upload className="h-4 w-4 text-white" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setUploading(true);
+                      const ext = file.name.split('.').pop();
+                      const path = `team/${Date.now()}.${ext}`;
+                      const { error } = await supabase.storage.from('personal-images').upload(path, file);
+                      if (error) { toast.error('Erro ao carregar foto'); setUploading(false); return; }
+                      const { data: urlData } = supabase.storage.from('personal-images').getPublicUrl(path);
+                      set('photo_url', urlData.publicUrl);
+                      setUploading(false);
+                    }}
+                  />
+                </label>
+                {uploading && <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full"><span className="text-[10px] text-white">...</span></div>}
               </div>
-              <div>
-                <label className="text-[10px] text-muted-foreground">Fim</label>
-                <Input type="date" id="vacation-end-input" />
+              <div className="flex-1">
+                <Input placeholder="Nome completo *" value={f.full_name} onChange={e => set('full_name', e.target.value)} />
               </div>
             </div>
-            <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => {
-              const startInput = document.getElementById('vacation-start-input') as HTMLInputElement;
-              const endInput = document.getElementById('vacation-end-input') as HTMLInputElement;
-              if (!startInput?.value || !endInput?.value) { toast.error('Selecione início e fim'); return; }
-              if (endInput.value < startInput.value) { toast.error('Data fim deve ser após início'); return; }
-              const entry = `${startInput.value}|${endInput.value}`;
-              const current: string[] = Array.isArray(f.custom_holidays) ? f.custom_holidays : [];
-              if (!current.includes(entry)) {
-                set('custom_holidays', [...current, entry]);
-              }
-              startInput.value = '';
-              endInput.value = '';
-            }}>
-              <Plus className="h-3 w-3 mr-1" /> Adicionar período
-            </Button>
-            {Array.isArray(f.custom_holidays) && f.custom_holidays.length > 0 && (
-              <div className="space-y-1 mt-1">
-                {f.custom_holidays.map((d: string, idx: number) => {
-                  const parts = d.split('|');
-                  const label = parts.length === 2
-                    ? `${(() => { try { return format(parseISO(parts[0]), 'dd/MM/yyyy'); } catch { return parts[0]; } })()} → ${(() => { try { return format(parseISO(parts[1]), 'dd/MM/yyyy'); } catch { return parts[1]; } })()}`
-                    : (() => { try { return format(parseISO(d), 'dd/MM/yyyy'); } catch { return d; } })();
+
+            {/* Função */}
+            <div className="space-y-1.5">
+              <span className="text-xs text-muted-foreground font-medium">Função</span>
+              <div className="flex flex-wrap gap-1.5">
+                {PRESET_ROLES.map(r => {
+                  const isSelected = f.role_title === r.label;
                   return (
-                    <div key={idx} className="flex items-center justify-between bg-muted/50 rounded-md px-2 py-1.5">
-                      <span className="text-xs">{label}</span>
-                      <button type="button" onClick={() => set('custom_holidays', f.custom_holidays.filter((_: string, i: number) => i !== idx))} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
-                    </div>
+                    <button
+                      key={r.label}
+                      type="button"
+                      onClick={() => { set('role_title', isSelected ? '' : r.label); set('role_color', r.color); }}
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${isSelected ? 'text-white border-transparent ring-2 ring-offset-1 ring-foreground/20' : 'text-foreground/70 border-border hover:border-foreground/30'}`}
+                      style={isSelected ? { backgroundColor: r.color } : {}}
+                    >
+                      {r.label}
+                    </button>
                   );
                 })}
               </div>
-            )}
+              {!PRESET_ROLES.some(r => r.label === f.role_title) && f.role_title ? (
+                <div className="flex gap-2 items-center mt-2">
+                  <Input className="flex-1 h-8 text-xs" value={f.role_title} onChange={e => set('role_title', e.target.value)} />
+                  <div className="flex gap-1">
+                    {ROLE_COLORS.map(c => (
+                      <button key={c.value} type="button" onClick={() => set('role_color', c.value)}
+                        className={`h-5 w-5 rounded-full border-2 transition-all shrink-0 ${f.role_color === c.value ? 'border-foreground scale-110' : 'border-transparent'}`}
+                        style={{ backgroundColor: c.value }} title={c.label} />
+                    ))}
+                  </div>
+                  <button type="button" className="text-xs text-destructive hover:underline" onClick={() => { set('role_title', ''); set('role_color', '#6366f1'); }}>Limpar</button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="mt-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                  onClick={() => { set('role_title', 'Nova função'); set('role_color', '#6366f1'); }}
+                >
+                  <Plus className="h-3 w-3" /> Adicionar outra função
+                </button>
+              )}
+              {f.role_title && (
+                <Badge className="text-xs text-white mt-1" style={{ backgroundColor: f.role_color || '#6366f1' }}>{f.role_title}</Badge>
+              )}
+            </div>
+
+            {/* Status + Tipo (lado a lado) */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-muted-foreground">Status</label>
+                <Select value={f.status} onValueChange={v => set('status', v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{MEMBER_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Tipo</label>
+                <Select value={f.member_type} onValueChange={v => set('member_type', v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="colaborador_fixo">Equipa Interna</SelectItem>
+                    <SelectItem value="prestador_servicos">Freelancer</SelectItem>
+                    <SelectItem value="socio">Sócio</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Contactos */}
+            <div className="grid grid-cols-3 gap-2">
+              <Input placeholder="Email" value={f.email || ''} onChange={e => set('email', e.target.value)} />
+              <Input placeholder="Telefone" value={f.whatsapp || ''} onChange={e => set('whatsapp', e.target.value)} />
+              <Input placeholder="NIF / Identificação" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
+            </div>
+
+            {/* Nascimento */}
+            <div>
+              <label className="text-xs text-muted-foreground">Data de nascimento</label>
+              <Input type="date" value={(f as any).birthday || ''} onChange={e => set('birthday' as any, e.target.value)} />
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* ═══ BLOCO 2: POSIÇÃO ═══ */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🏢 Posição</h3>
+
+            {/* Departamentos */}
+            <div>
+              <span className="text-xs text-muted-foreground font-medium">Departamentos</span>
+              <div className="space-y-1 mt-1.5">
+                {DEPARTMENTS.map(d => {
+                  const depts: string[] = Array.isArray(f.departments) ? f.departments : (f.department ? [f.department] : []);
+                  const checked = depts.includes(d.value);
+                  return (
+                    <label key={d.value} className={cn(
+                      'flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer transition-colors text-xs',
+                      checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
+                    )}>
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(v) => {
+                          const next = v ? [...depts, d.value] : depts.filter(x => x !== d.value);
+                          set('departments', next);
+                          set('department', next[0] || '');
+                        }}
+                      />
+                      <span>{d.icon} {d.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Áreas de trabalho */}
+            <div className="space-y-1.5">
+              <span className="text-xs text-muted-foreground font-medium">Áreas de trabalho</span>
+              <p className="text-[10px] text-muted-foreground">Seleciona uma ou mais áreas em que este membro vai atuar.</p>
+              <div className="grid grid-cols-1 gap-1.5">
+                {WORK_AREAS.map(wa => {
+                  const areas: string[] = Array.isArray(f.work_areas) ? f.work_areas : [];
+                  const checked = areas.includes(wa.value);
+                  return (
+                    <label key={wa.value} className={cn(
+                      'flex items-start gap-2.5 rounded-md border px-3 py-2 cursor-pointer transition-colors',
+                      checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
+                    )}>
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(v) => {
+                          const next = v ? [...areas, wa.value] : areas.filter(a => a !== wa.value);
+                          set('work_areas', next);
+                        }}
+                        className="mt-0.5"
+                      />
+                      <div>
+                        <span className="text-xs font-medium">{wa.label}</span>
+                        <p className="text-[10px] text-muted-foreground leading-tight">{wa.description}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Responsabilidades */}
+            <Textarea placeholder="Responsabilidades" value={f.responsibilities || ''} onChange={e => set('responsibilities', e.target.value)} rows={2} />
+          </div>
+
+          <Separator />
+
+          {/* ═══ BLOCO 3: ACESSOS & PERMISSÕES ═══ */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🔐 Acessos & Permissões</h3>
+
+            <div className="rounded-md bg-muted/40 px-3 py-2">
+              <p className="text-[10px] text-muted-foreground font-medium mb-0.5">Acesso automático:</p>
+              <p className="text-[11px]">Começa Aqui, Mural, Hub de Equipa, Agenda, Reuniões, Processos, Projetos, Tarefas, Acessos, Biblioteca, Secretaria + tudo dentro dos departamentos selecionados.</p>
+            </div>
+
+            <div className="space-y-1.5">
+              <span className="text-xs text-muted-foreground font-medium">Permissões Sensíveis</span>
+              <p className="text-[10px] text-muted-foreground">Define que informação sensível este membro pode ver. Tudo OFF por defeito.</p>
+              <div className="space-y-1">
+                {SENSITIVE_CATEGORIES.map(cat => {
+                  const checked = !!(f.sensitiveAccess || {})[cat.key];
+                  return (
+                    <label key={cat.key} className={cn(
+                      'flex items-center gap-3 rounded-md border px-3 py-2 cursor-pointer transition-colors',
+                      checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
+                    )}>
+                      <Switch
+                        checked={checked}
+                        onCheckedChange={(v) => {
+                          set('sensitiveAccess', { ...(f.sensitiveAccess || {}), [cat.key]: !!v });
+                        }}
+                      />
+                      <div>
+                        <span className="text-xs font-medium">{cat.label}</span>
+                        <p className="text-[10px] text-muted-foreground leading-tight">{cat.description}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* ═══ BLOCO 4: HORÁRIO ═══ */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🕐 Horário</h3>
+            <ScheduleSelector value={f.work_schedule || ''} onChange={v => set('work_schedule', v)} />
+            <div className="flex items-center justify-between">
+              <label className="text-sm">Trabalha em feriados?</label>
+              <Switch checked={!!f.works_holidays} onCheckedChange={v => set('works_holidays', v)} />
+            </div>
           </div>
 
           {/* Contrato (só para novos membros) */}
