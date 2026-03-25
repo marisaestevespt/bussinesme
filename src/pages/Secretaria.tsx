@@ -284,6 +284,7 @@ export default function SecretariaPage() {
   const timeEntries = useMyTimeEntries();
   const allProjects = useProjects();
   const allProfiles = useProfiles();
+  const onboarding = useMyOnboarding(teamMember.data?.id);
   const qc = useQueryClient();
 
   const firstName = profile.data?.full_name?.split(' ')[0] || 'Utilizador';
