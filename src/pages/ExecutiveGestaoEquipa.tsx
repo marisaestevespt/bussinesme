@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { TasksByMemberKanban, TasksByPriority, OverdueTasks } from '@/components/hr/PerformanceTaskViews';
 import { GestaoSummaryCards } from '@/components/hr/GestaoSummaryCards';
-import { OverloadTabShared } from '@/components/hr/SharedProductivityViews';
+
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
@@ -80,31 +80,11 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
   const allPayments = team.payments.data || [];
   const allContracts = team.contracts.data || [];
 
-  const timeEntries = useQuery({
-    queryKey: ['team-dashboard-time', currentYear, currentMonth],
-    queryFn: async () => {
-      const { data } = await supabase.from('time_entries').select('*').eq('entry_year', currentYear).eq('entry_month', currentMonth);
-      return (data || []) as any[];
-    },
-  });
-
-  const totalHoursMonth = useMemo(() =>
-    (timeEntries.data || []).reduce((s: number, e: any) => s + Number(e.duration || 0), 0),
-    [timeEntries.data]
-  );
-
-  const overloadWarnings = useMemo(() => {
-    const warnings: { member: any; worked: number; contracted: number }[] = [];
-    allMembers.forEach((m: any) => {
-      const contract = allContracts.find((c: any) => c.member_id === m.id && c.status === 'ativo');
-      if (!contract?.contracted_hours) return;
-      const contractedNum = parseFloat(contract.contracted_hours);
-      if (isNaN(contractedNum) || contractedNum <= 0) return;
-      const worked = (timeEntries.data || []).filter((e: any) => e.member_id === m.id).reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
-      if (worked > contractedNum) warnings.push({ member: m, worked: Math.round(worked * 100) / 100, contracted: contractedNum });
-    });
-    return warnings;
-  }, [allMembers, allContracts, timeEntries.data]);
+  const expiringContracts = useMemo(() => {
+    const now = new Date();
+    const thirtyDays = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    return allContracts.filter((c: any) => c.status === 'ativo' && c.end_date && new Date(c.end_date) <= thirtyDays);
+  }, [allContracts]);
 
   const overduePayments = useMemo(() => {
     return allPayments.filter((p: any) => {
@@ -202,8 +182,10 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"><Clock className="h-5 w-5 text-primary" /></div>
-            <div><p className="text-xs text-muted-foreground">Horas trabalhadas (mês)</p><p className="text-lg font-bold">{totalHoursMonth.toFixed(1)}h</p></div>
+            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${expiringContracts.length > 0 ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-primary/10'}`}>
+              <FileText className={`h-5 w-5 ${expiringContracts.length > 0 ? 'text-amber-600' : 'text-primary'}`} />
+            </div>
+            <div><p className="text-xs text-muted-foreground">Contratos a expirar (30d)</p><p className="text-lg font-bold">{expiringContracts.length}</p></div>
           </CardContent>
         </Card>
         <Card>
@@ -263,21 +245,6 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
                 </tbody>
               </table>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Warnings */}
-      {overloadWarnings.length > 0 && (
-        <Card className="border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20">
-          <CardContent className="p-4 space-y-2">
-            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400"><AlertTriangle className="h-4 w-4" /><h3 className="text-sm font-semibold">Membros sobrecarregados este mês</h3></div>
-            {overloadWarnings.map(w => (
-              <div key={w.member.id} className="flex items-center justify-between text-sm">
-                <span className="font-medium">{w.member.full_name}</span>
-                <span className="text-xs text-muted-foreground">{w.worked}h trabalhadas / {w.contracted}h contratadas</span>
-              </div>
-            ))}
           </CardContent>
         </Card>
       )}
@@ -384,13 +351,6 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
         <TabsContent value="atraso"><OverdueTasks /></TabsContent>
       </Tabs>
 
-      {/* Tarefas & Sobrecarga */}
-      <Card>
-        <CardContent className="pt-5 space-y-4">
-          <h3 className="text-sm font-semibold">Tarefas & Sobrecarga</h3>
-          <OverloadTabShared />
-        </CardContent>
-      </Card>
     </div>
   );
 }
