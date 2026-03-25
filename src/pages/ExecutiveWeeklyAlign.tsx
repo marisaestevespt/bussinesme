@@ -646,31 +646,36 @@ export default function ExecutiveWeeklyAlign() {
                 );
               })()}
             </TabsContent>
-            <TabsContent value="agenda">
-              <Card><div className="overflow-x-auto">
-                <Table>
-                  <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Evento</TableHead></TableRow></TableHeader>
-                  <TableBody>
-                    {(events.data || []).length === 0 ? <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground text-sm py-6">Sem eventos</TableCell></TableRow> :
-                      (events.data || []).map(e => (
-                        <TableRow key={e.id} className={clickableRow} onClick={() => openEventDetail(e)}>
-                          <TableCell className="text-xs">{e.start_date?.slice(0, 10)}</TableCell><TableCell className="text-sm">{e.title}</TableCell>
-                        </TableRow>
-                      ))
-                    }
-                  </TableBody>
-                </Table>
-              </div></Card>
-            </TabsContent>
           </Tabs>
         </section>
 
         <Separator />
 
-        {/* 2 // Vendas & Faturação */}
+        {/* 2 // Agenda do mês */}
+        <section className="space-y-4">
+          <h2 className="text-base font-semibold">2 // Agenda do mês</h2>
+          <Card><div className="overflow-x-auto">
+            <Table>
+              <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Evento</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {(events.data || []).length === 0 ? <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground text-sm py-6">Sem eventos</TableCell></TableRow> :
+                  (events.data || []).map(e => (
+                    <TableRow key={e.id} className={clickableRow} onClick={() => openEventDetail(e)}>
+                      <TableCell className="text-xs">{e.start_date?.slice(0, 10)}</TableCell><TableCell className="text-sm">{e.title}</TableCell>
+                    </TableRow>
+                  ))
+                }
+              </TableBody>
+            </Table>
+          </div></Card>
+        </section>
+
+        <Separator />
+
+        {/* 3 // Vendas & Faturação */}
         <section className="space-y-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-base font-semibold">2 // Vendas & Faturação</h2>
+            <h2 className="text-base font-semibold">3 // Vendas & Faturação</h2>
             <DeltaBadge current={salesWeekTotal} previous={prevSalesWeekTotal} isCurrency />
           </div>
           <Card><CardContent className="p-4 space-y-3">
