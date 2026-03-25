@@ -233,7 +233,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
           )}
 
           <Separator />
-          <GoalsSection objectiveId={obj.id} goals={objGoals} planning={planning} />
+          <GoalsSection objectiveId={obj.id} goals={objGoals} planning={planning} parentObjective={obj} />
           <Separator />
           <MetricsSection objectiveId={obj.id} metrics={objMetrics} planning={planning} productsList={productsList} getProductName={getProductName} />
           <Separator />
@@ -276,12 +276,15 @@ const QUARTER_MAP: Record<string, string[]> = {
   'T4': ['Outubro', 'Novembro', 'Dezembro'],
 };
 
-function GoalsSection({ objectiveId, goals, planning }: any) {
+function GoalsSection({ objectiveId, goals, planning, parentObjective }: any) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
 
   const [editGoal, setEditGoal] = useState<any>(null);
   const [editForm, setEditForm] = useState({ period: 'Janeiro', target_value: '', actual_value: '', status: 'por_iniciar' });
+
+  const isAutoSource = parentObjective?.value_source && parentObjective.value_source !== 'manual' && parentObjective.value_source !== 'metrica';
+  const sourceLabel = VALUE_SOURCES.find(s => s.value === parentObjective?.value_source)?.label;
 
   useEffect(() => {
     if (editGoal) {
@@ -296,11 +299,20 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
 
   const monthlyGoals = goals.filter((g: any) => MONTHS.includes(g.period));
 
+  // Auto-calculate actual values from parent objective source
+  const getGoalActual = (g: any) => {
+    if (isAutoSource) {
+      const auto = planning.goalAutoValue(parentObjective, g.period);
+      return auto != null ? auto : g.actual_value;
+    }
+    return g.actual_value;
+  };
+
   const quarterlyRows = Object.entries(QUARTER_MAP).map(([quarter, months]) => {
     const monthGoals = monthlyGoals.filter((g: any) => months.includes(g.period));
     if (monthGoals.length === 0) return null;
     const targetSum = monthGoals.reduce((s: number, g: any) => s + Number(g.target_value || 0), 0);
-    const actualSum = monthGoals.reduce((s: number, g: any) => s + Number(g.actual_value || 0), 0);
+    const actualSum = monthGoals.reduce((s: number, g: any) => s + Number(getGoalActual(g) || 0), 0);
     const allDone = monthGoals.length === 3 && monthGoals.every((g: any) => g.status === 'atingido');
     const anyStarted = monthGoals.some((g: any) => g.status === 'em_curso' || g.status === 'atingido');
     return {
@@ -335,7 +347,12 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold">Desdobramento em Metas</h3>
+        <div>
+          <h3 className="text-sm font-semibold">Desdobramento em Metas</h3>
+          {isAutoSource && (
+            <p className="text-[10px] text-muted-foreground">Valores reais calculados automaticamente via {sourceLabel}</p>
+          )}
+        </div>
         <Button size="sm" variant="outline" onClick={openNew}><Plus className="h-3 w-3 mr-1" /> Nova Meta Mensal</Button>
       </div>
       {allRows.length === 0 ? <p className="text-xs text-muted-foreground">Sem metas associadas. Defina metas mensais e os trimestres serão calculados automaticamente.</p> : (
@@ -344,16 +361,19 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
             <TableHead>Período</TableHead><TableHead>Valor alvo</TableHead><TableHead>Valor real</TableHead><TableHead>Desvio</TableHead><TableHead>Status</TableHead><TableHead></TableHead>
           </TableRow></TableHeader>
           <TableBody>{allRows.map((g: any) => {
-            const dev = g.isQuarter ? g.deviation : (g.actual_value && g.target_value ? (Number(g.actual_value) - Number(g.target_value)) : null);
+            const actualVal = g.isQuarter ? g.actual_value : getGoalActual(g);
+            const dev = actualVal != null && g.target_value ? (Number(actualVal) - Number(g.target_value)) : null;
             const hasDeviation = dev !== null && dev < 0;
-            const autoStatus = !g.isQuarter ? planning.computeGoalStatus(g) : g.status;
+            const goalWithActual = { ...g, actual_value: actualVal };
+            const autoStatus = !g.isQuarter ? planning.computeGoalStatus(goalWithActual) : g.status;
             return (
               <TableRow key={g.isQuarter ? g.period : g.id} className={`${!g.isQuarter ? 'cursor-pointer hover:bg-muted/60' : ''} ${g.isQuarter ? 'bg-muted/40 font-medium' : ''} ${hasDeviation ? 'bg-destructive/5' : ''}`} onClick={() => { if (!g.isQuarter) openEdit(g); }}>
-                <TableCell className="text-sm">
-                  {g.period}
-                </TableCell>
+                <TableCell className="text-sm">{g.period}</TableCell>
                 <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
-                <TableCell className="text-xs">{g.actual_value || '—'}</TableCell>
+                <TableCell className="text-xs">
+                  {actualVal != null ? Number(actualVal).toLocaleString('pt-PT') : '—'}
+                  {isAutoSource && !g.isQuarter && actualVal != null && <span className="text-[9px] text-muted-foreground ml-1">(auto)</span>}
+                </TableCell>
                 <TableCell className={`text-xs ${hasDeviation ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
                 <TableCell>
                   <Badge variant={autoStatus === 'atingido' ? 'default' : autoStatus === 'nao_atingido' ? 'destructive' : 'secondary'} className="text-[10px]">{planStatusLabel(autoStatus)}</Badge>
@@ -380,10 +400,15 @@ function GoalsSection({ objectiveId, goals, planning }: any) {
                 <SelectContent>{MONTHS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className={isAutoSource ? '' : 'grid grid-cols-2 gap-3'}>
               <div><Label>Valor alvo</Label><Input value={editGoal ? editForm.target_value : form.target_value} onChange={e => editGoal ? setEditForm(p => ({ ...p, target_value: e.target.value })) : setForm(p => ({ ...p, target_value: e.target.value }))} /></div>
-              <div><Label>Valor real</Label><Input value={editGoal ? editForm.actual_value : form.actual_value} onChange={e => editGoal ? setEditForm(p => ({ ...p, actual_value: e.target.value })) : setForm(p => ({ ...p, actual_value: e.target.value }))} /></div>
+              {!isAutoSource && (
+                <div><Label>Valor real</Label><Input value={editGoal ? editForm.actual_value : form.actual_value} onChange={e => editGoal ? setEditForm(p => ({ ...p, actual_value: e.target.value })) : setForm(p => ({ ...p, actual_value: e.target.value }))} /></div>
+              )}
             </div>
+            {isAutoSource && (
+              <p className="text-xs text-muted-foreground">O valor real é calculado automaticamente a partir de: {sourceLabel}</p>
+            )}
             <div><Label>Status</Label>
               <Select value={editGoal ? editForm.status : form.status} onValueChange={v => editGoal ? setEditForm(p => ({ ...p, status: v })) : setForm(p => ({ ...p, status: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>

@@ -351,7 +351,7 @@ export function usePlanningData(year = currentYear) {
   const autoSalesRaw = useQuery({
     queryKey: ['auto-sales-raw', year],
     queryFn: async () => {
-      const { data } = await supabase.from('commercial_sales').select('invoice_total,product').eq('sale_year', year);
+      const { data } = await supabase.from('commercial_sales').select('invoice_total,product,sale_month').eq('sale_year', year);
       return data || [];
     },
   });
@@ -359,7 +359,7 @@ export function usePlanningData(year = currentYear) {
   const autoCrmRaw = useQuery({
     queryKey: ['auto-crm-raw', year],
     queryFn: async () => {
-      const { data } = await supabase.from('crm_leads').select('id,potential_product').eq('status', 'ganho');
+      const { data } = await supabase.from('crm_leads').select('id,potential_product,created_at').eq('status', 'ganho');
       return data || [];
     },
   });
@@ -416,7 +416,7 @@ export function usePlanningData(year = currentYear) {
     queryFn: async () => {
       const startDate = `${year}-01-01`;
       const endDate = `${year}-12-31T23:59:59`;
-      const { data } = await supabase.from('content_items').select('id,product_id').eq('status', 'publicado').gte('scheduled_at', startDate).lte('scheduled_at', endDate);
+      const { data } = await supabase.from('content_items').select('id,product_id,scheduled_at').eq('status', 'publicado').gte('scheduled_at', startDate).lte('scheduled_at', endDate);
       return data || [];
     },
   });
@@ -436,7 +436,7 @@ export function usePlanningData(year = currentYear) {
     queryFn: async () => {
       const startDate = `${year}-01-01T00:00:00`;
       const endDate = `${year}-12-31T23:59:59`;
-      const { data } = await supabase.from('meetings').select('id,department,client_id').in('status', ['terminada', 'confirmada']).gte('date_time', startDate).lte('date_time', endDate);
+      const { data } = await supabase.from('meetings').select('id,department,client_id,date_time').in('status', ['terminada', 'confirmada']).gte('date_time', startDate).lte('date_time', endDate);
       return data || [];
     },
   });
@@ -447,7 +447,7 @@ export function usePlanningData(year = currentYear) {
     queryFn: async () => {
       const startDate = `${year}-01-01`;
       const endDate = `${year}-12-31`;
-      const { data } = await supabase.from('client_nps_records').select('nps_score,client_id').not('nps_score', 'is', null).gte('actual_date', startDate).lte('actual_date', endDate);
+      const { data } = await supabase.from('client_nps_records').select('nps_score,client_id,actual_date').not('nps_score', 'is', null).gte('actual_date', startDate).lte('actual_date', endDate);
       return data || [];
     },
   });
@@ -458,7 +458,7 @@ export function usePlanningData(year = currentYear) {
     queryFn: async () => {
       const startDate = `${year}-01-01`;
       const endDate = `${year}-12-31`;
-      const { data } = await supabase.from('financial_expenses').select('total_amount,category').gte('expense_date', startDate).lte('expense_date', endDate);
+      const { data } = await supabase.from('financial_expenses').select('total_amount,category,expense_date').gte('expense_date', startDate).lte('expense_date', endDate);
       return data || [];
     },
   });
@@ -469,7 +469,7 @@ export function usePlanningData(year = currentYear) {
     queryFn: async () => {
       const startDate = `${year}-01-01`;
       const endDate = `${year}-12-31T23:59:59`;
-      const { data } = await supabase.from('projects').select('id,type,client_name').eq('status', 'concluido').gte('updated_at', startDate).lte('updated_at', endDate);
+      const { data } = await supabase.from('projects').select('id,type,client_name,updated_at').eq('status', 'concluido').gte('updated_at', startDate).lte('updated_at', endDate);
       return data || [];
     },
   });
@@ -559,6 +559,85 @@ export function usePlanningData(year = currentYear) {
     if (!productId) return null;
     return (productsQuery.data || []).find((p: any) => p.id === productId)?.name || null;
   };
+
+  // Helper: filter rows by month (1-based) using various date fields
+  const filterByMonth = (rows: any[], month: number, dateField: string) => {
+    return rows.filter((r: any) => {
+      const val = r[dateField];
+      if (!val) return false;
+      if (typeof val === 'number') return val === month;
+      const d = new Date(val);
+      return d.getMonth() + 1 === month;
+    });
+  };
+
+  // Helper: get auto value for a goal (period-filtered version of getAutoValue)
+  const goalAutoValue = (obj: any, goalPeriod: string) => {
+    if (!obj || obj.value_source === 'manual' || obj.value_source === 'metrica') return null;
+    const source = obj.value_source;
+    const sf = obj.source_filter || {};
+    const monthIdx = MONTH_NAMES.indexOf(goalPeriod);
+    if (monthIdx === -1) return null;
+    const month = monthIdx + 1;
+
+    if (source === 'bd_vendas') {
+      let rows = autoSalesRaw.data || [];
+      const pName = obj.product_name || resolveProductName(obj.product_id);
+      if (pName) rows = rows.filter((r: any) => r.product === pName);
+      return filterByMonth(rows, month, 'sale_month').reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0);
+    }
+    if (source === 'bd_crm') {
+      let rows = autoCrmRaw.data || [];
+      const pName = obj.product_name || resolveProductName(obj.product_id);
+      if (pName) rows = rows.filter((r: any) => r.potential_product === pName);
+      return filterByMonth(rows, month, 'created_at').length;
+    }
+    if (source === 'bd_tempo') {
+      let rows = autoTimeEntries.data || [];
+      if (sf.category) rows = rows.filter((r: any) => r.category === sf.category);
+      if (sf.client_id) rows = rows.filter((r: any) => r.client_id === sf.client_id);
+      return filterByMonth(rows, month, 'entry_month').reduce((s: number, r: any) => s + Number(r.duration || 0), 0);
+    }
+    if (source === 'bd_tarefas') {
+      let rows = autoTasksCompleted.data || [];
+      if (sf.department) rows = rows.filter((r: any) => r.department === sf.department);
+      return filterByMonth(rows, month, 'updated_at').length;
+    }
+    if (source === 'bd_conteudos') {
+      let rows = autoContentRaw.data || [];
+      if (sf.channel_id) {
+        const links = autoContentChannels.data || [];
+        const contentIds = new Set(links.filter((l: any) => l.channel_id === sf.channel_id).map((l: any) => l.content_id));
+        rows = rows.filter((r: any) => contentIds.has(r.id));
+      }
+      return filterByMonth(rows, month, 'scheduled_at').length;
+    }
+    if (source === 'bd_reunioes') {
+      let rows = autoMeetingsRaw.data || [];
+      if (sf.department) rows = rows.filter((r: any) => r.department === sf.department);
+      return filterByMonth(rows, month, 'date_time').length;
+    }
+    if (source === 'bd_nps') {
+      let rows = autoNpsRaw.data || [];
+      if (sf.client_id) rows = rows.filter((r: any) => r.client_id === sf.client_id);
+      const monthRows = filterByMonth(rows, month, 'actual_date');
+      if (monthRows.length === 0) return null;
+      const sum = monthRows.reduce((s: number, r: any) => s + Number(r.nps_score), 0);
+      return Math.round((sum / monthRows.length) * 10) / 10;
+    }
+    if (source === 'bd_despesas') {
+      let rows = autoExpensesRaw.data || [];
+      if (sf.category) rows = rows.filter((r: any) => r.category === sf.category);
+      return filterByMonth(rows, month, 'expense_date').reduce((s: number, r: any) => s + Number(r.total_amount || 0), 0);
+    }
+    if (source === 'bd_projetos') {
+      let rows = autoProjectsRaw.data || [];
+      if (sf.type) rows = rows.filter((r: any) => r.type === sf.type);
+      return filterByMonth(rows, month, 'updated_at').length;
+    }
+    return null;
+  };
+
 
   // Helper: compute objective progress
   const objectiveProgress = (obj: any) => {
@@ -660,7 +739,7 @@ export function usePlanningData(year = currentYear) {
     metricHistory, addMetricRecord,
     actions, allActions: actions.data || [],
     upsertAction, deleteAction, convertActionToTask,
-    getAutoValue, objectiveProgress, objectiveCurrentValue,
+    getAutoValue, goalAutoValue, objectiveProgress, objectiveCurrentValue,
     computeGoalStatus, getGoalsWithDeviations,
     isMetricOverdue, isMetricDueToday, getMetricTrend,
     invalidate, year,
