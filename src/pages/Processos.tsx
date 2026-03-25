@@ -386,6 +386,7 @@ export default function ProcessosPage() {
             </div>
             </div>
             </div>
+            <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Departamentos</Label>
               <Popover>
@@ -415,6 +416,48 @@ export default function ProcessosPage() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{SOP_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
               </Select>
+            </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Função associada</Label>
+              <Popover open={newSopRoleOpen} onOpenChange={setNewSopRoleOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start font-normal">
+                    {newSopRoleTitle || <span className="text-muted-foreground">Selecionar ou escrever...</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[280px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Pesquisar função..." value={newSopRoleTitle} onValueChange={setNewSopRoleTitle} />
+                    <CommandList>
+                      <CommandEmpty>
+                        {newSopRoleTitle.trim() && (
+                          <p className="px-3 py-2 text-sm text-muted-foreground">Função: <strong>{newSopRoleTitle.trim()}</strong></p>
+                        )}
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {existingRoles.map(role => (
+                          <CommandItem key={role} value={role} onSelect={() => { setNewSopRoleTitle(role); setNewSopRoleOpen(false); }}>
+                            {role}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <Label>Produto/Serviço associado</Label>
+              <Select value={newSopProductId || '_none_'} onValueChange={v => setNewSopProductId(v === '_none_' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none_">Nenhum</SelectItem>
+                  {productsList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             </div>
             <Button className="w-full" disabled={!newSopName.trim() || newSopDepts.length === 0} onClick={() => createSop.mutate()}>Criar Processo</Button>
           </div>
