@@ -71,7 +71,6 @@ export default function ExecutiveDashboard() {
               <Link to="/executive/processos" className="flex items-center gap-3 rounded-lg p-2.5 text-sm font-medium hover:bg-primary/10 transition-colors group">
                 <FileText className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Processos da Administração
               </Link>
-              </Link>
             </CardContent>
           </Card>
 
