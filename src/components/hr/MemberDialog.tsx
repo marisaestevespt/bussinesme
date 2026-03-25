@@ -1,0 +1,464 @@
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Plus, Upload } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import {
+  MEMBER_STATUSES, MEMBER_TYPES, CONTRACT_TYPES, CONTRACT_STATUSES, WORK_AREAS,
+} from '@/hooks/useTeamData';
+import { DEPARTMENTS } from '@/lib/departments';
+import { SENSITIVE_CATEGORIES } from '@/hooks/useSensitiveAccess';
+import {
+  WEEK_DAYS, PERIODS, TIME_OPTIONS, CONTRACT_DURATIONS, PRESET_ROLES, ROLE_COLORS,
+  parseSchedule, formatSchedule,
+} from './team-helpers';
+
+const DEFAULT_MEMBER_FORM = {
+  full_name: '',
+  role_title: '',
+  role_color: '#6366f1',
+  photo_url: '',
+  email: '',
+  whatsapp: '',
+  work_schedule: '',
+  identification: '',
+  status: 'ativo',
+  member_type: 'colaborador_fixo',
+  department: '',
+  departments: [] as string[],
+  deptExtraPages: {} as Record<string, string[]>,
+  sensitiveAccess: {} as Record<string, boolean>,
+  start_date: '',
+  presentation: '',
+  responsibilities: '',
+  works_holidays: false,
+  custom_holidays: [] as string[],
+  work_areas: [] as string[],
+};
+
+function ScheduleSelector({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const schedule = parseSchedule(value);
+
+  const togglePeriod = (day: string, period: 'manha' | 'tarde') => {
+    const current = { ...schedule };
+    if (!current[day]) current[day] = {};
+    if (current[day][period]) {
+      delete current[day][period];
+      if (!current[day].manha && !current[day].tarde) delete current[day];
+    } else {
+      current[day][period] = period === 'manha' ? '09:00-13:00' : '14:00-18:00';
+    }
+    onChange(formatSchedule(current));
+  };
+
+  const setTime = (day: string, period: 'manha' | 'tarde', pos: 'start' | 'end', time: string) => {
+    const current = { ...schedule };
+    if (!current[day]) current[day] = {};
+    const existing = current[day][period] || (period === 'manha' ? '09:00-13:00' : '14:00-18:00');
+    const [start, end] = existing.split('-');
+    current[day][period] = pos === 'start' ? `${time}-${end}` : `${start}-${time}`;
+    onChange(formatSchedule(current));
+  };
+
+  return (
+    <div className="col-span-2 space-y-2">
+      <span className="text-xs text-muted-foreground font-medium">Horário de trabalho</span>
+      <div className="border rounded-lg overflow-hidden">
+        <table className="w-full text-[11px]">
+          <thead>
+            <tr className="bg-muted/50">
+              <th className="p-1.5 text-left font-medium text-muted-foreground">Dia</th>
+              <th className="p-1.5 text-center font-medium text-muted-foreground">Manhã</th>
+              <th className="p-1.5 text-center font-medium text-muted-foreground">Tarde</th>
+            </tr>
+          </thead>
+          <tbody>
+            {WEEK_DAYS.map(d => {
+              const ds = schedule[d.key] || {};
+              return (
+                <tr key={d.key} className="border-t border-muted/30">
+                  <td className="p-1.5 font-medium">{d.label}</td>
+                  {PERIODS.map(p => {
+                    const periodKey = p.key as 'manha' | 'tarde';
+                    const active = !!ds[periodKey];
+                    const [start, end] = active ? (ds[periodKey] || '').split('-') : ['', ''];
+                    return (
+                      <td key={p.key} className="p-1">
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => togglePeriod(d.key, periodKey)}
+                            className={`h-5 w-5 rounded shrink-0 flex items-center justify-center text-[9px] font-bold transition-colors ${
+                              active ? 'bg-primary text-primary-foreground' : 'bg-muted/60 text-muted-foreground hover:bg-muted'
+                            }`}
+                          >
+                            {active ? '✓' : ''}
+                          </button>
+                          {active && (
+                            <div className="flex items-center gap-0.5 text-[10px]">
+                              <select
+                                value={start}
+                                onChange={e => setTime(d.key, periodKey, 'start', e.target.value)}
+                                className="bg-transparent border border-muted rounded px-0.5 py-0 text-[10px] w-[52px]"
+                              >
+                                {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                              </select>
+                              <span className="text-muted-foreground">-</span>
+                              <select
+                                value={end}
+                                onChange={e => setTime(d.key, periodKey, 'end', e.target.value)}
+                                className="bg-transparent border border-muted rounded px-0.5 py-0 text-[10px] w-[52px]"
+                              >
+                                {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                              </select>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+export function MemberDialog({ open, onClose, initial, onSave }: any) {
+  const isEdit = !!initial?.id;
+  const [f, setF] = useState({ ...DEFAULT_MEMBER_FORM, ...(initial || {}) });
+  const [uploading, setUploading] = useState(false);
+  const [contract, setContract] = useState({
+    contract_type: 'contrato_trabalho',
+    duration: '12',
+    monthly_value: '',
+    contracted_hours: '',
+    payment_day: '1',
+    start_date: '',
+    end_date: '',
+    status: 'ativo',
+  });
+
+  useEffect(() => {
+    const init = { ...DEFAULT_MEMBER_FORM, ...(initial || {}) };
+    setF(init);
+    if (initial?.id) {
+      supabase.from('member_sensitive_access').select('category, granted').eq('member_id', initial.id).then(({ data }) => {
+        if (data && data.length > 0) {
+          const sa: Record<string, boolean> = {};
+          data.forEach(r => { sa[r.category] = r.granted; });
+          setF((prev: any) => ({ ...prev, sensitiveAccess: sa }));
+        }
+      });
+    }
+  }, [initial]);
+
+  const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
+  const setC = (k: string, v: any) => setContract((p: any) => ({ ...p, [k]: v }));
+
+  const calcEndDate = (start: string, dur: string) => {
+    if (!start || dur === 'indefinido' || dur === 'unica') return '';
+    const d = new Date(start);
+    d.setMonth(d.getMonth() + parseInt(dur));
+    return d.toISOString().split('T')[0];
+  };
+
+  const handleStartDateChange = (v: string) => {
+    setC('start_date', v);
+    set('start_date', v);
+    setC('end_date', calcEndDate(v, contract.duration));
+  };
+
+  const handleDurationChange = (v: string) => {
+    setC('duration', v);
+    setC('end_date', calcEndDate(contract.start_date, v));
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader><DialogTitle>{isEdit ? 'Editar Membro' : 'Novo Membro'}</DialogTitle></DialogHeader>
+        <div className="space-y-5">
+
+          {/* ═══ BLOCO 1: IDENTIDADE ═══ */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">👤 Identidade</h3>
+            <div className="flex items-center gap-4">
+              <div className="relative group">
+                <Avatar className="h-16 w-16">
+                  <AvatarImage src={f.photo_url || undefined} />
+                  <AvatarFallback className="text-lg">{f.full_name ? f.full_name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() : '?'}</AvatarFallback>
+                </Avatar>
+                <label className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                  <Upload className="h-4 w-4 text-white" />
+                  <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setUploading(true);
+                    const ext = file.name.split('.').pop();
+                    const path = `team/${Date.now()}.${ext}`;
+                    const { error } = await supabase.storage.from('personal-images').upload(path, file);
+                    if (error) { toast.error('Erro ao carregar foto'); setUploading(false); return; }
+                    const { data: urlData } = supabase.storage.from('personal-images').getPublicUrl(path);
+                    set('photo_url', urlData.publicUrl);
+                    setUploading(false);
+                  }} />
+                </label>
+                {uploading && <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full"><span className="text-[10px] text-white">...</span></div>}
+              </div>
+              <div className="flex-1">
+                <Input placeholder="Nome completo *" value={f.full_name} onChange={e => set('full_name', e.target.value)} />
+              </div>
+            </div>
+
+            {/* Função */}
+            <div className="space-y-1.5">
+              <span className="text-xs text-muted-foreground font-medium">Função</span>
+              <div className="flex flex-wrap gap-1.5">
+                {PRESET_ROLES.map(r => {
+                  const isSelected = f.role_title === r.label;
+                  return (
+                    <button key={r.label} type="button"
+                      onClick={() => { set('role_title', isSelected ? '' : r.label); set('role_color', r.color); }}
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${isSelected ? 'text-white border-transparent ring-2 ring-offset-1 ring-foreground/20' : 'text-foreground/70 border-border hover:border-foreground/30'}`}
+                      style={isSelected ? { backgroundColor: r.color } : {}}
+                    >{r.label}</button>
+                  );
+                })}
+              </div>
+              {!PRESET_ROLES.some(r => r.label === f.role_title) && f.role_title ? (
+                <div className="flex gap-2 items-center mt-2">
+                  <Input className="flex-1 h-8 text-xs" value={f.role_title} onChange={e => set('role_title', e.target.value)} />
+                  <div className="flex gap-1">
+                    {ROLE_COLORS.map(c => (
+                      <button key={c.value} type="button" onClick={() => set('role_color', c.value)}
+                        className={`h-5 w-5 rounded-full border-2 transition-all shrink-0 ${f.role_color === c.value ? 'border-foreground scale-110' : 'border-transparent'}`}
+                        style={{ backgroundColor: c.value }} title={c.label} />
+                    ))}
+                  </div>
+                  <button type="button" className="text-xs text-destructive hover:underline" onClick={() => { set('role_title', ''); set('role_color', '#6366f1'); }}>Limpar</button>
+                </div>
+              ) : (
+                <button type="button" className="mt-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                  onClick={() => { set('role_title', 'Nova função'); set('role_color', '#6366f1'); }}>
+                  <Plus className="h-3 w-3" /> Adicionar outra função
+                </button>
+              )}
+              {f.role_title && <Badge className="text-xs text-white mt-1" style={{ backgroundColor: f.role_color || '#6366f1' }}>{f.role_title}</Badge>}
+            </div>
+
+            {/* Status + Tipo */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-muted-foreground">Status</label>
+                <Select value={f.status} onValueChange={v => set('status', v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{MEMBER_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Tipo</label>
+                <Select value={f.member_type} onValueChange={v => set('member_type', v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="colaborador_fixo">Equipa Interna</SelectItem>
+                    <SelectItem value="prestador_servicos">Freelancer</SelectItem>
+                    <SelectItem value="socio">Sócio</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Contactos */}
+            <div className="grid grid-cols-3 gap-2">
+              <Input placeholder="Email" value={f.email || ''} onChange={e => set('email', e.target.value)} />
+              <Input placeholder="Telefone" value={f.whatsapp || ''} onChange={e => set('whatsapp', e.target.value)} />
+              <Input placeholder="NIF / Identificação" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
+            </div>
+
+            {/* Nascimento */}
+            <div>
+              <label className="text-xs text-muted-foreground">Data de nascimento</label>
+              <Input type="date" value={(f as any).birthday || ''} onChange={e => set('birthday' as any, e.target.value)} />
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* ═══ BLOCO 2: POSIÇÃO ═══ */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🏢 Posição</h3>
+            <div>
+              <span className="text-xs text-muted-foreground font-medium">Departamentos</span>
+              <div className="space-y-1 mt-1.5">
+                {DEPARTMENTS.map(d => {
+                  const depts: string[] = Array.isArray(f.departments) ? f.departments : (f.department ? [f.department] : []);
+                  const checked = depts.includes(d.value);
+                  return (
+                    <label key={d.value} className={cn(
+                      'flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer transition-colors text-xs',
+                      checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
+                    )}>
+                      <Checkbox checked={checked} onCheckedChange={(v) => {
+                        const next = v ? [...depts, d.value] : depts.filter(x => x !== d.value);
+                        set('departments', next);
+                        set('department', next[0] || '');
+                      }} />
+                      <span>{d.icon} {d.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Áreas de trabalho */}
+            <div className="space-y-1.5">
+              <span className="text-xs text-muted-foreground font-medium">Áreas de trabalho</span>
+              <p className="text-[10px] text-muted-foreground">Seleciona uma ou mais áreas em que este membro vai atuar.</p>
+              <div className="grid grid-cols-1 gap-1.5">
+                {WORK_AREAS.map(wa => {
+                  const areas: string[] = Array.isArray(f.work_areas) ? f.work_areas : [];
+                  const checked = areas.includes(wa.value);
+                  return (
+                    <label key={wa.value} className={cn(
+                      'flex items-start gap-2.5 rounded-md border px-3 py-2 cursor-pointer transition-colors',
+                      checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
+                    )}>
+                      <Checkbox checked={checked} onCheckedChange={(v) => {
+                        const next = v ? [...areas, wa.value] : areas.filter(a => a !== wa.value);
+                        set('work_areas', next);
+                      }} className="mt-0.5" />
+                      <div>
+                        <span className="text-xs font-medium">{wa.label}</span>
+                        <p className="text-[10px] text-muted-foreground leading-tight">{wa.description}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            <Textarea placeholder="Responsabilidades" value={f.responsibilities || ''} onChange={e => set('responsibilities', e.target.value)} rows={2} />
+          </div>
+
+          <Separator />
+
+          {/* ═══ BLOCO 3: ACESSOS & PERMISSÕES ═══ */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🔐 Acessos & Permissões</h3>
+            <div className="rounded-md bg-muted/40 px-3 py-2">
+              <p className="text-[10px] text-muted-foreground font-medium mb-0.5">Acesso automático:</p>
+              <p className="text-[11px]">Começa Aqui, Mural, Hub de Equipa, Agenda, Reuniões, Processos, Projetos, Tarefas, Acessos, Biblioteca, Secretaria + tudo dentro dos departamentos selecionados.</p>
+            </div>
+            <div className="space-y-1.5">
+              <span className="text-xs text-muted-foreground font-medium">Permissões Sensíveis</span>
+              <p className="text-[10px] text-muted-foreground">Define que informação sensível este membro pode ver. Tudo OFF por defeito.</p>
+              <div className="space-y-1">
+                {SENSITIVE_CATEGORIES.map(cat => {
+                  const checked = !!(f.sensitiveAccess || {})[cat.key];
+                  return (
+                    <label key={cat.key} className={cn(
+                      'flex items-center gap-3 rounded-md border px-3 py-2 cursor-pointer transition-colors',
+                      checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
+                    )}>
+                      <Switch checked={checked} onCheckedChange={(v) => {
+                        set('sensitiveAccess', { ...(f.sensitiveAccess || {}), [cat.key]: !!v });
+                      }} />
+                      <div>
+                        <span className="text-xs font-medium">{cat.label}</span>
+                        <p className="text-[10px] text-muted-foreground leading-tight">{cat.description}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* ═══ BLOCO 4: HORÁRIO ═══ */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🕐 Horário</h3>
+            <ScheduleSelector value={f.work_schedule || ''} onChange={v => set('work_schedule', v)} />
+            <div className="flex items-center justify-between">
+              <label className="text-sm">Trabalha em feriados?</label>
+              <Switch checked={!!f.works_holidays} onCheckedChange={v => set('works_holidays', v)} />
+            </div>
+          </div>
+
+          {/* Contrato (só para novos membros) */}
+          {!isEdit && (
+            <>
+              <Separator />
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">📄 Contrato & Pagamento</h3>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-muted-foreground">Tipo de contrato</label>
+                  <Select value={contract.contract_type} onValueChange={v => setC('contract_type', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{CONTRACT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Duração do contrato</label>
+                  <Select value={contract.duration} onValueChange={handleDurationChange}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{CONTRACT_DURATIONS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-muted-foreground">Valor mensal (€)</label>
+                  <Input type="number" placeholder="0" value={contract.monthly_value} onChange={e => setC('monthly_value', e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Tempo contratado mensal (horas)</label>
+                  <Input placeholder="Ex: 40h" value={contract.contracted_hours} onChange={e => setC('contracted_hours', e.target.value)} />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-xs text-muted-foreground">Data de início</label>
+                  <Input type="date" value={contract.start_date} onChange={e => handleStartDateChange(e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Data de fim</label>
+                  <Input type="date" value={contract.end_date} onChange={e => setC('end_date', e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Dia do mês de pagamento</label>
+                  <Input type="number" min={1} max={31} placeholder="1" value={contract.payment_day} onChange={e => setC('payment_day', e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Status do contrato</label>
+                <Select value={contract.status} onValueChange={v => setC('status', v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{CONTRACT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
+
+          <input type="hidden" value={f.presentation || ''} />
+          <Button className="w-full" onClick={() => { onSave({ member: { ...initial, ...f }, contract: isEdit ? null : contract }); onClose(false); }} disabled={!f.full_name.trim()}>Guardar</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
