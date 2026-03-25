@@ -26,6 +26,7 @@ const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
 
 export default function ExecutiveWeeklyAlign() {
   const now = new Date();
+  const navigate = useNavigate();
   const [weekOffset, setWeekOffset] = useState(0);
 
   const weekStart = useMemo(() => {
