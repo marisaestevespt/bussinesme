@@ -47,6 +47,11 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
   const [newSopName, setNewSopName] = useState('');
   const [newSopStatus, setNewSopStatus] = useState('para_criar');
 
+  // Onboarding template dialog state
+  const [showNewOnboarding, setShowNewOnboarding] = useState(false);
+  const [obRoleTitle, setObRoleTitle] = useState('');
+  const [obItems, setObItems] = useState<{ task: string; deadline_days: number }[]>([{ task: '', deadline_days: 2 }]);
+
   // Routine dialog state
   const [showNewRoutine, setShowNewRoutine] = useState(false);
   const [prTitle, setPrTitle] = useState('');
