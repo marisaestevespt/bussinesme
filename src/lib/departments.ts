@@ -8,7 +8,7 @@ export const DEPARTMENTS = [
   { value: 'financeiro', label: 'Contabilidade', gradient: 'from-emerald-500 to-green-800', icon: '💰', lucideIcon: 'DollarSign' },
   { value: 'operacao', label: 'Operação', gradient: 'from-violet-500 to-purple-800', icon: '⚙️', lucideIcon: 'Headphones' },
   { value: 'produtos', label: 'Produtos', gradient: 'from-indigo-500 to-blue-800', icon: '📦', lucideIcon: 'Package' },
-  { value: 'recursos-humanos', label: 'Pessoas', gradient: 'from-rose-500 to-pink-800', icon: '👥', lucideIcon: 'UsersRound' },
+  { value: 'recursos-humanos', label: 'Recursos Humanos', gradient: 'from-rose-500 to-pink-800', icon: '👥', lucideIcon: 'UsersRound' },
 ] as const;
 
 /** Departments available for processes, routines, SOPs */

@@ -635,7 +635,7 @@ export default function ExecutiveGestaoEquipa() {
   return (
     <AppLayout>
       <div className="p-6 space-y-8">
-        <PageHeader title="Pessoas" subtitle="Central de gestão de todos os membros do negócio" />
+        <PageHeader title="Recursos Humanos" subtitle="Central de gestão de todos os membros do negócio" />
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {HR_SECTIONS.map(s => (
