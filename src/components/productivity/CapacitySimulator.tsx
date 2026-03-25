@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Plus, Trash2, Users, Building2, TrendingUp, ArrowLeftRight, UserPlus } from 'lucide-react';
+import { PROCESS_DEPARTMENTS } from '@/lib/departments';
 
 const WEEKS_PER_MONTH = 4.33;
 
@@ -127,10 +128,9 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
   const [phantoms, setPhantoms] = useState<PhantomMember[]>([]);
 
   const departments = useMemo(() => {
-    const depts = new Set<string>();
-    members.forEach(m => { if (m.department) depts.add(m.department); });
-    return Array.from(depts).sort();
-  }, [members]);
+    const depts = PROCESS_DEPARTMENTS.map(d => d.label);
+    return depts;
+  }, []);
 
   const addPhantom = () => {
     setPhantoms(prev => [...prev, {
