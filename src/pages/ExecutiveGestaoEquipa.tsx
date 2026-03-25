@@ -182,8 +182,10 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"><Clock className="h-5 w-5 text-primary" /></div>
-            <div><p className="text-xs text-muted-foreground">Horas trabalhadas (mês)</p><p className="text-lg font-bold">{totalHoursMonth.toFixed(1)}h</p></div>
+            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${expiringContracts.length > 0 ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-primary/10'}`}>
+              <FileText className={`h-5 w-5 ${expiringContracts.length > 0 ? 'text-amber-600' : 'text-primary'}`} />
+            </div>
+            <div><p className="text-xs text-muted-foreground">Contratos a expirar (30d)</p><p className="text-lg font-bold">{expiringContracts.length}</p></div>
           </CardContent>
         </Card>
         <Card>
