@@ -1856,6 +1856,7 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
       )}
       {dialog !== null && <MemberDialog open onClose={() => setDialog(null)} initial={dialog} onSave={handleSave} />}
       {selected && <MemberDetailSheet open onClose={() => setSelected(null)} member={selected} team={team} />}
+    </div>
   );
 }
 
