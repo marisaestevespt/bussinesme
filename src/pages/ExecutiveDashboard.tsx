@@ -87,11 +87,8 @@ export default function ExecutiveDashboard() {
               <Link to="/executive/business-plan" className="flex items-center gap-3 rounded-lg p-2.5 text-sm font-medium hover:bg-primary/10 transition-colors group">
                 <Rocket className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Plano & Modelo de Negócio
               </Link>
-              <Link to="/executive/capacidade" className="flex items-center gap-3 rounded-lg p-2.5 text-sm font-medium hover:bg-primary/10 transition-colors group">
-                <Calculator className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Simulador de Capacidade
-              </Link>
               <Link to="/executive/productivity" className="flex items-center gap-3 rounded-lg p-2.5 text-sm font-medium hover:bg-primary/10 transition-colors group">
-                <Clock className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Análise de Produtividade
+                <Clock className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Produtividade & Capacidade
               </Link>
               <Link to="/executive/innovation" className="flex items-center gap-3 rounded-lg p-2.5 text-sm font-medium hover:bg-primary/10 transition-colors group">
                 <Lightbulb className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" /> Desenvolvimento & Inovação
