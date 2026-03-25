@@ -1,0 +1,1 @@
+ALTER TABLE public.sop_onboarding_templates ADD COLUMN IF NOT EXISTS department text NOT NULL DEFAULT 'marketing';
