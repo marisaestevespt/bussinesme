@@ -1854,6 +1854,16 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
           await supabase.from('role_permissions').upsert(perms, { onConflict: 'custom_role_id,module_key' });
         }
       }
+      // Save sensitive access toggles
+      const sensitiveAccess2: Record<string, boolean> = member.sensitiveAccess || {};
+      const sensitiveRows2 = Object.entries(sensitiveAccess2).map(([category, granted]) => ({
+        member_id: memberId,
+        category,
+        granted: !!granted,
+      }));
+      if (sensitiveRows2.length > 0) {
+        await supabase.from('member_sensitive_access').upsert(sensitiveRows2, { onConflict: 'member_id,category' });
+      }
     } catch (err: any) {
       toast.error('Erro: ' + (err.message || err));
     }
