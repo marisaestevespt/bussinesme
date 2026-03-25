@@ -34,6 +34,7 @@ import {
 } from '@/hooks/useTeamData';
 import { getMonthName } from '@/hooks/useExecutiveData';
 import { DEPARTMENTS, getDept } from '@/lib/departments';
+import { RolePagePicker } from '@/components/RolePagePicker';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
