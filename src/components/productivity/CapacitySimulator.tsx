@@ -17,8 +17,7 @@ import { PROCESS_DEPARTMENTS, getDeptLabel } from '@/lib/departments';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
-
-const WEEKS_PER_MONTH = 4.33;
+import { WEEKS_PER_MONTH } from './productivity-constants';
 
 interface Props {
   members: any[];
