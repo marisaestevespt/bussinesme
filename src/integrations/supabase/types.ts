@@ -3171,6 +3171,36 @@ export type Database = {
         }
         Relationships: []
       }
+      hiring_simulations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          notes: string | null
+          phantoms: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phantoms?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phantoms?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       innovation_docs: {
         Row: {
           content: string | null
