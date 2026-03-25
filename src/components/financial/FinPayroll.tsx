@@ -160,7 +160,7 @@ export function FinPayroll({ currentYear }: Props) {
 
       {/* Sections by contract type — only show if there are contracts */}
       {hasContratoTrabalho && renderSection('contrato_trabalho', grouped['contrato_trabalho'])}
-      {hasPrestacao && renderSection('prestacao_servicos', grouped['prestacao_servicos'])}
+      {hasPrestacao && renderSection('contrato_prestacao', grouped['contrato_prestacao'])}
       {hasAcordo && renderSection('acordo', grouped['acordo'])}
       {hasOutro && renderSection('outro', grouped['outro'])}
 
