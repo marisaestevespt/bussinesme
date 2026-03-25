@@ -308,6 +308,34 @@ export default function ExecutiveWeeklyAlign() {
     },
   });
 
+  // ─── Financial summary for the month ───
+  const monthExpenses = useQuery({
+    queryKey: ['wa-expenses-month', currentMonth, currentYear],
+    queryFn: async () => {
+      const { data } = await supabase.from('financial_expenses').select('total_with_vat, category, status').eq('expense_month', currentMonth).eq('expense_year', currentYear);
+      return data || [];
+    },
+  });
+
+  const monthPayroll = useQuery({
+    queryKey: ['wa-payroll-month', currentMonth, currentYear],
+    queryFn: async () => {
+      const { data } = await supabase.from('financial_payroll').select('total_cost, status').eq('month', currentMonth).eq('year', currentYear);
+      return data || [];
+    },
+  });
+
+  const financialSummary = useMemo(() => {
+    const totalExpenses = (monthExpenses.data || []).reduce((s, e) => s + Number(e.total_with_vat || 0), 0);
+    const pendingExpenses = (monthExpenses.data || []).filter(e => e.status === 'por_pagar').reduce((s, e) => s + Number(e.total_with_vat || 0), 0);
+    const totalPayroll = (monthPayroll.data || []).reduce((s, p) => s + Number(p.total_cost || 0), 0);
+    const pendingPayroll = (monthPayroll.data || []).filter(p => p.status === 'por_pagar').reduce((s, p) => s + Number(p.total_cost || 0), 0);
+    const totalCosts = totalExpenses + totalPayroll;
+    const totalPending = pendingExpenses + pendingPayroll;
+    const balance = totalBilled - totalCosts;
+    return { totalExpenses, totalPayroll, totalCosts, totalPending, balance };
+  }, [monthExpenses.data, monthPayroll.data, totalBilled]);
+
   const capacityAlert = useMemo(() => {
     const activeMembers = teamMembers.filter((m: any) => m.status === 'ativo' || m.status === 'prestador');
     if (activeMembers.length === 0) return null;
