@@ -23,7 +23,8 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subWeeks } from 'date-fns';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subWeeks, getDay } from 'date-fns';
+import { getHolidaySet } from '@/lib/holidays';
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { CapacitySimulator } from '@/components/productivity/CapacitySimulator';
@@ -711,20 +712,30 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
 
   const CLIENT_WORK_AREAS = ['cliente_servico', 'cliente_comercial', 'cliente_administrativo'];
 
+  const holidaySet = useMemo(() => getHolidaySet(new Date().getFullYear()), []);
+
   const memberCapacity = useMemo(() => {
     return activeMembers.map(m => {
       const weeklyH = Number(m.expected_weekly_hours) || 0;
       const monthlyH = Math.round(weeklyH * WEEKS_PER_MONTH);
-      const actualH = monthEntries.filter(e => e.member_id === m.id).reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
-      const clientH = monthEntries.filter(e => e.member_id === m.id && (e.client_id || e.category === 'cliente')).reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
+      const mEntries = monthEntries.filter(e => e.member_id === m.id);
+      const actualH = mEntries.reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
+      const clientH = mEntries.filter(e => e.client_id || e.category === 'cliente').reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
       const internalH = actualH - clientH;
       const usagePct = monthlyH > 0 ? Math.round((actualH / monthlyH) * 100) : 0;
       const areas: string[] = Array.isArray((m as any).work_areas) ? (m as any).work_areas : [];
       const isClientFacing = areas.some(a => CLIENT_WORK_AREAS.includes(a));
       const areaLabel = isClientFacing ? 'Cliente' : areas.includes('interno') ? 'Interno' : '—';
-      return { id: m.id, name: m.full_name, role: m.role_title || '—', weeklyH, monthlyH, actualH: Number(actualH.toFixed(1)), clientH: Number(clientH.toFixed(1)), internalH: Number(internalH.toFixed(1)), usagePct, remainingH: Number((monthlyH - actualH).toFixed(1)), areaLabel, isClientFacing };
+      // Holiday/weekend work
+      const weekendEntries = mEntries.filter((e: any) => { const d = new Date(e.entry_date); return getDay(d) === 0 || getDay(d) === 6; });
+      const holidayEntries = mEntries.filter((e: any) => holidaySet.has(e.entry_date));
+      const weekendDays = new Set(weekendEntries.map((e: any) => e.entry_date)).size;
+      const holidayDays = new Set(holidayEntries.map((e: any) => e.entry_date)).size;
+      const weekendH = Number(weekendEntries.reduce((s: number, e: any) => s + Number(e.duration || 0), 0).toFixed(1));
+      const holidayH = Number(holidayEntries.reduce((s: number, e: any) => s + Number(e.duration || 0), 0).toFixed(1));
+      return { id: m.id, name: m.full_name, role: m.role_title || '—', weeklyH, monthlyH, actualH: Number(actualH.toFixed(1)), clientH: Number(clientH.toFixed(1)), internalH: Number(internalH.toFixed(1)), usagePct, remainingH: Number((monthlyH - actualH).toFixed(1)), areaLabel, isClientFacing, weekendDays, weekendH, holidayDays, holidayH };
     }).sort((a, b) => b.usagePct - a.usagePct);
-  }, [activeMembers, monthEntries]);
+  }, [activeMembers, monthEntries, holidaySet]);
 
   const totalActual = memberCapacity.reduce((s, m) => s + m.actualH, 0);
   const totalClientH = memberCapacity.reduce((s, m) => s + m.clientH, 0);
@@ -764,7 +775,7 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
         <CardContent className="p-0">
           <Table>
             <TableHeader><TableRow>
-              <TableHead>Membro</TableHead><TableHead>Função</TableHead><TableHead>Área</TableHead><TableHead className="text-right">h/semana</TableHead><TableHead className="text-right">Capacidade/mês</TableHead><TableHead className="text-right">Cliente</TableHead><TableHead className="text-right">Interno</TableHead><TableHead className="text-right">Restante</TableHead><TableHead className="text-right">Ocupação</TableHead><TableHead>Barra</TableHead>
+              <TableHead>Membro</TableHead><TableHead>Função</TableHead><TableHead>Área</TableHead><TableHead className="text-right">h/semana</TableHead><TableHead className="text-right">Capacidade/mês</TableHead><TableHead className="text-right">Cliente</TableHead><TableHead className="text-right">Interno</TableHead><TableHead className="text-right">Restante</TableHead><TableHead className="text-right">Ocupação</TableHead><TableHead className="text-center">FdS</TableHead><TableHead className="text-center">Feriados</TableHead><TableHead>Barra</TableHead>
             </TableRow></TableHeader>
             <TableBody>
               {memberCapacity.map(m => (
@@ -782,6 +793,8 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
                   <TableCell className="text-sm text-right tabular-nums text-muted-foreground">{m.internalH}h</TableCell>
                   <TableCell className={`text-sm text-right tabular-nums ${m.remainingH < 0 ? 'text-destructive' : ''}`}>{m.remainingH}h</TableCell>
                   <TableCell className={`text-sm text-right font-medium ${m.usagePct > 100 ? 'text-destructive' : m.usagePct > 85 ? 'text-amber-500' : ''}`}>{m.usagePct}%</TableCell>
+                  <TableCell className="text-center text-xs">{m.weekendDays > 0 ? <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-700">{m.weekendDays}d · {m.weekendH}h</Badge> : <span className="text-muted-foreground">—</span>}</TableCell>
+                  <TableCell className="text-center text-xs">{m.holidayDays > 0 ? <Badge variant="outline" className="text-[10px] border-blue-300 text-blue-700">{m.holidayDays}d · {m.holidayH}h</Badge> : <span className="text-muted-foreground">—</span>}</TableCell>
                   <TableCell>
                     <div className="flex h-2.5 w-24 rounded-full overflow-hidden bg-muted">
                       <div className={`h-full rounded-full ${m.usagePct > 100 ? 'bg-destructive' : m.usagePct > 85 ? 'bg-amber-500' : 'bg-primary'}`} style={{ width: `${Math.min(m.usagePct, 100)}%` }} />
@@ -790,7 +803,7 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
                 </TableRow>
               ))}
               {memberCapacity.length === 0 && (
-                <TableRow><TableCell colSpan={10} className="text-center text-sm text-muted-foreground py-8">Sem membros ativos</TableCell></TableRow>
+                <TableRow><TableCell colSpan={12} className="text-center text-sm text-muted-foreground py-8">Sem membros ativos</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
