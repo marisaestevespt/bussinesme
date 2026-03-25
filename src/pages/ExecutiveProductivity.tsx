@@ -172,6 +172,236 @@ export default function ExecutiveProductivity() {
   );
 }
 
+/* ─── TAB: INTERNO VS CLIENTE ─── */
+function TimeSplitTab({ entries, members, scenario, scenarioProducts }: { entries: any[]; members: any[]; scenario: any; scenarioProducts: any[] }) {
+  const [period, setPeriod] = useState('month');
+  const { start, end } = getDateRange(period);
+
+  const filtered = entries.filter(e => {
+    const d = new Date(e.entry_date);
+    return d >= start && d <= end;
+  });
+
+  const totalHours = filtered.reduce((s, e) => s + Number(e.duration || 0), 0);
+  const clientHours = filtered.filter(e => e.client_id || e.category === 'cliente').reduce((s, e) => s + Number(e.duration || 0), 0);
+  const internalHours = totalHours - clientHours;
+
+  const clientPct = totalHours > 0 ? Math.round((clientHours / totalHours) * 100) : 0;
+  const internalPct = totalHours > 0 ? 100 - clientPct : 0;
+
+  // Planned split from capacity simulator
+  const planned = useMemo(() => {
+    if (!scenario) return null;
+    const adminPct = Number(scenario.admin_percent || 0);
+    const businessPct = Number(scenario.business_percent || 0);
+    const internalPlanned = adminPct + businessPct;
+    const clientPlanned = 100 - internalPlanned;
+    const totalTeamHours = Number(scenario.useful_hours_per_month || 0) * Number(scenario.team_size || 1);
+    return {
+      internalPct: internalPlanned,
+      clientPct: clientPlanned,
+      adminPct,
+      businessPct,
+      totalTeamHours,
+      scenarioName: scenario.name,
+    };
+  }, [scenario]);
+
+  // Monthly trend data
+  const monthlyTrend = useMemo(() => {
+    const now = new Date();
+    const months: { month: string; cliente: number; interno: number }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const m = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const mEnd = endOfMonth(m);
+      const mEntries = entries.filter(e => {
+        const d = new Date(e.entry_date);
+        return d >= m && d <= mEnd;
+      });
+      const total = mEntries.reduce((s, e) => s + Number(e.duration || 0), 0);
+      const client = mEntries.filter(e => e.client_id || e.category === 'cliente').reduce((s, e) => s + Number(e.duration || 0), 0);
+      months.push({
+        month: format(m, 'MMM', { locale: pt }),
+        cliente: Number(client.toFixed(1)),
+        interno: Number((total - client).toFixed(1)),
+      });
+    }
+    return months;
+  }, [entries]);
+
+  // Per-member split
+  const memberSplit = useMemo(() => {
+    const activeMembers = members.filter(m => m.status === 'ativo');
+    return activeMembers.map(m => {
+      const mEntries = filtered.filter(e => e.member_id === m.id);
+      const total = mEntries.reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
+      const client = mEntries.filter((e: any) => e.client_id || e.category === 'cliente').reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
+      const internal = total - client;
+      return {
+        id: m.id,
+        name: m.full_name,
+        total,
+        client,
+        internal,
+        clientPct: total > 0 ? Math.round((client / total) * 100) : 0,
+      };
+    }).filter(m => m.total > 0).sort((a, b) => b.total - a.total);
+  }, [filtered, members]);
+
+  // Deviation from plan
+  const deviation = planned ? {
+    clientDiff: clientPct - planned.clientPct,
+    internalDiff: internalPct - planned.internalPct,
+  } : null;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-2">
+        {PERIOD_FILTERS.map(f => (
+          <Button key={f.value} size="sm" variant={period === f.value ? 'default' : 'outline'} onClick={() => setPeriod(f.value)}>{f.label}</Button>
+        ))}
+      </div>
+
+      {/* Summary cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground">Total registado</p>
+            <p className="text-2xl font-bold">{totalHours.toFixed(1)}h</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground">Tempo em cliente</p>
+            <p className="text-2xl font-bold">{clientHours.toFixed(1)}h</p>
+            <p className="text-xs text-muted-foreground">{clientPct}% do total</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground">Tempo interno</p>
+            <p className="text-2xl font-bold">{internalHours.toFixed(1)}h</p>
+            <p className="text-xs text-muted-foreground">{internalPct}% do total</p>
+          </CardContent>
+        </Card>
+        {planned && (
+          <Card className={deviation && Math.abs(deviation.clientDiff) > 10 ? 'border-amber-400/50' : ''}>
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground">Desvio do planeado</p>
+              <p className="text-2xl font-bold">{deviation ? `${deviation.clientDiff > 0 ? '+' : ''}${deviation.clientDiff}%` : '—'}</p>
+              <p className="text-xs text-muted-foreground">Cliente: planeado {planned.clientPct}%</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Real vs Planned comparison */}
+      {planned && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <ArrowLeftRight className="h-4 w-4" />
+              Real vs Planeado ({planned.scenarioName})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span>Tempo em cliente</span>
+                  <span>Real: {clientPct}% | Planeado: {planned.clientPct}%</span>
+                </div>
+                <div className="relative h-6 rounded-full bg-muted overflow-hidden">
+                  <div className="absolute inset-y-0 left-0 bg-primary/30 rounded-full" style={{ width: `${planned.clientPct}%` }} />
+                  <div className="absolute inset-y-0 left-0 bg-primary rounded-full transition-all" style={{ width: `${clientPct}%` }} />
+                  <div className="absolute inset-y-0 flex items-center px-2 text-[10px] font-medium text-primary-foreground">{clientPct}%</div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span>Tempo interno (admin + negócio)</span>
+                  <span>Real: {internalPct}% | Planeado: {planned.internalPct}%</span>
+                </div>
+                <div className="relative h-6 rounded-full bg-muted overflow-hidden">
+                  <div className="absolute inset-y-0 left-0 bg-accent/50 rounded-full" style={{ width: `${planned.internalPct}%` }} />
+                  <div className="absolute inset-y-0 left-0 bg-accent rounded-full transition-all" style={{ width: `${internalPct}%` }} />
+                  <div className="absolute inset-y-0 flex items-center px-2 text-[10px] font-medium">{internalPct}%</div>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Simulador prevê {planned.adminPct}% admin + {planned.businessPct}% negócio = {planned.internalPct}% interno, restando {planned.clientPct}% para clientes.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Monthly trend chart */}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Tendência mensal (últimos 6 meses)</CardTitle></CardHeader>
+        <CardContent className="h-64">
+          {monthlyTrend.some(m => m.cliente > 0 || m.interno > 0) ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyTrend}>
+                <XAxis dataKey="month" fontSize={12} />
+                <YAxis fontSize={12} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="cliente" name="Cliente" fill="hsl(var(--primary))" stackId="a" radius={[0,0,0,0]} />
+                <Bar dataKey="interno" name="Interno" fill="hsl(var(--accent))" stackId="a" radius={[4,4,0,0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : <p className="text-sm text-muted-foreground text-center pt-20">Sem dados</p>}
+        </CardContent>
+      </Card>
+
+      {/* Per-member breakdown */}
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Divisão por membro</CardTitle></CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader><TableRow>
+              <TableHead>Membro</TableHead>
+              <TableHead className="text-right">Total</TableHead>
+              <TableHead className="text-right">Cliente</TableHead>
+              <TableHead className="text-right">Interno</TableHead>
+              <TableHead className="text-right">% Cliente</TableHead>
+              <TableHead>Distribuição</TableHead>
+            </TableRow></TableHeader>
+            <TableBody>
+              {memberSplit.length === 0 ? (
+                <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-8">Sem registos no período</TableCell></TableRow>
+              ) : memberSplit.map(m => (
+                <TableRow key={m.id}>
+                  <TableCell className="text-sm font-medium">{m.name}</TableCell>
+                  <TableCell className="text-sm text-right">{m.total.toFixed(1)}h</TableCell>
+                  <TableCell className="text-sm text-right">{m.client.toFixed(1)}h</TableCell>
+                  <TableCell className="text-sm text-right">{m.internal.toFixed(1)}h</TableCell>
+                  <TableCell className="text-sm text-right">{m.clientPct}%</TableCell>
+                  <TableCell>
+                    <div className="flex h-2.5 w-24 rounded-full overflow-hidden bg-muted">
+                      <div className="bg-primary h-full" style={{ width: `${m.clientPct}%` }} />
+                      <div className="bg-accent h-full" style={{ width: `${100 - m.clientPct}%` }} />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {!planned && (
+        <Card>
+          <CardContent className="py-8 text-center text-sm text-muted-foreground">
+            <p>Sem cenário de capacidade definido. Configure o simulador de capacidade para comparar o real com o planeado.</p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 /* ─── TAB 1: VISÃO GERAL ─── */
 function OverviewTab({ entries, members, clients, products, tasks, projects, profiles }: { entries: any[]; members: any[]; clients: any[]; products: any[]; tasks: any[]; projects: any[]; profiles: any[] }) {
   const { start, end } = getDateRange('week');
