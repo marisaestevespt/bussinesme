@@ -1369,6 +1369,21 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
           toast.error('Membro criado mas sem conta de acesso');
         }
       }
+      // Apply inline extra pages from deptExtraPages
+      const deptExtraPages: Record<string, string[]> = member.deptExtraPages || {};
+      const allExtraModules = new Set<string>();
+      Object.values(deptExtraPages).forEach(pages => pages.forEach(p => allExtraModules.add(p)));
+      if (allExtraModules.size > 0) {
+        const depts5 = Array.isArray(member.departments) && member.departments.length > 0
+          ? member.departments
+          : (member.department ? [member.department] : []);
+        const roleName5 = `dept_${[...depts5].sort().join('_')}`;
+        const { data: role5 } = await supabase.from('custom_roles').select('id').eq('name', roleName5).maybeSingle();
+        if (role5) {
+          const perms = [...allExtraModules].map(mk => ({ custom_role_id: role5.id, module_key: mk, can_view: true }));
+          await supabase.from('role_permissions').upsert(perms, { onConflict: 'custom_role_id,module_key' });
+        }
+      }
       qc.invalidateQueries({ queryKey: ['team'] });
       toast.success(isNew ? 'Membro criado com contrato e pagamentos!' : 'Membro atualizado');
     } catch (err: any) {
