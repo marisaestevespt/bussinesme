@@ -367,6 +367,7 @@ const DEFAULT_MEMBER_FORM = {
   responsibilities: '',
   works_holidays: false,
   custom_holidays: [] as string[],
+  work_areas: [] as string[],
 };
 
 // ─── Member Form Dialog ──────
