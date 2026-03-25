@@ -133,38 +133,16 @@ export default function ExecutiveProductivity() {
         <BackNavigation />
         <PageHeader title="Análise de Produtividade" subtitle="Controlo de tempo, ocupação e análise de produtividade" />
 
-        <Tabs defaultValue="overview">
-          <TabsList className="flex-wrap">
-            <TabsTrigger value="overview"><BarChart3 className="h-3.5 w-3.5 mr-1.5" />Visão Geral</TabsTrigger>
-            <TabsTrigger value="capacity"><Building2 className="h-3.5 w-3.5 mr-1.5" />Capacidade Empresa</TabsTrigger>
-            <TabsTrigger value="split"><ArrowLeftRight className="h-3.5 w-3.5 mr-1.5" />Interno vs Cliente</TabsTrigger>
-            <TabsTrigger value="by-client"><Briefcase className="h-3.5 w-3.5 mr-1.5" />Tempo por Cliente</TabsTrigger>
-            
-            <TabsTrigger value="overload"><AlertTriangle className="h-3.5 w-3.5 mr-1.5" />Tarefas & Sobrecarga</TabsTrigger>
-            <TabsTrigger value="log"><Timer className="h-3.5 w-3.5 mr-1.5" />Registo de Tempo</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview">
-            <OverviewTab entries={entries.data || []} members={members.data || []} />
-          </TabsContent>
-          <TabsContent value="capacity">
-            <CompanyCapacityTab members={members.data || []} entries={entries.data || []} clients={clients.data || []} products={productsQ.data || []} />
-          </TabsContent>
-          <TabsContent value="split">
-            <TimeSplitTab entries={entries.data || []} members={members.data || []} scenario={capacityScenarios.data?.[0] || null} scenarioProducts={capacityProducts.data || []} />
-          </TabsContent>
-          <TabsContent value="by-client">
-            <ByClientTab entries={entries.data || []} clients={clients.data || []} />
-          </TabsContent>
-
-
-          <TabsContent value="overload">
-            <OverloadTab entries={entries.data || []} members={members.data || []} tasks={tasks.data || []} />
-          </TabsContent>
-          <TabsContent value="log">
-            <TimeLogTab entries={entries.data || []} members={members.data || []} clients={clients.data || []} projects={projects.data || []} tasks={tasks.data || []} />
-          </TabsContent>
-        </Tabs>
+        <MainTabs
+          members={members.data || []}
+          entries={entries.data || []}
+          clients={clients.data || []}
+          products={productsQ.data || []}
+          projects={projects.data || []}
+          tasks={tasks.data || []}
+          scenario={capacityScenarios.data?.[0] || null}
+          scenarioProducts={capacityProducts.data || []}
+        />
       </div>
     </AppLayout>
   );
