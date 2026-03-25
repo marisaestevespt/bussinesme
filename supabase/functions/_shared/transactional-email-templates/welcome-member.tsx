@@ -13,6 +13,10 @@ interface WelcomeMemberProps {
   ownerName?: string
   supportEmail?: string
   businessName?: string
+  // WhatsApp group links
+  whatsappTeamUrl?: string
+  whatsappDeptUrl?: string
+  departmentName?: string
   // Brand settings (fetched from business_settings at send time)
   primaryColor?: string
   primaryForeground?: string
@@ -34,6 +38,9 @@ const WelcomeMemberEmail = ({
   ownerName,
   supportEmail,
   businessName,
+  whatsappTeamUrl,
+  whatsappDeptUrl,
+  departmentName,
   primaryColor,
   primaryForeground,
   textColor,
