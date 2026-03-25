@@ -11,11 +11,11 @@ import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 
 const ENTRY_STATUSES = [
-  { value: 'aguarda_pagamento', label: 'Aguarda Pagamento', cls: 'bg-orange-100 text-orange-800' },
-  { value: 'pagamento_em_atraso', label: 'Pagamento em Atraso', cls: 'bg-red-100 text-red-800' },
-  { value: 'pago', label: 'Pago', cls: 'bg-green-100 text-green-800' },
-  { value: 'fatura_recibo_enviado', label: 'Fatura-Recibo Enviado', cls: 'bg-blue-100 text-blue-800' },
-  { value: 'tudo_ok', label: 'Tudo OK', cls: 'bg-emerald-100 text-emerald-800' },
+  { value: 'aguarda_pagamento', label: 'Aguarda Pagamento', cls: 'bg-warning/10 text-warning' },
+  { value: 'pagamento_em_atraso', label: 'Pagamento em Atraso', cls: 'bg-destructive/10 text-destructive' },
+  { value: 'pago', label: 'Pago', cls: 'bg-success/10 text-success' },
+  { value: 'fatura_recibo_enviado', label: 'Fatura-Recibo Enviado', cls: 'bg-info/10 text-info' },
+  { value: 'tudo_ok', label: 'Tudo OK', cls: 'bg-success/10 text-success' },
 ] as const;
 
 export function getEntryStatusBadge(status: string) {

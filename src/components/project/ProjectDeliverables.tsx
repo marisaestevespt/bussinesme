@@ -20,10 +20,10 @@ import { toast } from 'sonner';
 import { useServiceMembers } from '@/hooks/useTeamByWorkArea';
 
 const DELIVERABLE_STATUSES = [
-  { value: 'pendente', label: 'Pendente', color: 'bg-gray-100 text-gray-700' },
-  { value: 'em_curso', label: 'Em curso', color: 'bg-blue-100 text-blue-800' },
-  { value: 'entregue', label: 'Entregue', color: 'bg-green-100 text-green-800' },
-  { value: 'atrasado', label: 'Atrasado', color: 'bg-red-100 text-red-800' },
+  { value: 'pendente', label: 'Pendente', color: 'bg-muted text-muted-foreground' },
+  { value: 'em_curso', label: 'Em curso', color: 'bg-info/10 text-info' },
+  { value: 'entregue', label: 'Entregue', color: 'bg-success/10 text-success' },
+  { value: 'atrasado', label: 'Atrasado', color: 'bg-destructive/10 text-destructive' },
 ];
 
 const WEEK_OPTIONS = [

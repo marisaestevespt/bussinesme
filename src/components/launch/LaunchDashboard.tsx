@@ -42,10 +42,10 @@ const PHASES = [
 ];
 
 const TASK_STATUSES = [
-  { value: 'por_comecar', label: 'Por começar', color: 'bg-gray-100 text-gray-700', dot: 'bg-gray-400' },
-  { value: 'em_curso', label: 'Em curso', color: 'bg-blue-100 text-blue-800', dot: 'bg-blue-500' },
-  { value: 'concluido', label: 'Concluído', color: 'bg-green-100 text-green-800', dot: 'bg-green-500' },
-  { value: 'bloqueado', label: 'Bloqueado', color: 'bg-red-100 text-red-800', dot: 'bg-red-500' },
+  { value: 'por_comecar', label: 'Por começar', color: 'bg-muted text-muted-foreground', dot: 'bg-muted-foreground' },
+  { value: 'em_curso', label: 'Em curso', color: 'bg-info/10 text-info', dot: 'bg-info' },
+  { value: 'concluido', label: 'Concluído', color: 'bg-success/10 text-success', dot: 'bg-success' },
+  { value: 'bloqueado', label: 'Bloqueado', color: 'bg-destructive/10 text-destructive', dot: 'bg-destructive' },
 ];
 
 const SECTOR_AREAS = ['Copywriting', 'Design', 'Estratégia', 'Vídeo', 'Operações', 'Comercial', 'Especialista/CEO', 'Outro'];
