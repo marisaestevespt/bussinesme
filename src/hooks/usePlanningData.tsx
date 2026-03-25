@@ -146,6 +146,7 @@ export function usePlanningData(year = currentYear) {
       const { data } = await supabase.from('executive_objectives').select('*').eq('year', year).order('created_at');
       return data || [];
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   const upsertObjective = useMutation({
@@ -180,6 +181,7 @@ export function usePlanningData(year = currentYear) {
       const { data } = await supabase.from('objective_criteria').select('*').order('sort_order');
       return data || [];
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   const upsertCriterion = useMutation({
@@ -212,6 +214,7 @@ export function usePlanningData(year = currentYear) {
       const { data } = await supabase.from('planning_goals').select('*').eq('year', year).order('created_at');
       return data || [];
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   const upsertGoal = useMutation({
@@ -250,6 +253,7 @@ export function usePlanningData(year = currentYear) {
       const { data } = await supabase.from('objective_metrics').select('*').order('created_at');
       return data || [];
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   const upsertMetric = useMutation({
@@ -282,6 +286,7 @@ export function usePlanningData(year = currentYear) {
       const { data } = await supabase.from('metric_history').select('*').order('recorded_at', { ascending: true });
       return data || [];
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   const addMetricRecord = useMutation({
@@ -305,6 +310,7 @@ export function usePlanningData(year = currentYear) {
       const { data } = await supabase.from('objective_actions').select('*').order('created_at');
       return data || [];
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   const upsertAction = useMutation({
