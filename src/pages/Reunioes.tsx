@@ -41,7 +41,7 @@ const STATUSES: { value: MeetingStatus; label: string; color: string }[] = [
 ];
 
 const MEETING_TYPES: { value: MeetingType; label: string; icon: React.ReactNode; description: string }[] = [
-  { value: 'recorrente', label: 'Reunião Recorrente', icon: <Repeat className="h-5 w-5" />, description: 'Reunião periódica sem cliente associado' },
+  { value: 'recorrente', label: 'Reunião Recorrente', icon: <Repeat className="h-5 w-5" />, description: 'Reunião periódica interna ou com cliente' },
   { value: 'projeto', label: 'Reunião de Projeto', icon: <FolderOpen className="h-5 w-5" />, description: 'Reunião associada a um projeto específico' },
   { value: 'cliente', label: 'Reunião com Cliente', icon: <UserCheck className="h-5 w-5" />, description: 'Reunião com cliente associado' },
 ];
@@ -421,8 +421,8 @@ function MeetingFormDialog({
         date_time: dateTime.toISOString(),
         status,
         meeting_type: meetingType,
-        client_id: meetingType === 'cliente' ? (clientId || null) : null,
-        client_name: meetingType === 'cliente' ? (selectedClient?.full_name || null) : null,
+        client_id: clientId || null,
+        client_name: selectedClient?.full_name || null,
         project_id: primaryProjectId,
         project_name: primaryProject?.name || null,
         department: department || null,
@@ -568,36 +568,32 @@ function MeetingFormDialog({
 
               <MemberPicker selectedIds={selectedMembers} onChange={setSelectedMembers} profiles={profiles} />
 
-              {/* Client — only for 'cliente' type */}
-              {meetingType === 'cliente' && (
-                <div>
-                  <Label>Cliente associado *</Label>
-                  <Select value={clientId} onValueChange={handleClientChange}>
-                    <SelectTrigger><SelectValue placeholder="Selecionar cliente..." /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none">Nenhum</SelectItem>
-                      {clients.map((c: any) => (
-                        <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              {/* Client */}
+              <div>
+                <Label>Cliente associado {meetingType === 'cliente' ? '*' : ''}</Label>
+                <Select value={clientId} onValueChange={handleClientChange}>
+                  <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none">Nenhum</SelectItem>
+                    {clients.map((c: any) => (
+                      <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-              {/* Department — for recorrente and projeto */}
-              {meetingType !== 'cliente' && (
-                <div>
-                  <Label>Departamento</Label>
-                  <Select value={department} onValueChange={setDepartment}>
-                    <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
-                    <SelectContent>
-                      {DEPARTMENTS.map(d => (
-                        <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              {/* Department */}
+              <div>
+                <Label>Departamento</Label>
+                <Select value={department} onValueChange={setDepartment}>
+                  <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
+                  <SelectContent>
+                    {DEPARTMENTS.map(d => (
+                      <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* Project — for 'projeto' and 'cliente' types */}
               {(meetingType === 'projeto' || meetingType === 'cliente') && (

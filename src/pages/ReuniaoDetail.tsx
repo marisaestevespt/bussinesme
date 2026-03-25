@@ -414,7 +414,7 @@ export default function ReuniaoDetailPage() {
   const clientLabel = m.client_name || 'Cliente';
   const ownerLabel = ownerName || settings?.business_name || 'Owner';
   const meetingType = m.meeting_type || 'recorrente';
-  const showClientSection = meetingType === 'cliente';
+  const showClientSection = true;
   const showProjectField = meetingType === 'projeto' || meetingType === 'cliente';
 
   const typeLabels: Record<MeetingType, string> = { recorrente: 'Recorrente', projeto: 'Projeto', cliente: 'Cliente' };
