@@ -981,7 +981,16 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
   const [cfInitialized, setCfInitialized] = useState(false);
 
   if (members.length > 0 && !cfInitialized) {
-    setClientFacingIds(new Set(members.map(m => m.id)));
+    // Auto-detect client-facing members from work_areas
+    const CLIENT_AREAS = ['cliente_administrativo', 'cliente_servico', 'cliente_comercial'];
+    const autoIds = members
+      .filter(m => {
+        const areas: string[] = Array.isArray((m as any).work_areas) ? (m as any).work_areas : [];
+        return areas.some(a => CLIENT_AREAS.includes(a));
+      })
+      .map(m => m.id);
+    // If no one has work_areas set yet, fall back to all members (backward compat)
+    setClientFacingIds(new Set(autoIds.length > 0 ? autoIds : members.map(m => m.id)));
     setCfInitialized(true);
   }
 
@@ -1127,7 +1136,7 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
         <CardContent className="space-y-5">
           <div className="space-y-3">
             <Label className="text-xs font-medium flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Equipa ({effectiveTeamSize} membros)</Label>
-            <p className="text-[10px] text-muted-foreground">Seleciona quem faz entrega a clientes e define o overhead de cada pessoa.</p>
+            <p className="text-[10px] text-muted-foreground">Membros com área de trabalho de cliente são pré-selecionados automaticamente. Podes ajustar manualmente.</p>
             <div className="space-y-2 max-h-[400px] overflow-y-auto">
               {members.map(m => {
                 const weeklyH = Number(m.expected_weekly_hours) || 0;
