@@ -548,30 +548,38 @@ export default function ReunioesPage() {
             {view === 'proximas' ? 'Nenhuma reunião futura.' : 'Nenhuma reunião registada.'}
           </p>
         ) : (
-          <div className="border rounded-lg overflow-hidden divide-y divide-border">
-            <div className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-primary text-xs font-medium text-primary-foreground rounded-t-lg">
-              <div className="col-span-4">Reunião</div>
-              <div className="col-span-3">Data / Hora</div>
-              <div className="col-span-2">Status</div>
-              <div className="col-span-3">Cliente / Projeto</div>
+          <InfiniteScrollList
+            totalCount={meetingsTotal}
+            loadedCount={meetings.length}
+            hasNextPage={meetingsQuery.hasNextPage}
+            isFetchingNextPage={meetingsQuery.isFetchingNextPage}
+            fetchNextPage={meetingsQuery.fetchNextPage}
+          >
+            <div className="border rounded-lg overflow-hidden divide-y divide-border">
+              <div className="grid grid-cols-12 gap-2 px-4 py-2.5 bg-primary text-xs font-medium text-primary-foreground rounded-t-lg">
+                <div className="col-span-4">Reunião</div>
+                <div className="col-span-3">Data / Hora</div>
+                <div className="col-span-2">Status</div>
+                <div className="col-span-3">Cliente / Projeto</div>
+              </div>
+              {filteredMeetings.map(m => (
+                <button
+                  key={m.id}
+                  onClick={() => navigate(`/hub/reunioes/${m.id}`)}
+                  className="grid grid-cols-12 gap-2 px-4 py-3 w-full text-left hover:bg-muted/50 transition-colors text-sm"
+                >
+                  <div className="col-span-4 font-medium text-foreground truncate">{m.title}</div>
+                  <div className="col-span-3 text-muted-foreground">
+                    {format(parseISO(m.date_time), "dd MMM yyyy 'às' HH:mm", { locale: pt })}
+                  </div>
+                  <div className="col-span-2"><StatusBadge status={m.status} /></div>
+                  <div className="col-span-3 text-muted-foreground truncate">
+                    {[m.department ? DEPARTMENTS.find(d => d.value === m.department)?.label : null, m.client_name, m.project_name].filter(Boolean).join(' · ') || '—'}
+                  </div>
+                </button>
+              ))}
             </div>
-            {filteredMeetings.map(m => (
-              <button
-                key={m.id}
-                onClick={() => navigate(`/hub/reunioes/${m.id}`)}
-                className="grid grid-cols-12 gap-2 px-4 py-3 w-full text-left hover:bg-muted/50 transition-colors text-sm"
-              >
-                <div className="col-span-4 font-medium text-foreground truncate">{m.title}</div>
-                <div className="col-span-3 text-muted-foreground">
-                  {format(parseISO(m.date_time), "dd MMM yyyy 'às' HH:mm", { locale: pt })}
-                </div>
-                <div className="col-span-2"><StatusBadge status={m.status} /></div>
-                <div className="col-span-3 text-muted-foreground truncate">
-                  {[m.department ? DEPARTMENTS.find(d => d.value === m.department)?.label : null, m.client_name, m.project_name].filter(Boolean).join(' · ') || '—'}
-                </div>
-              </button>
-            ))}
-          </div>
+          </InfiniteScrollList>
         )}
       </div>
 
