@@ -4,12 +4,11 @@ import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { useExecutiveData, SALES_ROUTINES, getMonthName } from '@/hooks/useExecutiveData';
+import { useExecutiveData, getMonthName } from '@/hooks/useExecutiveData';
 import { usePlanningData, planStatusLabel, CADENCES } from '@/hooks/usePlanningData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -149,11 +148,11 @@ export default function ExecutiveWeeklyAlign() {
     },
   });
 
-  // Meetings this week
+  // Meetings this week (from meetings table, not events)
   const meetings = useQuery({
     queryKey: ['wa-meetings-week', weekStartStr],
     queryFn: async () => {
-      const { data } = await supabase.from('events').select('*').gte('start_date', weekStartStr).lte('start_date', weekEndStr + 'T23:59:59').order('start_date');
+      const { data } = await supabase.from('meetings').select('*').gte('date_time', weekStartStr).lte('date_time', weekEndStr + 'T23:59:59').order('date_time');
       return data || [];
     },
   });
@@ -219,7 +218,7 @@ export default function ExecutiveWeeklyAlign() {
     check_in: 'Check-in', feedback: 'Recolha de Feedback', reuniao: 'Reunião', email: 'Email', outro: 'Outro',
   };
 
-  const routineMap = Object.fromEntries((exec.weeklyRoutines.data || []).map(r => [r.routine_key, r.completed]));
+  
 
   // --- Detail openers for each section ---
   const openGoalDetail = (g: any) => {
@@ -337,13 +336,14 @@ export default function ExecutiveWeeklyAlign() {
   ]);
 
   const openMeetingDetail = (m: any) => openDetail(m.title, 'Reunião', [
-    { label: 'Data início', value: m.start_date?.slice(0, 16)?.replace('T', ' ') },
-    { label: 'Data fim', value: m.end_date?.slice(0, 16)?.replace('T', ' ') },
+    { label: 'Data', value: m.date_time?.slice(0, 16)?.replace('T', ' ') },
+    { label: 'Duração', value: m.duration_minutes ? `${m.duration_minutes} min` : null },
+    { label: 'Status', value: m.status, badge: true },
     { label: 'Departamento', value: m.department },
     { label: 'Cliente', value: m.client_name },
     { label: 'Produto', value: m.product_name },
+    { label: 'Projeto', value: m.project_name },
     { label: 'URL reunião', value: m.meeting_url },
-    { label: 'Notas', value: m.notes },
   ]);
 
   const openContentDetail = (c: any) => openDetail(c.title, 'Conteúdo', [
@@ -405,13 +405,16 @@ export default function ExecutiveWeeklyAlign() {
                         {monthPlanGoals.length === 0 ? <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground text-sm py-6">Sem metas este mês</TableCell></TableRow> :
                           monthPlanGoals.map((g: any) => {
                             const obj = planning.allObjectives.find((o: any) => o.id === g.objective_id);
-                            const dev = g.actual_value && g.target_value ? (Number(g.actual_value) - Number(g.target_value)) : null;
+                            const autoVal = obj ? planning.goalAutoValue(obj, g.period) : null;
+                            const actualValue = autoVal != null ? autoVal : Number(g.actual_value || 0);
+                            const targetValue = Number(g.target_value || 0);
+                            const dev = targetValue > 0 ? actualValue - targetValue : null;
                             return (
                               <TableRow key={g.id} className={clickableRow} onClick={() => openGoalDetail(g)}>
                                 <TableCell className="text-xs">{obj?.title || '—'}</TableCell>
                                 <TableCell className="text-sm">{g.period}</TableCell>
-                                <TableCell className="text-xs">{g.target_value || '—'}</TableCell>
-                                <TableCell className="text-xs">{g.actual_value || '—'}</TableCell>
+                                <TableCell className="text-xs">{targetValue || '—'}</TableCell>
+                                <TableCell className="text-xs">{actualValue || '—'}</TableCell>
                                 <TableCell className={`text-xs ${dev !== null && dev < 0 ? 'text-destructive font-medium' : ''}`}>{dev != null ? (dev >= 0 ? `+${dev}` : dev) : '—'}</TableCell>
                                 <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-[10px]">{planStatusLabel(g.status)}</Badge></TableCell>
                               </TableRow>
@@ -481,26 +484,13 @@ export default function ExecutiveWeeklyAlign() {
         {/* 2 // Vendas & Faturação */}
         <section className="space-y-4">
           <h2 className="text-base font-semibold">2 // Vendas & Faturação</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card><CardContent className="p-4 space-y-2">
+          <Card><CardContent className="p-4 space-y-2">
               <h3 className="text-sm font-medium">Status faturação — {getMonthName(currentMonth)}</h3>
               <div className="text-xs text-muted-foreground space-y-1">
                 <p>Meta: €{billingGoal.toLocaleString()} | Até agora: €{totalBilled.toLocaleString()}</p>
                 <p>Progresso: {billingPct}% — Faturado: €{totalBilled.toLocaleString()} de €{billingGoal.toLocaleString()}</p>
               </div>
             </CardContent></Card>
-
-            <Card><CardContent className="p-4 space-y-2">
-              <h3 className="text-sm font-medium">Rotinas de Vendas</h3>
-              {SALES_ROUTINES.map(r => (
-                <div key={r.key} className="flex items-center gap-2">
-                  <Checkbox checked={!!routineMap[r.key]} onCheckedChange={v => exec.toggleRoutine.mutate({ routineKey: r.key, completed: !!v })} />
-                  <span className={`text-sm ${routineMap[r.key] ? 'line-through text-muted-foreground' : ''}`}>{r.label}</span>
-                </div>
-              ))}
-            </CardContent></Card>
-          </div>
-
           <Card><CardContent className="p-4">
             <h3 className="text-sm font-medium mb-2">Vendas esta semana</h3>
             {(salesWeek.data || []).length === 0 ? <p className="text-xs text-muted-foreground">Sem vendas esta semana</p> :
@@ -650,7 +640,7 @@ export default function ExecutiveWeeklyAlign() {
             {(npsWeek.data || []).length === 0 ? <p className="text-xs text-muted-foreground">Sem recolhas previstas esta semana</p> :
               <div className="overflow-x-auto">
                 <Table><TableHeader><TableRow>
-                  <TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Data prevista</TableHead><TableHead>Status</TableHead><TableHead>NPS</TableHead><TableHead>Responsável</TableHead>
+                  <TableHead>Cliente</TableHead><TableHead>Produto</TableHead><TableHead>Data prevista</TableHead><TableHead>Status</TableHead><TableHead>NPS</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>{(npsWeek.data || []).map((r: any) => {
                   const status = autoNpsStatus(r.expected_date, r.status);
@@ -661,7 +651,6 @@ export default function ExecutiveWeeklyAlign() {
                       <TableCell className="text-xs">{format(parseISO(r.expected_date), 'dd/MM/yyyy')}</TableCell>
                       <TableCell><Badge variant={status === 'feito' ? 'default' : status === 'em_atraso' ? 'destructive' : 'secondary'} className="text-[10px]">{status === 'feito' ? 'Feito' : status === 'em_atraso' ? 'Em atraso' : 'Por fazer'}</Badge></TableCell>
                       <TableCell className="text-xs">{r.nps_score != null ? r.nps_score : '—'}</TableCell>
-                      <TableCell className="text-xs">{getMemberName(r.responsible_id)}</TableCell>
                     </TableRow>
                   );
                 })}</TableBody></Table>
@@ -760,7 +749,7 @@ export default function ExecutiveWeeklyAlign() {
               {(meetings.data || []).length === 0 ? <p className="text-xs text-muted-foreground">Sem reuniões</p> :
                 (meetings.data || []).map(m => (
                   <div key={m.id} className={cn("text-xs py-1 px-1 flex justify-between rounded", clickableRow)} onClick={() => openMeetingDetail(m)}>
-                    <span>{m.title}</span><span className="text-muted-foreground">{m.start_date?.slice(0, 10)}</span>
+                    <span>{m.title}</span><span className="text-muted-foreground">{m.date_time?.slice(0, 10)}</span>
                   </div>
                 ))
               }
