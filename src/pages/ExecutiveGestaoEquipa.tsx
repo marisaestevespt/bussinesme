@@ -1768,9 +1768,9 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
   const handleExtraModules = async (extraModules: string[]) => {
     if (!pagePicker || extraModules.length === 0) return;
     try {
-      // Get the dept role for this member and add extra permissions
-      const roleName = `dept_${pagePicker.department}`;
-      const { data: role } = await supabase.from('custom_roles').select('id').eq('name', roleName).maybeSingle();
+      const depts3 = pagePicker.department;
+      const roleName = `dept_${depts3}`;
+      const { data: role } = await supabase.from('custom_roles').select('id').ilike('name', `dept_%${depts3}%`).maybeSingle();
       if (role) {
         const perms = extraModules.map(mk => ({ custom_role_id: role.id, module_key: mk, can_view: true }));
         await supabase.from('role_permissions').upsert(perms, { onConflict: 'custom_role_id,module_key' });
@@ -1804,7 +1804,7 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
                   </Badge>
                 </div>
                 <div className="flex flex-wrap gap-1">
-                  <DeptBadge dept={m.department} />
+                  <DeptBadge dept={(m as any).departments?.length ? (m as any).departments : m.department} />
                   {Array.isArray((m as any).work_areas) && (m as any).work_areas.map((wa: string) => {
                     const opt = WORK_AREAS.find(w => w.value === wa);
                     return opt ? <Badge key={wa} variant="outline" className="text-[10px]">{opt.label}</Badge> : null;
