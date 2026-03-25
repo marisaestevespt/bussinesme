@@ -42,6 +42,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
         value_source: obj.value_source || 'manual', product_id: obj.product_id || '',
         measurement_type: obj.measurement_type || 'acumulativo',
         primary_metric_id: obj.primary_metric_id || '',
+        source_filter: obj.source_filter || {},
       });
       setEditing(false);
     }
@@ -59,7 +60,12 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
   const set = (k: string, v: any) => setForm((p: any) => ({ ...p, [k]: v }));
 
   const handleSaveHeader = () => {
-    planning.upsertObjective.mutate({ id: obj.id, ...form, product_id: form.product_id || null, primary_metric_id: form.primary_metric_id || null });
+    planning.upsertObjective.mutate({
+      id: obj.id, ...form,
+      product_id: form.product_id || null,
+      primary_metric_id: form.primary_metric_id || null,
+      source_filter: Object.keys(form.source_filter || {}).length > 0 ? form.source_filter : null,
+    });
     setEditing(false);
   };
 
