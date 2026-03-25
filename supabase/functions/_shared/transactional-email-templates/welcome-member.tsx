@@ -13,6 +13,10 @@ interface WelcomeMemberProps {
   ownerName?: string
   supportEmail?: string
   businessName?: string
+  // WhatsApp group links
+  whatsappTeamUrl?: string
+  whatsappDeptUrl?: string
+  departmentName?: string
   // Brand settings (fetched from business_settings at send time)
   primaryColor?: string
   primaryForeground?: string
@@ -34,6 +38,9 @@ const WelcomeMemberEmail = ({
   ownerName,
   supportEmail,
   businessName,
+  whatsappTeamUrl,
+  whatsappDeptUrl,
+  departmentName,
   primaryColor,
   primaryForeground,
   textColor,
@@ -73,6 +80,7 @@ const WelcomeMemberEmail = ({
   const supportText = { fontSize: '14px', color: brandMuted, lineHeight: '1.6', margin: '0' }
   const linkStyle = { color: brandPrimary, textDecoration: 'underline' as const }
   const footer = { fontSize: '13px', color: '#999', textAlign: 'center' as const, margin: '28px 0 0', lineHeight: '1.6' }
+  const whatsappButton = { backgroundColor: '#25D366', color: '#ffffff', fontSize: '13px', fontWeight: '600' as const, padding: '10px 20px', borderRadius: '8px', textDecoration: 'none', display: 'inline-block' as const }
   const logoStyle = { width: '48px', height: '48px', borderRadius: '10px', margin: '0 auto 16px' }
 
   return (
@@ -127,8 +135,21 @@ const WelcomeMemberEmail = ({
               <Text style={stepNumber}>3</Text>
               <Text style={stepTitle}>Entra nos grupos de WhatsApp</Text>
               <Text style={stepDesc}>
-                Junta-te aos grupos de WhatsApp da equipa para ficares ligado(a) desde o primeiro dia! Os links foram-te enviados separadamente. 💬
+                Junta-te aos grupos de WhatsApp da equipa para ficares ligado(a) desde o primeiro dia! 💬
               </Text>
+              {whatsappTeamUrl && (
+                <Button style={{ ...whatsappButton, marginTop: '10px' }} href={whatsappTeamUrl}>
+                  👥 Grupo Geral da Equipa
+                </Button>
+              )}
+              {whatsappDeptUrl && departmentName && (
+                <Button style={{ ...whatsappButton, marginTop: '8px' }} href={whatsappDeptUrl}>
+                  📂 Grupo {departmentName}
+                </Button>
+              )}
+              {!whatsappTeamUrl && !whatsappDeptUrl && (
+                <Text style={stepDesc}>Os links foram-te enviados separadamente.</Text>
+              )}
             </Section>
           </Section>
 
@@ -183,6 +204,9 @@ export const template = {
     ownerName: 'Mariana',
     supportEmail: 'suporte@exemplo.com',
     businessName: 'HQ Studio',
+    whatsappTeamUrl: 'https://chat.whatsapp.com/example-team',
+    whatsappDeptUrl: 'https://chat.whatsapp.com/example-dept',
+    departmentName: 'Marketing',
     primaryColor: '222 47% 11%',
     primaryForeground: '210 40% 98%',
     textColor: '222 84% 5%',
