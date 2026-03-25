@@ -44,7 +44,7 @@ export function MemberDigestSettings() {
     if (settings) {
       setEnabled(settings.enabled);
       setFrequency(settings.frequency || 'diario');
-      setSendTime(settings.send_time?.substring(0, 5) || '19:00');
+      setSendTime(settings.send_time?.substring(0, 5) || '08:00');
       setDayOfWeek(settings.send_day_of_week ?? 1);
       setDayOfMonth(settings.send_day_of_month ?? 1);
       setSections({ ...memberDefaultSections, ...(settings.sections || {}) });
@@ -127,13 +127,14 @@ export function MemberDigestSettings() {
       <CardHeader className="pb-3">
         <CardTitle className="text-sm flex items-center gap-2">
           <Mail className="h-4 w-4 text-primary" />
-          O meu resumo por email
+          Briefing diário por email
         </CardTitle>
+        <p className="text-xs text-muted-foreground">Recebe todas as manhãs um resumo do que tens para o dia</p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
           <Label htmlFor="member-digest-enabled" className="text-sm">
-            Receber resumo do meu trabalho por email
+            Receber briefing diário por email
           </Label>
           <Switch
             id="member-digest-enabled"
