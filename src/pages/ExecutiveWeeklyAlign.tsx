@@ -192,7 +192,29 @@ export default function ExecutiveWeeklyAlign() {
     },
   });
 
-  // Milestones this week
+  // Contracts expiring soon (next 60 days)
+  const sixtyDaysAhead = format(addDays(now, 60), 'yyyy-MM-dd');
+  const expiringContracts = useQuery({
+    queryKey: ['wa-expiring-contracts', todayStr],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('member_contracts')
+        .select('*, team_members(id, full_name, role_title, department)')
+        .eq('status', 'ativo')
+        .not('end_date', 'is', null)
+        .lte('end_date', sixtyDaysAhead)
+        .order('end_date');
+      return (data || []) as any[];
+    },
+  });
+
+  const expiringContractsList = useMemo(() => {
+    return (expiringContracts.data || []).map((c: any) => {
+      const daysLeft = differenceInDays(parseISO(c.end_date), now);
+      return { ...c, daysLeft };
+    });
+  }, [expiringContracts.data]);
+
   const milestonesWeek = useQuery({
     queryKey: ['wa-milestones-week', weekStartStr, weekEndStr],
     queryFn: async () => {
@@ -917,6 +939,43 @@ export default function ExecutiveWeeklyAlign() {
         </section>
 
         <Separator />
+
+        {/* 5.2 // Contratos da equipa a expirar */}
+        {expiringContractsList.length > 0 && (
+          <>
+            <section className="space-y-4">
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-semibold">5.2 // Contratos a expirar</h2>
+                <Badge variant="destructive" className="text-[10px]">{expiringContractsList.length}</Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">Contratos de membros da equipa que terminam nos próximos 60 dias.</p>
+              <Card><div className="overflow-x-auto">
+                <Table><TableHeader><TableRow>
+                  <TableHead>Membro</TableHead><TableHead>Função</TableHead><TableHead>Departamento</TableHead><TableHead>Fim do contrato</TableHead><TableHead>Dias restantes</TableHead>
+                </TableRow></TableHeader>
+                <TableBody>{expiringContractsList.map((c: any) => (
+                  <TableRow key={c.id} className={cn(
+                    c.daysLeft <= 0 ? 'bg-red-50 border-l-4 border-l-red-500' :
+                    c.daysLeft <= 14 ? 'bg-amber-50 border-l-4 border-l-amber-500' : ''
+                  )}>
+                    <TableCell className="text-sm font-medium">{c.team_members?.full_name || '—'}</TableCell>
+                    <TableCell className="text-xs">{c.team_members?.role_title || '—'}</TableCell>
+                    <TableCell className="text-xs">{c.team_members?.department || '—'}</TableCell>
+                    <TableCell className="text-xs">{c.end_date}</TableCell>
+                    <TableCell>
+                      <Badge variant={c.daysLeft <= 0 ? 'destructive' : c.daysLeft <= 14 ? 'secondary' : 'outline'} className="text-[10px]">
+                        {c.daysLeft <= 0 ? `Expirou há ${Math.abs(c.daysLeft)} dias` : `${c.daysLeft} dias`}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}</TableBody></Table>
+              </div></Card>
+            </section>
+
+            <Separator />
+          </>
+        )}
+
 
         {/* 6 // Operação & Esta semana */}
         <section className="space-y-4">
