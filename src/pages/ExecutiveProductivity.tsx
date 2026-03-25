@@ -1166,6 +1166,9 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
             </CardContent>
           </Card>
         )}
+
+        {/* Growth Scenario — simulate adding N clients */}
+        <GrowthScenarioSection members={members} clients={allClients} products={allProducts} />
       </div>
     </div>
   );
