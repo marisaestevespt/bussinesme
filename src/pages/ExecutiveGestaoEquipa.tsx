@@ -376,6 +376,7 @@ const DEFAULT_MEMBER_FORM = {
   department: '',
   departments: [] as string[],
   deptExtraPages: {} as Record<string, string[]>,
+  sensitiveAccess: {} as Record<string, boolean>,
   start_date: '',
   presentation: '',
   responsibilities: '',
