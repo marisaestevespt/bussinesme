@@ -411,6 +411,52 @@ export default function SecretariaPage() {
         {/* Summary cards + personal widgets only on dashboard */}
         {!activeTab && (
           <>
+            {/* Onboarding checklist */}
+            {(onboarding.data || []).length > 0 && (() => {
+              const items = onboarding.data || [];
+              const doneCount = items.filter((i: any) => i.completed).length;
+              const allDone = doneCount === items.length;
+              if (allDone) return null;
+              return (
+                <Card className="border-primary/30 bg-primary/5">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <CheckSquare className="h-4 w-4 text-primary" /> O Teu Onboarding
+                      <Badge variant="secondary" className="ml-auto text-xs">{doneCount} de {items.length}</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <Progress value={(doneCount / items.length) * 100} className="h-2" />
+                    {items.filter((i: any) => !i.completed).map((item: any) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-3 p-2.5 rounded-md bg-background border hover:shadow-sm transition-shadow"
+                      >
+                        <Checkbox
+                          checked={false}
+                          onCheckedChange={async () => {
+                            await supabase.from('member_onboarding').update({ completed: true }).eq('id', item.id);
+                            qc.invalidateQueries({ queryKey: ['my-onboarding'] });
+                            toast.success('Item concluído!');
+                          }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <span className="text-sm">{item.task}</span>
+                          {item.deadline_date && (
+                            <span className={cn(
+                              "text-[10px] ml-2",
+                              isBefore(parseISO(item.deadline_date), today) ? "text-destructive" : "text-muted-foreground"
+                            )}>
+                              até {format(parseISO(item.deadline_date), 'd MMM', { locale: pt })}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              );
+            })()}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas para hoje</p><p className="text-2xl font-bold">{todayTasks.length}</p></CardContent></Card>
               <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas em atraso</p><p className="text-2xl font-bold text-destructive">{overdueTasks.length}</p></CardContent></Card>
