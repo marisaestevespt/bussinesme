@@ -565,6 +565,7 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
                 );
               })}
             </div>
+            </div>
           </div>
           <div>
               <label className="text-xs text-muted-foreground">Tipo</label>
