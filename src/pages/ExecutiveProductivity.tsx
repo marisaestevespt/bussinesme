@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subWeeks } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-
+import { CapacitySimulator } from '@/components/productivity/CapacitySimulator';
 
 const CATEGORIES = [
   { value: 'cliente', label: 'Cliente' },
@@ -83,8 +83,13 @@ export default function ExecutiveProductivity() {
       return (data || []) as any[];
     },
   });
-
-
+  const productsQ = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('id, name, monthly_hours_per_client');
+      return (data || []) as any[];
+    },
+  });
 
 
   const projects = useQuery({
@@ -143,7 +148,7 @@ export default function ExecutiveProductivity() {
             <OverviewTab entries={entries.data || []} members={members.data || []} />
           </TabsContent>
           <TabsContent value="capacity">
-            <CompanyCapacityTab members={members.data || []} entries={entries.data || []} />
+            <CompanyCapacityTab members={members.data || []} entries={entries.data || []} clients={clients.data || []} products={productsQ.data || []} />
           </TabsContent>
           <TabsContent value="split">
             <TimeSplitTab entries={entries.data || []} members={members.data || []} scenario={capacityScenarios.data?.[0] || null} scenarioProducts={capacityProducts.data || []} />
@@ -167,7 +172,7 @@ export default function ExecutiveProductivity() {
 
 
 /* ─── TAB: CAPACIDADE EMPRESA ─── */
-function CompanyCapacityTab({ members, entries }: { members: any[]; entries: any[] }) {
+function CompanyCapacityTab({ members, entries, clients, products }: { members: any[]; entries: any[]; clients: any[]; products: any[] }) {
   const WEEKS_PER_MONTH = 4.33;
   const activeMembers = members.filter(m => m.status === 'ativo' || m.status === 'prestador');
 
@@ -302,6 +307,9 @@ function CompanyCapacityTab({ members, entries }: { members: any[]; entries: any
           </CardContent>
         </Card>
       )}
+
+      {/* Simulator */}
+      <CapacitySimulator members={members} entries={entries} clients={clients} products={products} />
     </div>
   );
 }
