@@ -295,7 +295,8 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
                 <TableHead>Nome</TableHead>
                 <TableHead>Departamento</TableHead>
                 <TableHead>Tipo</TableHead>
-                <TableHead className="text-right">Salário bruto (€)</TableHead>
+                <TableHead className="text-right">{'{'}Colaborador: Salário bruto / Prestador: Valor fatura{'}'}</TableHead>
+                <TableHead>Data início</TableHead>
                 <TableHead className="text-right">h/semana</TableHead>
                 <TableHead className="text-right">% Cliente</TableHead>
                 <TableHead className="w-10"></TableHead>
@@ -326,6 +327,9 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
                     </TableCell>
                     <TableCell className="text-right">
                       <Input type="number" value={p.grossSalary} onChange={e => updatePhantom(p.id, 'grossSalary', Number(e.target.value))} className="h-7 text-sm w-24 text-right ml-auto" />
+                    </TableCell>
+                    <TableCell>
+                      <Input type="date" value={p.startDate} onChange={e => updatePhantom(p.id, 'startDate', e.target.value)} className="h-7 text-sm w-36" />
                     </TableCell>
                     <TableCell className="text-right">
                       <Input type="number" value={p.weeklyHours} onChange={e => updatePhantom(p.id, 'weeklyHours', Number(e.target.value))} className="h-7 text-sm w-16 text-right ml-auto" />
