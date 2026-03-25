@@ -2642,6 +2642,7 @@ export type Database = {
           id: string
           measurement_type: string
           objective_type: string
+          primary_metric_id: string | null
           product_id: string | null
           progress: number
           status: string
@@ -2661,6 +2662,7 @@ export type Database = {
           id?: string
           measurement_type?: string
           objective_type?: string
+          primary_metric_id?: string | null
           product_id?: string | null
           progress?: number
           status?: string
@@ -2680,6 +2682,7 @@ export type Database = {
           id?: string
           measurement_type?: string
           objective_type?: string
+          primary_metric_id?: string | null
           product_id?: string | null
           progress?: number
           status?: string
@@ -2691,6 +2694,13 @@ export type Database = {
           year?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "executive_objectives_primary_metric_id_fkey"
+            columns: ["primary_metric_id"]
+            isOneToOne: false
+            referencedRelation: "objective_metrics"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "executive_objectives_product_id_fkey"
             columns: ["product_id"]
