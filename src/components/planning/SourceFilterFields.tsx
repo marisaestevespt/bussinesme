@@ -105,7 +105,7 @@ export function SourceFilterFields({ source, sourceFilter, onChange }: {
         } else if (f.type === 'channel') {
           options = (channels.data || []).map((c: any) => ({ value: c.id, label: c.name }));
         } else if (f.type === 'department') {
-          options = DEPARTMENTS.map(d => ({ value: d.id, label: d.label }));
+          options = DEPARTMENTS.filter(d => d.value !== 'admin').map(d => ({ value: d.value, label: d.label }));
         } else if (f.type === 'expense_category') {
           options = (expenseCategories.data || []).map((c: any) => ({ value: c.name, label: c.name }));
         } else if (f.type === 'time_category') {
