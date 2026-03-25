@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email, full_name, role_title, phone, work_schedule } = await req.json();
+    const { email, full_name, role_title, phone, work_schedule, team_member_id } = await req.json();
 
     if (!email || !full_name) {
       return new Response(JSON.stringify({ error: "Email e nome são obrigatórios" }), {
@@ -74,16 +74,32 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Update profile with extra fields
     if (newUser.user) {
-      await supabase
+      // Update profile with extra fields
+      const { data: profile } = await supabase
         .from("profiles")
-        .update({
-          role_title: role_title || null,
-          phone: phone || null,
-          work_schedule: work_schedule || null,
-        })
-        .eq("user_id", newUser.user.id);
+        .select("id")
+        .eq("user_id", newUser.user.id)
+        .maybeSingle();
+
+      if (profile) {
+        await supabase
+          .from("profiles")
+          .update({
+            role_title: role_title || null,
+            phone: phone || null,
+            work_schedule: work_schedule || null,
+          })
+          .eq("id", profile.id);
+
+        // Link team_member to profile if team_member_id was provided
+        if (team_member_id) {
+          await supabase
+            .from("team_members")
+            .update({ profile_id: profile.id })
+            .eq("id", team_member_id);
+        }
+      }
 
       // Assign member role
       await supabase.from("user_roles").insert({
@@ -99,10 +115,35 @@ Deno.serve(async (req) => {
         status: "pendente",
         priority: "alta",
       });
+
+      // Generate invite link (recovery link so user can set password)
+      const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink({
+        type: "recovery",
+        email,
+      });
+
+      let invite_url = null;
+      if (!resetError && resetData?.properties?.hashed_token) {
+        const siteUrl = req.headers.get("origin") || supabaseUrl;
+        invite_url = `${siteUrl}#access_token=${resetData.properties.hashed_token}&type=recovery`;
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          user_id: newUser.user.id,
+          profile_id: profile?.id || null,
+          invite_url,
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     return new Response(
-      JSON.stringify({ success: true, user_id: newUser.user?.id }),
+      JSON.stringify({ success: true, user_id: null }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
