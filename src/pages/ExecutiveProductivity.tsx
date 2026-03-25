@@ -144,13 +144,13 @@ export default function ExecutiveProductivity() {
             <TabsTrigger value="capacity"><Building2 className="h-3.5 w-3.5 mr-1.5" />Capacidade Empresa</TabsTrigger>
             <TabsTrigger value="split"><ArrowLeftRight className="h-3.5 w-3.5 mr-1.5" />Interno vs Cliente</TabsTrigger>
             <TabsTrigger value="by-client"><Briefcase className="h-3.5 w-3.5 mr-1.5" />Tempo por Cliente</TabsTrigger>
-            <TabsTrigger value="by-member"><Users className="h-3.5 w-3.5 mr-1.5" />Tempo por Membro</TabsTrigger>
+            
             <TabsTrigger value="overload"><AlertTriangle className="h-3.5 w-3.5 mr-1.5" />Tarefas & Sobrecarga</TabsTrigger>
             <TabsTrigger value="log"><Timer className="h-3.5 w-3.5 mr-1.5" />Registo de Tempo</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
-            <OverviewTab entries={entries.data || []} members={members.data || []} clients={clients.data || []} products={productsQ.data || []} tasks={tasks.data || []} projects={projects.data || []} profiles={profiles.data || []} />
+            <OverviewTab entries={entries.data || []} members={members.data || []} />
           </TabsContent>
           <TabsContent value="capacity">
             <CompanyCapacityTab members={members.data || []} entries={entries.data || []} />
@@ -161,9 +161,8 @@ export default function ExecutiveProductivity() {
           <TabsContent value="by-client">
             <ByClientTab entries={entries.data || []} clients={clients.data || []} />
           </TabsContent>
-          <TabsContent value="by-member">
-            <ByMemberTab entries={entries.data || []} members={members.data || []} />
-          </TabsContent>
+
+
           <TabsContent value="overload">
             <OverloadTab entries={entries.data || []} members={members.data || []} tasks={tasks.data || []} />
           </TabsContent>
@@ -548,7 +547,7 @@ function TimeSplitTab({ entries, members, scenario, scenarioProducts }: { entrie
 }
 
 /* ─── TAB 1: VISÃO GERAL ─── */
-function OverviewTab({ entries, members, clients, products, tasks, projects, profiles }: { entries: any[]; members: any[]; clients: any[]; products: any[]; tasks: any[]; projects: any[]; profiles: any[] }) {
+function OverviewTab({ entries, members }: { entries: any[]; members: any[] }) {
   const { start, end } = getDateRange('week');
   const weekEntries = entries.filter(e => {
     const d = new Date(e.entry_date);
@@ -640,33 +639,8 @@ function OverviewTab({ entries, members, clients, products, tasks, projects, pro
         </Card>
       </div>
 
-      {/* Overload Alerts */}
-      {alerts.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-destructive" /> Alertas de sobrecarga</CardTitle></CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader><TableRow>
-                <TableHead>Membro</TableHead><TableHead>Esperadas</TableHead><TableHead>Registadas</TableHead><TableHead>Excesso</TableHead><TableHead></TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {alerts.map(a => (
-                  <TableRow key={a.id}>
-                    <TableCell className="text-sm font-medium">{a.full_name}</TableCell>
-                    <TableCell className="text-sm">{a.expected}h</TableCell>
-                    <TableCell className="text-sm">{a.actual.toFixed(1)}h</TableCell>
-                    <TableCell className="text-sm">+{a.pct.toFixed(0)}%</TableCell>
-                    <TableCell><Badge variant={a.pct >= 20 ? 'destructive' : 'secondary'} className="text-xs">{a.pct >= 20 ? 'Sobrecarga' : 'Atenção'}</Badge></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* ─── Capacidade da Equipa ─── */}
-      <TeamCapacitySection members={members} clients={clients} products={products} tasks={tasks} entries={entries} projects={projects} profiles={profiles} />
+
     </div>
   );
 }
@@ -911,88 +885,6 @@ function ByClientTab({ entries, clients }: { entries: any[]; clients: any[] }) {
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} layout="vertical"><XAxis type="number" fontSize={12} /><YAxis type="category" dataKey="name" fontSize={12} width={80} /><Tooltip /><Bar dataKey="horas" fill="hsl(var(--primary))" radius={[0,4,4,0]} /></BarChart>
-              </ResponsiveContainer>
-            ) : <p className="text-sm text-muted-foreground text-center pt-20">Sem dados</p>}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-/* ─── TAB 3: TEMPO POR MEMBRO ─── */
-function ByMemberTab({ entries, members }: { entries: any[]; members: any[] }) {
-  const [period, setPeriod] = useState('month');
-  const { start, end } = getDateRange(period);
-  const weeks = weeksInPeriod(period);
-
-  const filtered = entries.filter(e => {
-    const d = new Date(e.entry_date);
-    return d >= start && d <= end;
-  });
-
-  const rows = members.map(m => {
-    const mEntries = filtered.filter(e => e.member_id === m.id);
-    const hours = mEntries.reduce((s, e) => s + Number(e.duration || 0), 0);
-    const expected = Number(m.expected_weekly_hours || 40) * weeks;
-    const diff = hours - expected;
-    const pct = expected > 0 ? (hours / expected) * 100 : 0;
-    const catBreakdown: Record<string, number> = {};
-    mEntries.forEach(e => { const c = e.category || 'outro'; catBreakdown[c] = (catBreakdown[c] || 0) + Number(e.duration || 0); });
-    return { ...m, hours, expected, diff, pct, catBreakdown };
-  });
-
-  const chartData = rows.map(r => ({
-    name: r.full_name?.split(' ')[0] || 'N/A',
-    esperadas: Number(r.expected.toFixed(1)),
-    registadas: Number(r.hours.toFixed(1)),
-  }));
-
-  return (
-    <div className="space-y-4">
-      <div className="flex gap-2">
-        {PERIOD_FILTERS.map(f => (
-          <Button key={f.value} size="sm" variant={period === f.value ? 'default' : 'outline'} onClick={() => setPeriod(f.value)}>{f.label}</Button>
-        ))}
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader><TableRow>
-                <TableHead>Membro</TableHead><TableHead>Função</TableHead><TableHead className="text-right">Esperadas</TableHead><TableHead className="text-right">Registadas</TableHead><TableHead className="text-right">Diferença</TableHead><TableHead className="text-right">Ocupação</TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {rows.map(r => (
-                  <TableRow key={r.id}>
-                    <TableCell className="text-sm font-medium">{r.full_name}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{r.role_title || '—'}</TableCell>
-                    <TableCell className="text-sm text-right">{r.expected.toFixed(0)}h</TableCell>
-                    <TableCell className="text-sm text-right">{r.hours.toFixed(1)}h</TableCell>
-                    <TableCell className={`text-sm text-right ${r.diff > 0 ? 'text-destructive' : r.diff < -5 ? 'text-amber-500' : ''}`}>{r.diff > 0 ? '+' : ''}{r.diff.toFixed(1)}h</TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant={r.pct > 110 ? 'destructive' : r.pct > 90 ? 'default' : 'secondary'} className="text-xs">{r.pct.toFixed(0)}%</Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Esperadas vs Registadas</CardTitle></CardHeader>
-          <CardContent className="h-72">
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} layout="vertical">
-                  <XAxis type="number" fontSize={12} />
-                  <YAxis type="category" dataKey="name" fontSize={12} width={70} />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="esperadas" fill="hsl(var(--muted-foreground))" radius={[0,4,4,0]} />
-                  <Bar dataKey="registadas" fill="hsl(var(--primary))" radius={[0,4,4,0]} />
-                </BarChart>
               </ResponsiveContainer>
             ) : <p className="text-sm text-muted-foreground text-center pt-20">Sem dados</p>}
           </CardContent>
