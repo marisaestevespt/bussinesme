@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.reset-instance]
 verify_jwt = false
+
+[functions.health-check]
+verify_jwt = false
