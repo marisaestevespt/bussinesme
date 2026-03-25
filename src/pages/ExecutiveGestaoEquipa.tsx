@@ -16,8 +16,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, Users, BarChart3, MessageSquare, FileText, AlertTriangle, Clock, CalendarIcon } from 'lucide-react';
-import { format, isSameDay, isWithinInterval, parseISO, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { Plus, Trash2, Users, BarChart3, MessageSquare, FileText, AlertTriangle, Clock, CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { format, isSameDay, isWithinInterval, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths } from 'date-fns';
 import { pt as ptLocale } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -76,6 +76,7 @@ function RecordDialog({ open, onClose, title, fields, initial, onSave }: any) {
 
 // ─── Dashboard (stats + alerts + escala, NO duplicate gallery) ──────
 function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
+  const [escalaMonth, setEscalaMonth] = useState(new Date());
   const allMembers = (team.members.data || []).filter((m: any) => m.status === 'ativo');
   const allPayments = team.payments.data || [];
   const allContracts = team.contracts.data || [];
@@ -121,11 +122,10 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
   });
 
   const monthDays = useMemo(() => {
-    const today = new Date();
-    return eachDayOfInterval({ start: startOfMonth(today), end: endOfMonth(today) }).filter(d => d.getDay() >= 1 && d.getDay() <= 5);
-  }, []);
+    return eachDayOfInterval({ start: startOfMonth(escalaMonth), end: endOfMonth(escalaMonth) }).filter(d => d.getDay() >= 1 && d.getDay() <= 5);
+  }, [escalaMonth]);
 
-  const holidays = useMemo(() => getPortugueseHolidays(new Date().getFullYear()), []);
+  const holidays = useMemo(() => getPortugueseHolidays(escalaMonth.getFullYear()), [escalaMonth]);
 
   const getAvail = (member: any, day: Date): string => {
     const vacs = (escalaVacations.data || []).filter((v: any) => v.member_id === member.id);
@@ -201,7 +201,11 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
         <Card>
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">Escala do Mês — {format(new Date(), 'MMMM yyyy', { locale: ptLocale })}</h3>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEscalaMonth(m => subMonths(m, 1))}><ChevronLeft className="h-4 w-4" /></Button>
+                <h3 className="text-sm font-semibold">Escala — {format(escalaMonth, 'MMMM yyyy', { locale: ptLocale })}</h3>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEscalaMonth(m => addMonths(m, 1))}><ChevronRight className="h-4 w-4" /></Button>
+              </div>
               <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-green-500 inline-block" /> Disponível</span>
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-500 inline-block" /> Férias</span>
