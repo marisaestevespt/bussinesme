@@ -546,12 +546,26 @@ export function usePlanningData(year = currentYear) {
     return null;
   };
 
+  // Products for resolving product_id → name
+  const productsQuery = useQuery({
+    queryKey: ['products-names'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('id,name');
+      return data || [];
+    },
+  });
+
+  const resolveProductName = (productId: string | null) => {
+    if (!productId) return null;
+    return (productsQuery.data || []).find((p: any) => p.id === productId)?.name || null;
+  };
+
   // Helper: filter rows by month (1-based) using various date fields
   const filterByMonth = (rows: any[], month: number, dateField: string) => {
     return rows.filter((r: any) => {
       const val = r[dateField];
       if (!val) return false;
-      if (typeof val === 'number') return val === month; // e.g. entry_month, sale_month
+      if (typeof val === 'number') return val === month;
       const d = new Date(val);
       return d.getMonth() + 1 === month;
     });
@@ -563,7 +577,7 @@ export function usePlanningData(year = currentYear) {
     const source = obj.value_source;
     const sf = obj.source_filter || {};
     const monthIdx = MONTH_NAMES.indexOf(goalPeriod);
-    if (monthIdx === -1) return null; // quarters handled differently
+    if (monthIdx === -1) return null;
     const month = monthIdx + 1;
 
     if (source === 'bd_vendas') {
@@ -621,22 +635,9 @@ export function usePlanningData(year = currentYear) {
       if (sf.type) rows = rows.filter((r: any) => r.type === sf.type);
       return filterByMonth(rows, month, 'updated_at').length;
     }
-    // bd_clientes, bd_equipa, bd_marketing are point-in-time, not period-filterable
     return null;
   };
 
-  const productsQuery = useQuery({
-    queryKey: ['products-names'],
-    queryFn: async () => {
-      const { data } = await supabase.from('products').select('id,name');
-      return data || [];
-    },
-  });
-
-  const resolveProductName = (productId: string | null) => {
-    if (!productId) return null;
-    return (productsQuery.data || []).find((p: any) => p.id === productId)?.name || null;
-  };
 
   // Helper: compute objective progress
   const objectiveProgress = (obj: any) => {
