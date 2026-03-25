@@ -6,18 +6,20 @@ import type { ModuleKey } from '@/lib/modules';
 export function usePermissions() {
   const { user, isOwner } = useAuth();
   const [allowedModules, setAllowedModules] = useState<Set<string>>(new Set());
+  const [grantedPages, setGrantedPages] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
       setAllowedModules(new Set());
+      setGrantedPages(new Set());
       setLoading(false);
       return;
     }
 
     if (isOwner) {
-      // Owner has access to everything
       setAllowedModules(new Set(['*']));
+      setGrantedPages(new Set());
       setLoading(false);
       return;
     }
@@ -41,19 +43,25 @@ export function usePermissions() {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (!member) {
+      if (member?.custom_role_id) {
+        const { data: permissions } = await supabase
+          .from('role_permissions')
+          .select('module_key')
+          .eq('custom_role_id', member.custom_role_id)
+          .eq('can_view', true);
+
+        setAllowedModules(new Set(permissions?.map(p => p.module_key) || []));
+      } else {
         setAllowedModules(new Set());
-        setLoading(false);
-        return;
       }
 
-      const { data: permissions } = await supabase
-        .from('role_permissions')
-        .select('module_key')
-        .eq('custom_role_id', member.custom_role_id)
-        .eq('can_view', true);
+      // Fetch per-page exceptional access grants
+      const { data: grants } = await supabase
+        .from('page_access_grants')
+        .select('page_path')
+        .eq('user_id', user.id);
 
-      setAllowedModules(new Set(permissions?.map(p => p.module_key) || []));
+      setGrantedPages(new Set(grants?.map(g => g.page_path) || []));
       setLoading(false);
     };
 
@@ -63,8 +71,15 @@ export function usePermissions() {
   const canAccess = (moduleKey: ModuleKey | string): boolean => {
     if (moduleKey === 'hub-equipa') return true; // Always accessible
     if (isOwner) return true;
+    if (allowedModules.has('*')) return true;
     return allowedModules.has(moduleKey);
   };
 
-  return { canAccess, loading };
+  const hasPageAccess = (pagePath: string): boolean => {
+    if (isOwner) return true;
+    if (allowedModules.has('*')) return true;
+    return grantedPages.has(pagePath);
+  };
+
+  return { canAccess, hasPageAccess, loading };
 }
