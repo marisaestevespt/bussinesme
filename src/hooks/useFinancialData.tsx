@@ -1,92 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
-export type Expense = {
-  id: string;
-  expense_id: string;
-  status: string;
-  expense_date: string | null;
-  description: string | null;
-  category: string;
-  base_value: number;
-  vat_rate: number;
-  total_with_vat: number;
-  location: string;
-  documents: any;
-  expense_month: number | null;
-  expense_quarter: number | null;
-  expense_year: number | null;
-  source_type: string | null;
-  source_id: string | null;
-  created_at: string;
-};
-
-export type Subscription = {
-  id: string;
-  platform_name: string;
-  category: string;
-  value: number;
-  periodicity: string;
-  monthly_equivalent: number;
-  location: string;
-  start_date: string | null;
-  renewal_date: string | null;
-  status: string;
-  notes: string | null;
-  documents: any;
-  created_at: string;
-  vat_rate: number;
-  includes_vat: boolean;
-};
-
-export type FinancialDocument = {
-  id: string;
-  title: string;
-  doc_type: string;
-  period_start: string | null;
-  period_end: string | null;
-  period_month: number | null;
-  period_year: number | null;
-  due_date: string | null;
-  status: string;
-  document_url: string | null;
-  document_name: string | null;
-  notes: string | null;
-  created_at: string;
-};
-
-export type PayrollEntry = {
-  id: string;
-  profile_id: string | null;
-  collaborator_name: string;
-  month: number;
-  year: number;
-  gross_salary: number;
-  withholding_rate: number;
-  withholding_value: number;
-  ss_employee: number;
-  ss_employer: number;
-  net_salary: number;
-  total_cost: number;
-  status: string;
-  expense_id: string | null;
-  created_at: string;
-};
-
-export type ContractorEntry = {
-  id: string;
-  contractor_name: string;
-  month: number;
-  year: number;
-  service: string | null;
-  value: number;
-  location: string;
-  documents: any;
-  status: string;
-  expense_id: string | null;
-  created_at: string;
-};
+export type Expense = Tables<'financial_expenses'>;
+export type Subscription = Tables<'financial_subscriptions'>;
+export type FinancialDocument = Tables<'financial_documents'>;
+export type PayrollEntry = Tables<'financial_payroll'>;
+export type ContractorEntry = Tables<'financial_contractors'>;
 
 const MONTH_LABELS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -102,11 +23,6 @@ export function calcMonthlyEquivalent(value: number, periodicity: string): numbe
   }
 }
 
-/**
- * Determines how many times a subscription occurs in a given month/year,
- * based on its start_date and periodicity.
- * Returns the number of occurrences (0 if not due, 1 for most, ~4 for weekly).
- */
 export function getSubscriptionOccurrences(
   startDate: string | null,
   periodicity: string,
@@ -116,29 +32,20 @@ export function getSubscriptionOccurrences(
   if (!startDate) return 0;
   const start = new Date(startDate + 'T00:00:00');
   const startYear = start.getFullYear();
-  const startMonth = start.getMonth() + 1; // 1-based
+  const startMonth = start.getMonth() + 1;
 
-  // If the target month/year is before the start, no occurrences
   if (year < startYear || (year === startYear && month < startMonth)) return 0;
 
   const monthsDiff = (year - startYear) * 12 + (month - startMonth);
 
   switch (periodicity) {
-    case 'semanal':
-      // Approximately 4 occurrences per month
-      return 4;
-    case 'mensal':
-      return 1;
-    case 'bimestral':
-      return monthsDiff % 2 === 0 ? 1 : 0;
-    case 'trimestral':
-      return monthsDiff % 3 === 0 ? 1 : 0;
-    case 'semestral':
-      return monthsDiff % 6 === 0 ? 1 : 0;
-    case 'anual':
-      return monthsDiff % 12 === 0 ? 1 : 0;
-    default:
-      return 1;
+    case 'semanal': return 4;
+    case 'mensal': return 1;
+    case 'bimestral': return monthsDiff % 2 === 0 ? 1 : 0;
+    case 'trimestral': return monthsDiff % 3 === 0 ? 1 : 0;
+    case 'semestral': return monthsDiff % 6 === 0 ? 1 : 0;
+    case 'anual': return monthsDiff % 12 === 0 ? 1 : 0;
+    default: return 1;
   }
 }
 
@@ -193,10 +100,10 @@ export function useFinancialData() {
   const upsertExpense = useMutation({
     mutationFn: async (exp: Partial<Expense> & { description?: string }) => {
       if (exp.id) {
-        const { error } = await supabase.from('financial_expenses').update(exp as any).eq('id', exp.id);
+        const { error } = await supabase.from('financial_expenses').update(exp as TablesUpdate<'financial_expenses'>).eq('id', exp.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('financial_expenses').insert(exp as any);
+        const { error } = await supabase.from('financial_expenses').insert(exp as TablesInsert<'financial_expenses'>);
         if (error) throw error;
       }
     },
@@ -217,10 +124,10 @@ export function useFinancialData() {
       const monthly = calcMonthlyEquivalent(sub.value || 0, sub.periodicity || 'mensal');
       const record = { ...sub, monthly_equivalent: monthly };
       if (sub.id) {
-        const { error } = await supabase.from('financial_subscriptions').update(record as any).eq('id', sub.id);
+        const { error } = await supabase.from('financial_subscriptions').update(record as TablesUpdate<'financial_subscriptions'>).eq('id', sub.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('financial_subscriptions').insert(record as any);
+        const { error } = await supabase.from('financial_subscriptions').insert(record as TablesInsert<'financial_subscriptions'>);
         if (error) throw error;
       }
     },
@@ -239,10 +146,10 @@ export function useFinancialData() {
   const upsertDocument = useMutation({
     mutationFn: async (doc: Partial<FinancialDocument> & { title: string }) => {
       if (doc.id) {
-        const { error } = await supabase.from('financial_documents').update(doc as any).eq('id', doc.id);
+        const { error } = await supabase.from('financial_documents').update(doc as TablesUpdate<'financial_documents'>).eq('id', doc.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('financial_documents').insert(doc as any);
+        const { error } = await supabase.from('financial_documents').insert(doc as TablesInsert<'financial_documents'>);
         if (error) throw error;
       }
     },
@@ -260,7 +167,6 @@ export function useFinancialData() {
 
   const upsertPayroll = useMutation({
     mutationFn: async (entry: Partial<PayrollEntry> & { collaborator_name: string; month: number; year: number }) => {
-      // Calculate derived fields
       const gross = entry.gross_salary || 0;
       const whRate = entry.withholding_rate || 0;
       const whValue = Math.round(gross * whRate / 100 * 100) / 100;
@@ -271,16 +177,14 @@ export function useFinancialData() {
       const record = { ...entry, withholding_value: whValue, ss_employee: ssEmp, ss_employer: ssEr, net_salary: net, total_cost: totalCost };
       
       if (entry.id) {
-        const { error } = await supabase.from('financial_payroll').update(record as any).eq('id', entry.id);
+        const { error } = await supabase.from('financial_payroll').update(record as TablesUpdate<'financial_payroll'>).eq('id', entry.id);
         if (error) throw error;
-        // Update linked expense
         if (entry.expense_id) {
           await supabase.from('financial_expenses').update({
             base_value: totalCost, total_with_vat: totalCost, status: entry.status === 'pago' ? 'pago' : 'por_pagar',
           }).eq('id', entry.expense_id);
         }
       } else {
-        // Create expense first
         const expMonth = entry.month;
         const expQuarter = Math.ceil(expMonth / 3);
         const { data: expData, error: expError } = await supabase.from('financial_expenses').insert({
@@ -296,9 +200,9 @@ export function useFinancialData() {
           expense_quarter: expQuarter,
           expense_year: entry.year,
           source_type: 'payroll',
-        } as any).select('id').single();
+        } satisfies TablesInsert<'financial_expenses'>).select('id').single();
         if (expError) throw expError;
-        const { error } = await supabase.from('financial_payroll').insert({ ...record, expense_id: expData.id } as any);
+        const { error } = await supabase.from('financial_payroll').insert({ ...record, expense_id: expData.id } as TablesInsert<'financial_payroll'>);
         if (error) throw error;
       }
     },
@@ -324,7 +228,7 @@ export function useFinancialData() {
   const upsertContractor = useMutation({
     mutationFn: async (entry: Partial<ContractorEntry> & { contractor_name: string; month: number; year: number }) => {
       if (entry.id) {
-        const { error } = await supabase.from('financial_contractors').update(entry as any).eq('id', entry.id);
+        const { error } = await supabase.from('financial_contractors').update(entry as TablesUpdate<'financial_contractors'>).eq('id', entry.id);
         if (error) throw error;
         if (entry.expense_id) {
           await supabase.from('financial_expenses').update({
@@ -348,9 +252,9 @@ export function useFinancialData() {
           expense_quarter: expQuarter,
           expense_year: entry.year,
           source_type: 'contractor',
-        } as any).select('id').single();
+        } satisfies TablesInsert<'financial_expenses'>).select('id').single();
         if (expError) throw expError;
-        const { error } = await supabase.from('financial_contractors').insert({ ...entry, expense_id: expData.id } as any);
+        const { error } = await supabase.from('financial_contractors').insert({ ...entry, expense_id: expData.id } as TablesInsert<'financial_contractors'>);
         if (error) throw error;
       }
     },

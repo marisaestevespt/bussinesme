@@ -2,13 +2,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { startOfWeek, format } from 'date-fns';
+import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
-function cleanPayload(obj: Record<string, any>): Record<string, any> {
-  const cleaned: Record<string, any> = {};
+type QuarterlyAnalysis = Tables<'executive_quarterly_analysis'>;
+
+function cleanPayload<T extends Record<string, unknown>>(obj: T): T {
+  const cleaned = {} as Record<string, unknown>;
   for (const [k, v] of Object.entries(obj)) {
     cleaned[k] = v === '' ? null : v;
   }
-  return cleaned;
+  return cleaned as T;
 }
 
 const currentYear = new Date().getFullYear();
@@ -109,15 +112,15 @@ export function useExecutiveData(year = currentYear) {
   });
 
   const upsertQuarterlyAnalysis = useMutation({
-    mutationFn: async (raw: any) => {
-      const rec = cleanPayload(raw);
+    mutationFn: async (raw: Partial<QuarterlyAnalysis> & { quarter: number }) => {
+      const rec = cleanPayload(raw as Record<string, unknown>);
       const { data: existing } = await supabase.from('executive_quarterly_analysis')
         .select('id').eq('quarter', rec.quarter as number).eq('year', year).maybeSingle();
       if (existing) {
-        const { error } = await supabase.from('executive_quarterly_analysis').update(rec as any).eq('id', existing.id);
+        const { error } = await supabase.from('executive_quarterly_analysis').update(rec as TablesUpdate<'executive_quarterly_analysis'>).eq('id', existing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('executive_quarterly_analysis').insert({ ...rec, year } as any);
+        const { error } = await supabase.from('executive_quarterly_analysis').insert({ ...rec, year } as TablesInsert<'executive_quarterly_analysis'>);
         if (error) throw error;
       }
     },

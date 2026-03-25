@@ -1,55 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
-const sb = (table: string) => supabase.from(table as any) as any;
-
-export type Portal = {
-  id: string;
-  created_at: string;
-  client_id: string;
-  token: string;
-  is_active: boolean;
-  portal_type: 'projeto_unico' | 'servico_mensal';
-  show_workspace: boolean;
-  show_meetings: boolean;
-  show_payments: boolean;
-  show_faqs: boolean;
-  show_onboarding: boolean;
-  show_timeline: boolean;
-  show_monthly_summary: boolean;
-  last_visit_at: string | null;
-};
-
-export type PortalFaq = {
-  id: string; created_at: string; portal_id: string;
-  question: string; answer: string | null; sort_order: number;
-};
-
-export type PortalInitialQuestion = {
-  id: string; created_at: string; portal_id: string;
-  question: string; answer: string | null; answered_at: string | null; sort_order: number;
-};
-
-export type PortalFeedback = {
-  id: string; created_at: string; portal_id: string;
-  content: string; submitted_at: string;
-};
-
-export type PortalComment = {
-  id: string; created_at: string; portal_id: string;
-  content: string; author: 'client' | 'team'; author_name: string;
-};
-
-export type PortalTimelinePhase = {
-  id: string; created_at: string; portal_id: string;
-  title: string; status: string; sort_order: number;
-};
-
-export type PortalMonthlySummary = {
-  id: string; created_at: string; portal_id: string;
-  month: number; year: number; content: string;
-};
+export type Portal = Tables<'client_portals'>;
+export type PortalFaq = Tables<'portal_faqs'>;
+export type PortalInitialQuestion = Tables<'portal_initial_questions'>;
+export type PortalFeedback = Tables<'portal_feedback'>;
+export type PortalComment = Tables<'portal_comments'>;
+export type PortalTimelinePhase = Tables<'portal_timeline_phases'>;
+export type PortalMonthlySummary = Tables<'portal_monthly_summaries'>;
 
 // Determine portal type from product type
 export function getPortalTypeFromProduct(productType: string | null): 'projeto_unico' | 'servico_mensal' | null {
@@ -57,7 +17,7 @@ export function getPortalTypeFromProduct(productType: string | null): 'projeto_u
   const projetoTypes = ['projeto_1_1', 'consultoria_individual', 'consultoria_grupo', 'mentoria_individual', 'mentoria_grupo'];
   if (projetoTypes.includes(productType)) return 'projeto_unico';
   if (productType === 'servico_mensal') return 'servico_mensal';
-  return null; // curso, template — no portal
+  return null;
 }
 
 export function usePortal(clientId: string | undefined) {
@@ -68,7 +28,7 @@ export function usePortal(clientId: string | undefined) {
     queryKey: key,
     queryFn: async () => {
       if (!clientId) return null;
-      const { data, error } = await sb('client_portals').select('*').eq('client_id', clientId).maybeSingle();
+      const { data, error } = await supabase.from('client_portals').select('*').eq('client_id', clientId).maybeSingle();
       if (error) throw error;
       return data as Portal | null;
     },
@@ -76,12 +36,12 @@ export function usePortal(clientId: string | undefined) {
   });
 
   const upsertPortal = useMutation({
-    mutationFn: async (fields: Partial<Portal> & { client_id: string; portal_type: string }) => {
+    mutationFn: async (fields: Partial<Portal> & { client_id: string; portal_type: Portal['portal_type'] }) => {
       if (portal.data?.id) {
-        const { error } = await sb('client_portals').update(fields).eq('id', portal.data.id);
+        const { error } = await supabase.from('client_portals').update(fields as TablesUpdate<'client_portals'>).eq('id', portal.data.id);
         if (error) throw error;
       } else {
-        const { error } = await sb('client_portals').insert(fields);
+        const { error } = await supabase.from('client_portals').insert(fields as TablesInsert<'client_portals'>);
         if (error) throw error;
       }
     },
@@ -92,7 +52,7 @@ export function usePortal(clientId: string | undefined) {
   const updatePortal = useMutation({
     mutationFn: async (fields: Partial<Portal>) => {
       if (!portal.data?.id) return;
-      const { error } = await sb('client_portals').update(fields).eq('id', portal.data.id);
+      const { error } = await supabase.from('client_portals').update(fields as TablesUpdate<'client_portals'>).eq('id', portal.data.id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: key }); qc.invalidateQueries({ queryKey: ['all_portals'] }); },
@@ -105,7 +65,7 @@ export function useAllPortals() {
   return useQuery({
     queryKey: ['all_portals'],
     queryFn: async () => {
-      const { data, error } = await sb('client_portals').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('client_portals').select('*').order('created_at', { ascending: false });
       if (error) throw error;
       return (data || []) as Portal[];
     },
@@ -121,7 +81,7 @@ export function usePortalFaqs(portalId: string | undefined) {
     queryKey: key,
     queryFn: async () => {
       if (!portalId) return [];
-      const { data, error } = await sb('portal_faqs').select('*').eq('portal_id', portalId).order('sort_order');
+      const { data, error } = await supabase.from('portal_faqs').select('*').eq('portal_id', portalId).order('sort_order');
       if (error) throw error;
       return (data || []) as PortalFaq[];
     },
@@ -129,16 +89,16 @@ export function usePortalFaqs(portalId: string | undefined) {
   });
 
   const addFaq = useMutation({
-    mutationFn: async (entry: Partial<PortalFaq> & { portal_id: string }) => {
-      const { error } = await sb('portal_faqs').insert(entry);
+    mutationFn: async (entry: TablesInsert<'portal_faqs'>) => {
+      const { error } = await supabase.from('portal_faqs').insert(entry);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
   });
 
   const updateFaq = useMutation({
-    mutationFn: async ({ id, ...fields }: Partial<PortalFaq> & { id: string }) => {
-      const { error } = await sb('portal_faqs').update(fields).eq('id', id);
+    mutationFn: async ({ id, ...fields }: TablesUpdate<'portal_faqs'> & { id: string }) => {
+      const { error } = await supabase.from('portal_faqs').update(fields).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
@@ -146,7 +106,7 @@ export function usePortalFaqs(portalId: string | undefined) {
 
   const deleteFaq = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await sb('portal_faqs').delete().eq('id', id);
+      const { error } = await supabase.from('portal_faqs').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
@@ -164,7 +124,7 @@ export function usePortalQuestions(portalId: string | undefined) {
     queryKey: key,
     queryFn: async () => {
       if (!portalId) return [];
-      const { data, error } = await sb('portal_initial_questions').select('*').eq('portal_id', portalId).order('sort_order');
+      const { data, error } = await supabase.from('portal_initial_questions').select('*').eq('portal_id', portalId).order('sort_order');
       if (error) throw error;
       return (data || []) as PortalInitialQuestion[];
     },
@@ -172,16 +132,16 @@ export function usePortalQuestions(portalId: string | undefined) {
   });
 
   const addQuestion = useMutation({
-    mutationFn: async (entry: Partial<PortalInitialQuestion> & { portal_id: string }) => {
-      const { error } = await sb('portal_initial_questions').insert(entry);
+    mutationFn: async (entry: TablesInsert<'portal_initial_questions'>) => {
+      const { error } = await supabase.from('portal_initial_questions').insert(entry);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
   });
 
   const updateQuestion = useMutation({
-    mutationFn: async ({ id, ...fields }: Partial<PortalInitialQuestion> & { id: string }) => {
-      const { error } = await sb('portal_initial_questions').update(fields).eq('id', id);
+    mutationFn: async ({ id, ...fields }: TablesUpdate<'portal_initial_questions'> & { id: string }) => {
+      const { error } = await supabase.from('portal_initial_questions').update(fields).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
@@ -189,7 +149,7 @@ export function usePortalQuestions(portalId: string | undefined) {
 
   const deleteQuestion = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await sb('portal_initial_questions').delete().eq('id', id);
+      const { error } = await supabase.from('portal_initial_questions').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
@@ -207,7 +167,7 @@ export function usePortalFeedback(portalId: string | undefined) {
     queryKey: key,
     queryFn: async () => {
       if (!portalId) return [];
-      const { data, error } = await sb('portal_feedback').select('*').eq('portal_id', portalId).order('submitted_at', { ascending: false });
+      const { data, error } = await supabase.from('portal_feedback').select('*').eq('portal_id', portalId).order('submitted_at', { ascending: false });
       if (error) throw error;
       return (data || []) as PortalFeedback[];
     },
@@ -215,8 +175,8 @@ export function usePortalFeedback(portalId: string | undefined) {
   });
 
   const addFeedback = useMutation({
-    mutationFn: async (entry: { portal_id: string; content: string }) => {
-      const { error } = await sb('portal_feedback').insert(entry);
+    mutationFn: async (entry: TablesInsert<'portal_feedback'>) => {
+      const { error } = await supabase.from('portal_feedback').insert(entry);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
@@ -234,7 +194,7 @@ export function usePortalComments(portalId: string | undefined) {
     queryKey: key,
     queryFn: async () => {
       if (!portalId) return [];
-      const { data, error } = await sb('portal_comments').select('*').eq('portal_id', portalId).order('created_at', { ascending: true });
+      const { data, error } = await supabase.from('portal_comments').select('*').eq('portal_id', portalId).order('created_at', { ascending: true });
       if (error) throw error;
       return (data || []) as PortalComment[];
     },
@@ -242,8 +202,8 @@ export function usePortalComments(portalId: string | undefined) {
   });
 
   const addComment = useMutation({
-    mutationFn: async (entry: { portal_id: string; content: string; author: 'client' | 'team'; author_name: string }) => {
-      const { error } = await sb('portal_comments').insert(entry);
+    mutationFn: async (entry: TablesInsert<'portal_comments'>) => {
+      const { error } = await supabase.from('portal_comments').insert(entry);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
@@ -261,7 +221,7 @@ export function usePortalTimeline(portalId: string | undefined) {
     queryKey: key,
     queryFn: async () => {
       if (!portalId) return [];
-      const { data, error } = await sb('portal_timeline_phases').select('*').eq('portal_id', portalId).order('sort_order');
+      const { data, error } = await supabase.from('portal_timeline_phases').select('*').eq('portal_id', portalId).order('sort_order');
       if (error) throw error;
       return (data || []) as PortalTimelinePhase[];
     },
@@ -269,16 +229,16 @@ export function usePortalTimeline(portalId: string | undefined) {
   });
 
   const addPhase = useMutation({
-    mutationFn: async (entry: Partial<PortalTimelinePhase> & { portal_id: string }) => {
-      const { error } = await sb('portal_timeline_phases').insert(entry);
+    mutationFn: async (entry: TablesInsert<'portal_timeline_phases'>) => {
+      const { error } = await supabase.from('portal_timeline_phases').insert(entry);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
   });
 
   const updatePhase = useMutation({
-    mutationFn: async ({ id, ...fields }: Partial<PortalTimelinePhase> & { id: string }) => {
-      const { error } = await sb('portal_timeline_phases').update(fields).eq('id', id);
+    mutationFn: async ({ id, ...fields }: TablesUpdate<'portal_timeline_phases'> & { id: string }) => {
+      const { error } = await supabase.from('portal_timeline_phases').update(fields).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
@@ -286,7 +246,7 @@ export function usePortalTimeline(portalId: string | undefined) {
 
   const deletePhase = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await sb('portal_timeline_phases').delete().eq('id', id);
+      const { error } = await supabase.from('portal_timeline_phases').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
@@ -304,7 +264,7 @@ export function usePortalSummaries(portalId: string | undefined) {
     queryKey: key,
     queryFn: async () => {
       if (!portalId) return [];
-      const { data, error } = await sb('portal_monthly_summaries').select('*').eq('portal_id', portalId).order('year', { ascending: false }).order('month', { ascending: false });
+      const { data, error } = await supabase.from('portal_monthly_summaries').select('*').eq('portal_id', portalId).order('year', { ascending: false }).order('month', { ascending: false });
       if (error) throw error;
       return (data || []) as PortalMonthlySummary[];
     },
@@ -312,16 +272,16 @@ export function usePortalSummaries(portalId: string | undefined) {
   });
 
   const addSummary = useMutation({
-    mutationFn: async (entry: Partial<PortalMonthlySummary> & { portal_id: string; month: number; year: number; content: string }) => {
-      const { error } = await sb('portal_monthly_summaries').insert(entry);
+    mutationFn: async (entry: TablesInsert<'portal_monthly_summaries'>) => {
+      const { error } = await supabase.from('portal_monthly_summaries').insert(entry);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
   });
 
   const updateSummary = useMutation({
-    mutationFn: async ({ id, ...fields }: Partial<PortalMonthlySummary> & { id: string }) => {
-      const { error } = await sb('portal_monthly_summaries').update(fields).eq('id', id);
+    mutationFn: async ({ id, ...fields }: TablesUpdate<'portal_monthly_summaries'> & { id: string }) => {
+      const { error } = await supabase.from('portal_monthly_summaries').update(fields).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
@@ -329,7 +289,7 @@ export function usePortalSummaries(portalId: string | undefined) {
 
   const deleteSummary = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await sb('portal_monthly_summaries').delete().eq('id', id);
+      const { error } = await supabase.from('portal_monthly_summaries').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),

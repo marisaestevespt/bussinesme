@@ -1,64 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
-export type Client = {
-  id: string;
-  client_id: string;
-  status: string;
-  start_date: string | null;
-  end_of_cycle: string | null;
-  current_product: string | null;
-  dp: string | null;
-  payment_method: string | null;
-  full_name: string;
-  nif: string | null;
-  fiscal_address: string | null;
-  birthday: string | null;
-  observations: string | null;
-  email: string | null;
-  whatsapp: string | null;
-  documents: string | null;
-  drive_folder_url: string | null;
-  created_by: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
-export type ClientHistory = {
-  id: string;
-  client_id: string;
-  entry_date: string;
-  milestone: string;
-  observations: string | null;
-  created_at: string;
-};
-
-export type ClientActivity = {
-  id: string;
-  client_id: string;
-  phase: string | null;
-  activity: string;
-  responsible: string | null;
-  rule: string | null;
-  sort_order: number;
-  created_at: string;
-};
-
-export type ClientOnboarding = {
-  id: string;
-  client_id: string;
-  phase: string | null;
-  activity: string;
-  responsible: string | null;
-  rule: string | null;
-  completed: boolean;
-  documents_links: string | null;
-  sort_order: number;
-  created_at: string;
-};
-
-export type ClientOffboarding = ClientOnboarding;
+export type Client = Tables<'clients'>;
+export type ClientHistory = Tables<'client_history'>;
+export type ClientActivity = Tables<'client_activities'>;
+export type ClientOnboarding = Tables<'client_onboarding'>;
+export type ClientOffboarding = Tables<'client_offboarding'>;
 
 export const CLIENT_STATUS_OPTIONS = [
   { value: 'em_onboarding', label: 'Em onboarding' },
@@ -69,19 +18,13 @@ export const CLIENT_STATUS_OPTIONS = [
   { value: 'terminado', label: 'Terminado' },
 ] as const;
 
-const sb = () => supabase.from('clients' as any) as any;
-const sbHistory = () => supabase.from('client_history' as any) as any;
-const sbActivities = () => supabase.from('client_activities' as any) as any;
-const sbOnboarding = () => supabase.from('client_onboarding' as any) as any;
-const sbOffboarding = () => supabase.from('client_offboarding' as any) as any;
-
 export function useClients() {
   const qc = useQueryClient();
 
   const clients = useQuery({
     queryKey: ['clients'],
     queryFn: async () => {
-      const { data, error } = await sb().select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('clients').select('*').order('created_at', { ascending: false });
       if (error) throw error;
       return (data || []) as Client[];
     },
@@ -90,11 +33,11 @@ export function useClients() {
   const upsertClient = useMutation({
     mutationFn: async (client: Partial<Client> & { full_name: string }) => {
       if (client.id) {
-        const { error } = await sb().update(client).eq('id', client.id);
+        const { error } = await supabase.from('clients').update(client as TablesUpdate<'clients'>).eq('id', client.id);
         if (error) throw error;
       } else {
         const { id, ...rest } = client;
-        const { error } = await sb().insert(rest);
+        const { error } = await supabase.from('clients').insert(rest as TablesInsert<'clients'>);
         if (error) throw error;
       }
     },
@@ -104,7 +47,7 @@ export function useClients() {
 
   const deleteClient = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await sb().delete().eq('id', id);
+      const { error } = await supabase.from('clients').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['clients'] }),
@@ -113,7 +56,7 @@ export function useClients() {
   const duplicateClient = useMutation({
     mutationFn: async (source: Client) => {
       const { id, client_id, created_at, updated_at, ...rest } = source;
-      const { error } = await sb().insert({ ...rest, full_name: `${source.full_name} (cópia)`, client_id: null });
+      const { error } = await supabase.from('clients').insert({ ...rest, full_name: `${source.full_name} (cópia)`, client_id: undefined } as TablesInsert<'clients'>);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['clients'] }); toast.success('Ficha duplicada'); },
@@ -127,7 +70,7 @@ export function useClient(id: string | undefined) {
     queryKey: ['clients', id],
     queryFn: async () => {
       if (!id) return null;
-      const { data, error } = await sb().select('*').eq('id', id).maybeSingle();
+      const { data, error } = await supabase.from('clients').select('*').eq('id', id).maybeSingle();
       if (error) throw error;
       return data as Client | null;
     },
@@ -143,7 +86,7 @@ export function useClientHistory(clientId: string | undefined) {
     queryKey: key,
     queryFn: async () => {
       if (!clientId) return [];
-      const { data, error } = await sbHistory().select('*').eq('client_id', clientId).order('entry_date', { ascending: false });
+      const { data, error } = await supabase.from('client_history').select('*').eq('client_id', clientId).order('entry_date', { ascending: false });
       if (error) throw error;
       return (data || []) as ClientHistory[];
     },
@@ -151,16 +94,16 @@ export function useClientHistory(clientId: string | undefined) {
   });
 
   const addEntry = useMutation({
-    mutationFn: async (entry: Partial<ClientHistory> & { client_id: string }) => {
-      const { error } = await sbHistory().insert(entry);
+    mutationFn: async (entry: TablesInsert<'client_history'>) => {
+      const { error } = await supabase.from('client_history').insert(entry);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
   });
 
   const updateEntry = useMutation({
-    mutationFn: async ({ id, ...fields }: Partial<ClientHistory> & { id: string }) => {
-      const { error } = await sbHistory().update(fields).eq('id', id);
+    mutationFn: async ({ id, ...fields }: TablesUpdate<'client_history'> & { id: string }) => {
+      const { error } = await supabase.from('client_history').update(fields).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
@@ -168,7 +111,7 @@ export function useClientHistory(clientId: string | undefined) {
 
   const deleteEntry = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await sbHistory().delete().eq('id', id);
+      const { error } = await supabase.from('client_history').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
@@ -185,7 +128,7 @@ export function useClientActivities(clientId: string | undefined) {
     queryKey: key,
     queryFn: async () => {
       if (!clientId) return [];
-      const { data, error } = await sbActivities().select('*').eq('client_id', clientId).order('sort_order', { ascending: true });
+      const { data, error } = await supabase.from('client_activities').select('*').eq('client_id', clientId).order('sort_order', { ascending: true });
       if (error) throw error;
       return (data || []) as ClientActivity[];
     },
@@ -193,16 +136,16 @@ export function useClientActivities(clientId: string | undefined) {
   });
 
   const addEntry = useMutation({
-    mutationFn: async (entry: Partial<ClientActivity> & { client_id: string }) => {
-      const { error } = await sbActivities().insert(entry);
+    mutationFn: async (entry: TablesInsert<'client_activities'>) => {
+      const { error } = await supabase.from('client_activities').insert(entry);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
   });
 
   const updateEntry = useMutation({
-    mutationFn: async ({ id, ...fields }: Partial<ClientActivity> & { id: string }) => {
-      const { error } = await sbActivities().update(fields).eq('id', id);
+    mutationFn: async ({ id, ...fields }: TablesUpdate<'client_activities'> & { id: string }) => {
+      const { error } = await supabase.from('client_activities').update(fields).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
@@ -210,7 +153,7 @@ export function useClientActivities(clientId: string | undefined) {
 
   const deleteEntry = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await sbActivities().delete().eq('id', id);
+      const { error } = await supabase.from('client_activities').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
@@ -227,7 +170,7 @@ export function useClientOnboarding(clientId: string | undefined) {
     queryKey: key,
     queryFn: async () => {
       if (!clientId) return [];
-      const { data, error } = await sbOnboarding().select('*').eq('client_id', clientId).order('sort_order', { ascending: true });
+      const { data, error } = await supabase.from('client_onboarding').select('*').eq('client_id', clientId).order('sort_order', { ascending: true });
       if (error) throw error;
       return (data || []) as ClientOnboarding[];
     },
@@ -235,16 +178,16 @@ export function useClientOnboarding(clientId: string | undefined) {
   });
 
   const addEntry = useMutation({
-    mutationFn: async (entry: Partial<ClientOnboarding> & { client_id: string }) => {
-      const { error } = await sbOnboarding().insert(entry);
+    mutationFn: async (entry: TablesInsert<'client_onboarding'>) => {
+      const { error } = await supabase.from('client_onboarding').insert(entry);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
   });
 
   const updateEntry = useMutation({
-    mutationFn: async ({ id, ...fields }: Partial<ClientOnboarding> & { id: string }) => {
-      const { error } = await sbOnboarding().update(fields).eq('id', id);
+    mutationFn: async ({ id, ...fields }: TablesUpdate<'client_onboarding'> & { id: string }) => {
+      const { error } = await supabase.from('client_onboarding').update(fields).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
@@ -252,7 +195,7 @@ export function useClientOnboarding(clientId: string | undefined) {
 
   const deleteEntry = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await sbOnboarding().delete().eq('id', id);
+      const { error } = await supabase.from('client_onboarding').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
@@ -269,7 +212,7 @@ export function useClientOffboarding(clientId: string | undefined) {
     queryKey: key,
     queryFn: async () => {
       if (!clientId) return [];
-      const { data, error } = await sbOffboarding().select('*').eq('client_id', clientId).order('sort_order', { ascending: true });
+      const { data, error } = await supabase.from('client_offboarding').select('*').eq('client_id', clientId).order('sort_order', { ascending: true });
       if (error) throw error;
       return (data || []) as ClientOffboarding[];
     },
@@ -277,16 +220,16 @@ export function useClientOffboarding(clientId: string | undefined) {
   });
 
   const addEntry = useMutation({
-    mutationFn: async (entry: Partial<ClientOffboarding> & { client_id: string }) => {
-      const { error } = await sbOffboarding().insert(entry);
+    mutationFn: async (entry: TablesInsert<'client_offboarding'>) => {
+      const { error } = await supabase.from('client_offboarding').insert(entry);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
   });
 
   const updateEntry = useMutation({
-    mutationFn: async ({ id, ...fields }: Partial<ClientOffboarding> & { id: string }) => {
-      const { error } = await sbOffboarding().update(fields).eq('id', id);
+    mutationFn: async ({ id, ...fields }: TablesUpdate<'client_offboarding'> & { id: string }) => {
+      const { error } = await supabase.from('client_offboarding').update(fields).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
@@ -294,7 +237,7 @@ export function useClientOffboarding(clientId: string | undefined) {
 
   const deleteEntry = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await sbOffboarding().delete().eq('id', id);
+      const { error } = await supabase.from('client_offboarding').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
