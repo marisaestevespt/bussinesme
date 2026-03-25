@@ -307,6 +307,9 @@ function CompanyCapacityTab({ members, entries, clients, products }: { members: 
           </CardContent>
         </Card>
       )}
+
+      {/* Simulator */}
+      <CapacitySimulator members={members} entries={entries} clients={clients} products={products} />
     </div>
   );
 }
