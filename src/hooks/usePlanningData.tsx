@@ -481,7 +481,7 @@ export function usePlanningData(year = currentYear) {
       const metric = (metrics.data || []).find((m: any) => m.id === metricId);
       return metric ? Number(metric.current_value || 0) : null;
     }
-    if (source === 'bd_vendas') {
+    if (source === 'bd_vendas' || source === 'commercial') {
       const rows = autoSalesRaw.data || [];
       const filtered = productName ? rows.filter((r: any) => r.product === productName) : rows;
       return filtered.reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0);
@@ -580,7 +580,7 @@ export function usePlanningData(year = currentYear) {
     if (monthIdx === -1) return null;
     const month = monthIdx + 1;
 
-    if (source === 'bd_vendas') {
+    if (source === 'bd_vendas' || source === 'commercial') {
       let rows = autoSalesRaw.data || [];
       const pName = obj.product_name || resolveProductName(obj.product_id);
       if (pName) rows = rows.filter((r: any) => r.product === pName);
