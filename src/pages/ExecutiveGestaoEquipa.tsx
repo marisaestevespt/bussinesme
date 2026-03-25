@@ -70,26 +70,29 @@ function cleanPayload(obj: Record<string, any>): Record<string, any> {
   return cleaned;
 }
 
-async function autoAssignPermissions(memberId: string, department: string | null) {
-  if (!department) return;
+async function autoAssignPermissions(memberId: string, departments: string[]) {
+  if (!departments || departments.length === 0) return;
 
-  // Get or create a role for this department
-  const roleName = `dept_${department}`;
+  // Collect all module keys from all departments
+  const allModuleKeys = new Set([
+    ...HALL_MODULES,
+    ...TRANSVERSAL_MODULES,
+    ...SECRETARIA_MODULES,
+  ]);
+  for (const dept of departments) {
+    (DEPT_MODULE_MAP[dept] || []).forEach(mk => allModuleKeys.add(mk));
+  }
+
+  // Create a combined role name based on sorted departments
+  const roleName = `dept_${departments.sort().join('_')}`;
   let { data: role } = await supabase.from('custom_roles').select('id').eq('name', roleName).maybeSingle();
   
   if (!role) {
-    const { data: newRole, error } = await supabase.from('custom_roles').insert({ name: roleName, description: `Auto-generated role for ${department}` }).select('id').single();
+    const { data: newRole, error } = await supabase.from('custom_roles').insert({ name: roleName, description: `Auto-generated role for ${departments.join(', ')}` }).select('id').single();
     if (error || !newRole) return;
     role = newRole;
 
-    // Create permissions for this role
-    const moduleKeys = [
-      ...HALL_MODULES,
-      ...TRANSVERSAL_MODULES,
-      ...SECRETARIA_MODULES,
-      ...(DEPT_MODULE_MAP[department] || []),
-    ];
-    const perms = moduleKeys.map(mk => ({ custom_role_id: role!.id, module_key: mk, can_view: true }));
+    const perms = [...allModuleKeys].map(mk => ({ custom_role_id: role!.id, module_key: mk, can_view: true }));
     await supabase.from('role_permissions').insert(perms);
   }
 
@@ -123,11 +126,18 @@ const DEPT_COLORS: Record<string, string> = {
   'recursos-humanos': 'bg-rose-600 text-white',
 };
 
-function DeptBadge({ dept }: { dept: string | null }) {
+function DeptBadge({ dept }: { dept: string | string[] | null }) {
   if (!dept) return null;
-  const d = getDept(dept);
-  const colorClass = DEPT_COLORS[dept] || 'bg-muted text-muted-foreground';
-  return <Badge className={`${colorClass} text-[10px] border-0`}>{d?.label || dept}</Badge>;
+  const depts = Array.isArray(dept) ? dept : [dept];
+  return (
+    <>
+      {depts.map(d => {
+        const info = getDept(d);
+        const colorClass = DEPT_COLORS[d] || 'bg-muted text-muted-foreground';
+        return <Badge key={d} className={`${colorClass} text-[10px] border-0`}>{info?.label || d}</Badge>;
+      })}
+    </>
+  );
 }
 
 function getInitials(name: string) {
