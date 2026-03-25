@@ -137,7 +137,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                     <div><Label>Valor alvo</Label><Input type="number" value={form.target_value} onChange={e => set('target_value', e.target.value)} /></div>
                     <div><Label>Unidade</Label><Input value={form.target_unit} onChange={e => set('target_unit', e.target.value)} /></div>
                     <div><Label>Fonte</Label>
-                      <Select value={form.value_source || 'manual'} onValueChange={v => set('value_source', v)}>
+                      <Select value={form.value_source || 'manual'} onValueChange={v => { set('value_source', v); set('source_filter', {}); }}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                       </Select>
