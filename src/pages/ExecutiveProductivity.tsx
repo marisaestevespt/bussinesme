@@ -764,16 +764,22 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
         <CardContent className="p-0">
           <Table>
             <TableHeader><TableRow>
-              <TableHead>Membro</TableHead><TableHead>Função</TableHead><TableHead className="text-right">h/semana</TableHead><TableHead className="text-right">Capacidade/mês</TableHead><TableHead className="text-right">Registado</TableHead><TableHead className="text-right">Restante</TableHead><TableHead className="text-right">Ocupação</TableHead><TableHead>Barra</TableHead>
+              <TableHead>Membro</TableHead><TableHead>Função</TableHead><TableHead>Área</TableHead><TableHead className="text-right">h/semana</TableHead><TableHead className="text-right">Capacidade/mês</TableHead><TableHead className="text-right">Cliente</TableHead><TableHead className="text-right">Interno</TableHead><TableHead className="text-right">Restante</TableHead><TableHead className="text-right">Ocupação</TableHead><TableHead>Barra</TableHead>
             </TableRow></TableHeader>
             <TableBody>
               {memberCapacity.map(m => (
                 <TableRow key={m.id}>
                   <TableCell className="text-sm font-medium">{m.name}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">{m.role}</TableCell>
+                  <TableCell>
+                    {m.areaLabel !== '—' && (
+                      <Badge variant={m.isClientFacing ? 'default' : 'secondary'} className="text-[10px]">{m.areaLabel}</Badge>
+                    )}
+                  </TableCell>
                   <TableCell className="text-sm text-right tabular-nums">{m.weeklyH}h</TableCell>
                   <TableCell className="text-sm text-right tabular-nums">{m.monthlyH}h</TableCell>
-                  <TableCell className="text-sm text-right tabular-nums">{m.actualH}h</TableCell>
+                  <TableCell className="text-sm text-right tabular-nums text-primary">{m.clientH}h</TableCell>
+                  <TableCell className="text-sm text-right tabular-nums text-muted-foreground">{m.internalH}h</TableCell>
                   <TableCell className={`text-sm text-right tabular-nums ${m.remainingH < 0 ? 'text-destructive' : ''}`}>{m.remainingH}h</TableCell>
                   <TableCell className={`text-sm text-right font-medium ${m.usagePct > 100 ? 'text-destructive' : m.usagePct > 85 ? 'text-amber-500' : ''}`}>{m.usagePct}%</TableCell>
                   <TableCell>
