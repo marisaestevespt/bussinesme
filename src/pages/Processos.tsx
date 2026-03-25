@@ -125,21 +125,29 @@ export default function ProcessosPage() {
 
   const createSop = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('sops').insert({
+      const { data: sopData, error } = await supabase.from('sops').insert({
         name: newSopName,
         department: newSopDepts[0] || 'marketing',
         departments: newSopDepts,
         status: newSopStatus,
+        sop_type: newSopType,
+        role_title: newSopRoleTitle || null,
+        product_id: newSopProductId || null,
         created_by: user?.id,
-      } as any);
+      } as any).select('id').single();
       if (error) throw error;
+      return sopData;
     },
-    onSuccess: () => {
+    onSuccess: (sopData) => {
       queryClient.invalidateQueries({ queryKey: ['sops'] });
       setShowNewSop(false);
       setNewSopName('');
       setNewSopDepts(['marketing']);
+      setNewSopType('operacional');
+      setNewSopRoleTitle('');
+      setNewSopProductId('');
       toast.success('Processo criado');
+      if (sopData?.id) navigate(`/hub/processos/${sopData.id}`);
     },
     onError: () => toast.error('Erro ao criar processo'),
   });
