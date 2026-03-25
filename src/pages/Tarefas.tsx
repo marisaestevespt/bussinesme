@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { BackNavigation } from '@/components/BackNavigation';
 import { AppLayout } from '@/components/AppLayout';
@@ -19,7 +19,9 @@ import { TaskTimeTracker } from '@/components/TaskTimeTracker';
 import { HistoricoView } from '@/components/tasks/HistoricoView';
 import { useActiveTimer } from '@/hooks/useActiveTimer';
 import { Button } from '@/components/ui/button';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import { InfiniteScrollList } from '@/components/InfiniteScrollList';
+import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { sendNotification } from '@/hooks/useNotifications';
 import { useAbsenceCoverage, findCoverageForMemberOnDate } from '@/hooks/useAbsenceCoverage';
@@ -119,14 +121,20 @@ export default function TarefasPage() {
   const [filterProject, setFilterProject] = useState('');
 
   // Queries
-  const { data: tasks = [] } = useQuery({
+  const tasksQuery = useInfiniteQuery<InfinitePageResult<any>>({
     queryKey: ['tasks'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
+    initialPageParam: 0,
+    queryFn: async ({ pageParam = 0 }) => {
+      const from = (pageParam as number) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const { data, error, count } = await supabase.from('tasks').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to);
       if (error) throw error;
-      return data;
+      return { data: data || [], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },
+    getNextPageParam: (last) => last.nextPage,
   });
+  const tasks = flattenInfiniteData(tasksQuery.data?.pages);
+  const tasksTotal = getInfiniteCount(tasksQuery.data?.pages);
 
   const { data: profiles = [] } = useQuery({
     queryKey: ['profiles'],
@@ -661,6 +669,16 @@ export default function TarefasPage() {
             allTasks={tasks}
           />
         )}
+        <InfiniteScrollList
+          totalCount={tasksTotal}
+          loadedCount={tasks.length}
+          hasNextPage={tasksQuery.hasNextPage}
+          isFetchingNextPage={tasksQuery.isFetchingNextPage}
+          fetchNextPage={tasksQuery.fetchNextPage}
+          showCounter={false}
+        >
+          <span />
+        </InfiniteScrollList>
       </div>
 
       {/* Task Dialog */}

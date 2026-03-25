@@ -1,4 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -21,14 +22,24 @@ export const CLIENT_STATUS_OPTIONS = [
 export function useClients() {
   const qc = useQueryClient();
 
-  const clients = useQuery({
+  const clientsQuery = useInfiniteQuery<InfinitePageResult<Client>>({
     queryKey: ['clients'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('clients').select('*').order('created_at', { ascending: false });
+    initialPageParam: 0,
+    queryFn: async ({ pageParam = 0 }) => {
+      const from = (pageParam as number) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const { data, error, count } = await supabase.from('clients').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to);
       if (error) throw error;
-      return (data || []) as Client[];
+      return { data: (data || []) as Client[], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },
+    getNextPageParam: (last) => last.nextPage,
   });
+
+  const clients = {
+    ...clientsQuery,
+    data: flattenInfiniteData(clientsQuery.data?.pages),
+    totalCount: getInfiniteCount(clientsQuery.data?.pages),
+  };
 
   const upsertClient = useMutation({
     mutationFn: async (client: Partial<Client> & { full_name: string }) => {

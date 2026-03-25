@@ -18,7 +18,9 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
 import { Plus, LayoutList, LayoutGrid, CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import { InfiniteScrollList } from '@/components/InfiniteScrollList';
+import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -163,14 +165,21 @@ export default function ProjetosPage() {
   const [fNotes, setFNotes] = useState('');
   const [fMode, setFMode] = useState('pontual');
 
-  const { data: projects = [], isLoading } = useQuery({
+  const projectsQuery = useInfiniteQuery<InfinitePageResult<Project>>({
     queryKey: ['projects'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+    initialPageParam: 0,
+    queryFn: async ({ pageParam = 0 }) => {
+      const from = (pageParam as number) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const { data, error, count } = await supabase.from('projects').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to);
       if (error) throw error;
-      return (data || []) as Project[];
+      return { data: (data || []) as Project[], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },
+    getNextPageParam: (last) => last.nextPage,
   });
+  const projects = flattenInfiniteData(projectsQuery.data?.pages);
+  const projectsTotal = getInfiniteCount(projectsQuery.data?.pages);
+  const isLoading = projectsQuery.isLoading;
 
   const { data: profiles = [] } = useQuery({
     queryKey: ['profiles'],
