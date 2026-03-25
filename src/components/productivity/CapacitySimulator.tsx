@@ -130,6 +130,7 @@ interface PhantomMember {
   weeklyHours: number;
   clientPct: number;
   contractType: 'colaborador' | 'prestador';
+  contractDurationMonths: number | null; // only for prestador
   grossSalary: number;
   startDate: string; // yyyy-MM-dd
   delegatedTaskIds: string[];
@@ -234,6 +235,7 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
       weeklyHours: 40,
       clientPct: 70,
       contractType: 'colaborador',
+      contractDurationMonths: null,
       grossSalary: 1000,
       startDate: defaultStartDate,
       delegatedTaskIds: [],
@@ -311,7 +313,8 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
           startDate: p.startDate,
         };
       } else {
-        // Prestador — valor da fatura + IVA 23%, 12 months
+        // Prestador — valor da fatura + IVA 23%, duration in months
+        const durationMonths = p.contractDurationMonths || 12;
         const iva = Math.round(gross * 0.23 * 100) / 100;
         const totalCostMonth = gross + iva;
         return {
@@ -323,7 +326,8 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
           mealAllowance: 0,
           iva,
           totalCostMonth,
-          totalCostYear: totalCostMonth * 12,
+          totalCostYear: totalCostMonth * durationMonths,
+          durationMonths,
           startDate: p.startDate,
         };
       }
@@ -454,13 +458,32 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
                           </Select>
                         </TableCell>
                         <TableCell>
-                          <Select value={p.contractType} onValueChange={v => updatePhantom(p.id, 'contractType', v)}>
-                            <SelectTrigger className="h-7 text-sm w-28"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="colaborador">Colaborador</SelectItem>
-                              <SelectItem value="prestador">Prestador</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <div className="flex items-center gap-1.5">
+                            <Select value={p.contractType} onValueChange={v => {
+                              updatePhantom(p.id, 'contractType', v);
+                              if (v === 'colaborador') updatePhantom(p.id, 'contractDurationMonths', null);
+                              else if (!p.contractDurationMonths) updatePhantom(p.id, 'contractDurationMonths', 12);
+                            }}>
+                              <SelectTrigger className="h-7 text-sm w-28"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="colaborador">Colaborador</SelectItem>
+                                <SelectItem value="prestador">Prestador</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {p.contractType === 'prestador' && (
+                              <div className="flex items-center gap-1">
+                                <Input
+                                  type="number"
+                                  value={p.contractDurationMonths || 12}
+                                  onChange={e => updatePhantom(p.id, 'contractDurationMonths', Math.max(1, Number(e.target.value)))}
+                                  className="h-7 text-sm w-14 text-right"
+                                  min={1}
+                                  max={60}
+                                />
+                                <span className="text-[10px] text-muted-foreground whitespace-nowrap">meses</span>
+                              </div>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <Input type="number" value={p.grossSalary} onChange={e => updatePhantom(p.id, 'grossSalary', Number(e.target.value))} className="h-7 text-sm w-24 text-right ml-auto" />
