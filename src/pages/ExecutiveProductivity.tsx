@@ -176,6 +176,147 @@ export default function ExecutiveProductivity() {
   );
 }
 
+
+/* ─── TAB: CAPACIDADE EMPRESA ─── */
+function CompanyCapacityTab({ members, entries }: { members: any[]; entries: any[] }) {
+  const WEEKS_PER_MONTH = 4.33;
+  const activeMembers = members.filter(m => m.status === 'ativo' || m.status === 'prestador');
+
+  const totalWeeklyHours = activeMembers.reduce((s, m) => s + (Number(m.expected_weekly_hours) || 0), 0);
+  const totalMonthlyHours = Math.round(totalWeeklyHours * WEEKS_PER_MONTH);
+
+  const { start, end } = getDateRange('month');
+  const monthEntries = entries.filter(e => {
+    const d = new Date(e.entry_date);
+    return d >= start && d <= end;
+  });
+
+  const memberCapacity = useMemo(() => {
+    return activeMembers.map(m => {
+      const weeklyH = Number(m.expected_weekly_hours) || 0;
+      const monthlyH = Math.round(weeklyH * WEEKS_PER_MONTH);
+      const actualH = monthEntries.filter(e => e.member_id === m.id).reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
+      const clientH = monthEntries.filter(e => e.member_id === m.id && (e.client_id || e.category === 'cliente')).reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
+      const internalH = actualH - clientH;
+      const usagePct = monthlyH > 0 ? Math.round((actualH / monthlyH) * 100) : 0;
+      return { id: m.id, name: m.full_name, role: m.role_title || '—', weeklyH, monthlyH, actualH: Number(actualH.toFixed(1)), clientH: Number(clientH.toFixed(1)), internalH: Number(internalH.toFixed(1)), usagePct, remainingH: Number((monthlyH - actualH).toFixed(1)) };
+    }).sort((a, b) => b.usagePct - a.usagePct);
+  }, [activeMembers, monthEntries]);
+
+  const totalActual = memberCapacity.reduce((s, m) => s + m.actualH, 0);
+  const totalClientH = memberCapacity.reduce((s, m) => s + m.clientH, 0);
+  const totalInternalH = memberCapacity.reduce((s, m) => s + m.internalH, 0);
+  const overallUsage = totalMonthlyHours > 0 ? Math.round((totalActual / totalMonthlyHours) * 100) : 0;
+  const totalRemainingH = totalMonthlyHours - totalActual;
+
+  const chartData = memberCapacity.map(m => ({ name: m.name.split(' ')[0], capacidade: m.monthlyH, registado: m.actualH }));
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <Card><CardContent className="p-4">
+          <p className="text-xs text-muted-foreground">Equipa ativa</p>
+          <p className="text-2xl font-bold">{activeMembers.length}</p>
+          <p className="text-xs text-muted-foreground">membros</p>
+        </CardContent></Card>
+        <Card><CardContent className="p-4">
+          <p className="text-xs text-muted-foreground">Capacidade mensal</p>
+          <p className="text-2xl font-bold">{totalMonthlyHours}h</p>
+          <p className="text-xs text-muted-foreground">{totalWeeklyHours}h/semana</p>
+        </CardContent></Card>
+        <Card><CardContent className="p-4">
+          <p className="text-xs text-muted-foreground">Registado (mês)</p>
+          <p className="text-2xl font-bold">{totalActual.toFixed(1)}h</p>
+          <p className="text-xs text-muted-foreground">{totalClientH.toFixed(1)}h cliente + {totalInternalH.toFixed(1)}h interno</p>
+        </CardContent></Card>
+        <Card><CardContent className="p-4">
+          <p className="text-xs text-muted-foreground">Ocupação geral</p>
+          <p className={`text-2xl font-bold ${overallUsage > 100 ? 'text-destructive' : overallUsage > 85 ? 'text-amber-500' : 'text-foreground'}`}>{overallUsage}%</p>
+          <Progress value={Math.min(overallUsage, 100)} className="h-2 mt-1" />
+        </CardContent></Card>
+        <Card><CardContent className="p-4">
+          <p className="text-xs text-muted-foreground">Horas restantes</p>
+          <p className={`text-2xl font-bold ${totalRemainingH < 0 ? 'text-destructive' : 'text-foreground'}`}>{totalRemainingH.toFixed(0)}h</p>
+          <p className="text-xs text-muted-foreground">este mês</p>
+        </CardContent></Card>
+      </div>
+
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Capacidade vs Registado por membro (mês atual)</CardTitle></CardHeader>
+        <CardContent className="h-64">
+          {chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <XAxis dataKey="name" fontSize={12} />
+                <YAxis fontSize={12} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="capacidade" name="Capacidade" fill="hsl(var(--muted-foreground) / 0.2)" radius={[4,4,0,0]} />
+                <Bar dataKey="registado" name="Registado" fill="hsl(var(--primary))" radius={[4,4,0,0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : <p className="text-sm text-muted-foreground text-center pt-20">Sem dados</p>}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-sm">Detalhe por membro</CardTitle></CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader><TableRow>
+              <TableHead>Membro</TableHead>
+              <TableHead>Função</TableHead>
+              <TableHead className="text-right">h/semana</TableHead>
+              <TableHead className="text-right">Capacidade/mês</TableHead>
+              <TableHead className="text-right">Registado</TableHead>
+              <TableHead className="text-right">Restante</TableHead>
+              <TableHead className="text-right">Ocupação</TableHead>
+              <TableHead>Barra</TableHead>
+            </TableRow></TableHeader>
+            <TableBody>
+              {memberCapacity.map(m => (
+                <TableRow key={m.id}>
+                  <TableCell className="text-sm font-medium">{m.name}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{m.role}</TableCell>
+                  <TableCell className="text-sm text-right tabular-nums">{m.weeklyH}h</TableCell>
+                  <TableCell className="text-sm text-right tabular-nums">{m.monthlyH}h</TableCell>
+                  <TableCell className="text-sm text-right tabular-nums">{m.actualH}h</TableCell>
+                  <TableCell className={`text-sm text-right tabular-nums ${m.remainingH < 0 ? 'text-destructive' : ''}`}>{m.remainingH}h</TableCell>
+                  <TableCell className={`text-sm text-right font-medium ${m.usagePct > 100 ? 'text-destructive' : m.usagePct > 85 ? 'text-amber-500' : ''}`}>{m.usagePct}%</TableCell>
+                  <TableCell>
+                    <div className="flex h-2.5 w-24 rounded-full overflow-hidden bg-muted">
+                      <div className={`h-full rounded-full ${m.usagePct > 100 ? 'bg-destructive' : m.usagePct > 85 ? 'bg-amber-500' : 'bg-primary'}`} style={{ width: `${Math.min(m.usagePct, 100)}%` }} />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {memberCapacity.length === 0 && (
+                <TableRow><TableCell colSpan={8} className="text-center text-sm text-muted-foreground py-8">Sem membros ativos</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {memberCapacity.some(m => m.usagePct > 100) && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent className="p-4 flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+            <div className="text-sm space-y-1">
+              <p className="font-medium">Membros em sobre-capacidade:</p>
+              <ul className="text-xs space-y-0.5">
+                {memberCapacity.filter(m => m.usagePct > 100).map(m => (
+                  <li key={m.id}><strong>{m.name}</strong> — {m.actualH}h de {m.monthlyH}h ({m.usagePct}%)</li>
+                ))}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 /* ─── TAB: INTERNO VS CLIENTE ─── */
 function TimeSplitTab({ entries, members, scenario, scenarioProducts }: { entries: any[]; members: any[]; scenario: any; scenarioProducts: any[] }) {
   const [period, setPeriod] = useState('month');
