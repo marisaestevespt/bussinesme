@@ -7,15 +7,14 @@ import {
   subDays, getDaysInMonth,
 } from 'date-fns';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { adjustToBusinessDay as adjustToBusinessDayWithHolidays } from '@/lib/holidays';
 
 type PlanningRoutine = Tables<'planning_routines'>;
 
 // ─── Task generation helpers ─────────────────────────────────
 
 function adjustToBusinessDay(date: Date): Date {
-  if (isSaturday(date)) return subDays(date, 1);
-  if (isSunday(date)) return subDays(date, 2);
-  return date;
+  return adjustToBusinessDayWithHolidays(date);
 }
 
 function weekdayToDateFns(wd: number): number {
