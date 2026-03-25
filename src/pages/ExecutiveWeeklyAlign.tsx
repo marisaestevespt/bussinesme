@@ -18,9 +18,9 @@ import { startOfWeek, endOfWeek, format, subDays, addDays, parseISO, differenceI
 import { useTeamData } from '@/hooks/useTeamData';
 import { cn } from '@/lib/utils';
 import { WeeklyAlignDetailSheet, type DetailField } from '@/components/executive/WeeklyAlignDetailSheet';
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus, DollarSign, Users, Target, AlertTriangle, Save, UserPlus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus, DollarSign, Users, Target, AlertTriangle, Save, UserPlus, ExternalLink, Wallet, ArrowUpRight } from 'lucide-react';
 import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
