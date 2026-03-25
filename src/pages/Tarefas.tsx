@@ -669,6 +669,16 @@ export default function TarefasPage() {
             allTasks={tasks}
           />
         )}
+        <InfiniteScrollList
+          totalCount={tasksTotal}
+          loadedCount={tasks.length}
+          hasNextPage={tasksQuery.hasNextPage}
+          isFetchingNextPage={tasksQuery.isFetchingNextPage}
+          fetchNextPage={tasksQuery.fetchNextPage}
+          showCounter={false}
+        >
+          <span />
+        </InfiniteScrollList>
       </div>
 
       {/* Task Dialog */}
