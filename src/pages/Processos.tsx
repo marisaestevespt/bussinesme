@@ -240,6 +240,8 @@ export default function ProcessosPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {deptSops.map(sop => {
                       const statusInfo = getStatusInfo(sop.status);
+                      const sopType = (sop as any).sop_type || 'operacional';
+                      const sopRole = (sop as any).role_title;
                       return (
                         <Card key={sop.id} className="cursor-pointer hover:shadow-md hq-transition" onClick={() => navigate(`/hub/processos/${sop.id}`)}>
                           <CardContent className="p-4">
@@ -250,6 +252,14 @@ export default function ProcessosPage() {
                             <div className="flex items-start gap-2">
                               <FileText className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                               <p className="font-medium text-sm line-clamp-2">{sop.name}</p>
+                            </div>
+                            <div className="flex items-center gap-1 mt-2 flex-wrap">
+                              {sopType !== 'operacional' && (
+                                <Badge variant="outline" className="text-[10px]">{SOP_TYPES.find(t => t.value === sopType)?.label || sopType}</Badge>
+                              )}
+                              {sopRole && (
+                                <Badge variant="secondary" className="text-[10px]">{sopRole}</Badge>
+                              )}
                             </div>
                           </CardContent>
                         </Card>
