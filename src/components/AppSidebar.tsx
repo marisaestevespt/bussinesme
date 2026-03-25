@@ -67,7 +67,7 @@ const departamentosItems: NavItem[] = [
   { title: 'Contabilidade', url: '/hub/financeiro', icon: 'DollarSign', moduleKey: 'financeiro' },
   { title: 'Operação', url: '/hub/operacao', icon: 'Headphones', moduleKey: 'operacao' },
   { title: 'Produtos', url: '/hub/produtos', icon: 'Package', moduleKey: 'produtos' },
-  { title: 'Pessoas', url: '/hub/recursos-humanos', icon: 'UsersRound', moduleKey: 'recursos-humanos' },
+  { title: 'Recursos Humanos', url: '/hub/recursos-humanos', icon: 'UsersRound', moduleKey: 'recursos-humanos' },
 ];
 
 const executiveItems: NavItem[] = [
