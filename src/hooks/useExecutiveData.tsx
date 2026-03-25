@@ -1,18 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { cleanPayload } from '@/lib/utils';
 import { startOfWeek, format } from 'date-fns';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 type QuarterlyAnalysis = Tables<'executive_quarterly_analysis'>;
 
-function cleanPayload<T extends Record<string, unknown>>(obj: T): T {
-  const cleaned = {} as Record<string, unknown>;
-  for (const [k, v] of Object.entries(obj)) {
-    cleaned[k] = v === '' ? null : v;
-  }
-  return cleaned as T;
-}
+// cleanPayload imported from utils
 
 const currentYear = new Date().getFullYear();
 

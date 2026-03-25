@@ -120,10 +120,10 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
                   >
                     {fmt(d.pago)}
                   </TableCell>
-                  <TableCell className={`text-right font-medium ${d.balanco > 0 ? 'text-amber-600' : d.balanco < 0 ? 'text-green-600' : ''}`}>{fmt(d.balanco)}</TableCell>
+                  <TableCell className={`text-right font-medium ${d.balanco > 0 ? 'text-warning' : d.balanco < 0 ? 'text-success' : ''}`}>{fmt(d.balanco)}</TableCell>
                   <TableCell>
-                    {d.balanco > 0 && <Badge variant="outline" className="bg-amber-100 text-amber-800 text-xs">A entregar</Badge>}
-                    {d.balanco < 0 && <Badge variant="outline" className="bg-green-100 text-green-800 text-xs">A recuperar</Badge>}
+                    {d.balanco > 0 && <Badge variant="outline" className="bg-warning/10 text-warning text-xs">A entregar</Badge>}
+                    {d.balanco < 0 && <Badge variant="outline" className="bg-success/10 text-success text-xs">A recuperar</Badge>}
                   </TableCell>
                 </TableRow>
               ))}

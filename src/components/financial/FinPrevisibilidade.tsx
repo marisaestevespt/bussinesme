@@ -113,9 +113,9 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
                   <TableCell className="text-right">{fmt(p.pessoal)}</TableCell>
                   <TableCell className="text-right">{fmt(p.prestadores)}</TableCell>
                   <TableCell className="text-right font-medium text-red-600">{fmt(p.totalSaidas)}</TableCell>
-                  <TableCell className={`text-right font-bold ${p.balanco >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(p.balanco)}</TableCell>
+                  <TableCell className={`text-right font-bold ${p.balanco >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(p.balanco)}</TableCell>
                   <TableCell>
-                    {p.renewals.length > 0 && <Badge variant="outline" className="bg-amber-100 text-amber-800 text-xs">{p.renewals.length} renovação(ões)</Badge>}
+                    {p.renewals.length > 0 && <Badge variant="outline" className="bg-warning/10 text-warning text-xs">{p.renewals.length} renovação(ões)</Badge>}
                   </TableCell>
                 </TableRow>
               ))}

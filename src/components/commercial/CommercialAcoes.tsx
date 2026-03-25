@@ -23,10 +23,10 @@ import { RichTextEditor } from '@/components/RichTextEditor';
 
 const STATUS_OPTIONS = [
   { value: 'por_comecar', label: 'Por Começar', color: 'bg-muted text-muted-foreground' },
-  { value: 'em_curso', label: 'Em Curso', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
-  { value: 'concluida', label: 'Concluída', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
-  { value: 'pausada', label: 'Pausada', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
-  { value: 'cancelada', label: 'Cancelada', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
+  { value: 'em_curso', label: 'Em Curso', color: 'bg-info/10 text-info' },
+  { value: 'concluida', label: 'Concluída', color: 'bg-success/10 text-success' },
+  { value: 'pausada', label: 'Pausada', color: 'bg-warning/10 text-warning' },
+  { value: 'cancelada', label: 'Cancelada', color: 'bg-destructive/10 text-destructive' },
 ];
 
 const DEFAULT_TYPE_OPTIONS = [

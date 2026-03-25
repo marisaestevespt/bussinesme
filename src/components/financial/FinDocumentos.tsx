@@ -98,11 +98,11 @@ export function FinDocumentos({ fin }: Props) {
                     <TableCell>
                       <span className="flex items-center gap-1">
                         {d.due_date || '—'}
-                        {urgent && <Badge variant="outline" className="bg-red-100 text-red-800 text-xs">Urgente</Badge>}
+                        {urgent && <Badge variant="outline" className="bg-destructive/10 text-destructive text-xs">Urgente</Badge>}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={d.status === 'por_submeter' ? 'bg-amber-100 text-amber-800' : d.status === 'submetido' ? 'bg-blue-100 text-blue-800' : d.status === 'pago' ? 'bg-green-100 text-green-800' : 'bg-muted text-muted-foreground'}>
+                      <Badge variant="outline" className={d.status === 'por_submeter' ? 'bg-warning/10 text-warning' : d.status === 'submetido' ? 'bg-info/10 text-info' : d.status === 'pago' ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}>
                         {DOC_STATUS.find(s => s.value === d.status)?.label || d.status}
                       </Badge>
                     </TableCell>

@@ -9,9 +9,9 @@ import { Search, X } from 'lucide-react';
 import { useProducts, Product, STATUS_OPTIONS, ESCADA_OPTIONS, PRODUCT_TYPE_OPTIONS, SALES_TYPE_OPTIONS } from '@/hooks/useProducts';
 
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
-  em_ideia: { label: 'Em Ideia', className: 'bg-blue-100 text-blue-800' },
-  a_criar: { label: 'A Criar', className: 'bg-amber-100 text-amber-800' },
-  vendas_ativas: { label: 'Vendas Ativas', className: 'bg-green-100 text-green-800' },
+  em_ideia: { label: 'Em Ideia', className: 'bg-info/10 text-info' },
+  a_criar: { label: 'A Criar', className: 'bg-warning/10 text-warning' },
+  vendas_ativas: { label: 'Vendas Ativas', className: 'bg-success/10 text-success' },
   off: { label: 'Off', className: 'bg-muted text-muted-foreground' },
 };
 

@@ -16,9 +16,9 @@ const CONTRACT_LABELS: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
-  ativo: { label: 'Ativo', className: 'bg-green-100 text-green-800' },
+  ativo: { label: 'Ativo', className: 'bg-success/10 text-success' },
   terminado: { label: 'Terminado', className: 'bg-muted text-muted-foreground' },
-  suspenso: { label: 'Suspenso', className: 'bg-amber-100 text-amber-800' },
+  suspenso: { label: 'Suspenso', className: 'bg-warning/10 text-warning' },
 };
 
 interface Props {

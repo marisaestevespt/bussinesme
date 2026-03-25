@@ -137,7 +137,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
                     setExpForm({ ...e, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.base_value.toString() });
                     setExpOpen(true);
                   }}>
-                    <TableCell><Badge variant="outline" className={e.status === 'pago' ? 'bg-green-100 text-green-800' : e.status === 'cancelado' ? 'bg-muted text-muted-foreground' : 'bg-amber-100 text-amber-800'}>{EXP_STATUS.find(s => s.value === e.status)?.label || e.status}</Badge></TableCell>
+                    <TableCell><Badge variant="outline" className={e.status === 'pago' ? 'bg-success/10 text-success' : e.status === 'cancelado' ? 'bg-muted text-muted-foreground' : 'bg-warning/10 text-warning'}>{EXP_STATUS.find(s => s.value === e.status)?.label || e.status}</Badge></TableCell>
                     <TableCell className="font-mono text-xs">{e.expense_id}</TableCell>
                     <TableCell>{e.expense_date || '—'}</TableCell>
                     <TableCell className="truncate max-w-[200px]">{e.description || '—'}</TableCell>

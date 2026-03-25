@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tansta
 import { PAGE_SIZE, flattenInfiniteData, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
 
 import { supabase } from '@/integrations/supabase/client';
-import { excludeCancelled } from '@/lib/utils';
+import { excludeCancelled, cleanPayload } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
@@ -12,13 +12,7 @@ type ProductGoal = Tables<'commercial_product_goals'>;
 type QuarterlyGoal = Tables<'commercial_quarterly_goals'>;
 type MonthlyGoal = Tables<'commercial_monthly_goals'>;
 
-function cleanPayload<T extends Record<string, unknown>>(obj: T): T {
-  const cleaned = {} as Record<string, unknown>;
-  for (const [k, v] of Object.entries(obj)) {
-    cleaned[k] = v === '' ? null : v;
-  }
-  return cleaned as T;
-}
+// cleanPayload imported from utils
 
 const currentYear = new Date().getFullYear();
 const currentMonth = new Date().getMonth() + 1;

@@ -356,7 +356,7 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
 }
 
 // ─── Feedback Session Dialog ──────
-const FEEDBACK_EVENT_TYPE_ID = 'b058c64c-169c-4098-bfaf-2b1773a3c60f';
+// Event type ID resolved dynamically by slug instead of hardcoded UUID
 
 function FeedbackDialog({ open, onClose, initial, members, onSave }: any) {
   const isEdit = !!initial?.id;
@@ -410,6 +410,20 @@ export function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) 
   const { user } = useAuth();
   const qc = useQueryClient();
 
+  // Resolve feedback event type ID dynamically by slug
+  const { data: feedbackEventType } = useQuery({
+    queryKey: ['event-type', 'feedback'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('event_types')
+        .select('id')
+        .eq('slug', 'feedback')
+        .maybeSingle();
+      return data;
+    },
+    staleTime: Infinity,
+  });
+
   const data = useMemo(() => {
     let d = team.feedback.data || [];
     if (filterMember) d = d.filter(r => r.member_id === filterMember);
@@ -430,7 +444,7 @@ export function TabFeedback({ team }: { team: ReturnType<typeof useTeamData> }) 
           : `${rec.session_date}T09:00:00`;
         const { data: eventData } = await supabase.from('events').insert({
           title: `Sessão de Feedback — ${memberObj?.full_name || 'Membro'}`,
-          start_date: startDate, event_type_id: FEEDBACK_EVENT_TYPE_ID,
+          start_date: startDate, event_type_id: feedbackEventType?.id || null,
           department: 'recursos-humanos', created_by: user?.id || null, notes: rec.summary || null,
         }).select('id').single();
         if (eventData?.id) {

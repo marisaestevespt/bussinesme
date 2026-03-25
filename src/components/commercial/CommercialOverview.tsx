@@ -17,10 +17,10 @@ const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'S
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
   na: { label: 'N.A.', color: 'bg-muted text-muted-foreground' },
-  fatura_emitida: { label: 'Fatura Emitida', color: 'bg-amber-100 text-amber-800' },
-  pagamento_ok: { label: 'Pagamento OK', color: 'bg-green-100 text-green-800' },
-  recibo_enviado: { label: 'Recibo Enviado', color: 'bg-blue-100 text-blue-800' },
-  contabilidade_ok: { label: 'Contabilidade OK', color: 'bg-emerald-100 text-emerald-800' },
+  fatura_emitida: { label: 'Fatura Emitida', color: 'bg-warning/10 text-warning' },
+  pagamento_ok: { label: 'Pagamento OK', color: 'bg-success/10 text-success' },
+  recibo_enviado: { label: 'Recibo Enviado', color: 'bg-info/10 text-info' },
+  contabilidade_ok: { label: 'Contabilidade OK', color: 'bg-success/10 text-success' },
 };
 
 export function CommercialOverview() {

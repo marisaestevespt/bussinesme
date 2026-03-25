@@ -400,10 +400,10 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
             </div>
             <div>
               <p className="text-muted-foreground">Balanço</p>
-              <p className={`font-semibold ${ivaBalanco > 0 ? 'text-amber-600' : ivaBalanco < 0 ? 'text-green-600' : ''}`}>
+              <p className={`font-semibold ${ivaBalanco > 0 ? 'text-warning' : ivaBalanco < 0 ? 'text-success' : ''}`}>
                 {fmt(ivaBalanco)}
-                {ivaBalanco > 0 && <Badge variant="outline" className="ml-2 bg-amber-100 text-amber-800 text-[10px]">A entregar</Badge>}
-                {ivaBalanco < 0 && <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 text-[10px]">A recuperar</Badge>}
+                {ivaBalanco > 0 && <Badge variant="outline" className="ml-2 bg-warning/10 text-warning text-[10px]">A entregar</Badge>}
+                {ivaBalanco < 0 && <Badge variant="outline" className="ml-2 bg-success/10 text-success text-[10px]">A recuperar</Badge>}
               </p>
             </div>
           </div>
