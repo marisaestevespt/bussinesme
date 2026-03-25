@@ -576,7 +576,7 @@ export default function ExecutiveWeeklyAlign() {
         <section className="space-y-4">
           <h2 className="text-base font-semibold">1 // Metas</h2>
           <Tabs defaultValue="metas">
-            <TabsList><TabsTrigger value="metas">Metas do mês</TabsTrigger><TabsTrigger value="metricas_atraso">Métricas em atraso</TabsTrigger><TabsTrigger value="agenda">Agenda do mês</TabsTrigger></TabsList>
+            <TabsList><TabsTrigger value="metas">Metas do mês</TabsTrigger><TabsTrigger value="metricas_atraso">Métricas em atraso</TabsTrigger></TabsList>
             <TabsContent value="metas">
               {(() => {
                 const currentMonthName = MONTH_NAMES[currentMonth - 1];
