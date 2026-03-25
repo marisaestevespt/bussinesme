@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import { PAGE_SIZE, flattenInfiniteData, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { excludeCancelled } from '@/lib/utils';
@@ -66,13 +68,22 @@ export function useCommercialData(year = currentYear) {
     },
   });
 
-  const allSales = useQuery({
+  const allSalesQuery = useInfiniteQuery<InfinitePageResult<CommercialSale>>({
     queryKey: ['commercial', 'all-sales'],
-    queryFn: async () => {
-      const { data } = await supabase.from('commercial_sales').select('*').order('payment_date', { ascending: false });
-      return data || [];
+    initialPageParam: 0,
+    queryFn: async ({ pageParam = 0 }) => {
+      const from = (pageParam as number) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const { data } = await supabase.from('commercial_sales').select('*', { count: 'exact' }).order('payment_date', { ascending: false }).range(from, to);
+      return { data: data || [], count: null, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },
+    getNextPageParam: (last) => last.nextPage,
   });
+
+  const allSales = {
+    ...allSalesQuery,
+    data: flattenInfiniteData(allSalesQuery.data?.pages),
+  };
 
   // Auto-update payment statuses
   const autoStatusRan = useRef(false);
