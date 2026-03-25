@@ -579,6 +579,45 @@ export default function ExecutiveWeeklyAlign() {
           </CardContent></Card>
         </div>
 
+        {/* Capacity Alert */}
+        {capacityAlert && capacityAlert.pct >= 75 && (
+          <Card className={cn(
+            "border-l-4",
+            capacityAlert.pct >= 95 ? "border-l-destructive bg-destructive/5" : "border-l-amber-500 bg-amber-50/50"
+          )}>
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className={cn(
+                    "rounded-lg p-2 mt-0.5",
+                    capacityAlert.pct >= 95 ? "bg-destructive/10 text-destructive" : "bg-amber-100 text-amber-600"
+                  )}>
+                    <UserPlus className="h-5 w-5" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold">
+                      {capacityAlert.pct >= 95
+                        ? '⚠️ Capacidade da equipa esgotada — considerar contratação'
+                        : '📊 Capacidade da equipa a ficar limitada'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      A equipa está a {capacityAlert.pct}% de ocupação este mês ({capacityAlert.totalUsed}h de {capacityAlert.totalCapacity}h).
+                      {capacityAlert.overloadedCount > 0 && ` ${capacityAlert.overloadedCount} de ${capacityAlert.total} membros com ocupação acima de 85%.`}
+                    </p>
+                    <Progress value={Math.min(capacityAlert.pct, 100)} className="h-2 w-48 mt-1" />
+                  </div>
+                </div>
+                <Link to="/executive/productivity?tab=simulation">
+                  <Button variant="outline" size="sm" className="shrink-0 text-xs">
+                    <UserPlus className="h-3.5 w-3.5 mr-1.5" />
+                    Simular contratação
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Separator />
 
         {/* Notas & Decisões */}
