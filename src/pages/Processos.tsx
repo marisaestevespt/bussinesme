@@ -76,6 +76,10 @@ export default function ProcessosPage() {
   const [newSopName, setNewSopName] = useState('');
   const [newSopDepts, setNewSopDepts] = useState<string[]>(['marketing']);
   const [newSopStatus, setNewSopStatus] = useState('para_criar');
+  const [newSopType, setNewSopType] = useState('operacional');
+  const [newSopRoleTitle, setNewSopRoleTitle] = useState('');
+  const [newSopRoleOpen, setNewSopRoleOpen] = useState(false);
+  const [newSopProductId, setNewSopProductId] = useState('');
   const [activeTab, setActiveTab] = useState('galeria');
 
   // ─── Queries ──────────────────────────────────────────────────
