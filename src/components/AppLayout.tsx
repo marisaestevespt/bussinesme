@@ -5,14 +5,11 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { NotificationBell } from '@/components/NotificationBell';
 import { FavoriteButton } from '@/components/FavoriteButton';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { useContractExpiryNotifications } from '@/hooks/useContractExpiryNotifications';
-import { useClientRenewalNotifications } from '@/hooks/useClientRenewalNotifications';
 import { useLeadFollowupNotifications } from '@/hooks/useLeadFollowupNotifications';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { settings } = useBusinessSettings();
-  useContractExpiryNotifications();
-  useClientRenewalNotifications();
+  // Contract expiry, client renewal, and birthday notifications moved to edge function crons
   useLeadFollowupNotifications();
 
   return (

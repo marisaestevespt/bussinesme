@@ -74,7 +74,7 @@ import FinanceiroSubPage from "./pages/FinanceiroSubPage";
 import OperacaoPage from "./pages/Operacao";
 import RecursosHumanosSubPage from "./pages/RecursosHumanosSubPage";
 import { ensureYearRoutineTasks } from '@/hooks/usePlanningRoutines';
-import { checkBirthdayNotifications } from '@/hooks/useBirthdayNotifications';
+
 import { useEffect, useRef } from 'react';
 
 const queryClient = new QueryClient();
@@ -89,7 +89,7 @@ function AppRoutes() {
     if (user && !routineBootRef.current) {
       routineBootRef.current = true;
       ensureYearRoutineTasks();
-      checkBirthdayNotifications();
+      // Birthday notifications moved to daily-birthday-check edge function (cron)
     }
   }, [user]);
 

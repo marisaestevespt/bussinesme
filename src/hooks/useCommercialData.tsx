@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { PAGE_SIZE, flattenInfiniteData, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
 
@@ -85,36 +84,7 @@ export function useCommercialData(year = currentYear) {
     data: flattenInfiniteData(allSalesQuery.data?.pages),
   };
 
-  // Auto-update payment statuses
-  const autoStatusRan = useRef(false);
-  useEffect(() => {
-    if (!allSales.data || autoStatusRan.current) return;
-    autoStatusRan.current = true;
-
-    const today = new Date();
-    const todayStr = today.toISOString().slice(0, 10);
-
-    const resolvedStatuses = ['pagamento_ok', 'recibo_enviado', 'contabilidade_ok'];
-    const updates: { id: string; status: string }[] = [];
-
-    for (const sale of allSales.data) {
-      if (resolvedStatuses.includes(sale.status)) continue;
-      if (!sale.payment_date) continue;
-      if (sale.payment_date < todayStr && sale.status !== 'em_atraso') {
-        updates.push({ id: sale.id, status: 'em_atraso' });
-      } else if (sale.payment_date >= todayStr && sale.payment_date.slice(0, 7) === todayStr.slice(0, 7) && sale.status === 'na') {
-        updates.push({ id: sale.id, status: 'aguarda_pagamento' });
-      }
-    }
-
-    if (updates.length > 0) {
-      Promise.all(
-        updates.map(u => supabase.from('commercial_sales').update({ status: u.status }).eq('id', u.id))
-      ).then(() => {
-        qc.invalidateQueries({ queryKey: ['commercial'] });
-      });
-    }
-  }, [allSales.data]);
+  // Auto-status updates moved to daily-status-update edge function (cron)
 
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ['commercial'] });
