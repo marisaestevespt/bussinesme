@@ -815,7 +815,6 @@ export function CapacitySimulator({ members, entries, clients, products }: Props
         <TabsList className="flex-wrap">
           <TabsTrigger value="department"><Building2 className="h-3.5 w-3.5 mr-1.5" />Por Departamento</TabsTrigger>
           <TabsTrigger value="hiring"><UserPlus className="h-3.5 w-3.5 mr-1.5" />Simular Contratação</TabsTrigger>
-          <TabsTrigger value="growth"><TrendingUp className="h-3.5 w-3.5 mr-1.5" />Cenários de Crescimento</TabsTrigger>
         </TabsList>
 
         <TabsContent value="department">
@@ -823,9 +822,6 @@ export function CapacitySimulator({ members, entries, clients, products }: Props
         </TabsContent>
         <TabsContent value="hiring">
           <HiringSimulator members={activeMembers} entries={entries} />
-        </TabsContent>
-        <TabsContent value="growth">
-          <GrowthScenarios members={activeMembers} clients={clients} products={products} />
         </TabsContent>
       </Tabs>
     </div>
