@@ -376,8 +376,40 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">Adicione membros fictícios para simular o impacto na capacidade e nos custos.</p>
+      {/* Saved simulations */}
+      {(savedSimsQ.data || []).length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2"><ListChecks className="h-4 w-4" /> Simulações guardadas</CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 pt-0">
+            <div className="flex flex-wrap gap-2">
+              {(savedSimsQ.data || []).map(sim => (
+                <div key={sim.id} className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs cursor-pointer transition-colors ${activeSimId === sim.id ? 'border-primary bg-primary/5 text-primary' : 'hover:bg-muted'}`}>
+                  <button onClick={() => loadSimulation(sim)} className="font-medium">{sim.name}</button>
+                  <button onClick={() => deleteSimulation(sim.id)} className="text-muted-foreground hover:text-destructive ml-1"><Trash2 className="h-3 w-3" /></button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 flex-1">
+          <Input
+            placeholder="Nome da simulação..."
+            value={simulationName}
+            onChange={e => setSimulationName(e.target.value)}
+            className="h-8 text-sm max-w-64"
+          />
+          {phantoms.length > 0 && (
+            <Button size="sm" variant="outline" onClick={saveSimulation} disabled={saving} className="gap-1.5">
+              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+              {activeSimId ? 'Atualizar' : 'Guardar'}
+            </Button>
+          )}
+        </div>
         <Button size="sm" onClick={addPhantom}><UserPlus className="h-3.5 w-3.5 mr-1.5" />Adicionar membro</Button>
       </div>
 
