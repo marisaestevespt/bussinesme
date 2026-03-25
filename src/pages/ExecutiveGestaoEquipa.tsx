@@ -519,27 +519,45 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
             )}
           </div>
           <div className="space-y-1.5">
-            <span className="text-xs text-muted-foreground font-medium">Departamentos</span>
-            <p className="text-[10px] text-muted-foreground">Seleciona um ou mais departamentos.</p>
-            <div className="grid grid-cols-2 gap-1.5">
+            <span className="text-xs text-muted-foreground font-medium">Departamentos & Acessos</span>
+            <p className="text-[10px] text-muted-foreground">Seleciona departamentos e escolhe as páginas a que este membro terá acesso.</p>
+            <div className="space-y-1">
               {DEPARTMENTS.map(d => {
                 const depts: string[] = Array.isArray(f.departments) ? f.departments : (f.department ? [f.department] : []);
                 const checked = depts.includes(d.value);
+                const extraPages: Record<string, string[]> = f.deptExtraPages || {};
                 return (
-                  <label key={d.value} className={cn(
-                    'flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer transition-colors text-xs',
-                    checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
-                  )}>
-                    <Checkbox
-                      checked={checked}
-                      onCheckedChange={(v) => {
-                        const next = v ? [...depts, d.value] : depts.filter(x => x !== d.value);
-                        set('departments', next);
-                        set('department', next[0] || '');
-                      }}
-                    />
-                    <span>{d.icon} {d.label}</span>
-                  </label>
+                  <div key={d.value}>
+                    <label className={cn(
+                      'flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer transition-colors text-xs',
+                      checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
+                    )}>
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(v) => {
+                          const next = v ? [...depts, d.value] : depts.filter(x => x !== d.value);
+                          set('departments', next);
+                          set('department', next[0] || '');
+                          if (!v) {
+                            const newExtra = { ...extraPages };
+                            delete newExtra[d.value];
+                            set('deptExtraPages', newExtra);
+                          }
+                        }}
+                      />
+                      <span>{d.icon} {d.label}</span>
+                    </label>
+                    {checked && (
+                      <InlineDeptPagePicker
+                        department={d.value}
+                        departmentLabel={d.label}
+                        selectedExtras={extraPages[d.value] || []}
+                        onExtrasChange={(extras) => {
+                          set('deptExtraPages', { ...extraPages, [d.value]: extras });
+                        }}
+                      />
+                    )}
+                  </div>
                 );
               })}
             </div>
