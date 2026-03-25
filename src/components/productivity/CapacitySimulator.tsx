@@ -1,4 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Fragment } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,8 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Plus, Trash2, Users, Building2, TrendingUp, ArrowLeftRight, UserPlus, Euro, AlertTriangle, Sparkles, Loader2 } from 'lucide-react';
-import { PROCESS_DEPARTMENTS } from '@/lib/departments';
+import { Plus, Trash2, Users, Building2, TrendingUp, ArrowLeftRight, UserPlus, Euro, AlertTriangle, Sparkles, Loader2, ChevronDown, ChevronRight, ListChecks } from 'lucide-react';
+import { PROCESS_DEPARTMENTS, getDeptLabel } from '@/lib/departments';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 
 const WEEKS_PER_MONTH = 4.33;
@@ -128,6 +132,7 @@ interface PhantomMember {
   contractType: 'colaborador' | 'prestador';
   grossSalary: number;
   startDate: string; // yyyy-MM-dd
+  delegatedTaskIds: string[];
 }
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
@@ -136,6 +141,30 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
   const [phantoms, setPhantoms] = useState<PhantomMember[]>([]);
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [expandedPhantom, setExpandedPhantom] = useState<string | null>(null);
+
+  // Fetch open tasks grouped by department for delegation
+  const tasksQ = useQuery({
+    queryKey: ['simulator-dept-tasks'],
+    queryFn: async () => {
+      const { data } = await supabase.from('tasks').select('id, name, department, priority, deadline, estimated_time, assigned_to, status')
+        .neq('status', 'done')
+        .not('department', 'is', null)
+        .order('priority')
+        .limit(500);
+      return data || [];
+    },
+  });
+
+  const tasksByDept = useMemo(() => {
+    const map: Record<string, typeof tasksQ.data> = {};
+    (tasksQ.data || []).forEach(t => {
+      const dept = getDeptLabel(t.department || '');
+      if (!map[dept]) map[dept] = [];
+      map[dept]!.push(t);
+    });
+    return map;
+  }, [tasksQ.data]);
 
   const departments = useMemo(() => {
     const depts = PROCESS_DEPARTMENTS.map(d => d.label);
@@ -157,11 +186,22 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
       contractType: 'colaborador',
       grossSalary: 1000,
       startDate: defaultStartDate,
+      delegatedTaskIds: [],
     }]);
   };
 
   const updatePhantom = (id: string, field: string, value: any) => {
     setPhantoms(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
+  const toggleTaskDelegation = (phantomId: string, taskId: string) => {
+    setPhantoms(prev => prev.map(p => {
+      if (p.id !== phantomId) return p;
+      const ids = p.delegatedTaskIds.includes(taskId)
+        ? p.delegatedTaskIds.filter(id => id !== taskId)
+        : [...p.delegatedTaskIds, taskId];
+      return { ...p, delegatedTaskIds: ids };
+    }));
   };
 
   const removePhantom = (id: string) => {
@@ -305,48 +345,114 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
                 <TableHead className="w-10"></TableHead>
               </TableRow></TableHeader>
               <TableBody>
-                {phantoms.map(p => (
-                  <TableRow key={p.id}>
-                    <TableCell>
-                      <Input value={p.name} onChange={e => updatePhantom(p.id, 'name', e.target.value)} className="h-7 text-sm w-36" />
-                    </TableCell>
-                    <TableCell>
-                      <Select value={p.department} onValueChange={v => updatePhantom(p.id, 'department', v)}>
-                        <SelectTrigger className="h-7 text-sm w-32"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                          <SelectItem value="__none__">Sem departamento</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Select value={p.contractType} onValueChange={v => updatePhantom(p.id, 'contractType', v)}>
-                        <SelectTrigger className="h-7 text-sm w-28"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="colaborador">Colaborador</SelectItem>
-                          <SelectItem value="prestador">Prestador</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Input type="number" value={p.grossSalary} onChange={e => updatePhantom(p.id, 'grossSalary', Number(e.target.value))} className="h-7 text-sm w-24 text-right ml-auto" />
-                    </TableCell>
-                    <TableCell>
-                      <Input type="date" value={p.startDate} onChange={e => updatePhantom(p.id, 'startDate', e.target.value)} className="h-7 text-sm w-36" />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Input type="number" value={p.weeklyHours} onChange={e => updatePhantom(p.id, 'weeklyHours', Number(e.target.value))} className="h-7 text-sm w-16 text-right ml-auto" />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Input type="number" value={p.clientPct} onChange={e => updatePhantom(p.id, 'clientPct', Number(e.target.value))} className="h-7 text-sm w-16 text-right ml-auto" min={0} max={100} />
-                    </TableCell>
-                    <TableCell>
-                      <button onClick={() => removePhantom(p.id)} className="text-muted-foreground hover:text-destructive">
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {phantoms.map(p => {
+                  const deptTasks = tasksByDept[p.department] || [];
+                  const isExpanded = expandedPhantom === p.id;
+                  const delegatedCount = p.delegatedTaskIds.length;
+                  const delegatedHours = (tasksQ.data || [])
+                    .filter(t => p.delegatedTaskIds.includes(t.id))
+                    .reduce((s, t) => s + (Number(t.estimated_time) || 0), 0);
+
+                  return (
+                    <Fragment key={p.id}>
+                      <TableRow>
+                        <TableCell>
+                          <Input value={p.name} onChange={e => updatePhantom(p.id, 'name', e.target.value)} className="h-7 text-sm w-36" />
+                        </TableCell>
+                        <TableCell>
+                          <Select value={p.department} onValueChange={v => {
+                            updatePhantom(p.id, 'department', v);
+                            updatePhantom(p.id, 'delegatedTaskIds', []);
+                          }}>
+                            <SelectTrigger className="h-7 text-sm w-32"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                              <SelectItem value="__none__">Sem departamento</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Select value={p.contractType} onValueChange={v => updatePhantom(p.id, 'contractType', v)}>
+                            <SelectTrigger className="h-7 text-sm w-28"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="colaborador">Colaborador</SelectItem>
+                              <SelectItem value="prestador">Prestador</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Input type="number" value={p.grossSalary} onChange={e => updatePhantom(p.id, 'grossSalary', Number(e.target.value))} className="h-7 text-sm w-24 text-right ml-auto" />
+                        </TableCell>
+                        <TableCell>
+                          <Input type="date" value={p.startDate} onChange={e => updatePhantom(p.id, 'startDate', e.target.value)} className="h-7 text-sm w-36" />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Input type="number" value={p.weeklyHours} onChange={e => updatePhantom(p.id, 'weeklyHours', Number(e.target.value))} className="h-7 text-sm w-16 text-right ml-auto" />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Input type="number" value={p.clientPct} onChange={e => updatePhantom(p.id, 'clientPct', Number(e.target.value))} className="h-7 text-sm w-16 text-right ml-auto" min={0} max={100} />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => removePhantom(p.id)} className="text-muted-foreground hover:text-destructive">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      {/* Delegable tasks row */}
+                      <TableRow className="border-0 hover:bg-transparent">
+                        <TableCell colSpan={8} className="py-0 px-2">
+                          <Collapsible open={isExpanded} onOpenChange={open => setExpandedPhantom(open ? p.id : null)}>
+                            <CollapsibleTrigger asChild>
+                              <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-1.5 transition-colors w-full">
+                                {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                                <ListChecks className="h-3 w-3" />
+                                <span>Tarefas a delegar</span>
+                                {delegatedCount > 0 && (
+                                  <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
+                                    {delegatedCount} selecionada{delegatedCount > 1 ? 's' : ''}
+                                    {delegatedHours > 0 && ` · ~${delegatedHours}h`}
+                                  </Badge>
+                                )}
+                                {p.department !== '__none__' && deptTasks.length > 0 && delegatedCount === 0 && (
+                                  <span className="text-muted-foreground/60">({deptTasks.length} disponíveis)</span>
+                                )}
+                              </button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                              {p.department === '__none__' ? (
+                                <p className="text-xs text-muted-foreground py-2 pl-5">Seleciona um departamento para ver as tarefas.</p>
+                              ) : deptTasks.length === 0 ? (
+                                <p className="text-xs text-muted-foreground py-2 pl-5">Sem tarefas abertas neste departamento.</p>
+                              ) : (
+                                <div className="py-2 pl-5 space-y-1 max-h-48 overflow-y-auto">
+                                  {deptTasks.map(task => (
+                                    <label key={task.id} className="flex items-start gap-2 text-xs cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5">
+                                      <Checkbox
+                                        checked={p.delegatedTaskIds.includes(task.id)}
+                                        onCheckedChange={() => toggleTaskDelegation(p.id, task.id)}
+                                        className="mt-0.5 h-3.5 w-3.5"
+                                      />
+                                      <div className="flex-1 min-w-0">
+                                        <span className="text-foreground">{task.name}</span>
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                          {task.priority && <span className="capitalize">{task.priority}</span>}
+                                          {task.estimated_time && <span>{task.estimated_time}h</span>}
+                                          {task.deadline && <span>até {new Date(task.deadline + 'T00:00:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })}</span>}
+                                        </div>
+                                      </div>
+                                    </label>
+                                  ))}
+                                </div>
+                              )}
+                            </CollapsibleContent>
+                          </Collapsible>
+                        </TableCell>
+                      </TableRow>
+                    </Fragment>
+                  );
+                })}
               </TableBody>
             </Table>
           </CardContent>
@@ -498,15 +604,22 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
                       currentCapacity: simulation.currentCapacity,
                       currentUsage: simulation.currentUsage,
                       phantomCount: phantoms.length,
-                      phantoms: simulation.financialPerMember.map((f, i) => ({
-                        name: f.name,
-                        type: f.type,
-                        department: phantoms[i]?.department || '—',
-                        weeklyHours: phantoms[i]?.weeklyHours || 0,
-                        clientPct: phantoms[i]?.clientPct || 0,
-                        totalCostMonth: f.totalCostMonth,
-                        startDate: f.startDate,
-                      })),
+                      phantoms: simulation.financialPerMember.map((f, i) => {
+                        const ph = phantoms[i];
+                        const delegatedNames = (tasksQ.data || [])
+                          .filter(t => ph?.delegatedTaskIds.includes(t.id))
+                          .map(t => t.name);
+                        return {
+                          name: f.name,
+                          type: f.type,
+                          department: ph?.department || '—',
+                          weeklyHours: ph?.weeklyHours || 0,
+                          clientPct: ph?.clientPct || 0,
+                          totalCostMonth: f.totalCostMonth,
+                          startDate: f.startDate,
+                          delegatedTasks: delegatedNames,
+                        };
+                      }),
                       newCapacity: simulation.newCapacity,
                       newUsage: simulation.newUsage,
                       totalMonthlyCost: simulation.totalMonthlyCost,

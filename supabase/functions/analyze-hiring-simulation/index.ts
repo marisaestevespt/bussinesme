@@ -22,7 +22,7 @@ DADOS DA SIMULAÇÃO:
 - Novas contratações simuladas: ${simulation.phantomCount}
 
 DETALHES DAS CONTRATAÇÕES:
-${simulation.phantoms.map((p: any) => `• ${p.name} — ${p.type}, ${p.department}, ${p.weeklyHours}h/sem, ${p.clientPct}% cliente, custo mensal: ${p.totalCostMonth}€, início: ${p.startDate}`).join('\n')}
+${simulation.phantoms.map((p: any) => `• ${p.name} — ${p.type}, ${p.department}, ${p.weeklyHours}h/sem, ${p.clientPct}% cliente, custo mensal: ${p.totalCostMonth}€, início: ${p.startDate}${p.delegatedTasks?.length ? `\n  Tarefas a delegar: ${p.delegatedTasks.join('; ')}` : ''}`).join('\n')}
 
 IMPACTO:
 - Nova capacidade: ${simulation.newCapacity}h/mês
@@ -37,8 +37,9 @@ Analisa os seguintes pontos:
 2. **Timing**: A data de início é adequada ou devia ser antecipada/adiada?
 3. **Custo-benefício**: O custo é proporcional ao ganho de capacidade? Vale a pena?
 4. **Tipo de contrato**: O tipo escolhido (colaborador vs prestador) é o mais adequado para cada caso?
-5. **Riscos**: Que riscos existem nesta decisão?
-6. **Recomendação final**: Resumo com decisão clara (✅ Avançar / ⚠️ Ponderar / ❌ Não recomendado)
+5. **Delegação de tarefas**: As tarefas selecionadas para delegar fazem sentido? Há alguma que devesse ser mantida internamente? O volume é adequado para a capacidade da nova pessoa?
+6. **Riscos**: Que riscos existem nesta decisão?
+7. **Recomendação final**: Resumo com decisão clara (✅ Avançar / ⚠️ Ponderar / ❌ Não recomendado)
 
 Sê direto e prático. Foca em ajudar o owner a tomar uma decisão informada.`;
 
