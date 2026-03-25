@@ -529,6 +529,9 @@ export default function SopDetailPage() {
         linked_entity_type: linkedEntityType,
         linked_entity_id: linkedEntityId || null,
         apply_to_all_active_clients: applyToAllActiveClients,
+        sop_type: sopType,
+        role_title: sopRoleTitle || null,
+        product_id: sopProductId || null,
       } as any).eq('id', id!);
       if (error) throw error;
     },
