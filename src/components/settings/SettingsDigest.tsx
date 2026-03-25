@@ -8,14 +8,17 @@ import { Loader2, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 const OWNER_SECTION_LABELS: Record<string, string> = {
-  tarefas_concluidas: 'Tarefas concluídas hoje',
-  tarefas_atraso: 'Tarefas em atraso',
   reunioes_dia: 'Reuniões do dia',
+  tarefas_equipa_hoje: 'Tarefas da equipa para hoje',
+  tarefas_atraso: 'Tarefas em atraso (equipa)',
+  followups_leads: 'Follow-ups de leads pendentes',
+  aniversarios: 'Aniversários (equipa e clientes)',
+  renovacoes_clientes: 'Renovações de clientes próximas',
+  rotinas_dia: 'Rotinas do dia — feitas vs por fazer',
   vendas_hoje: 'Vendas registadas hoje',
   leads_novas: 'Leads novas no CRM',
   nps_recebidos: 'NPS recebidos',
   pagamentos_recebidos: 'Pagamentos recebidos hoje',
-  rotinas_dia: 'Rotinas do dia — feitas vs por fazer',
   projetos_fechados: 'Projetos fechados hoje',
   projetos_novos: 'Projetos criados hoje',
   tempo_trabalhado: 'Tempo trabalhado hoje (equipa)',
@@ -25,13 +28,13 @@ const OWNER_SECTION_LABELS: Record<string, string> = {
 export function SettingsDigest() {
   const { settings, isLoading, update, ownerDefaultSections } = useDigestSettings(true);
   const [enabled, setEnabled] = useState(false);
-  const [sendTime, setSendTime] = useState('19:00');
+  const [sendTime, setSendTime] = useState('08:00');
   const [sections, setSections] = useState<Record<string, boolean>>(ownerDefaultSections);
 
   useEffect(() => {
     if (settings) {
       setEnabled(settings.enabled);
-      setSendTime(settings.send_time?.substring(0, 5) || '19:00');
+      setSendTime(settings.send_time?.substring(0, 5) || '08:00');
       setSections({ ...ownerDefaultSections, ...(settings.sections || {}) });
     }
   }, [settings]);
@@ -79,16 +82,16 @@ export function SettingsDigest() {
       <div className="space-y-1">
         <h3 className="text-base font-semibold flex items-center gap-2">
           <Mail className="h-4 w-4" />
-          Resumo Diário do Negócio
+          Briefing Diário do Negócio
         </h3>
         <p className="text-sm text-muted-foreground">
-          Recebe um email diário com o resumo da actividade do negócio.
+          Recebe todas as manhãs tudo o que vai acontecer no dia no negócio.
         </p>
       </div>
 
       <div className="flex items-center justify-between">
         <Label htmlFor="digest-enabled" className="text-sm font-medium">
-          Activar resumo diário do negócio
+          Activar briefing diário do negócio
         </Label>
         <Switch
           id="digest-enabled"
