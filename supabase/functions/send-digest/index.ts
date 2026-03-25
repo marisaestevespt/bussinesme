@@ -454,26 +454,37 @@ async function buildMemberDigest(
   const periodStart = getPeriodStart(digest.frequency, now);
   const periodEnd = todayStr;
 
-  // Tarefas concluídas
-  if (sections.tarefas_concluidas) {
+  // Get team member for this profile (needed by several sections)
+  const { data: tm } = await supabase
+    .from("team_members")
+    .select("id")
+    .eq("profile_id", profile.id)
+    .maybeSingle();
+
+  // ── Tarefas para hoje ──
+  if (sections.tarefas_hoje) {
     const { data: tasks } = await supabase
       .from("tasks")
-      .select("name")
+      .select("name, deadline, priority")
       .eq("assigned_to", profile.id)
-      .eq("status", "done")
-      .gte("updated_at", periodStart + "T00:00:00")
-      .lte("updated_at", periodEnd + "T23:59:59");
+      .neq("status", "done")
+      .neq("status", "concluida")
+      .gte("deadline", todayStr)
+      .lte("deadline", todayStr);
 
     if (tasks?.length) {
       hasContent = true;
-      html += sectionHeader("✅ Tarefas concluídas");
+      html += sectionHeader("📋 Tarefas para hoje");
       html += "<ul>";
-      for (const t of tasks) html += `<li>${esc(t.name)}</li>`;
+      for (const t of tasks) {
+        const prio = t.priority === "alta" ? " 🔴" : t.priority === "media" ? " 🟡" : "";
+        html += `<li>${esc(t.name)}${prio}</li>`;
+      }
       html += "</ul>";
     }
   }
 
-  // Tarefas em atraso
+  // ── Tarefas em atraso ──
   if (sections.tarefas_atraso) {
     const { data: tasks } = await supabase
       .from("tasks")
@@ -496,8 +507,8 @@ async function buildMemberDigest(
     }
   }
 
-  // Reuniões
-  if (sections.reunioes_periodo) {
+  // ── Reuniões de hoje ──
+  if (sections.reunioes_hoje) {
     const { data: partRows } = await supabase
       .from("meeting_participants")
       .select("meeting_id")
@@ -507,83 +518,171 @@ async function buildMemberDigest(
       const ids = partRows.map((r: any) => r.meeting_id);
       const { data: meetings } = await supabase
         .from("meetings")
-        .select("title, date_time")
+        .select("title, date_time, client_name, meeting_url")
         .in("id", ids)
-        .gte("date_time", periodStart + "T00:00:00")
-        .lte("date_time", periodEnd + "T23:59:59")
+        .gte("date_time", todayStr + "T00:00:00")
+        .lte("date_time", todayStr + "T23:59:59")
         .order("date_time");
 
       if (meetings?.length) {
         hasContent = true;
-        html += sectionHeader("📅 Reuniões");
+        html += sectionHeader("📅 Reuniões de hoje");
         html += "<ul>";
         for (const m of meetings) {
-          const date = new Date(m.date_time);
-          const dateStr = date.toLocaleDateString("pt-PT", { day: "2-digit", month: "short" });
-          const time = date.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
-          html += `<li>${dateStr} ${time} — ${esc(m.title)}</li>`;
+          const time = new Date(m.date_time).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+          let line = `${time} — ${esc(m.title)}`;
+          if (m.client_name) line += ` <span style="color:#888">(${esc(m.client_name)})</span>`;
+          html += `<li>${line}</li>`;
         }
         html += "</ul>";
       }
     }
   }
 
-  // Rotinas
+  // ── Follow-ups de leads pendentes ──
+  if (sections.followups_leads) {
+    const { data: leads } = await supabase
+      .from("crm_leads")
+      .select("name, next_followup, potential_product")
+      .lte("next_followup", todayStr)
+      .not("next_followup", "is", null)
+      .not("status", "in", '("ganho","perdido")');
+
+    if (leads?.length) {
+      hasContent = true;
+      html += sectionHeader("📞 Follow-ups de leads pendentes");
+      html += "<ul>";
+      for (const l of leads) {
+        const isToday = l.next_followup === todayStr;
+        const label = isToday ? "hoje" : `${daysDiff(l.next_followup, todayStr)} dias em atraso`;
+        html += `<li>${esc(l.name)} <span style="color:#888">(${label})</span></li>`;
+      }
+      html += "</ul>";
+    }
+  }
+
+  // ── Aniversários (equipa e clientes) ──
+  if (sections.aniversarios) {
+    const monthDay = todayStr.substring(5); // MM-DD
+    const upcoming7 = [];
+    for (let i = 0; i <= 7; i++) {
+      const d = new Date(now);
+      d.setDate(d.getDate() + i);
+      upcoming7.push(formatDate(d).substring(5));
+    }
+
+    // Team birthdays
+    const { data: members } = await supabase
+      .from("team_members")
+      .select("full_name, birthday")
+      .eq("status", "activo")
+      .not("birthday", "is", null);
+
+    // Client birthdays
+    const { data: clients } = await supabase
+      .from("clients")
+      .select("full_name, birthday")
+      .eq("status", "activo")
+      .not("birthday", "is", null);
+
+    const birthdayItems: string[] = [];
+    for (const m of (members || [])) {
+      const bd = (m.birthday || "").substring(5);
+      if (upcoming7.includes(bd)) {
+        const isToday = bd === monthDay;
+        birthdayItems.push(`🎂 ${esc(m.full_name)} (equipa)${isToday ? " — <strong>HOJE!</strong>" : ` — ${m.birthday?.substring(8)}/${m.birthday?.substring(5, 7)}`}`);
+      }
+    }
+    for (const c of (clients || [])) {
+      const bd = (c.birthday || "").substring(5);
+      if (upcoming7.includes(bd)) {
+        const isToday = bd === monthDay;
+        birthdayItems.push(`🎂 ${esc(c.full_name)} (cliente)${isToday ? " — <strong>HOJE!</strong>" : ` — ${c.birthday?.substring(8)}/${c.birthday?.substring(5, 7)}`}`);
+      }
+    }
+
+    if (birthdayItems.length) {
+      hasContent = true;
+      html += sectionHeader("🎉 Aniversários próximos");
+      html += "<ul>";
+      for (const item of birthdayItems) html += `<li>${item}</li>`;
+      html += "</ul>";
+    }
+  }
+
+  // ── Renovações de clientes ──
+  if (sections.renovacoes_clientes) {
+    const thirtyDaysLater = new Date(now);
+    thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
+    const thirtyStr = formatDate(thirtyDaysLater);
+
+    const { data: renewals } = await supabase
+      .from("clients")
+      .select("full_name, end_of_cycle")
+      .eq("status", "activo")
+      .not("end_of_cycle", "is", null)
+      .gte("end_of_cycle", todayStr)
+      .lte("end_of_cycle", thirtyStr)
+      .order("end_of_cycle");
+
+    if (renewals?.length) {
+      hasContent = true;
+      html += sectionHeader("🔄 Renovações próximas");
+      html += "<ul>";
+      for (const r of renewals) {
+        const days = daysDiff(todayStr, r.end_of_cycle);
+        const label = days === 0 ? "HOJE" : `em ${days} dias`;
+        html += `<li>${esc(r.full_name)} — ${label} (${r.end_of_cycle?.substring(8)}/${r.end_of_cycle?.substring(5, 7)})</li>`;
+      }
+      html += "</ul>";
+    }
+  }
+
+  // ── Rotinas do dia ──
   if (sections.rotinas) {
     const { data: routines } = await supabase
       .from("tasks")
       .select("name, status")
       .eq("assigned_to", profile.id)
       .eq("tag", "Rotina")
-      .gte("deadline", periodStart)
-      .lte("deadline", periodEnd);
+      .gte("deadline", todayStr)
+      .lte("deadline", todayStr);
 
     if (routines?.length) {
       hasContent = true;
       const done = routines.filter((r: any) => r.status === "done" || r.status === "concluida");
-      html += sectionHeader("🔄 Rotinas");
+      const todo = routines.filter((r: any) => r.status !== "done" && r.status !== "concluida");
+      html += sectionHeader("🔄 Rotinas do dia");
       html += `<p>${done.length} feitas de ${routines.length}</p>`;
-    }
-  }
-
-  // NPS realizados
-  if (sections.nps_realizados) {
-    // Get team member for this profile
-    const { data: tm } = await supabase
-      .from("team_members")
-      .select("id")
-      .eq("profile_id", profile.id)
-      .maybeSingle();
-
-    if (tm) {
-      const { data: nps } = await supabase
-        .from("client_nps_records")
-        .select("nps_score, clients(full_name)")
-        .eq("status", "respondido")
-        .gte("actual_date", periodStart)
-        .lte("actual_date", periodEnd);
-
-      if (nps?.length) {
-        hasContent = true;
-        html += sectionHeader("⭐ NPS realizados");
+      if (todo.length) {
         html += "<ul>";
-        for (const n of nps) {
-          const name = (n as any).clients?.full_name || "—";
-          html += `<li>Score: ${n.nps_score} — ${esc(name)}</li>`;
-        }
+        for (const t of todo) html += `<li>${esc(t.name)}</li>`;
         html += "</ul>";
       }
     }
   }
 
-  // Tempo registado
-  if (sections.tempo_registado) {
-    const { data: tm } = await supabase
-      .from("team_members")
-      .select("id")
-      .eq("profile_id", profile.id)
-      .maybeSingle();
+  // ── Tarefas concluídas no período ──
+  if (sections.tarefas_concluidas) {
+    const { data: tasks } = await supabase
+      .from("tasks")
+      .select("name")
+      .eq("assigned_to", profile.id)
+      .eq("status", "done")
+      .gte("updated_at", periodStart + "T00:00:00")
+      .lte("updated_at", periodEnd + "T23:59:59");
 
+    if (tasks?.length) {
+      hasContent = true;
+      html += sectionHeader("✅ Tarefas concluídas");
+      html += "<ul>";
+      for (const t of tasks) html += `<li>${esc(t.name)}</li>`;
+      html += "</ul>";
+    }
+  }
+
+  // ── Tempo registado ──
+  if (sections.tempo_registado) {
     if (tm) {
       const { data: entries } = await supabase
         .from("time_entries")
@@ -602,7 +701,7 @@ async function buildMemberDigest(
   }
 
   if (!hasContent) {
-    html = `<p style="color:#888;font-style:italic">Período tranquilo — sem registos para reportar. 🌿</p>`;
+    html = `<p style="color:#888;font-style:italic">Dia tranquilo — sem registos para hoje. 🌿</p>`;
   }
 
   return html;
