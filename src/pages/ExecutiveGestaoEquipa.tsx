@@ -1675,9 +1675,12 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
         const { error } = await supabase.from('team_members').update(payload as any).eq('id', member.id);
         if (error) throw error;
       }
-      // Auto-assign permissions based on department
-      if (member.department) {
-        await autoAssignPermissions(memberId, member.department);
+      // Auto-assign permissions based on departments
+      const depts: string[] = Array.isArray(member.departments) && member.departments.length > 0
+        ? member.departments
+        : (member.department ? [member.department] : []);
+      if (depts.length > 0) {
+        await autoAssignPermissions(memberId, depts);
       }
       if (isNew && contractData && memberId) {
         const monthlyVal = parseFloat(contractData.monthly_value) || 0;
@@ -1728,8 +1731,11 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
           } else if (authData?.success) {
             if (authData.profile_id) {
               await supabase.from('team_members').update({ profile_id: authData.profile_id }).eq('id', memberId);
-              if (member.department) {
-                await autoAssignPermissions(memberId, member.department);
+              const depts2: string[] = Array.isArray(member.departments) && member.departments.length > 0
+                ? member.departments
+                : (member.department ? [member.department] : []);
+              if (depts2.length > 0) {
+                await autoAssignPermissions(memberId, depts2);
               }
             }
             if (authData.invite_url) {
@@ -1748,8 +1754,11 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
       toast.success(isNew ? 'Membro criado!' : 'Membro atualizado');
 
       // Show page picker for custom roles with department
-      if (member.department) {
-        setPagePicker({ memberName: member.full_name, department: member.department, memberId });
+      const pickerDepts: string[] = Array.isArray(member.departments) && member.departments.length > 0
+        ? member.departments
+        : (member.department ? [member.department] : []);
+      if (pickerDepts.length > 0) {
+        setPagePicker({ memberName: member.full_name, department: pickerDepts[0], memberId });
       }
     } catch (err: any) {
       toast.error('Erro: ' + (err.message || err));
