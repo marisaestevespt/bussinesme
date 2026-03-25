@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { useExecutiveData, SALES_ROUTINES, getMonthName } from '@/hooks/useExecutiveData';
+import { useExecutiveData, getMonthName } from '@/hooks/useExecutiveData';
 import { usePlanningData, planStatusLabel, CADENCES } from '@/hooks/usePlanningData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -149,11 +149,11 @@ export default function ExecutiveWeeklyAlign() {
     },
   });
 
-  // Meetings this week
+  // Meetings this week (from meetings table, not events)
   const meetings = useQuery({
     queryKey: ['wa-meetings-week', weekStartStr],
     queryFn: async () => {
-      const { data } = await supabase.from('events').select('*').gte('start_date', weekStartStr).lte('start_date', weekEndStr + 'T23:59:59').order('start_date');
+      const { data } = await supabase.from('meetings').select('*').gte('date_time', weekStartStr).lte('date_time', weekEndStr + 'T23:59:59').order('date_time');
       return data || [];
     },
   });
@@ -337,13 +337,14 @@ export default function ExecutiveWeeklyAlign() {
   ]);
 
   const openMeetingDetail = (m: any) => openDetail(m.title, 'Reunião', [
-    { label: 'Data início', value: m.start_date?.slice(0, 16)?.replace('T', ' ') },
-    { label: 'Data fim', value: m.end_date?.slice(0, 16)?.replace('T', ' ') },
+    { label: 'Data', value: m.date_time?.slice(0, 16)?.replace('T', ' ') },
+    { label: 'Duração', value: m.duration_minutes ? `${m.duration_minutes} min` : null },
+    { label: 'Status', value: m.status, badge: true },
     { label: 'Departamento', value: m.department },
     { label: 'Cliente', value: m.client_name },
     { label: 'Produto', value: m.product_name },
+    { label: 'Projeto', value: m.project_name },
     { label: 'URL reunião', value: m.meeting_url },
-    { label: 'Notas', value: m.notes },
   ]);
 
   const openContentDetail = (c: any) => openDetail(c.title, 'Conteúdo', [
