@@ -134,8 +134,21 @@ const WelcomeMemberEmail = ({
               <Text style={stepNumber}>3</Text>
               <Text style={stepTitle}>Entra nos grupos de WhatsApp</Text>
               <Text style={stepDesc}>
-                Junta-te aos grupos de WhatsApp da equipa para ficares ligado(a) desde o primeiro dia! Os links foram-te enviados separadamente. 💬
+                Junta-te aos grupos de WhatsApp da equipa para ficares ligado(a) desde o primeiro dia! 💬
               </Text>
+              {whatsappTeamUrl && (
+                <Button style={{ ...whatsappButton, marginTop: '10px' }} href={whatsappTeamUrl}>
+                  👥 Grupo Geral da Equipa
+                </Button>
+              )}
+              {whatsappDeptUrl && departmentName && (
+                <Button style={{ ...whatsappButton, marginTop: '8px' }} href={whatsappDeptUrl}>
+                  📂 Grupo {departmentName}
+                </Button>
+              )}
+              {!whatsappTeamUrl && !whatsappDeptUrl && (
+                <Text style={stepDesc}>Os links foram-te enviados separadamente.</Text>
+              )}
             </Section>
           </Section>
 
