@@ -80,31 +80,11 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
   const allPayments = team.payments.data || [];
   const allContracts = team.contracts.data || [];
 
-  const timeEntries = useQuery({
-    queryKey: ['team-dashboard-time', currentYear, currentMonth],
-    queryFn: async () => {
-      const { data } = await supabase.from('time_entries').select('*').eq('entry_year', currentYear).eq('entry_month', currentMonth);
-      return (data || []) as any[];
-    },
-  });
-
-  const totalHoursMonth = useMemo(() =>
-    (timeEntries.data || []).reduce((s: number, e: any) => s + Number(e.duration || 0), 0),
-    [timeEntries.data]
-  );
-
-  const overloadWarnings = useMemo(() => {
-    const warnings: { member: any; worked: number; contracted: number }[] = [];
-    allMembers.forEach((m: any) => {
-      const contract = allContracts.find((c: any) => c.member_id === m.id && c.status === 'ativo');
-      if (!contract?.contracted_hours) return;
-      const contractedNum = parseFloat(contract.contracted_hours);
-      if (isNaN(contractedNum) || contractedNum <= 0) return;
-      const worked = (timeEntries.data || []).filter((e: any) => e.member_id === m.id).reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
-      if (worked > contractedNum) warnings.push({ member: m, worked: Math.round(worked * 100) / 100, contracted: contractedNum });
-    });
-    return warnings;
-  }, [allMembers, allContracts, timeEntries.data]);
+  const expiringContracts = useMemo(() => {
+    const now = new Date();
+    const thirtyDays = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    return allContracts.filter((c: any) => c.status === 'ativo' && c.end_date && new Date(c.end_date) <= thirtyDays);
+  }, [allContracts]);
 
   const overduePayments = useMemo(() => {
     return allPayments.filter((p: any) => {
