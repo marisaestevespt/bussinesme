@@ -15,14 +15,17 @@ export interface DigestSettings {
 }
 
 const OWNER_DEFAULT_SECTIONS: Record<string, boolean> = {
-  tarefas_concluidas: true,
-  tarefas_atraso: true,
   reunioes_dia: true,
+  tarefas_equipa_hoje: true,
+  tarefas_atraso: true,
+  followups_leads: true,
+  aniversarios: true,
+  renovacoes_clientes: true,
+  rotinas_dia: true,
   vendas_hoje: true,
   leads_novas: true,
   nps_recebidos: true,
   pagamentos_recebidos: true,
-  rotinas_dia: true,
   projetos_fechados: true,
   projetos_novos: true,
   tempo_trabalhado: true,
