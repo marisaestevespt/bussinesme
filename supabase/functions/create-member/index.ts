@@ -107,14 +107,6 @@ Deno.serve(async (req) => {
         role: "member",
       });
 
-      // Create onboarding task to fill profile
-      await supabase.from("tasks").insert({
-        name: "Preencher a tua apresentação na página Começa Aqui",
-        assigned_to: newUser.user.id,
-        created_by: caller.id,
-        status: "pendente",
-        priority: "alta",
-      });
 
       // ── Onboarding checklist from SOPs with sop_type='onboarding' ──
       let onboarding_created = false;
