@@ -837,9 +837,12 @@ export default function ExecutiveWeeklyAlign() {
 
         {/* 3 // Vendas & Faturação */}
         <section className="space-y-4">
-          <div className="flex items-center gap-3">
-            <h2 className="text-base font-semibold">3 // Vendas & Faturação</h2>
-            <DeltaBadge current={salesWeekTotal} previous={prevSalesWeekTotal} isCurrency />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h2 className="text-base font-semibold">3 // Vendas & Faturação</h2>
+              <DeltaBadge current={salesWeekTotal} previous={prevSalesWeekTotal} isCurrency />
+            </div>
+            <Link to="/hub/comercial/vendas" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">Ver vendas <ArrowUpRight className="h-3 w-3" /></Link>
           </div>
           <Card><CardContent className="p-4 space-y-3">
               <h3 className="text-sm font-medium">Status faturação — {getMonthName(currentMonth)}</h3>
