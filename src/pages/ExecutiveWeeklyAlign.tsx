@@ -784,9 +784,9 @@ export default function ExecutiveWeeklyAlign() {
 
         <Separator />
 
-        {/* 4 // Clientes */}
+        {/* 5 // Clientes */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">4 // Clientes</h2>
+          <h2 className="text-base font-semibold">5 // Clientes</h2>
           <Tabs defaultValue="onboarding">
             <TabsList><TabsTrigger value="onboarding">Em onboarding</TabsTrigger><TabsTrigger value="renovacoes">Próximas renovações</TabsTrigger></TabsList>
             <TabsContent value="onboarding">
@@ -840,9 +840,9 @@ export default function ExecutiveWeeklyAlign() {
 
         <Separator />
 
-        {/* 4.1 // NPS desta semana */}
+        {/* 5.1 // NPS desta semana */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">4.1 // NPS desta semana</h2>
+          <h2 className="text-base font-semibold">5.1 // NPS desta semana</h2>
           <p className="text-xs text-muted-foreground">Acompanhamento de NPS e marcos de Customer Success da semana corrente.</p>
 
           <Card><CardContent className="p-4">
@@ -918,10 +918,10 @@ export default function ExecutiveWeeklyAlign() {
 
         <Separator />
 
-        {/* 5 // Operação & Esta semana */}
+        {/* 6 // Operação & Esta semana */}
         <section className="space-y-4">
           <div className="flex items-center gap-3">
-            <h2 className="text-base font-semibold">5 // Operação & Esta semana</h2>
+            <h2 className="text-base font-semibold">6 // Operação & Esta semana</h2>
             <span className="text-xs text-muted-foreground">{tasksWeekDone}/{tasksWeekCount} tarefas • {meetingsWeekCount} reuniões • {contentWeekCount} conteúdos</span>
           </div>
 
