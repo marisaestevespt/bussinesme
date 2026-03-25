@@ -141,6 +141,30 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
   const [phantoms, setPhantoms] = useState<PhantomMember[]>([]);
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [expandedPhantom, setExpandedPhantom] = useState<string | null>(null);
+
+  // Fetch open tasks grouped by department for delegation
+  const tasksQ = useQuery({
+    queryKey: ['simulator-dept-tasks'],
+    queryFn: async () => {
+      const { data } = await supabase.from('tasks').select('id, name, department, priority, deadline, estimated_time, assigned_to, status')
+        .neq('status', 'done')
+        .not('department', 'is', null)
+        .order('priority')
+        .limit(500);
+      return data || [];
+    },
+  });
+
+  const tasksByDept = useMemo(() => {
+    const map: Record<string, typeof tasksQ.data> = {};
+    (tasksQ.data || []).forEach(t => {
+      const dept = getDeptLabel(t.department || '');
+      if (!map[dept]) map[dept] = [];
+      map[dept]!.push(t);
+    });
+    return map;
+  }, [tasksQ.data]);
 
   const departments = useMemo(() => {
     const depts = PROCESS_DEPARTMENTS.map(d => d.label);
@@ -162,11 +186,22 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
       contractType: 'colaborador',
       grossSalary: 1000,
       startDate: defaultStartDate,
+      delegatedTaskIds: [],
     }]);
   };
 
   const updatePhantom = (id: string, field: string, value: any) => {
     setPhantoms(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
+  const toggleTaskDelegation = (phantomId: string, taskId: string) => {
+    setPhantoms(prev => prev.map(p => {
+      if (p.id !== phantomId) return p;
+      const ids = p.delegatedTaskIds.includes(taskId)
+        ? p.delegatedTaskIds.filter(id => id !== taskId)
+        : [...p.delegatedTaskIds, taskId];
+      return { ...p, delegatedTaskIds: ids };
+    }));
   };
 
   const removePhantom = (id: string) => {
