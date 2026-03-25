@@ -9,16 +9,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
 import { useExecutiveData, getMonthName } from '@/hooks/useExecutiveData';
 import { usePlanningData, planStatusLabel, CADENCES } from '@/hooks/usePlanningData';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfWeek, endOfWeek, format, subDays, addDays, parseISO, differenceInDays, subWeeks, addWeeks } from 'date-fns';
+import { startOfWeek, endOfWeek, format, subDays, addDays, parseISO, differenceInDays, subWeeks, addWeeks, startOfMonth, endOfMonth } from 'date-fns';
 import { useTeamData } from '@/hooks/useTeamData';
 import { cn } from '@/lib/utils';
 import { WeeklyAlignDetailSheet, type DetailField } from '@/components/executive/WeeklyAlignDetailSheet';
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus, DollarSign, Users, Target, AlertTriangle, Save } from 'lucide-react';
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus, DollarSign, Users, Target, AlertTriangle, Save, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
