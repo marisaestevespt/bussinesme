@@ -6954,6 +6954,7 @@ export type Database = {
           created_at: string
           custom_holidays: Json | null
           department: string | null
+          departments: Json | null
           email: string | null
           expected_weekly_hours: number
           full_name: string
@@ -6979,6 +6980,7 @@ export type Database = {
           created_at?: string
           custom_holidays?: Json | null
           department?: string | null
+          departments?: Json | null
           email?: string | null
           expected_weekly_hours?: number
           full_name: string
@@ -7004,6 +7006,7 @@ export type Database = {
           created_at?: string
           custom_holidays?: Json | null
           department?: string | null
+          departments?: Json | null
           email?: string | null
           expected_weekly_hours?: number
           full_name?: string

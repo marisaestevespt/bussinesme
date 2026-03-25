@@ -36,6 +36,7 @@ import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 import { ClientContactsSection } from '@/components/client/ClientContactsSection';
 import { ClientFeedbackSection } from '@/components/client/ClientFeedbackSection';
 import { ClientDeliverablesTab } from '@/components/client/ClientDeliverablesTab';
+import { useSensitiveAccess } from '@/hooks/useSensitiveAccess';
 
 // ─── Meetings query for filtered view ───────────────────────────
 function useFilteredMeetings(clientId: string | undefined) {
@@ -141,6 +142,7 @@ export default function ClienteDetailPage() {
   const { upsertClient, duplicateClient, deleteClient } = useClients();
   const { products } = useProducts();
   const commercialData = useCommercialData();
+  const { canSee } = useSensitiveAccess();
 
   const [form, setForm] = useState<Partial<Client>>({});
   const [initialized, setInitialized] = useState(false);
@@ -521,111 +523,115 @@ export default function ClienteDetailPage() {
               }} />
               <DateField label="Fim de Ciclo" value={form.end_of_cycle || null} onChange={v => update('end_of_cycle', v)} />
             </div>
-            {/* Row 4: Forma de Pagamento */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Forma de Pagamento</Label>
-                <Select value={form.payment_method || ''} onValueChange={v => { update('payment_method', v); setEntradaValue(''); setNumPrestacoes(''); setDiaPagamento(''); setValorAvenca(''); setTotalValue(''); }}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                  <SelectContent>
-                    {availablePaymentOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              {/* Valor Total — shown for pagamento_total, entrada_prestacoes, prestacoes */}
-              {form.payment_method && form.payment_method !== 'avenca_mensal' && (
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Valor Total (s/ IVA) (€)</Label>
-                  <Input type="number" step="0.01" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="Ex: 900" />
+            {canSee('financial') && (
+              <>
+                {/* Row 4: Forma de Pagamento */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Forma de Pagamento</Label>
+                    <Select value={form.payment_method || ''} onValueChange={v => { update('payment_method', v); setEntradaValue(''); setNumPrestacoes(''); setDiaPagamento(''); setValorAvenca(''); setTotalValue(''); }}>
+                      <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                      <SelectContent>
+                        {availablePaymentOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {form.payment_method && form.payment_method !== 'avenca_mensal' && (
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Valor Total (s/ IVA) (€)</Label>
+                      <Input type="number" step="0.01" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="Ex: 900" />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            {/* Conditional fields based on payment method */}
-            {form.payment_method === 'entrada_prestacoes' && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Valor Entrada (s/ IVA) (€)</Label>
-                  <Input type="number" step="0.01" value={entradaValue} onChange={e => setEntradaValue(e.target.value)} placeholder="Ex: 300" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Quantidade de Prestações</Label>
-                  <Select value={numPrestacoes} onValueChange={setNumPrestacoes}>
-                    <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 11 }, (_, i) => i + 2).map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
-                  <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
-                </div>
-                {totalValue && entradaValue && numPrestacoes && (
-                  <p className="text-xs text-muted-foreground md:col-span-3">
-                    Entrada: {parseFloat(entradaValue).toFixed(2)}€ + {numPrestacoes}× {((parseFloat(totalValue) - parseFloat(entradaValue)) / parseInt(numPrestacoes)).toFixed(2)}€ (s/ IVA)
-                  </p>
+                {form.payment_method === 'entrada_prestacoes' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Valor Entrada (s/ IVA) (€)</Label>
+                      <Input type="number" step="0.01" value={entradaValue} onChange={e => setEntradaValue(e.target.value)} placeholder="Ex: 300" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Quantidade de Prestações</Label>
+                      <Select value={numPrestacoes} onValueChange={setNumPrestacoes}>
+                        <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 11 }, (_, i) => i + 2).map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
+                      <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
+                    </div>
+                    {totalValue && entradaValue && numPrestacoes && (
+                      <p className="text-xs text-muted-foreground md:col-span-3">
+                        Entrada: {parseFloat(entradaValue).toFixed(2)}€ + {numPrestacoes}× {((parseFloat(totalValue) - parseFloat(entradaValue)) / parseInt(numPrestacoes)).toFixed(2)}€ (s/ IVA)
+                      </p>
+                    )}
+                  </div>
                 )}
-              </div>
-            )}
-            {form.payment_method === 'prestacoes' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Quantidade de Prestações</Label>
-                  <Select value={numPrestacoes} onValueChange={setNumPrestacoes}>
-                    <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 11 }, (_, i) => i + 2).map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
-                  <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
-                </div>
-                {totalValue && numPrestacoes && (
-                  <p className="text-xs text-muted-foreground md:col-span-2">
-                    {numPrestacoes}× {(parseFloat(totalValue) / parseInt(numPrestacoes)).toFixed(2)}€ (s/ IVA)
-                  </p>
+                {form.payment_method === 'prestacoes' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Quantidade de Prestações</Label>
+                      <Select value={numPrestacoes} onValueChange={setNumPrestacoes}>
+                        <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 11 }, (_, i) => i + 2).map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
+                      <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
+                    </div>
+                    {totalValue && numPrestacoes && (
+                      <p className="text-xs text-muted-foreground md:col-span-2">
+                        {numPrestacoes}× {(parseFloat(totalValue) / parseInt(numPrestacoes)).toFixed(2)}€ (s/ IVA)
+                      </p>
+                    )}
+                  </div>
                 )}
-              </div>
-            )}
-            {form.payment_method === 'avenca_mensal' && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Meses de Contrato</Label>
-                  <Input type="number" min="2" value={numPrestacoes} onChange={e => setNumPrestacoes(e.target.value)} placeholder="Ex: 12" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
-                  <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Valor Avença Mensal (s/ IVA) (€)</Label>
-                  <Input type="number" step="0.01" value={valorAvenca} onChange={e => setValorAvenca(e.target.value)} placeholder="Ex: 150" />
-                </div>
-              </div>
+                {form.payment_method === 'avenca_mensal' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Meses de Contrato</Label>
+                      <Input type="number" min="2" value={numPrestacoes} onChange={e => setNumPrestacoes(e.target.value)} placeholder="Ex: 12" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
+                      <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Valor Avença Mensal (s/ IVA) (€)</Label>
+                      <Input type="number" step="0.01" value={valorAvenca} onChange={e => setValorAvenca(e.target.value)} placeholder="Ex: 150" />
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
 
-        {/* Dados Fiscais */}
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Dados Fiscais</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Nome Completo</Label>
-              <Input value={form.full_name || ''} onChange={e => update('full_name', e.target.value)} />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">NIF</Label>
-              <Input value={form.nif || ''} onChange={e => update('nif', e.target.value)} />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Morada Fiscal</Label>
-              <Input value={form.fiscal_address || ''} onChange={e => update('fiscal_address', e.target.value)} />
-            </div>
-          </CardContent>
-        </Card>
+        {/* Dados Fiscais — financial sensitive */}
+        {canSee('financial') && (
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm">Dados Fiscais</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Nome Completo</Label>
+                <Input value={form.full_name || ''} onChange={e => update('full_name', e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">NIF</Label>
+                <Input value={form.nif || ''} onChange={e => update('nif', e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Morada Fiscal</Label>
+                <Input value={form.fiscal_address || ''} onChange={e => update('fiscal_address', e.target.value)} />
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Observações e Documentos */}
         <Card>
@@ -814,40 +820,42 @@ export default function ClienteDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Payments filtered view */}
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm">Pagamentos</CardTitle>
-                <div className="flex items-center gap-2">
-                  {form.payment_method && form.payment_method !== 'pagamento_total' && (
-                    <Button size="sm" variant="secondary" onClick={generateInstallments}>
-                      Gerar Pagamentos
-                    </Button>
-                  )}
-                  <Button size="sm" variant="outline" onClick={() => setSaleOpen(true)}><Plus className="h-3 w-3 mr-1" />Novo Pagamento</Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-9 gap-2">
-                  <span>Status</span><span>Data</span><span>Descrição</span><span>Valor Base</span><span>Fatura</span><span>Produto</span><span>Mês</span><span>Ano</span><span>Docs</span>
-                </div>
-                {clientSales.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8 text-sm">Sem pagamentos associados</p>
-                 ) : clientSales.map(s => (
-                  <div key={s.id} className="px-4 py-2 text-xs grid grid-cols-9 gap-2 border-b items-center cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedPayment(s); setPaymentSheetOpen(true); }}>
-                    <span>{s.status}</span>
-                    <span>{s.payment_date || '—'}</span>
-                    <span className="truncate">{s.description || '—'}</span>
-                    <span>{Number(s.base_value).toFixed(2)}€</span>
-                    <span>{Number(s.invoice_total).toFixed(2)}€</span>
-                    <span className="truncate">{s.product || '—'}</span>
-                    <span>{s.sale_month || '—'}</span>
-                    <span>{s.sale_year || '—'}</span>
-                    <span className="truncate">{Array.isArray(s.documents) && s.documents.length > 0 ? `${s.documents.length} doc(s)` : '—'}</span>
+            {/* Payments filtered view — financial sensitive */}
+            {canSee('financial') && (
+              <Card>
+                <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                  <CardTitle className="text-sm">Pagamentos</CardTitle>
+                  <div className="flex items-center gap-2">
+                    {form.payment_method && form.payment_method !== 'pagamento_total' && (
+                      <Button size="sm" variant="secondary" onClick={generateInstallments}>
+                        Gerar Pagamentos
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline" onClick={() => setSaleOpen(true)}><Plus className="h-3 w-3 mr-1" />Novo Pagamento</Button>
                   </div>
-                ))}
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-9 gap-2">
+                    <span>Status</span><span>Data</span><span>Descrição</span><span>Valor Base</span><span>Fatura</span><span>Produto</span><span>Mês</span><span>Ano</span><span>Docs</span>
+                  </div>
+                  {clientSales.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8 text-sm">Sem pagamentos associados</p>
+                   ) : clientSales.map(s => (
+                    <div key={s.id} className="px-4 py-2 text-xs grid grid-cols-9 gap-2 border-b items-center cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedPayment(s); setPaymentSheetOpen(true); }}>
+                      <span>{s.status}</span>
+                      <span>{s.payment_date || '—'}</span>
+                      <span className="truncate">{s.description || '—'}</span>
+                      <span>{Number(s.base_value).toFixed(2)}€</span>
+                      <span>{Number(s.invoice_total).toFixed(2)}€</span>
+                      <span className="truncate">{s.product || '—'}</span>
+                      <span>{s.sale_month || '—'}</span>
+                      <span>{s.sale_year || '—'}</span>
+                      <span className="truncate">{Array.isArray(s.documents) && s.documents.length > 0 ? `${s.documents.length} doc(s)` : '—'}</span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
 
             <EntryDetailSheet sale={selectedPayment} open={paymentSheetOpen} onOpenChange={setPaymentSheetOpen} />
 

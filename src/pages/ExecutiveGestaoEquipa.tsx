@@ -70,26 +70,29 @@ function cleanPayload(obj: Record<string, any>): Record<string, any> {
   return cleaned;
 }
 
-async function autoAssignPermissions(memberId: string, department: string | null) {
-  if (!department) return;
+async function autoAssignPermissions(memberId: string, departments: string[]) {
+  if (!departments || departments.length === 0) return;
 
-  // Get or create a role for this department
-  const roleName = `dept_${department}`;
+  // Collect all module keys from all departments
+  const allModuleKeys = new Set([
+    ...HALL_MODULES,
+    ...TRANSVERSAL_MODULES,
+    ...SECRETARIA_MODULES,
+  ]);
+  for (const dept of departments) {
+    (DEPT_MODULE_MAP[dept] || []).forEach(mk => allModuleKeys.add(mk));
+  }
+
+  // Create a combined role name based on sorted departments
+  const roleName = `dept_${departments.sort().join('_')}`;
   let { data: role } = await supabase.from('custom_roles').select('id').eq('name', roleName).maybeSingle();
   
   if (!role) {
-    const { data: newRole, error } = await supabase.from('custom_roles').insert({ name: roleName, description: `Auto-generated role for ${department}` }).select('id').single();
+    const { data: newRole, error } = await supabase.from('custom_roles').insert({ name: roleName, description: `Auto-generated role for ${departments.join(', ')}` }).select('id').single();
     if (error || !newRole) return;
     role = newRole;
 
-    // Create permissions for this role
-    const moduleKeys = [
-      ...HALL_MODULES,
-      ...TRANSVERSAL_MODULES,
-      ...SECRETARIA_MODULES,
-      ...(DEPT_MODULE_MAP[department] || []),
-    ];
-    const perms = moduleKeys.map(mk => ({ custom_role_id: role!.id, module_key: mk, can_view: true }));
+    const perms = [...allModuleKeys].map(mk => ({ custom_role_id: role!.id, module_key: mk, can_view: true }));
     await supabase.from('role_permissions').insert(perms);
   }
 
@@ -123,11 +126,18 @@ const DEPT_COLORS: Record<string, string> = {
   'recursos-humanos': 'bg-rose-600 text-white',
 };
 
-function DeptBadge({ dept }: { dept: string | null }) {
+function DeptBadge({ dept }: { dept: string | string[] | null }) {
   if (!dept) return null;
-  const d = getDept(dept);
-  const colorClass = DEPT_COLORS[dept] || 'bg-muted text-muted-foreground';
-  return <Badge className={`${colorClass} text-[10px] border-0`}>{d?.label || dept}</Badge>;
+  const depts = Array.isArray(dept) ? dept : [dept];
+  return (
+    <>
+      {depts.map(d => {
+        const info = getDept(d);
+        const colorClass = DEPT_COLORS[d] || 'bg-muted text-muted-foreground';
+        return <Badge key={d} className={`${colorClass} text-[10px] border-0`}>{info?.label || d}</Badge>;
+      })}
+    </>
+  );
 }
 
 function getInitials(name: string) {
@@ -363,6 +373,7 @@ const DEFAULT_MEMBER_FORM = {
   status: 'ativo',
   member_type: 'colaborador_fixo',
   department: '',
+  departments: [] as string[],
   start_date: '',
   presentation: '',
   responsibilities: '',
@@ -505,18 +516,33 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
               <Badge className="text-xs text-white mt-1" style={{ backgroundColor: f.role_color || '#6366f1' }}>{f.role_title}</Badge>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="text-xs text-muted-foreground">Departamento</label>
-              <Select value={f.department || '_none'} onValueChange={v => set('department', v === '_none' ? '' : v)}>
-                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_none">Sem departamento</SelectItem>
-                  {DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
+          <div className="space-y-1.5">
+            <span className="text-xs text-muted-foreground font-medium">Departamentos</span>
+            <p className="text-[10px] text-muted-foreground">Seleciona um ou mais departamentos.</p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {DEPARTMENTS.map(d => {
+                const depts: string[] = Array.isArray(f.departments) ? f.departments : (f.department ? [f.department] : []);
+                const checked = depts.includes(d.value);
+                return (
+                  <label key={d.value} className={cn(
+                    'flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer transition-colors text-xs',
+                    checked ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
+                  )}>
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={(v) => {
+                        const next = v ? [...depts, d.value] : depts.filter(x => x !== d.value);
+                        set('departments', next);
+                        set('department', next[0] || '');
+                      }}
+                    />
+                    <span>{d.icon} {d.label}</span>
+                  </label>
+                );
+              })}
             </div>
-            <div>
+          </div>
+          <div>
               <label className="text-xs text-muted-foreground">Tipo</label>
               <Select value={f.member_type} onValueChange={v => set('member_type', v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -526,7 +552,6 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
                   <SelectItem value="socio">Sócio</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
           </div>
 
           {/* Áreas de trabalho */}
@@ -1242,9 +1267,12 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
         const { error } = await supabase.from('team_members').update(payload as any).eq('id', member.id);
         if (error) throw error;
       }
-      // Auto-assign permissions based on department
-      if (member.department) {
-        await autoAssignPermissions(memberId, member.department);
+      // Auto-assign permissions based on departments
+      const depts: string[] = Array.isArray(member.departments) && member.departments.length > 0
+        ? member.departments
+        : (member.department ? [member.department] : []);
+      if (depts.length > 0) {
+        await autoAssignPermissions(memberId, depts);
       }
       if (isNew && contractData && memberId) {
         const monthlyVal = parseFloat(contractData.monthly_value) || 0;
@@ -1297,8 +1325,11 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
             if (authData.profile_id) {
               await supabase.from('team_members').update({ profile_id: authData.profile_id }).eq('id', memberId);
               // Re-run permission assignment now that profile_id exists
-              if (member.department) {
-                await autoAssignPermissions(memberId, member.department);
+              const depts3: string[] = Array.isArray(member.departments) && member.departments.length > 0
+                ? member.departments
+                : (member.department ? [member.department] : []);
+              if (depts3.length > 0) {
+                await autoAssignPermissions(memberId, depts3);
               }
             }
             // Show onboarding warning if no SOP template found
@@ -1650,9 +1681,12 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
         const { error } = await supabase.from('team_members').update(payload as any).eq('id', member.id);
         if (error) throw error;
       }
-      // Auto-assign permissions based on department
-      if (member.department) {
-        await autoAssignPermissions(memberId, member.department);
+      // Auto-assign permissions based on departments
+      const depts: string[] = Array.isArray(member.departments) && member.departments.length > 0
+        ? member.departments
+        : (member.department ? [member.department] : []);
+      if (depts.length > 0) {
+        await autoAssignPermissions(memberId, depts);
       }
       if (isNew && contractData && memberId) {
         const monthlyVal = parseFloat(contractData.monthly_value) || 0;
@@ -1703,8 +1737,11 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
           } else if (authData?.success) {
             if (authData.profile_id) {
               await supabase.from('team_members').update({ profile_id: authData.profile_id }).eq('id', memberId);
-              if (member.department) {
-                await autoAssignPermissions(memberId, member.department);
+              const depts2: string[] = Array.isArray(member.departments) && member.departments.length > 0
+                ? member.departments
+                : (member.department ? [member.department] : []);
+              if (depts2.length > 0) {
+                await autoAssignPermissions(memberId, depts2);
               }
             }
             if (authData.invite_url) {
@@ -1723,8 +1760,11 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
       toast.success(isNew ? 'Membro criado!' : 'Membro atualizado');
 
       // Show page picker for custom roles with department
-      if (member.department) {
-        setPagePicker({ memberName: member.full_name, department: member.department, memberId });
+      const pickerDepts: string[] = Array.isArray(member.departments) && member.departments.length > 0
+        ? member.departments
+        : (member.department ? [member.department] : []);
+      if (pickerDepts.length > 0) {
+        setPagePicker({ memberName: member.full_name, department: pickerDepts[0], memberId });
       }
     } catch (err: any) {
       toast.error('Erro: ' + (err.message || err));
@@ -1734,9 +1774,9 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
   const handleExtraModules = async (extraModules: string[]) => {
     if (!pagePicker || extraModules.length === 0) return;
     try {
-      // Get the dept role for this member and add extra permissions
-      const roleName = `dept_${pagePicker.department}`;
-      const { data: role } = await supabase.from('custom_roles').select('id').eq('name', roleName).maybeSingle();
+      const depts3 = pagePicker.department;
+      const roleName = `dept_${depts3}`;
+      const { data: role } = await supabase.from('custom_roles').select('id').ilike('name', `dept_%${depts3}%`).maybeSingle();
       if (role) {
         const perms = extraModules.map(mk => ({ custom_role_id: role.id, module_key: mk, can_view: true }));
         await supabase.from('role_permissions').upsert(perms, { onConflict: 'custom_role_id,module_key' });
@@ -1770,7 +1810,7 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
                   </Badge>
                 </div>
                 <div className="flex flex-wrap gap-1">
-                  <DeptBadge dept={m.department} />
+                  <DeptBadge dept={(m as any).departments?.length ? (m as any).departments : m.department} />
                   {Array.isArray((m as any).work_areas) && (m as any).work_areas.map((wa: string) => {
                     const opt = WORK_AREAS.find(w => w.value === wa);
                     return opt ? <Badge key={wa} variant="outline" className="text-[10px]">{opt.label}</Badge> : null;
