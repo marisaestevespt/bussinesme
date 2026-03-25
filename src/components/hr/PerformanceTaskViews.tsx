@@ -461,7 +461,7 @@ export function TasksByPriority() {
 
   if (isLoading) return <p className="text-sm text-muted-foreground">A carregar...</p>;
 
-  const renderGroup = (label: string, items: Task[], variant: 'destructive' | 'secondary') => (
+  const renderGroup = (label: string, items: Task[], variant: 'destructive' | 'secondary' | 'outline') => (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <Badge variant={variant} className="text-xs">{label}</Badge>
