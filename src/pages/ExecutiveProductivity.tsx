@@ -709,6 +709,8 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
   const { start, end } = getDateRange('month');
   const monthEntries = entries.filter(e => { const d = new Date(e.entry_date); return d >= start && d <= end; });
 
+  const CLIENT_WORK_AREAS = ['cliente_servico', 'cliente_comercial', 'cliente_administrativo'];
+
   const memberCapacity = useMemo(() => {
     return activeMembers.map(m => {
       const weeklyH = Number(m.expected_weekly_hours) || 0;
@@ -717,7 +719,10 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
       const clientH = monthEntries.filter(e => e.member_id === m.id && (e.client_id || e.category === 'cliente')).reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
       const internalH = actualH - clientH;
       const usagePct = monthlyH > 0 ? Math.round((actualH / monthlyH) * 100) : 0;
-      return { id: m.id, name: m.full_name, role: m.role_title || '—', weeklyH, monthlyH, actualH: Number(actualH.toFixed(1)), clientH: Number(clientH.toFixed(1)), internalH: Number(internalH.toFixed(1)), usagePct, remainingH: Number((monthlyH - actualH).toFixed(1)) };
+      const areas: string[] = Array.isArray((m as any).work_areas) ? (m as any).work_areas : [];
+      const isClientFacing = areas.some(a => CLIENT_WORK_AREAS.includes(a));
+      const areaLabel = isClientFacing ? 'Cliente' : areas.includes('interno') ? 'Interno' : '—';
+      return { id: m.id, name: m.full_name, role: m.role_title || '—', weeklyH, monthlyH, actualH: Number(actualH.toFixed(1)), clientH: Number(clientH.toFixed(1)), internalH: Number(internalH.toFixed(1)), usagePct, remainingH: Number((monthlyH - actualH).toFixed(1)), areaLabel, isClientFacing };
     }).sort((a, b) => b.usagePct - a.usagePct);
   }, [activeMembers, monthEntries]);
 
@@ -734,7 +739,7 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Equipa ativa</p><p className="text-2xl font-bold">{activeMembers.length}</p><p className="text-xs text-muted-foreground">membros</p></CardContent></Card>
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Capacidade mensal</p><p className="text-2xl font-bold">{totalMonthlyHours}h</p><p className="text-xs text-muted-foreground">{totalWeeklyHours}h/semana</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Registado (mês)</p><p className="text-2xl font-bold">{totalActual.toFixed(1)}h</p><p className="text-xs text-muted-foreground">{totalClientH.toFixed(1)}h cliente + {totalInternalH.toFixed(1)}h interno</p></CardContent></Card>
+        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Registado (mês)</p><p className="text-2xl font-bold">{totalActual.toFixed(1)}h</p><p className="text-xs"><span className="text-primary font-medium">{totalClientH.toFixed(1)}h cliente</span> <span className="text-muted-foreground">+ {totalInternalH.toFixed(1)}h interno</span></p></CardContent></Card>
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Ocupação geral</p><p className={`text-2xl font-bold ${overallUsage > 100 ? 'text-destructive' : overallUsage > 85 ? 'text-amber-500' : 'text-foreground'}`}>{overallUsage}%</p><Progress value={Math.min(overallUsage, 100)} className="h-2 mt-1" /></CardContent></Card>
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Horas restantes</p><p className={`text-2xl font-bold ${totalRemainingH < 0 ? 'text-destructive' : 'text-foreground'}`}>{totalRemainingH.toFixed(0)}h</p><p className="text-xs text-muted-foreground">este mês</p></CardContent></Card>
       </div>
@@ -759,16 +764,22 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
         <CardContent className="p-0">
           <Table>
             <TableHeader><TableRow>
-              <TableHead>Membro</TableHead><TableHead>Função</TableHead><TableHead className="text-right">h/semana</TableHead><TableHead className="text-right">Capacidade/mês</TableHead><TableHead className="text-right">Registado</TableHead><TableHead className="text-right">Restante</TableHead><TableHead className="text-right">Ocupação</TableHead><TableHead>Barra</TableHead>
+              <TableHead>Membro</TableHead><TableHead>Função</TableHead><TableHead>Área</TableHead><TableHead className="text-right">h/semana</TableHead><TableHead className="text-right">Capacidade/mês</TableHead><TableHead className="text-right">Cliente</TableHead><TableHead className="text-right">Interno</TableHead><TableHead className="text-right">Restante</TableHead><TableHead className="text-right">Ocupação</TableHead><TableHead>Barra</TableHead>
             </TableRow></TableHeader>
             <TableBody>
               {memberCapacity.map(m => (
                 <TableRow key={m.id}>
                   <TableCell className="text-sm font-medium">{m.name}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">{m.role}</TableCell>
+                  <TableCell>
+                    {m.areaLabel !== '—' && (
+                      <Badge variant={m.isClientFacing ? 'default' : 'secondary'} className="text-[10px]">{m.areaLabel}</Badge>
+                    )}
+                  </TableCell>
                   <TableCell className="text-sm text-right tabular-nums">{m.weeklyH}h</TableCell>
                   <TableCell className="text-sm text-right tabular-nums">{m.monthlyH}h</TableCell>
-                  <TableCell className="text-sm text-right tabular-nums">{m.actualH}h</TableCell>
+                  <TableCell className="text-sm text-right tabular-nums text-primary">{m.clientH}h</TableCell>
+                  <TableCell className="text-sm text-right tabular-nums text-muted-foreground">{m.internalH}h</TableCell>
                   <TableCell className={`text-sm text-right tabular-nums ${m.remainingH < 0 ? 'text-destructive' : ''}`}>{m.remainingH}h</TableCell>
                   <TableCell className={`text-sm text-right font-medium ${m.usagePct > 100 ? 'text-destructive' : m.usagePct > 85 ? 'text-amber-500' : ''}`}>{m.usagePct}%</TableCell>
                   <TableCell>
@@ -779,7 +790,7 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
                 </TableRow>
               ))}
               {memberCapacity.length === 0 && (
-                <TableRow><TableCell colSpan={8} className="text-center text-sm text-muted-foreground py-8">Sem membros ativos</TableCell></TableRow>
+                <TableRow><TableCell colSpan={10} className="text-center text-sm text-muted-foreground py-8">Sem membros ativos</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
@@ -810,7 +821,14 @@ function GrowthScenarioSection({ members, clients, products }: { members: any[];
   const [newClients, setNewClients] = useState(5);
   const [selectedProduct, setSelectedProduct] = useState(products[0]?.id || '');
 
-  const activeMembers = members.filter((m: any) => m.status === 'ativo' || m.status === 'prestador');
+  const CLIENT_WORK_AREAS = ['cliente_servico', 'cliente_comercial', 'cliente_administrativo'];
+  const allActive = members.filter((m: any) => m.status === 'ativo' || m.status === 'prestador');
+  // Only consider members who work with clients; fall back to all if no one has work_areas yet
+  const clientFacingActive = allActive.filter((m: any) => {
+    const areas: string[] = Array.isArray(m.work_areas) ? m.work_areas : [];
+    return areas.some(a => CLIENT_WORK_AREAS.includes(a));
+  });
+  const activeMembers = clientFacingActive.length > 0 ? clientFacingActive : allActive;
   const activeClients = clients.filter((c: any) => c.status === 'ativo');
 
   const product = products.find((p: Product) => p.id === selectedProduct);
