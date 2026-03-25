@@ -35,6 +35,7 @@ import {
 import { getMonthName } from '@/hooks/useExecutiveData';
 import { DEPARTMENTS, getDept } from '@/lib/departments';
 import { RolePagePicker } from '@/components/RolePagePicker';
+import { InlineDeptPagePicker } from '@/components/InlineDeptPagePicker';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
@@ -374,6 +375,7 @@ const DEFAULT_MEMBER_FORM = {
   member_type: 'colaborador_fixo',
   department: '',
   departments: [] as string[],
+  deptExtraPages: {} as Record<string, string[]>,
   start_date: '',
   presentation: '',
   responsibilities: '',
