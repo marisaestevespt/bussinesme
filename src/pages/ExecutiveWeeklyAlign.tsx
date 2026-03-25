@@ -8,15 +8,17 @@ import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { useExecutiveData, getMonthName } from '@/hooks/useExecutiveData';
 import { usePlanningData, planStatusLabel, CADENCES } from '@/hooks/usePlanningData';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfWeek, endOfWeek, format, subDays, addDays, parseISO, differenceInDays, subWeeks, addWeeks } from 'date-fns';
 import { useTeamData } from '@/hooks/useTeamData';
 import { cn } from '@/lib/utils';
 import { WeeklyAlignDetailSheet, type DetailField } from '@/components/executive/WeeklyAlignDetailSheet';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus, DollarSign, Users, Target, AlertTriangle, Save } from 'lucide-react';
+import { toast } from 'sonner';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -33,12 +35,19 @@ export default function ExecutiveWeeklyAlign() {
   const weekStartStr = format(weekStart, 'yyyy-MM-dd');
   const weekEndStr = format(weekEnd, 'yyyy-MM-dd');
 
+  // Previous week for comparison
+  const prevWeekStart = useMemo(() => subWeeks(weekStart, 1), [weekStart]);
+  const prevWeekEnd = useMemo(() => endOfWeek(prevWeekStart, { weekStartsOn: 1 }), [prevWeekStart]);
+  const prevWeekStartStr = format(prevWeekStart, 'yyyy-MM-dd');
+  const prevWeekEndStr = format(prevWeekEnd, 'yyyy-MM-dd');
+
   const currentYear = weekStart.getFullYear();
   const currentMonth = weekStart.getMonth() + 1;
   const monthStart = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
   const monthEnd = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${new Date(currentYear, currentMonth, 0).getDate()}`;
 
   const isCurrentWeek = weekOffset === 0;
+  const qc = useQueryClient();
 
   const exec = useExecutiveData(currentYear);
   const planning = usePlanningData(currentYear);
@@ -192,6 +201,74 @@ export default function ExecutiveWeeklyAlign() {
     },
   });
 
+  // ─── Previous week queries for comparison ───
+  const prevSalesWeek = useQuery({
+    queryKey: ['wa-sales-week-prev', prevWeekStartStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('commercial_sales').select('invoice_total').gte('payment_date', prevWeekStartStr).lte('payment_date', prevWeekEndStr);
+      return data || [];
+    },
+  });
+
+  const prevTasksWeek = useQuery({
+    queryKey: ['wa-tasks-week-prev', prevWeekStartStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('tasks').select('id,status').gte('deadline', prevWeekStartStr).lte('deadline', prevWeekEndStr);
+      return data || [];
+    },
+  });
+
+  const prevContentWeek = useQuery({
+    queryKey: ['wa-content-week-prev', prevWeekStartStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('content_items').select('id').gte('scheduled_at', prevWeekStartStr).lte('scheduled_at', prevWeekEndStr + 'T23:59:59');
+      return data || [];
+    },
+  });
+
+  const prevMeetingsWeek = useQuery({
+    queryKey: ['wa-meetings-week-prev', prevWeekStartStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('meetings').select('id').gte('date_time', prevWeekStartStr).lte('date_time', prevWeekEndStr + 'T23:59:59');
+      return data || [];
+    },
+  });
+
+  // ─── Weekly notes ───
+  const weeklyNotes = useQuery({
+    queryKey: ['wa-notes', weekStartStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('weekly_align_notes').select('*').eq('week_start', weekStartStr).maybeSingle();
+      return data;
+    },
+  });
+
+  const [notesForm, setNotesForm] = useState({ decisions: '', blockers: '', key_points: '' });
+  const notesLoaded = useMemo(() => {
+    if (weeklyNotes.data) {
+      return { decisions: weeklyNotes.data.decisions || '', blockers: weeklyNotes.data.blockers || '', key_points: weeklyNotes.data.key_points || '' };
+    }
+    return { decisions: '', blockers: '', key_points: '' };
+  }, [weeklyNotes.data]);
+
+  // Sync form when data loads
+  useMemo(() => { setNotesForm(notesLoaded); }, [notesLoaded]);
+
+  const saveNotes = useMutation({
+    mutationFn: async () => {
+      if (weeklyNotes.data?.id) {
+        const { error } = await supabase.from('weekly_align_notes').update(notesForm as any).eq('id', weeklyNotes.data.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('weekly_align_notes').insert({ ...notesForm, week_start: weekStartStr } as any);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['wa-notes'] }); toast.success('Notas guardadas'); },
+    onError: () => toast.error('Erro ao guardar notas'),
+  });
+
+  // ─── KPI computed values ───
   const { members } = useTeamData();
   const teamMembers = members.data || [];
   const getMemberName = (id: string | null) => {
@@ -200,6 +277,30 @@ export default function ExecutiveWeeklyAlign() {
   };
 
   const overdueCount = (npsOverdue.data || []).length;
+
+  // Current week totals
+  const salesWeekTotal = useMemo(() => (salesWeek.data || []).reduce((s, v) => s + Number(v.invoice_total || 0), 0), [salesWeek.data]);
+  const tasksWeekCount = (tasks.data || []).length;
+  const tasksWeekDone = (tasks.data || []).filter(t => t.status === 'concluida').length;
+  const contentWeekCount = (contents.data || []).length;
+  const meetingsWeekCount = (meetings.data || []).length;
+  const leadsCount = (leads.data || []).length;
+
+  // Previous week totals for comparison
+  const prevSalesWeekTotal = useMemo(() => (prevSalesWeek.data || []).reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0), [prevSalesWeek.data]);
+  const prevTasksWeekCount = (prevTasksWeek.data || []).length;
+  const prevContentWeekCount = (prevContentWeek.data || []).length;
+  const prevMeetingsWeekCount = (prevMeetingsWeek.data || []).length;
+
+  // Delta helper
+  const DeltaBadge = ({ current, previous, suffix = '', isCurrency = false }: { current: number; previous: number; suffix?: string; isCurrency?: boolean }) => {
+    const diff = current - previous;
+    if (diff === 0) return <span className="text-xs text-muted-foreground flex items-center gap-0.5"><Minus className="h-3 w-3" /> =</span>;
+    const formatted = isCurrency ? `€${Math.abs(diff).toLocaleString()}` : `${Math.abs(diff)}${suffix}`;
+    return diff > 0
+      ? <span className="text-xs text-emerald-600 flex items-center gap-0.5"><TrendingUp className="h-3 w-3" /> +{formatted}</span>
+      : <span className="text-xs text-destructive flex items-center gap-0.5"><TrendingDown className="h-3 w-3" /> -{formatted}</span>;
+  };
 
   const getNpsRowColor = (expectedDate: string, status: string) => {
     if (status === 'feito') return 'bg-emerald-50 border-l-4 border-l-emerald-500';
@@ -386,7 +487,92 @@ export default function ExecutiveWeeklyAlign() {
           <p className="text-xs text-muted-foreground text-center -mt-2">Dados de semanas anteriores são apenas de leitura.</p>
         )}
 
-        {/* 1 // Metas */}
+        {/* KPI Summary Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Card><CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Faturação (semana)</span>
+            </div>
+            <p className="text-lg font-bold">€{salesWeekTotal.toLocaleString()}</p>
+            <DeltaBadge current={salesWeekTotal} previous={prevSalesWeekTotal} isCurrency />
+          </CardContent></Card>
+
+          <Card><CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Target className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Tarefas (semana)</span>
+            </div>
+            <p className="text-lg font-bold">{tasksWeekDone}/{tasksWeekCount}</p>
+            <DeltaBadge current={tasksWeekCount} previous={prevTasksWeekCount} />
+          </CardContent></Card>
+
+          <Card><CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Leads ativas</span>
+            </div>
+            <p className="text-lg font-bold">{leadsCount}</p>
+            <span className="text-xs text-muted-foreground">{followUps.length} follow-ups pendentes</span>
+          </CardContent></Card>
+
+          <Card><CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">NPS em atraso</span>
+            </div>
+            <p className={cn("text-lg font-bold", overdueCount > 0 && "text-destructive")}>{overdueCount}</p>
+            <div className="flex gap-2">
+              <span className="text-xs text-muted-foreground">{meetingsWeekCount} reuniões</span>
+              <DeltaBadge current={meetingsWeekCount} previous={prevMeetingsWeekCount} />
+            </div>
+          </CardContent></Card>
+        </div>
+
+        <Separator />
+
+        {/* Notas & Decisões */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold">Notas & Decisões</h2>
+            <Button size="sm" variant="outline" onClick={() => saveNotes.mutate()} disabled={saveNotes.isPending}>
+              <Save className="h-3.5 w-3.5 mr-1.5" />
+              Guardar
+            </Button>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Decisões tomadas</label>
+              <Textarea
+                placeholder="Decisões desta semana..."
+                value={notesForm.decisions}
+                onChange={e => setNotesForm(p => ({ ...p, decisions: e.target.value }))}
+                className="min-h-[80px] text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Bloqueios / Riscos</label>
+              <Textarea
+                placeholder="Bloqueios identificados..."
+                value={notesForm.blockers}
+                onChange={e => setNotesForm(p => ({ ...p, blockers: e.target.value }))}
+                className="min-h-[80px] text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Pontos-chave</label>
+              <Textarea
+                placeholder="Destaques da semana..."
+                value={notesForm.key_points}
+                onChange={e => setNotesForm(p => ({ ...p, key_points: e.target.value }))}
+                className="min-h-[80px] text-sm"
+              />
+            </div>
+          </div>
+        </section>
+
+        <Separator />
+
         <section className="space-y-4">
           <h2 className="text-base font-semibold">1 // Metas</h2>
           <Tabs defaultValue="metas">
@@ -483,7 +669,10 @@ export default function ExecutiveWeeklyAlign() {
 
         {/* 2 // Vendas & Faturação */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">2 // Vendas & Faturação</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-base font-semibold">2 // Vendas & Faturação</h2>
+            <DeltaBadge current={salesWeekTotal} previous={prevSalesWeekTotal} isCurrency />
+          </div>
           <Card><CardContent className="p-4 space-y-2">
               <h3 className="text-sm font-medium">Status faturação — {getMonthName(currentMonth)}</h3>
               <div className="text-xs text-muted-foreground space-y-1">
@@ -710,7 +899,10 @@ export default function ExecutiveWeeklyAlign() {
 
         {/* 5 // Operação & Esta semana */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">5 // Operação & Esta semana</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-base font-semibold">5 // Operação & Esta semana</h2>
+            <span className="text-xs text-muted-foreground">{tasksWeekDone}/{tasksWeekCount} tarefas • {meetingsWeekCount} reuniões • {contentWeekCount} conteúdos</span>
+          </div>
 
           <Card><CardContent className="p-4">
             <h3 className="text-sm font-medium mb-2">Projetos a acontecer</h3>
