@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tansta
 import { PAGE_SIZE, flattenInfiniteData, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
 
 import { supabase } from '@/integrations/supabase/client';
-import { excludeCancelled } from '@/lib/utils';
+import { excludeCancelled, cleanPayload } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
