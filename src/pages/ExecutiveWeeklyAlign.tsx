@@ -192,7 +192,29 @@ export default function ExecutiveWeeklyAlign() {
     },
   });
 
-  // Milestones this week
+  // Contracts expiring soon (next 60 days)
+  const sixtyDaysAhead = format(addDays(now, 60), 'yyyy-MM-dd');
+  const expiringContracts = useQuery({
+    queryKey: ['wa-expiring-contracts', todayStr],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('member_contracts')
+        .select('*, team_members(id, full_name, role_title, department)')
+        .eq('status', 'ativo')
+        .not('end_date', 'is', null)
+        .lte('end_date', sixtyDaysAhead)
+        .order('end_date');
+      return (data || []) as any[];
+    },
+  });
+
+  const expiringContractsList = useMemo(() => {
+    return (expiringContracts.data || []).map((c: any) => {
+      const daysLeft = differenceInDays(parseISO(c.end_date), now);
+      return { ...c, daysLeft };
+    });
+  }, [expiringContracts.data]);
+
   const milestonesWeek = useQuery({
     queryKey: ['wa-milestones-week', weekStartStr, weekEndStr],
     queryFn: async () => {
