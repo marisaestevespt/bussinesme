@@ -28,6 +28,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { getPortugueseHolidays, type Holiday } from '@/lib/holidays';
+import { AddToCalendarButtons } from '@/components/AddToCalendarButtons';
 
 // ─── Types ──────────────────────────────────────────────────────
 
