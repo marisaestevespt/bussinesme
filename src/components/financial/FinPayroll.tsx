@@ -10,7 +10,7 @@ const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2,
 
 const CONTRACT_LABELS: Record<string, string> = {
   contrato_trabalho: 'Contrato de Trabalho',
-  prestacao_servicos: 'Prestação de Serviços',
+  contrato_prestacao: 'Prestação de Serviços',
   acordo: 'Acordo',
   outro: 'Outro',
 };
@@ -80,7 +80,7 @@ export function FinPayroll({ currentYear }: Props) {
   }, [relevantContracts]);
 
   const hasContratoTrabalho = (grouped['contrato_trabalho'] || []).length > 0;
-  const hasPrestacao = (grouped['prestacao_servicos'] || []).length > 0;
+  const hasPrestacao = (grouped['contrato_prestacao'] || []).length > 0;
   const hasAcordo = (grouped['acordo'] || []).length > 0;
   const hasOutro = (grouped['outro'] || []).length > 0;
 
@@ -92,7 +92,7 @@ export function FinPayroll({ currentYear }: Props) {
     .filter(c => c.status === 'ativo')
     .reduce((s, c) => s + (c.monthly_value || 0), 0);
 
-  const totalPrestacao = (grouped['prestacao_servicos'] || [])
+  const totalPrestacao = (grouped['contrato_prestacao'] || [])
     .filter(c => c.status === 'ativo')
     .reduce((s, c) => s + (c.monthly_value || 0), 0);
 
@@ -160,7 +160,7 @@ export function FinPayroll({ currentYear }: Props) {
 
       {/* Sections by contract type — only show if there are contracts */}
       {hasContratoTrabalho && renderSection('contrato_trabalho', grouped['contrato_trabalho'])}
-      {hasPrestacao && renderSection('prestacao_servicos', grouped['prestacao_servicos'])}
+      {hasPrestacao && renderSection('contrato_prestacao', grouped['contrato_prestacao'])}
       {hasAcordo && renderSection('acordo', grouped['acordo'])}
       {hasOutro && renderSection('outro', grouped['outro'])}
 
