@@ -981,7 +981,16 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
   const [cfInitialized, setCfInitialized] = useState(false);
 
   if (members.length > 0 && !cfInitialized) {
-    setClientFacingIds(new Set(members.map(m => m.id)));
+    // Auto-detect client-facing members from work_areas
+    const CLIENT_AREAS = ['cliente_administrativo', 'cliente_servico', 'cliente_comercial'];
+    const autoIds = members
+      .filter(m => {
+        const areas: string[] = Array.isArray((m as any).work_areas) ? (m as any).work_areas : [];
+        return areas.some(a => CLIENT_AREAS.includes(a));
+      })
+      .map(m => m.id);
+    // If no one has work_areas set yet, fall back to all members (backward compat)
+    setClientFacingIds(new Set(autoIds.length > 0 ? autoIds : members.map(m => m.id)));
     setCfInitialized(true);
   }
 
