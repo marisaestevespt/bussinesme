@@ -80,7 +80,7 @@ export function FinPayroll({ currentYear }: Props) {
   }, [relevantContracts]);
 
   const hasContratoTrabalho = (grouped['contrato_trabalho'] || []).length > 0;
-  const hasPrestacao = (grouped['prestacao_servicos'] || []).length > 0;
+  const hasPrestacao = (grouped['contrato_prestacao'] || []).length > 0;
   const hasAcordo = (grouped['acordo'] || []).length > 0;
   const hasOutro = (grouped['outro'] || []).length > 0;
 
@@ -92,7 +92,7 @@ export function FinPayroll({ currentYear }: Props) {
     .filter(c => c.status === 'ativo')
     .reduce((s, c) => s + (c.monthly_value || 0), 0);
 
-  const totalPrestacao = (grouped['prestacao_servicos'] || [])
+  const totalPrestacao = (grouped['contrato_prestacao'] || [])
     .filter(c => c.status === 'ativo')
     .reduce((s, c) => s + (c.monthly_value || 0), 0);
 
