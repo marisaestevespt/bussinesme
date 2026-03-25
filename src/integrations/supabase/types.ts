@@ -6297,6 +6297,7 @@ export type Database = {
       sop_onboarding_templates: {
         Row: {
           created_at: string
+          department: string
           id: string
           role_title: string
           sop_id: string | null
@@ -6304,6 +6305,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          department?: string
           id?: string
           role_title: string
           sop_id?: string | null
@@ -6311,6 +6313,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          department?: string
           id?: string
           role_title?: string
           sop_id?: string | null
