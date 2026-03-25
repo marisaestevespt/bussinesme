@@ -44,6 +44,11 @@ export const VALUE_SOURCES = [
   { value: 'bd_tarefas', label: 'Tarefas concluídas', area: 'operacao', desc: 'Contagem de tarefas com status concluída' },
   { value: 'bd_equipa', label: 'Membros da equipa', area: 'equipa', desc: 'Nº de membros ativos na equipa' },
   { value: 'bd_marketing', label: 'Seguidores (Marketing)', area: 'marketing', desc: 'Total de seguidores dos canais de marketing' },
+  { value: 'bd_conteudos', label: 'Conteúdos publicados', area: 'marketing', desc: 'Nº de conteúdos publicados no ano' },
+  { value: 'bd_reunioes', label: 'Reuniões realizadas', area: 'comercial', desc: 'Nº de reuniões realizadas no ano' },
+  { value: 'bd_nps', label: 'NPS médio', area: 'comercial', desc: 'Média dos scores NPS registados' },
+  { value: 'bd_despesas', label: 'Despesas totais', area: 'financeiro', desc: 'Soma de saídas/despesas no ano' },
+  { value: 'bd_projetos', label: 'Projetos concluídos', area: 'operacao', desc: 'Nº de projetos com status concluído' },
 ];
 
 export const MEASUREMENT_TYPES = [
