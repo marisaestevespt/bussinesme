@@ -5,9 +5,11 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { NotificationBell } from '@/components/NotificationBell';
 import { FavoriteButton } from '@/components/FavoriteButton';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { useContractExpiryNotifications } from '@/hooks/useContractExpiryNotifications';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { settings } = useBusinessSettings();
+  useContractExpiryNotifications();
 
   return (
     <TooltipProvider>
