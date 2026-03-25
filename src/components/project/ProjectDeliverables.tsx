@@ -118,6 +118,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
   const [name, setName] = useState('');
   const [deadline, setDeadline] = useState<Date | undefined>();
   const [assignedTo, setAssignedTo] = useState('');
+  const { data: serviceMembers = [] } = useServiceMembers();
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrenceLabel, setRecurrenceLabel] = useState('');
   const [recurrenceWeek, setRecurrenceWeek] = useState('');
