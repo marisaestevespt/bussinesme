@@ -96,27 +96,66 @@ export default function ExecutiveCapacidade() {
     };
   }, [scenarioProductsRaw.data, allProducts]);
 
-  const [adminPercent, setAdminPercent] = useState<number | null>(null);
-  const [businessPercent, setBusinessPercent] = useState<number | null>(null);
+  // Per-member overhead percentages: { [memberId]: { admin: number, business: number } }
+  const [memberOverhead, setMemberOverhead] = useState<Record<string, { admin: number; business: number }>>({});
+  const [overheadInitialized, setOverheadInitialized] = useState(false);
 
-  // Compute total monthly hours from selected (client-facing) members
+  // Initialize overheads from saved scenario or defaults
+  if (members.length > 0 && scenario.data && !overheadInitialized) {
+    const defaultAdmin = Number(scenario.data.admin_percent) || 20;
+    const defaultBusiness = Number(scenario.data.business_percent) || 0;
+    // Try to load per-member overheads from scenario metadata
+    const saved = (scenario.data as any).member_overheads;
+    const initial: Record<string, { admin: number; business: number }> = {};
+    for (const m of members) {
+      if (saved && saved[m.id]) {
+        initial[m.id] = saved[m.id];
+      } else {
+        initial[m.id] = { admin: defaultAdmin, business: defaultBusiness };
+      }
+    }
+    setMemberOverhead(initial);
+    setOverheadInitialized(true);
+  }
+
+  const setMemberAdmin = (id: string, val: number) => {
+    setMemberOverhead(prev => ({ ...prev, [id]: { ...prev[id], admin: val, business: prev[id]?.business || 0 } }));
+  };
+  const setMemberBusiness = (id: string, val: number) => {
+    setMemberOverhead(prev => ({ ...prev, [id]: { admin: prev[id]?.admin || 0, business: val } }));
+  };
+
   const WEEKS_PER_MONTH = 4.33;
-  const totalTeamMonthlyHours = useMemo(() => {
-    return members.reduce((sum, m) => sum + (Number(m.expected_weekly_hours) || 0) * WEEKS_PER_MONTH, 0);
-  }, [members]);
 
-  const clientFacingMonthlyHours = useMemo(() => {
-    return members
-      .filter(m => clientFacingIds.has(m.id))
-      .reduce((sum, m) => sum + (Number(m.expected_weekly_hours) || 0) * WEEKS_PER_MONTH, 0);
+  const clientFacingMembers = useMemo(() => {
+    return members.filter(m => clientFacingIds.has(m.id));
   }, [members, clientFacingIds]);
 
-  const effectiveAdmin = adminPercent ?? (Number(scenario.data?.admin_percent) || 20);
-  const effectiveBusiness = businessPercent ?? (Number(scenario.data?.business_percent) || 0);
+  const clientFacingMonthlyHours = useMemo(() => {
+    return clientFacingMembers.reduce((sum, m) => sum + (Number(m.expected_weekly_hours) || 0) * WEEKS_PER_MONTH, 0);
+  }, [clientFacingMembers]);
+
+  // Available hours = per-member: monthlyH * (1 - overhead%)
+  const availableHours = useMemo(() => {
+    return clientFacingMembers.reduce((sum, m) => {
+      const monthlyH = (Number(m.expected_weekly_hours) || 0) * WEEKS_PER_MONTH;
+      const oh = memberOverhead[m.id] || { admin: 20, business: 0 };
+      const overheadPct = Math.min(oh.admin + oh.business, 100);
+      return sum + monthlyH * (1 - overheadPct / 100);
+    }, 0);
+  }, [clientFacingMembers, memberOverhead]);
+
+  const totalOverheadHours = useMemo(() => {
+    return clientFacingMembers.reduce((sum, m) => {
+      const monthlyH = (Number(m.expected_weekly_hours) || 0) * WEEKS_PER_MONTH;
+      const oh = memberOverhead[m.id] || { admin: 20, business: 0 };
+      const overheadPct = Math.min(oh.admin + oh.business, 100);
+      return sum + monthlyH * (overheadPct / 100);
+    }, 0);
+  }, [clientFacingMembers, memberOverhead]);
+
   const effectiveTeamSize = members.length;
-  const effectiveClientFacing = members.filter(m => clientFacingIds.has(m.id)).length;
-  const totalNonClientPercent = Math.min(effectiveAdmin + effectiveBusiness, 100);
-  const availableHours = clientFacingMonthlyHours * (1 - totalNonClientPercent / 100);
+  const effectiveClientFacing = clientFacingMembers.length;
 
   const ensureScenario = useMutation({
     mutationFn: async () => {
