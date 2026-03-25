@@ -13,11 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CalendarIcon, Plus, Users, Clock } from 'lucide-react';
+import { CalendarIcon, Plus, Users, Clock, Repeat, Video, FolderOpen, UserCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, addWeeks, addMonths, isBefore, startOfDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
@@ -30,6 +31,7 @@ import { DEPARTMENTS } from '@/lib/departments';
 // ─── Types ──────────────────────────────────────────────────────
 
 type MeetingStatus = 'por_confirmar' | 'marcada' | 'terminada';
+type MeetingType = 'recorrente' | 'projeto' | 'cliente';
 
 const STATUSES: { value: MeetingStatus; label: string; color: string }[] = [
   { value: 'por_confirmar', label: 'Por confirmar', color: '#f59e0b' },
@@ -37,11 +39,18 @@ const STATUSES: { value: MeetingStatus; label: string; color: string }[] = [
   { value: 'terminada', label: 'Terminada', color: '#6b7280' },
 ];
 
+const MEETING_TYPES: { value: MeetingType; label: string; icon: React.ReactNode; description: string }[] = [
+  { value: 'recorrente', label: 'Reunião Recorrente', icon: <Repeat className="h-5 w-5" />, description: 'Reunião periódica sem cliente associado' },
+  { value: 'projeto', label: 'Reunião de Projeto', icon: <FolderOpen className="h-5 w-5" />, description: 'Reunião associada a um projeto específico' },
+  { value: 'cliente', label: 'Reunião com Cliente', icon: <UserCheck className="h-5 w-5" />, description: 'Reunião com cliente associado' },
+];
+
 interface MeetingRow {
   id: string;
   title: string;
   date_time: string;
   status: MeetingStatus;
+  meeting_type: MeetingType;
   client_id: string | null;
   client_name: string | null;
   project_id: string | null;
@@ -49,6 +58,8 @@ interface MeetingRow {
   department: string | null;
   transcript_url: string | null;
   created_by: string | null;
+  parent_meeting_id: string | null;
+  is_recurring: boolean;
 }
 
 interface ProjectOption {
@@ -83,7 +94,7 @@ function useMeetings() {
     queryFn: async ({ pageParam = 0 }) => {
       const from = (pageParam as number) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const { data, error, count } = await supabase.from('meetings').select('id, title, date_time, status, client_id, client_name, project_id, project_name, transcript_url, created_by, department, meeting_url', { count: 'exact' }).order('date_time', { ascending: false }).range(from, to);
+      const { data, error, count } = await supabase.from('meetings').select('id, title, date_time, status, client_id, client_name, project_id, project_name, transcript_url, created_by, department, meeting_url, meeting_type, parent_meeting_id, is_recurring', { count: 'exact' }).order('date_time', { ascending: false }).range(from, to);
       if (error) throw error;
       return { data: (data || []) as MeetingRow[], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },
@@ -124,19 +135,6 @@ function useProfiles() {
   });
 }
 
-function useMeetingParticipants(meetingId: string | undefined) {
-  return useQuery({
-    queryKey: ['meeting_participants', meetingId],
-    queryFn: async () => {
-      if (!meetingId) return [];
-      const { data, error } = await supabase.from('meeting_participants').select('*').eq('meeting_id', meetingId);
-      if (error) throw error;
-      return data as MeetingParticipant[];
-    },
-    enabled: !!meetingId,
-  });
-}
-
 // ─── Helpers ────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: MeetingStatus }) {
@@ -144,6 +142,17 @@ function StatusBadge({ status }: { status: MeetingStatus }) {
   return (
     <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: `${s.color}20`, color: s.color }}>
       {s.label}
+    </span>
+  );
+}
+
+function MeetingTypeBadge({ type }: { type: MeetingType }) {
+  const colors: Record<MeetingType, string> = { recorrente: '#6366f1', projeto: '#3b82f6', cliente: '#10b981' };
+  const labels: Record<MeetingType, string> = { recorrente: 'Recorrente', projeto: 'Projeto', cliente: 'Cliente' };
+  const c = colors[type] || '#6b7280';
+  return (
+    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ backgroundColor: `${c}20`, color: c }}>
+      {labels[type] || type}
     </span>
   );
 }
@@ -251,6 +260,53 @@ function ProjectPickerDialog({
   );
 }
 
+// ─── Recurrence helpers ─────────────────────────────────────────
+
+function generateRecurrenceDates(startDate: Date, frequency: string, endDate?: Date): Date[] {
+  const dates: Date[] = [];
+  const limit = endDate || addMonths(startDate, 12);
+  let current = new Date(startDate);
+
+  const advanceFn = frequency === 'semanal' ? (d: Date) => addWeeks(d, 1)
+    : frequency === 'quinzenal' ? (d: Date) => addWeeks(d, 2)
+    : (d: Date) => addMonths(d, 1);
+
+  // Skip the first one (it's the original)
+  current = advanceFn(current);
+  while (isBefore(current, limit) || current.getTime() === limit.getTime()) {
+    dates.push(new Date(current));
+    current = advanceFn(current);
+  }
+  return dates;
+}
+
+// ─── Meeting Type Picker Step ───────────────────────────────────
+
+function MeetingTypeStep({ onSelect }: { onSelect: (type: MeetingType) => void }) {
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">Selecione o tipo de reunião que pretende criar:</p>
+      <div className="grid gap-3">
+        {MEETING_TYPES.map(t => (
+          <button
+            key={t.value}
+            onClick={() => onSelect(t.value)}
+            className="flex items-center gap-4 rounded-lg border border-border p-4 text-left hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              {t.icon}
+            </div>
+            <div>
+              <p className="font-medium text-foreground">{t.label}</p>
+              <p className="text-xs text-muted-foreground">{t.description}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── New Meeting Dialog ─────────────────────────────────────────
 
 function MeetingFormDialog({
@@ -262,6 +318,8 @@ function MeetingFormDialog({
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const [step, setStep] = useState<'type' | 'form'>('type');
+  const [meetingType, setMeetingType] = useState<MeetingType>('recorrente');
   const [title, setTitle] = useState('');
   const [dateTime, setDateTime] = useState<Date | undefined>();
   const [status, setStatus] = useState<MeetingStatus>('por_confirmar');
@@ -269,16 +327,31 @@ function MeetingFormDialog({
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
   const [department, setDepartment] = useState('');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [meetingUrl, setMeetingUrl] = useState('');
   const [projectPickerOpen, setProjectPickerOpen] = useState(false);
   const [pendingClientProjects, setPendingClientProjects] = useState<ProjectOption[]>([]);
 
-  // Suppress auto-fill side-effects during programmatic changes
+  // Recurrence state
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceFrequency, setRecurrenceFrequency] = useState<string>('semanal');
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState<Date | undefined>();
+
   const skipAutoFillRef = useRef(false);
 
   const resetForm = () => {
+    setStep('type'); setMeetingType('recorrente');
     setTitle(''); setDateTime(undefined); setStatus('por_confirmar');
     setClientId(''); setSelectedProjectIds([]); setDepartment('');
-    setSelectedMembers([]); skipAutoFillRef.current = false;
+    setSelectedMembers([]); setMeetingUrl('');
+    setIsRecurring(false); setRecurrenceFrequency('semanal'); setRecurrenceEndDate(undefined);
+    skipAutoFillRef.current = false;
+  };
+
+  const handleTypeSelect = (type: MeetingType) => {
+    setMeetingType(type);
+    setStep('form');
+    // Pre-set department for cliente type
+    if (type === 'cliente') setDepartment('clientes');
   };
 
   // Projects for selected client
@@ -287,22 +360,17 @@ function MeetingFormDialog({
     return projects.filter(p => p.client_id === clientId);
   }, [clientId, projects]);
 
-  // ─── Auto-fill: when CLIENT changes ───
   const handleClientChange = (newClientId: string) => {
     const actualId = newClientId === '__none' ? '' : newClientId;
     skipAutoFillRef.current = true;
     setClientId(actualId);
 
     if (actualId) {
-      // Auto-set department to "clientes"
       setDepartment('clientes');
-
-      // Find projects for this client
       const cProjects = projects.filter(p => p.client_id === actualId);
       if (cProjects.length === 1) {
         setSelectedProjectIds([cProjects[0].id]);
       } else if (cProjects.length > 1) {
-        // Show picker dialog
         setPendingClientProjects(cProjects);
         setProjectPickerOpen(true);
       } else {
@@ -315,7 +383,6 @@ function MeetingFormDialog({
     setTimeout(() => { skipAutoFillRef.current = false; }, 0);
   };
 
-  // ─── Auto-fill: when PROJECT changes (single select for quick add) ───
   const handleProjectToggle = (projId: string) => {
     const isAdding = !selectedProjectIds.includes(projId);
     const newIds = isAdding
@@ -326,9 +393,7 @@ function MeetingFormDialog({
     if (isAdding && !skipAutoFillRef.current) {
       const proj = projects.find(p => p.id === projId);
       if (proj) {
-        // Auto-set department from project
         if (proj.department) setDepartment(proj.department);
-        // Auto-set client if project has one
         if (proj.client_id && !clientId) {
           skipAutoFillRef.current = true;
           setClientId(proj.client_id);
@@ -349,21 +414,28 @@ function MeetingFormDialog({
       const primaryProjectId = selectedProjectIds[0] || null;
       const primaryProject = primaryProjectId ? projects.find(p => p.id === primaryProjectId) : null;
       const selectedClient = clients.find((c: any) => c.id === clientId);
-      const isClientMeeting = !!clientId;
-      const { data, error } = await supabase.from('meetings').insert({
+
+      const meetingData = {
         title: title.trim(),
         date_time: dateTime.toISOString(),
         status,
-        client_id: clientId || null,
-        client_name: selectedClient?.full_name || null,
+        meeting_type: meetingType,
+        client_id: meetingType === 'cliente' ? (clientId || null) : null,
+        client_name: meetingType === 'cliente' ? (selectedClient?.full_name || null) : null,
         project_id: primaryProjectId,
         project_name: primaryProject?.name || null,
         department: department || null,
+        meeting_url: meetingUrl || null,
         created_by: user?.id ?? null,
-      }).select('id').single();
+        is_recurring: isRecurring,
+        recurrence_frequency: isRecurring ? recurrenceFrequency : null,
+        recurrence_end_date: isRecurring && recurrenceEndDate ? format(recurrenceEndDate, 'yyyy-MM-dd') : null,
+      };
+
+      const { data, error } = await supabase.from('meetings').insert(meetingData as any).select('id').single();
       if (error) throw error;
 
-      // Insert all project links into junction table
+      // Insert project links
       if (selectedProjectIds.length > 0) {
         const projRows = selectedProjectIds.map(pid => ({ meeting_id: data.id, project_id: pid }));
         await supabase.from('meeting_projects').insert(projRows);
@@ -374,7 +446,9 @@ function MeetingFormDialog({
         const rows = selectedMembers.map(pid => ({ meeting_id: data.id, profile_id: pid }));
         await supabase.from('meeting_participants').insert(rows);
       }
-      // Create calendar event with appropriate type
+
+      // Create calendar event
+      const isClientMeeting = meetingType === 'cliente';
       const { data: eventTypes } = await supabase.from('event_types')
         .select('id, slug')
         .in('slug', ['reuniao_interna', 'reuniao_cliente']);
@@ -384,10 +458,46 @@ function MeetingFormDialog({
         title: title.trim(),
         start_date: dateTime.toISOString(),
         event_type_id: eventTypeId,
-        client_name: selectedClient?.full_name || null,
+        client_name: isClientMeeting ? (selectedClient?.full_name || null) : null,
         department: department || null,
         created_by: user?.id ?? null,
       });
+
+      // Generate recurring occurrences
+      if (isRecurring && dateTime) {
+        const futureDates = generateRecurrenceDates(dateTime, recurrenceFrequency, recurrenceEndDate);
+        if (futureDates.length > 0) {
+          const occurrences = futureDates.map(d => ({
+            ...meetingData,
+            date_time: d.toISOString(),
+            parent_meeting_id: data.id,
+            is_recurring: false, // child occurrences are not "recurring" themselves
+          }));
+          const { data: insertedOccurrences } = await supabase.from('meetings').insert(occurrences as any).select('id, date_time');
+
+          // Create calendar events for each occurrence
+          if (insertedOccurrences) {
+            const occurrenceEvents = insertedOccurrences.map((occ: any) => ({
+              title: title.trim(),
+              start_date: occ.date_time,
+              event_type_id: eventTypeId,
+              client_name: isClientMeeting ? (selectedClient?.full_name || null) : null,
+              department: department || null,
+              created_by: user?.id ?? null,
+            }));
+            await supabase.from('events').insert(occurrenceEvents);
+
+            // Insert participants for each occurrence
+            if (selectedMembers.length > 0) {
+              const participantRows = insertedOccurrences.flatMap((occ: any) =>
+                selectedMembers.map(pid => ({ meeting_id: occ.id, profile_id: pid }))
+              );
+              await supabase.from('meeting_participants').insert(participantRows);
+            }
+          }
+        }
+      }
+
       return data.id;
     },
     onSuccess: (id) => {
@@ -411,81 +521,140 @@ function MeetingFormDialog({
       />
       <Dialog open={open} onOpenChange={o => { if (!o) resetForm(); onOpenChange(o); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Nova Reunião</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Nome da reunião *</Label>
-              <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Reunião de Alinhamento Semanal" />
+          <DialogHeader>
+            <DialogTitle>{step === 'type' ? 'Tipo de Reunião' : `Nova ${MEETING_TYPES.find(t => t.value === meetingType)?.label}`}</DialogTitle>
+          </DialogHeader>
+
+          {step === 'type' ? (
+            <MeetingTypeStep onSelect={handleTypeSelect} />
+          ) : (
+            <div className="space-y-4">
+              {/* Back to type selection */}
+              <Button variant="ghost" size="sm" onClick={() => setStep('type')} className="text-xs text-muted-foreground">
+                ← Alterar tipo
+              </Button>
+
+              <div>
+                <Label>Nome da reunião *</Label>
+                <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Reunião de Alinhamento Semanal" />
+              </div>
+              <div>
+                <Label>Data e hora *</Label>
+                <DateTimePickerField date={dateTime} onSelect={setDateTime} placeholder="Selecionar data" />
+              </div>
+              <div>
+                <Label>Status</Label>
+                <Select value={status} onValueChange={v => setStatus(v as MeetingStatus)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {STATUSES.map(s => (
+                      <SelectItem key={s.value} value={s.value}>
+                        <span className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
+                          {s.label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Link de acesso</Label>
+                <Input value={meetingUrl} onChange={e => setMeetingUrl(e.target.value)} placeholder="https://meet.google.com/..." />
+              </div>
+
+              <MemberPicker selectedIds={selectedMembers} onChange={setSelectedMembers} profiles={profiles} />
+
+              {/* Client — only for 'cliente' type */}
+              {meetingType === 'cliente' && (
+                <div>
+                  <Label>Cliente associado *</Label>
+                  <Select value={clientId} onValueChange={handleClientChange}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar cliente..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">Nenhum</SelectItem>
+                      {clients.map((c: any) => (
+                        <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Department — for recorrente and projeto */}
+              {meetingType !== 'cliente' && (
+                <div>
+                  <Label>Departamento</Label>
+                  <Select value={department} onValueChange={setDepartment}>
+                    <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
+                    <SelectContent>
+                      {DEPARTMENTS.map(d => (
+                        <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Project — for 'projeto' and 'cliente' types */}
+              {(meetingType === 'projeto' || meetingType === 'cliente') && (
+                <div>
+                  <Label>Projeto associado {meetingType === 'projeto' ? '*' : ''}</Label>
+                  <Select value={selectedProjectIds[0] || '_none_'} onValueChange={v => {
+                    const id = v === '_none_' ? '' : v;
+                    if (id) {
+                      handleProjectToggle(id);
+                      setSelectedProjectIds([id]);
+                    } else {
+                      setSelectedProjectIds([]);
+                    }
+                  }}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar projeto..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="_none_">Nenhum</SelectItem>
+                      {projects.map(p => (
+                        <SelectItem key={p.id} value={p.id}>{p.name}{p.type ? ` (${p.type})` : ''}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Recurrence */}
+              <div className="rounded-lg border border-border p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="flex items-center gap-2 text-sm">
+                    <Repeat className="h-4 w-4" /> Reunião recorrente
+                  </Label>
+                  <Switch checked={isRecurring} onCheckedChange={setIsRecurring} />
+                </div>
+                {isRecurring && (
+                  <div className="space-y-3 pt-2">
+                    <div>
+                      <Label className="text-xs">Frequência</Label>
+                      <Select value={recurrenceFrequency} onValueChange={setRecurrenceFrequency}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="semanal">Semanal</SelectItem>
+                          <SelectItem value="quinzenal">Quinzenal</SelectItem>
+                          <SelectItem value="mensal">Mensal</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Data de fim (opcional)</Label>
+                      <DateTimePickerField date={recurrenceEndDate} onSelect={setRecurrenceEndDate} placeholder="Sem data de fim (12 meses)" />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <Button className="w-full" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+                {saveMutation.isPending ? 'A criar...' : 'Criar reunião'}
+              </Button>
             </div>
-            <div>
-              <Label>Data e hora *</Label>
-              <DateTimePickerField date={dateTime} onSelect={setDateTime} placeholder="Selecionar data" />
-            </div>
-            <div>
-              <Label>Status</Label>
-              <Select value={status} onValueChange={v => setStatus(v as MeetingStatus)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {STATUSES.map(s => (
-                    <SelectItem key={s.value} value={s.value}>
-                      <span className="flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
-                        {s.label}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <MemberPicker selectedIds={selectedMembers} onChange={setSelectedMembers} profiles={profiles} />
-            <div>
-              <Label>Cliente associado</Label>
-              <Select value={clientId} onValueChange={handleClientChange}>
-                <SelectTrigger><SelectValue placeholder="Selecionar cliente..." /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none">Nenhum</SelectItem>
-                  {clients.map((c: any) => (
-                    <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Departamento</Label>
-              <Select value={department} onValueChange={setDepartment}>
-                <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
-                <SelectContent>
-                  {DEPARTMENTS.map(d => (
-                    <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Projeto associado</Label>
-              <Select value={selectedProjectIds[0] || '_none_'} onValueChange={v => {
-                const id = v === '_none_' ? '' : v;
-                if (id) {
-                  handleProjectToggle(id);
-                  // ensure only this one is selected
-                  setSelectedProjectIds([id]);
-                } else {
-                  setSelectedProjectIds([]);
-                }
-              }}>
-                <SelectTrigger><SelectValue placeholder="Selecionar projeto..." /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_none_">Nenhum</SelectItem>
-                  {projects.map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}{p.type ? ` (${p.type})` : ''}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button className="w-full" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? 'A criar...' : 'Criar reunião'}
-            </Button>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
     </>
@@ -521,7 +690,6 @@ export default function ReunioesPage() {
     <AppLayout>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         <BackNavigation />
-        {/* Header */}
         <PageHeader title="Reuniões" />
         <div className="flex items-center justify-between">
           <div />
@@ -560,7 +728,7 @@ export default function ReunioesPage() {
                 <div className="col-span-4">Reunião</div>
                 <div className="col-span-3">Data / Hora</div>
                 <div className="col-span-2">Status</div>
-                <div className="col-span-3">Cliente / Projeto</div>
+                <div className="col-span-3">Tipo / Contexto</div>
               </div>
               {filteredMeetings.map(m => (
                 <button
@@ -573,8 +741,11 @@ export default function ReunioesPage() {
                     {format(parseISO(m.date_time), "dd MMM yyyy 'às' HH:mm", { locale: pt })}
                   </div>
                   <div className="col-span-2"><StatusBadge status={m.status} /></div>
-                  <div className="col-span-3 text-muted-foreground truncate">
-                    {[m.department ? DEPARTMENTS.find(d => d.value === m.department)?.label : null, m.client_name, m.project_name].filter(Boolean).join(' · ') || '—'}
+                  <div className="col-span-3 flex items-center gap-2 text-muted-foreground truncate">
+                    <MeetingTypeBadge type={m.meeting_type || 'recorrente'} />
+                    <span className="truncate">
+                      {m.client_name || m.project_name || (m.department ? DEPARTMENTS.find(d => d.value === m.department)?.label : '') || ''}
+                    </span>
                   </div>
                 </button>
               ))}
