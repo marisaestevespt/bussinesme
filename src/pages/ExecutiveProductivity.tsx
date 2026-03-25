@@ -169,7 +169,7 @@ const MAIN_TABS = [
   { value: 'time', label: 'Tempo', icon: Clock },
   { value: 'capacity', label: 'Capacidade', icon: Building2 },
   { value: 'simulation', label: 'Simulação', icon: Cpu },
-  { value: 'overload', label: 'Tarefas & Sobrecarga', icon: AlertTriangle },
+  { value: 'overload', label: 'Sobrecarga', icon: AlertTriangle },
 ];
 
 function MainTabs({ members, entries, clients, products, projects, tasks, scenario, scenarioProducts }: {
@@ -184,18 +184,19 @@ function MainTabs({ members, entries, clients, products, projects, tasks, scenar
           <button
             key={t.value}
             onClick={() => setActive(t.value)}
-            className={`inline-flex items-center gap-1.5 rounded-sm px-3 py-1.5 text-sm font-medium border transition-all ${
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-sm font-medium border transition-all",
               active === t.value
                 ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                : 'border-secondary bg-background text-secondary-foreground hover:bg-muted'
-            }`}
+                : 'border-border bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+            )}
           >
             <t.icon className="h-3.5 w-3.5" />{t.label}
           </button>
         ))}
       </div>
 
-      {active === 'overview' && <OverviewTab entries={entries} members={members} />}
+      {active === 'overview' && <OverviewTab entries={entries} members={members} tasks={tasks} />}
       {active === 'time' && <TimeTab entries={entries} members={members} clients={clients} projects={projects} tasks={tasks} scenario={scenario} scenarioProducts={scenarioProducts} />}
       {active === 'capacity' && <CapacityTab members={members} entries={entries} clients={clients} products={products} scenario={scenario} scenarioProducts={scenarioProducts} />}
       {active === 'simulation' && <SimulationTab members={members} entries={entries} clients={clients} products={products} />}
