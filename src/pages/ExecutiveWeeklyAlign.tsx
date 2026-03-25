@@ -673,12 +673,28 @@ export default function ExecutiveWeeklyAlign() {
             <h2 className="text-base font-semibold">2 // Vendas & Faturação</h2>
             <DeltaBadge current={salesWeekTotal} previous={prevSalesWeekTotal} isCurrency />
           </div>
-          <Card><CardContent className="p-4 space-y-2">
+          <Card><CardContent className="p-4 space-y-3">
               <h3 className="text-sm font-medium">Status faturação — {getMonthName(currentMonth)}</h3>
-              <div className="text-xs text-muted-foreground space-y-1">
-                <p>Meta: €{billingGoal.toLocaleString()} | Até agora: €{totalBilled.toLocaleString()}</p>
-                <p>Progresso: {billingPct}% — Faturado: €{totalBilled.toLocaleString()} de €{billingGoal.toLocaleString()}</p>
+              <div className="w-full bg-muted rounded-full h-2.5">
+                <div className="bg-primary h-2.5 rounded-full transition-all" style={{ width: `${Math.min(billingPct, 100)}%` }} />
               </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">€{totalBilled.toLocaleString()} faturado</span>
+                <span className="font-medium">{billingPct}%</span>
+                <span className="text-muted-foreground">Meta: €{billingGoal.toLocaleString()}</span>
+              </div>
+              {billingGoal > 0 && totalBilled < billingGoal && (
+                <div className="flex items-center gap-2 p-2 rounded-md bg-accent/50 border border-accent">
+                  <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+                  <span className="text-sm font-medium">Falta faturar €{(billingGoal - totalBilled).toLocaleString()} para atingir a meta deste mês</span>
+                </div>
+              )}
+              {billingGoal > 0 && totalBilled >= billingGoal && (
+                <div className="flex items-center gap-2 p-2 rounded-md bg-emerald-500/10 border border-emerald-500/30">
+                  <Target className="h-4 w-4 text-emerald-500 shrink-0" />
+                  <span className="text-sm font-medium text-emerald-700">Meta atingida! 🎉 Faturaste +€{(totalBilled - billingGoal).toLocaleString()} acima da meta</span>
+                </div>
+              )}
             </CardContent></Card>
           <Card><CardContent className="p-4">
             <h3 className="text-sm font-medium mb-2">Vendas esta semana</h3>
