@@ -16,6 +16,7 @@ import { Plus, Trash2, Calculator, Users, Clock, AlertTriangle, CheckCircle2, Tr
 import { toast } from 'sonner';
 import { useProducts, Product } from '@/hooks/useProducts';
 import { useClients } from '@/hooks/useClients';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function ExecutiveCapacidade() {
   const qc = useQueryClient();
@@ -23,6 +24,31 @@ export default function ExecutiveCapacidade() {
   const allProducts = (products.data || []).filter((p: Product) => p.status !== 'off');
   const { clients } = useClients();
   const allClients = clients.data || [];
+
+  // Fetch active team members with their weekly hours
+  const teamMembers = useQuery({
+    queryKey: ['team-members-capacity'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('id, full_name, expected_weekly_hours, status, role_title')
+        .in('status', ['ativo', 'prestador'])
+        .order('full_name');
+      if (error) throw error;
+      return (data || []) as { id: string; full_name: string; expected_weekly_hours: number | null; status: string; role_title: string | null }[];
+    },
+  });
+  const members = teamMembers.data || [];
+
+  // Track which members are "client-facing" (selected for capacity)
+  const [clientFacingIds, setClientFacingIds] = useState<Set<string>>(new Set());
+  const [cfInitialized, setCfInitialized] = useState(false);
+
+  // Initialize: all members are client-facing by default
+  if (members.length > 0 && !cfInitialized) {
+    setClientFacingIds(new Set(members.map(m => m.id)));
+    setCfInitialized(true);
+  }
 
   const realClientCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -70,20 +96,27 @@ export default function ExecutiveCapacidade() {
     };
   }, [scenarioProductsRaw.data, allProducts]);
 
-  const [hoursPerMonth, setHoursPerMonth] = useState<number | null>(null);
   const [adminPercent, setAdminPercent] = useState<number | null>(null);
-  const [teamSize, setTeamSize] = useState<number | null>(null);
-  const [clientFacing, setClientFacing] = useState<number | null>(null);
   const [businessPercent, setBusinessPercent] = useState<number | null>(null);
 
-  const effectiveHours = hoursPerMonth ?? (Number(scenario.data?.useful_hours_per_month) || 160);
+  // Compute total monthly hours from selected (client-facing) members
+  const WEEKS_PER_MONTH = 4.33;
+  const totalTeamMonthlyHours = useMemo(() => {
+    return members.reduce((sum, m) => sum + (Number(m.expected_weekly_hours) || 0) * WEEKS_PER_MONTH, 0);
+  }, [members]);
+
+  const clientFacingMonthlyHours = useMemo(() => {
+    return members
+      .filter(m => clientFacingIds.has(m.id))
+      .reduce((sum, m) => sum + (Number(m.expected_weekly_hours) || 0) * WEEKS_PER_MONTH, 0);
+  }, [members, clientFacingIds]);
+
   const effectiveAdmin = adminPercent ?? (Number(scenario.data?.admin_percent) || 20);
   const effectiveBusiness = businessPercent ?? (Number(scenario.data?.business_percent) || 0);
-  const effectiveTeamSize = teamSize ?? (Number(scenario.data?.team_size) || 1);
-  const effectiveClientFacing = clientFacing ?? (Number(scenario.data?.client_facing_count) || 1);
+  const effectiveTeamSize = members.length;
+  const effectiveClientFacing = members.filter(m => clientFacingIds.has(m.id)).length;
   const totalNonClientPercent = Math.min(effectiveAdmin + effectiveBusiness, 100);
-  const availableHoursPerPerson = effectiveHours * (1 - totalNonClientPercent / 100);
-  const availableHours = availableHoursPerPerson * effectiveClientFacing;
+  const availableHours = clientFacingMonthlyHours * (1 - totalNonClientPercent / 100);
 
   const ensureScenario = useMutation({
     mutationFn: async () => {
@@ -102,7 +135,7 @@ export default function ExecutiveCapacidade() {
         scenarioId = await ensureScenario.mutateAsync();
       }
       const { error } = await supabase.from('capacity_scenarios').update({
-        useful_hours_per_month: effectiveHours,
+        useful_hours_per_month: Math.round(clientFacingMonthlyHours),
         admin_percent: effectiveAdmin,
         business_percent: effectiveBusiness,
         team_size: effectiveTeamSize,
@@ -211,12 +244,12 @@ export default function ExecutiveCapacidade() {
 
   const addedProductIds = items.map(p => p.product_id);
   const availableToAdd = allProducts.filter((p: Product) => !addedProductIds.includes(p.id));
-  const internalCount = effectiveTeamSize - effectiveClientFacing;
+  
 
-  // Compute hours breakdown for visual
-  const adminHours = Math.round(effectiveHours * effectiveAdmin / 100);
-  const businessHours = Math.round(effectiveHours * effectiveBusiness / 100);
-  const clientHours = Math.round(availableHoursPerPerson);
+  // Compute hours breakdown for visual (based on total client-facing hours)
+  const adminHours = Math.round(clientFacingMonthlyHours * effectiveAdmin / 100);
+  const businessHours = Math.round(clientFacingMonthlyHours * effectiveBusiness / 100);
+  const clientHours = Math.round(clientFacingMonthlyHours * (1 - totalNonClientPercent / 100));
 
   return (
     <AppLayout>
@@ -233,11 +266,42 @@ export default function ExecutiveCapacidade() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
-              <div className="space-y-2">
-                <Label className="text-xs">Horas úteis por mês (por pessoa)</Label>
-                <Input type="number" value={effectiveHours} onChange={e => setHoursPerMonth(Number(e.target.value))} className="h-8" />
-                <p className="text-[10px] text-muted-foreground">Ex: 160h = 8h × 20 dias úteis</p>
+              {/* Team members with hours */}
+              <div className="space-y-3">
+                <Label className="text-xs font-medium flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Equipa ({effectiveTeamSize} membros)</Label>
+                <p className="text-[10px] text-muted-foreground">Seleciona quem faz entrega a clientes. As horas vêm da ficha de cada membro.</p>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  {members.map(m => {
+                    const weeklyH = Number(m.expected_weekly_hours) || 0;
+                    const monthlyH = Math.round(weeklyH * WEEKS_PER_MONTH);
+                    const isSelected = clientFacingIds.has(m.id);
+                    return (
+                      <label key={m.id} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted/50 cursor-pointer text-sm">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={(checked) => {
+                            const next = new Set(clientFacingIds);
+                            if (checked) next.add(m.id); else next.delete(m.id);
+                            setClientFacingIds(next);
+                          }}
+                        />
+                        <span className="flex-1 truncate">{m.full_name}</span>
+                        <span className="text-xs text-muted-foreground tabular-nums">{weeklyH}h/sem</span>
+                        <span className="text-[10px] text-muted-foreground">≈{monthlyH}h/mês</span>
+                      </label>
+                    );
+                  })}
+                  {members.length === 0 && (
+                    <p className="text-xs text-muted-foreground py-2">Nenhum membro ativo encontrado</p>
+                  )}
+                </div>
+                <div className="rounded-md bg-muted/50 px-3 py-2 flex justify-between text-xs">
+                  <span className="text-muted-foreground">{effectiveClientFacing} em entrega</span>
+                  <span className="font-medium">{Math.round(clientFacingMonthlyHours)}h/mês</span>
+                </div>
               </div>
+
+              <Separator />
 
               <div className="space-y-2">
                 <Label className="text-xs">Tempo admin/gestão</Label>
@@ -248,7 +312,7 @@ export default function ExecutiveCapacidade() {
                     value={adminHours}
                     onChange={e => {
                       const hrs = Number(e.target.value);
-                      setAdminPercent(effectiveHours > 0 ? Math.min(Math.round((hrs / effectiveHours) * 100), 100) : 0);
+                      setAdminPercent(clientFacingMonthlyHours > 0 ? Math.min(Math.round((hrs / clientFacingMonthlyHours) * 100), 100) : 0);
                     }}
                   />
                   <span className="text-xs text-muted-foreground">h</span>
@@ -274,7 +338,7 @@ export default function ExecutiveCapacidade() {
                     value={businessHours}
                     onChange={e => {
                       const hrs = Number(e.target.value);
-                      setBusinessPercent(effectiveHours > 0 ? Math.min(Math.round((hrs / effectiveHours) * 100), 100) : 0);
+                      setBusinessPercent(clientFacingMonthlyHours > 0 ? Math.min(Math.round((hrs / clientFacingMonthlyHours) * 100), 100) : 0);
                     }}
                   />
                   <span className="text-xs text-muted-foreground">h</span>
@@ -289,45 +353,6 @@ export default function ExecutiveCapacidade() {
                 </div>
                 <Slider value={[effectiveBusiness]} onValueChange={v => setBusinessPercent(v[0])} min={0} max={50} step={5} className="mt-1" />
                 <p className="text-[10px] text-muted-foreground">Marketing, comercial, estratégia</p>
-              </div>
-
-              <Separator />
-
-              {/* Team */}
-              <div className="space-y-3">
-                <Label className="text-xs font-medium flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Equipa</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-[10px]">Total de pessoas</Label>
-                    <Input
-                      type="number"
-                      className="h-8"
-                      min={1}
-                      value={effectiveTeamSize}
-                      onChange={e => {
-                        const val = Math.max(1, Number(e.target.value));
-                        setTeamSize(val);
-                        if (effectiveClientFacing > val) setClientFacing(val);
-                      }}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[10px]">Em entrega a clientes</Label>
-                    <Input
-                      type="number"
-                      className="h-8"
-                      min={0}
-                      max={effectiveTeamSize}
-                      value={effectiveClientFacing}
-                      onChange={e => setClientFacing(Math.min(Number(e.target.value), effectiveTeamSize))}
-                    />
-                  </div>
-                </div>
-                {internalCount > 0 && (
-                  <p className="text-[10px] text-muted-foreground">
-                    {internalCount} pessoa{internalCount > 1 ? 's' : ''} em trabalho interno
-                  </p>
-                )}
               </div>
 
               <Separator />
@@ -374,11 +399,9 @@ export default function ExecutiveCapacidade() {
                   <span className="text-muted-foreground">Horas para clientes (equipa)</span>
                   <span className="font-bold">{availableHours.toFixed(0)}h</span>
                 </div>
-                {effectiveClientFacing > 1 && (
-                  <p className="text-[10px] text-muted-foreground">
-                    {availableHoursPerPerson.toFixed(0)}h/pessoa × {effectiveClientFacing} pessoas
-                  </p>
-                )}
+                <p className="text-[10px] text-muted-foreground">
+                  {Math.round(clientFacingMonthlyHours)}h totais − {adminHours + businessHours}h overhead = {availableHours.toFixed(0)}h disponíveis
+                </p>
               </div>
 
               <Button size="sm" className="w-full" onClick={() => saveSettings.mutate()}>Guardar parâmetros</Button>
