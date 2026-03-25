@@ -2645,6 +2645,7 @@ export type Database = {
           primary_metric_id: string | null
           product_id: string | null
           progress: number
+          source_filter: Json | null
           status: string
           target_unit: string | null
           target_value: number | null
@@ -2665,6 +2666,7 @@ export type Database = {
           primary_metric_id?: string | null
           product_id?: string | null
           progress?: number
+          source_filter?: Json | null
           status?: string
           target_unit?: string | null
           target_value?: number | null
@@ -2685,6 +2687,7 @@ export type Database = {
           primary_metric_id?: string | null
           product_id?: string | null
           progress?: number
+          source_filter?: Json | null
           status?: string
           target_unit?: string | null
           target_value?: number | null
