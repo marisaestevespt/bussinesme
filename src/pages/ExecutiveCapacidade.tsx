@@ -175,10 +175,11 @@ export default function ExecutiveCapacidade() {
       }
       const { error } = await supabase.from('capacity_scenarios').update({
         useful_hours_per_month: Math.round(clientFacingMonthlyHours),
-        admin_percent: effectiveAdmin,
-        business_percent: effectiveBusiness,
+        admin_percent: 0,
+        business_percent: 0,
         team_size: effectiveTeamSize,
         client_facing_count: effectiveClientFacing,
+        member_overheads: memberOverhead,
       } as any).eq('id', scenarioId);
       if (error) throw error;
     },
