@@ -21,15 +21,7 @@ const HALL_MODULES = ['comeca-aqui', 'mural', 'hub-equipa'];
 const TRANSVERSAL_MODULES = ['agenda', 'reunioes', 'acessos', 'projetos', 'processos', 'tarefas', 'biblioteca'];
 const SECRETARIA_MODULES = ['secretaria'];
 
-export function cleanPayload(obj: Record<string, any>): Record<string, any> {
-  const cleaned: Record<string, any> = {};
-  const STRIP_KEYS = ['created_at', 'updated_at'];
-  for (const [k, v] of Object.entries(obj)) {
-    if (STRIP_KEYS.includes(k)) continue;
-    cleaned[k] = v === '' ? null : v;
-  }
-  return cleaned;
-}
+// cleanPayload imported from utils as cleanPayloadStrip
 
 async function autoAssignPermissions(memberId: string, departments: string[]) {
   if (!departments || departments.length === 0) return;
