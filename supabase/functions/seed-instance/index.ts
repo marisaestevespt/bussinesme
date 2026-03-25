@@ -58,7 +58,6 @@ Deno.serve(async (req) => {
         results.custom_roles = `error: ${error.message}`;
       } else {
         results.custom_roles = "created";
-        // Link the current user as member with this role
         const { data: existingMember } = await supabase
           .from("members")
           .select("id")
@@ -74,7 +73,6 @@ Deno.serve(async (req) => {
       }
     } else {
       results.custom_roles = "exists";
-      // Ensure member link exists
       const { data: existingMember } = await supabase
         .from("members")
         .select("id")
@@ -111,7 +109,6 @@ Deno.serve(async (req) => {
       const { error } = await supabase.from("event_types").insert(eventTypes);
       results.event_types = error ? `error: ${error.message}` : "created";
     } else {
-      // Ensure feedback type exists
       const { data: feedbackType } = await supabase
         .from("event_types")
         .select("id")
@@ -232,6 +229,50 @@ Deno.serve(async (req) => {
       results.digest_settings = "created";
     } else {
       results.digest_settings = "exists";
+    }
+
+    // ─── 8. Departments ───
+    const { count: deptCount } = await supabase
+      .from("departments")
+      .select("id", { count: "exact", head: true });
+
+    if (!deptCount || deptCount === 0) {
+      const departments = [
+        { value: "admin", label: "Administração", gradient: "from-yellow-500 to-amber-700", icon: "👑", lucide_icon: "Crown", sort_order: 0 },
+        { value: "marketing", label: "Marketing", gradient: "from-pink-500 to-rose-700", icon: "📣", lucide_icon: "Megaphone", sort_order: 1 },
+        { value: "comercial", label: "Comercial", gradient: "from-amber-500 to-orange-700", icon: "🤝", lucide_icon: "ShoppingCart", sort_order: 2 },
+        { value: "clientes", label: "Clientes", gradient: "from-cyan-500 to-teal-700", icon: "⭐", lucide_icon: "UserCheck", sort_order: 3 },
+        { value: "financeiro", label: "Contabilidade", gradient: "from-emerald-500 to-green-800", icon: "💰", lucide_icon: "DollarSign", sort_order: 4 },
+        { value: "operacao", label: "Operação", gradient: "from-violet-500 to-purple-800", icon: "⚙️", lucide_icon: "Headphones", sort_order: 5 },
+        { value: "produtos", label: "Produtos", gradient: "from-indigo-500 to-blue-800", icon: "📦", lucide_icon: "Package", sort_order: 6 },
+        { value: "recursos-humanos", label: "Recursos Humanos", gradient: "from-rose-500 to-pink-800", icon: "👥", lucide_icon: "UsersRound", sort_order: 7 },
+      ];
+      const { error } = await supabase.from("departments").insert(departments);
+      results.departments = error ? `error: ${error.message}` : "created";
+    } else {
+      results.departments = "exists";
+    }
+
+    // ─── 9. SOP Categories ───
+    const { count: sopCatCount } = await supabase
+      .from("sop_categories")
+      .select("id", { count: "exact", head: true });
+
+    if (!sopCatCount || sopCatCount === 0) {
+      const sopCategories = [
+        { value: "admin", label: "Administração", sort_order: 0 },
+        { value: "marketing", label: "Marketing", sort_order: 1 },
+        { value: "comercial", label: "Comercial", sort_order: 2 },
+        { value: "clientes", label: "Clientes", sort_order: 3 },
+        { value: "financeiro", label: "Contabilidade", sort_order: 4 },
+        { value: "operacao", label: "Operação", sort_order: 5 },
+        { value: "produtos", label: "Produtos", sort_order: 6 },
+        { value: "recursos-humanos", label: "Recursos Humanos", sort_order: 7 },
+      ];
+      const { error } = await supabase.from("sop_categories").insert(sopCategories);
+      results.sop_categories = error ? `error: ${error.message}` : "created";
+    } else {
+      results.sop_categories = "exists";
     }
 
     return new Response(JSON.stringify({ success: true, results }), {
