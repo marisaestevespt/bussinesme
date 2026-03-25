@@ -201,6 +201,41 @@ Deno.serve(async (req) => {
         invite_url = `${siteUrl}#access_token=${resetData.properties.hashed_token}&type=recovery`;
       }
 
+      // Fetch WhatsApp group links for the welcome email
+      let whatsapp_team_url: string | null = null;
+      let whatsapp_dept_url: string | null = null;
+      let department_name: string | null = null;
+
+      // Get team-wide WhatsApp link from business_settings
+      const { data: bizSettings } = await supabase
+        .from("business_settings")
+        .select("whatsapp_team_url")
+        .limit(1)
+        .maybeSingle();
+      if (bizSettings?.whatsapp_team_url) {
+        whatsapp_team_url = bizSettings.whatsapp_team_url;
+      }
+
+      // Get department WhatsApp link if member has a department
+      const memberDept = department || null;
+      if (memberDept) {
+        const { data: deptLink } = await supabase
+          .from("department_whatsapp_links")
+          .select("whatsapp_url")
+          .eq("department", memberDept)
+          .maybeSingle();
+        if (deptLink?.whatsapp_url) {
+          whatsapp_dept_url = deptLink.whatsapp_url;
+          // Map department key to label
+          const deptLabels: Record<string, string> = {
+            marketing: 'Marketing', comercial: 'Comercial', clientes: 'Clientes',
+            financeiro: 'Contabilidade', operacao: 'Operação', produtos: 'Produtos',
+            'recursos-humanos': 'Pessoas',
+          };
+          department_name = deptLabels[memberDept] || memberDept;
+        }
+      }
+
       return new Response(
         JSON.stringify({
           success: true,
@@ -209,6 +244,9 @@ Deno.serve(async (req) => {
           invite_url,
           onboarding_created,
           onboarding_warning,
+          whatsapp_team_url,
+          whatsapp_dept_url,
+          department_name,
         }),
         {
           status: 200,
