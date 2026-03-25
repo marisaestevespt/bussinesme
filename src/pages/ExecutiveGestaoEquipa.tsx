@@ -597,6 +597,7 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
               })}
             </div>
           </div>
+          <div>
               <label className="text-xs text-muted-foreground">Tipo</label>
               <Select value={f.member_type} onValueChange={v => set('member_type', v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
