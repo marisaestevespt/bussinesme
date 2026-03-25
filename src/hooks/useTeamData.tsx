@@ -42,10 +42,10 @@ export const PAYMENT_STATUSES = [
 ];
 
 export const WORK_AREAS = [
-  { value: 'interno', label: 'Trabalho Interno', description: 'Marketing, contabilidade, operações, etc.' },
-  { value: 'cliente_administrativo', label: 'Cliente — Administrativo', description: 'Onboarding, envio de documentos, etc.' },
-  { value: 'cliente_servico', label: 'Cliente — Serviço', description: 'Consultoria, criação, prestação de serviço' },
-  { value: 'cliente_comercial', label: 'Cliente — Comercial', description: 'Vendas, renovações, contacto com clientes' },
+  { value: 'interno', label: 'Trabalho Interno', description: 'Tarefas internas do negócio (ex: marketing, contabilidade, operações)' },
+  { value: 'cliente_administrativo', label: 'Cliente — Administrativo', description: 'Gestão administrativa de clientes (onboarding, documentos, comunicação)' },
+  { value: 'cliente_servico', label: 'Cliente — Entrega / Serviço', description: 'Trabalho direto com o cliente (prestar o serviço, sessões, entregas)' },
+  { value: 'cliente_comercial', label: 'Cliente — Comercial', description: 'Angariação, vendas, renovações e relacionamento comercial' },
 ];
 
 export const FEEDBACK_TYPES = [
