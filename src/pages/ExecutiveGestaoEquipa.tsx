@@ -35,6 +35,7 @@ import {
 import { getMonthName } from '@/hooks/useExecutiveData';
 import { DEPARTMENTS, getDept } from '@/lib/departments';
 import { InlineDeptPagePicker } from '@/components/InlineDeptPagePicker';
+import { SENSITIVE_CATEGORIES, type SensitiveCategory } from '@/hooks/useSensitiveAccess';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
