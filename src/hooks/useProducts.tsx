@@ -96,24 +96,26 @@ export function useProducts() {
         if (error) throw error;
         const newId = data.id;
 
-        // Auto-create 5 default SOPs for the new product
+        // Auto-create 6 default SOPs for the new product
         const defaultSops = [
-          'Entrada/Onboarding de Clientes',
-          'Gestão de Pagamentos',
-          'Recolha de NPS/Feedbacks',
-          'Acompanhamento de Cliente',
-          'KPIs de Produto',
-          'Fecho/Offboarding de Clientes',
+          { name: 'Entrada/Onboarding de Clientes', sop_type: 'onboarding' },
+          { name: 'Gestão de Pagamentos', sop_type: 'operacional' },
+          { name: 'Recolha de NPS/Feedbacks', sop_type: 'operacional' },
+          { name: 'Acompanhamento de Cliente', sop_type: 'operacional' },
+          { name: 'KPIs de Produto', sop_type: 'operacional' },
+          { name: 'Fecho/Offboarding de Clientes', sop_type: 'operacional' },
         ];
         await supabase.from('sops').insert(
-          defaultSops.map((name, idx) => ({
-            name: `${name} — ${product.name}`,
+          defaultSops.map((s, idx) => ({
+            name: `${s.name} — ${product.name}`,
             department: 'produtos',
             departments: ['produtos'],
             status: 'para_criar',
             linked_entity_type: 'produto',
             linked_entity_id: newId,
             product_name: product.name,
+            product_id: newId,
+            sop_type: s.sop_type,
             sort_order: idx,
           }))
         );
