@@ -502,6 +502,9 @@ export default function SopDetailPage() {
     setLinkedEntityType((sop as any).linked_entity_type || 'geral');
     setLinkedEntityId((sop as any).linked_entity_id || '');
     setApplyToAllActiveClients((sop as any).apply_to_all_active_clients || false);
+    setSopType((sop as any).sop_type || 'operacional');
+    setSopRoleTitle((sop as any).role_title || '');
+    setSopProductId((sop as any).product_id || '');
   }, [sop]);
 
   // ─── Save ───────────────────────────────────────────────────
