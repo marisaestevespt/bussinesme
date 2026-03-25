@@ -1285,6 +1285,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
               phone: member.whatsapp || null,
               work_schedule: member.work_schedule || null,
               team_member_id: memberId,
+              department: member.department || null,
             },
           });
           if (authError) {
@@ -1691,6 +1692,7 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
               phone: member.whatsapp || null,
               work_schedule: member.work_schedule || null,
               team_member_id: memberId,
+              department: member.department || null,
             },
           });
           if (authError) {
