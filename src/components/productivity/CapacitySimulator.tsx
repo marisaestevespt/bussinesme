@@ -202,37 +202,60 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
       const gross = p.grossSalary;
       if (p.contractType === 'colaborador') {
         const ssEmployer = Math.round(gross * 0.2375 * 100) / 100;
-        const ssEmployee = Math.round(gross * 0.11 * 100) / 100;
         const mealAllowance = 6 * 22; // ~132€/month (6€/day * 22 days)
         const totalCostMonth = gross + ssEmployer + mealAllowance;
         const totalCostYear = totalCostMonth * 14; // 14 months (with holiday & christmas bonus)
         return {
           id: p.id,
           name: p.name,
-          type: 'Colaborador',
+          type: 'Colaborador' as const,
           gross,
           ssEmployer,
           mealAllowance,
+          iva: 0,
           totalCostMonth: Math.round(totalCostMonth * 100) / 100,
           totalCostYear: Math.round(totalCostYear * 100) / 100,
+          startDate: p.startDate,
         };
       } else {
-        // Prestador — no SS employer, no meal, 12 months
+        // Prestador — valor da fatura + IVA 23%, 12 months
+        const iva = Math.round(gross * 0.23 * 100) / 100;
+        const totalCostMonth = gross + iva;
         return {
           id: p.id,
           name: p.name,
-          type: 'Prestador',
+          type: 'Prestador' as const,
           gross,
           ssEmployer: 0,
           mealAllowance: 0,
-          totalCostMonth: gross,
-          totalCostYear: gross * 12,
+          iva,
+          totalCostMonth,
+          totalCostYear: totalCostMonth * 12,
+          startDate: p.startDate,
         };
       }
     });
 
     const totalMonthlyCost = financialPerMember.reduce((s, f) => s + f.totalCostMonth, 0);
     const totalAnnualCost = financialPerMember.reduce((s, f) => s + f.totalCostYear, 0);
+
+    // Financial viability: calculate cost from start date to end of year
+    const costByMonth: { month: string; cost: number; cumulative: number }[] = [];
+    let cumulative = 0;
+    for (let m = 0; m < 12; m++) {
+      const monthDate = new Date(now.getFullYear(), m, 1);
+      const monthLabel = monthDate.toLocaleString('pt-PT', { month: 'short' }).replace('.', '');
+      let monthlyCost = 0;
+      financialPerMember.forEach(f => {
+        const startD = new Date(f.startDate);
+        if (monthDate >= new Date(startD.getFullYear(), startD.getMonth(), 1)) {
+          monthlyCost += f.totalCostMonth;
+          // Add extra month costs for colaborador (sub férias + natal in specific months)
+        }
+      });
+      cumulative += monthlyCost;
+      costByMonth.push({ month: monthLabel, cost: Math.round(monthlyCost), cumulative: Math.round(cumulative) });
+    }
 
     return {
       currentCapacity: Math.round(currentCapacity),
@@ -253,6 +276,7 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
       financialPerMember,
       totalMonthlyCost,
       totalAnnualCost,
+      costByMonth,
     };
   }, [members, monthEntries, phantoms]);
 
