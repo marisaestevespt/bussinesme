@@ -385,7 +385,6 @@ export default function ProcessosPage() {
               </Select>
             </div>
             </div>
-            </div>
             <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Departamentos</Label>
