@@ -1,7 +1,7 @@
 /// <reference types="npm:@types/react@18.3.1" />
 import * as React from 'npm:react@18.3.1'
 import {
-  Body, Container, Head, Heading, Html, Preview, Text, Button, Section, Hr,
+  Body, Container, Head, Heading, Html, Preview, Text, Button, Section, Hr, Img,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
@@ -13,6 +13,19 @@ interface WelcomeMemberProps {
   ownerName?: string
   supportEmail?: string
   businessName?: string
+  // Brand settings (fetched from business_settings at send time)
+  primaryColor?: string
+  primaryForeground?: string
+  textColor?: string
+  accentColor?: string
+  fontDisplay?: string
+  fontBody?: string
+  logoUrl?: string
+}
+
+function hslToCss(hsl: string | undefined, fallback: string): string {
+  if (!hsl) return fallback
+  return `hsl(${hsl.replace(/ /g, ', ')})`
 }
 
 const WelcomeMemberEmail = ({
@@ -21,11 +34,46 @@ const WelcomeMemberEmail = ({
   ownerName,
   supportEmail,
   businessName,
+  primaryColor,
+  primaryForeground,
+  textColor,
+  accentColor,
+  fontDisplay,
+  fontBody,
+  logoUrl,
 }: WelcomeMemberProps) => {
   const name = memberName || 'colega'
   const biz = businessName || SITE_NAME
   const owner = ownerName || 'a equipa'
   const support = supportEmail || ''
+
+  // Resolve brand colors
+  const brandPrimary = hslToCss(primaryColor, '#1a1f36')
+  const brandPrimaryFg = hslToCss(primaryForeground, '#f0f4ff')
+  const brandText = hslToCss(textColor, '#1a1f36')
+  const brandMuted = hslToCss(accentColor, '#555770')
+  const bodyFont = fontBody ? `'${fontBody}', Arial, sans-serif` : "'DM Sans', Arial, sans-serif"
+  const displayFont = fontDisplay ? `'${fontDisplay}', Georgia, serif` : bodyFont
+
+  const main = { backgroundColor: '#ffffff', fontFamily: bodyFont }
+  const container = { maxWidth: '540px', margin: '0 auto', padding: '40px 24px' }
+  const headerSection = { textAlign: 'center' as const, padding: '0 0 8px' }
+  const headerEmoji = { fontSize: '48px', margin: '0 0 8px', lineHeight: '1' }
+  const h1 = { fontSize: '24px', fontWeight: '700' as const, color: brandText, margin: '0 0 12px', lineHeight: '1.3', fontFamily: displayFont }
+  const subtitle = { fontSize: '15px', color: brandMuted, lineHeight: '1.6', margin: '0' }
+  const divider = { borderColor: '#e8e8ed', margin: '28px 0' }
+  const h2 = { fontSize: '17px', fontWeight: '600' as const, color: brandText, margin: '0 0 20px', fontFamily: displayFont }
+  const stepCard = { backgroundColor: '#f7f7fa', borderRadius: '10px', padding: '18px 20px', marginBottom: '12px' }
+  const stepNumber = { display: 'inline-block' as const, backgroundColor: brandPrimary, color: brandPrimaryFg, width: '26px', height: '26px', borderRadius: '50%', textAlign: 'center' as const, lineHeight: '26px', fontSize: '13px', fontWeight: '700' as const, margin: '0 0 8px' }
+  const stepTitle = { fontSize: '15px', fontWeight: '600' as const, color: brandText, margin: '0 0 6px' }
+  const stepDesc = { fontSize: '14px', color: brandMuted, lineHeight: '1.6', margin: '0' }
+  const ctaSection = { textAlign: 'center' as const, padding: '24px 0 4px' }
+  const ctaButton = { backgroundColor: brandPrimary, color: brandPrimaryFg, fontSize: '15px', fontWeight: '600' as const, padding: '14px 36px', borderRadius: '8px', textDecoration: 'none', display: 'inline-block' as const }
+  const supportSection = { backgroundColor: '#fefcf3', borderRadius: '10px', padding: '18px 20px', border: '1px solid #f5ecd5' }
+  const supportText = { fontSize: '14px', color: brandMuted, lineHeight: '1.6', margin: '0' }
+  const linkStyle = { color: brandPrimary, textDecoration: 'underline' as const }
+  const footer = { fontSize: '13px', color: '#999', textAlign: 'center' as const, margin: '28px 0 0', lineHeight: '1.6' }
+  const logoStyle = { width: '48px', height: '48px', borderRadius: '10px', margin: '0 auto 16px' }
 
   return (
     <Html lang="pt" dir="ltr">
@@ -35,7 +83,11 @@ const WelcomeMemberEmail = ({
         <Container style={container}>
           {/* Header */}
           <Section style={headerSection}>
-            <Text style={headerEmoji}>🚀</Text>
+            {logoUrl ? (
+              <Img src={logoUrl} alt={biz} style={logoStyle} />
+            ) : (
+              <Text style={headerEmoji}>🚀</Text>
+            )}
             <Heading style={h1}>
               Olá {name}, bem-vindo(a) à equipa!
             </Heading>
@@ -49,43 +101,40 @@ const WelcomeMemberEmail = ({
           <Hr style={divider} />
 
           {/* Steps */}
-          <Section style={stepsSection}>
+          <Section>
             <Heading as="h2" style={h2}>
               O teu passo-a-passo de primeiro acesso:
             </Heading>
 
-            {/* Step 1 */}
             <Section style={stepCard}>
               <Text style={stepNumber}>1</Text>
               <Text style={stepTitle}>Define a tua password</Text>
-              <Text style={stepDescription}>
-                Clica no botão abaixo para acederes pela primeira vez. 
+              <Text style={stepDesc}>
+                Clica no botão abaixo para acederes pela primeira vez.
                 Vai ser-te pedido para criares a tua password pessoal — escolhe algo seguro que consigas lembrar! 🔐
               </Text>
             </Section>
 
-            {/* Step 2 */}
             <Section style={stepCard}>
               <Text style={stepNumber}>2</Text>
               <Text style={stepTitle}>Preenche a tua apresentação</Text>
-              <Text style={stepDescription}>
-                Depois de entrares, vai à página <strong>"Começa Aqui"</strong> no menu lateral. 
+              <Text style={stepDesc}>
+                Depois de entrares, vai à página <strong>"Começa Aqui"</strong> no menu lateral.
                 Lá podes preencher a tua apresentação para a equipa te conhecer melhor — conta-nos quem és! ✨
               </Text>
             </Section>
 
-            {/* Step 3 */}
             <Section style={stepCard}>
               <Text style={stepNumber}>3</Text>
               <Text style={stepTitle}>Verifica as tuas tarefas de onboarding</Text>
-              <Text style={stepDescription}>
-                Já tens tarefas de onboarding atribuídas para te ajudar a integrar. 
+              <Text style={stepDesc}>
+                Já tens tarefas de onboarding atribuídas para te ajudar a integrar.
                 Vai a <strong>"Tarefas"</strong> para veres o que preparámos para ti — passo a passo, sem stress! 📋
               </Text>
             </Section>
           </Section>
 
-          {/* CTA Button */}
+          {/* CTA */}
           {inviteUrl && (
             <Section style={ctaSection}>
               <Button style={ctaButton} href={inviteUrl}>
@@ -103,7 +152,7 @@ const WelcomeMemberEmail = ({
               {support ? (
                 <>
                   <br />
-                  Envia um email para <a href={`mailto:${support}`} style={linkStyle}>{support}</a> ou 
+                  Envia um email para <a href={`mailto:${support}`} style={linkStyle}>{support}</a> ou
                   fala diretamente com {owner} — estamos aqui para te ajudar.
                 </>
               ) : (
@@ -115,7 +164,6 @@ const WelcomeMemberEmail = ({
             </Text>
           </Section>
 
-          {/* Footer */}
           <Text style={footer}>
             Com entusiasmo,
             <br />
@@ -137,138 +185,11 @@ export const template = {
     ownerName: 'Mariana',
     supportEmail: 'suporte@exemplo.com',
     businessName: 'HQ Studio',
+    primaryColor: '222 47% 11%',
+    primaryForeground: '210 40% 98%',
+    textColor: '222 84% 5%',
+    accentColor: '215 16% 47%',
+    fontDisplay: 'DM Serif Display',
+    fontBody: 'DM Sans',
   },
 } satisfies TemplateEntry
-
-/* ── Styles ── */
-
-const main = {
-  backgroundColor: '#ffffff',
-  fontFamily: "'DM Sans', 'Inter', Arial, sans-serif",
-}
-
-const container = {
-  maxWidth: '540px',
-  margin: '0 auto',
-  padding: '40px 24px',
-}
-
-const headerSection = {
-  textAlign: 'center' as const,
-  padding: '0 0 8px',
-}
-
-const headerEmoji = {
-  fontSize: '48px',
-  margin: '0 0 8px',
-  lineHeight: '1',
-}
-
-const h1 = {
-  fontSize: '24px',
-  fontWeight: '700',
-  color: '#1a1f36',
-  margin: '0 0 12px',
-  lineHeight: '1.3',
-}
-
-const subtitle = {
-  fontSize: '15px',
-  color: '#555770',
-  lineHeight: '1.6',
-  margin: '0',
-}
-
-const divider = {
-  borderColor: '#e8e8ed',
-  margin: '28px 0',
-}
-
-const stepsSection = {
-  padding: '0',
-}
-
-const h2 = {
-  fontSize: '17px',
-  fontWeight: '600',
-  color: '#1a1f36',
-  margin: '0 0 20px',
-}
-
-const stepCard = {
-  backgroundColor: '#f7f7fa',
-  borderRadius: '10px',
-  padding: '18px 20px',
-  marginBottom: '12px',
-}
-
-const stepNumber = {
-  display: 'inline-block' as const,
-  backgroundColor: '#1a1f36',
-  color: '#ffffff',
-  width: '26px',
-  height: '26px',
-  borderRadius: '50%',
-  textAlign: 'center' as const,
-  lineHeight: '26px',
-  fontSize: '13px',
-  fontWeight: '700',
-  margin: '0 0 8px',
-}
-
-const stepTitle = {
-  fontSize: '15px',
-  fontWeight: '600',
-  color: '#1a1f36',
-  margin: '0 0 6px',
-}
-
-const stepDescription = {
-  fontSize: '14px',
-  color: '#555770',
-  lineHeight: '1.6',
-  margin: '0',
-}
-
-const ctaSection = {
-  textAlign: 'center' as const,
-  padding: '24px 0 4px',
-}
-
-const ctaButton = {
-  backgroundColor: '#1a1f36',
-  color: '#f0f4ff',
-  fontSize: '15px',
-  fontWeight: '600',
-  padding: '14px 36px',
-  borderRadius: '8px',
-  textDecoration: 'none',
-  display: 'inline-block' as const,
-}
-
-const supportSection = {
-  backgroundColor: '#fefcf3',
-  borderRadius: '10px',
-  padding: '18px 20px',
-  border: '1px solid #f5ecd5',
-}
-
-const supportText = {
-  fontSize: '14px',
-  color: '#555770',
-  lineHeight: '1.6',
-  margin: '0',
-}
-
-const linkStyle = {
-  color: '#1a1f36',
-  textDecoration: 'underline',
-}
-
-const footer = {
-  fontSize: '13px',
-  color: '#999',
-  textAlign: 'center' as const,
-  margin: '28px 0 0',
-  lineHeight: '1.6',
-}
