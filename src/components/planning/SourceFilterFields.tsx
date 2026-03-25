@@ -77,8 +77,8 @@ export function SourceFilterFields({ source, sourceFilter, onChange }: {
   const expenseCategories = useQuery({
     queryKey: ['filter-expense-categories'],
     queryFn: async () => {
-      const { data } = await supabase.from('financial_categories').select('id,name').eq('type', 'saida').order('name');
-      return data || [];
+      const { data } = await supabase.from('financial_categories' as any).select('id,name').eq('type', 'saida').order('name');
+      return (data || []) as any[];
     },
     enabled: filters.some(f => f.type === 'expense_category'),
   });
