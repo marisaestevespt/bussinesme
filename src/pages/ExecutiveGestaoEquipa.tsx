@@ -1856,16 +1856,6 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
       )}
       {dialog !== null && <MemberDialog open onClose={() => setDialog(null)} initial={dialog} onSave={handleSave} />}
       {selected && <MemberDetailSheet open onClose={() => setSelected(null)} member={selected} team={team} />}
-      {pagePicker && (
-        <RolePagePicker
-          open
-          onClose={() => setPagePicker(null)}
-          memberName={pagePicker.memberName}
-          department={pagePicker.department}
-          onConfirm={handleExtraModules}
-        />
-      )}
-    </div>
   );
 }
 
