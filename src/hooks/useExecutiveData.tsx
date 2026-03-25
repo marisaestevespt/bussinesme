@@ -6,13 +6,7 @@ import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase
 
 type QuarterlyAnalysis = Tables<'executive_quarterly_analysis'>;
 
-function cleanPayload<T extends Record<string, unknown>>(obj: T): T {
-  const cleaned = {} as Record<string, unknown>;
-  for (const [k, v] of Object.entries(obj)) {
-    cleaned[k] = v === '' ? null : v;
-  }
-  return cleaned as T;
-}
+// cleanPayload imported from utils
 
 const currentYear = new Date().getFullYear();
 

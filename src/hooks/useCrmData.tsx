@@ -9,13 +9,7 @@ type CrmLead = Tables<'crm_leads'>;
 type CrmInteraction = Tables<'crm_interactions'>;
 type CrmLeadAction = Tables<'crm_lead_actions'>;
 
-function cleanPayload<T extends Record<string, unknown>>(obj: T): T {
-  const cleaned = {} as Record<string, unknown>;
-  for (const [k, v] of Object.entries(obj)) {
-    cleaned[k] = v === '' ? null : v;
-  }
-  return cleaned as T;
-}
+// cleanPayload imported from utils
 
 export const CRM_STATUSES = [
   { value: 'lead', label: 'Lead' },

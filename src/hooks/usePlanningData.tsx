@@ -2,11 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-function clean(obj: Record<string, any>): Record<string, any> {
-  const c: Record<string, any> = {};
-  for (const [k, v] of Object.entries(obj)) c[k] = v === '' ? null : v;
-  return c;
-}
+// cleanPayload imported from utils — aliased as `clean` for minimal diff
+import { cleanPayload as clean } from '@/lib/utils';
 
 const currentYear = new Date().getFullYear();
 
