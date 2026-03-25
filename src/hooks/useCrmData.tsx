@@ -2,13 +2,18 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useMemo } from 'react';
+import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
-function cleanPayload(obj: Record<string, any>): Record<string, any> {
-  const cleaned: Record<string, any> = {};
+type CrmLead = Tables<'crm_leads'>;
+type CrmInteraction = Tables<'crm_interactions'>;
+type CrmLeadAction = Tables<'crm_lead_actions'>;
+
+function cleanPayload<T extends Record<string, unknown>>(obj: T): T {
+  const cleaned = {} as Record<string, unknown>;
   for (const [k, v] of Object.entries(obj)) {
     cleaned[k] = v === '' ? null : v;
   }
-  return cleaned;
+  return cleaned as T;
 }
 
 export const CRM_STATUSES = [
@@ -71,14 +76,14 @@ export function useCrmData() {
   const invalidate = () => qc.invalidateQueries({ queryKey: key });
 
   const upsertLead = useMutation({
-    mutationFn: async (raw: any) => {
-      const lead = cleanPayload(raw);
+    mutationFn: async (raw: Partial<CrmLead> & { name?: string }) => {
+      const lead = cleanPayload(raw as Record<string, unknown>);
       if (lead.id) {
-        const { error } = await supabase.from('crm_leads').update(lead as any).eq('id', lead.id);
+        const { error } = await supabase.from('crm_leads').update(lead as TablesUpdate<'crm_leads'>).eq('id', lead.id as string);
         if (error) throw error;
       } else {
         delete lead.id;
-        const { error } = await supabase.from('crm_leads').insert(lead as any);
+        const { error } = await supabase.from('crm_leads').insert(lead as TablesInsert<'crm_leads'>);
         if (error) throw error;
       }
     },
@@ -106,14 +111,14 @@ export function useCrmData() {
   });
 
   const upsertInteraction = useMutation({
-    mutationFn: async (raw: any) => {
-      const rec = cleanPayload(raw);
+    mutationFn: async (raw: Partial<CrmInteraction> & { lead_id: string }) => {
+      const rec = cleanPayload(raw as Record<string, unknown>);
       if (rec.id) {
-        const { error } = await supabase.from('crm_interactions').update(rec as any).eq('id', rec.id);
+        const { error } = await supabase.from('crm_interactions').update(rec as TablesUpdate<'crm_interactions'>).eq('id', rec.id as string);
         if (error) throw error;
       } else {
         delete rec.id;
-        const { error } = await supabase.from('crm_interactions').insert(rec as any);
+        const { error } = await supabase.from('crm_interactions').insert(rec as TablesInsert<'crm_interactions'>);
         if (error) throw error;
       }
     },
@@ -141,14 +146,14 @@ export function useCrmData() {
   });
 
   const upsertLeadAction = useMutation({
-    mutationFn: async (raw: any) => {
-      const rec = cleanPayload(raw);
+    mutationFn: async (raw: Partial<CrmLeadAction> & { lead_id: string }) => {
+      const rec = cleanPayload(raw as Record<string, unknown>);
       if (rec.id) {
-        const { error } = await supabase.from('crm_lead_actions').update(rec as any).eq('id', rec.id);
+        const { error } = await supabase.from('crm_lead_actions').update(rec as TablesUpdate<'crm_lead_actions'>).eq('id', rec.id as string);
         if (error) throw error;
       } else {
         delete rec.id;
-        const { error } = await supabase.from('crm_lead_actions').insert(rec as any);
+        const { error } = await supabase.from('crm_lead_actions').insert(rec as TablesInsert<'crm_lead_actions'>);
         if (error) throw error;
       }
     },

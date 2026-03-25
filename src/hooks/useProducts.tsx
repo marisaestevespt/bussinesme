@@ -1,38 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { Tables, TablesInsert } from '@/integrations/supabase/types';
 
-export type Product = {
-  id: string;
-  name: string;
-  description: string | null;
-  status: string;
-  sales_page_url: string | null;
-  ticket: string | null;
-  escada: string | null;
-  product_type: string | null;
-  sales_type: string | null;
-  drive_url: string | null;
-  important_dates: any;
-  about_content: string | null;
-  included_items: any;
-  faqs: any;
-  client_profile: any;
-  competitors: any;
-  improvements_content: string | null;
-  brainstorming_content: string | null;
-  logo_url: string | null;
-  cover_url: string | null;
-  vat_rate: string | null;
-  invoice_denomination: string | null;
-  accounting_notes: string | null;
-  archive_notes: string | null;
-  cycle_duration: number | null;
-  monthly_hours_per_client: number | null;
-  created_by: string | null;
-  created_at: string;
-  updated_at: string;
-};
+export type Product = Tables<'products'>;
 
 export const STATUS_OPTIONS = [
   { value: 'em_ideia', label: 'Em Ideia' },
@@ -92,7 +63,7 @@ export function useProducts() {
         if (error) throw error;
         return product.id;
       } else {
-        const { data, error } = await supabase.from('products').insert(product).select('id').single();
+        const { data, error } = await supabase.from('products').insert(product as TablesInsert<'products'>).select('id').single();
         if (error) throw error;
         const newId = data.id;
 
@@ -141,7 +112,7 @@ export function useProducts() {
       const { error } = await supabase.from('products').insert({
         ...rest,
         name: `${source.name} (cópia)`,
-      });
+      } as TablesInsert<'products'>);
       if (error) throw error;
     },
     onSuccess: () => {

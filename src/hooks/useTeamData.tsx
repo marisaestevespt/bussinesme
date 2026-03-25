@@ -1,6 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+
+type TeamMember = Tables<'team_members'>;
+type PerformanceWeekly = Tables<'performance_weekly'>;
+type PerformanceMonthly = Tables<'performance_monthly'>;
+type FeedbackSession = Tables<'feedback_sessions'>;
+type MemberContract = Tables<'member_contracts'>;
+type MemberPayment = Tables<'member_payments'>;
 
 const KEY = ['team'];
 
@@ -65,6 +73,14 @@ export function labelFor(list: { value: string; label: string }[], val: string) 
   return list.find(i => i.value === val)?.label || val;
 }
 
+function cleanRecord<T extends Record<string, unknown>>(m: T): T {
+  const cleaned = {} as Record<string, unknown>;
+  for (const [k, v] of Object.entries(m)) {
+    cleaned[k] = v === '' ? null : v;
+  }
+  return cleaned as T;
+}
+
 export function useTeamData() {
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: KEY });
@@ -79,18 +95,14 @@ export function useTeamData() {
   });
 
   const upsertMember = useMutation({
-    mutationFn: async (m: any) => {
-      // Clean empty strings to null for nullable/date columns
-      const cleaned: any = {};
-      for (const [k, v] of Object.entries(m)) {
-        cleaned[k] = v === '' ? null : v;
-      }
+    mutationFn: async (m: Partial<TeamMember> & { full_name: string }) => {
+      const cleaned = cleanRecord(m as Record<string, unknown>);
       if (cleaned.id) {
-        const { error } = await supabase.from('team_members').update(cleaned).eq('id', cleaned.id);
+        const { error } = await supabase.from('team_members').update(cleaned as TablesUpdate<'team_members'>).eq('id', cleaned.id as string);
         if (error) throw error;
       } else {
         delete cleaned.id;
-        const { error } = await supabase.from('team_members').insert(cleaned);
+        const { error } = await supabase.from('team_members').insert(cleaned as TablesInsert<'team_members'>);
         if (error) throw error;
       }
     },
@@ -149,13 +161,13 @@ export function useTeamData() {
   });
 
   const upsertPerfWeekly = useMutation({
-    mutationFn: async (rec: any) => {
+    mutationFn: async (rec: Partial<PerformanceWeekly> & { member_id: string; week_start: string }) => {
       if (rec.id) {
-        const { error } = await supabase.from('performance_weekly').update(rec).eq('id', rec.id);
+        const { error } = await supabase.from('performance_weekly').update(rec as TablesUpdate<'performance_weekly'>).eq('id', rec.id);
         if (error) throw error;
       } else {
         delete rec.id;
-        const { error } = await supabase.from('performance_weekly').insert(rec);
+        const { error } = await supabase.from('performance_weekly').insert(rec as TablesInsert<'performance_weekly'>);
         if (error) throw error;
       }
     },
@@ -181,13 +193,13 @@ export function useTeamData() {
   });
 
   const upsertPerfMonthly = useMutation({
-    mutationFn: async (rec: any) => {
+    mutationFn: async (rec: Partial<PerformanceMonthly> & { member_id: string; month: number; year: number }) => {
       if (rec.id) {
-        const { error } = await supabase.from('performance_monthly').update(rec).eq('id', rec.id);
+        const { error } = await supabase.from('performance_monthly').update(rec as TablesUpdate<'performance_monthly'>).eq('id', rec.id);
         if (error) throw error;
       } else {
         delete rec.id;
-        const { error } = await supabase.from('performance_monthly').insert(rec);
+        const { error } = await supabase.from('performance_monthly').insert(rec as TablesInsert<'performance_monthly'>);
         if (error) throw error;
       }
     },
@@ -213,13 +225,13 @@ export function useTeamData() {
   });
 
   const upsertFeedback = useMutation({
-    mutationFn: async (rec: any) => {
+    mutationFn: async (rec: Partial<FeedbackSession> & { member_id: string }) => {
       if (rec.id) {
-        const { error } = await supabase.from('feedback_sessions').update(rec).eq('id', rec.id);
+        const { error } = await supabase.from('feedback_sessions').update(rec as TablesUpdate<'feedback_sessions'>).eq('id', rec.id);
         if (error) throw error;
       } else {
         delete rec.id;
-        const { error } = await supabase.from('feedback_sessions').insert(rec);
+        const { error } = await supabase.from('feedback_sessions').insert(rec as TablesInsert<'feedback_sessions'>);
         if (error) throw error;
       }
     },
@@ -245,13 +257,13 @@ export function useTeamData() {
   });
 
   const upsertContract = useMutation({
-    mutationFn: async (rec: any) => {
+    mutationFn: async (rec: Partial<MemberContract> & { member_id: string }) => {
       if (rec.id) {
-        const { error } = await supabase.from('member_contracts').update(rec).eq('id', rec.id);
+        const { error } = await supabase.from('member_contracts').update(rec as TablesUpdate<'member_contracts'>).eq('id', rec.id);
         if (error) throw error;
       } else {
         delete rec.id;
-        const { error } = await supabase.from('member_contracts').insert(rec);
+        const { error } = await supabase.from('member_contracts').insert(rec as TablesInsert<'member_contracts'>);
         if (error) throw error;
       }
     },
@@ -277,13 +289,13 @@ export function useTeamData() {
   });
 
   const upsertPayment = useMutation({
-    mutationFn: async (rec: any) => {
+    mutationFn: async (rec: Partial<MemberPayment> & { member_id: string }) => {
       if (rec.id) {
-        const { error } = await supabase.from('member_payments').update(rec).eq('id', rec.id);
+        const { error } = await supabase.from('member_payments').update(rec as TablesUpdate<'member_payments'>).eq('id', rec.id);
         if (error) throw error;
       } else {
         delete rec.id;
-        const { error } = await supabase.from('member_payments').insert(rec);
+        const { error } = await supabase.from('member_payments').insert(rec as TablesInsert<'member_payments'>);
         if (error) throw error;
       }
     },

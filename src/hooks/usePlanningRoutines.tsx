@@ -6,18 +6,20 @@ import {
   format, isBefore, isAfter, startOfDay, isSaturday, isSunday,
   subDays, getDaysInMonth,
 } from 'date-fns';
+import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+
+type PlanningRoutine = Tables<'planning_routines'>;
 
 // ─── Task generation helpers ─────────────────────────────────
 
 function adjustToBusinessDay(date: Date): Date {
-  if (isSaturday(date)) return subDays(date, 1); // Fri
-  if (isSunday(date)) return subDays(date, 2);  // Fri
+  if (isSaturday(date)) return subDays(date, 1);
+  if (isSunday(date)) return subDays(date, 2);
   return date;
 }
 
-/** Map weekday 1-7 (Mon-Sun) to date-fns getDay() 0-6 (Sun-Sat) */
 function weekdayToDateFns(wd: number): number {
-  return wd === 7 ? 0 : wd; // 1→1(Mon), …, 6→6(Sat), 7→0(Sun)
+  return wd === 7 ? 0 : wd;
 }
 
 export function generateWeeklyDates(weekday: number, fromDate: Date, year: number): string[] {
@@ -29,7 +31,6 @@ export function generateWeeklyDates(weekday: number, fromDate: Date, year: numbe
   const dates: string[] = [];
 
   for (const weekStart of weeks) {
-    // Find the target day in this week
     let date = weekStart;
     while (getDay(date) !== targetDay) {
       date = addDays(date, 1);
@@ -60,14 +61,23 @@ export function generateMonthlyDates(monthDay: number, adjustBiz: boolean, fromD
 
 // ─── Generate tasks for a routine ────────────────────────────
 
+interface RoutineForTaskGen {
+  id: string;
+  title: string;
+  responsible: string | null;
+  recurrence_type: string;
+  weekday: number | null;
+  month_day: number | null;
+  adjust_to_business_day: boolean;
+}
+
 export async function generateTasksForRoutine(
-  routine: { id: string; title: string; responsible: string | null; recurrence_type: string; weekday: number | null; month_day: number | null; adjust_to_business_day: boolean },
+  routine: RoutineForTaskGen,
   year: number,
   fromDate?: Date,
 ) {
   const from = fromDate || new Date();
 
-  // Check if tasks already exist for this routine this year
   const { data: existing } = await supabase
     .from('tasks')
     .select('id')
@@ -76,7 +86,7 @@ export async function generateTasksForRoutine(
     .lte('deadline', `${year}-12-31`)
     .limit(1);
 
-  if (existing && existing.length > 0) return; // Already generated
+  if (existing && existing.length > 0) return;
 
   let dates: string[] = [];
 
@@ -88,7 +98,7 @@ export async function generateTasksForRoutine(
 
   if (dates.length === 0) return;
 
-  const tasks = dates.map(d => ({
+  const tasks: TablesInsert<'tasks'>[] = dates.map(d => ({
     name: routine.title,
     status: 'pendente',
     priority: 'media',
@@ -98,10 +108,9 @@ export async function generateTasksForRoutine(
     tag: 'Rotina',
   }));
 
-  // Insert in batches of 50
   for (let i = 0; i < tasks.length; i += 50) {
     const batch = tasks.slice(i, i + 50);
-    await supabase.from('tasks').insert(batch as any);
+    await supabase.from('tasks').insert(batch);
   }
 }
 
@@ -111,7 +120,6 @@ export async function ensureYearRoutineTasks() {
   const year = new Date().getFullYear();
   const yearStart = `${year}-01-01`;
 
-  // Check if any routine tasks exist for this year
   const { data: existingTasks } = await supabase
     .from('tasks')
     .select('id')
@@ -119,9 +127,8 @@ export async function ensureYearRoutineTasks() {
     .gte('deadline', yearStart)
     .limit(1);
 
-  if (existingTasks && existingTasks.length > 0) return; // Already have tasks
+  if (existingTasks && existingTasks.length > 0) return;
 
-  // Get all active routines
   const { data: routines } = await supabase
     .from('planning_routines')
     .select('*')
@@ -130,7 +137,7 @@ export async function ensureYearRoutineTasks() {
   if (!routines?.length) return;
 
   for (const r of routines) {
-    await generateTasksForRoutine(r as any, year, new Date(yearStart));
+    await generateTasksForRoutine(r as RoutineForTaskGen, year, new Date(yearStart));
   }
 }
 
@@ -164,13 +171,12 @@ export function usePlanningRoutines() {
     }) => {
       const { data, error } = await supabase
         .from('planning_routines')
-        .insert(routine as any)
+        .insert(routine as TablesInsert<'planning_routines'>)
         .select('*')
         .single();
       if (error) throw error;
 
-      // Generate tasks for remaining of current year
-      await generateTasksForRoutine(data as any, new Date().getFullYear());
+      await generateTasksForRoutine(data as RoutineForTaskGen, new Date().getFullYear());
       return data;
     },
     onSuccess: () => {
@@ -178,22 +184,20 @@ export function usePlanningRoutines() {
       qc.invalidateQueries({ queryKey: ['my-tasks'] });
       toast.success('Rotina criada e tarefas geradas');
     },
-    onError: (e: any) => toast.error('Erro: ' + (e.message || e)),
+    onError: (e: Error) => toast.error('Erro: ' + (e.message || e)),
   });
 
   const toggleActive = useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
-      const { error } = await supabase.from('planning_routines').update({ active } as any).eq('id', id);
+      const { error } = await supabase.from('planning_routines').update({ active } satisfies TablesUpdate<'planning_routines'>).eq('id', id);
       if (error) throw error;
 
       if (active) {
-        // Re-generate tasks for this year
         const { data: routine } = await supabase.from('planning_routines').select('*').eq('id', id).single();
         if (routine) {
-          await generateTasksForRoutine(routine as any, new Date().getFullYear());
+          await generateTasksForRoutine(routine as RoutineForTaskGen, new Date().getFullYear());
         }
       } else {
-        // Delete future non-completed tasks
         const todayStr = format(new Date(), 'yyyy-MM-dd');
         await supabase
           .from('tasks')
@@ -213,7 +217,6 @@ export function usePlanningRoutines() {
 
   const deleteRoutine = useMutation({
     mutationFn: async (id: string) => {
-      // Delete future non-completed tasks first
       const todayStr = format(new Date(), 'yyyy-MM-dd');
       await supabase
         .from('tasks')
@@ -223,7 +226,6 @@ export function usePlanningRoutines() {
         .neq('status', 'concluida')
         .gte('deadline', todayStr);
 
-      // Delete associated SOP
       await supabase.from('sops').delete().eq('routine_id', id);
 
       const { error } = await supabase.from('planning_routines').delete().eq('id', id);
