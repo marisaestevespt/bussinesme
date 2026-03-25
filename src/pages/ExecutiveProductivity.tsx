@@ -1241,7 +1241,6 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <h4 className="font-medium text-sm">{item.product_name}</h4>
-                          {currentClients > 0 && <Badge variant="outline" className="text-[10px]">{hoursUsed.toFixed(0)}h/mês</Badge>}
                           {itemRevenue > 0 && <Badge variant="secondary" className="text-[10px]">{itemRevenue.toLocaleString('pt-PT')}€/mês</Badge>}
                         </div>
                         <button onClick={() => deleteScenarioProduct.mutate(item.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
