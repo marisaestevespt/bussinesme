@@ -277,7 +277,7 @@ export default function ClienteDetailPage() {
           sale_id: saleId,
           status: 'na',
           payment_date: payDateStr,
-          description: `${form.client_id}_Pagamento_${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][payMonth - 1]}`,
+          description: p.index === -1 ? `${form.client_id}_Entrada` : `${form.client_id}_Pagamento_${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][payMonth - 1]}`,
           base_value: p.baseValue,
           invoice_total: Math.round(p.baseValue * vatMultiplier * 100) / 100,
           product,
