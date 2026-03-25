@@ -10,10 +10,14 @@ import { Loader2, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 const MEMBER_SECTION_LABELS: Record<string, string> = {
-  tarefas_concluidas: 'Tarefas concluídas no período',
+  tarefas_hoje: 'Tarefas para hoje',
   tarefas_atraso: 'Tarefas em atraso',
-  reunioes_periodo: 'Reuniões do período',
-  rotinas: 'Rotinas — feitas vs por fazer',
+  reunioes_hoje: 'Reuniões de hoje',
+  followups_leads: 'Follow-ups de leads pendentes',
+  aniversarios: 'Aniversários (equipa e clientes)',
+  renovacoes_clientes: 'Renovações de clientes próximas',
+  rotinas: 'Rotinas do dia',
+  tarefas_concluidas: 'Tarefas concluídas no período',
   tempo_registado: 'Tempo registado',
 };
 
@@ -31,7 +35,7 @@ export function MemberDigestSettings() {
   const { settings, isLoading, update, memberDefaultSections } = useDigestSettings(false);
   const [enabled, setEnabled] = useState(false);
   const [frequency, setFrequency] = useState<'diario' | 'semanal' | 'mensal'>('diario');
-  const [sendTime, setSendTime] = useState('19:00');
+  const [sendTime, setSendTime] = useState('08:00');
   const [dayOfWeek, setDayOfWeek] = useState<number | null>(1);
   const [dayOfMonth, setDayOfMonth] = useState<number | null>(1);
   const [sections, setSections] = useState<Record<string, boolean>>(memberDefaultSections);
@@ -40,7 +44,7 @@ export function MemberDigestSettings() {
     if (settings) {
       setEnabled(settings.enabled);
       setFrequency(settings.frequency || 'diario');
-      setSendTime(settings.send_time?.substring(0, 5) || '19:00');
+      setSendTime(settings.send_time?.substring(0, 5) || '08:00');
       setDayOfWeek(settings.send_day_of_week ?? 1);
       setDayOfMonth(settings.send_day_of_month ?? 1);
       setSections({ ...memberDefaultSections, ...(settings.sections || {}) });
@@ -123,13 +127,14 @@ export function MemberDigestSettings() {
       <CardHeader className="pb-3">
         <CardTitle className="text-sm flex items-center gap-2">
           <Mail className="h-4 w-4 text-primary" />
-          O meu resumo por email
+          Briefing diário por email
         </CardTitle>
+        <p className="text-xs text-muted-foreground">Recebe todas as manhãs um resumo do que tens para o dia</p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
           <Label htmlFor="member-digest-enabled" className="text-sm">
-            Receber resumo do meu trabalho por email
+            Receber briefing diário por email
           </Label>
           <Switch
             id="member-digest-enabled"
