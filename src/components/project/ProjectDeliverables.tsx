@@ -454,9 +454,22 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                 <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none">Sem responsável</SelectItem>
-                  {profiles.filter(p => p.full_name).map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
-                  ))}
+                  {serviceMembers.length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel className="text-[10px] text-muted-foreground">Equipa de Serviço</SelectLabel>
+                      {serviceMembers.map(sm => (
+                        <SelectItem key={`sm-${sm.profile_id || sm.id}`} value={sm.profile_id || sm.id}>
+                          {sm.full_name} ⭐
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
+                  <SelectGroup>
+                    <SelectLabel className="text-[10px] text-muted-foreground">Todos</SelectLabel>
+                    {profiles.filter(p => p.full_name).map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
+                    ))}
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
