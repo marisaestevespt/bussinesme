@@ -80,6 +80,7 @@ const WelcomeMemberEmail = ({
   const supportText = { fontSize: '14px', color: brandMuted, lineHeight: '1.6', margin: '0' }
   const linkStyle = { color: brandPrimary, textDecoration: 'underline' as const }
   const footer = { fontSize: '13px', color: '#999', textAlign: 'center' as const, margin: '28px 0 0', lineHeight: '1.6' }
+  const whatsappButton = { backgroundColor: '#25D366', color: '#ffffff', fontSize: '13px', fontWeight: '600' as const, padding: '10px 20px', borderRadius: '8px', textDecoration: 'none', display: 'inline-block' as const }
   const logoStyle = { width: '48px', height: '48px', borderRadius: '10px', margin: '0 auto 16px' }
 
   return (
@@ -203,6 +204,9 @@ export const template = {
     ownerName: 'Mariana',
     supportEmail: 'suporte@exemplo.com',
     businessName: 'HQ Studio',
+    whatsappTeamUrl: 'https://chat.whatsapp.com/example-team',
+    whatsappDeptUrl: 'https://chat.whatsapp.com/example-dept',
+    departmentName: 'Marketing',
     primaryColor: '222 47% 11%',
     primaryForeground: '210 40% 98%',
     textColor: '222 84% 5%',
