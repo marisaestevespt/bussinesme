@@ -1267,9 +1267,12 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
         const { error } = await supabase.from('team_members').update(payload as any).eq('id', member.id);
         if (error) throw error;
       }
-      // Auto-assign permissions based on department
-      if (member.department) {
-        await autoAssignPermissions(memberId, member.department);
+      // Auto-assign permissions based on departments
+      const depts: string[] = Array.isArray(member.departments) && member.departments.length > 0
+        ? member.departments
+        : (member.department ? [member.department] : []);
+      if (depts.length > 0) {
+        await autoAssignPermissions(memberId, depts);
       }
       if (isNew && contractData && memberId) {
         const monthlyVal = parseFloat(contractData.monthly_value) || 0;
