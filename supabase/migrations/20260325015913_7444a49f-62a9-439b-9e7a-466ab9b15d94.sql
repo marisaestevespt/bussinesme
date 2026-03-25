@@ -1,0 +1,1 @@
+ALTER TABLE public.capacity_scenarios ADD COLUMN IF NOT EXISTS member_overheads jsonb DEFAULT '{}'::jsonb;
