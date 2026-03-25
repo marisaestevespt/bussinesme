@@ -6,7 +6,7 @@ import {
   format, isBefore, isAfter, startOfDay, isSaturday, isSunday,
   subDays, getDaysInMonth,
 } from 'date-fns';
-import type { Tables, TablesInsert } from '@/integrations/supabase/types';
+import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 type PlanningRoutine = Tables<'planning_routines'>;
 

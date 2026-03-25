@@ -330,15 +330,15 @@ export default function ProdutoDetailPage() {
   }
 
   // JSONB helpers
-  const includedItems: string[] = Array.isArray(form.included_items) ? form.included_items : [];
-  const faqs: { question: string; answer: string }[] = Array.isArray(form.faqs) ? form.faqs : [];
-  const clientProfile = form.client_profile || {};
-  const competitors: { name: string; notes: string }[] = Array.isArray(form.competitors) ? form.competitors : [];
+  const includedItems: string[] = Array.isArray(form.included_items) ? (form.included_items as unknown as string[]) : [];
+  const faqs: { question: string; answer: string }[] = Array.isArray(form.faqs) ? (form.faqs as unknown as { question: string; answer: string }[]) : [];
+  const clientProfile = (form.client_profile || {}) as Record<string, unknown>;
+  const competitors: { name: string; notes: string }[] = Array.isArray(form.competitors) ? (form.competitors as unknown as { name: string; notes: string }[]) : [];
 
   const updateIncludedItems = (items: string[]) => update('included_items', items);
-  const updateFaqs = (f: any[]) => update('faqs', f);
-  const updateClientProfile = (key: string, val: string[]) => update('client_profile', { ...clientProfile, [key]: val });
-  const updateCompetitors = (c: any[]) => update('competitors', c);
+  const updateFaqs = (f: { question: string; answer: string }[]) => update('faqs', f);
+  const updateClientProfile = (key: string, val: string[]) => update('client_profile', { ...(clientProfile as Record<string, unknown>), [key]: val });
+  const updateCompetitors = (c: { name: string; notes: string }[]) => update('competitors', c);
 
   const toggleSection = (key: string) => setOpenSection(prev => prev === key ? null : key);
 

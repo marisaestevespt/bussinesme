@@ -57,10 +57,10 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
   };
 
   const seedFaqsFromProduct = async () => {
-    const portalRes = await supabase.from('client_portals' as any).select('id').eq('client_id', clientId).maybeSingle();
-    const pid = (portalRes.data as any)?.id;
+    const portalRes = await supabase.from('client_portals').select('id').eq('client_id', clientId).maybeSingle();
+    const pid = portalRes.data?.id;
     if (!pid || !product) return;
-    const productFaqs: { question: string; answer: string }[] = Array.isArray(product.faqs) ? product.faqs : [];
+    const productFaqs: { question: string; answer: string }[] = Array.isArray(product.faqs) ? (product.faqs as unknown as { question: string; answer: string }[]) : [];
     const validFaqs = productFaqs.filter(f => f.question?.trim());
     if (validFaqs.length === 0) return;
     const rows = validFaqs.map((f, i) => ({
@@ -69,13 +69,13 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
       answer: f.answer || '',
       sort_order: i,
     }));
-    await supabase.from('portal_faqs' as any).insert(rows);
+    await supabase.from('portal_faqs').insert(rows);
     faqs.refetch();
   };
 
   const importFaqsFromProduct = async () => {
     if (!portalId || !product) { toast.error('Sem produto associado'); return; }
-    const productFaqs: { question: string; answer: string }[] = Array.isArray(product.faqs) ? product.faqs : [];
+    const productFaqs: { question: string; answer: string }[] = Array.isArray(product.faqs) ? (product.faqs as unknown as { question: string; answer: string }[]) : [];
     const validFaqs = productFaqs.filter(f => f.question?.trim());
     if (validFaqs.length === 0) { toast.info('O produto não tem FAQ\'s definidas'); return; }
     const existingCount = faqs.data?.length || 0;
