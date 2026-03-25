@@ -9,16 +9,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
 import { useExecutiveData, getMonthName } from '@/hooks/useExecutiveData';
 import { usePlanningData, planStatusLabel, CADENCES } from '@/hooks/usePlanningData';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfWeek, endOfWeek, format, subDays, addDays, parseISO, differenceInDays, subWeeks, addWeeks } from 'date-fns';
+import { startOfWeek, endOfWeek, format, subDays, addDays, parseISO, differenceInDays, subWeeks, addWeeks, startOfMonth, endOfMonth } from 'date-fns';
 import { useTeamData } from '@/hooks/useTeamData';
 import { cn } from '@/lib/utils';
 import { WeeklyAlignDetailSheet, type DetailField } from '@/components/executive/WeeklyAlignDetailSheet';
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus, DollarSign, Users, Target, AlertTriangle, Save } from 'lucide-react';
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus, DollarSign, Users, Target, AlertTriangle, Save, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -293,6 +295,32 @@ export default function ExecutiveWeeklyAlign() {
   // ─── KPI computed values ───
   const { members } = useTeamData();
   const teamMembers = members.data || [];
+
+  // ─── Capacity alert: query time entries for current month ───
+  const monthStartDate = format(startOfMonth(now), 'yyyy-MM-dd');
+  const monthEndDate = format(endOfMonth(now), 'yyyy-MM-dd');
+  const timeEntriesMonth = useQuery({
+    queryKey: ['wa-time-entries-month', monthStartDate],
+    queryFn: async () => {
+      const { data } = await supabase.from('time_entries').select('member_id,duration_hours').gte('entry_date', monthStartDate).lte('entry_date', monthEndDate);
+      return data || [];
+    },
+  });
+
+  const capacityAlert = useMemo(() => {
+    const activeMembers = teamMembers.filter((m: any) => m.status === 'ativo' || m.status === 'prestador');
+    if (activeMembers.length === 0) return null;
+    const totalCapacity = activeMembers.reduce((sum: number, m: any) => sum + (Number(m.weekly_hours) || 40) * 4.33, 0);
+    const totalUsed = (timeEntriesMonth.data || []).reduce((sum: number, e: any) => sum + (Number(e.duration_hours) || 0), 0);
+    const pct = totalCapacity > 0 ? Math.round((totalUsed / totalCapacity) * 100) : 0;
+    const overloaded = activeMembers.filter((m: any) => {
+      const memberHours = (timeEntriesMonth.data || []).filter((e: any) => e.member_id === m.id).reduce((s: number, e: any) => s + (Number(e.duration_hours) || 0), 0);
+      const cap = (Number(m.weekly_hours) || 40) * 4.33;
+      return cap > 0 && (memberHours / cap) > 0.85;
+    });
+    return { pct, totalCapacity: Math.round(totalCapacity), totalUsed: Math.round(totalUsed), overloadedCount: overloaded.length, total: activeMembers.length };
+  }, [teamMembers, timeEntriesMonth.data]);
+
   const getMemberName = (id: string | null) => {
     if (!id) return '—';
     return teamMembers.find((t: any) => t.id === id)?.full_name || '—';
@@ -550,6 +578,45 @@ export default function ExecutiveWeeklyAlign() {
             </div>
           </CardContent></Card>
         </div>
+
+        {/* Capacity Alert */}
+        {capacityAlert && capacityAlert.pct >= 75 && (
+          <Card className={cn(
+            "border-l-4",
+            capacityAlert.pct >= 95 ? "border-l-destructive bg-destructive/5" : "border-l-amber-500 bg-amber-50/50"
+          )}>
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className={cn(
+                    "rounded-lg p-2 mt-0.5",
+                    capacityAlert.pct >= 95 ? "bg-destructive/10 text-destructive" : "bg-amber-100 text-amber-600"
+                  )}>
+                    <UserPlus className="h-5 w-5" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold">
+                      {capacityAlert.pct >= 95
+                        ? '⚠️ Capacidade da equipa esgotada — considerar contratação'
+                        : '📊 Capacidade da equipa a ficar limitada'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      A equipa está a {capacityAlert.pct}% de ocupação este mês ({capacityAlert.totalUsed}h de {capacityAlert.totalCapacity}h).
+                      {capacityAlert.overloadedCount > 0 && ` ${capacityAlert.overloadedCount} de ${capacityAlert.total} membros com ocupação acima de 85%.`}
+                    </p>
+                    <Progress value={Math.min(capacityAlert.pct, 100)} className="h-2 w-48 mt-1" />
+                  </div>
+                </div>
+                <Link to="/executive/productivity?tab=simulation">
+                  <Button variant="outline" size="sm" className="shrink-0 text-xs">
+                    <UserPlus className="h-3.5 w-3.5 mr-1.5" />
+                    Simular contratação
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Separator />
 
