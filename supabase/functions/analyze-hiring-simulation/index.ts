@@ -22,7 +22,7 @@ DADOS DA SIMULAÇÃO:
 - Novas contratações simuladas: ${simulation.phantomCount}
 
 DETALHES DAS CONTRATAÇÕES:
-${simulation.phantoms.map((p: any) => `• ${p.name} — ${p.type}, ${p.department}, ${p.weeklyHours}h/sem, ${p.clientPct}% cliente, custo mensal: ${p.totalCostMonth}€, início: ${p.startDate}${p.delegatedTasks?.length ? `\n  Tarefas a delegar: ${p.delegatedTasks.join('; ')}` : ''}`).join('\n')}
+${simulation.phantoms.map((p: any) => `• ${p.name} — ${p.type}, ${p.department}, ${p.weeklyHours}h/sem, ${p.clientPct}% cliente, custo mensal: ${p.totalCostMonth}€${p.durationMonths ? `, duração: ${p.durationMonths} meses` : ''}, início: ${p.startDate}${p.delegatedTasks?.length ? `\n  Tarefas a delegar: ${p.delegatedTasks.join('; ')}` : ''}`).join('\n')}
 
 IMPACTO:
 - Nova capacidade: ${simulation.newCapacity}h/mês
