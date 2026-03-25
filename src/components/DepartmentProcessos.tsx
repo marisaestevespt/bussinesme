@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
 import { usePlanningRoutines, generateTasksForRoutine } from '@/hooks/usePlanningRoutines';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -18,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Plus, Trash2, FileText, RotateCw, UserPlus } from 'lucide-react';
+import { Plus, Trash2, FileText, RotateCw, UserPlus, MessageSquare, ExternalLink, Pencil, Check, X } from 'lucide-react';
 
 const SOP_STATUSES = [
   { value: 'para_criar', label: 'Para criar', color: 'bg-muted text-muted-foreground' },
@@ -176,6 +177,9 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
   return (
     <>
       <div className="space-y-8">
+        {/* WhatsApp department link */}
+        <DeptWhatsAppCard department={department} />
+
         {/* SOPs */}
         <section>
           <div className="flex items-center justify-between mb-3">
