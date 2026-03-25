@@ -77,8 +77,17 @@ export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
                 <div><Label>Fonte valor atual</Label>
                   <Select value={form.value_source || 'manual'} onValueChange={v => set('value_source', v)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                    <SelectContent>
+                      {VALUE_SOURCES.map(s => (
+                        <SelectItem key={s.value} value={s.value}>
+                          <span>{s.label}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
+                  {VALUE_SOURCES.find(s => s.value === form.value_source)?.desc && (
+                    <p className="text-[10px] text-muted-foreground mt-1">{VALUE_SOURCES.find(s => s.value === form.value_source)?.desc}</p>
+                  )}
                 </div>
               </div>
               {form.value_source === 'manual' && (
