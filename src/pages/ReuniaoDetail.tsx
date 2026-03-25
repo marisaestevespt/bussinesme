@@ -353,6 +353,7 @@ export default function ReuniaoDetailPage() {
       qc.invalidateQueries({ queryKey: ['meeting', id] });
       qc.invalidateQueries({ queryKey: ['meetings'] });
       setDirty(false);
+      logAudit('updated', 'meeting', id, { title: m?.title });
       toast.success('Reunião guardada');
     },
     onError: () => toast.error('Erro ao guardar'),
