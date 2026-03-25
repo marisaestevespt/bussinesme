@@ -534,6 +534,12 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
             <Input placeholder="NIF / Identificação" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
           </div>
 
+          {/* Aniversário */}
+          <div>
+            <label className="text-xs text-muted-foreground">Data de nascimento</label>
+            <Input type="date" value={(f as any).birthday || ''} onChange={e => set('birthday' as any, e.target.value)} />
+          </div>
+
           {/* Responsabilidades */}
           <Textarea placeholder="Responsabilidades" value={f.responsibilities || ''} onChange={e => set('responsibilities', e.target.value)} rows={2} />
 
@@ -803,6 +809,7 @@ function MemberDetailSheet({ open, onClose, member, team }: any) {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 {member.email && <div><span className="text-muted-foreground text-xs">Email</span><p>{member.email}</p></div>}
                 {member.whatsapp && <div><span className="text-muted-foreground text-xs">Telefone</span><p>{member.whatsapp}</p></div>}
+                {(member as any).birthday && <div><span className="text-muted-foreground text-xs">Aniversário</span><p>{(member as any).birthday}</p></div>}
                 {member.work_schedule && <div><span className="text-muted-foreground text-xs">Horário</span><div className="mt-0.5 space-y-0.5">{scheduleToLines(member.work_schedule).map((line, i) => <p key={i} className="text-sm">{line}</p>)}</div></div>}
                 {member.identification && <div><span className="text-muted-foreground text-xs">Identificação</span><p>{member.identification}</p></div>}
                 {member.start_date && <div><span className="text-muted-foreground text-xs">Data de início</span><p>{member.start_date}</p></div>}
