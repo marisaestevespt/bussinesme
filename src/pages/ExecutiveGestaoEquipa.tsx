@@ -76,6 +76,7 @@ function RecordDialog({ open, onClose, title, fields, initial, onSave }: any) {
 
 // ─── Dashboard (stats + alerts + escala, NO duplicate gallery) ──────
 function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
+  const [escalaMonth, setEscalaMonth] = useState(new Date());
   const allMembers = (team.members.data || []).filter((m: any) => m.status === 'ativo');
   const allPayments = team.payments.data || [];
   const allContracts = team.contracts.data || [];
