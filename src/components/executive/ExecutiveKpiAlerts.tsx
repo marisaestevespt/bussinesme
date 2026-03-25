@@ -1,16 +1,51 @@
+import { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { Users, TrendingUp, CreditCard, AlertTriangle, RefreshCw, UserPlus } from 'lucide-react';
 import { useClients } from '@/hooks/useClients';
 import { useCommercialData } from '@/hooks/useCommercialData';
+import { useTeamData } from '@/hooks/useTeamData';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
-const currentMonth = new Date().getMonth() + 1;
-const currentYear = new Date().getFullYear();
+const now = new Date();
+const currentMonth = now.getMonth() + 1;
+const currentYear = now.getFullYear();
+const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
+const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
 
 export function ExecutiveKpiAlerts() {
   const { clients } = useClients();
   const commercial = useCommercialData(currentYear);
+  const { members } = useTeamData();
+  const teamMembers = members.data || [];
+
+  const timeEntriesMonth = useQuery({
+    queryKey: ['exec-kpi-time-entries', monthStart],
+    queryFn: async () => {
+      const { data } = await supabase.from('time_entries').select('member_id,duration_hours').gte('entry_date', monthStart).lte('entry_date', monthEnd);
+      return data || [];
+    },
+  });
+
+  const capacityAlert = useMemo(() => {
+    const active = teamMembers.filter((m: any) => m.status === 'ativo' || m.status === 'prestador');
+    if (active.length === 0) return null;
+    const totalCap = active.reduce((s: number, m: any) => s + (Number(m.weekly_hours) || 40) * 4.33, 0);
+    const totalUsed = (timeEntriesMonth.data || []).reduce((s: number, e: any) => s + (Number(e.duration_hours) || 0), 0);
+    const pct = totalCap > 0 ? Math.round((totalUsed / totalCap) * 100) : 0;
+    const overloaded = active.filter((m: any) => {
+      const mh = (timeEntriesMonth.data || []).filter((e: any) => e.member_id === m.id).reduce((s: number, e: any) => s + (Number(e.duration_hours) || 0), 0);
+      const cap = (Number(m.weekly_hours) || 40) * 4.33;
+      return cap > 0 && (mh / cap) > 0.85;
+    });
+    return { pct, totalUsed: Math.round(totalUsed), totalCap: Math.round(totalCap), overloaded: overloaded.length, total: active.length };
+  }, [teamMembers, timeEntriesMonth.data]);
 
   const allClients = clients.data || [];
   const activeClients = allClients.filter((c: any) => c.status === 'ativo').length;
@@ -58,6 +93,45 @@ export function ExecutiveKpiAlerts() {
           </Card>
         ))}
       </div>
+
+      {/* Capacity Alert */}
+      {capacityAlert && capacityAlert.pct >= 75 && (
+        <Card className={cn(
+          "border-l-4",
+          capacityAlert.pct >= 95 ? "border-l-destructive bg-destructive/5" : "border-l-amber-500 bg-amber-50/50"
+        )}>
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className={cn(
+                  "rounded-lg p-2 mt-0.5",
+                  capacityAlert.pct >= 95 ? "bg-destructive/10 text-destructive" : "bg-amber-100 text-amber-600"
+                )}>
+                  <UserPlus className="h-5 w-5" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold">
+                    {capacityAlert.pct >= 95
+                      ? '⚠️ Capacidade esgotada — considerar contratação'
+                      : '📊 Capacidade a ficar limitada'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Equipa a {capacityAlert.pct}% ({capacityAlert.totalUsed}h/{capacityAlert.totalCap}h).
+                    {capacityAlert.overloaded > 0 && ` ${capacityAlert.overloaded} de ${capacityAlert.total} membros acima de 85%.`}
+                  </p>
+                  <Progress value={Math.min(capacityAlert.pct, 100)} className="h-2 w-48 mt-1" />
+                </div>
+              </div>
+              <Link to="/executive/productivity?tab=simulation">
+                <Button variant="outline" size="sm" className="shrink-0 text-xs">
+                  <UserPlus className="h-3.5 w-3.5 mr-1.5" />
+                  Simular contratação
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Alerts */}
       {alerts.length > 0 && (
