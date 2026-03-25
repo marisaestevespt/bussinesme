@@ -295,6 +295,32 @@ export default function ExecutiveWeeklyAlign() {
   // ─── KPI computed values ───
   const { members } = useTeamData();
   const teamMembers = members.data || [];
+
+  // ─── Capacity alert: query time entries for current month ───
+  const monthStartDate = format(startOfMonth(now), 'yyyy-MM-dd');
+  const monthEndDate = format(endOfMonth(now), 'yyyy-MM-dd');
+  const timeEntriesMonth = useQuery({
+    queryKey: ['wa-time-entries-month', monthStartDate],
+    queryFn: async () => {
+      const { data } = await supabase.from('time_entries').select('member_id,duration_hours').gte('entry_date', monthStartDate).lte('entry_date', monthEndDate);
+      return data || [];
+    },
+  });
+
+  const capacityAlert = useMemo(() => {
+    const activeMembers = teamMembers.filter((m: any) => m.status === 'ativo' || m.status === 'prestador');
+    if (activeMembers.length === 0) return null;
+    const totalCapacity = activeMembers.reduce((sum: number, m: any) => sum + (Number(m.weekly_hours) || 40) * 4.33, 0);
+    const totalUsed = (timeEntriesMonth.data || []).reduce((sum: number, e: any) => sum + (Number(e.duration_hours) || 0), 0);
+    const pct = totalCapacity > 0 ? Math.round((totalUsed / totalCapacity) * 100) : 0;
+    const overloaded = activeMembers.filter((m: any) => {
+      const memberHours = (timeEntriesMonth.data || []).filter((e: any) => e.member_id === m.id).reduce((s: number, e: any) => s + (Number(e.duration_hours) || 0), 0);
+      const cap = (Number(m.weekly_hours) || 40) * 4.33;
+      return cap > 0 && (memberHours / cap) > 0.85;
+    });
+    return { pct, totalCapacity: Math.round(totalCapacity), totalUsed: Math.round(totalUsed), overloadedCount: overloaded.length, total: activeMembers.length };
+  }, [teamMembers, timeEntriesMonth.data]);
+
   const getMemberName = (id: string | null) => {
     if (!id) return '—';
     return teamMembers.find((t: any) => t.id === id)?.full_name || '—';
