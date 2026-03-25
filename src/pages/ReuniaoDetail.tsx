@@ -13,8 +13,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
 import {
-  CalendarIcon, ArrowLeft, Trash2, Upload, FileText, Users, Plus, X, ExternalLink, StickyNote,
+  CalendarIcon, ArrowLeft, Trash2, Upload, FileText, Users, Plus, X, ExternalLink, StickyNote, Repeat,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
@@ -25,10 +26,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { toast } from 'sonner';
 import { BackNavigation } from '@/components/BackNavigation';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 // ─── Types ──────────────────────────────────────────────────────
 
 type MeetingStatus = 'por_confirmar' | 'marcada' | 'terminada';
+type MeetingType = 'recorrente' | 'projeto' | 'cliente';
 
 const STATUSES: { value: MeetingStatus; label: string; color: string }[] = [
   { value: 'por_confirmar', label: 'Por confirmar', color: '#f59e0b' },
@@ -43,6 +48,7 @@ interface MeetingFull {
   title: string;
   date_time: string;
   status: MeetingStatus;
+  meeting_type: MeetingType;
   client_id: string | null;
   client_name: string | null;
   project_id: string | null;
@@ -51,6 +57,7 @@ interface MeetingFull {
   product_name: string | null;
   department: string | null;
   transcript_url: string | null;
+  meeting_url: string | null;
   discussion_points: CheckItem[];
   priorities: string[];
   owner_actions: CheckItem[];
@@ -58,6 +65,10 @@ interface MeetingFull {
   final_notes: string[];
   created_by: string | null;
   duration_minutes: number;
+  parent_meeting_id: string | null;
+  is_recurring: boolean;
+  recurrence_frequency: string | null;
+  recurrence_end_date: string | null;
 }
 
 interface ProjectOption { id: string; name: string; }
@@ -80,6 +91,7 @@ function useMeeting(id: string) {
       const raw = data as any;
       return {
         ...raw,
+        meeting_type: raw.meeting_type || 'recorrente',
         discussion_points: Array.isArray(raw.discussion_points) ? raw.discussion_points as CheckItem[] : [],
         priorities: Array.isArray(raw.priorities) ? raw.priorities as string[] : ['', '', '', '', ''],
         owner_actions: Array.isArray(raw.owner_actions) ? raw.owner_actions as CheckItem[] : [],
@@ -147,6 +159,19 @@ function useOwnerProfile() {
   });
 }
 
+// Count series children
+function useSeriesCount(parentId: string | null) {
+  return useQuery({
+    queryKey: ['series_count', parentId],
+    queryFn: async () => {
+      if (!parentId) return 0;
+      const { count } = await supabase.from('meetings').select('id', { count: 'exact', head: true }).eq('parent_meeting_id', parentId);
+      return count || 0;
+    },
+    enabled: !!parentId,
+  });
+}
+
 // ─── Helpers ────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: MeetingStatus }) {
@@ -190,7 +215,7 @@ function EditableChecklist({ items, onChange, label }: { items: CheckItem[]; onC
 
   return (
     <div className="space-y-2">
-      <Label className="text-xs font-semibold text-foreground">{label}</Label>
+      {label && <Label className="text-xs font-semibold text-foreground">{label}</Label>}
       <div className="space-y-1">
         {items.map((item, i) => (
           <div key={i} className="flex items-center gap-2 group">
@@ -275,15 +300,20 @@ export default function ReuniaoDetailPage() {
   const { data: productsList = [] } = useProductsList();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Local editable state
   const [localMeeting, setLocalMeeting] = useState<MeetingFull | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     if (meeting && !localMeeting) setLocalMeeting(meeting);
   }, [meeting]);
 
   const m = localMeeting;
+
+  // Determine if this is a series parent
+  const isSeriesParent = m?.is_recurring === true;
+  const isSeriesChild = !!m?.parent_meeting_id;
+  const { data: seriesCount = 0 } = useSeriesCount(isSeriesParent ? m?.id ?? null : null);
 
   const update = (patch: Partial<MeetingFull>) => {
     if (!m) return;
@@ -299,6 +329,7 @@ export default function ReuniaoDetailPage() {
         title: m.title,
         date_time: m.date_time,
         status: m.status,
+        meeting_type: m.meeting_type as any,
         client_id: m.client_id,
         client_name: m.client_name,
         project_id: m.project_id,
@@ -307,6 +338,7 @@ export default function ReuniaoDetailPage() {
         product_name: m.product_name,
         department: m.department,
         transcript_url: m.transcript_url,
+        meeting_url: m.meeting_url,
         discussion_points: m.discussion_points as any,
         priorities: m.priorities as any,
         owner_actions: m.owner_actions as any,
@@ -325,9 +357,16 @@ export default function ReuniaoDetailPage() {
     onError: () => toast.error('Erro ao guardar'),
   });
 
-  // Delete
+  // Delete — with series awareness
   const deleteMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (mode: 'single' | 'future') => {
+      if (mode === 'future' && isSeriesParent) {
+        // Delete all future child occurrences
+        await supabase.from('meetings').delete()
+          .eq('parent_meeting_id', id!)
+          .gte('date_time', new Date().toISOString());
+      }
+      // Delete the meeting itself
       const { error } = await supabase.from('meetings').delete().eq('id', id!);
       if (error) throw error;
     },
@@ -371,6 +410,12 @@ export default function ReuniaoDetailPage() {
 
   const clientLabel = m.client_name || 'Cliente';
   const ownerLabel = ownerName || settings?.business_name || 'Owner';
+  const meetingType = m.meeting_type || 'recorrente';
+  const showClientSection = meetingType === 'cliente';
+  const showProjectField = meetingType === 'projeto' || meetingType === 'cliente';
+
+  const typeLabels: Record<MeetingType, string> = { recorrente: 'Recorrente', projeto: 'Projeto', cliente: 'Cliente' };
+  const typeColors: Record<MeetingType, string> = { recorrente: '#6366f1', projeto: '#3b82f6', cliente: '#10b981' };
 
   return (
     <AppLayout>
@@ -385,22 +430,60 @@ export default function ReuniaoDetailPage() {
               </Button>
             )}
             {isOwner && (
-              <Button variant="destructive" size="icon" onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>
+              <Button variant="destructive" size="icon" onClick={() => {
+                if (isSeriesParent && seriesCount > 0) {
+                  setDeleteDialogOpen(true);
+                } else {
+                  deleteMutation.mutate('single');
+                }
+              }} disabled={deleteMutation.isPending}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
           </div>
         </div>
 
+        {/* Series delete dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Eliminar reunião recorrente</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta reunião tem {seriesCount} ocorrência(s) futura(s). O que pretende fazer?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={() => deleteMutation.mutate('single')}>
+                Eliminar só esta
+              </AlertDialogAction>
+              <AlertDialogAction onClick={() => deleteMutation.mutate('future')} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Eliminar esta e futuras
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Header */}
         <div className="space-y-4">
-          <input
-            value={m.title}
-            onChange={e => update({ title: e.target.value })}
-            className="text-2xl font-bold text-foreground bg-transparent border-none outline-none w-full"
-          />
+          <div className="flex items-center gap-3">
+            <input
+              value={m.title}
+              onChange={e => update({ title: e.target.value })}
+              className="text-2xl font-bold text-foreground bg-transparent border-none outline-none flex-1"
+            />
+            <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium" style={{ backgroundColor: `${typeColors[meetingType]}20`, color: typeColors[meetingType] }}>
+              {typeLabels[meetingType]}
+            </span>
+            {(isSeriesParent || isSeriesChild) && (
+              <Badge variant="outline" className="text-[10px] gap-1">
+                <Repeat className="h-3 w-3" /> Série
+              </Badge>
+            )}
+          </div>
+
           <div className="flex flex-wrap items-start gap-4 text-sm">
-            {/* Editable date/time */}
+            {/* Date/time */}
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Data e hora</Label>
               <div className="flex items-center gap-2">
@@ -467,6 +550,18 @@ export default function ReuniaoDetailPage() {
 
           {/* Meta info */}
           <div className="flex flex-wrap gap-6 text-sm">
+            {/* Link de acesso */}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Link de acesso</Label>
+              <Input
+                value={m.meeting_url || ''}
+                onChange={e => update({ meeting_url: e.target.value || null })}
+                placeholder="https://meet.google.com/..."
+                className="h-7 text-xs w-64"
+              />
+            </div>
+
+            {/* Participants */}
             {participantProfiles.length > 0 && (
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> Participantes</Label>
@@ -480,36 +575,45 @@ export default function ReuniaoDetailPage() {
                 </div>
               </div>
             )}
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Cliente</Label>
-              <Select value={m.client_id ?? ''} onValueChange={v => {
-                const selected = clientsList.find((c: any) => c.id === v);
-                update({ client_id: v || null, client_name: selected?.full_name || null });
-              }}>
-                <SelectTrigger className="h-7 text-xs w-44"><SelectValue placeholder="Sem cliente" /></SelectTrigger>
-                <SelectContent>
-                  {clientsList.map((c: any) => (
-                    <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Departamento</Label>
-              <Select value={m.department ?? ''} onValueChange={v => {
-                const patch: Partial<MeetingFull> = { department: v || null };
-                if (v !== 'produtos') { patch.product_id = null; patch.product_name = null; }
-                update(patch);
-              }}>
-                <SelectTrigger className="h-7 text-xs w-44"><SelectValue placeholder="Nenhum" /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(MODULES).filter(([, v]) => v.section === 'departamentos').map(([key, v]) => (
-                    <SelectItem key={key} value={key}>{v.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {m.department === 'produtos' && (
+
+            {/* Client — only for 'cliente' type */}
+            {showClientSection && (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Cliente</Label>
+                <Select value={m.client_id ?? ''} onValueChange={v => {
+                  const selected = clientsList.find((c: any) => c.id === v);
+                  update({ client_id: v || null, client_name: selected?.full_name || null });
+                }}>
+                  <SelectTrigger className="h-7 text-xs w-44"><SelectValue placeholder="Sem cliente" /></SelectTrigger>
+                  <SelectContent>
+                    {clientsList.map((c: any) => (
+                      <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Department — for non-client types */}
+            {!showClientSection && (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Departamento</Label>
+                <Select value={m.department ?? ''} onValueChange={v => {
+                  const patch: Partial<MeetingFull> = { department: v || null };
+                  if (v !== 'produtos') { patch.product_id = null; patch.product_name = null; }
+                  update(patch);
+                }}>
+                  <SelectTrigger className="h-7 text-xs w-44"><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(MODULES).filter(([, v]) => v.section === 'departamentos').map(([key, v]) => (
+                      <SelectItem key={key} value={key}>{v.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {m.department === 'produtos' && !showClientSection && (
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Produto</Label>
                 <Select value={m.product_id ?? ''} onValueChange={v => {
@@ -525,20 +629,24 @@ export default function ReuniaoDetailPage() {
                 </Select>
               </div>
             )}
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Projeto</Label>
-              <Select value={m.project_id ?? ''} onValueChange={v => {
-                const proj = projectsList.find(p => p.id === v);
-                update({ project_id: v || null, project_name: proj?.name || null });
-              }}>
-                <SelectTrigger className="h-7 text-xs w-48"><SelectValue placeholder="Sem projeto" /></SelectTrigger>
-                <SelectContent>
-                  {projectsList.map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+
+            {/* Project — for projeto and cliente types */}
+            {showProjectField && (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Projeto</Label>
+                <Select value={m.project_id ?? ''} onValueChange={v => {
+                  const proj = projectsList.find(p => p.id === v);
+                  update({ project_id: v || null, project_name: proj?.name || null });
+                }}>
+                  <SelectTrigger className="h-7 text-xs w-48"><SelectValue placeholder="Sem projeto" /></SelectTrigger>
+                  <SelectContent>
+                    {projectsList.map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           {/* Transcript */}
@@ -563,7 +671,7 @@ export default function ReuniaoDetailPage() {
         <div className="space-y-6">
           <h2 className="text-lg font-bold text-foreground">Ata da Reunião</h2>
 
-          {/* Pontos discutidos */}
+          {/* Pontos discutidos / Notas */}
           <EditableChecklist
             items={m.discussion_points}
             onChange={items => update({ discussion_points: items })}
@@ -572,9 +680,38 @@ export default function ReuniaoDetailPage() {
 
           <Separator />
 
-          {/* Prioridades */}
+          {/* Próximos passos */}
           <div className="space-y-3">
-            <Label className="text-xs font-semibold text-foreground">→ Definição das Primeiras Prioridades</Label>
+            <Label className="text-xs font-semibold text-foreground">→ Próximos Passos</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Owner actions */}
+              <div className="rounded-lg border border-border p-4 space-y-3">
+                <h4 className="text-sm font-semibold text-foreground">{ownerLabel}</h4>
+                <EditableChecklist
+                  items={m.owner_actions}
+                  onChange={items => update({ owner_actions: items })}
+                  label=""
+                />
+              </div>
+              {/* Client actions — only for cliente type */}
+              {showClientSection && (
+                <div className="rounded-lg border border-border p-4 space-y-3">
+                  <h4 className="text-sm font-semibold text-foreground">{clientLabel}</h4>
+                  <EditableChecklist
+                    items={m.client_actions}
+                    onChange={items => update({ client_actions: items })}
+                    label=""
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Decisões tomadas */}
+          <div className="space-y-3">
+            <Label className="text-xs font-semibold text-foreground">→ Decisões Tomadas</Label>
             <div className="space-y-2">
               {m.priorities.map((p, i) => (
                 <div key={i} className="flex items-center gap-2">
@@ -586,38 +723,11 @@ export default function ReuniaoDetailPage() {
                       next[i] = e.target.value;
                       update({ priorities: next });
                     }}
-                    placeholder={`Prioridade ${i + 1}`}
+                    placeholder={`Decisão ${i + 1}`}
                     className="h-8 text-sm"
                   />
                 </div>
               ))}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Próximas Ações */}
-          <div className="space-y-3">
-            <Label className="text-xs font-semibold text-foreground">→ Próximas Ações</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Owner block */}
-              <div className="rounded-lg border border-border p-4 space-y-3">
-                <h4 className="text-sm font-semibold text-foreground">{ownerLabel}</h4>
-                <EditableChecklist
-                  items={m.owner_actions}
-                  onChange={items => update({ owner_actions: items })}
-                  label=""
-                />
-              </div>
-              {/* Client block */}
-              <div className="rounded-lg border border-border p-4 space-y-3">
-                <h4 className="text-sm font-semibold text-foreground">{clientLabel}</h4>
-                <EditableChecklist
-                  items={m.client_actions}
-                  onChange={items => update({ client_actions: items })}
-                  label=""
-                />
-              </div>
             </div>
           </div>
 
