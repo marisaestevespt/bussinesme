@@ -12,14 +12,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
-import { Clock, Users, Briefcase, AlertTriangle, Plus, BarChart3, Timer, ArrowLeftRight, Building2 } from 'lucide-react';
+import { Clock, Briefcase, AlertTriangle, Plus, BarChart3, Timer, ArrowLeftRight, Building2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subWeeks } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { MemberProductivityDetail } from '@/components/productivity/MemberProductivityDetail';
+
 
 const CATEGORIES = [
   { value: 'cliente', label: 'Cliente' },
@@ -84,13 +84,8 @@ export default function ExecutiveProductivity() {
     },
   });
 
-  const productsQ = useQuery({
-    queryKey: ['products'],
-    queryFn: async () => {
-      const { data } = await supabase.from('products').select('id, name, monthly_hours_per_client');
-      return (data || []) as any[];
-    },
-  });
+
+
 
   const projects = useQuery({
     queryKey: ['projects_list'],
@@ -108,13 +103,8 @@ export default function ExecutiveProductivity() {
     },
   });
 
-  const profiles = useQuery({
-    queryKey: ['profiles_list'],
-    queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id, full_name');
-      return (data || []) as any[];
-    },
-  });
+
+
 
   const capacityScenarios = useQuery({
     queryKey: ['capacity_scenarios'],
@@ -144,13 +134,13 @@ export default function ExecutiveProductivity() {
             <TabsTrigger value="capacity"><Building2 className="h-3.5 w-3.5 mr-1.5" />Capacidade Empresa</TabsTrigger>
             <TabsTrigger value="split"><ArrowLeftRight className="h-3.5 w-3.5 mr-1.5" />Interno vs Cliente</TabsTrigger>
             <TabsTrigger value="by-client"><Briefcase className="h-3.5 w-3.5 mr-1.5" />Tempo por Cliente</TabsTrigger>
-            <TabsTrigger value="by-member"><Users className="h-3.5 w-3.5 mr-1.5" />Tempo por Membro</TabsTrigger>
+            
             <TabsTrigger value="overload"><AlertTriangle className="h-3.5 w-3.5 mr-1.5" />Tarefas & Sobrecarga</TabsTrigger>
             <TabsTrigger value="log"><Timer className="h-3.5 w-3.5 mr-1.5" />Registo de Tempo</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
-            <OverviewTab entries={entries.data || []} members={members.data || []} clients={clients.data || []} products={productsQ.data || []} tasks={tasks.data || []} projects={projects.data || []} profiles={profiles.data || []} />
+            <OverviewTab entries={entries.data || []} members={members.data || []} />
           </TabsContent>
           <TabsContent value="capacity">
             <CompanyCapacityTab members={members.data || []} entries={entries.data || []} />
@@ -161,9 +151,8 @@ export default function ExecutiveProductivity() {
           <TabsContent value="by-client">
             <ByClientTab entries={entries.data || []} clients={clients.data || []} />
           </TabsContent>
-          <TabsContent value="by-member">
-            <ByMemberTab entries={entries.data || []} members={members.data || []} />
-          </TabsContent>
+
+
           <TabsContent value="overload">
             <OverloadTab entries={entries.data || []} members={members.data || []} tasks={tasks.data || []} />
           </TabsContent>
@@ -548,7 +537,7 @@ function TimeSplitTab({ entries, members, scenario, scenarioProducts }: { entrie
 }
 
 /* ─── TAB 1: VISÃO GERAL ─── */
-function OverviewTab({ entries, members, clients, products, tasks, projects, profiles }: { entries: any[]; members: any[]; clients: any[]; products: any[]; tasks: any[]; projects: any[]; profiles: any[] }) {
+function OverviewTab({ entries, members }: { entries: any[]; members: any[] }) {
   const { start, end } = getDateRange('week');
   const weekEntries = entries.filter(e => {
     const d = new Date(e.entry_date);
@@ -580,17 +569,8 @@ function OverviewTab({ entries, members, clients, products, tasks, projects, pro
   });
   const pieData = Object.entries(catDist).map(([key, val]) => ({ name: catLabel(key), value: Number(val.toFixed(1)) }));
 
-  // Overload alerts
-  const alerts = members.filter(m => {
-    const expected = Number(m.expected_weekly_hours || 40);
-    const actual = hoursByMember[m.id] || 0;
-    return actual > expected * 1.1;
-  }).map(m => {
-    const expected = Number(m.expected_weekly_hours || 40);
-    const actual = hoursByMember[m.id] || 0;
-    const pct = ((actual - expected) / expected) * 100;
-    return { ...m, actual, expected, pct };
-  });
+
+
 
   return (
     <div className="space-y-6">
@@ -640,211 +620,13 @@ function OverviewTab({ entries, members, clients, products, tasks, projects, pro
         </Card>
       </div>
 
-      {/* Overload Alerts */}
-      {alerts.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-destructive" /> Alertas de sobrecarga</CardTitle></CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader><TableRow>
-                <TableHead>Membro</TableHead><TableHead>Esperadas</TableHead><TableHead>Registadas</TableHead><TableHead>Excesso</TableHead><TableHead></TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {alerts.map(a => (
-                  <TableRow key={a.id}>
-                    <TableCell className="text-sm font-medium">{a.full_name}</TableCell>
-                    <TableCell className="text-sm">{a.expected}h</TableCell>
-                    <TableCell className="text-sm">{a.actual.toFixed(1)}h</TableCell>
-                    <TableCell className="text-sm">+{a.pct.toFixed(0)}%</TableCell>
-                    <TableCell><Badge variant={a.pct >= 20 ? 'destructive' : 'secondary'} className="text-xs">{a.pct >= 20 ? 'Sobrecarga' : 'Atenção'}</Badge></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* ─── Capacidade da Equipa ─── */}
-      <TeamCapacitySection members={members} clients={clients} products={products} tasks={tasks} entries={entries} projects={projects} profiles={profiles} />
+
     </div>
   );
 }
 
-/* ─── CAPACIDADE DA EQUIPA ─── */
-function TeamCapacitySection({ members, clients, products, tasks, entries, projects, profiles }: { members: any[]; clients: any[]; products: any[]; tasks: any[]; entries: any[]; projects: any[]; profiles: any[] }) {
-  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
-  const activeMembers = members.filter(m => m.status === 'ativo');
-  const activeClients = clients.filter(c => c.status === 'ativo');
 
-  const productHoursMap: Record<string, number | null> = {};
-  products.forEach(p => { productHoursMap[p.name] = p.monthly_hours_per_client; });
-
-  const rows = activeMembers.map(m => {
-    const weeklyHours = Number(m.expected_weekly_hours || 40);
-    const monthlyAvailable = Math.round(weeklyHours * 4.33 * 10) / 10;
-
-    const memberClients = activeClients.filter(c => c.dp === m.full_name);
-
-    let committedHours = 0;
-    let missingHoursFlag = false;
-    const clientDetails = memberClients.map(c => {
-      const productName = c.current_product || null;
-      const hours = productName ? productHoursMap[productName] : null;
-      if (hours != null) {
-        committedHours += hours;
-      } else {
-        missingHoursFlag = true;
-      }
-      return { clientName: c.full_name, productName: productName || '—', hours };
-    });
-
-    const taskEstimatedHours = tasks
-      .filter(t => t.assigned_to === m.profile_id && t.status !== 'done' && t.estimated_time)
-      .reduce((sum: number, t: any) => sum + Number(t.estimated_time || 0), 0);
-    committedHours += taskEstimatedHours;
-
-    const freeHours = Math.round((monthlyAvailable - committedHours) * 10) / 10;
-    const occupancy = monthlyAvailable > 0 ? Math.round((committedHours / monthlyAvailable) * 100) : 0;
-    const capacityStatus: 'green' | 'amber' | 'red' = occupancy > 100 ? 'red' : occupancy >= 80 ? 'amber' : 'green';
-
-    return {
-      id: m.id, name: m.full_name, monthlyAvailable, clientCount: memberClients.length,
-      committedHours, freeHours, occupancy, capacityStatus, missingHoursFlag, clientDetails,
-      taskEstimatedHours,
-    };
-  });
-
-  const alertRows = rows.filter(r => r.capacityStatus === 'red' || r.capacityStatus === 'amber');
-
-  const statusColors: Record<string, string> = {
-    green: 'bg-emerald-500', amber: 'bg-amber-400', red: 'bg-red-500',
-  };
-  const statusLabels: Record<string, string> = {
-    green: 'Dentro da capacidade', amber: 'Atenção', red: 'Sobrecarga',
-  };
-
-  // Detail panel
-  const selectedMember = activeMembers.find(m => m.id === selectedMemberId);
-  const selectedRow = rows.find(r => r.id === selectedMemberId);
-
-  if (selectedMember && selectedRow) {
-    return (
-      <div className="space-y-4">
-        <h2 className="text-base font-semibold flex items-center gap-2"><Users className="h-4 w-4" /> Capacidade da Equipa</h2>
-        <MemberProductivityDetail
-          member={selectedMember}
-          memberRow={selectedRow}
-          allMembers={activeMembers}
-          allTasks={tasks}
-          allEntries={entries}
-          allProjects={projects}
-          allProfiles={profiles}
-          onBack={() => setSelectedMemberId(null)}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      <h2 className="text-base font-semibold flex items-center gap-2"><Users className="h-4 w-4" /> Capacidade da Equipa</h2>
-
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader><TableRow>
-              <TableHead>Membro</TableHead>
-              <TableHead className="text-right">Horas disponíveis/mês</TableHead>
-              <TableHead className="text-right">Clientes ativos</TableHead>
-              <TableHead className="text-right">Horas comprometidas</TableHead>
-              <TableHead className="text-right">Horas livres</TableHead>
-              <TableHead className="text-right">% Ocupação</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow></TableHeader>
-            <TableBody>
-              {rows.length === 0 ? (
-                <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">Sem membros ativos</TableCell></TableRow>
-              ) : rows.map(r => (
-                <TableRow key={r.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedMemberId(r.id)}>
-                  <TableCell className="text-sm font-medium">
-                    {r.name}
-                    {r.missingHoursFlag && (
-                      <span className="ml-1.5 text-amber-500" title="Algum produto sem horas mensais definidas"><AlertTriangle className="inline h-3 w-3" /></span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-sm text-right">{r.monthlyAvailable}h</TableCell>
-                  <TableCell className="text-sm text-right">{r.clientCount}</TableCell>
-                  <TableCell className="text-sm text-right">{r.committedHours}h</TableCell>
-                  <TableCell className={`text-sm text-right ${r.freeHours < 0 ? 'text-destructive font-medium' : ''}`}>{r.freeHours}h</TableCell>
-                  <TableCell className="text-sm text-right">{r.occupancy}%</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1.5">
-                      <span className={`inline-block h-2.5 w-2.5 rounded-full ${statusColors[r.capacityStatus]}`} />
-                      <span className="text-xs">{statusLabels[r.capacityStatus]}</span>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      {/* Alert block */}
-      {alertRows.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-destructive" /> Alertas de Capacidade</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {alertRows.map(r => (
-              <div key={r.id} className="rounded-lg border p-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className={`inline-block h-2.5 w-2.5 rounded-full ${statusColors[r.capacityStatus]}`} />
-                  <span className="font-medium text-sm">{r.name}</span>
-                  <Badge variant={r.capacityStatus === 'red' ? 'destructive' : 'secondary'} className="text-xs ml-auto">
-                    {statusLabels[r.capacityStatus]}
-                  </Badge>
-                </div>
-                <div className="text-xs text-muted-foreground grid grid-cols-3 gap-2">
-                  <span>Disponíveis: {r.monthlyAvailable}h</span>
-                  <span>Comprometidas: {r.committedHours}h</span>
-                  <span>{r.capacityStatus === 'red' ? `Excesso: ${Math.abs(r.freeHours)}h` : `Restantes: ${r.freeHours}h`}</span>
-                </div>
-                <p className="text-xs text-muted-foreground italic">
-                  {r.capacityStatus === 'red'
-                    ? `Este membro não tem capacidade para novos clientes. As horas comprometidas excedem as horas disponíveis em ${Math.abs(r.freeHours)}h.`
-                    : `Este membro está a aproximar-se do limite de capacidade. Restam apenas ${r.freeHours}h disponíveis.`}
-                </p>
-                {r.clientDetails.length > 0 && (
-                  <Table>
-                    <TableHeader><TableRow>
-                      <TableHead className="text-xs">Cliente</TableHead>
-                      <TableHead className="text-xs">Produto</TableHead>
-                      <TableHead className="text-xs text-right">Horas/mês</TableHead>
-                    </TableRow></TableHeader>
-                    <TableBody>
-                      {r.clientDetails.map((cd, i) => (
-                        <TableRow key={i}>
-                          <TableCell className="text-xs">{cd.clientName}</TableCell>
-                          <TableCell className="text-xs">{cd.productName}</TableCell>
-                          <TableCell className="text-xs text-right">
-                            {cd.hours != null ? `${cd.hours}h` : <span className="text-amber-500">Sem horas definidas</span>}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
-}
 
 /* ─── TAB 2: TEMPO POR CLIENTE ─── */
 function ByClientTab({ entries, clients }: { entries: any[]; clients: any[] }) {
@@ -911,88 +693,6 @@ function ByClientTab({ entries, clients }: { entries: any[]; clients: any[] }) {
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} layout="vertical"><XAxis type="number" fontSize={12} /><YAxis type="category" dataKey="name" fontSize={12} width={80} /><Tooltip /><Bar dataKey="horas" fill="hsl(var(--primary))" radius={[0,4,4,0]} /></BarChart>
-              </ResponsiveContainer>
-            ) : <p className="text-sm text-muted-foreground text-center pt-20">Sem dados</p>}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-/* ─── TAB 3: TEMPO POR MEMBRO ─── */
-function ByMemberTab({ entries, members }: { entries: any[]; members: any[] }) {
-  const [period, setPeriod] = useState('month');
-  const { start, end } = getDateRange(period);
-  const weeks = weeksInPeriod(period);
-
-  const filtered = entries.filter(e => {
-    const d = new Date(e.entry_date);
-    return d >= start && d <= end;
-  });
-
-  const rows = members.map(m => {
-    const mEntries = filtered.filter(e => e.member_id === m.id);
-    const hours = mEntries.reduce((s, e) => s + Number(e.duration || 0), 0);
-    const expected = Number(m.expected_weekly_hours || 40) * weeks;
-    const diff = hours - expected;
-    const pct = expected > 0 ? (hours / expected) * 100 : 0;
-    const catBreakdown: Record<string, number> = {};
-    mEntries.forEach(e => { const c = e.category || 'outro'; catBreakdown[c] = (catBreakdown[c] || 0) + Number(e.duration || 0); });
-    return { ...m, hours, expected, diff, pct, catBreakdown };
-  });
-
-  const chartData = rows.map(r => ({
-    name: r.full_name?.split(' ')[0] || 'N/A',
-    esperadas: Number(r.expected.toFixed(1)),
-    registadas: Number(r.hours.toFixed(1)),
-  }));
-
-  return (
-    <div className="space-y-4">
-      <div className="flex gap-2">
-        {PERIOD_FILTERS.map(f => (
-          <Button key={f.value} size="sm" variant={period === f.value ? 'default' : 'outline'} onClick={() => setPeriod(f.value)}>{f.label}</Button>
-        ))}
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader><TableRow>
-                <TableHead>Membro</TableHead><TableHead>Função</TableHead><TableHead className="text-right">Esperadas</TableHead><TableHead className="text-right">Registadas</TableHead><TableHead className="text-right">Diferença</TableHead><TableHead className="text-right">Ocupação</TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {rows.map(r => (
-                  <TableRow key={r.id}>
-                    <TableCell className="text-sm font-medium">{r.full_name}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{r.role_title || '—'}</TableCell>
-                    <TableCell className="text-sm text-right">{r.expected.toFixed(0)}h</TableCell>
-                    <TableCell className="text-sm text-right">{r.hours.toFixed(1)}h</TableCell>
-                    <TableCell className={`text-sm text-right ${r.diff > 0 ? 'text-destructive' : r.diff < -5 ? 'text-amber-500' : ''}`}>{r.diff > 0 ? '+' : ''}{r.diff.toFixed(1)}h</TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant={r.pct > 110 ? 'destructive' : r.pct > 90 ? 'default' : 'secondary'} className="text-xs">{r.pct.toFixed(0)}%</Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Esperadas vs Registadas</CardTitle></CardHeader>
-          <CardContent className="h-72">
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} layout="vertical">
-                  <XAxis type="number" fontSize={12} />
-                  <YAxis type="category" dataKey="name" fontSize={12} width={70} />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="esperadas" fill="hsl(var(--muted-foreground))" radius={[0,4,4,0]} />
-                  <Bar dataKey="registadas" fill="hsl(var(--primary))" radius={[0,4,4,0]} />
-                </BarChart>
               </ResponsiveContainer>
             ) : <p className="text-sm text-muted-foreground text-center pt-20">Sem dados</p>}
           </CardContent>
