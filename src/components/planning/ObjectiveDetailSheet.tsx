@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, Save, ListTodo, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { SourceFilterFields, getSourceFilters } from './SourceFilterFields';
 import { planAreaLabel, planStatusLabel, PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES, CADENCES, ACTION_STATUSES, GOAL_STATUSES, MEASUREMENT_TYPES } from '@/hooks/usePlanningData';
 import { useTeamData } from '@/hooks/useTeamData';
 import { useProducts } from '@/hooks/useProducts';
@@ -41,6 +42,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
         value_source: obj.value_source || 'manual', product_id: obj.product_id || '',
         measurement_type: obj.measurement_type || 'acumulativo',
         primary_metric_id: obj.primary_metric_id || '',
+        source_filter: obj.source_filter || {},
       });
       setEditing(false);
     }
@@ -58,7 +60,12 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
   const set = (k: string, v: any) => setForm((p: any) => ({ ...p, [k]: v }));
 
   const handleSaveHeader = () => {
-    planning.upsertObjective.mutate({ id: obj.id, ...form, product_id: form.product_id || null, primary_metric_id: form.primary_metric_id || null });
+    planning.upsertObjective.mutate({
+      id: obj.id, ...form,
+      product_id: form.product_id || null,
+      primary_metric_id: form.primary_metric_id || null,
+      source_filter: Object.keys(form.source_filter || {}).length > 0 ? form.source_filter : null,
+    });
     setEditing(false);
   };
 
@@ -130,7 +137,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                     <div><Label>Valor alvo</Label><Input type="number" value={form.target_value} onChange={e => set('target_value', e.target.value)} /></div>
                     <div><Label>Unidade</Label><Input value={form.target_unit} onChange={e => set('target_unit', e.target.value)} /></div>
                     <div><Label>Fonte</Label>
-                      <Select value={form.value_source || 'manual'} onValueChange={v => set('value_source', v)}>
+                      <Select value={form.value_source || 'manual'} onValueChange={v => { set('value_source', v); set('source_filter', {}); }}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>{VALUE_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                       </Select>
@@ -163,6 +170,16 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
                             {productsList.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                           </SelectContent>
                         </Select>
+                      </div>
+                    )}
+                    {getSourceFilters(form.value_source).length > 0 && (
+                      <div className="col-span-3">
+                        <Label className="text-xs text-muted-foreground">Filtros (opcional)</Label>
+                        <SourceFilterFields
+                          source={form.value_source}
+                          sourceFilter={form.source_filter || {}}
+                          onChange={sf => set('source_filter', sf)}
+                        />
                       </div>
                     )}
                   </div>

@@ -7,11 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PLAN_AREAS, PLAN_STATUSES, VALUE_SOURCES, MEASUREMENT_TYPES } from '@/hooks/usePlanningData';
 import { useProducts } from '@/hooks/useProducts';
 import { Label } from '@/components/ui/label';
+import { SourceFilterFields, getSourceFilters } from './SourceFilterFields';
 
-const DEFAULTS = {
+const DEFAULTS: any = {
   title: '', description: '', area: 'outro', status: 'por_iniciar', deadline: '',
   objective_type: 'quantitativo', target_value: '', target_unit: '€', current_value: '', value_source: 'manual', product_id: '',
-  measurement_type: 'acumulativo', primary_metric_id: '',
+  measurement_type: 'acumulativo', primary_metric_id: '', source_filter: {},
 };
 
 export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
@@ -21,8 +22,10 @@ export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
   const productsList = products.data || [];
 
   useEffect(() => {
-    setForm({ ...DEFAULTS, ...(initial || {}) });
+    setForm({ ...DEFAULTS, ...(initial || {}), source_filter: initial?.source_filter || {} });
   }, [initial, open]);
+
+  const hasContextFilters = getSourceFilters(form.value_source).length > 0;
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
@@ -75,7 +78,7 @@ export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
                 <div><Label>Valor alvo</Label><Input type="number" value={form.target_value || ''} onChange={e => set('target_value', e.target.value)} /></div>
                 <div><Label>Unidade</Label><Input value={form.target_unit || ''} onChange={e => set('target_unit', e.target.value)} placeholder="€, seguidores..." /></div>
                 <div><Label>Fonte valor atual</Label>
-                  <Select value={form.value_source || 'manual'} onValueChange={v => set('value_source', v)}>
+                  <Select value={form.value_source || 'manual'} onValueChange={v => { set('value_source', v); set('source_filter', {}); }}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {VALUE_SOURCES.map(s => (
@@ -107,10 +110,26 @@ export function ObjectiveDialog({ open, onClose, initial, onSave }: any) {
                   </Select>
                 </div>
               )}
+              {hasContextFilters && (
+                <div>
+                  <Label className="text-xs text-muted-foreground">Filtros (opcional)</Label>
+                  <SourceFilterFields
+                    source={form.value_source}
+                    sourceFilter={form.source_filter || {}}
+                    onChange={sf => set('source_filter', sf)}
+                  />
+                </div>
+              )}
             </>
           )}
 
-          <Button className="w-full" onClick={() => onSave({ ...initial, ...form, product_id: form.product_id || null, primary_metric_id: form.primary_metric_id || null, measurement_type: form.objective_type === 'quantitativo' ? (form.measurement_type || 'acumulativo') : null })} disabled={!form.title?.toString().trim()}>
+          <Button className="w-full" onClick={() => onSave({
+            ...initial, ...form,
+            product_id: form.product_id || null,
+            primary_metric_id: form.primary_metric_id || null,
+            measurement_type: form.objective_type === 'quantitativo' ? (form.measurement_type || 'acumulativo') : null,
+            source_filter: Object.keys(form.source_filter || {}).length > 0 ? form.source_filter : null,
+          })} disabled={!form.title?.toString().trim()}>
             Guardar
           </Button>
         </div>

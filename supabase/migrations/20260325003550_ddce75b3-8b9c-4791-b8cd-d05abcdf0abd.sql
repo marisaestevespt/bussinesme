@@ -1,0 +1,1 @@
+ALTER TABLE public.executive_objectives ADD COLUMN source_filter jsonb DEFAULT null;

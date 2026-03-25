@@ -376,7 +376,7 @@ export function usePlanningData(year = currentYear) {
   const autoTimeEntries = useQuery({
     queryKey: ['auto-time-entries', year],
     queryFn: async () => {
-      const { data } = await supabase.from('time_entries').select('duration,entry_month').eq('entry_year', year);
+      const { data } = await supabase.from('time_entries').select('duration,entry_month,category,client_id').eq('entry_year', year);
       return data || [];
     },
   });
@@ -387,7 +387,7 @@ export function usePlanningData(year = currentYear) {
     queryFn: async () => {
       const startDate = `${year}-01-01`;
       const endDate = `${year}-12-31`;
-      const { data } = await supabase.from('tasks').select('id,updated_at').eq('status', 'concluida').gte('updated_at', startDate).lte('updated_at', endDate + 'T23:59:59');
+      const { data } = await supabase.from('tasks').select('id,updated_at,department').eq('status', 'concluida').gte('updated_at', startDate).lte('updated_at', endDate + 'T23:59:59');
       return data || [];
     },
   });
@@ -401,78 +401,82 @@ export function usePlanningData(year = currentYear) {
     },
   });
 
-  // Marketing followers (sum across all channels, latest month)
-  const autoMarketingFollowers = useQuery({
-    queryKey: ['auto-marketing-followers', year],
+  // Marketing followers raw (for filtering by channel)
+  const autoMarketingFollowersRaw = useQuery({
+    queryKey: ['auto-marketing-followers-raw', year],
     queryFn: async () => {
       const { data } = await supabase.from('channel_monthly_metrics').select('followers,channel_id,month').eq('year', year).order('month', { ascending: false });
-      if (!data || data.length === 0) return 0;
-      // Get the latest month's data, sum followers across channels
-      const latestMonth = data[0].month;
-      const latestData = data.filter((d: any) => d.month === latestMonth);
-      return latestData.reduce((s: number, d: any) => s + Number(d.followers || 0), 0);
+      return data || [];
     },
   });
 
-  // Content items published in the year
-  const autoContentPublished = useQuery({
-    queryKey: ['auto-content-published', year],
+  // Content items published in the year (raw for filtering by channel)
+  const autoContentRaw = useQuery({
+    queryKey: ['auto-content-raw', year],
     queryFn: async () => {
       const startDate = `${year}-01-01`;
       const endDate = `${year}-12-31T23:59:59`;
-      const { data } = await supabase.from('content_items').select('id').eq('status', 'publicado').gte('scheduled_at', startDate).lte('scheduled_at', endDate);
-      return (data || []).length;
+      const { data } = await supabase.from('content_items').select('id,product_id').eq('status', 'publicado').gte('scheduled_at', startDate).lte('scheduled_at', endDate);
+      return data || [];
     },
   });
 
-  // Meetings held in the year
-  const autoMeetings = useQuery({
-    queryKey: ['auto-meetings', year],
+  // Content channel links for filtering
+  const autoContentChannels = useQuery({
+    queryKey: ['auto-content-channels', year],
+    queryFn: async () => {
+      const { data } = await supabase.from('content_channels').select('content_id,channel_id');
+      return data || [];
+    },
+  });
+
+  // Meetings held in the year (raw for filtering by department)
+  const autoMeetingsRaw = useQuery({
+    queryKey: ['auto-meetings-raw', year],
     queryFn: async () => {
       const startDate = `${year}-01-01T00:00:00`;
       const endDate = `${year}-12-31T23:59:59`;
-      const { data } = await supabase.from('meetings').select('id').in('status', ['terminada', 'confirmada']).gte('date_time', startDate).lte('date_time', endDate);
-      return (data || []).length;
+      const { data } = await supabase.from('meetings').select('id,department,client_id').in('status', ['terminada', 'confirmada']).gte('date_time', startDate).lte('date_time', endDate);
+      return data || [];
     },
   });
 
-  // NPS average
-  const autoNps = useQuery({
-    queryKey: ['auto-nps', year],
+  // NPS raw (for filtering by client)
+  const autoNpsRaw = useQuery({
+    queryKey: ['auto-nps-raw', year],
     queryFn: async () => {
       const startDate = `${year}-01-01`;
       const endDate = `${year}-12-31`;
-      const { data } = await supabase.from('client_nps_records').select('nps_score').not('nps_score', 'is', null).gte('actual_date', startDate).lte('actual_date', endDate);
-      if (!data || data.length === 0) return null;
-      const sum = data.reduce((s: number, r: any) => s + Number(r.nps_score), 0);
-      return Math.round((sum / data.length) * 10) / 10;
+      const { data } = await supabase.from('client_nps_records').select('nps_score,client_id').not('nps_score', 'is', null).gte('actual_date', startDate).lte('actual_date', endDate);
+      return data || [];
     },
   });
 
-  // Total expenses in the year
-  const autoExpenses = useQuery({
-    queryKey: ['auto-expenses', year],
+  // Expenses raw (for filtering by category)
+  const autoExpensesRaw = useQuery({
+    queryKey: ['auto-expenses-raw', year],
     queryFn: async () => {
       const startDate = `${year}-01-01`;
       const endDate = `${year}-12-31`;
-      const { data } = await supabase.from('financial_expenses').select('total_amount').gte('expense_date', startDate).lte('expense_date', endDate);
-      return (data || []).reduce((s: number, r: any) => s + Number(r.total_amount || 0), 0);
+      const { data } = await supabase.from('financial_expenses').select('total_amount,category').gte('expense_date', startDate).lte('expense_date', endDate);
+      return data || [];
     },
   });
 
-  // Projects completed in the year
-  const autoProjectsCompleted = useQuery({
-    queryKey: ['auto-projects-completed', year],
+  // Projects completed raw (for filtering by type)
+  const autoProjectsRaw = useQuery({
+    queryKey: ['auto-projects-raw', year],
     queryFn: async () => {
       const startDate = `${year}-01-01`;
       const endDate = `${year}-12-31T23:59:59`;
-      const { data } = await supabase.from('projects').select('id').eq('status', 'concluido').gte('updated_at', startDate).lte('updated_at', endDate);
-      return (data || []).length;
+      const { data } = await supabase.from('projects').select('id,type,client_name').eq('status', 'concluido').gte('updated_at', startDate).lte('updated_at', endDate);
+      return data || [];
     },
   });
 
-  // Helper: get auto value for a source, optionally filtered by product name
-  const getAutoValue = (source: string, productName?: string | null, metricId?: string | null) => {
+  // Helper: get auto value for a source with optional source_filter
+  const getAutoValue = (source: string, productName?: string | null, metricId?: string | null, sourceFilter?: Record<string, string> | null) => {
+    const sf = sourceFilter || {};
     if (source === 'metrica' && metricId) {
       const metric = (metrics.data || []).find((m: any) => m.id === metricId);
       return metric ? Number(metric.current_value || 0) : null;
@@ -489,17 +493,56 @@ export function usePlanningData(year = currentYear) {
     }
     if (source === 'bd_clientes') return autoActiveClients.data ?? null;
     if (source === 'bd_tempo') {
-      const rows = autoTimeEntries.data || [];
+      let rows = autoTimeEntries.data || [];
+      if (sf.category) rows = rows.filter((r: any) => r.category === sf.category);
+      if (sf.client_id) rows = rows.filter((r: any) => r.client_id === sf.client_id);
       return rows.reduce((s: number, r: any) => s + Number(r.duration || 0), 0);
     }
-    if (source === 'bd_tarefas') return (autoTasksCompleted.data || []).length;
+    if (source === 'bd_tarefas') {
+      let rows = autoTasksCompleted.data || [];
+      if (sf.department) rows = rows.filter((r: any) => r.department === sf.department);
+      return rows.length;
+    }
     if (source === 'bd_equipa') return autoTeamMembers.data ?? null;
-    if (source === 'bd_marketing') return autoMarketingFollowers.data ?? null;
-    if (source === 'bd_conteudos') return autoContentPublished.data ?? null;
-    if (source === 'bd_reunioes') return autoMeetings.data ?? null;
-    if (source === 'bd_nps') return autoNps.data ?? null;
-    if (source === 'bd_despesas') return autoExpenses.data ?? null;
-    if (source === 'bd_projetos') return autoProjectsCompleted.data ?? null;
+    if (source === 'bd_marketing') {
+      const allData = autoMarketingFollowersRaw.data || [];
+      if (allData.length === 0) return 0;
+      const latestMonth = allData[0].month;
+      let latest = allData.filter((d: any) => d.month === latestMonth);
+      if (sf.channel_id) latest = latest.filter((d: any) => d.channel_id === sf.channel_id);
+      return latest.reduce((s: number, d: any) => s + Number(d.followers || 0), 0);
+    }
+    if (source === 'bd_conteudos') {
+      let rows = autoContentRaw.data || [];
+      if (sf.channel_id) {
+        const links = autoContentChannels.data || [];
+        const contentIds = new Set(links.filter((l: any) => l.channel_id === sf.channel_id).map((l: any) => l.content_id));
+        rows = rows.filter((r: any) => contentIds.has(r.id));
+      }
+      return rows.length;
+    }
+    if (source === 'bd_reunioes') {
+      let rows = autoMeetingsRaw.data || [];
+      if (sf.department) rows = rows.filter((r: any) => r.department === sf.department);
+      return rows.length;
+    }
+    if (source === 'bd_nps') {
+      let rows = autoNpsRaw.data || [];
+      if (sf.client_id) rows = rows.filter((r: any) => r.client_id === sf.client_id);
+      if (rows.length === 0) return null;
+      const sum = rows.reduce((s: number, r: any) => s + Number(r.nps_score), 0);
+      return Math.round((sum / rows.length) * 10) / 10;
+    }
+    if (source === 'bd_despesas') {
+      let rows = autoExpensesRaw.data || [];
+      if (sf.category) rows = rows.filter((r: any) => r.category === sf.category);
+      return rows.reduce((s: number, r: any) => s + Number(r.total_amount || 0), 0);
+    }
+    if (source === 'bd_projetos') {
+      let rows = autoProjectsRaw.data || [];
+      if (sf.type) rows = rows.filter((r: any) => r.type === sf.type);
+      return rows.length;
+    }
     return null;
   };
 
@@ -521,7 +564,8 @@ export function usePlanningData(year = currentYear) {
   const objectiveProgress = (obj: any) => {
     if (obj.objective_type === 'quantitativo') {
       const pName = obj.product_name ?? resolveProductName(obj.product_id);
-      const cv = obj.value_source === 'manual' ? Number(obj.current_value || 0) : (getAutoValue(obj.value_source, pName, obj.primary_metric_id) ?? 0);
+      const sf = obj.source_filter || null;
+      const cv = obj.value_source === 'manual' ? Number(obj.current_value || 0) : (getAutoValue(obj.value_source, pName, obj.primary_metric_id, sf) ?? 0);
       const tv = Number(obj.target_value || 0);
       if (tv <= 0) return 0;
       return Math.min(100, Math.round((cv / tv) * 100));
@@ -536,7 +580,8 @@ export function usePlanningData(year = currentYear) {
   const objectiveCurrentValue = (obj: any) => {
     if (obj.value_source === 'manual') return Number(obj.current_value || 0);
     const pName = obj.product_name ?? resolveProductName(obj.product_id);
-    return getAutoValue(obj.value_source, pName, obj.primary_metric_id) ?? 0;
+    const sf = obj.source_filter || null;
+    return getAutoValue(obj.value_source, pName, obj.primary_metric_id, sf) ?? 0;
   };
 
   // Helper: auto-compute goal status based on actual vs target
