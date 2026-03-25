@@ -414,6 +414,63 @@ export function usePlanningData(year = currentYear) {
     },
   });
 
+  // Content items published in the year
+  const autoContentPublished = useQuery({
+    queryKey: ['auto-content-published', year],
+    queryFn: async () => {
+      const startDate = `${year}-01-01`;
+      const endDate = `${year}-12-31T23:59:59`;
+      const { data } = await supabase.from('content_items').select('id').eq('status', 'publicado').gte('scheduled_at', startDate).lte('scheduled_at', endDate);
+      return (data || []).length;
+    },
+  });
+
+  // Meetings held in the year
+  const autoMeetings = useQuery({
+    queryKey: ['auto-meetings', year],
+    queryFn: async () => {
+      const startDate = `${year}-01-01T00:00:00`;
+      const endDate = `${year}-12-31T23:59:59`;
+      const { data } = await supabase.from('meetings').select('id').in('status', ['realizada', 'confirmada']).gte('date_time', startDate).lte('date_time', endDate);
+      return (data || []).length;
+    },
+  });
+
+  // NPS average
+  const autoNps = useQuery({
+    queryKey: ['auto-nps', year],
+    queryFn: async () => {
+      const startDate = `${year}-01-01`;
+      const endDate = `${year}-12-31`;
+      const { data } = await supabase.from('client_nps_records').select('nps_score').not('nps_score', 'is', null).gte('actual_date', startDate).lte('actual_date', endDate);
+      if (!data || data.length === 0) return null;
+      const sum = data.reduce((s: number, r: any) => s + Number(r.nps_score), 0);
+      return Math.round((sum / data.length) * 10) / 10;
+    },
+  });
+
+  // Total expenses in the year
+  const autoExpenses = useQuery({
+    queryKey: ['auto-expenses', year],
+    queryFn: async () => {
+      const startDate = `${year}-01-01`;
+      const endDate = `${year}-12-31`;
+      const { data } = await supabase.from('financial_expenses').select('total_amount').gte('expense_date', startDate).lte('expense_date', endDate);
+      return (data || []).reduce((s: number, r: any) => s + Number(r.total_amount || 0), 0);
+    },
+  });
+
+  // Projects completed in the year
+  const autoProjectsCompleted = useQuery({
+    queryKey: ['auto-projects-completed', year],
+    queryFn: async () => {
+      const startDate = `${year}-01-01`;
+      const endDate = `${year}-12-31T23:59:59`;
+      const { data } = await supabase.from('projects').select('id').eq('status', 'concluido').gte('updated_at', startDate).lte('updated_at', endDate);
+      return (data || []).length;
+    },
+  });
+
   // Helper: get auto value for a source, optionally filtered by product name
   const getAutoValue = (source: string, productName?: string | null, metricId?: string | null) => {
     if (source === 'metrica' && metricId) {
@@ -438,6 +495,11 @@ export function usePlanningData(year = currentYear) {
     if (source === 'bd_tarefas') return (autoTasksCompleted.data || []).length;
     if (source === 'bd_equipa') return autoTeamMembers.data ?? null;
     if (source === 'bd_marketing') return autoMarketingFollowers.data ?? null;
+    if (source === 'bd_conteudos') return autoContentPublished.data ?? null;
+    if (source === 'bd_reunioes') return autoMeetings.data ?? null;
+    if (source === 'bd_nps') return autoNps.data ?? null;
+    if (source === 'bd_despesas') return autoExpenses.data ?? null;
+    if (source === 'bd_projetos') return autoProjectsCompleted.data ?? null;
     return null;
   };
 
