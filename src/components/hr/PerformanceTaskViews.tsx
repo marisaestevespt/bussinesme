@@ -98,8 +98,9 @@ const statusLabel = (s: string) => {
 };
 
 function PriorityBadge({ p }: { p: string | null }) {
-  if (p === 'P1') return <Badge variant="destructive" className="text-[10px]">P1</Badge>;
-  if (p === 'P2') return <Badge variant="secondary" className="text-[10px]">P2</Badge>;
+  if (p === 'alta') return <Badge variant="destructive" className="text-[10px]">Prioridade 1</Badge>;
+  if (p === 'media') return <Badge className="text-[10px] bg-amber-100 text-amber-700 border border-amber-300" variant="outline">Prioridade 2</Badge>;
+  if (p === 'baixa') return <Badge variant="secondary" className="text-[10px]">Prioridade 3</Badge>;
   return <span className="text-xs text-muted-foreground">—</span>;
 }
 
@@ -195,8 +196,9 @@ function TaskEditDialog({
               <Select value={form.priority} onValueChange={v => set('priority', v)}>
                 <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="P1">P1 — Crítica</SelectItem>
-                  <SelectItem value="P2">P2 — Normal</SelectItem>
+                  <SelectItem value="alta">Prioridade 1</SelectItem>
+                  <SelectItem value="media">Prioridade 2</SelectItem>
+                  <SelectItem value="baixa">Prioridade 3</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -339,8 +341,9 @@ export function TasksByMemberKanban() {
             <SelectTrigger className="w-32 h-8 text-xs"><SelectValue placeholder="Prioridade" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
-              <SelectItem value="P1">P1</SelectItem>
-              <SelectItem value="P2">P2</SelectItem>
+              <SelectItem value="alta">Prioridade 1</SelectItem>
+              <SelectItem value="media">Prioridade 2</SelectItem>
+              <SelectItem value="baixa">Prioridade 3</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -449,15 +452,16 @@ export function TasksByPriority() {
     return t;
   }, [tasks, filterMember, members]);
 
-  const p1 = filtered.filter(t => t.priority === 'P1').sort((a, b) => (a.deadline || '').localeCompare(b.deadline || ''));
-  const p2 = filtered.filter(t => t.priority === 'P2' || !t.priority).sort((a, b) => (a.deadline || '').localeCompare(b.deadline || ''));
+  const p1 = filtered.filter(t => t.priority === 'alta').sort((a, b) => (a.deadline || '').localeCompare(b.deadline || ''));
+  const p2 = filtered.filter(t => t.priority === 'media').sort((a, b) => (a.deadline || '').localeCompare(b.deadline || ''));
+  const p3 = filtered.filter(t => t.priority === 'baixa' || !t.priority).sort((a, b) => (a.deadline || '').localeCompare(b.deadline || ''));
 
   const profileName = (pid: string | null) => profiles.find(p => p.id === pid)?.full_name || '—';
   const projectName = (pid: string | null) => projects.find(p => p.id === pid)?.name || '—';
 
   if (isLoading) return <p className="text-sm text-muted-foreground">A carregar...</p>;
 
-  const renderGroup = (label: string, items: Task[], variant: 'destructive' | 'secondary') => (
+  const renderGroup = (label: string, items: Task[], variant: 'destructive' | 'secondary' | 'outline') => (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <Badge variant={variant} className="text-xs">{label}</Badge>
@@ -519,8 +523,9 @@ export function TasksByPriority() {
           <Plus className="h-4 w-4 mr-1" /> Nova Tarefa
         </Button>
       </div>
-      {renderGroup('P1 — Críticas', p1, 'destructive')}
-      {renderGroup('P2 — Normais', p2, 'secondary')}
+      {renderGroup('Prioridade 1', p1, 'destructive')}
+      {renderGroup('Prioridade 2', p2, 'secondary')}
+      {renderGroup('Prioridade 3', p3, 'outline')}
 
       {dialogOpen && (
         <TaskEditDialog
