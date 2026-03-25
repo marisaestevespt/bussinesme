@@ -1274,6 +1274,43 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
           await supabase.from('member_payments').insert(payments);
         }
       }
+      // Create auth account + invite link for new members with email
+      if (isNew && member.email?.trim()) {
+        try {
+          const { data: authData, error: authError } = await supabase.functions.invoke('create-member', {
+            body: {
+              email: member.email.trim(),
+              full_name: member.full_name,
+              role_title: member.role_title || null,
+              phone: member.whatsapp || null,
+              work_schedule: member.work_schedule || null,
+              team_member_id: memberId,
+            },
+          });
+          if (authError) {
+            console.error('Create member auth error:', authError);
+            toast.error('Membro criado mas sem conta de acesso: ' + (authError.message || 'erro'));
+          } else if (authData?.success) {
+            // Update profile_id on team_member if returned
+            if (authData.profile_id) {
+              await supabase.from('team_members').update({ profile_id: authData.profile_id }).eq('id', memberId);
+              // Re-run permission assignment now that profile_id exists
+              if (member.department) {
+                await autoAssignPermissions(memberId, member.department);
+              }
+            }
+            if (authData.invite_url) {
+              await navigator.clipboard.writeText(authData.invite_url);
+              toast.success('Conta criada! Link de convite copiado para a área de transferência.', { duration: 8000 });
+            } else {
+              toast.success('Conta de acesso criada com sucesso!');
+            }
+          }
+        } catch (authErr: any) {
+          console.error('Auth creation failed:', authErr);
+          toast.error('Membro criado mas sem conta de acesso');
+        }
+      }
       qc.invalidateQueries({ queryKey: ['team'] });
       toast.success(isNew ? 'Membro criado com contrato e pagamentos!' : 'Membro atualizado');
     } catch (err: any) {
@@ -1635,6 +1672,41 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
             });
           }
           await supabase.from('member_payments').insert(payments);
+        }
+      }
+      // Create auth account + invite link for new members with email
+      if (isNew && member.email?.trim()) {
+        try {
+          const { data: authData, error: authError } = await supabase.functions.invoke('create-member', {
+            body: {
+              email: member.email.trim(),
+              full_name: member.full_name,
+              role_title: member.role_title || null,
+              phone: member.whatsapp || null,
+              work_schedule: member.work_schedule || null,
+              team_member_id: memberId,
+            },
+          });
+          if (authError) {
+            console.error('Create member auth error:', authError);
+            toast.error('Membro criado mas sem conta de acesso: ' + (authError.message || 'erro'));
+          } else if (authData?.success) {
+            if (authData.profile_id) {
+              await supabase.from('team_members').update({ profile_id: authData.profile_id }).eq('id', memberId);
+              if (member.department) {
+                await autoAssignPermissions(memberId, member.department);
+              }
+            }
+            if (authData.invite_url) {
+              await navigator.clipboard.writeText(authData.invite_url);
+              toast.success('Conta criada! Link de convite copiado para a área de transferência.', { duration: 8000 });
+            } else {
+              toast.success('Conta de acesso criada com sucesso!');
+            }
+          }
+        } catch (authErr: any) {
+          console.error('Auth creation failed:', authErr);
+          toast.error('Membro criado mas sem conta de acesso');
         }
       }
       qc.invalidateQueries({ queryKey: ['team'] });
