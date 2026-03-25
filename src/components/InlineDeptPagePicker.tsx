@@ -28,7 +28,7 @@ interface Props {
 }
 
 export function InlineDeptPagePicker({ department, departmentLabel, selectedExtras, onExtrasChange }: Props) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
 
   const autoModules = new Set([
     ...HALL_MODULES,
