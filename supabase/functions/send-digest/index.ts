@@ -98,12 +98,10 @@ Deno.serve(async (req) => {
 
         // Build email
         const firstName = (profile.full_name || "").split(" ")[0] || "—";
-        const headerTitle = digest.is_owner_digest ? "Resumo do dia" : "Briefing do dia";
-        const greeting = digest.is_owner_digest
-          ? `Olá, ${firstName}! Aqui está o resumo do teu dia.`
-          : `Bom dia, ${firstName}! Aqui está o teu briefing para hoje.`;
+        const headerTitle = "Briefing do dia";
+        const greeting = `Bom dia, ${firstName}! Aqui está o teu briefing para hoje.`;
         const subject = digest.is_owner_digest
-          ? `Resumo do dia — ${businessName} — ${formatDatePT(now)}`
+          ? `Briefing do dia — ${businessName} — ${formatDatePT(now)}`
           : `Briefing do dia — ${formatDatePT(now)}`;
 
         const html = buildEmailHtml({
