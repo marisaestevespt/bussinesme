@@ -356,7 +356,7 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
 }
 
 // ─── Feedback Session Dialog ──────
-const FEEDBACK_EVENT_TYPE_ID = 'b058c64c-169c-4098-bfaf-2b1773a3c60f';
+// Event type ID resolved dynamically by slug instead of hardcoded UUID
 
 function FeedbackDialog({ open, onClose, initial, members, onSave }: any) {
   const isEdit = !!initial?.id;
