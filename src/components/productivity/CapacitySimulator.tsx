@@ -476,6 +476,102 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
           </CardContent>
         </Card>
       )}
+
+      {/* AI Analysis */}
+      {phantoms.length > 0 && (
+        <Card className="border-primary/20">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                Análise da simulação
+              </CardTitle>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={async () => {
+                  setAiLoading(true);
+                  setAiAnalysis(null);
+                  try {
+                    const payload = {
+                      currentTeamSize: simulation.currentTeamSize,
+                      currentCapacity: simulation.currentCapacity,
+                      currentUsage: simulation.currentUsage,
+                      phantomCount: phantoms.length,
+                      phantoms: simulation.financialPerMember.map((f, i) => ({
+                        name: f.name,
+                        type: f.type,
+                        department: phantoms[i]?.department || '—',
+                        weeklyHours: phantoms[i]?.weeklyHours || 0,
+                        clientPct: phantoms[i]?.clientPct || 0,
+                        totalCostMonth: f.totalCostMonth,
+                        startDate: f.startDate,
+                      })),
+                      newCapacity: simulation.newCapacity,
+                      newUsage: simulation.newUsage,
+                      totalMonthlyCost: simulation.totalMonthlyCost,
+                      totalAnnualCost: simulation.totalAnnualCost,
+                      addedCapacity: simulation.addedCapacity,
+                      addedClientH: simulation.addedClientH,
+                    };
+                    const { data, error } = await supabase.functions.invoke('analyze-hiring-simulation', {
+                      body: { simulation: payload },
+                    });
+                    if (error) throw error;
+                    setAiAnalysis(data.analysis);
+                  } catch (e: any) {
+                    setAiAnalysis('Erro ao gerar análise: ' + (e.message || 'tente novamente.'));
+                  } finally {
+                    setAiLoading(false);
+                  }
+                }}
+                disabled={aiLoading}
+                className="gap-1.5"
+              >
+                {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                {aiLoading ? 'A analisar...' : aiAnalysis ? 'Reanalisar' : 'Analisar simulação'}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {!aiAnalysis && !aiLoading && (
+              <p className="text-sm text-muted-foreground">
+                Clica em "Analisar simulação" para obter uma análise inteligente sobre a viabilidade, timing e custo-benefício desta contratação.
+              </p>
+            )}
+            {aiLoading && (
+              <div className="flex items-center gap-2 py-4">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <span className="text-sm text-muted-foreground">A analisar a simulação...</span>
+              </div>
+            )}
+            {aiAnalysis && !aiLoading && (
+              <div className="prose prose-sm max-w-none text-sm leading-relaxed space-y-2 [&_strong]:text-foreground [&_ul]:space-y-1 [&_li]:text-muted-foreground">
+                {aiAnalysis.split('\n').map((line, i) => {
+                  if (!line.trim()) return null;
+                  // Bold headers
+                  if (line.startsWith('**') || line.startsWith('# ') || line.startsWith('## ')) {
+                    const clean = line.replace(/^#+\s*/, '').replace(/\*\*/g, '');
+                    return <p key={i} className="font-semibold text-foreground mt-3 first:mt-0">{clean}</p>;
+                  }
+                  // Bullet points
+                  if (line.trim().startsWith('- ') || line.trim().startsWith('• ') || line.trim().startsWith('* ')) {
+                    const content = line.replace(/^\s*[-•*]\s*/, '');
+                    return (
+                      <div key={i} className="flex gap-2 items-start">
+                        <span className="text-primary mt-0.5">•</span>
+                        <span dangerouslySetInnerHTML={{ __html: content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                      </div>
+                    );
+                  }
+                  // Regular text with bold support
+                  return <p key={i} dangerouslySetInnerHTML={{ __html: line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />;
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
