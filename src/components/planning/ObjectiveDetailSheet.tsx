@@ -58,7 +58,7 @@ export function ObjectiveDetailSheet({ open, onClose, objective, planning }: any
   const set = (k: string, v: any) => setForm((p: any) => ({ ...p, [k]: v }));
 
   const handleSaveHeader = () => {
-    planning.upsertObjective.mutate({ id: obj.id, ...form });
+    planning.upsertObjective.mutate({ id: obj.id, ...form, product_id: form.product_id || null, primary_metric_id: form.primary_metric_id || null });
     setEditing(false);
   };
 
