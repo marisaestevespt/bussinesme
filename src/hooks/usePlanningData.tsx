@@ -347,13 +347,18 @@ export function usePlanningData(year = currentYear) {
     onError: () => toast.error('Erro ao converter ação'),
   });
 
-  // ─── Auto-calculated values (raw data for filtering) ──────────────────
+  // ─── Auto-calculated values (only load when objectives need them) ──────────────────
+  const needsAutoCalc = (objectives.data || []).some((o: any) => o.value_source && o.value_source !== 'manual');
+  const AUTO_CACHE = { staleTime: 5 * 60 * 1000, gcTime: 10 * 60 * 1000 } as const;
+
   const autoSalesRaw = useQuery({
     queryKey: ['auto-sales-raw', year],
     queryFn: async () => {
       const { data } = await supabase.from('commercial_sales').select('invoice_total,product,sale_month').eq('sale_year', year);
       return data || [];
     },
+    enabled: needsAutoCalc,
+    ...AUTO_CACHE,
   });
 
   const autoCrmRaw = useQuery({
@@ -362,6 +367,8 @@ export function usePlanningData(year = currentYear) {
       const { data } = await supabase.from('crm_leads').select('id,potential_product,created_at').eq('status', 'ganho');
       return data || [];
     },
+    enabled: needsAutoCalc,
+    ...AUTO_CACHE,
   });
 
   const autoActiveClients = useQuery({
@@ -370,18 +377,20 @@ export function usePlanningData(year = currentYear) {
       const { data } = await supabase.from('clients').select('id').eq('status', 'ativo');
       return (data || []).length;
     },
+    enabled: needsAutoCalc,
+    ...AUTO_CACHE,
   });
 
-  // Time entries (hours tracked) for the year
   const autoTimeEntries = useQuery({
     queryKey: ['auto-time-entries', year],
     queryFn: async () => {
       const { data } = await supabase.from('time_entries').select('duration,entry_month,category,client_id').eq('entry_year', year);
       return data || [];
     },
+    enabled: needsAutoCalc,
+    ...AUTO_CACHE,
   });
 
-  // Tasks completed in the year
   const autoTasksCompleted = useQuery({
     queryKey: ['auto-tasks-completed', year],
     queryFn: async () => {
@@ -390,27 +399,30 @@ export function usePlanningData(year = currentYear) {
       const { data } = await supabase.from('tasks').select('id,updated_at,department').eq('status', 'concluida').gte('updated_at', startDate).lte('updated_at', endDate + 'T23:59:59');
       return data || [];
     },
+    enabled: needsAutoCalc,
+    ...AUTO_CACHE,
   });
 
-  // Team members count
   const autoTeamMembers = useQuery({
     queryKey: ['auto-team-members'],
     queryFn: async () => {
       const { data } = await supabase.from('team_members').select('id').eq('status', 'ativo');
       return (data || []).length;
     },
+    enabled: needsAutoCalc,
+    ...AUTO_CACHE,
   });
 
-  // Marketing followers raw (for filtering by channel)
   const autoMarketingFollowersRaw = useQuery({
     queryKey: ['auto-marketing-followers-raw', year],
     queryFn: async () => {
       const { data } = await supabase.from('channel_monthly_metrics').select('followers,channel_id,month').eq('year', year).order('month', { ascending: false });
       return data || [];
     },
+    enabled: needsAutoCalc,
+    ...AUTO_CACHE,
   });
 
-  // Content items published in the year (raw for filtering by channel)
   const autoContentRaw = useQuery({
     queryKey: ['auto-content-raw', year],
     queryFn: async () => {
@@ -419,18 +431,20 @@ export function usePlanningData(year = currentYear) {
       const { data } = await supabase.from('content_items').select('id,product_id,scheduled_at').eq('status', 'publicado').gte('scheduled_at', startDate).lte('scheduled_at', endDate);
       return data || [];
     },
+    enabled: needsAutoCalc,
+    ...AUTO_CACHE,
   });
 
-  // Content channel links for filtering
   const autoContentChannels = useQuery({
     queryKey: ['auto-content-channels', year],
     queryFn: async () => {
       const { data } = await supabase.from('content_channels').select('content_id,channel_id');
       return data || [];
     },
+    enabled: needsAutoCalc,
+    ...AUTO_CACHE,
   });
 
-  // Meetings held in the year (raw for filtering by department)
   const autoMeetingsRaw = useQuery({
     queryKey: ['auto-meetings-raw', year],
     queryFn: async () => {
@@ -439,9 +453,10 @@ export function usePlanningData(year = currentYear) {
       const { data } = await supabase.from('meetings').select('id,department,client_id,date_time').in('status', ['terminada', 'confirmada']).gte('date_time', startDate).lte('date_time', endDate);
       return data || [];
     },
+    enabled: needsAutoCalc,
+    ...AUTO_CACHE,
   });
 
-  // NPS raw (for filtering by client)
   const autoNpsRaw = useQuery({
     queryKey: ['auto-nps-raw', year],
     queryFn: async () => {
@@ -450,9 +465,10 @@ export function usePlanningData(year = currentYear) {
       const { data } = await supabase.from('client_nps_records').select('nps_score,client_id,actual_date').not('nps_score', 'is', null).gte('actual_date', startDate).lte('actual_date', endDate);
       return data || [];
     },
+    enabled: needsAutoCalc,
+    ...AUTO_CACHE,
   });
 
-  // Expenses raw (for filtering by category)
   const autoExpensesRaw = useQuery({
     queryKey: ['auto-expenses-raw', year],
     queryFn: async () => {
@@ -461,9 +477,10 @@ export function usePlanningData(year = currentYear) {
       const { data } = await supabase.from('financial_expenses').select('total_amount,category,expense_date').gte('expense_date', startDate).lte('expense_date', endDate);
       return data || [];
     },
+    enabled: needsAutoCalc,
+    ...AUTO_CACHE,
   });
 
-  // Projects completed raw (for filtering by type)
   const autoProjectsRaw = useQuery({
     queryKey: ['auto-projects-raw', year],
     queryFn: async () => {
@@ -472,6 +489,8 @@ export function usePlanningData(year = currentYear) {
       const { data } = await supabase.from('projects').select('id,type,client_name,updated_at').eq('status', 'concluido').gte('updated_at', startDate).lte('updated_at', endDate);
       return data || [];
     },
+    enabled: needsAutoCalc,
+    ...AUTO_CACHE,
   });
 
   // Helper: get auto value for a source with optional source_filter

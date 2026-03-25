@@ -5,12 +5,13 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { NotificationBell } from '@/components/NotificationBell';
 import { FavoriteButton } from '@/components/FavoriteButton';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { useLeadFollowupNotifications } from '@/hooks/useLeadFollowupNotifications';
+import { useSystemNotifications } from '@/hooks/useSystemNotifications';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { settings } = useBusinessSettings();
   // Contract expiry, client renewal, and birthday notifications moved to edge function crons
-  useLeadFollowupNotifications();
+  // Lead follow-up notifications consolidated into useSystemNotifications with proper caching
+  useSystemNotifications();
 
   return (
     <TooltipProvider>
