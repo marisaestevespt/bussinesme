@@ -36,6 +36,7 @@ import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 import { ClientContactsSection } from '@/components/client/ClientContactsSection';
 import { ClientFeedbackSection } from '@/components/client/ClientFeedbackSection';
 import { ClientDeliverablesTab } from '@/components/client/ClientDeliverablesTab';
+import { useSensitiveAccess } from '@/hooks/useSensitiveAccess';
 
 // ─── Meetings query for filtered view ───────────────────────────
 function useFilteredMeetings(clientId: string | undefined) {
