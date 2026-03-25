@@ -233,7 +233,7 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
                         <SelectTrigger className="h-7 text-sm w-36"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                          <SelectItem value="">Sem departamento</SelectItem>
+                          <SelectItem value="__none__">Sem departamento</SelectItem>
                         </SelectContent>
                       </Select>
                     </TableCell>
