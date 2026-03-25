@@ -18,18 +18,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Clock, Briefcase, AlertTriangle, Plus, BarChart3, Timer,
   ArrowLeftRight, Building2, Calculator, Users, TrendingUp,
-  ArrowRight, CheckCircle2, Trash2, Cpu
+  ArrowRight, CheckCircle2, Trash2, Cpu, Flame, FolderKanban, CheckSquare
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subWeeks, getDay } from 'date-fns';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, subWeeks, getDay, parseISO, isBefore, startOfDay } from 'date-fns';
 import { getHolidaySet } from '@/lib/holidays';
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { CapacitySimulator } from '@/components/productivity/CapacitySimulator';
 import { useProducts, Product } from '@/hooks/useProducts';
 import { useClients } from '@/hooks/useClients';
+import { cn } from '@/lib/utils';
 
 const CATEGORIES = [
   { value: 'cliente', label: 'Cliente' },
