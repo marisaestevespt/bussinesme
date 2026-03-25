@@ -166,9 +166,17 @@ function MainTabs({ members, entries, clients, products, projects, tasks, scenar
     <div className="space-y-6">
       <div className="flex flex-wrap gap-1.5">
         {MAIN_TABS.map(t => (
-          <Button key={t.value} size="sm" variant={active === t.value ? 'default' : 'outline'} onClick={() => setActive(t.value)}>
-            <t.icon className="h-3.5 w-3.5 mr-1.5" />{t.label}
-          </Button>
+          <button
+            key={t.value}
+            onClick={() => setActive(t.value)}
+            className={`inline-flex items-center gap-1.5 rounded-sm px-3 py-1.5 text-sm font-medium border transition-all ${
+              active === t.value
+                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                : 'border-secondary bg-background text-secondary-foreground hover:bg-muted'
+            }`}
+          >
+            <t.icon className="h-3.5 w-3.5" />{t.label}
+          </button>
         ))}
       </div>
 
