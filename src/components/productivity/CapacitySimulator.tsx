@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Plus, Trash2, Users, Building2, TrendingUp, ArrowLeftRight, UserPlus, Euro, AlertTriangle, Sparkles, Loader2, ChevronDown, ChevronRight, ListChecks } from 'lucide-react';
+import { Plus, Trash2, Users, Building2, TrendingUp, ArrowLeftRight, UserPlus, Euro, AlertTriangle, Sparkles, Loader2, ChevronDown, ChevronRight, ListChecks, Save } from 'lucide-react';
 import { PROCESS_DEPARTMENTS, getDeptLabel } from '@/lib/departments';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -138,10 +138,61 @@ interface PhantomMember {
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
 function HiringSimulator({ members, entries }: { members: any[]; entries: any[] }) {
+  const { user } = useAuth();
   const [phantoms, setPhantoms] = useState<PhantomMember[]>([]);
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [expandedPhantom, setExpandedPhantom] = useState<string | null>(null);
+  const [simulationName, setSimulationName] = useState('');
+  const [activeSimId, setActiveSimId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Saved simulations
+  const savedSimsQ = useQuery({
+    queryKey: ['hiring-simulations'],
+    queryFn: async () => {
+      const { data } = await supabase.from('hiring_simulations').select('*').order('updated_at', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const saveSimulation = async () => {
+    if (!phantoms.length) return;
+    setSaving(true);
+    try {
+      const payload = {
+        name: simulationName || `Simulação ${new Date().toLocaleDateString('pt-PT')}`,
+        phantoms: JSON.parse(JSON.stringify(phantoms)),
+        created_by: user?.id || null,
+      };
+      if (activeSimId) {
+        await supabase.from('hiring_simulations').update({ name: payload.name, phantoms: payload.phantoms }).eq('id', activeSimId);
+      } else {
+        const { data } = await supabase.from('hiring_simulations').insert(payload).select('id').single();
+        if (data) setActiveSimId(data.id);
+      }
+      savedSimsQ.refetch();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const loadSimulation = (sim: any) => {
+    setPhantoms(sim.phantoms || []);
+    setSimulationName(sim.name);
+    setActiveSimId(sim.id);
+    setAiAnalysis(null);
+  };
+
+  const deleteSimulation = async (id: string) => {
+    await supabase.from('hiring_simulations').delete().eq('id', id);
+    if (activeSimId === id) {
+      setActiveSimId(null);
+      setPhantoms([]);
+      setSimulationName('');
+    }
+    savedSimsQ.refetch();
+  };
 
   // Fetch open tasks grouped by department for delegation
   const tasksQ = useQuery({
@@ -325,8 +376,40 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">Adicione membros fictícios para simular o impacto na capacidade e nos custos.</p>
+      {/* Saved simulations */}
+      {(savedSimsQ.data || []).length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2"><ListChecks className="h-4 w-4" /> Simulações guardadas</CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 pt-0">
+            <div className="flex flex-wrap gap-2">
+              {(savedSimsQ.data || []).map(sim => (
+                <div key={sim.id} className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs cursor-pointer transition-colors ${activeSimId === sim.id ? 'border-primary bg-primary/5 text-primary' : 'hover:bg-muted'}`}>
+                  <button onClick={() => loadSimulation(sim)} className="font-medium">{sim.name}</button>
+                  <button onClick={() => deleteSimulation(sim.id)} className="text-muted-foreground hover:text-destructive ml-1"><Trash2 className="h-3 w-3" /></button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 flex-1">
+          <Input
+            placeholder="Nome da simulação..."
+            value={simulationName}
+            onChange={e => setSimulationName(e.target.value)}
+            className="h-8 text-sm max-w-64"
+          />
+          {phantoms.length > 0 && (
+            <Button size="sm" variant="outline" onClick={saveSimulation} disabled={saving} className="gap-1.5">
+              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+              {activeSimId ? 'Atualizar' : 'Guardar'}
+            </Button>
+          )}
+        </div>
         <Button size="sm" onClick={addPhantom}><UserPlus className="h-3.5 w-3.5 mr-1.5" />Adicionar membro</Button>
       </div>
 
