@@ -1325,8 +1325,11 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
             if (authData.profile_id) {
               await supabase.from('team_members').update({ profile_id: authData.profile_id }).eq('id', memberId);
               // Re-run permission assignment now that profile_id exists
-              if (member.department) {
-                await autoAssignPermissions(memberId, member.department);
+              const depts3: string[] = Array.isArray(member.departments) && member.departments.length > 0
+                ? member.departments
+                : (member.department ? [member.department] : []);
+              if (depts3.length > 0) {
+                await autoAssignPermissions(memberId, depts3);
               }
             }
             // Show onboarding warning if no SOP template found
