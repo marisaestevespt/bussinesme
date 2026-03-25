@@ -27,6 +27,7 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { toast } from 'sonner';
 import { logAudit } from '@/lib/auditLog';
 import { BackNavigation } from '@/components/BackNavigation';
+import { AddToCalendarButtons } from '@/components/AddToCalendarButtons';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
