@@ -201,6 +201,74 @@ export default function ExecutiveWeeklyAlign() {
     },
   });
 
+  // ─── Previous week queries for comparison ───
+  const prevSalesWeek = useQuery({
+    queryKey: ['wa-sales-week-prev', prevWeekStartStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('commercial_sales').select('invoice_total').gte('payment_date', prevWeekStartStr).lte('payment_date', prevWeekEndStr);
+      return data || [];
+    },
+  });
+
+  const prevTasksWeek = useQuery({
+    queryKey: ['wa-tasks-week-prev', prevWeekStartStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('tasks').select('id,status').gte('deadline', prevWeekStartStr).lte('deadline', prevWeekEndStr);
+      return data || [];
+    },
+  });
+
+  const prevContentWeek = useQuery({
+    queryKey: ['wa-content-week-prev', prevWeekStartStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('content_items').select('id').gte('scheduled_at', prevWeekStartStr).lte('scheduled_at', prevWeekEndStr + 'T23:59:59');
+      return data || [];
+    },
+  });
+
+  const prevMeetingsWeek = useQuery({
+    queryKey: ['wa-meetings-week-prev', prevWeekStartStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('meetings').select('id').gte('date_time', prevWeekStartStr).lte('date_time', prevWeekEndStr + 'T23:59:59');
+      return data || [];
+    },
+  });
+
+  // ─── Weekly notes ───
+  const weeklyNotes = useQuery({
+    queryKey: ['wa-notes', weekStartStr],
+    queryFn: async () => {
+      const { data } = await supabase.from('weekly_align_notes').select('*').eq('week_start', weekStartStr).maybeSingle();
+      return data;
+    },
+  });
+
+  const [notesForm, setNotesForm] = useState({ decisions: '', blockers: '', key_points: '' });
+  const notesLoaded = useMemo(() => {
+    if (weeklyNotes.data) {
+      return { decisions: weeklyNotes.data.decisions || '', blockers: weeklyNotes.data.blockers || '', key_points: weeklyNotes.data.key_points || '' };
+    }
+    return { decisions: '', blockers: '', key_points: '' };
+  }, [weeklyNotes.data]);
+
+  // Sync form when data loads
+  useMemo(() => { setNotesForm(notesLoaded); }, [notesLoaded]);
+
+  const saveNotes = useMutation({
+    mutationFn: async () => {
+      if (weeklyNotes.data?.id) {
+        const { error } = await supabase.from('weekly_align_notes').update(notesForm as any).eq('id', weeklyNotes.data.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('weekly_align_notes').insert({ ...notesForm, week_start: weekStartStr } as any);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['wa-notes'] }); toast.success('Notas guardadas'); },
+    onError: () => toast.error('Erro ao guardar notas'),
+  });
+
+  // ─── KPI computed values ───
   const { members } = useTeamData();
   const teamMembers = members.data || [];
   const getMemberName = (id: string | null) => {
@@ -209,6 +277,30 @@ export default function ExecutiveWeeklyAlign() {
   };
 
   const overdueCount = (npsOverdue.data || []).length;
+
+  // Current week totals
+  const salesWeekTotal = useMemo(() => (salesWeek.data || []).reduce((s, v) => s + Number(v.invoice_total || 0), 0), [salesWeek.data]);
+  const tasksWeekCount = (tasks.data || []).length;
+  const tasksWeekDone = (tasks.data || []).filter(t => t.status === 'concluida').length;
+  const contentWeekCount = (contents.data || []).length;
+  const meetingsWeekCount = (meetings.data || []).length;
+  const leadsCount = (leads.data || []).length;
+
+  // Previous week totals for comparison
+  const prevSalesWeekTotal = useMemo(() => (prevSalesWeek.data || []).reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0), [prevSalesWeek.data]);
+  const prevTasksWeekCount = (prevTasksWeek.data || []).length;
+  const prevContentWeekCount = (prevContentWeek.data || []).length;
+  const prevMeetingsWeekCount = (prevMeetingsWeek.data || []).length;
+
+  // Delta helper
+  const DeltaBadge = ({ current, previous, suffix = '', isCurrency = false }: { current: number; previous: number; suffix?: string; isCurrency?: boolean }) => {
+    const diff = current - previous;
+    if (diff === 0) return <span className="text-xs text-muted-foreground flex items-center gap-0.5"><Minus className="h-3 w-3" /> =</span>;
+    const formatted = isCurrency ? `€${Math.abs(diff).toLocaleString()}` : `${Math.abs(diff)}${suffix}`;
+    return diff > 0
+      ? <span className="text-xs text-emerald-600 flex items-center gap-0.5"><TrendingUp className="h-3 w-3" /> +{formatted}</span>
+      : <span className="text-xs text-destructive flex items-center gap-0.5"><TrendingDown className="h-3 w-3" /> -{formatted}</span>;
+  };
 
   const getNpsRowColor = (expectedDate: string, status: string) => {
     if (status === 'feito') return 'bg-emerald-50 border-l-4 border-l-emerald-500';
