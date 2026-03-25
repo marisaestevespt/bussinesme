@@ -368,13 +368,23 @@ export default function ProcessosPage() {
       </Tabs>
 
       {/* ═══ Dialog: Novo Processo ═══ */}
-      <Dialog open={showNewSop} onOpenChange={setShowNewSop}>
-        <DialogContent className="sm:max-w-2xl">
+      <Dialog open={showNewSop} onOpenChange={v => { if (!v) { setShowNewSop(false); setNewSopName(''); setNewSopType('operacional'); setNewSopRoleTitle(''); setNewSopProductId(''); } else setShowNewSop(true); }}>
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Novo Processo (SOP)</DialogTitle></DialogHeader>
           <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Nome do processo *</Label>
-              <Input value={newSopName} onChange={e => setNewSopName(e.target.value)} placeholder="Ex: Onboarding de cliente" />
+              <Input value={newSopName} onChange={e => setNewSopName(e.target.value)} placeholder="Ex: Onboarding Designer" />
+            </div>
+            <div>
+              <Label>Tipo de SOP</Label>
+              <Select value={newSopType} onValueChange={setNewSopType}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{SOP_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            </div>
             </div>
             <div>
               <Label>Departamentos</Label>
