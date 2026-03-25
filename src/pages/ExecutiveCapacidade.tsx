@@ -286,10 +286,7 @@ export default function ExecutiveCapacidade() {
   const availableToAdd = allProducts.filter((p: Product) => !addedProductIds.includes(p.id));
   
 
-  // Compute hours breakdown for visual (based on total client-facing hours)
-  const adminHours = Math.round(clientFacingMonthlyHours * effectiveAdmin / 100);
-  const businessHours = Math.round(clientFacingMonthlyHours * effectiveBusiness / 100);
-  const clientHours = Math.round(clientFacingMonthlyHours * (1 - totalNonClientPercent / 100));
+  const clientHours = Math.round(availableHours);
 
   return (
     <AppLayout>
@@ -306,147 +303,87 @@ export default function ExecutiveCapacidade() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
-              {/* Team members with hours */}
+              {/* Team members with hours and per-member overhead */}
               <div className="space-y-3">
                 <Label className="text-xs font-medium flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Equipa ({effectiveTeamSize} membros)</Label>
-                <p className="text-[10px] text-muted-foreground">Seleciona quem faz entrega a clientes. As horas vêm da ficha de cada membro.</p>
-                <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                <p className="text-[10px] text-muted-foreground">Seleciona quem faz entrega a clientes e define o overhead de cada pessoa.</p>
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
                   {members.map(m => {
                     const weeklyH = Number(m.expected_weekly_hours) || 0;
                     const monthlyH = Math.round(weeklyH * WEEKS_PER_MONTH);
                     const isSelected = clientFacingIds.has(m.id);
+                    const oh = memberOverhead[m.id] || { admin: 20, business: 0 };
+                    const totalOh = Math.min(oh.admin + oh.business, 100);
+                    const availH = Math.round(monthlyH * (1 - totalOh / 100));
                     return (
-                      <label key={m.id} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted/50 cursor-pointer text-sm">
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={(checked) => {
-                            const next = new Set(clientFacingIds);
-                            if (checked) next.add(m.id); else next.delete(m.id);
-                            setClientFacingIds(next);
-                          }}
-                        />
-                        <span className="flex-1 truncate">{m.full_name}</span>
-                        <span className="text-xs text-muted-foreground tabular-nums">{weeklyH}h/sem</span>
-                        <span className="text-[10px] text-muted-foreground">≈{monthlyH}h/mês</span>
-                      </label>
+                      <div key={m.id} className={`rounded-lg border p-2.5 space-y-2 ${isSelected ? 'border-primary/30 bg-primary/5' : 'opacity-60'}`}>
+                        <label className="flex items-center gap-2 cursor-pointer text-sm">
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={(checked) => {
+                              const next = new Set(clientFacingIds);
+                              if (checked) next.add(m.id); else next.delete(m.id);
+                              setClientFacingIds(next);
+                            }}
+                          />
+                          <span className="flex-1 truncate font-medium">{m.full_name}</span>
+                          <span className="text-xs text-muted-foreground tabular-nums">{weeklyH}h/sem ≈ {monthlyH}h/mês</span>
+                        </label>
+                        {isSelected && (
+                          <div className="grid grid-cols-3 gap-2 pl-6">
+                            <div className="space-y-0.5">
+                              <Label className="text-[9px] text-muted-foreground">Admin %</Label>
+                              <Input
+                                type="number"
+                                className="h-6 text-xs"
+                                min={0} max={100}
+                                value={oh.admin}
+                                onChange={e => setMemberAdmin(m.id, Math.min(Number(e.target.value), 100))}
+                              />
+                            </div>
+                            <div className="space-y-0.5">
+                              <Label className="text-[9px] text-muted-foreground">Negócio %</Label>
+                              <Input
+                                type="number"
+                                className="h-6 text-xs"
+                                min={0} max={100}
+                                value={oh.business}
+                                onChange={e => setMemberBusiness(m.id, Math.min(Number(e.target.value), 100))}
+                              />
+                            </div>
+                            <div className="space-y-0.5">
+                              <Label className="text-[9px] text-muted-foreground">Disponível</Label>
+                              <div className="h-6 flex items-center text-xs font-medium text-primary">{availH}h</div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                   {members.length === 0 && (
                     <p className="text-xs text-muted-foreground py-2">Nenhum membro ativo encontrado</p>
                   )}
                 </div>
-                <div className="rounded-md bg-muted/50 px-3 py-2 flex justify-between text-xs">
-                  <span className="text-muted-foreground">{effectiveClientFacing} em entrega</span>
-                  <span className="font-medium">{Math.round(clientFacingMonthlyHours)}h/mês</span>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-2">
-                <Label className="text-xs">Tempo admin/gestão</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    className="h-8 w-20"
-                    value={adminHours}
-                    onChange={e => {
-                      const hrs = Number(e.target.value);
-                      setAdminPercent(clientFacingMonthlyHours > 0 ? Math.min(Math.round((hrs / clientFacingMonthlyHours) * 100), 100) : 0);
-                    }}
-                  />
-                  <span className="text-xs text-muted-foreground">h</span>
-                  <span className="text-xs text-muted-foreground">=</span>
-                  <Input
-                    type="number"
-                    className="h-8 w-16"
-                    value={effectiveAdmin}
-                    onChange={e => setAdminPercent(Math.min(Number(e.target.value), 100))}
-                  />
-                  <span className="text-xs text-muted-foreground">%</span>
-                </div>
-                <Slider value={[effectiveAdmin]} onValueChange={v => setAdminPercent(v[0])} min={0} max={50} step={5} className="mt-1" />
-                <p className="text-[10px] text-muted-foreground">Reuniões, emails, gestão interna</p>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-xs">Tempo trabalho de negócio</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    className="h-8 w-20"
-                    value={businessHours}
-                    onChange={e => {
-                      const hrs = Number(e.target.value);
-                      setBusinessPercent(clientFacingMonthlyHours > 0 ? Math.min(Math.round((hrs / clientFacingMonthlyHours) * 100), 100) : 0);
-                    }}
-                  />
-                  <span className="text-xs text-muted-foreground">h</span>
-                  <span className="text-xs text-muted-foreground">=</span>
-                  <Input
-                    type="number"
-                    className="h-8 w-16"
-                    value={effectiveBusiness}
-                    onChange={e => setBusinessPercent(Math.min(Number(e.target.value), 100))}
-                  />
-                  <span className="text-xs text-muted-foreground">%</span>
-                </div>
-                <Slider value={[effectiveBusiness]} onValueChange={v => setBusinessPercent(v[0])} min={0} max={50} step={5} className="mt-1" />
-                <p className="text-[10px] text-muted-foreground">Marketing, comercial, estratégia</p>
-              </div>
-
-              <Separator />
-
-              {/* Hours breakdown visual */}
-              <div className="space-y-2">
-                <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">Decomposição por pessoa</Label>
-                <div className="flex gap-1 h-6 rounded-md overflow-hidden">
-                  {effectiveAdmin > 0 && (
-                    <div
-                      className="bg-muted-foreground/30 flex items-center justify-center text-[9px] font-medium"
-                      style={{ width: `${effectiveAdmin}%` }}
-                      title={`Admin: ${adminHours}h`}
-                    >
-                      {effectiveAdmin >= 12 && `${adminHours}h`}
-                    </div>
-                  )}
-                  {effectiveBusiness > 0 && (
-                    <div
-                      className="bg-muted-foreground/20 flex items-center justify-center text-[9px] font-medium"
-                      style={{ width: `${effectiveBusiness}%` }}
-                      title={`Negócio: ${businessHours}h`}
-                    >
-                      {effectiveBusiness >= 12 && `${businessHours}h`}
-                    </div>
-                  )}
-                  <div
-                    className="bg-primary/20 flex items-center justify-center text-[9px] font-medium text-primary"
-                    style={{ width: `${100 - totalNonClientPercent}%` }}
-                    title={`Clientes: ${clientHours}h`}
-                  >
-                    {clientHours}h
+                <div className="rounded-md bg-muted/50 px-3 py-2 space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">{effectiveClientFacing} em entrega</span>
+                    <span className="font-medium">{Math.round(clientFacingMonthlyHours)}h/mês bruto</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Overhead total</span>
+                    <span className="font-medium">−{Math.round(totalOverheadHours)}h</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-bold border-t pt-1">
+                    <span>Horas para clientes</span>
+                    <span className="text-primary">{clientHours}h</span>
                   </div>
                 </div>
-                <div className="flex justify-between text-[9px] text-muted-foreground">
-                  <span>Admin {effectiveAdmin}%</span>
-                  {effectiveBusiness > 0 && <span>Negócio {effectiveBusiness}%</span>}
-                  <span className="text-primary font-medium">Clientes {100 - totalNonClientPercent}%</span>
-                </div>
-              </div>
-
-              <div className="rounded-lg bg-muted/50 p-3 space-y-1">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Horas para clientes (equipa)</span>
-                  <span className="font-bold">{availableHours.toFixed(0)}h</span>
-                </div>
-                <p className="text-[10px] text-muted-foreground">
-                  {Math.round(clientFacingMonthlyHours)}h totais − {adminHours + businessHours}h overhead = {availableHours.toFixed(0)}h disponíveis
-                </p>
               </div>
 
               <Button size="sm" className="w-full" onClick={() => saveSettings.mutate()}>Guardar parâmetros</Button>
             </CardContent>
           </Card>
+
 
           {/* Capacity Overview */}
           <div className="lg:col-span-2 space-y-4">
