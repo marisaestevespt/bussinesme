@@ -44,7 +44,7 @@ export default function ExecutiveCapacidade() {
     },
   });
 
-  const scenarioProducts = useQuery({
+  const scenarioProductsRaw = useQuery({
     queryKey: ['capacity-scenario-products', scenario.data?.id],
     queryFn: async () => {
       if (!scenario.data?.id) return [];
@@ -53,6 +53,22 @@ export default function ExecutiveCapacidade() {
     },
     enabled: !!scenario.data?.id,
   });
+
+  // Auto-sync hours_per_client_month from source product
+  const scenarioProducts = useMemo(() => {
+    const raw = scenarioProductsRaw.data || [];
+    return {
+      ...scenarioProductsRaw,
+      data: raw.map(sp => {
+        if (!sp.product_id) return sp;
+        const sourceProduct = allProducts.find((p: Product) => p.id === sp.product_id);
+        if (sourceProduct && sourceProduct.monthly_hours_per_client != null) {
+          return { ...sp, hours_per_client_month: sourceProduct.monthly_hours_per_client };
+        }
+        return sp;
+      }),
+    };
+  }, [scenarioProductsRaw.data, allProducts]);
 
   const [hoursPerMonth, setHoursPerMonth] = useState<number | null>(null);
   const [adminPercent, setAdminPercent] = useState<number | null>(null);
