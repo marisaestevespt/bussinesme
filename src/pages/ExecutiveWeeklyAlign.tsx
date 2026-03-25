@@ -949,8 +949,12 @@ export default function ExecutiveWeeklyAlign() {
 
         {/* 5 // Clientes */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">5 // Clientes</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold">5 // Clientes</h2>
+            <Link to="/hub/clientes" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">Ver todos <ArrowUpRight className="h-3 w-3" /></Link>
+          </div>
           <Tabs defaultValue="onboarding">
+            <TabsList><TabsTrigger value="onboarding">Em onboarding</TabsTrigger><TabsTrigger value="renovacoes">Próximas renovações</TabsTrigger></TabsList>
             <TabsList><TabsTrigger value="onboarding">Em onboarding</TabsTrigger><TabsTrigger value="renovacoes">Próximas renovações</TabsTrigger></TabsList>
             <TabsContent value="onboarding">
               <Card><div className="overflow-x-auto">
