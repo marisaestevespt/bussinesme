@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -17,6 +17,7 @@ import { format, startOfMonth, endOfMonth, addMonths, getDay, addDays, subDays, 
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useServiceMembers } from '@/hooks/useTeamByWorkArea';
 
 const DELIVERABLE_STATUSES = [
   { value: 'pendente', label: 'Pendente', color: 'bg-gray-100 text-gray-700' },
@@ -117,6 +118,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
   const [name, setName] = useState('');
   const [deadline, setDeadline] = useState<Date | undefined>();
   const [assignedTo, setAssignedTo] = useState('');
+  const { data: serviceMembers = [] } = useServiceMembers();
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrenceLabel, setRecurrenceLabel] = useState('');
   const [recurrenceWeek, setRecurrenceWeek] = useState('');
@@ -452,9 +454,22 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
                 <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none">Sem responsável</SelectItem>
-                  {profiles.filter(p => p.full_name).map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
-                  ))}
+                  {serviceMembers.length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel className="text-[10px] text-muted-foreground">Equipa de Serviço</SelectLabel>
+                      {serviceMembers.map(sm => (
+                        <SelectItem key={`sm-${sm.profile_id || sm.id}`} value={sm.profile_id || sm.id}>
+                          {sm.full_name} ⭐
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
+                  <SelectGroup>
+                    <SelectLabel className="text-[10px] text-muted-foreground">Todos</SelectLabel>
+                    {profiles.filter(p => p.full_name).map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
+                    ))}
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </div>

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast } from 'sonner';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useCommercialMembers } from '@/hooks/useTeamByWorkArea';
 
 interface LeadDetailSheetProps {
   open: boolean;
@@ -33,7 +34,7 @@ interface LeadDetailSheetProps {
 
 export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, onSave, onDelete }: LeadDetailSheetProps) {
   const { useLeadInteractions, upsertInteraction, deleteInteraction, useLeadActions, upsertLeadAction, deleteLeadAction } = useCrmData();
-
+  const { data: commercialMembers = [] } = useCommercialMembers();
   const [form, setForm] = useState<any>({});
   const [interactionDialog, setInteractionDialog] = useState(false);
   const [newAction, setNewAction] = useState('');
@@ -160,7 +161,20 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                 <Select value={form.responsible_id || ''} onValueChange={v => set({ responsible_id: v })}>
                   <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                   <SelectContent>
-                    {profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}
+                    {commercialMembers.length > 0 && (
+                      <SelectGroup>
+                        <SelectLabel className="text-[10px] text-muted-foreground">Equipa Comercial</SelectLabel>
+                        {commercialMembers.map(cm => (
+                          <SelectItem key={`cm-${cm.profile_id || cm.id}`} value={cm.profile_id || cm.id}>
+                            {cm.full_name} <span className="text-muted-foreground ml-1">⭐</span>
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    )}
+                    <SelectGroup>
+                      <SelectLabel className="text-[10px] text-muted-foreground">Todos</SelectLabel>
+                      {profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </div>

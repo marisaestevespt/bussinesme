@@ -6775,6 +6775,7 @@ export type Database = {
           status: string
           updated_at: string
           whatsapp: string | null
+          work_areas: Json
           work_schedule: string | null
           works_holidays: boolean
         }
@@ -6799,6 +6800,7 @@ export type Database = {
           status?: string
           updated_at?: string
           whatsapp?: string | null
+          work_areas?: Json
           work_schedule?: string | null
           works_holidays?: boolean
         }
@@ -6823,6 +6825,7 @@ export type Database = {
           status?: string
           updated_at?: string
           whatsapp?: string | null
+          work_areas?: Json
           work_schedule?: string | null
           works_holidays?: boolean
         }
