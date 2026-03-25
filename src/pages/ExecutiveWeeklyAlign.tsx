@@ -608,44 +608,89 @@ export default function ExecutiveWeeklyAlign() {
           </CardContent></Card>
         </div>
 
-        {/* Capacity Alert */}
-        {capacityAlert && capacityAlert.pct >= 75 && (
-          <Card className={cn(
-            "border-l-4",
-            capacityAlert.pct >= 95 ? "border-l-destructive bg-destructive/5" : "border-l-amber-500 bg-amber-50/50"
-          )}>
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-4">
+        {/* Capacity & Financial Summary */}
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Capacity Alert - always visible */}
+          {capacityAlert && (
+            <Card className={cn(
+              "border-l-4",
+              capacityAlert.pct >= 95 ? "border-l-destructive bg-destructive/5" :
+              capacityAlert.pct >= 75 ? "border-l-amber-500 bg-amber-50/50" :
+              "border-l-emerald-500 bg-emerald-50/50"
+            )}>
+              <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <div className={cn(
                     "rounded-lg p-2 mt-0.5",
-                    capacityAlert.pct >= 95 ? "bg-destructive/10 text-destructive" : "bg-amber-100 text-amber-600"
+                    capacityAlert.pct >= 95 ? "bg-destructive/10 text-destructive" :
+                    capacityAlert.pct >= 75 ? "bg-amber-100 text-amber-600" :
+                    "bg-emerald-100 text-emerald-600"
                   )}>
-                    <UserPlus className="h-5 w-5" />
+                    <Users className="h-5 w-5" />
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-1 flex-1">
                     <p className="text-sm font-semibold">
                       {capacityAlert.pct >= 95
-                        ? '⚠️ Capacidade da equipa esgotada — considerar contratação'
-                        : '📊 Capacidade da equipa a ficar limitada'}
+                        ? '⚠️ Capacidade esgotada'
+                        : capacityAlert.pct >= 75
+                        ? '📊 Capacidade limitada'
+                        : '✅ Capacidade saudável'}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      A equipa está a {capacityAlert.pct}% de ocupação este mês ({capacityAlert.totalUsed}h de {capacityAlert.totalCapacity}h).
-                      {capacityAlert.overloadedCount > 0 && ` ${capacityAlert.overloadedCount} de ${capacityAlert.total} membros com ocupação acima de 85%.`}
+                      {capacityAlert.pct}% ocupação — {capacityAlert.totalUsed}h de {capacityAlert.totalCapacity}h
+                      {capacityAlert.overloadedCount > 0 && ` • ${capacityAlert.overloadedCount} membro(s) acima de 85%`}
                     </p>
-                    <Progress value={Math.min(capacityAlert.pct, 100)} className="h-2 w-48 mt-1" />
+                    <Progress value={Math.min(capacityAlert.pct, 100)} className="h-2 mt-1" />
+                    <Link to="/executive/productivity?tab=simulation" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1">
+                      Ver simulador <ArrowUpRight className="h-3 w-3" />
+                    </Link>
                   </div>
                 </div>
-                <Link to="/executive/productivity?tab=simulation">
-                  <Button variant="outline" size="sm" className="shrink-0 text-xs">
-                    <UserPlus className="h-3.5 w-3.5 mr-1.5" />
-                    Simular contratação
-                  </Button>
-                </Link>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Financial Summary */}
+          <Card className="border-l-4 border-l-primary">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="rounded-lg p-2 mt-0.5 bg-primary/10 text-primary">
+                  <Wallet className="h-5 w-5" />
+                </div>
+                <div className="space-y-2 flex-1">
+                  <p className="text-sm font-semibold">Financeiro — {MONTH_NAMES[currentMonth - 1]}</p>
+                  <div className="grid grid-cols-3 gap-3 text-xs">
+                    <div>
+                      <p className="text-muted-foreground">Faturação</p>
+                      <p className="font-semibold text-emerald-600">€{totalBilled.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Custos</p>
+                      <p className="font-semibold text-destructive">€{financialSummary.totalCosts.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Saldo</p>
+                      <p className={cn("font-semibold", financialSummary.balance >= 0 ? "text-emerald-600" : "text-destructive")}>
+                        €{financialSummary.balance.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                  {financialSummary.totalPending > 0 && (
+                    <p className="text-xs text-amber-600">⚠ €{financialSummary.totalPending.toLocaleString()} por pagar</p>
+                  )}
+                  <div className="flex gap-3 mt-1">
+                    <Link to="/hub/financeiro/entradas" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      Entradas <ArrowUpRight className="h-3 w-3" />
+                    </Link>
+                    <Link to="/hub/financeiro/saidas" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      Saídas <ArrowUpRight className="h-3 w-3" />
+                    </Link>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
-        )}
+        </div>
 
         <Separator />
 
