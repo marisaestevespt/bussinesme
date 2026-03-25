@@ -244,7 +244,7 @@ export default function ExecutiveCapacidade() {
 
   const addedProductIds = items.map(p => p.product_id);
   const availableToAdd = allProducts.filter((p: Product) => !addedProductIds.includes(p.id));
-  const internalCount = effectiveTeamSize - effectiveClientFacing;
+  
 
   // Compute hours breakdown for visual (based on total client-facing hours)
   const adminHours = Math.round(clientFacingMonthlyHours * effectiveAdmin / 100);
