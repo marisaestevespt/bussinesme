@@ -517,9 +517,14 @@ function MemberDialog({ open, onClose, initial, onSave }: any) {
               <Badge className="text-xs text-white mt-1" style={{ backgroundColor: f.role_color || '#6366f1' }}>{f.role_title}</Badge>
             )}
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-3">
             <span className="text-xs text-muted-foreground font-medium">Departamentos & Acessos</span>
-            <p className="text-[10px] text-muted-foreground">Seleciona departamentos e escolhe as páginas a que este membro terá acesso.</p>
+            <div>
+              <p className="text-[10px] text-muted-foreground mb-1">Acesso automático:</p>
+              <p className="text-xs">Começa Aqui, Mural de Comunicações, Hub de Equipa, Agenda do Negócio, Reuniões, Processos, Projetos, Tarefas, Acessos, Biblioteca de Documentos, Secretaria</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground mb-1.5">Departamentos:</p>
             <div className="space-y-1">
               {DEPARTMENTS.map(d => {
                 const depts: string[] = Array.isArray(f.departments) ? f.departments : (f.department ? [f.department] : []);
