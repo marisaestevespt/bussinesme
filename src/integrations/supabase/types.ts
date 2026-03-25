@@ -2348,6 +2348,39 @@ export type Database = {
         }
         Relationships: []
       }
+      departments: {
+        Row: {
+          created_at: string
+          gradient: string
+          icon: string
+          id: string
+          label: string
+          lucide_icon: string
+          sort_order: number
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          gradient?: string
+          icon?: string
+          id?: string
+          label: string
+          lucide_icon?: string
+          sort_order?: number
+          value: string
+        }
+        Update: {
+          created_at?: string
+          gradient?: string
+          icon?: string
+          id?: string
+          label?: string
+          lucide_icon?: string
+          sort_order?: number
+          value?: string
+        }
+        Relationships: []
+      }
       digest_settings: {
         Row: {
           created_at: string
@@ -3855,13 +3888,18 @@ export type Database = {
           duration_minutes: number | null
           final_notes: Json | null
           id: string
+          is_recurring: boolean
+          meeting_type: Database["public"]["Enums"]["meeting_type"]
           meeting_url: string | null
           owner_actions: Json | null
+          parent_meeting_id: string | null
           priorities: Json | null
           product_id: string | null
           product_name: string | null
           project_id: string | null
           project_name: string | null
+          recurrence_end_date: string | null
+          recurrence_frequency: string | null
           status: Database["public"]["Enums"]["meeting_status"]
           title: string
           transcript_url: string | null
@@ -3879,13 +3917,18 @@ export type Database = {
           duration_minutes?: number | null
           final_notes?: Json | null
           id?: string
+          is_recurring?: boolean
+          meeting_type?: Database["public"]["Enums"]["meeting_type"]
           meeting_url?: string | null
           owner_actions?: Json | null
+          parent_meeting_id?: string | null
           priorities?: Json | null
           product_id?: string | null
           product_name?: string | null
           project_id?: string | null
           project_name?: string | null
+          recurrence_end_date?: string | null
+          recurrence_frequency?: string | null
           status?: Database["public"]["Enums"]["meeting_status"]
           title: string
           transcript_url?: string | null
@@ -3903,13 +3946,18 @@ export type Database = {
           duration_minutes?: number | null
           final_notes?: Json | null
           id?: string
+          is_recurring?: boolean
+          meeting_type?: Database["public"]["Enums"]["meeting_type"]
           meeting_url?: string | null
           owner_actions?: Json | null
+          parent_meeting_id?: string | null
           priorities?: Json | null
           product_id?: string | null
           product_name?: string | null
           project_id?: string | null
           project_name?: string | null
+          recurrence_end_date?: string | null
+          recurrence_frequency?: string | null
           status?: Database["public"]["Enums"]["meeting_status"]
           title?: string
           transcript_url?: string | null
@@ -3921,6 +3969,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_parent_meeting_id_fkey"
+            columns: ["parent_meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
             referencedColumns: ["id"]
           },
           {
@@ -6387,6 +6442,30 @@ export type Database = {
           },
         ]
       }
+      sop_categories: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          sort_order: number
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          sort_order?: number
+          value: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          sort_order?: number
+          value?: string
+        }
+        Relationships: []
+      }
       sop_onboarding_items: {
         Row: {
           created_at: string
@@ -7553,6 +7632,7 @@ export type Database = {
         | "debriefing_pos_fecho"
       launch_task_status: "por_comecar" | "em_curso" | "concluido" | "bloqueado"
       meeting_status: "por_confirmar" | "marcada" | "terminada" | "confirmada"
+      meeting_type: "recorrente" | "projeto" | "cliente"
       portal_comment_author: "client" | "team"
       portal_type: "projeto_unico" | "servico_mensal"
     }
@@ -7694,6 +7774,7 @@ export const Constants = {
       ],
       launch_task_status: ["por_comecar", "em_curso", "concluido", "bloqueado"],
       meeting_status: ["por_confirmar", "marcada", "terminada", "confirmada"],
+      meeting_type: ["recorrente", "projeto", "cliente"],
       portal_comment_author: ["client", "team"],
       portal_type: ["projeto_unico", "servico_mensal"],
     },
