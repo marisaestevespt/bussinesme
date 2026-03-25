@@ -658,7 +658,7 @@ export default function ProcessosPage() {
 
       {/* Dialog: Novo Template Onboarding */}
       <Dialog open={showNewOnboarding} onOpenChange={v => { if (!v) { setShowNewOnboarding(false); setObRoleTitle(''); setObItems([{ task: '', deadline_days: 2 }]); } else setShowNewOnboarding(true); }}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Novo Template de Onboarding</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
