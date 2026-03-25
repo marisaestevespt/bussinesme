@@ -496,9 +496,10 @@ export default function ExecutiveCapacidade() {
                               <Label className="text-[10px]">Horas/cliente/mês</Label>
                               <Input
                                 type="number"
-                                className="h-7 text-sm"
-                                defaultValue={hpc}
-                                onBlur={e => updateScenarioProduct.mutate({ id: item.id, hours_per_client_month: Number(e.target.value) })}
+                                className="h-7 text-sm bg-muted"
+                                value={hpc}
+                                readOnly
+                                title="Sincronizado do produto"
                               />
                             </div>
                             <div className="space-y-1">
