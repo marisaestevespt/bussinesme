@@ -138,10 +138,61 @@ interface PhantomMember {
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
 function HiringSimulator({ members, entries }: { members: any[]; entries: any[] }) {
+  const { user } = useAuth();
   const [phantoms, setPhantoms] = useState<PhantomMember[]>([]);
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [expandedPhantom, setExpandedPhantom] = useState<string | null>(null);
+  const [simulationName, setSimulationName] = useState('');
+  const [activeSimId, setActiveSimId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Saved simulations
+  const savedSimsQ = useQuery({
+    queryKey: ['hiring-simulations'],
+    queryFn: async () => {
+      const { data } = await supabase.from('hiring_simulations').select('*').order('updated_at', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const saveSimulation = async () => {
+    if (!phantoms.length) return;
+    setSaving(true);
+    try {
+      const payload = {
+        name: simulationName || `Simulação ${new Date().toLocaleDateString('pt-PT')}`,
+        phantoms: JSON.parse(JSON.stringify(phantoms)),
+        created_by: user?.id || null,
+      };
+      if (activeSimId) {
+        await supabase.from('hiring_simulations').update({ name: payload.name, phantoms: payload.phantoms }).eq('id', activeSimId);
+      } else {
+        const { data } = await supabase.from('hiring_simulations').insert(payload).select('id').single();
+        if (data) setActiveSimId(data.id);
+      }
+      savedSimsQ.refetch();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const loadSimulation = (sim: any) => {
+    setPhantoms(sim.phantoms || []);
+    setSimulationName(sim.name);
+    setActiveSimId(sim.id);
+    setAiAnalysis(null);
+  };
+
+  const deleteSimulation = async (id: string) => {
+    await supabase.from('hiring_simulations').delete().eq('id', id);
+    if (activeSimId === id) {
+      setActiveSimId(null);
+      setPhantoms([]);
+      setSimulationName('');
+    }
+    savedSimsQ.refetch();
+  };
 
   // Fetch open tasks grouped by department for delegation
   const tasksQ = useQuery({
