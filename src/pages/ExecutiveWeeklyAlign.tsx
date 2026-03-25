@@ -964,7 +964,7 @@ export default function ExecutiveWeeklyAlign() {
                 <TableBody>
                   {onboardingClients.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Nenhum</TableCell></TableRow> :
                     onboardingClients.map(c => (
-                      <TableRow key={c.id} className={clickableRow} onClick={() => openClientDetail(c)}>
+                      <TableRow key={c.id} className={clickableRow} onClick={() => navigate(`/hub/clientes/${c.id}`)}>
                         <TableCell className="text-xs">{c.client_id}</TableCell>
                         <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
                         <TableCell><Badge variant="secondary" className="text-[10px]">{c.status}</Badge></TableCell>
@@ -987,7 +987,7 @@ export default function ExecutiveWeeklyAlign() {
                 <TableBody>
                   {renewalClients.length === 0 ? <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground text-sm py-6">Nenhum</TableCell></TableRow> :
                     renewalClients.map(c => (
-                      <TableRow key={c.id} className={clickableRow} onClick={() => openClientDetail(c)}>
+                      <TableRow key={c.id} className={clickableRow} onClick={() => navigate(`/hub/clientes/${c.id}`)}>
                         <TableCell className="text-xs">{c.client_id}</TableCell>
                         <TableCell className="text-xs">{c.start_date || '—'}</TableCell>
                         <TableCell><Badge variant="secondary" className="text-[10px]">{c.status}</Badge></TableCell>
@@ -1124,9 +1124,16 @@ export default function ExecutiveWeeklyAlign() {
 
         {/* 6 // Operação & Esta semana */}
         <section className="space-y-4">
-          <div className="flex items-center gap-3">
-            <h2 className="text-base font-semibold">6 // Operação & Esta semana</h2>
-            <span className="text-xs text-muted-foreground">{tasksWeekDone}/{tasksWeekCount} tarefas • {meetingsWeekCount} reuniões • {contentWeekCount} conteúdos</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h2 className="text-base font-semibold">6 // Operação & Esta semana</h2>
+              <span className="text-xs text-muted-foreground">{tasksWeekDone}/{tasksWeekCount} tarefas • {meetingsWeekCount} reuniões • {contentWeekCount} conteúdos</span>
+            </div>
+            <div className="flex gap-3">
+              <Link to="/hub/projetos" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">Projetos <ArrowUpRight className="h-3 w-3" /></Link>
+              <Link to="/hub/tarefas" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">Tarefas <ArrowUpRight className="h-3 w-3" /></Link>
+              <Link to="/hub/reunioes" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">Reuniões <ArrowUpRight className="h-3 w-3" /></Link>
+            </div>
           </div>
 
           <Card><CardContent className="p-4">
