@@ -27,6 +27,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { getPortugueseHolidays, type Holiday } from '@/lib/holidays';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -685,6 +686,13 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
 
   const expandedEvents = expandRecurringEvents(events, monthStart, monthEnd);
 
+  // Portuguese holidays for displayed year(s)
+  const holidayMap = new Map<string, string>();
+  const yearsToCheck = new Set([monthStart.getFullYear(), monthEnd.getFullYear()]);
+  yearsToCheck.forEach(y => {
+    getPortugueseHolidays(y).forEach(h => holidayMap.set(h.dateStr, h.name));
+  });
+
   // For each week, compute which events span which columns
   const getWeekBars = (week: (Date | null)[]) => {
     const weekDays = week.map((d, i) => ({ day: d, col: i }));
@@ -745,13 +753,22 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
 
           return (
             <div key={wi} className="grid grid-cols-7 gap-px bg-border relative">
-              {week.map((day, di) => (
-                <div key={di} className={cn('bg-card min-h-[110px] p-1.5', day && isSameDay(day, new Date()) && 'ring-1 ring-inset ring-primary/30', !day && 'bg-muted/30')}>
-                  {day && (
-                    <span className={cn('text-xs font-medium', isSameDay(day, new Date()) ? 'text-primary font-bold' : 'text-foreground/70')}>{format(day, 'd')}</span>
-                  )}
-                </div>
-              ))}
+              {week.map((day, di) => {
+                const dayStr = day ? format(day, 'yyyy-MM-dd') : '';
+                const holidayName = day ? holidayMap.get(dayStr) : undefined;
+                return (
+                  <div key={di} className={cn('bg-card min-h-[110px] p-1.5', day && isSameDay(day, new Date()) && 'ring-1 ring-inset ring-primary/30', !day && 'bg-muted/30', holidayName && 'bg-destructive/5')}>
+                    {day && (
+                      <div className="flex items-center gap-1">
+                        <span className={cn('text-xs font-medium', isSameDay(day, new Date()) ? 'text-primary font-bold' : 'text-foreground/70')}>{format(day, 'd')}</span>
+                        {holidayName && (
+                          <span className="text-[10px] text-destructive font-medium truncate">{holidayName}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
               {/* Overlay bars positioned from top of week row */}
               {bars.map((bar, bi) => {
                 const leftPct = (bar.startCol / 7) * 100;
