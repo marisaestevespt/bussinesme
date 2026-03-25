@@ -43,6 +43,7 @@ interface ProjectFull {
   created_by: string | null; created_at: string; cover_url: string | null;
   total_time_minutes: number | null;
   project_mode: string | null;
+  whatsapp_group_url: string | null;
 }
 
 interface Profile { id: string; user_id: string; full_name: string | null; avatar_url: string | null; }
