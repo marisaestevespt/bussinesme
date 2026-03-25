@@ -148,6 +148,39 @@ export default function ExecutiveProductivity() {
   );
 }
 
+const MAIN_TABS = [
+  { value: 'overview', label: 'Visão Geral', icon: BarChart3 },
+  { value: 'capacity', label: 'Capacidade Empresa', icon: Building2 },
+  { value: 'split', label: 'Interno vs Cliente', icon: ArrowLeftRight },
+  { value: 'by-client', label: 'Tempo por Cliente', icon: Briefcase },
+  { value: 'overload', label: 'Tarefas & Sobrecarga', icon: AlertTriangle },
+  { value: 'log', label: 'Registo de Tempo', icon: Timer },
+];
+
+function MainTabs({ members, entries, clients, products, projects, tasks, scenario, scenarioProducts }: {
+  members: any[]; entries: any[]; clients: any[]; products: any[]; projects: any[]; tasks: any[]; scenario: any; scenarioProducts: any[];
+}) {
+  const [active, setActive] = useState('overview');
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap gap-1.5">
+        {MAIN_TABS.map(t => (
+          <Button key={t.value} size="sm" variant={active === t.value ? 'default' : 'outline'} onClick={() => setActive(t.value)}>
+            <t.icon className="h-3.5 w-3.5 mr-1.5" />{t.label}
+          </Button>
+        ))}
+      </div>
+
+      {active === 'overview' && <OverviewTab entries={entries} members={members} />}
+      {active === 'capacity' && <CompanyCapacityTab members={members} entries={entries} clients={clients} products={products} />}
+      {active === 'split' && <TimeSplitTab entries={entries} members={members} scenario={scenario} scenarioProducts={scenarioProducts} />}
+      {active === 'by-client' && <ByClientTab entries={entries} clients={clients} />}
+      {active === 'overload' && <OverloadTab entries={entries} members={members} tasks={tasks} />}
+      {active === 'log' && <TimeLogTab entries={entries} members={members} clients={clients} projects={projects} tasks={tasks} />}
+    </div>
+  );
+}
 
 /* ─── TAB: CAPACIDADE EMPRESA ─── */
 function CompanyCapacityTab({ members, entries, clients, products }: { members: any[]; entries: any[]; clients: any[]; products: any[] }) {
