@@ -69,14 +69,6 @@ export function InlineDeptPagePicker({ department, departmentLabel, selectedExtr
 
       {expanded && (
         <div className="space-y-2">
-          <div>
-            <p className="text-[10px] text-muted-foreground mb-1">Acesso automático:</p>
-            <div className="flex flex-wrap gap-1">
-              {autoList.map(label => (
-                <Badge key={label} variant="secondary" className="text-[9px]">{label}</Badge>
-              ))}
-            </div>
-          </div>
 
           {extraOptions.length > 0 && (
             <div>
