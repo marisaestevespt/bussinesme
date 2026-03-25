@@ -1668,6 +1668,10 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
                 </div>
                 <div className="flex flex-wrap gap-1">
                   <DeptBadge dept={m.department} />
+                  {Array.isArray((m as any).work_areas) && (m as any).work_areas.map((wa: string) => {
+                    const opt = WORK_AREAS.find(w => w.value === wa);
+                    return opt ? <Badge key={wa} variant="outline" className="text-[10px]">{opt.label}</Badge> : null;
+                  })}
                 </div>
                 {m.email && <p className="text-xs text-muted-foreground">{m.email}</p>}
                 <div className="flex gap-1 pt-1">
