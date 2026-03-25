@@ -604,15 +604,22 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
                       currentCapacity: simulation.currentCapacity,
                       currentUsage: simulation.currentUsage,
                       phantomCount: phantoms.length,
-                      phantoms: simulation.financialPerMember.map((f, i) => ({
-                        name: f.name,
-                        type: f.type,
-                        department: phantoms[i]?.department || '—',
-                        weeklyHours: phantoms[i]?.weeklyHours || 0,
-                        clientPct: phantoms[i]?.clientPct || 0,
-                        totalCostMonth: f.totalCostMonth,
-                        startDate: f.startDate,
-                      })),
+                      phantoms: simulation.financialPerMember.map((f, i) => {
+                        const ph = phantoms[i];
+                        const delegatedNames = (tasksQ.data || [])
+                          .filter(t => ph?.delegatedTaskIds.includes(t.id))
+                          .map(t => t.name);
+                        return {
+                          name: f.name,
+                          type: f.type,
+                          department: ph?.department || '—',
+                          weeklyHours: ph?.weeklyHours || 0,
+                          clientPct: ph?.clientPct || 0,
+                          totalCostMonth: f.totalCostMonth,
+                          startDate: f.startDate,
+                          delegatedTasks: delegatedNames,
+                        };
+                      }),
                       newCapacity: simulation.newCapacity,
                       newUsage: simulation.newUsage,
                       totalMonthlyCost: simulation.totalMonthlyCost,
