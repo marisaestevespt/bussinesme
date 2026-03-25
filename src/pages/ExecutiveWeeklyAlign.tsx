@@ -485,15 +485,13 @@ export default function ExecutiveWeeklyAlign() {
         {/* 2 // Vendas & Faturação */}
         <section className="space-y-4">
           <h2 className="text-base font-semibold">2 // Vendas & Faturação</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-           <Card><CardContent className="p-4 space-y-2">
+          <Card><CardContent className="p-4 space-y-2">
               <h3 className="text-sm font-medium">Status faturação — {getMonthName(currentMonth)}</h3>
               <div className="text-xs text-muted-foreground space-y-1">
                 <p>Meta: €{billingGoal.toLocaleString()} | Até agora: €{totalBilled.toLocaleString()}</p>
                 <p>Progresso: {billingPct}% — Faturado: €{totalBilled.toLocaleString()} de €{billingGoal.toLocaleString()}</p>
               </div>
             </CardContent></Card>
-
           <Card><CardContent className="p-4">
             <h3 className="text-sm font-medium mb-2">Vendas esta semana</h3>
             {(salesWeek.data || []).length === 0 ? <p className="text-xs text-muted-foreground">Sem vendas esta semana</p> :
