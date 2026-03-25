@@ -505,7 +505,10 @@ export default function ReunioesPage() {
   const [formOpen, setFormOpen] = useState(false);
   const navigate = useNavigate();
 
-  const { data: meetings = [], isLoading } = useMeetings();
+  const meetingsQuery = useMeetings();
+  const meetings = flattenInfiniteData(meetingsQuery.data?.pages);
+  const meetingsTotal = getInfiniteCount(meetingsQuery.data?.pages);
+  const isLoading = meetingsQuery.isLoading;
   const { data: profiles = [] } = useProfiles();
   const { data: projects = [] } = useProjects();
   const { data: clients = [] } = useClientsList();
