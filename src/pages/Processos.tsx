@@ -22,7 +22,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import { InfiniteScrollList } from '@/components/InfiniteScrollList';
+import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -85,14 +87,20 @@ export default function ProcessosPage() {
 
   // ─── Queries ──────────────────────────────────────────────────
 
-  const { data: sops = [] } = useQuery({
+  const sopsQuery = useInfiniteQuery<InfinitePageResult<any>>({
     queryKey: ['sops'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('sops').select('*').order('sop_id', { ascending: true });
+    initialPageParam: 0,
+    queryFn: async ({ pageParam = 0 }) => {
+      const from = (pageParam as number) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const { data, error, count } = await supabase.from('sops').select('*', { count: 'exact' }).order('sop_id', { ascending: true }).range(from, to);
       if (error) throw error;
-      return data;
+      return { data: data || [], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },
+    getNextPageParam: (last) => last.nextPage,
   });
+  const sops = flattenInfiniteData(sopsQuery.data?.pages);
+  const sopsTotal = getInfiniteCount(sopsQuery.data?.pages);
 
   const { data: teamMembers = [] } = useQuery({
     queryKey: ['team_members'],

@@ -20,7 +20,9 @@ import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import { InfiniteScrollList } from '@/components/InfiniteScrollList';
+import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResult } from '@/hooks/useInfiniteSupabaseQuery';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { DEPARTMENTS } from '@/lib/departments';
@@ -75,13 +77,17 @@ interface MeetingParticipant {
 // ─── Data hooks ─────────────────────────────────────────────────
 
 function useMeetings() {
-  return useQuery({
+  return useInfiniteQuery<InfinitePageResult<MeetingRow>>({
     queryKey: ['meetings'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('meetings').select('id, title, date_time, status, client_id, client_name, project_id, project_name, transcript_url, created_by').order('date_time', { ascending: false });
+    initialPageParam: 0,
+    queryFn: async ({ pageParam = 0 }) => {
+      const from = (pageParam as number) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const { data, error, count } = await supabase.from('meetings').select('id, title, date_time, status, client_id, client_name, project_id, project_name, transcript_url, created_by, department, meeting_url', { count: 'exact' }).order('date_time', { ascending: false }).range(from, to);
       if (error) throw error;
-      return data as MeetingRow[];
+      return { data: (data || []) as MeetingRow[], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },
+    getNextPageParam: (last) => last.nextPage,
   });
 }
 
