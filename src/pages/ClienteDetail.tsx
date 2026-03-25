@@ -142,6 +142,7 @@ export default function ClienteDetailPage() {
   const { upsertClient, duplicateClient, deleteClient } = useClients();
   const { products } = useProducts();
   const commercialData = useCommercialData();
+  const { canSee } = useSensitiveAccess();
 
   const [form, setForm] = useState<Partial<Client>>({});
   const [initialized, setInitialized] = useState(false);
