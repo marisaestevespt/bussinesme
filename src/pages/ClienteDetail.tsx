@@ -28,6 +28,7 @@ import { useCommercialData } from '@/hooks/useCommercialData';
 import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
 import { EntryDetailSheet } from '@/components/financial/EntryDetailSheet';
 import { supabase } from '@/integrations/supabase/client';
+import { DEPARTMENTS } from '@/lib/departments';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ClientCustomerSuccess } from '@/components/client/ClientCustomerSuccess';
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
@@ -150,7 +151,7 @@ export default function ClienteDetailPage() {
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
   const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
   const [meetingOpen, setMeetingOpen] = useState(false);
-  const [meetingForm, setMeetingForm] = useState({ title: '', date_time: '', meeting_url: '' });
+  const [meetingForm, setMeetingForm] = useState({ title: '', date_time: '', meeting_url: '', meeting_type: 'cliente' as 'recorrente' | 'projeto' | 'cliente', department: '' });
   const [totalValue, setTotalValue] = useState('');
   const [entradaValue, setEntradaValue] = useState('');
   const [numPrestacoes, setNumPrestacoes] = useState('');
@@ -189,7 +190,7 @@ export default function ClienteDetailPage() {
 
   // Create meeting mutation
   const createMeeting = useMutation({
-    mutationFn: async (data: { title: string; date_time: string; meeting_url: string }) => {
+    mutationFn: async (data: { title: string; date_time: string; meeting_url: string; meeting_type: string; department: string }) => {
       const { error } = await supabase.from('meetings').insert({
         title: data.title,
         date_time: data.date_time,
@@ -197,6 +198,8 @@ export default function ClienteDetailPage() {
         client_name: form.full_name || '',
         status: 'agendada' as any,
         meeting_url: data.meeting_url || null,
+        meeting_type: data.meeting_type as any,
+        department: data.department || null,
       });
       if (error) throw error;
     },
@@ -204,7 +207,7 @@ export default function ClienteDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['meetings'] });
       toast.success('Reunião criada');
       setMeetingOpen(false);
-      setMeetingForm({ title: '', date_time: '', meeting_url: '' });
+      setMeetingForm({ title: '', date_time: '', meeting_url: '', meeting_type: 'cliente', department: '' });
     },
     onError: () => toast.error('Erro ao criar reunião'),
   });
@@ -964,6 +967,17 @@ export default function ClienteDetailPage() {
           <DialogHeader><DialogTitle>Nova Reunião</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div>
+              <Label>Tipo de reunião</Label>
+              <Select value={meetingForm.meeting_type} onValueChange={v => setMeetingForm(p => ({ ...p, meeting_type: v as any }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cliente">Reunião com Cliente</SelectItem>
+                  <SelectItem value="recorrente">Reunião Recorrente</SelectItem>
+                  <SelectItem value="projeto">Reunião de Projeto</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <Label>Título</Label>
               <Input value={meetingForm.title} onChange={e => setMeetingForm(p => ({ ...p, title: e.target.value }))} />
             </div>
@@ -972,9 +986,21 @@ export default function ClienteDetailPage() {
               <Input type="datetime-local" value={meetingForm.date_time} onChange={e => setMeetingForm(p => ({ ...p, date_time: e.target.value }))} />
             </div>
             <div>
+              <Label>Departamento</Label>
+              <Select value={meetingForm.department} onValueChange={v => setMeetingForm(p => ({ ...p, department: v }))}>
+                <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
+                <SelectContent>
+                  {DEPARTMENTS.map(d => (
+                    <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <Label>Link de Acesso</Label>
               <Input value={meetingForm.meeting_url} onChange={e => setMeetingForm(p => ({ ...p, meeting_url: e.target.value }))} placeholder="https://..." />
             </div>
+            <p className="text-xs text-muted-foreground">Cliente: <span className="font-medium text-foreground">{form.full_name || '—'}</span> (pré-associado)</p>
             <Button className="w-full" onClick={() => {
               if (!meetingForm.title || !meetingForm.date_time) { toast.error('Título e data são obrigatórios'); return; }
               createMeeting.mutate(meetingForm);
