@@ -416,7 +416,7 @@ export function usePlanningData(year = currentYear) {
     queryFn: async () => {
       const startDate = `${year}-01-01`;
       const endDate = `${year}-12-31T23:59:59`;
-      const { data } = await supabase.from('content_items').select('id,product_id').eq('status', 'publicado').gte('scheduled_at', startDate).lte('scheduled_at', endDate);
+      const { data } = await supabase.from('content_items').select('id,product_id,scheduled_at').eq('status', 'publicado').gte('scheduled_at', startDate).lte('scheduled_at', endDate);
       return data || [];
     },
   });
@@ -436,7 +436,7 @@ export function usePlanningData(year = currentYear) {
     queryFn: async () => {
       const startDate = `${year}-01-01T00:00:00`;
       const endDate = `${year}-12-31T23:59:59`;
-      const { data } = await supabase.from('meetings').select('id,department,client_id').in('status', ['terminada', 'confirmada']).gte('date_time', startDate).lte('date_time', endDate);
+      const { data } = await supabase.from('meetings').select('id,department,client_id,date_time').in('status', ['terminada', 'confirmada']).gte('date_time', startDate).lte('date_time', endDate);
       return data || [];
     },
   });
@@ -447,7 +447,7 @@ export function usePlanningData(year = currentYear) {
     queryFn: async () => {
       const startDate = `${year}-01-01`;
       const endDate = `${year}-12-31`;
-      const { data } = await supabase.from('client_nps_records').select('nps_score,client_id').not('nps_score', 'is', null).gte('actual_date', startDate).lte('actual_date', endDate);
+      const { data } = await supabase.from('client_nps_records').select('nps_score,client_id,actual_date').not('nps_score', 'is', null).gte('actual_date', startDate).lte('actual_date', endDate);
       return data || [];
     },
   });
@@ -458,7 +458,7 @@ export function usePlanningData(year = currentYear) {
     queryFn: async () => {
       const startDate = `${year}-01-01`;
       const endDate = `${year}-12-31`;
-      const { data } = await supabase.from('financial_expenses').select('total_amount,category').gte('expense_date', startDate).lte('expense_date', endDate);
+      const { data } = await supabase.from('financial_expenses').select('total_amount,category,expense_date').gte('expense_date', startDate).lte('expense_date', endDate);
       return data || [];
     },
   });
@@ -469,7 +469,7 @@ export function usePlanningData(year = currentYear) {
     queryFn: async () => {
       const startDate = `${year}-01-01`;
       const endDate = `${year}-12-31T23:59:59`;
-      const { data } = await supabase.from('projects').select('id,type,client_name').eq('status', 'concluido').gte('updated_at', startDate).lte('updated_at', endDate);
+      const { data } = await supabase.from('projects').select('id,type,client_name,updated_at').eq('status', 'concluido').gte('updated_at', startDate).lte('updated_at', endDate);
       return data || [];
     },
   });
