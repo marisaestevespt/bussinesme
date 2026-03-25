@@ -372,3 +372,52 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
     </Dialog>
   );
 }
+
+function HolidayWeekendWorkCards({ memberId }: { memberId: string }) {
+  const now = new Date();
+  const monthStart = startOfMonth(now);
+  const monthEnd = endOfMonth(now);
+  const holidaySet = getHolidaySet(now.getFullYear());
+
+  const { data: entries = [] } = useQuery({
+    queryKey: ['member-time-entries-holidays', memberId, format(now, 'yyyy-MM')],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('time_entries')
+        .select('entry_date, duration')
+        .eq('member_id', memberId)
+        .gte('entry_date', format(monthStart, 'yyyy-MM-dd'))
+        .lte('entry_date', format(monthEnd, 'yyyy-MM-dd'));
+      return data || [];
+    },
+  });
+
+  const weekendEntries = entries.filter(e => {
+    const d = new Date(e.entry_date);
+    return getDay(d) === 0 || getDay(d) === 6;
+  });
+  const holidayEntries = entries.filter(e => holidaySet.has(e.entry_date));
+  const weekendDays = new Set(weekendEntries.map(e => e.entry_date)).size;
+  const holidayDays = new Set(holidayEntries.map(e => e.entry_date)).size;
+  const weekendHours = weekendEntries.reduce((s, e) => s + Number(e.duration || 0), 0);
+  const holidayHours = holidayEntries.reduce((s, e) => s + Number(e.duration || 0), 0);
+
+  if (weekendDays === 0 && holidayDays === 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {weekendDays > 0 && (
+        <div className="flex items-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 px-3 py-2">
+          <CalendarDays className="h-4 w-4 text-amber-500" />
+          <div><p className="text-xs text-muted-foreground">Fins-de-semana este mês</p><p className="text-sm font-medium">{weekendDays} dia{weekendDays > 1 ? 's' : ''} · {weekendHours.toFixed(1)}h</p></div>
+        </div>
+      )}
+      {holidayDays > 0 && (
+        <div className="flex items-center gap-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 px-3 py-2">
+          <CalendarDays className="h-4 w-4 text-blue-500" />
+          <div><p className="text-xs text-muted-foreground">Feriados este mês</p><p className="text-sm font-medium">{holidayDays} dia{holidayDays > 1 ? 's' : ''} · {holidayHours.toFixed(1)}h</p></div>
+        </div>
+      )}
+    </div>
+  );
+}
