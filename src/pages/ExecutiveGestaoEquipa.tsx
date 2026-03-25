@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { TasksByMemberKanban, TasksByPriority, OverdueTasks } from '@/components/hr/PerformanceTaskViews';
 import { GestaoSummaryCards } from '@/components/hr/GestaoSummaryCards';
-import { OverloadTabShared } from '@/components/hr/SharedProductivityViews';
+
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
@@ -267,21 +267,6 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
         </Card>
       )}
 
-      {/* Warnings */}
-      {overloadWarnings.length > 0 && (
-        <Card className="border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20">
-          <CardContent className="p-4 space-y-2">
-            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400"><AlertTriangle className="h-4 w-4" /><h3 className="text-sm font-semibold">Membros sobrecarregados este mês</h3></div>
-            {overloadWarnings.map(w => (
-              <div key={w.member.id} className="flex items-center justify-between text-sm">
-                <span className="font-medium">{w.member.full_name}</span>
-                <span className="text-xs text-muted-foreground">{w.worked}h trabalhadas / {w.contracted}h contratadas</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
       {overduePayments.length > 0 && (
         <Card className="border-destructive/50 bg-red-50/50 dark:bg-red-950/20">
           <CardContent className="p-4 space-y-2">
@@ -384,13 +369,6 @@ export function TabPerformance({ team }: { team: ReturnType<typeof useTeamData> 
         <TabsContent value="atraso"><OverdueTasks /></TabsContent>
       </Tabs>
 
-      {/* Tarefas & Sobrecarga */}
-      <Card>
-        <CardContent className="pt-5 space-y-4">
-          <h3 className="text-sm font-semibold">Tarefas & Sobrecarga</h3>
-          <OverloadTabShared />
-        </CardContent>
-      </Card>
     </div>
   );
 }
