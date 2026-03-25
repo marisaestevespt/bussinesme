@@ -401,16 +401,12 @@ export function usePlanningData(year = currentYear) {
     },
   });
 
-  // Marketing followers (sum across all channels, latest month)
-  const autoMarketingFollowers = useQuery({
-    queryKey: ['auto-marketing-followers', year],
+  // Marketing followers raw (for filtering by channel)
+  const autoMarketingFollowersRaw = useQuery({
+    queryKey: ['auto-marketing-followers-raw', year],
     queryFn: async () => {
       const { data } = await supabase.from('channel_monthly_metrics').select('followers,channel_id,month').eq('year', year).order('month', { ascending: false });
-      if (!data || data.length === 0) return 0;
-      // Get the latest month's data, sum followers across channels
-      const latestMonth = data[0].month;
-      const latestData = data.filter((d: any) => d.month === latestMonth);
-      return latestData.reduce((s: number, d: any) => s + Number(d.followers || 0), 0);
+      return data || [];
     },
   });
 
