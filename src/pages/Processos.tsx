@@ -655,6 +655,123 @@ export default function ProcessosPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog: Novo Template Onboarding */}
+      <Dialog open={showNewOnboarding} onOpenChange={v => { if (!v) { setShowNewOnboarding(false); setObRoleTitle(''); setObItems([{ task: '', deadline_days: 2 }]); } else setShowNewOnboarding(true); }}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Novo Template de Onboarding</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Função *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start font-normal">
+                    {obRoleTitle || <span className="text-muted-foreground">Selecionar ou escrever...</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[280px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Pesquisar ou criar função..." value={obRoleTitle} onValueChange={setObRoleTitle} />
+                    <CommandList>
+                      <CommandEmpty>
+                        {obRoleTitle.trim() && (
+                          <p className="px-3 py-2 text-sm text-muted-foreground">Função: <strong>{obRoleTitle.trim()}</strong></p>
+                        )}
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {existingRoles.map(role => (
+                          <CommandItem key={role} value={role} onSelect={() => setObRoleTitle(role)}>
+                            {role}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div>
+              <Label>Checklist de Onboarding</Label>
+              <div className="space-y-2 mt-2">
+                {obItems.map((item, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="text-muted-foreground text-sm w-5 shrink-0">{i + 1}.</span>
+                    <Input
+                      value={item.task}
+                      onChange={e => { const n = [...obItems]; n[i] = { ...n[i], task: e.target.value }; setObItems(n); }}
+                      placeholder="Ex: Aceder à plataforma e preencher perfil"
+                      className="flex-1"
+                    />
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Input
+                        type="number"
+                        min={0}
+                        value={item.deadline_days}
+                        onChange={e => { const n = [...obItems]; n[i] = { ...n[i], deadline_days: parseInt(e.target.value) || 0 }; setObItems(n); }}
+                        className="w-16 text-center"
+                      />
+                      <span className="text-xs text-muted-foreground">dias</span>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setObItems(obItems.filter((_, idx) => idx !== i))} disabled={obItems.length <= 1}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" onClick={() => setObItems([...obItems, { task: '', deadline_days: 2 }])}>
+                  <Plus className="h-3 w-3 mr-1" /> Adicionar item
+                </Button>
+              </div>
+            </div>
+
+            <Button
+              className="w-full"
+              disabled={!obRoleTitle.trim() || !selectedDept || obItems.every(i => !i.task.trim())}
+              onClick={async () => {
+                const validItems = obItems.filter(i => i.task.trim());
+                const { data: tpl, error } = await supabase
+                  .from('sop_onboarding_templates')
+                  .insert({ role_title: obRoleTitle.trim(), department: selectedDept! })
+                  .select('id')
+                  .single();
+                if (error) {
+                  toast.error(error.message.includes('unique') ? 'Já existe um template para esta função neste departamento.' : 'Erro ao criar template');
+                  return;
+                }
+                const rows = validItems.map((item, i) => ({
+                  template_id: tpl.id,
+                  task: item.task.trim(),
+                  deadline_days: item.deadline_days,
+                  sort_order: i,
+                }));
+                await supabase.from('sop_onboarding_items').insert(rows);
+
+                // Also create a linked SOP
+                const { data: sopData } = await supabase.from('sops').insert({
+                  name: `Onboarding — ${obRoleTitle.trim()}`,
+                  department: selectedDept!,
+                  departments: [selectedDept!],
+                  status: 'ativo',
+                  created_by: user?.id,
+                } as any).select('id').single();
+
+                if (sopData) {
+                  await supabase.from('sop_onboarding_templates').update({ sop_id: sopData.id }).eq('id', tpl.id);
+                }
+
+                queryClient.invalidateQueries({ queryKey: ['onboarding-templates'] });
+                queryClient.invalidateQueries({ queryKey: ['sops'] });
+                setShowNewOnboarding(false);
+                setObRoleTitle('');
+                setObItems([{ task: '', deadline_days: 2 }]);
+                toast.success('Template de onboarding criado!');
+              }}
+            >
+              Criar Template
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
