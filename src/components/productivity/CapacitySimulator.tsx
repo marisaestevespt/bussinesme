@@ -345,48 +345,114 @@ function HiringSimulator({ members, entries }: { members: any[]; entries: any[] 
                 <TableHead className="w-10"></TableHead>
               </TableRow></TableHeader>
               <TableBody>
-                {phantoms.map(p => (
-                  <TableRow key={p.id}>
-                    <TableCell>
-                      <Input value={p.name} onChange={e => updatePhantom(p.id, 'name', e.target.value)} className="h-7 text-sm w-36" />
-                    </TableCell>
-                    <TableCell>
-                      <Select value={p.department} onValueChange={v => updatePhantom(p.id, 'department', v)}>
-                        <SelectTrigger className="h-7 text-sm w-32"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                          <SelectItem value="__none__">Sem departamento</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Select value={p.contractType} onValueChange={v => updatePhantom(p.id, 'contractType', v)}>
-                        <SelectTrigger className="h-7 text-sm w-28"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="colaborador">Colaborador</SelectItem>
-                          <SelectItem value="prestador">Prestador</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Input type="number" value={p.grossSalary} onChange={e => updatePhantom(p.id, 'grossSalary', Number(e.target.value))} className="h-7 text-sm w-24 text-right ml-auto" />
-                    </TableCell>
-                    <TableCell>
-                      <Input type="date" value={p.startDate} onChange={e => updatePhantom(p.id, 'startDate', e.target.value)} className="h-7 text-sm w-36" />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Input type="number" value={p.weeklyHours} onChange={e => updatePhantom(p.id, 'weeklyHours', Number(e.target.value))} className="h-7 text-sm w-16 text-right ml-auto" />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Input type="number" value={p.clientPct} onChange={e => updatePhantom(p.id, 'clientPct', Number(e.target.value))} className="h-7 text-sm w-16 text-right ml-auto" min={0} max={100} />
-                    </TableCell>
-                    <TableCell>
-                      <button onClick={() => removePhantom(p.id)} className="text-muted-foreground hover:text-destructive">
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {phantoms.map(p => {
+                  const deptTasks = tasksByDept[p.department] || [];
+                  const isExpanded = expandedPhantom === p.id;
+                  const delegatedCount = p.delegatedTaskIds.length;
+                  const delegatedHours = (tasksQ.data || [])
+                    .filter(t => p.delegatedTaskIds.includes(t.id))
+                    .reduce((s, t) => s + (Number(t.estimated_time) || 0), 0);
+
+                  return (
+                    <Fragment key={p.id}>
+                      <TableRow>
+                        <TableCell>
+                          <Input value={p.name} onChange={e => updatePhantom(p.id, 'name', e.target.value)} className="h-7 text-sm w-36" />
+                        </TableCell>
+                        <TableCell>
+                          <Select value={p.department} onValueChange={v => {
+                            updatePhantom(p.id, 'department', v);
+                            updatePhantom(p.id, 'delegatedTaskIds', []);
+                          }}>
+                            <SelectTrigger className="h-7 text-sm w-32"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                              <SelectItem value="__none__">Sem departamento</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Select value={p.contractType} onValueChange={v => updatePhantom(p.id, 'contractType', v)}>
+                            <SelectTrigger className="h-7 text-sm w-28"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="colaborador">Colaborador</SelectItem>
+                              <SelectItem value="prestador">Prestador</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Input type="number" value={p.grossSalary} onChange={e => updatePhantom(p.id, 'grossSalary', Number(e.target.value))} className="h-7 text-sm w-24 text-right ml-auto" />
+                        </TableCell>
+                        <TableCell>
+                          <Input type="date" value={p.startDate} onChange={e => updatePhantom(p.id, 'startDate', e.target.value)} className="h-7 text-sm w-36" />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Input type="number" value={p.weeklyHours} onChange={e => updatePhantom(p.id, 'weeklyHours', Number(e.target.value))} className="h-7 text-sm w-16 text-right ml-auto" />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Input type="number" value={p.clientPct} onChange={e => updatePhantom(p.id, 'clientPct', Number(e.target.value))} className="h-7 text-sm w-16 text-right ml-auto" min={0} max={100} />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => removePhantom(p.id)} className="text-muted-foreground hover:text-destructive">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      {/* Delegable tasks row */}
+                      <TableRow className="border-0 hover:bg-transparent">
+                        <TableCell colSpan={8} className="py-0 px-2">
+                          <Collapsible open={isExpanded} onOpenChange={open => setExpandedPhantom(open ? p.id : null)}>
+                            <CollapsibleTrigger asChild>
+                              <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-1.5 transition-colors w-full">
+                                {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                                <ListChecks className="h-3 w-3" />
+                                <span>Tarefas a delegar</span>
+                                {delegatedCount > 0 && (
+                                  <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
+                                    {delegatedCount} selecionada{delegatedCount > 1 ? 's' : ''}
+                                    {delegatedHours > 0 && ` · ~${delegatedHours}h`}
+                                  </Badge>
+                                )}
+                                {p.department !== '__none__' && deptTasks.length > 0 && delegatedCount === 0 && (
+                                  <span className="text-muted-foreground/60">({deptTasks.length} disponíveis)</span>
+                                )}
+                              </button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                              {p.department === '__none__' ? (
+                                <p className="text-xs text-muted-foreground py-2 pl-5">Seleciona um departamento para ver as tarefas.</p>
+                              ) : deptTasks.length === 0 ? (
+                                <p className="text-xs text-muted-foreground py-2 pl-5">Sem tarefas abertas neste departamento.</p>
+                              ) : (
+                                <div className="py-2 pl-5 space-y-1 max-h-48 overflow-y-auto">
+                                  {deptTasks.map(task => (
+                                    <label key={task.id} className="flex items-start gap-2 text-xs cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5">
+                                      <Checkbox
+                                        checked={p.delegatedTaskIds.includes(task.id)}
+                                        onCheckedChange={() => toggleTaskDelegation(p.id, task.id)}
+                                        className="mt-0.5 h-3.5 w-3.5"
+                                      />
+                                      <div className="flex-1 min-w-0">
+                                        <span className="text-foreground">{task.name}</span>
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                          {task.priority && <span className="capitalize">{task.priority}</span>}
+                                          {task.estimated_time && <span>{task.estimated_time}h</span>}
+                                          {task.deadline && <span>até {new Date(task.deadline + 'T00:00:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })}</span>}
+                                        </div>
+                                      </div>
+                                    </label>
+                                  ))}
+                                </div>
+                              )}
+                            </CollapsibleContent>
+                          </Collapsible>
+                        </TableCell>
+                      </TableRow>
+                    </Fragment>
+                  );
+                })}
               </TableBody>
             </Table>
           </CardContent>
