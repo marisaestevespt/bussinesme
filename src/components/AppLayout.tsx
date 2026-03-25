@@ -6,6 +6,7 @@ import { NotificationBell } from '@/components/NotificationBell';
 import { FavoriteButton } from '@/components/FavoriteButton';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useSystemNotifications } from '@/hooks/useSystemNotifications';
+import { OnboardingTour } from '@/components/OnboardingTour';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { settings } = useBusinessSettings();
@@ -32,6 +33,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <main className="flex-1 p-6 overflow-auto">
               {children}
             </main>
+            <OnboardingTour />
           </div>
         </div>
       </SidebarProvider>

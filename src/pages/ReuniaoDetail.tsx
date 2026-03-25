@@ -25,6 +25,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { toast } from 'sonner';
+import { logAudit } from '@/lib/auditLog';
 import { BackNavigation } from '@/components/BackNavigation';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -352,6 +353,7 @@ export default function ReuniaoDetailPage() {
       qc.invalidateQueries({ queryKey: ['meeting', id] });
       qc.invalidateQueries({ queryKey: ['meetings'] });
       setDirty(false);
+      logAudit('updated', 'meeting', id, { title: m?.title });
       toast.success('Reunião guardada');
     },
     onError: () => toast.error('Erro ao guardar'),
@@ -372,6 +374,7 @@ export default function ReuniaoDetailPage() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['meetings'] });
+      logAudit('deleted', 'meeting', id, { title: m?.title });
       toast.success('Reunião eliminada');
       navigate('/hub/reunioes');
     },
