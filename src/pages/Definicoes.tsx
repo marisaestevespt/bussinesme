@@ -9,6 +9,7 @@ import { ChannelSettings } from '@/components/settings/ChannelSettings';
 import { SettingsUsers } from '@/components/settings/SettingsUsers';
 import { SettingsKpis } from '@/components/settings/SettingsKpis';
 import { SettingsDigest } from '@/components/settings/SettingsDigest';
+import { SettingsAuditLog } from '@/components/settings/SettingsAuditLog';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,7 @@ import {
 import { AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
-const TABS = [
+const BASE_TABS = [
   { key: 'identidade', label: 'Identidade' },
   { key: 'setup-negocio', label: 'Setup de Negócio' },
   { key: 'marketing', label: 'Marketing' },
@@ -34,11 +35,17 @@ const TABS = [
   { key: 'resumo', label: 'Resumo Diário' },
 ] as const;
 
-type TabKey = typeof TABS[number]['key'];
+const OWNER_TABS = [
+  ...BASE_TABS,
+  { key: 'auditoria' as const, label: 'Auditoria' },
+] as const;
+
+type TabKey = typeof OWNER_TABS[number]['key'];
 
 export default function DefinicoesPage() {
   const [tab, setTab] = useState<TabKey>('identidade');
   const { isOwner } = useAuth();
+  const TABS = isOwner ? OWNER_TABS : BASE_TABS;
 
   return (
     <AppLayout>
@@ -71,6 +78,7 @@ export default function DefinicoesPage() {
           {tab === 'utilizadores' && <SettingsUsers />}
           {tab === 'kpis' && <SettingsKpis />}
           {tab === 'resumo' && <SettingsDigest />}
+          {tab === 'auditoria' && <SettingsAuditLog />}
         </div>
 
         {/* Reset section - owner only */}
