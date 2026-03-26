@@ -11,9 +11,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Plus, Trash2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+const PAYMENT_METHODS = [
+  { value: 'transferencia', label: 'Transferência' },
+  { value: 'debito_direto', label: 'Débito Direto' },
+  { value: 'mbway', label: 'MB Way' },
+  { value: 'plataforma', label: 'Plataforma' },
+  { value: 'cartao', label: 'Cartão' },
+  { value: 'outro', label: 'Outro' },
+];
+const PAYMENT_LABELS = Object.fromEntries(PAYMENT_METHODS.map(m => [m.value, m.label]));
 
 export default function FornecedoresPage() {
   const qc = useQueryClient();
@@ -54,6 +65,8 @@ export default function FornecedoresPage() {
         phone: form.phone || null,
         address: form.address || null,
         website: form.website || null,
+        iban: form.iban || null,
+        payment_method: form.payment_method || 'transferencia',
         category: form.category || 'outro',
         notes: form.notes || null,
         is_active: form.is_active ?? true,
@@ -104,20 +117,24 @@ export default function FornecedoresPage() {
                   <TableHead>NIF</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Telefone</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead className="text-right">Despesas</TableHead>
-                  <TableHead>Status</TableHead>
+                   <TableHead>IBAN</TableHead>
+                   <TableHead>Pagamento</TableHead>
+                   <TableHead>Categoria</TableHead>
+                   <TableHead className="text-right">Despesas</TableHead>
+                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {suppliers.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Sem fornecedores</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Sem fornecedores</TableCell></TableRow>
                 ) : suppliers.map((s: any) => (
                   <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setForm(s); setOpen(true); }}>
                     <TableCell className="font-medium">{s.name}</TableCell>
                     <TableCell className="text-muted-foreground">{s.nif || '—'}</TableCell>
                     <TableCell className="text-muted-foreground">{s.email || '—'}</TableCell>
                     <TableCell className="text-muted-foreground">{s.phone || '—'}</TableCell>
+                    <TableCell className="text-muted-foreground font-mono text-xs">{s.iban || '—'}</TableCell>
+                    <TableCell><Badge variant="outline">{PAYMENT_LABELS[s.payment_method as keyof typeof PAYMENT_LABELS] || s.payment_method || '—'}</Badge></TableCell>
                     <TableCell>{s.category || '—'}</TableCell>
                     <TableCell className="text-right">{(expenseCounts as any)[s.id] || 0}</TableCell>
                     <TableCell>
@@ -142,6 +159,13 @@ export default function FornecedoresPage() {
               <div><Label>NIF</Label><Input value={form.nif || ''} onChange={e => setForm((f: any) => ({ ...f, nif: e.target.value }))} /></div>
               <div><Label>Email</Label><Input value={form.email || ''} onChange={e => setForm((f: any) => ({ ...f, email: e.target.value }))} /></div>
               <div><Label>Telefone</Label><Input value={form.phone || ''} onChange={e => setForm((f: any) => ({ ...f, phone: e.target.value }))} /></div>
+              <div><Label>IBAN</Label><Input value={form.iban || ''} onChange={e => setForm((f: any) => ({ ...f, iban: e.target.value }))} placeholder="PT50..." /></div>
+              <div><Label>Método de Pagamento</Label>
+                <Select value={form.payment_method || 'transferencia'} onValueChange={v => setForm((f: any) => ({ ...f, payment_method: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{PAYMENT_METHODS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
               <div><Label>Morada</Label><Input value={form.address || ''} onChange={e => setForm((f: any) => ({ ...f, address: e.target.value }))} /></div>
               <div><Label>Website</Label><Input value={form.website || ''} onChange={e => setForm((f: any) => ({ ...f, website: e.target.value }))} /></div>
               <div><Label>Notas</Label><Textarea value={form.notes || ''} onChange={e => setForm((f: any) => ({ ...f, notes: e.target.value }))} rows={3} /></div>
