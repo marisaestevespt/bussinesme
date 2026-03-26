@@ -59,6 +59,7 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
       includes_vat: false,
       source_type: expense.source_type,
       source_id: expense.source_id,
+      department: expense.department || '',
     });
   }
 
@@ -98,6 +99,7 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
       expense_month: month,
       expense_quarter: quarter,
       expense_year: year,
+      department: form.department || null,
     } as any);
     toast.success('Despesa atualizada');
     setSaving(false);
@@ -168,6 +170,24 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
           <div>
             <Label>Categoria</Label>
             <CategorySelect type="expense" value={form.category || 'outro'} onValueChange={v => setForm((f: any) => ({ ...f, category: v }))} />
+          </div>
+
+          {/* Department (optional) */}
+          <div>
+            <Label>Departamento <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+            <Select value={form.department || ''} onValueChange={v => setForm((f: any) => ({ ...f, department: v === '__none__' ? '' : v }))}>
+              <SelectTrigger><SelectValue placeholder="Sem departamento" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sem departamento</SelectItem>
+                <SelectItem value="marketing">Marketing</SelectItem>
+                <SelectItem value="comercial">Comercial</SelectItem>
+                <SelectItem value="clientes">Clientes</SelectItem>
+                <SelectItem value="financeiro">Contabilidade</SelectItem>
+                <SelectItem value="operacao">Operação</SelectItem>
+                <SelectItem value="produtos">Produtos</SelectItem>
+                <SelectItem value="recursos-humanos">Recursos Humanos</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* VAT toggle + values */}

@@ -3084,6 +3084,7 @@ export type Database = {
           category: string
           created_at: string
           created_by: string | null
+          department: string | null
           description: string | null
           documents: Json | null
           expense_date: string | null
@@ -3105,6 +3106,7 @@ export type Database = {
           category?: string
           created_at?: string
           created_by?: string | null
+          department?: string | null
           description?: string | null
           documents?: Json | null
           expense_date?: string | null
@@ -3126,6 +3128,7 @@ export type Database = {
           category?: string
           created_at?: string
           created_by?: string | null
+          department?: string | null
           description?: string | null
           documents?: Json | null
           expense_date?: string | null
