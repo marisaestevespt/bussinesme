@@ -213,7 +213,12 @@ export default function SopDetailPage() {
   const [sopType, setSopType] = useState('operacional');
   const [sopRoleTitle, setSopRoleTitle] = useState('');
   const [sopProductId, setSopProductId] = useState('');
-
+  const [sopVersion, setSopVersion] = useState(1);
+  const [sopVersionNotes, setSopVersionNotes] = useState('');
+  const [showCreateTasks, setShowCreateTasks] = useState(false);
+  const [taskProjectId, setTaskProjectId] = useState('');
+  const [taskDepartment, setTaskDepartment] = useState('');
+  const [taskDeadline, setTaskDeadline] = useState('');
   // Detect if this is an onboarding/offboarding SOP linked to a product
   const isOnboardingSop = useMemo(() => {
     if (!sop) return false;
