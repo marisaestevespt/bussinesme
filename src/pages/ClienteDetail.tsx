@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import { Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X, RefreshCw } from 'lucide-react';
+import { Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X, RefreshCw, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO, addDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
