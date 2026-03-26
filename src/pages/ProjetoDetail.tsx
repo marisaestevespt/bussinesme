@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, ExternalLink } from 'lucide-react';
@@ -31,6 +32,9 @@ import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 import { PROJECT_TYPES, PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel, getDeptInfo, getInitials } from './Projetos';
 import { LaunchDashboard } from '@/components/launch/LaunchDashboard';
 import { ProjectDeliverables } from '@/components/project/ProjectDeliverables';
+import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
+import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
+import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 
 // ─── Types ──────────────────────────────────────────────────────
 
