@@ -812,7 +812,63 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── 15. Auto-revoke access for inactive members (1 week after inactivation) ──
+    // ── 15. Auto-create fiscal tasks (30 days before deadline) ──
+    {
+      const { data: bsData } = await supabase
+        .from("business_settings")
+        .select("tax_iva_regime, tax_irs_regime, ss_exempt, iva_exempt")
+        .limit(1)
+        .maybeSingle();
+
+      if (bsData) {
+        const fiscalConfig = {
+          taxIvaRegime: (bsData as any).tax_iva_regime || "trimestral",
+          taxIrsRegime: (bsData as any).tax_irs_regime || "simplificado",
+          ssExempt: (bsData as any).ss_exempt ?? false,
+          ivaExempt: (bsData as any).iva_exempt ?? false,
+        };
+
+        const deadlines = computeFiscalDeadlinesEdge(currentYear, fiscalConfig);
+        let fiscalTasksCreated = 0;
+
+        for (const dl of deadlines) {
+          const dlDate = new Date(dl.date + "T00:00:00");
+          const diffDays = Math.ceil((dlDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          if (diffDays > 30 || diffDays < 0) continue;
+
+          // Check for duplicate
+          const { data: existingTask } = await supabase
+            .from("tasks")
+            .select("id")
+            .eq("name", dl.name)
+            .limit(1);
+          if (existingTask && existingTask.length > 0) continue;
+
+          // Find accountant department member or fall back to owner
+          let assignTo = ownerRole?.user_id;
+          const { data: contabMembers } = await supabase
+            .from("members")
+            .select("user_id")
+            .limit(1);
+          // Assign to owner by default
+
+          await supabase.from("tasks").insert({
+            name: dl.name,
+            status: "por_comecar",
+            priority: "alta",
+            deadline: dl.date,
+            department: "contabilidade",
+            created_by: assignTo,
+            assigned_to: assignTo,
+            tag: "Fiscal",
+          });
+          fiscalTasksCreated++;
+        }
+        results.push(`Fiscal tasks created: ${fiscalTasksCreated}`);
+      }
+    }
+
+    // ── 16. Auto-revoke access for inactive members (1 week after inactivation) ──
     {
       const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const { data: toRevoke } = await supabase
