@@ -122,13 +122,20 @@ export default function TarefasPage() {
   const [filterProject, setFilterProject] = useState('');
 
   // Queries
+  // Server-side status filter
+  const [filterStatus, setFilterStatus] = useState('');
+
   const tasksQuery = useInfiniteQuery<InfinitePageResult<any>>({
-    queryKey: ['tasks'],
+    queryKey: ['tasks', filterStatus],
     initialPageParam: 0,
     queryFn: async ({ pageParam = 0 }) => {
       const from = (pageParam as number) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const { data, error, count } = await supabase.from('tasks').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to);
+      let query = supabase.from('tasks').select('*', { count: 'exact' }).order('created_at', { ascending: false });
+      if (filterStatus) {
+        query = query.eq('status', filterStatus);
+      }
+      const { data, error, count } = await query.range(from, to);
       if (error) throw error;
       return { data: data || [], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },
@@ -568,7 +575,7 @@ export default function TarefasPage() {
 
         {/* Dynamic filters */}
         {(() => {
-          const activeFilterCount = [filterDept, filterResponsible, filterPriority, filterProject].filter(Boolean).length;
+          const activeFilterCount = [filterDept, filterResponsible, filterPriority, filterProject, filterStatus].filter(Boolean).length;
           return (
             <div className="flex items-center gap-2 flex-wrap">
               <Popover>
@@ -579,6 +586,16 @@ export default function TarefasPage() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-64 space-y-3" align="start">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Status (server-side)</Label>
+                    <Select value={filterStatus} onValueChange={v => setFilterStatus(v === '_all' ? '' : v)}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_all">Todos</SelectItem>
+                        {TASK_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">Departamento</Label>
                     <Select value={filterDept} onValueChange={v => setFilterDept(v === '_all' ? '' : v)}>
@@ -620,7 +637,7 @@ export default function TarefasPage() {
                     </Select>
                   </div>
                   {activeFilterCount > 0 && (
-                    <Button size="sm" variant="ghost" className="w-full h-7 text-xs" onClick={() => { setFilterDept(''); setFilterResponsible(''); setFilterPriority(''); setFilterProject(''); }}>
+                    <Button size="sm" variant="ghost" className="w-full h-7 text-xs" onClick={() => { setFilterDept(''); setFilterResponsible(''); setFilterPriority(''); setFilterProject(''); setFilterStatus(''); }}>
                       <X className="h-3 w-3 mr-1" /> Limpar filtros
                     </Button>
                   )}

@@ -70,6 +70,7 @@ export default function FornecedoresPage() {
         category: form.category || 'outro',
         notes: form.notes || null,
         is_active: form.is_active ?? true,
+        default_vat_rate: form.default_vat_rate ?? 23,
       };
       if (form.id) {
         await supabase.from('suppliers').update(record).eq('id', form.id);
@@ -164,6 +165,14 @@ export default function FornecedoresPage() {
                 <Select value={form.payment_method || 'transferencia'} onValueChange={v => setForm((f: any) => ({ ...f, payment_method: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{PAYMENT_METHODS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div><Label>Taxa IVA padrão (%)</Label>
+                <Select value={String(form.default_vat_rate ?? 23)} onValueChange={v => setForm((f: any) => ({ ...f, default_vat_rate: parseInt(v) }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {[0, 6, 13, 23].map(v => <SelectItem key={v} value={String(v)}>{v}%</SelectItem>)}
+                  </SelectContent>
                 </Select>
               </div>
               <div><Label>Morada</Label><Input value={form.address || ''} onChange={e => setForm((f: any) => ({ ...f, address: e.target.value }))} /></div>
