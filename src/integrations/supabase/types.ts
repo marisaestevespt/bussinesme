@@ -7203,6 +7203,7 @@ export type Database = {
         Row: {
           assigned_to: string | null
           client_id: string | null
+          content_id: string | null
           created_at: string
           created_by: string | null
           deadline: string | null
@@ -7226,6 +7227,7 @@ export type Database = {
         Insert: {
           assigned_to?: string | null
           client_id?: string | null
+          content_id?: string | null
           created_at?: string
           created_by?: string | null
           deadline?: string | null
@@ -7249,6 +7251,7 @@ export type Database = {
         Update: {
           assigned_to?: string | null
           client_id?: string | null
+          content_id?: string | null
           created_at?: string
           created_by?: string | null
           deadline?: string | null
@@ -7275,6 +7278,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
             referencedColumns: ["id"]
           },
           {
