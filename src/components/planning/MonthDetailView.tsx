@@ -112,7 +112,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       const mEnd = format(endOfMonth(new Date(year, monthIdx, 1)), 'yyyy-MM-dd');
       const { data } = await supabase
         .from('tasks')
-        .select('*, profiles:assigned_to(full_name)')
+        .select('*, profiles:assigned_to(full_name), planning_routines:routine_id(title, role_function, recurrence_type)')
         .eq('tag', 'Rotina')
         .gte('deadline', mStart)
         .lte('deadline', mEnd)
@@ -935,6 +935,14 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
             Rotinas Semanais e Mensais
+            {(() => {
+              const tasks = routineTasksQ.data || [];
+              const done = tasks.filter((t: any) => t.status === 'done' || t.status === 'concluida').length;
+              const total = tasks.length;
+              if (total === 0) return null;
+              const pct = Math.round((done / total) * 100);
+              return <Badge variant="outline" className="text-[10px] ml-auto">{done}/{total} ({pct}%)</Badge>;
+            })()}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -942,22 +950,42 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             <p className="text-sm text-muted-foreground text-center py-4">Sem rotinas configuradas para este mês.</p>
           ) : (
             <div className="space-y-1.5">
-              {(routineTasksQ.data || []).map((t: any) => (
-                <div
-                  key={t.id}
-                  className="flex items-center gap-2 p-2 rounded-md border cursor-pointer hover:shadow-sm transition-shadow"
-                  onClick={() => navigate('/tarefas')}
-                >
-                  {t.status === 'done' || t.status === 'concluida' ? (
-                    <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">Feita</Badge>
-                  ) : (
-                    <Badge variant="outline" className="text-[10px]">Por fazer</Badge>
-                  )}
-                  <span className={cn('text-sm flex-1 truncate', (t.status === 'done' || t.status === 'concluida') && 'line-through text-muted-foreground')}>{t.name}</span>
-                  <span className="text-[10px] text-muted-foreground shrink-0">{t.deadline ? format(parseISO(t.deadline), 'd MMM', { locale: pt }) : ''}</span>
-                  <span className="text-[10px] text-muted-foreground shrink-0">{(t.profiles as any)?.full_name || ''}</span>
-                </div>
-              ))}
+              {(routineTasksQ.data || []).map((t: any) => {
+                const isDone = t.status === 'done' || t.status === 'concluida';
+                const deadlineDate = t.deadline ? parseISO(t.deadline) : null;
+                const completedAt = t.completed_at ? parseISO(t.completed_at) : null;
+                const isLate = !isDone && deadlineDate && deadlineDate < new Date();
+                const completedLate = isDone && completedAt && deadlineDate && completedAt > deadlineDate;
+                const routineInfo = t.planning_routines as any;
+                const roleFn = routineInfo?.role_function;
+
+                return (
+                  <div
+                    key={t.id}
+                    className={cn(
+                      'flex items-center gap-2 p-2 rounded-md border cursor-pointer hover:shadow-sm transition-shadow',
+                      isLate && 'border-destructive/50 bg-destructive/5',
+                    )}
+                    onClick={() => navigate('/tarefas')}
+                  >
+                    {isDone ? (
+                      completedLate ? (
+                        <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300">Atrasada</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300">No prazo</Badge>
+                      )
+                    ) : isLate ? (
+                      <Badge variant="outline" className="text-[10px] bg-destructive/10 text-destructive border-destructive/30">Em falta</Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px]">Por fazer</Badge>
+                    )}
+                    <span className={cn('text-sm flex-1 truncate', isDone && 'line-through text-muted-foreground')}>{t.name}</span>
+                    {roleFn && <Badge variant="secondary" className="text-[9px] shrink-0">{roleFn}</Badge>}
+                    <span className="text-[10px] text-muted-foreground shrink-0">{t.deadline ? format(parseISO(t.deadline), 'd MMM', { locale: pt }) : ''}</span>
+                    <span className="text-[10px] text-muted-foreground shrink-0">{(t.profiles as any)?.full_name || ''}</span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </CardContent>

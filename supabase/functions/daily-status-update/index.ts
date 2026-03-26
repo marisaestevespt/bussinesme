@@ -681,6 +681,52 @@ Deno.serve(async (req) => {
       results.push(`Overdue task alerts: ${taskAlerts}`);
     }
 
+    // ── Routine missed alerts ──
+    {
+      const { data: missedRoutineTasks } = await supabase
+        .from("tasks")
+        .select("id, name, routine_id, assigned_to, deadline")
+        .eq("tag", "Rotina")
+        .eq("deadline", todayStr)
+        .not("status", "in", '("done","concluida","cancelada")');
+
+      let routineAlerts = 0;
+      if (missedRoutineTasks && missedRoutineTasks.length > 0) {
+        // Get routine details for role_function lookup
+        const routineIds = [...new Set(missedRoutineTasks.map((t: any) => t.routine_id).filter(Boolean))];
+        const { data: routines } = routineIds.length > 0
+          ? await supabase.from("planning_routines").select("id, title, role_function, created_by").in("id", routineIds)
+          : { data: [] };
+        const routineMap = new Map((routines || []).map((r: any) => [r.id, r]));
+
+        for (const t of missedRoutineTasks) {
+          const routine = routineMap.get(t.routine_id);
+          const recipients = [ownerRole?.user_id, t.assigned_to, routine?.created_by].filter(Boolean);
+          for (const uid of new Set(recipients)) {
+            if (!uid) continue;
+            const dedupKey = `routine-missed-${t.id}-${todayStr}`;
+            const { count: existing } = await supabase
+              .from("notifications")
+              .select("id", { count: "exact", head: true })
+              .eq("user_id", uid)
+              .eq("message", dedupKey);
+            if ((existing || 0) > 0) continue;
+
+            const roleLabel = routine?.role_function ? ` (${routine.role_function})` : "";
+            await supabase.from("notifications").insert({
+              user_id: uid,
+              type: "task",
+              title: `⚠️ Rotina não concluída: ${t.name}${roleLabel}`,
+              message: dedupKey,
+              link: "/tarefas",
+            });
+            routineAlerts++;
+          }
+        }
+      }
+      results.push(`Routine missed alerts: ${routineAlerts}`);
+    }
+
     const dayOfMonth = today.getDate();
     const currentMonth = today.getMonth() + 1;
     const currentYear = today.getFullYear();
