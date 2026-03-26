@@ -186,6 +186,9 @@ export function FinSaidas({ fin, currentYear }: Props) {
               </Popover>
             </div>
             <div><Label>Descrição</Label><Input value={expForm.description || ''} onChange={e => setExpForm((f: any) => ({ ...f, description: e.target.value }))} /></div>
+            <div><Label>Fornecedor</Label>
+              <SupplierSelect value={expForm.supplier_id || null} onValueChange={v => setExpForm((f: any) => ({ ...f, supplier_id: v }))} />
+            </div>
             <div><Label>Categoria</Label>
               <CategorySelect type="expense" value={expForm.category || 'outro'} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))} />
             </div>
@@ -215,6 +218,28 @@ export function FinSaidas({ fin, currentYear }: Props) {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
               </Select>
+            </div>
+            {/* Recurring */}
+            <div className="rounded-lg border border-border p-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4 text-muted-foreground" />
+                  <Label className="text-sm font-normal">Despesa recorrente</Label>
+                </div>
+                <Switch checked={expForm.is_recurring || false} onCheckedChange={v => setExpForm((f: any) => ({ ...f, is_recurring: v }))} />
+              </div>
+              {expForm.is_recurring && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Dia do mês</Label>
+                    <Input type="number" min={1} max={28} value={expForm.recurrence_day || 1} onChange={e => setExpForm((f: any) => ({ ...f, recurrence_day: parseInt(e.target.value) || 1 }))} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Até (opcional)</Label>
+                    <Input type="date" value={expForm.recurrence_end_date || ''} onChange={e => setExpForm((f: any) => ({ ...f, recurrence_end_date: e.target.value }))} />
+                  </div>
+                </div>
+              )}
             </div>
             <InvoiceUpload
               documents={Array.isArray(expForm.documents) ? expForm.documents : []}
