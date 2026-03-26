@@ -18,6 +18,7 @@ import { FinSegurancaSocial } from '@/components/financial/FinSegurancaSocial';
 import { FinAllDocuments } from '@/components/financial/FinAllDocuments';
 import { FinSetupFinanceiro } from '@/components/financial/FinSetupFinanceiro';
 import { FinPrevisibilidade } from '@/components/financial/FinPrevisibilidade';
+import { FinGoals } from '@/components/financial/FinGoals';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 import { YearSelector } from '@/components/YearSelector';
 
@@ -32,9 +33,10 @@ const TITLES: Record<string, string> = {
   documentos: 'Documentos',
   'setup-financeiro': 'Setup Financeiro',
   previsibilidade: 'Previsibilidade Financeira',
+  'metas-financeiras': 'Metas Financeiras',
 };
 
-const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'saidas', 'ordenados', 'iva', 'seguranca-social', 'previsibilidade'];
+const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'saidas', 'ordenados', 'iva', 'seguranca-social', 'previsibilidade', 'metas-financeiras'];
 
 export default function FinanceiroSubPage() {
   const { section } = useParams<{ section: string }>();
@@ -60,6 +62,9 @@ export default function FinanceiroSubPage() {
   const title = TITLES[section || ''] || section || '';
   const showYearSelector = YEAR_SECTIONS.includes(section || '');
 
+  const yearSales = sales.filter(s => s.sale_year === year);
+  const yearExpenses = expenses.filter(e => e.expense_year === year);
+
   const renderContent = () => {
     switch (section) {
       case 'mensal':
@@ -82,6 +87,8 @@ export default function FinanceiroSubPage() {
         return <FinSetupFinanceiro fin={fin} />;
       case 'previsibilidade':
         return <FinPrevisibilidade fin={fin} currentYear={year} sales={sales} />;
+      case 'metas-financeiras':
+        return <FinGoals currentYear={year} yearSales={yearSales} yearExpenses={yearExpenses} />;
       default:
         return <EmptyModulePage title={title} />;
     }
