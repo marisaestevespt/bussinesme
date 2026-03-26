@@ -663,9 +663,16 @@ export default function SopDetailPage() {
             <div className="flex items-center gap-2 mb-1">
               <Input value={sopId} onChange={e => setSopId(e.target.value)} className="w-24 font-mono text-xs h-7" />
               <Badge className={cn('text-xs', statusInfo.color)}>{statusInfo.label}</Badge>
+              <Badge variant="outline" className="text-xs font-mono">v{sopVersion}</Badge>
             </div>
             <Input value={name} onChange={e => setName(e.target.value)} className="text-xl font-bold border-none px-0 h-auto focus-visible:ring-0" />
           </div>
+          <Button variant="outline" size="sm" onClick={() => setShowCreateTasks(true)} title="Criar tarefas a partir dos passos">
+            <ListChecks className="h-4 w-4 mr-1" /> Criar Tarefas
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => bumpVersion.mutate()} disabled={bumpVersion.isPending} title="Criar nova versão">
+            <History className="h-4 w-4 mr-1" /> v{sopVersion + 1}
+          </Button>
           <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
             <Save className="h-4 w-4 mr-1" /> Guardar
           </Button>
