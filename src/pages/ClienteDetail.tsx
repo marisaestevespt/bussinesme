@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import { Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X, RefreshCw } from 'lucide-react';
+import { Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X, RefreshCw, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO, addDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -90,6 +90,10 @@ export default function ClienteDetailPage() {
   const [meetingForm, setMeetingForm] = useState({ title: '', date_time: '', meeting_url: '', meeting_type: 'cliente' as 'recorrente' | 'projeto' | 'cliente', department: '' });
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
+  const [offboardingDialogOpen, setOffboardingDialogOpen] = useState(false);
+  const [offboardingNps, setOffboardingNps] = useState(true);
+  const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
+  const [pendingPaymentsTotal, setPendingPaymentsTotal] = useState(0);
 
   const queryClient = useQueryClient();
 
@@ -98,7 +102,7 @@ export default function ClienteDetailPage() {
 
   const update = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
 
-  const save = async (): Promise<string | null> => {
+  const save = async (skipOffboardingCheck = false): Promise<string | null> => {
     if (!form.full_name?.trim()) { toast.error('Nome é obrigatório'); return null; }
     try {
       const prevStatus = client?.status;
@@ -108,7 +112,6 @@ export default function ClienteDetailPage() {
         const { data, error } = await supabase.from('clients').insert({ full_name: form.full_name, ...form } as any).select('id').single();
         if (error) throw error;
         toast.success('Cliente guardado');
-        // Auto-generate NPS if product exists
         if (form.current_product && form.start_date) {
           autoGenerateNps(data.id, form.current_product, form.start_date);
         }
@@ -116,9 +119,15 @@ export default function ClienteDetailPage() {
       } else {
         // Handle status transitions
         if (prevStatus !== newStatus && id) {
-          // em_offboarding → seed offboarding checklist from product template
-          if (newStatus === 'em_offboarding') {
-            await seedOffboardingChecklist(id, form.current_product || null);
+          // em_offboarding → show popup first
+          if (newStatus === 'em_offboarding' && !skipOffboardingCheck) {
+            // Check pending payments
+            const unpaid = clientSales.filter(s => s.status !== 'pago' && s.status !== 'cancelada');
+            setPendingPaymentsCount(unpaid.length);
+            setPendingPaymentsTotal(unpaid.reduce((sum, s) => sum + Number(s.base_value || 0), 0));
+            setOffboardingNps(true);
+            setOffboardingDialogOpen(true);
+            return null; // Don't save yet — wait for dialog confirmation
           }
           // terminado → set portal deactivation in 30 days
           if (newStatus === 'terminado') {
@@ -132,6 +141,62 @@ export default function ClienteDetailPage() {
         return id || null;
       }
     } catch { return null; }
+  };
+
+  const confirmOffboarding = async () => {
+    if (!id) return;
+    // 1. Seed offboarding checklist from product template
+    await seedOffboardingChecklist(id, form.current_product || null);
+
+    // 2. Add pending payments item to checklist if any
+    if (pendingPaymentsCount > 0) {
+      const { data: existing } = await supabase.from('client_offboarding')
+        .select('id').eq('client_id', id).limit(100);
+      const maxOrder = existing?.length || 0;
+      await supabase.from('client_offboarding').insert({
+        client_id: id,
+        activity: `⚠️ Verificar ${pendingPaymentsCount} pagamento(s) pendente(s) — ${pendingPaymentsTotal.toFixed(2)}€`,
+        phase: 'Financeiro',
+        responsible: null,
+        rule: 'Verificar antes de concluir offboarding',
+        sort_order: 0,
+        completed: false,
+      });
+      queryClient.invalidateQueries({ queryKey: ['client_offboarding', id] });
+    }
+
+    // 3. Schedule final NPS if requested
+    if (offboardingNps && form.current_product) {
+      const { data: prod } = await supabase.from('products').select('id').eq('name', form.current_product).maybeSingle();
+      if (prod) {
+        await supabase.from('client_nps_records').insert({
+          client_id: id,
+          product_id: prod.id,
+          expected_date: format(new Date(), 'yyyy-MM-dd'),
+          status: 'por_fazer',
+          is_manual: false,
+          notes: 'NPS Final — Offboarding',
+        } as any);
+        queryClient.invalidateQueries({ queryKey: ['client_nps_records'] });
+        toast.success('NPS final agendado');
+      }
+    }
+
+    // 4. Add history entry
+    await supabase.from('client_history').insert({
+      client_id: id,
+      entry_date: format(new Date(), 'yyyy-MM-dd'),
+      milestone: 'Início de offboarding',
+      observations: pendingPaymentsCount > 0
+        ? `${pendingPaymentsCount} pagamento(s) pendente(s): ${pendingPaymentsTotal.toFixed(2)}€`
+        : null,
+    });
+    queryClient.invalidateQueries({ queryKey: ['client_history', id] });
+
+    setOffboardingDialogOpen(false);
+
+    // 5. Now save with skip flag
+    await save(true);
   };
 
   const seedOffboardingChecklist = async (clientId: string, productName: string | null) => {
@@ -433,6 +498,19 @@ export default function ClienteDetailPage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6 max-w-5xl mx-auto">
+        {/* Pending payments alert for offboarding */}
+        {form.status === 'em_offboarding' && clientSales.filter(s => s.status !== 'pago' && s.status !== 'cancelada').length > 0 && (
+          <div className="flex items-center gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+            <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-destructive">Pagamentos pendentes</p>
+              <p className="text-xs text-muted-foreground">
+                Este cliente tem {clientSales.filter(s => s.status !== 'pago' && s.status !== 'cancelada').length} pagamento(s)
+                pendente(s) no valor de {clientSales.filter(s => s.status !== 'pago' && s.status !== 'cancelada').reduce((sum, s) => sum + Number(s.base_value || 0), 0).toFixed(2)}€
+              </p>
+            </div>
+          </div>
+        )}
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -455,7 +533,7 @@ export default function ClienteDetailPage() {
                 <RefreshCw className="h-4 w-4 mr-1" />Renovar / Novo Ciclo
               </Button>
             )}
-            <Button size="sm" onClick={save}><Save className="h-4 w-4 mr-1" />Guardar</Button>
+            <Button size="sm" onClick={() => save()}><Save className="h-4 w-4 mr-1" />Guardar</Button>
           </div>
         </div>
 
@@ -826,6 +904,48 @@ export default function ClienteDetailPage() {
             <Button onClick={() => handleRenew.mutate()} disabled={!renewProduct || handleRenew.isPending}>
               {handleRenew.isPending ? 'A criar...' : 'Iniciar Novo Ciclo'}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Offboarding confirmation dialog */}
+      <Dialog open={offboardingDialogOpen} onOpenChange={setOffboardingDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Iniciar Offboarding</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            {pendingPaymentsCount > 0 && (
+              <div className="flex items-start gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-3">
+                <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-destructive">
+                    {pendingPaymentsCount} pagamento(s) pendente(s)
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Valor total em aberto: {pendingPaymentsTotal.toFixed(2)}€.
+                    Será adicionado um item à checklist de offboarding.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3">
+              <div>
+                <p className="text-sm font-medium">Agendar NPS Final?</p>
+                <p className="text-xs text-muted-foreground">
+                  Cria um registo de NPS para recolher feedback antes de terminar.
+                </p>
+              </div>
+              <Switch checked={offboardingNps} onCheckedChange={setOffboardingNps} />
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              A checklist de offboarding será criada com base no template do produto.
+              {pendingPaymentsCount > 0 && ' Um item de verificação de pagamentos pendentes será adicionado automaticamente.'}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOffboardingDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={confirmOffboarding}>Confirmar Offboarding</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
