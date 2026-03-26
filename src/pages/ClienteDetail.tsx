@@ -167,12 +167,33 @@ export default function ClienteDetailPage() {
 
   const createProject = useMutation({
     mutationFn: async (name: string) => {
+      // Find the product by name to get cycle_duration and id
+      const productList = products.data || [];
+      const matchedProduct = form.current_product
+        ? productList.find(p => p.name === form.current_product)
+        : null;
+
+      // Calculate deadline from start_date + cycle_duration (months)
+      let deadline: string | null = null;
+      if (form.start_date && matchedProduct?.cycle_duration) {
+        const start = parseISO(form.start_date);
+        const end = new Date(start);
+        end.setMonth(end.getMonth() + matchedProduct.cycle_duration);
+        deadline = format(end, 'yyyy-MM-dd');
+      }
+
       const { data, error } = await supabase.from('projects').insert({
         name,
-        type: 'clientes',
-        status: 'em_curso',
+        type: 'cliente_projeto_unico',
+        status: 'em_onboarding',
         department: 'clientes',
+        departments: ['clientes', 'operacao'],
         client_name: form.full_name || null,
+        client_id: isNew ? null : (id || null),
+        product_id: matchedProduct?.id || null,
+        product_name: form.current_product || null,
+        start_date: form.start_date || null,
+        deadline,
       }).select('id').single();
       if (error) throw error;
       return data;
