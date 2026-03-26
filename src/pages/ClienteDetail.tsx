@@ -506,6 +506,24 @@ export default function ClienteDetailPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* New Project dialog */}
+      <Dialog open={projectDialogOpen} onOpenChange={setProjectDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Novo Projeto</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Nome do Projeto</Label>
+              <Input value={newProjectName} onChange={e => setNewProjectName(e.target.value)} placeholder="Ex: Cliente — Produto" />
+            </div>
+            <p className="text-xs text-muted-foreground">Cliente: <span className="font-medium text-foreground">{form.full_name || '—'}</span> (pré-associado)</p>
+            <Button className="w-full" onClick={() => {
+              if (!newProjectName.trim()) { toast.error('Nome é obrigatório'); return; }
+              createProject.mutate(newProjectName.trim());
+            }}>Criar Projeto</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
