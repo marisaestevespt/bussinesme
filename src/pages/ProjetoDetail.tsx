@@ -383,7 +383,18 @@ export default function ProjetoDetailPage() {
     return Math.round(((tasksDone + boardingDone) / total) * 100);
   }
 
-  const { data: meetings = [] } = useQuery({
+  // Auto-save progress when it changes
+  const autoProgress = getProjectProgress();
+  useEffect(() => {
+    if (local && autoProgress !== local.progress) {
+      supabase.from('projects').update({ progress: autoProgress }).eq('id', local.id);
+    }
+  }, [autoProgress, local?.id]);
+
+  // Deadline overdue check
+  const isOverdue = local?.deadline && local.status !== 'concluido' && local.status !== 'cancelado' && new Date(local.deadline) < new Date();
+
+  const formatCost = (v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}k €` : `${v.toFixed(0)} €`;
     queryKey: ['project-meetings', id],
     queryFn: async () => { const { data } = await supabase.from('meetings').select('id, title, date_time, status, project_id').eq('project_id', id!).order('date_time'); return (data || []) as Meeting[]; },
     enabled: !!id,
