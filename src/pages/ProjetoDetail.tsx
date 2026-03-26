@@ -713,6 +713,16 @@ export default function ProjetoDetailPage() {
             </label>
           )}
 
+          {/* Deadline overdue banner */}
+          {isOverdue && (
+            <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription className="text-sm">
+                A deadline deste projeto ({format(new Date(local.deadline!), 'd MMM yyyy', { locale: pt })}) já passou. Atualiza o prazo ou conclui o projeto.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Header */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
@@ -722,7 +732,21 @@ export default function ProjetoDetailPage() {
             </div>
             <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-xl font-bold border-none px-0 focus-visible:ring-0" />
             <div className="grid grid-cols-2 gap-4">
-              <div><Label className="text-xs">Cliente</Label><Input value={local.client_name || ''} onChange={e => updateField('client_name', e.target.value)} /></div>
+              <div>
+                <Label className="text-xs">Cliente</Label>
+                <Select value={local.client_id || ''} onValueChange={v => {
+                  const selected = clientsList.find((c: any) => c.id === v);
+                  updateField('client_id', v || null);
+                  updateField('client_name', selected?.full_name || null);
+                }}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Selecionar cliente" /></SelectTrigger>
+                  <SelectContent>
+                    {clientsList.map((c: any) => (
+                      <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div>
                 <Label className="text-xs">Departamentos</Label>
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
