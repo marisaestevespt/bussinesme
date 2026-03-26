@@ -117,6 +117,22 @@ export function useMemberSave() {
             });
           }
           await supabase.from('member_payments').insert(payments);
+
+          // Auto-generate financial_payroll entries
+          const payrollEntries = payments.map(p => ({
+            collaborator_name: member.full_name,
+            month: p.month,
+            year: p.year,
+            gross_salary: p.gross_value,
+            net_salary: p.net_value,
+            total_cost: p.gross_value,
+            status: 'por_pagar',
+            withholding_rate: 0,
+            withholding_value: 0,
+            ss_employee: 0,
+            ss_employer: 0,
+          }));
+          await supabase.from('financial_payroll').insert(payrollEntries);
         }
       }
 
