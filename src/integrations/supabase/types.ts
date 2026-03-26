@@ -1350,6 +1350,7 @@ export type Database = {
           materials: Json | null
           notes: string | null
           product: string | null
+          project_id: string | null
           result: string
           results_numbers: string | null
           start_date: string | null
@@ -1369,6 +1370,7 @@ export type Database = {
           materials?: Json | null
           notes?: string | null
           product?: string | null
+          project_id?: string | null
           result?: string
           results_numbers?: string | null
           start_date?: string | null
@@ -1388,6 +1390,7 @@ export type Database = {
           materials?: Json | null
           notes?: string | null
           product?: string | null
+          project_id?: string | null
           result?: string
           results_numbers?: string | null
           start_date?: string | null
@@ -1397,7 +1400,15 @@ export type Database = {
           what_didnt_work?: string | null
           what_worked?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "commercial_library_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       commercial_monthly_analysis: {
         Row: {
@@ -1800,6 +1811,7 @@ export type Database = {
           format: string | null
           funnel_stage: string | null
           id: string
+          launch_id: string | null
           objective: string | null
           product_id: string | null
           product_name: string | null
@@ -1819,6 +1831,7 @@ export type Database = {
           format?: string | null
           funnel_stage?: string | null
           id?: string
+          launch_id?: string | null
           objective?: string | null
           product_id?: string | null
           product_name?: string | null
@@ -1838,6 +1851,7 @@ export type Database = {
           format?: string | null
           funnel_stage?: string | null
           id?: string
+          launch_id?: string | null
           objective?: string | null
           product_id?: string | null
           product_name?: string | null
@@ -1853,6 +1867,13 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_items_launch_id_fkey"
+            columns: ["launch_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_library_entries"
             referencedColumns: ["id"]
           },
           {
