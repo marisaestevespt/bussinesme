@@ -395,18 +395,23 @@ export type Database = {
         Row: {
           about_text: string | null
           accent_color: string
+          activity_start_date: string | null
           background_color: string
           business_name: string
           created_at: string
           font_body: string
           font_display: string
           id: string
+          iva_exempt: boolean
           login_bg_url: string | null
           logo_url: string | null
           primary_color: string
           proposta_unica_valor: string | null
           secondary_color: string
+          ss_exempt: boolean
           support_hours: string | null
+          tax_irs_regime: string
+          tax_iva_regime: string
           text_color: string
           updated_at: string
           welcome_text: string | null
@@ -415,18 +420,23 @@ export type Database = {
         Insert: {
           about_text?: string | null
           accent_color?: string
+          activity_start_date?: string | null
           background_color?: string
           business_name: string
           created_at?: string
           font_body?: string
           font_display?: string
           id?: string
+          iva_exempt?: boolean
           login_bg_url?: string | null
           logo_url?: string | null
           primary_color?: string
           proposta_unica_valor?: string | null
           secondary_color?: string
+          ss_exempt?: boolean
           support_hours?: string | null
+          tax_irs_regime?: string
+          tax_iva_regime?: string
           text_color?: string
           updated_at?: string
           welcome_text?: string | null
@@ -435,18 +445,23 @@ export type Database = {
         Update: {
           about_text?: string | null
           accent_color?: string
+          activity_start_date?: string | null
           background_color?: string
           business_name?: string
           created_at?: string
           font_body?: string
           font_display?: string
           id?: string
+          iva_exempt?: boolean
           login_bg_url?: string | null
           logo_url?: string | null
           primary_color?: string
           proposta_unica_valor?: string | null
           secondary_color?: string
+          ss_exempt?: boolean
           support_hours?: string | null
+          tax_irs_regime?: string
+          tax_iva_regime?: string
           text_color?: string
           updated_at?: string
           welcome_text?: string | null
