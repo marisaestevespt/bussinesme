@@ -988,6 +988,16 @@ export default function ProjetoDetailPage() {
           </label>
         )}
 
+        {/* Deadline overdue banner */}
+        {isOverdue && (
+          <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="text-sm">
+              A deadline deste projeto ({format(new Date(local.deadline!), 'd MMM yyyy', { locale: pt })}) já passou. Atualiza o prazo ou conclui o projeto.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="space-y-3">
           <div className="flex items-center gap-3 flex-wrap">
             <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
