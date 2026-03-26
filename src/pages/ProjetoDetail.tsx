@@ -395,6 +395,8 @@ export default function ProjetoDetailPage() {
   const isOverdue = local?.deadline && local.status !== 'concluido' && local.status !== 'cancelado' && new Date(local.deadline) < new Date();
 
   const formatCost = (v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}k €` : `${v.toFixed(0)} €`;
+
+  const { data: meetings = [] } = useQuery({
     queryKey: ['project-meetings', id],
     queryFn: async () => { const { data } = await supabase.from('meetings').select('id, title, date_time, status, project_id').eq('project_id', id!).order('date_time'); return (data || []) as Meeting[]; },
     enabled: !!id,
