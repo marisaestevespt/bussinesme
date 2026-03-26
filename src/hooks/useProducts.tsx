@@ -46,6 +46,7 @@ export function useProducts() {
 
   const products = useQuery({
     queryKey: ['products'],
+    staleTime: 2 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('products')

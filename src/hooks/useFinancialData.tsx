@@ -75,7 +75,9 @@ export function useFinancialData() {
   const subscriptions = useQuery({
     queryKey: ['financial-subscriptions'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('financial_subscriptions').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('financial_subscriptions')
+        .select('id,platform_name,category,value,periodicity,monthly_equivalent,start_date,status,notes,created_at')
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return (data || []) as Subscription[];
     },
@@ -85,7 +87,9 @@ export function useFinancialData() {
   const documents = useQuery({
     queryKey: ['financial-documents'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('financial_documents').select('*').order('due_date', { ascending: true });
+      const { data, error } = await supabase.from('financial_documents')
+        .select('id,title,doc_type,due_date,status,document_name,document_url,notes,period_month,period_year,period_start,period_end,created_at')
+        .order('due_date', { ascending: true });
       if (error) throw error;
       return (data || []) as FinancialDocument[];
     },
@@ -95,7 +99,9 @@ export function useFinancialData() {
   const payroll = useQuery({
     queryKey: ['financial-payroll'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('financial_payroll').select('*').order('year', { ascending: false }).order('month', { ascending: false });
+      const { data, error } = await supabase.from('financial_payroll')
+        .select('id,collaborator_name,month,year,gross_salary,net_salary,total_cost,withholding_rate,withholding_value,ss_employee,ss_employer,status,expense_id,created_at')
+        .order('year', { ascending: false }).order('month', { ascending: false });
       if (error) throw error;
       return (data || []) as PayrollEntry[];
     },
@@ -105,7 +111,9 @@ export function useFinancialData() {
   const contractors = useQuery({
     queryKey: ['financial-contractors'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('financial_contractors').select('*').order('year', { ascending: false }).order('month', { ascending: false });
+      const { data, error } = await supabase.from('financial_contractors')
+        .select('id,contractor_name,month,year,value,status,location,expense_id,created_at')
+        .order('year', { ascending: false }).order('month', { ascending: false });
       if (error) throw error;
       return (data || []) as ContractorEntry[];
     },
