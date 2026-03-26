@@ -60,7 +60,9 @@ export function useCommercialData(year = currentYear) {
   const sales = useQuery({
     queryKey: [...key, 'sales'],
     queryFn: async () => {
-      const { data } = await supabase.from('commercial_sales').select('*').eq('sale_year', year).order('payment_date', { ascending: false });
+      const { data } = await supabase.from('commercial_sales')
+        .select('id,sale_id,client,product,base_value,invoice_total,payment_date,status,sale_month,sale_quarter,sale_year,source,description,documents,project_id,created_at')
+        .eq('sale_year', year).order('payment_date', { ascending: false });
       return data || [];
     },
     staleTime: 2 * 60 * 1000,
