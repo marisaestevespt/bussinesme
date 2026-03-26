@@ -1,0 +1,8 @@
+
+-- Add offboarding fields to team_members
+ALTER TABLE public.team_members
+  ADD COLUMN IF NOT EXISTS inactivated_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS settlement_value NUMERIC DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS settlement_date TEXT DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS settlement_notes TEXT DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS access_revoked BOOLEAN DEFAULT FALSE;
