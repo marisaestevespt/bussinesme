@@ -470,6 +470,12 @@ export default function ExecutiveWeeklyAlign() {
         <Separator />
         <ExpiringContractsSection expiringContractsList={expiringContractsList} />
         {expiringContractsList.length > 0 && <Separator />}
+        <Separator />
+        <RoutinesSection
+          thisWeekRoutines={routineTasksWeek.data || []}
+          prevWeekRoutines={routineTasksPrevWeek.data || []}
+        />
+        <Separator />
         <OperacaoSection
           projects={projects.data || []}
           tasks={tasks.data || []}
