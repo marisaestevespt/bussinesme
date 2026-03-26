@@ -27,6 +27,7 @@ export function useCommercialData(year = currentYear) {
       const { data } = await supabase.from('commercial_annual_goals').select('*').eq('year', year).maybeSingle();
       return data;
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const productGoals = useQuery({
@@ -35,6 +36,7 @@ export function useCommercialData(year = currentYear) {
       const { data } = await supabase.from('commercial_product_goals').select('*').eq('year', year).order('sort_order');
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const quarterlyGoals = useQuery({
@@ -43,6 +45,7 @@ export function useCommercialData(year = currentYear) {
       const { data } = await supabase.from('commercial_quarterly_goals').select('*').eq('year', year).order('quarter');
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const monthlyGoals = useQuery({
@@ -51,6 +54,7 @@ export function useCommercialData(year = currentYear) {
       const { data } = await supabase.from('commercial_monthly_goals').select('*').eq('year', year).order('month');
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const sales = useQuery({
@@ -59,6 +63,7 @@ export function useCommercialData(year = currentYear) {
       const { data } = await supabase.from('commercial_sales').select('*').eq('sale_year', year).order('payment_date', { ascending: false });
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const allSalesQuery = useInfiniteQuery<InfinitePageResult<CommercialSale>>({
