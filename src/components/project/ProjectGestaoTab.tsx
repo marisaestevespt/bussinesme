@@ -100,8 +100,53 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     cancelada: { label: 'Cancelada', color: '#ef4444' },
   };
 
+  // ─── Client payment method ─────────────────────────────────────
+  const { data: clientData } = useQuery({
+    queryKey: ['client-payment-method', clientId],
+    queryFn: async () => {
+      if (!clientId) return null;
+      const { data } = await supabase.from('clients').select('payment_method').eq('id', clientId).maybeSingle();
+      return data;
+    },
+    enabled: !!clientId,
+  });
+
+  const qc = useQueryClient();
+  const updatePaymentMethod = useMutation({
+    mutationFn: async (method: string) => {
+      if (!clientId) return;
+      await supabase.from('clients').update({ payment_method: method }).eq('id', clientId);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['client-payment-method', clientId] });
+      toast.success('Forma de pagamento atualizada');
+    },
+  });
+
   return (
     <div className="space-y-6">
+      {/* Forma de Pagamento */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2"><CreditCard className="h-4 w-4" /> Forma de Pagamento</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Select
+            value={clientData?.payment_method || ''}
+            onValueChange={v => updatePaymentMethod.mutate(v)}
+          >
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder="Selecionar método..." />
+            </SelectTrigger>
+            <SelectContent>
+              {PAYMENT_METHODS.map(m => (
+                <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
       {/* Pagamentos */}
       <Card>
         <CardHeader className="pb-2">
