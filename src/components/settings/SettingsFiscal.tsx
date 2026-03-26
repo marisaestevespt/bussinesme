@@ -20,6 +20,7 @@ export function SettingsFiscal() {
 
   const [ivaRegime, setIvaRegime] = useState('trimestral');
   const [irsRegime, setIrsRegime] = useState('simplificado');
+  const [ssType, setSsType] = useState('independente');
   const [activityStartDate, setActivityStartDate] = useState<Date | undefined>();
   const [ssExempt, setSsExempt] = useState(false);
   const [ivaExempt, setIvaExempt] = useState(false);
@@ -29,6 +30,7 @@ export function SettingsFiscal() {
     const s = settings as any;
     setIvaRegime(s.tax_iva_regime || 'trimestral');
     setIrsRegime(s.tax_irs_regime || 'simplificado');
+    setSsType(s.ss_type || 'independente');
     setActivityStartDate(s.activity_start_date ? new Date(s.activity_start_date + 'T00:00:00') : undefined);
     setSsExempt(s.ss_exempt ?? false);
     setIvaExempt(s.iva_exempt ?? false);
@@ -56,6 +58,7 @@ export function SettingsFiscal() {
         .update({
           tax_iva_regime: ivaRegime,
           tax_irs_regime: irsRegime,
+          ss_type: ssType,
           activity_start_date: activityStartDate ? format(activityStartDate, 'yyyy-MM-dd') : null,
           ss_exempt: ssExempt,
           iva_exempt: ivaExempt,
@@ -94,6 +97,26 @@ export function SettingsFiscal() {
                 <SelectItem value="mensal">Mensal</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* SS Type */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Tipo de contribuinte SS</Label>
+            <Select value={ssType} onValueChange={setSsType}>
+              <SelectTrigger className="h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="independente">Trabalhador independente / ENI</SelectItem>
+                <SelectItem value="entidade_patronal">Entidade patronal (com empregados)</SelectItem>
+                <SelectItem value="ambos">Ambos (independente + patronal)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {ssType === 'independente' && 'Taxa de 21,4% sobre 70% da faturação (rendimento relevante). Baseado na declaração trimestral.'}
+              {ssType === 'entidade_patronal' && 'Taxa patronal de 23,75% + 11% trabalhador sobre salários brutos de contratos de trabalho.'}
+              {ssType === 'ambos' && 'Contribuições como independente (21,4% s/ 70% faturação) + contribuições patronais sobre salários.'}
+            </p>
           </div>
 
           {/* IRS Regime */}
