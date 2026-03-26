@@ -87,6 +87,8 @@ export default function ClienteDetailPage() {
   const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [meetingForm, setMeetingForm] = useState({ title: '', date_time: '', meeting_url: '', meeting_type: 'cliente' as 'recorrente' | 'projeto' | 'cliente', department: '' });
+  const [projectDialogOpen, setProjectDialogOpen] = useState(false);
+  const [newProjectName, setNewProjectName] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -154,6 +156,28 @@ export default function ClienteDetailPage() {
       return data || [];
     },
     enabled: !!form.full_name && !isNew,
+  });
+
+  const createProject = useMutation({
+    mutationFn: async (name: string) => {
+      const { data, error } = await supabase.from('projects').insert({
+        name,
+        type: 'clientes',
+        status: 'em_curso',
+        department: 'clientes',
+        client_name: form.full_name || null,
+      }).select('id').single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['projects', 'client'] });
+      toast.success('Projeto criado');
+      setProjectDialogOpen(false);
+      setNewProjectName('');
+      navigate(`/hub/projetos/${data.id}`);
+    },
+    onError: () => toast.error('Erro ao criar projeto'),
   });
 
   const productList = products.data || [];
@@ -270,8 +294,13 @@ export default function ClienteDetailPage() {
           <TabsContent value="jornada" className="space-y-6 mt-4">
             {/* Projects history */}
             <Card>
-              <CardHeader className="pb-2">
+              <CardHeader className="pb-2 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm">Histórico de Projetos</CardTitle>
+                {!isNew && (
+                  <Button size="sm" variant="outline" onClick={() => { setNewProjectName(`${form.full_name || 'Cliente'} — ${form.current_product || 'Projeto'}`); setProjectDialogOpen(true); }}>
+                    <Plus className="h-3 w-3 mr-1" />Novo Projeto
+                  </Button>
+                )}
               </CardHeader>
               <CardContent className="p-0">
                 <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[1fr_120px_100px] gap-2">
@@ -474,6 +503,24 @@ export default function ClienteDetailPage() {
               if (!meetingForm.title || !meetingForm.date_time) { toast.error('Título e data são obrigatórios'); return; }
               createMeeting.mutate(meetingForm);
             }}>Criar Reunião</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* New Project dialog */}
+      <Dialog open={projectDialogOpen} onOpenChange={setProjectDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Novo Projeto</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Nome do Projeto</Label>
+              <Input value={newProjectName} onChange={e => setNewProjectName(e.target.value)} placeholder="Ex: Cliente — Produto" />
+            </div>
+            <p className="text-xs text-muted-foreground">Cliente: <span className="font-medium text-foreground">{form.full_name || '—'}</span> (pré-associado)</p>
+            <Button className="w-full" onClick={() => {
+              if (!newProjectName.trim()) { toast.error('Nome é obrigatório'); return; }
+              createProject.mutate(newProjectName.trim());
+            }}>Criar Projeto</Button>
           </div>
         </DialogContent>
       </Dialog>
