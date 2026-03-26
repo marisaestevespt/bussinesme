@@ -614,6 +614,33 @@ export function usePlanningData(year = currentYear) {
       if (pName) rows = rows.filter((r: any) => r.potential_product === pName);
       return filterByMonth(rows, month, 'created_at').length;
     }
+    // Snapshot metrics — return current count for current/past months, null for future
+    if (source === 'bd_clientes') {
+      const now = new Date();
+      const isCurrentOrPast = (year < now.getFullYear()) || (year === now.getFullYear() && month <= now.getMonth() + 1);
+      return isCurrentOrPast ? (autoActiveClients.data ?? null) : null;
+    }
+    if (source === 'bd_equipa') {
+      const now = new Date();
+      const isCurrentOrPast = (year < now.getFullYear()) || (year === now.getFullYear() && month <= now.getMonth() + 1);
+      return isCurrentOrPast ? (autoTeamMembers.data ?? null) : null;
+    }
+    if (source === 'bd_marketing') {
+      const allData = autoMarketingFollowersRaw.data || [];
+      if (allData.length === 0) return 0;
+      // Try to find data for this specific month
+      let monthData = allData.filter((d: any) => d.month === month);
+      if (sf.channel_id) monthData = monthData.filter((d: any) => d.channel_id === sf.channel_id);
+      if (monthData.length > 0) return monthData.reduce((s: number, d: any) => s + Number(d.followers || 0), 0);
+      // Fall back to latest available
+      const now = new Date();
+      const isCurrentOrPast = (year < now.getFullYear()) || (year === now.getFullYear() && month <= now.getMonth() + 1);
+      if (!isCurrentOrPast) return null;
+      const latestMonth = allData[0].month;
+      let latest = allData.filter((d: any) => d.month === latestMonth);
+      if (sf.channel_id) latest = latest.filter((d: any) => d.channel_id === sf.channel_id);
+      return latest.reduce((s: number, d: any) => s + Number(d.followers || 0), 0);
+    }
     if (source === 'bd_tempo') {
       let rows = autoTimeEntries.data || [];
       if (sf.category) rows = rows.filter((r: any) => r.category === sf.category);
