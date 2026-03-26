@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Copy, ExternalLink, Plus, Trash2, X, MessageSquare, RefreshCw } from 'lucide-react';
+import { Copy, ExternalLink, Plus, Trash2, X, MessageSquare, RefreshCw, Upload, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import {
@@ -170,6 +171,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
             <ToggleRow label="Pagamentos" checked={portalData.show_payments} onChange={() => toggleField('show_payments')} />
             <ToggleRow label="FAQ's" checked={portalData.show_faqs} onChange={() => toggleField('show_faqs')} />
             <ToggleRow label="Onboarding" checked={portalData.show_onboarding} onChange={() => toggleField('show_onboarding')} />
+            <ToggleRow label="Materiais" checked={(portalData as any).show_materials ?? true} onChange={() => toggleField('show_materials' as keyof Portal)} />
             {portalData.portal_type === 'projeto_unico' && (
               <ToggleRow label="Timeline" checked={portalData.show_timeline} onChange={() => toggleField('show_timeline')} />
             )}
