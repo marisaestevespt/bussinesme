@@ -744,6 +744,10 @@ export default function SopDetailPage() {
             <Input type="date" value={createdAt} onChange={e => setCreatedAt(e.target.value)} className="h-9" />
           </div>
           <div>
+            <Label className="text-xs text-muted-foreground">Versão</Label>
+            <p className="text-sm pt-2 font-mono">v{sopVersion}{sopVersionNotes ? ` — ${sopVersionNotes}` : ''}</p>
+          </div>
+          <div>
             <Label className="text-xs text-muted-foreground">Última atualização</Label>
             <p className="text-sm pt-2">{sop.updated_at ? format(new Date(sop.updated_at), "dd MMM yyyy, HH:mm", { locale: pt }) : '—'}</p>
           </div>
