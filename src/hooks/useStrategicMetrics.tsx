@@ -78,7 +78,7 @@ export function useStrategicMetrics(period: MetricPeriod): StrategicMetrics {
   const { data: expenses = [], isLoading: el } = useQuery({
     queryKey: ['strat-expenses', range.start, range.end],
     queryFn: async () => {
-      const { data } = await supabase.from('financial_expenses').select('total_with_vat, category').gte('expense_date', range.start).lte('expense_date', range.end);
+      const { data } = await supabase.from('financial_expenses').select('total_with_vat, category, department').gte('expense_date', range.start).lte('expense_date', range.end);
       return data || [];
     },
   });
