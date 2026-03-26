@@ -11,7 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare, MessageSquare, Star, Send, ClipboardList, BarChart3, Clock, History } from 'lucide-react';
+import { FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare, MessageSquare, Star, Send, ClipboardList, BarChart3, Clock, History, FolderOpen, Download } from 'lucide-react';
 import type { Portal } from '@/hooks/usePortalData';
 
 const sb = (table: string) => supabase.from(table as any) as any;
@@ -37,6 +37,7 @@ export default function PortalViewPage() {
   const [phases, setPhases] = useState<any[]>([]);
   const [summaries, setSummaries] = useState<any[]>([]);
   const [projectHistory, setProjectHistory] = useState<any[]>([]);
+  const [portalMaterials, setPortalMaterials] = useState<any[]>([]);
 
   const [commentText, setCommentText] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
@@ -95,7 +96,7 @@ export default function PortalViewPage() {
     const pid = portalData.id;
     const cid = portalData.client_id;
 
-    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, summR, historyR] = await Promise.all([
+    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, summR, historyR, materialsR] = await Promise.all([
       sb('portal_faqs').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_initial_questions').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_comments').select('*').eq('portal_id', pid).order('created_at', { ascending: true }),
@@ -107,6 +108,7 @@ export default function PortalViewPage() {
       sb('portal_timeline_phases').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_monthly_summaries').select('*').eq('portal_id', pid).order('year', { ascending: false }).order('month', { ascending: false }),
       (supabase as any).rpc('get_portal_project_history', { _token: token }),
+      sb('portal_materials').select('*').eq('portal_id', pid).order('created_at', { ascending: false }),
     ]);
 
     setFaqs(faqsR.data || []);
