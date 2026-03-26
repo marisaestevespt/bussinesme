@@ -954,3 +954,68 @@ function getWeekEnd(date: Date): Date {
   end.setHours(23, 59, 59, 999);
   return end;
 }
+
+// ── Fiscal deadline helpers (mirror of src/lib/fiscalDeadlines.ts) ──
+
+const PT_FIXED_HOLIDAYS: [number, number][] = [
+  [1, 1], [4, 25], [5, 1], [6, 10], [8, 15], [10, 5], [11, 1], [12, 1], [12, 8], [12, 25],
+];
+
+function isFiscalNonBusiness(d: Date): boolean {
+  const day = d.getDay();
+  if (day === 0 || day === 6) return true;
+  const m = d.getMonth() + 1, dd = d.getDate();
+  return PT_FIXED_HOLIDAYS.some(([hm, hd]) => hm === m && hd === dd);
+}
+
+function adjustFiscalDate(d: Date): Date {
+  const result = new Date(d);
+  while (isFiscalNonBusiness(result)) result.setDate(result.getDate() - 1);
+  return result;
+}
+
+function fmtFiscal(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+interface FiscalDl { name: string; date: string; }
+
+const ML_EDGE = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+function computeFiscalDeadlinesEdge(year: number, config: { taxIvaRegime: string; taxIrsRegime: string; ssExempt: boolean; ivaExempt: boolean }): FiscalDl[] {
+  const deadlines: FiscalDl[] = [];
+  if (!config.ssExempt && config.taxIrsRegime !== "contabilidade_organizada") {
+    for (let m = 1; m <= 12; m++) {
+      const nm = m === 12 ? 1 : m + 1;
+      const ny = m === 12 ? year + 1 : year;
+      const raw = new Date(ny, nm - 1, 20);
+      deadlines.push({ name: `Pagamento SS — ${ML_EDGE[m - 1]} ${year}`, date: fmtFiscal(adjustFiscalDate(raw)) });
+    }
+  }
+  if (!config.ivaExempt && config.taxIvaRegime === "trimestral" && config.taxIrsRegime !== "contabilidade_organizada") {
+    const qs = [
+      { q: 1, label: "1º Trim (Jan-Mar)", dm: 5, dy: year },
+      { q: 2, label: "2º Trim (Abr-Jun)", dm: 8, dy: year },
+      { q: 3, label: "3º Trim (Jul-Set)", dm: 11, dy: year },
+      { q: 4, label: "4º Trim (Out-Dez)", dm: 2, dy: year + 1 },
+    ];
+    for (const q of qs) {
+      const raw = new Date(q.dy, q.dm, 0);
+      deadlines.push({ name: `IVA ${q.label} ${year}`, date: fmtFiscal(adjustFiscalDate(raw)) });
+    }
+  }
+  if (!config.ivaExempt && config.taxIvaRegime === "mensal" && config.taxIrsRegime !== "contabilidade_organizada") {
+    for (let m = 1; m <= 12; m++) {
+      const nm = m === 12 ? 1 : m + 1;
+      const ny = m === 12 ? year + 1 : year;
+      const raw = new Date(ny, nm - 1, 20);
+      deadlines.push({ name: `IVA — ${ML_EDGE[m - 1]} ${year}`, date: fmtFiscal(adjustFiscalDate(raw)) });
+    }
+  }
+  if (config.taxIrsRegime === "simplificado") {
+    const raw = new Date(year + 1, 5, 30);
+    deadlines.push({ name: `Entrega IRS — Ano ${year}`, date: fmtFiscal(adjustFiscalDate(raw)) });
+  }
+  return deadlines;
+}
