@@ -647,6 +647,56 @@ Deno.serve(async (req) => {
       results.push(`Project deadline alerts: ${deadlineNotifs}`);
     }
 
+    // ── Recurring expenses: auto-generate monthly ──
+    const dayOfMonth = today.getDate();
+    const currentMonth = today.getMonth() + 1;
+    const currentYear = today.getFullYear();
+
+    const { data: recurringExpenses } = await supabase
+      .from("financial_expenses")
+      .select("*")
+      .eq("is_recurring", true)
+      .is("parent_expense_id", null);
+
+    if (recurringExpenses && recurringExpenses.length > 0) {
+      let generatedCount = 0;
+      for (const re of recurringExpenses) {
+        if ((re.recurrence_day || 1) !== dayOfMonth) continue;
+        // Check end date
+        if (re.recurrence_end_date && todayStr > re.recurrence_end_date) continue;
+        // Check if already generated for this month
+        const { count } = await supabase
+          .from("financial_expenses")
+          .select("id", { count: "exact", head: true })
+          .eq("parent_expense_id", re.id)
+          .eq("expense_month", currentMonth)
+          .eq("expense_year", currentYear);
+        if ((count || 0) > 0) continue;
+        // Generate
+        const expDate = `${currentYear}-${String(currentMonth).padStart(2, "0")}-${String(dayOfMonth).padStart(2, "0")}`;
+        await supabase.from("financial_expenses").insert({
+          description: re.description,
+          category: re.category,
+          base_value: re.base_value,
+          vat_rate: re.vat_rate,
+          total_with_vat: re.total_with_vat,
+          location: re.location,
+          supplier_id: re.supplier_id,
+          status: "por_pagar",
+          expense_date: expDate,
+          expense_month: currentMonth,
+          expense_quarter: Math.ceil(currentMonth / 3),
+          expense_year: currentYear,
+          parent_expense_id: re.id,
+          is_recurring: false,
+        });
+        generatedCount++;
+      }
+      if (generatedCount > 0) {
+        results.push(`Generated ${generatedCount} recurring expenses`);
+      }
+    }
+
     return new Response(
       JSON.stringify({ success: true, results }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
