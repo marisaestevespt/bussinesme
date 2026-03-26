@@ -126,14 +126,17 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
   const handleConvertToClient = async () => {
     if (!lead?.id) return;
     try {
+      const productName = form.closed_product || form.potential_product || null;
+
       // 1. Create client with mapped fields
       const { data: newClient, error: clientError } = await supabase.from('clients').insert({
         full_name: form.name || '',
         email: form.email || null,
         whatsapp: form.phone || null,
-        current_product: form.closed_product || form.potential_product || null,
+        current_product: productName,
         documents: form.documents || null,
         status: 'em_onboarding',
+        start_date: format(new Date(), 'yyyy-MM-dd'),
       }).select('id').single();
       if (clientError) throw clientError;
 
@@ -166,7 +169,91 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
         observations: observations || null,
       });
 
-      toast.success('Cliente criado com sucesso!');
+      // 5. Auto-create project if product is associated
+      let createdProjectId: string | null = null;
+      if (productName) {
+        // Find product to get product_type and cycle_duration
+        const { data: matchedProduct } = await supabase
+          .from('products')
+          .select('id, product_type, cycle_duration')
+          .eq('name', productName)
+          .maybeSingle();
+
+        // Calculate deadline from today + cycle_duration
+        let deadline: string | null = null;
+        if (matchedProduct?.cycle_duration) {
+          const end = new Date();
+          end.setMonth(end.getMonth() + matchedProduct.cycle_duration);
+          deadline = format(end, 'yyyy-MM-dd');
+        }
+
+        const { data: newProject } = await supabase.from('projects').insert({
+          name: `${productName} — ${form.name || 'Cliente'}`,
+          type: 'cliente_projeto_unico',
+          status: 'em_onboarding',
+          department: 'clientes',
+          departments: ['clientes', 'operacao'],
+          client_name: form.name || null,
+          client_id: newClient.id,
+          product_id: matchedProduct?.id || null,
+          product_name: productName,
+          start_date: format(new Date(), 'yyyy-MM-dd'),
+          deadline,
+        }).select('id').single();
+
+        createdProjectId = newProject?.id || null;
+
+        // 6. Auto-create portal if product type supports it
+        if (matchedProduct?.product_type) {
+          const projetoTypes = ['projeto_1_1', 'consultoria_individual', 'consultoria_grupo', 'mentoria_individual', 'mentoria_grupo'];
+          let portalType: 'projeto_unico' | 'servico_mensal' | null = null;
+          if (projetoTypes.includes(matchedProduct.product_type)) portalType = 'projeto_unico';
+          else if (matchedProduct.product_type === 'servico_mensal') portalType = 'servico_mensal';
+
+          if (portalType) {
+            await supabase.from('client_portals').insert({
+              client_id: newClient.id,
+              portal_type: portalType,
+              is_active: true,
+            });
+
+            // Seed FAQs from product
+            if (matchedProduct.id) {
+              const { data: productData } = await supabase
+                .from('products')
+                .select('faqs')
+                .eq('id', matchedProduct.id)
+                .maybeSingle();
+              const productFaqs: { question: string; answer: string }[] = Array.isArray(productData?.faqs)
+                ? (productData.faqs as unknown as { question: string; answer: string }[])
+                : [];
+              const validFaqs = productFaqs.filter(f => f.question?.trim());
+              if (validFaqs.length > 0) {
+                const { data: portal } = await supabase
+                  .from('client_portals')
+                  .select('id')
+                  .eq('client_id', newClient.id)
+                  .maybeSingle();
+                if (portal?.id) {
+                  await supabase.from('portal_faqs').insert(
+                    validFaqs.map((f, i) => ({
+                      portal_id: portal.id,
+                      question: f.question,
+                      answer: f.answer || '',
+                      sort_order: i,
+                    }))
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+
+      const successParts = ['Cliente criado'];
+      if (createdProjectId) successParts.push('projeto criado');
+      toast.success(successParts.join(', ') + '!');
+
       onOpenChange(false);
       navigate(`/hub/clientes/${newClient.id}`);
     } catch (err) {
