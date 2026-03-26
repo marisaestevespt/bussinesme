@@ -527,6 +527,83 @@ Deno.serve(async (req) => {
     }
     results.push(`NPS auto-generated: ${npsGenerated}`);
 
+    // ── 9. Meeting reminders — notify about meetings happening today ──
+    {
+      const tomorrowStr = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString().slice(0, 10);
+      const { data: todayMeetings } = await supabase
+        .from("meetings")
+        .select("id, title, date_time, client_name, project_name, status")
+        .gte("date_time", todayStr + "T00:00:00")
+        .lt("date_time", tomorrowStr + "T00:00:00")
+        .not("status", "eq", "terminada");
+
+      let meetingNotifs = 0;
+      if (todayMeetings && todayMeetings.length > 0) {
+        // Get owner user_id for notifications
+        const { data: ownerRole } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("role", "owner")
+          .limit(1)
+          .single();
+        const ownerId = ownerRole?.user_id;
+
+        // Also get all participant user_ids per meeting
+        const meetingIds = todayMeetings.map((m: any) => m.id);
+        const { data: participants } = await supabase
+          .from("meeting_participants")
+          .select("meeting_id, profile_id")
+          .in("meeting_id", meetingIds);
+
+        // Get profile→user_id mapping
+        const profileIds = [...new Set((participants || []).map((p: any) => p.profile_id))];
+        const { data: profileUsers } = profileIds.length > 0
+          ? await supabase.from("profiles").select("id, user_id").in("id", profileIds)
+          : { data: [] };
+        const profileToUser = new Map((profileUsers || []).map((p: any) => [p.id, p.user_id]));
+
+        for (const meeting of todayMeetings) {
+          const meetingTime = new Date(meeting.date_time);
+          const timeStr = meetingTime.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+          const notifKey = `meeting-reminder-${meeting.id}-${todayStr}`;
+          const title = `📅 Reunião às ${timeStr}: ${meeting.title}`;
+          const extra = meeting.client_name ? ` — ${meeting.client_name}` : meeting.project_name ? ` — ${meeting.project_name}` : "";
+
+          // Collect unique user_ids to notify
+          const userIds = new Set<string>();
+          if (ownerId) userIds.add(ownerId);
+          (participants || [])
+            .filter((p: any) => p.meeting_id === meeting.id)
+            .forEach((p: any) => {
+              const uid = profileToUser.get(p.profile_id);
+              if (uid) userIds.add(uid);
+            });
+
+          for (const uid of userIds) {
+            // Dedup
+            const { data: existing } = await supabase
+              .from("notifications")
+              .select("id")
+              .eq("user_id", uid)
+              .eq("type", "meeting_reminder")
+              .eq("message", notifKey)
+              .limit(1);
+            if (existing && existing.length > 0) continue;
+
+            await supabase.from("notifications").insert({
+              user_id: uid,
+              type: "meeting_reminder",
+              title: title + extra,
+              message: notifKey,
+              link: `/hub/reunioes/${meeting.id}`,
+            });
+            meetingNotifs++;
+          }
+        }
+      }
+      results.push(`Meeting reminders: ${meetingNotifs}`);
+    }
+
     return new Response(
       JSON.stringify({ success: true, results }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
