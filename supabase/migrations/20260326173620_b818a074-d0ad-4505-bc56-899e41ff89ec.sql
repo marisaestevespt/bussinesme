@@ -1,0 +1,1 @@
+ALTER TABLE public.financial_expenses ADD COLUMN department text DEFAULT NULL;
