@@ -10,10 +10,11 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useNavigate } from 'react-router-dom';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCommercialData } from '@/hooks/useCommercialData';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { YearSelector } from '@/components/YearSelector';
-import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Settings, TrendingUp, TrendingDown, Users, Package, UserCheck, Download, BarChart3, Target, Truck } from 'lucide-react';
+import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Settings, TrendingUp, TrendingDown, Users, Package, UserCheck, Download, BarChart3, Target, Truck, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { exportPdf } from '@/lib/exportPdf';
 
@@ -21,12 +22,13 @@ const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2,
 const ML = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const PIE_COLORS = ['hsl(var(--primary))', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#6366f1'];
 
-const SECTIONS_ROW1 = [
-  { path: '/hub/financeiro/mensal', label: 'Mensal', icon: CalendarDays, iconColor: 'text-blue-600', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10' },
-  { path: '/hub/financeiro/trimestral', label: 'Trimestral', icon: CalendarRange, iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10' },
-  { path: '/hub/financeiro/iva', label: 'IVA', icon: Receipt, iconColor: 'text-amber-600', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10' },
-  { path: '/hub/financeiro/seguranca-social', label: 'Segurança Social', icon: Shield, iconColor: 'text-cyan-600', color: 'from-cyan-500/10 to-cyan-600/5 hover:from-cyan-500/20 hover:to-cyan-600/10' },
-  { path: '/hub/financeiro/documentos', label: 'Documentos', icon: FolderOpen, iconColor: 'text-orange-600', color: 'from-orange-500/10 to-orange-600/5 hover:from-orange-500/20 hover:to-orange-600/10' },
+const ALL_SECTIONS_ROW1 = [
+  { path: '/hub/financeiro/mensal', label: 'Mensal', icon: CalendarDays, iconColor: 'text-blue-600', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10', key: 'mensal' },
+  { path: '/hub/financeiro/trimestral', label: 'Trimestral', icon: CalendarRange, iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10', key: 'trimestral' },
+  { path: '/hub/financeiro/contabilidade', label: 'Contabilidade', icon: BookOpen, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10', key: 'contabilidade' },
+  { path: '/hub/financeiro/iva', label: 'IVA', icon: Receipt, iconColor: 'text-amber-600', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10', key: 'iva' },
+  { path: '/hub/financeiro/seguranca-social', label: 'Segurança Social', icon: Shield, iconColor: 'text-cyan-600', color: 'from-cyan-500/10 to-cyan-600/5 hover:from-cyan-500/20 hover:to-cyan-600/10', key: 'ss' },
+  { path: '/hub/financeiro/documentos', label: 'Documentos', icon: FolderOpen, iconColor: 'text-orange-600', color: 'from-orange-500/10 to-orange-600/5 hover:from-orange-500/20 hover:to-orange-600/10', key: 'documentos' },
 ];
 
 const SECTIONS_ROW2 = [
@@ -40,10 +42,25 @@ const SECTIONS_ROW2 = [
 ];
 
 export default function FinanceiroPage() {
+  const { settings } = useBusinessSettings();
   const fin = useFinancialData();
   const [year, setYear] = useState(new Date().getFullYear());
   const com = useCommercialData(year);
   const navigate = useNavigate();
+
+  // Filter IVA / SS sections based on fiscal settings
+  const s = settings as any;
+  const ivaExempt = s?.iva_exempt ?? false;
+  const ssExempt = s?.ss_exempt ?? false;
+  const isContabOrganizada = (s?.tax_irs_regime || '') === 'contabilidade_organizada';
+
+  const SECTIONS_ROW1 = useMemo(() => {
+    return ALL_SECTIONS_ROW1.filter(sec => {
+      if (sec.key === 'iva' && (ivaExempt || isContabOrganizada)) return false;
+      if (sec.key === 'ss' && (ssExempt || isContabOrganizada)) return false;
+      return true;
+    });
+  }, [ivaExempt, ssExempt, isContabOrganizada]);
 
   const sales = excludeCancelled(com.sales.data || []);
   const expenses = excludeCancelled(fin.expenses.data || []);
