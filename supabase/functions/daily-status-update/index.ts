@@ -812,7 +812,63 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── 15. Auto-revoke access for inactive members (1 week after inactivation) ──
+    // ── 15. Auto-create fiscal tasks (30 days before deadline) ──
+    {
+      const { data: bsData } = await supabase
+        .from("business_settings")
+        .select("tax_iva_regime, tax_irs_regime, ss_exempt, iva_exempt")
+        .limit(1)
+        .maybeSingle();
+
+      if (bsData) {
+        const fiscalConfig = {
+          taxIvaRegime: (bsData as any).tax_iva_regime || "trimestral",
+          taxIrsRegime: (bsData as any).tax_irs_regime || "simplificado",
+          ssExempt: (bsData as any).ss_exempt ?? false,
+          ivaExempt: (bsData as any).iva_exempt ?? false,
+        };
+
+        const deadlines = computeFiscalDeadlinesEdge(currentYear, fiscalConfig);
+        let fiscalTasksCreated = 0;
+
+        for (const dl of deadlines) {
+          const dlDate = new Date(dl.date + "T00:00:00");
+          const diffDays = Math.ceil((dlDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          if (diffDays > 30 || diffDays < 0) continue;
+
+          // Check for duplicate
+          const { data: existingTask } = await supabase
+            .from("tasks")
+            .select("id")
+            .eq("name", dl.name)
+            .limit(1);
+          if (existingTask && existingTask.length > 0) continue;
+
+          // Find accountant department member or fall back to owner
+          let assignTo = ownerRole?.user_id;
+          const { data: contabMembers } = await supabase
+            .from("members")
+            .select("user_id")
+            .limit(1);
+          // Assign to owner by default
+
+          await supabase.from("tasks").insert({
+            name: dl.name,
+            status: "por_comecar",
+            priority: "alta",
+            deadline: dl.date,
+            department: "contabilidade",
+            created_by: assignTo,
+            assigned_to: assignTo,
+            tag: "Fiscal",
+          });
+          fiscalTasksCreated++;
+        }
+        results.push(`Fiscal tasks created: ${fiscalTasksCreated}`);
+      }
+    }
+
+    // ── 16. Auto-revoke access for inactive members (1 week after inactivation) ──
     {
       const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const { data: toRevoke } = await supabase
@@ -897,4 +953,69 @@ function getWeekEnd(date: Date): Date {
   end.setDate(end.getDate() + 6);
   end.setHours(23, 59, 59, 999);
   return end;
+}
+
+// ── Fiscal deadline helpers (mirror of src/lib/fiscalDeadlines.ts) ──
+
+const PT_FIXED_HOLIDAYS: [number, number][] = [
+  [1, 1], [4, 25], [5, 1], [6, 10], [8, 15], [10, 5], [11, 1], [12, 1], [12, 8], [12, 25],
+];
+
+function isFiscalNonBusiness(d: Date): boolean {
+  const day = d.getDay();
+  if (day === 0 || day === 6) return true;
+  const m = d.getMonth() + 1, dd = d.getDate();
+  return PT_FIXED_HOLIDAYS.some(([hm, hd]) => hm === m && hd === dd);
+}
+
+function adjustFiscalDate(d: Date): Date {
+  const result = new Date(d);
+  while (isFiscalNonBusiness(result)) result.setDate(result.getDate() - 1);
+  return result;
+}
+
+function fmtFiscal(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+interface FiscalDl { name: string; date: string; }
+
+const ML_EDGE = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+function computeFiscalDeadlinesEdge(year: number, config: { taxIvaRegime: string; taxIrsRegime: string; ssExempt: boolean; ivaExempt: boolean }): FiscalDl[] {
+  const deadlines: FiscalDl[] = [];
+  if (!config.ssExempt && config.taxIrsRegime !== "contabilidade_organizada") {
+    for (let m = 1; m <= 12; m++) {
+      const nm = m === 12 ? 1 : m + 1;
+      const ny = m === 12 ? year + 1 : year;
+      const raw = new Date(ny, nm - 1, 20);
+      deadlines.push({ name: `Pagamento SS — ${ML_EDGE[m - 1]} ${year}`, date: fmtFiscal(adjustFiscalDate(raw)) });
+    }
+  }
+  if (!config.ivaExempt && config.taxIvaRegime === "trimestral" && config.taxIrsRegime !== "contabilidade_organizada") {
+    const qs = [
+      { q: 1, label: "1º Trim (Jan-Mar)", dm: 5, dy: year },
+      { q: 2, label: "2º Trim (Abr-Jun)", dm: 8, dy: year },
+      { q: 3, label: "3º Trim (Jul-Set)", dm: 11, dy: year },
+      { q: 4, label: "4º Trim (Out-Dez)", dm: 2, dy: year + 1 },
+    ];
+    for (const q of qs) {
+      const raw = new Date(q.dy, q.dm, 0);
+      deadlines.push({ name: `IVA ${q.label} ${year}`, date: fmtFiscal(adjustFiscalDate(raw)) });
+    }
+  }
+  if (!config.ivaExempt && config.taxIvaRegime === "mensal" && config.taxIrsRegime !== "contabilidade_organizada") {
+    for (let m = 1; m <= 12; m++) {
+      const nm = m === 12 ? 1 : m + 1;
+      const ny = m === 12 ? year + 1 : year;
+      const raw = new Date(ny, nm - 1, 20);
+      deadlines.push({ name: `IVA — ${ML_EDGE[m - 1]} ${year}`, date: fmtFiscal(adjustFiscalDate(raw)) });
+    }
+  }
+  if (config.taxIrsRegime === "simplificado") {
+    const raw = new Date(year + 1, 5, 30);
+    deadlines.push({ name: `Entrega IRS — Ano ${year}`, date: fmtFiscal(adjustFiscalDate(raw)) });
+  }
+  return deadlines;
 }

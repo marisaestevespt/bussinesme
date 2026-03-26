@@ -1,0 +1,403 @@
+import { useMemo, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+import { useFinancialData } from '@/hooks/useFinancialData';
+import { useCommercialData } from '@/hooks/useCommercialData';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
+import { computeFiscalDeadlines, getDeadlineStatus, type FiscalConfig, type FiscalDeadline } from '@/lib/fiscalDeadlines';
+import { excludeCancelled } from '@/lib/utils';
+import { exportCsv } from '@/lib/exportCsv';
+import { exportPdf } from '@/lib/exportPdf';
+import { CalendarCheck, CheckSquare, Download, FileSpreadsheet, Info, AlertTriangle, Clock } from 'lucide-react';
+import { format } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+const ML = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+interface Props {
+  currentYear: number;
+}
+
+export function FinContabilidade({ currentYear }: Props) {
+  const { settings } = useBusinessSettings();
+  const { user } = useAuth();
+  const fin = useFinancialData();
+  const com = useCommercialData(currentYear);
+  const [creatingTask, setCreatingTask] = useState<string | null>(null);
+
+  // Export state
+  const [exportPeriod, setExportPeriod] = useState<'month' | 'quarter' | 'year' | 'custom'>('month');
+  const [exportMonth, setExportMonth] = useState(new Date().getMonth() + 1);
+  const [exportQuarter, setExportQuarter] = useState(Math.ceil((new Date().getMonth() + 1) / 3));
+  const [exportStartDate, setExportStartDate] = useState<Date | undefined>();
+  const [exportEndDate, setExportEndDate] = useState<Date | undefined>();
+
+  const s = settings as any;
+  const fiscalConfig: FiscalConfig = {
+    taxIvaRegime: s?.tax_iva_regime || 'trimestral',
+    taxIrsRegime: s?.tax_irs_regime || 'simplificado',
+    ssExempt: s?.ss_exempt ?? false,
+    ivaExempt: s?.iva_exempt ?? false,
+  };
+
+  const isContabOrganizada = fiscalConfig.taxIrsRegime === 'contabilidade_organizada';
+
+  const deadlines = useMemo(() => computeFiscalDeadlines(currentYear, fiscalConfig), [currentYear, fiscalConfig]);
+
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, []);
+
+  const handleCreateTask = async (dl: FiscalDeadline) => {
+    if (!user) return;
+    setCreatingTask(dl.key);
+    try {
+      // Check for duplicate
+      const { data: existing } = await supabase
+        .from('tasks')
+        .select('id')
+        .eq('name', dl.name)
+        .limit(1);
+      if (existing && existing.length > 0) {
+        toast.info('Já existe uma tarefa com este nome.');
+        return;
+      }
+
+      await supabase.from('tasks').insert({
+        name: dl.name,
+        status: 'por_comecar',
+        priority: 'alta',
+        deadline: dl.date,
+        department: 'contabilidade',
+        created_by: user.id,
+        assigned_to: user.id,
+        tag: 'Fiscal',
+      });
+      toast.success('Tarefa criada!');
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao criar tarefa');
+    } finally {
+      setCreatingTask(null);
+    }
+  };
+
+  // ── Export logic ──
+  const sales = excludeCancelled(com.sales.data || []);
+  const expenses = excludeCancelled(fin.expenses.data || []);
+  const documents = fin.documents.data || [];
+
+  const getExportRange = (): { startMonth: number; endMonth: number; label: string } => {
+    switch (exportPeriod) {
+      case 'month': return { startMonth: exportMonth, endMonth: exportMonth, label: `${ML[exportMonth - 1]} ${currentYear}` };
+      case 'quarter': {
+        const s = (exportQuarter - 1) * 3 + 1;
+        return { startMonth: s, endMonth: s + 2, label: `T${exportQuarter} ${currentYear}` };
+      }
+      case 'year': return { startMonth: 1, endMonth: 12, label: `Ano ${currentYear}` };
+      default: return { startMonth: 1, endMonth: 12, label: `Personalizado` };
+    }
+  };
+
+  const getFilteredData = () => {
+    const range = getExportRange();
+    if (exportPeriod === 'custom' && exportStartDate && exportEndDate) {
+      const startStr = format(exportStartDate, 'yyyy-MM-dd');
+      const endStr = format(exportEndDate, 'yyyy-MM-dd');
+      return {
+        label: `${format(exportStartDate, 'dd/MM/yyyy')} — ${format(exportEndDate, 'dd/MM/yyyy')}`,
+        filteredSales: sales.filter(s => s.payment_date && s.payment_date >= startStr && s.payment_date <= endStr),
+        filteredExpenses: expenses.filter(e => e.expense_date && e.expense_date >= startStr && e.expense_date <= endStr),
+        filteredDocs: documents.filter(d => d.period_start && d.period_start >= startStr && d.period_start <= endStr),
+      };
+    }
+    return {
+      label: range.label,
+      filteredSales: sales.filter(s => s.sale_year === currentYear && s.sale_month && s.sale_month >= range.startMonth && s.sale_month <= range.endMonth),
+      filteredExpenses: expenses.filter(e => e.expense_year === currentYear && e.expense_month && e.expense_month >= range.startMonth && e.expense_month <= range.endMonth),
+      filteredDocs: documents.filter(d => {
+        return d.period_year === currentYear && d.period_month >= range.startMonth && d.period_month <= range.endMonth;
+      }),
+    };
+  };
+
+  const handleExportExcel = () => {
+    const { label, filteredSales, filteredExpenses, filteredDocs } = getFilteredData();
+    const businessName = settings?.business_name || 'Negócio';
+
+    // Entradas sheet
+    const salesHeaders = ['Data', 'Descrição', 'Categoria', 'Valor s/IVA', 'IVA', 'Valor c/IVA', 'Nº Documento'];
+    const salesRows = filteredSales.map(s => [
+      s.payment_date || '', s.description || s.client || '', s.product || '', s.base_value, s.invoice_total - s.base_value, s.invoice_total, s.sale_id,
+    ]);
+
+    // Saídas sheet
+    const expHeaders = ['Data', 'Descrição', 'Categoria', 'Fornecedor', 'Valor s/IVA', 'IVA', 'Valor c/IVA', 'Nº Documento'];
+    const expRows = filteredExpenses.map(e => [
+      e.expense_date || '', e.description || '', e.category || '', (e as any).supplier_name || '', e.base_value, e.total_with_vat - e.base_value, e.total_with_vat, e.expense_id,
+    ]);
+
+    // For simplicity, export as CSV (Excel-compatible)
+    const totalEnt = filteredSales.reduce((s, v) => s + v.invoice_total, 0);
+    const totalSai = filteredExpenses.reduce((s, v) => s + v.total_with_vat, 0);
+
+    // Summary + Entradas + Saídas in one CSV
+    const allHeaders = ['Secção', ...salesHeaders];
+    const allRows: (string | number)[][] = [
+      ['RESUMO', businessName, '', '', '', '', '', ''],
+      ['', 'Período', label, '', '', '', '', ''],
+      ['', 'Total Entradas', '', '', fmt(totalEnt), '', '', ''],
+      ['', 'Total Saídas', '', '', fmt(totalSai), '', '', ''],
+      ['', 'Resultado', '', '', fmt(totalEnt - totalSai), '', '', ''],
+      ['', '', '', '', '', '', '', ''],
+      ['ENTRADAS', ...salesHeaders.slice(1)],
+      ...salesRows.map(r => ['', ...r]),
+      ['', '', '', '', '', '', '', ''],
+      ['SAÍDAS', ...expHeaders.slice(1)],
+      ...expRows.map(r => ['', ...r]),
+    ];
+
+    if (filteredDocs.length > 0) {
+      allRows.push(['', '', '', '', '', '', '', '']);
+      allRows.push(['DOCUMENTOS', 'Nome', 'Data', '', '', '', '', '']);
+      filteredDocs.forEach(d => allRows.push(['', d.document_name || d.title || '', d.period_start || '', '', '', '', '', '']));
+    }
+
+    exportCsv(`contabilidade_${label.replace(/\s/g, '_')}.csv`, allHeaders, allRows);
+    toast.success('Excel exportado!');
+  };
+
+  const handleExportPdf = () => {
+    exportPdf(`Contabilidade — ${getExportRange().label}`, 'contabilidade-export-area');
+    toast.success('PDF a gerar...');
+  };
+
+  const { label: exportLabel, filteredSales, filteredExpenses, filteredDocs } = getFilteredData();
+  const totalEnt = filteredSales.reduce((s, v) => s + v.invoice_total, 0);
+  const totalSai = filteredExpenses.reduce((s, v) => s + v.total_with_vat, 0);
+
+  return (
+    <div className="space-y-8">
+      {/* ── Prazos Fiscais ── */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <CalendarCheck className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-sm font-semibold tracking-tight uppercase">Prazos Fiscais — {currentYear}</h2>
+        </div>
+
+        {isContabOrganizada ? (
+          <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800">
+            <CardContent className="pt-4 flex gap-2">
+              <Info className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+              <p className="text-sm text-muted-foreground">Em contabilidade organizada, os prazos fiscais são geridos pelo teu contabilista.</p>
+            </CardContent>
+          </Card>
+        ) : deadlines.length === 0 ? (
+          <Card>
+            <CardContent className="pt-4">
+              <p className="text-sm text-muted-foreground">Sem prazos fiscais activos. Configura o regime fiscal nas Definições.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Prazo</TableHead>
+                    <TableHead>Data Limite</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="text-right">Ação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {deadlines.map(dl => {
+                    const status = getDeadlineStatus(dl.date, todayStr);
+                    return (
+                      <TableRow key={dl.key}>
+                        <TableCell className="font-medium">{dl.name}</TableCell>
+                        <TableCell>{new Date(dl.date + 'T00:00:00').toLocaleDateString('pt-PT')}</TableCell>
+                        <TableCell>
+                          {status === 'overdue' && <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> Em atraso</Badge>}
+                          {status === 'soon' && <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 gap-1"><Clock className="h-3 w-3" /> Próximo</Badge>}
+                          {status === 'upcoming' && <Badge variant="secondary" className="gap-1">Por vir</Badge>}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={creatingTask === dl.key}
+                            onClick={() => handleCreateTask(dl)}
+                            className="gap-1"
+                          >
+                            <CheckSquare className="h-3 w-3" />
+                            Criar tarefa
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* ── Exportar para Contabilista ── */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Download className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-sm font-semibold tracking-tight uppercase">Exportar para Contabilista</h2>
+        </div>
+
+        <Card>
+          <CardContent className="pt-5 space-y-4">
+            <div className="flex flex-wrap gap-3 items-end">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Período</Label>
+                <Select value={exportPeriod} onValueChange={(v: any) => setExportPeriod(v)}>
+                  <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="month">Mês</SelectItem>
+                    <SelectItem value="quarter">Trimestre</SelectItem>
+                    <SelectItem value="year">Ano</SelectItem>
+                    <SelectItem value="custom">Personalizado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {exportPeriod === 'month' && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Mês</Label>
+                  <Select value={String(exportMonth)} onValueChange={v => setExportMonth(Number(v))}>
+                    <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {ML.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {exportPeriod === 'quarter' && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Trimestre</Label>
+                  <Select value={String(exportQuarter)} onValueChange={v => setExportQuarter(Number(v))}>
+                    <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">T1 (Jan-Mar)</SelectItem>
+                      <SelectItem value="2">T2 (Abr-Jun)</SelectItem>
+                      <SelectItem value="3">T3 (Jul-Set)</SelectItem>
+                      <SelectItem value="4">T4 (Out-Dez)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {exportPeriod === 'custom' && (
+                <>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Início</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className={cn('w-36 justify-start text-left font-normal', !exportStartDate && 'text-muted-foreground')}>
+                          <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                          {exportStartDate ? format(exportStartDate, 'dd/MM/yyyy') : 'De'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar mode="single" selected={exportStartDate} onSelect={setExportStartDate} initialFocus className="p-3 pointer-events-auto" />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Fim</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className={cn('w-36 justify-start text-left font-normal', !exportEndDate && 'text-muted-foreground')}>
+                          <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                          {exportEndDate ? format(exportEndDate, 'dd/MM/yyyy') : 'Até'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar mode="single" selected={exportEndDate} onSelect={setExportEndDate} initialFocus className="p-3 pointer-events-auto" />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleExportPdf} className="gap-1.5">
+                <Download className="h-3.5 w-3.5" /> Exportar PDF
+              </Button>
+              <Button variant="outline" onClick={handleExportExcel} className="gap-1.5">
+                <FileSpreadsheet className="h-3.5 w-3.5" /> Exportar Excel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Hidden export area for PDF */}
+        <div id="contabilidade-export-area" className="hidden print:block">
+          <h2 className="text-lg font-bold mb-2">{settings?.business_name || 'Negócio'}</h2>
+          <p className="text-sm text-muted-foreground mb-4">Período: {exportLabel}</p>
+
+          <h3 className="font-semibold mt-4 mb-2">Resumo</h3>
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <div><p className="text-xs text-muted-foreground">Total Entradas</p><p className="font-bold">{fmt(totalEnt)}</p></div>
+            <div><p className="text-xs text-muted-foreground">Total Saídas</p><p className="font-bold">{fmt(totalSai)}</p></div>
+            <div><p className="text-xs text-muted-foreground">Resultado</p><p className="font-bold">{fmt(totalEnt - totalSai)}</p></div>
+          </div>
+
+          <h3 className="font-semibold mt-4 mb-2">Entradas</h3>
+          <table className="w-full text-xs">
+            <thead><tr><th>Data</th><th>Descrição</th><th>Valor s/IVA</th><th>IVA</th><th>Valor c/IVA</th><th>Nº Doc</th></tr></thead>
+            <tbody>
+              {filteredSales.map(s => (
+                <tr key={s.id}><td>{s.payment_date}</td><td>{s.description || s.client}</td><td className="text-right">{fmt(s.base_value)}</td><td className="text-right">{fmt(s.invoice_total - s.base_value)}</td><td className="text-right">{fmt(s.invoice_total)}</td><td>{s.sale_id}</td></tr>
+              ))}
+            </tbody>
+          </table>
+
+          <h3 className="font-semibold mt-4 mb-2">Saídas</h3>
+          <table className="w-full text-xs">
+            <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor s/IVA</th><th>IVA</th><th>Valor c/IVA</th><th>Nº Doc</th></tr></thead>
+            <tbody>
+              {filteredExpenses.map(e => (
+                <tr key={e.id}><td>{e.expense_date}</td><td>{e.description}</td><td>{e.category}</td><td className="text-right">{fmt(e.base_value)}</td><td className="text-right">{fmt(e.total_with_vat - e.base_value)}</td><td className="text-right">{fmt(e.total_with_vat)}</td><td>{e.expense_id}</td></tr>
+              ))}
+            </tbody>
+          </table>
+
+          {filteredDocs.length > 0 && (
+            <>
+              <h3 className="font-semibold mt-4 mb-2">Documentos</h3>
+              <table className="w-full text-xs">
+                <thead><tr><th>Nome</th><th>Data</th></tr></thead>
+                <tbody>
+                  {filteredDocs.map(d => (<tr key={d.id}><td>{d.document_name || d.title}</td><td>{d.period_start}</td></tr>))}
+                </tbody>
+              </table>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Label({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <span className={cn('text-sm font-medium', className)}>{children}</span>;
+}

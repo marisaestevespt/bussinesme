@@ -19,6 +19,7 @@ import { FinAllDocuments } from '@/components/financial/FinAllDocuments';
 import { FinSetupFinanceiro } from '@/components/financial/FinSetupFinanceiro';
 import { FinPrevisibilidade } from '@/components/financial/FinPrevisibilidade';
 import { FinGoals } from '@/components/financial/FinGoals';
+import { FinContabilidade } from '@/components/financial/FinContabilidade';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 import { YearSelector } from '@/components/YearSelector';
 
@@ -34,9 +35,10 @@ const TITLES: Record<string, string> = {
   'setup-financeiro': 'Setup Financeiro',
   previsibilidade: 'Previsibilidade Financeira',
   'metas-financeiras': 'Metas Financeiras',
+  contabilidade: 'Contabilidade',
 };
 
-const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'saidas', 'ordenados', 'iva', 'seguranca-social', 'previsibilidade', 'metas-financeiras'];
+const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'saidas', 'ordenados', 'iva', 'seguranca-social', 'previsibilidade', 'metas-financeiras', 'contabilidade'];
 
 export default function FinanceiroSubPage() {
   const { section } = useParams<{ section: string }>();
@@ -89,6 +91,8 @@ export default function FinanceiroSubPage() {
         return <FinPrevisibilidade fin={fin} currentYear={year} sales={sales} />;
       case 'metas-financeiras':
         return <FinGoals currentYear={year} yearSales={yearSales} yearExpenses={yearExpenses} />;
+      case 'contabilidade':
+        return <FinContabilidade currentYear={year} />;
       default:
         return <EmptyModulePage title={title} />;
     }
