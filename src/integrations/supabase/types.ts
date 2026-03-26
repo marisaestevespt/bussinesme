@@ -1226,6 +1226,7 @@ export type Database = {
           nif: string | null
           observations: string | null
           payment_method: string | null
+          portal_deactivation_date: string | null
           start_date: string | null
           status: string
           updated_at: string
@@ -1250,6 +1251,7 @@ export type Database = {
           nif?: string | null
           observations?: string | null
           payment_method?: string | null
+          portal_deactivation_date?: string | null
           start_date?: string | null
           status?: string
           updated_at?: string
@@ -1274,6 +1276,7 @@ export type Database = {
           nif?: string | null
           observations?: string | null
           payment_method?: string | null
+          portal_deactivation_date?: string | null
           start_date?: string | null
           status?: string
           updated_at?: string
