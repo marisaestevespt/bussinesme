@@ -12,8 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
+import { Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -210,6 +211,107 @@ export default function ClienteDetailPage() {
 
   const productList = products.data || [];
 
+  // ─── Renewal / New Cycle ────────────────────────────────────────
+  const [renewDialogOpen, setRenewDialogOpen] = useState(false);
+  const [renewProduct, setRenewProduct] = useState('');
+  const [renewCloseActive, setRenewCloseActive] = useState(true);
+  const [renewStartDate, setRenewStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+
+  const activeProjects = clientProjects.filter((p: any) => !['concluido', 'cancelado', 'arquivado'].includes(p.status));
+
+  const openRenewDialog = () => {
+    setRenewProduct(form.current_product || '');
+    setRenewCloseActive(activeProjects.length > 0);
+    setRenewStartDate(format(new Date(), 'yyyy-MM-dd'));
+    setRenewDialogOpen(true);
+  };
+
+  const handleRenew = useMutation({
+    mutationFn: async () => {
+      if (!renewProduct) throw new Error('Selecione um produto');
+      if (!id) throw new Error('Cliente não guardado');
+
+      const matchedProduct = productList.find(p => p.name === renewProduct);
+
+      // 1. Optionally close active projects
+      if (renewCloseActive && activeProjects.length > 0) {
+        for (const proj of activeProjects) {
+          await supabase.from('projects').update({ status: 'concluido' }).eq('id', proj.id);
+        }
+      }
+
+      // 2. Calculate deadline
+      let deadline: string | null = null;
+      if (renewStartDate && matchedProduct?.cycle_duration) {
+        const start = parseISO(renewStartDate);
+        const end = new Date(start);
+        end.setMonth(end.getMonth() + matchedProduct.cycle_duration);
+        deadline = format(end, 'yyyy-MM-dd');
+      }
+
+      // 3. Create new project
+      const { data: newProject, error: projError } = await supabase.from('projects').insert({
+        name: `${renewProduct} — ${form.full_name || 'Cliente'}`,
+        type: 'cliente_projeto_unico',
+        status: 'em_onboarding',
+        department: 'clientes',
+        departments: ['clientes', 'operacao'],
+        client_name: form.full_name || null,
+        client_id: id,
+        product_id: matchedProduct?.id || null,
+        product_name: renewProduct,
+        start_date: renewStartDate,
+        deadline,
+      }).select('id').single();
+      if (projError) throw projError;
+
+      // 4. Update client current_product and start_date
+      await supabase.from('clients').update({
+        current_product: renewProduct,
+        start_date: renewStartDate,
+        status: 'ativo',
+      }).eq('id', id);
+
+      // 5. Auto-create/reactivate portal if product type supports it
+      if (matchedProduct?.product_type) {
+        const projetoTypes = ['projeto_1_1', 'consultoria_individual', 'consultoria_grupo', 'mentoria_individual', 'mentoria_grupo'];
+        let portalType: 'projeto_unico' | 'servico_mensal' | null = null;
+        if (projetoTypes.includes(matchedProduct.product_type)) portalType = 'projeto_unico';
+        else if (matchedProduct.product_type === 'servico_mensal') portalType = 'servico_mensal';
+
+        if (portalType) {
+          const { data: existingPortal } = await supabase.from('client_portals').select('id').eq('client_id', id).maybeSingle();
+          if (!existingPortal) {
+            await supabase.from('client_portals').insert({ client_id: id, portal_type: portalType, is_active: true });
+          } else {
+            await supabase.from('client_portals').update({ is_active: true, portal_type: portalType }).eq('id', existingPortal.id);
+          }
+        }
+      }
+
+      // 6. Add history entry
+      await supabase.from('client_history').insert({
+        client_id: id,
+        entry_date: format(new Date(), 'yyyy-MM-dd'),
+        milestone: `Renovação/Novo ciclo: ${renewProduct}`,
+        observations: renewCloseActive && activeProjects.length > 0
+          ? `Projetos anteriores concluídos: ${activeProjects.map((p: any) => p.name).join(', ')}`
+          : null,
+      });
+
+      return newProject.id;
+    },
+    onSuccess: (projectId) => {
+      queryClient.invalidateQueries({ queryKey: ['projects', 'client'] });
+      queryClient.invalidateQueries({ queryKey: ['client'] });
+      setRenewDialogOpen(false);
+      setForm(prev => ({ ...prev, current_product: renewProduct, start_date: renewStartDate, status: 'ativo' }));
+      toast.success('Novo ciclo criado com sucesso!');
+      navigate(`/hub/projetos/${projectId}`);
+    },
+    onError: (err: any) => toast.error(err.message || 'Erro ao criar novo ciclo'),
+  });
+
   if (!isNew && isLoading) {
     return <AppLayout><div className="flex items-center justify-center min-h-[60vh]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div></AppLayout>;
   }
@@ -234,6 +336,11 @@ export default function ClienteDetailPage() {
           <div className="flex items-center gap-2">
             {!isNew && <Button variant="outline" size="sm" onClick={handleDuplicate}><Copy className="h-4 w-4 mr-1" />Duplicar</Button>}
             {!isNew && <Button variant="outline" size="sm" className="text-destructive" onClick={handleDelete}><Trash2 className="h-4 w-4 mr-1" />Eliminar</Button>}
+            {!isNew && (
+              <Button variant="outline" size="sm" onClick={openRenewDialog}>
+                <RefreshCw className="h-4 w-4 mr-1" />Renovar / Novo Ciclo
+              </Button>
+            )}
             <Button size="sm" onClick={save}><Save className="h-4 w-4 mr-1" />Guardar</Button>
           </div>
         </div>
@@ -556,6 +663,56 @@ export default function ClienteDetailPage() {
               createProject.mutate(newProjectName.trim());
             }}>Criar Projeto</Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Renewal dialog */}
+      <Dialog open={renewDialogOpen} onOpenChange={setRenewDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Renovar / Novo Ciclo</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <Label>Produto para o novo ciclo</Label>
+              <Select value={renewProduct} onValueChange={setRenewProduct}>
+                <SelectTrigger><SelectValue placeholder="Selecionar produto" /></SelectTrigger>
+                <SelectContent>
+                  {productList.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {renewProduct && renewProduct !== form.current_product && (
+                <p className="text-xs text-muted-foreground">
+                  ⚠️ Produto diferente do atual ({form.current_product || 'nenhum'})
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <Label>Data de início do novo ciclo</Label>
+              <Input type="date" value={renewStartDate} onChange={e => setRenewStartDate(e.target.value)} />
+            </div>
+
+            {activeProjects.length > 0 && (
+              <div className="flex items-center justify-between gap-3 rounded-md border p-3">
+                <div>
+                  <p className="text-sm font-medium">Concluir projetos ativos?</p>
+                  <p className="text-xs text-muted-foreground">
+                    {activeProjects.length} projeto(s) ativo(s): {activeProjects.map((p: any) => p.name).join(', ')}
+                  </p>
+                </div>
+                <Switch checked={renewCloseActive} onCheckedChange={setRenewCloseActive} />
+              </div>
+            )}
+
+            <p className="text-xs text-muted-foreground">
+              Será criado um novo projeto, o produto atual do cliente será atualizado, e o portal será reactivado (se aplicável).
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenewDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={() => handleRenew.mutate()} disabled={!renewProduct || handleRenew.isPending}>
+              {handleRenew.isPending ? 'A criar...' : 'Iniciar Novo Ciclo'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </AppLayout>
