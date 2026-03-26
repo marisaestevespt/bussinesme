@@ -215,41 +215,51 @@ export default function ClienteDetailPage() {
   // Auto-generate installment payments
   const generateInstallments = async () => {
     const method = form.payment_method;
-    if (!method || method === 'pagamento_total') { toast.error('Seleciona uma forma de pagamento com prestações'); return; }
+    if (!method) { toast.error('Seleciona uma forma de pagamento'); return; }
     if (!form.full_name) { toast.error('Nome do cliente é obrigatório'); return; }
-
-    const day = parseInt(diaPagamento);
-    if (!day || day < 1 || day > 31) { toast.error('Define o dia de pagamento'); return; }
 
     const product = form.current_product || '';
     const client = form.full_name;
+    const startDate = form.start_date ? new Date(form.start_date + 'T00:00:00') : new Date();
 
     // Determine payments to create
     let payments: { baseValue: number; index: number }[] = [];
     const num = parseInt(numPrestacoes) || 0;
 
-    if (method === 'entrada_prestacoes') {
+    if (method === 'pagamento_total') {
+      const total = parseFloat(totalValue);
+      if (!total) { toast.error('Preenche o valor total'); return; }
+      payments.push({ baseValue: total, index: -1 });
+    } else if (method === 'entrada_prestacoes') {
+      const day = parseInt(diaPagamento);
+      if (!day || day < 1 || day > 31) { toast.error('Define o dia de pagamento'); return; }
       const total = parseFloat(totalValue);
       const entrada = parseFloat(entradaValue);
       if (!total || !entrada) { toast.error('Preenche o valor total e o valor de entrada'); return; }
       if (num < 2) { toast.error('Define a quantidade de prestações'); return; }
-      // First: entrada payment (index -1 to flag it)
       payments.push({ baseValue: entrada, index: -1 });
-      // Then: installments
       const remainder = total - entrada;
       const perInstallment = Math.round((remainder / num) * 100) / 100;
       for (let i = 0; i < num; i++) payments.push({ baseValue: perInstallment, index: i });
     } else if (method === 'prestacoes') {
+      const day = parseInt(diaPagamento);
+      if (!day || day < 1 || day > 31) { toast.error('Define o dia de pagamento'); return; }
       const total = parseFloat(totalValue);
       if (!total) { toast.error('Preenche o valor total'); return; }
       if (num < 2) { toast.error('Define a quantidade de prestações'); return; }
       const perInstallment = Math.round((total / num) * 100) / 100;
-      for (let i = 0; i < num; i++) payments.push({ baseValue: perInstallment, index: i });
+      // index -1 = first payment at start_date, rest from next month
+      payments.push({ baseValue: perInstallment, index: -1 });
+      for (let i = 0; i < num - 1; i++) payments.push({ baseValue: perInstallment, index: i });
     } else if (method === 'avenca_mensal') {
+      const day = parseInt(diaPagamento);
+      if (!day || day < 1 || day > 31) { toast.error('Define o dia de pagamento'); return; }
       const monthly = parseFloat(valorAvenca);
       if (!monthly) { toast.error('Preenche o valor da avença mensal'); return; }
       if (num < 2) { toast.error('Define a quantidade de meses'); return; }
-      for (let i = 0; i < num; i++) payments.push({ baseValue: monthly, index: i });
+      // index -1 = first month at start_date, rest from next month
+      payments.push({ baseValue: monthly, index: -1 });
+      for (let i = 0; i < num - 1; i++) payments.push({ baseValue: monthly, index: i });
     }
 
     if (payments.length === 0) return;
@@ -263,14 +273,15 @@ export default function ClienteDetailPage() {
         else if (rate) vatMultiplier = 1 + parseFloat(rate) / 100;
       }
 
-      const now = new Date();
       for (const p of payments) {
         let payDate: Date;
         if (p.index === -1) {
-          // Entrada: use client start_date or today
-          payDate = form.start_date ? new Date(form.start_date + 'T00:00:00') : now;
+          // First payment: use client start_date
+          payDate = startDate;
         } else {
-          payDate = new Date(now.getFullYear(), now.getMonth() + 1 + p.index, day);
+          // Subsequent payments: from next month onward using the defined day
+          const day = parseInt(diaPagamento);
+          payDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1 + p.index, day);
         }
         const payMonth = payDate.getMonth() + 1;
         const payQuarter = Math.ceil(payMonth / 3);
@@ -281,11 +292,21 @@ export default function ClienteDetailPage() {
         const nextNum = ((countData?.length || 0) + 1).toString().padStart(2, '0');
         const saleId = `V${payYear}-${nextNum}`;
 
+        const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+        let description = '';
+        if (method === 'pagamento_total') {
+          description = `${form.client_id}_PagamentoTotal`;
+        } else if (p.index === -1 && method === 'entrada_prestacoes') {
+          description = `${form.client_id}_Entrada`;
+        } else {
+          description = `${form.client_id}_Pagamento_${monthNames[payMonth - 1]}`;
+        }
+
         await supabase.from('commercial_sales').insert({
           sale_id: saleId,
           status: 'na',
           payment_date: payDateStr,
-          description: p.index === -1 ? `${form.client_id}_Entrada` : `${form.client_id}_Pagamento_${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][payMonth - 1]}`,
+          description,
           base_value: p.baseValue,
           invoice_total: Math.round(p.baseValue * vatMultiplier * 100) / 100,
           product,
@@ -298,7 +319,7 @@ export default function ClienteDetailPage() {
         });
       }
       queryClient.invalidateQueries({ queryKey: ['commercial'] });
-      toast.success(`${payments.length} pagamentos criados com sucesso`);
+      toast.success(`${payments.length} pagamento(s) criado(s) com sucesso`);
     } catch (e) {
       toast.error('Erro ao gerar pagamentos');
     }
@@ -829,7 +850,7 @@ export default function ClienteDetailPage() {
                 <CardHeader className="pb-2 flex flex-row items-center justify-between">
                   <CardTitle className="text-sm">Pagamentos</CardTitle>
                   <div className="flex items-center gap-2">
-                    {form.payment_method && form.payment_method !== 'pagamento_total' && (
+                    {form.payment_method && (
                       <Button size="sm" variant="secondary" onClick={generateInstallments}>
                         Gerar Pagamentos
                       </Button>
