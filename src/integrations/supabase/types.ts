@@ -409,6 +409,7 @@ export type Database = {
           proposta_unica_valor: string | null
           secondary_color: string
           ss_exempt: boolean
+          ss_type: string
           support_hours: string | null
           tax_irs_regime: string
           tax_iva_regime: string
@@ -434,6 +435,7 @@ export type Database = {
           proposta_unica_valor?: string | null
           secondary_color?: string
           ss_exempt?: boolean
+          ss_type?: string
           support_hours?: string | null
           tax_irs_regime?: string
           tax_iva_regime?: string
@@ -459,6 +461,7 @@ export type Database = {
           proposta_unica_valor?: string | null
           secondary_color?: string
           ss_exempt?: boolean
+          ss_type?: string
           support_hours?: string | null
           tax_irs_regime?: string
           tax_iva_regime?: string

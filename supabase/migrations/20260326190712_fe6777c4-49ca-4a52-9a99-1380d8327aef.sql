@@ -1,0 +1,1 @@
+ALTER TABLE public.business_settings ADD COLUMN ss_type text NOT NULL DEFAULT 'independente';
