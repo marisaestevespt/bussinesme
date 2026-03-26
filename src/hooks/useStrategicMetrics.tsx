@@ -144,12 +144,10 @@ export function useStrategicMetrics(period: MetricPeriod): StrategicMetrics {
     const ltv = avgTicket * avgRetentionMonths;
     const ltvEstimated = avgRetentionEstimated;
 
-    // CAC: marketing + commercial expenses / new clients in period
-    const marketingCategories = ['campanha', 'marketing', 'marketing_publicidade'];
-    const commercialCategories = ['comercial'];
-    const cacExpenses = expenses.reduce((sum, e) => {
-      const cat = (e.category || '').toLowerCase();
-      if (marketingCategories.includes(cat) || commercialCategories.includes(cat)) {
+    // CAC: expenses with department = 'marketing' or 'comercial'
+    const cacExpenses = expenses.reduce((sum, e: any) => {
+      const dept = (e.department || '').toLowerCase();
+      if (dept === 'marketing' || dept === 'comercial') {
         return sum + (Number(e.total_with_vat) || 0);
       }
       return sum;
