@@ -297,6 +297,52 @@ export default function ProjetoDetailPage() {
     enabled: !!id,
   });
 
+  const { data: clientsList = [] } = useQuery({
+    queryKey: ['clients_list'],
+    queryFn: async () => { const { data } = await supabase.from('clients').select('id, full_name').order('full_name'); return data || []; },
+  });
+
+  // Project cost calculation: time_entries × team_members.hourly_cost
+  const { data: projectCost = 0 } = useQuery({
+    queryKey: ['project-cost', id],
+    queryFn: async () => {
+      // Get time entries for this project (direct + via tasks)
+      const { data: directEntries } = await supabase
+        .from('time_entries')
+        .select('duration, member_id')
+        .eq('project_id', id!);
+
+      const { data: taskIds } = await supabase
+        .from('tasks').select('id').eq('project_id', id!);
+
+      let taskEntries: { duration: number; member_id: string | null }[] = [];
+      if (taskIds && taskIds.length > 0) {
+        const { data } = await supabase
+          .from('time_entries')
+          .select('duration, member_id')
+          .in('task_id', taskIds.map(t => t.id));
+        taskEntries = (data || []) as any[];
+      }
+
+      const allEntries = [...(directEntries || []), ...taskEntries] as { duration: number; member_id: string | null }[];
+      if (allEntries.length === 0) return 0;
+
+      // Get unique member IDs
+      const memberIds = [...new Set(allEntries.filter(e => e.member_id).map(e => e.member_id!))];
+      const { data: members } = memberIds.length > 0
+        ? await supabase.from('team_members').select('id, hourly_cost').in('id', memberIds)
+        : { data: [] };
+      const costMap = new Map((members || []).map((m: any) => [m.id, m.hourly_cost || 0]));
+
+      return allEntries.reduce((sum, e) => {
+        const hours = (e.duration || 0) / 60;
+        const cost = e.member_id ? (costMap.get(e.member_id) || 0) : 0;
+        return sum + hours * cost;
+      }, 0);
+    },
+    enabled: !!id,
+  });
+
   // Fetch onboarding/offboarding for client projects
   const { data: clientForProject } = useQuery({
     queryKey: ['client-by-name', project?.client_id, project?.client_name],
