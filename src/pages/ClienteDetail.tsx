@@ -27,6 +27,7 @@ import { useProducts } from '@/hooks/useProducts';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
 import { EntryDetailSheet } from '@/components/financial/EntryDetailSheet';
+import { InvoiceUpload } from '@/components/financial/InvoiceUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { DEPARTMENTS } from '@/lib/departments';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -669,6 +670,11 @@ export default function ClienteDetailPage() {
               <Label className="text-xs text-muted-foreground">Documentos (link)</Label>
               <Input value={form.documents || ''} onChange={e => update('documents', e.target.value)} placeholder="URL ou referência" />
             </div>
+            <InvoiceUpload
+              documents={Array.isArray(form.client_files) ? (form.client_files as any[]) : []}
+              onChange={(files) => update('client_files', files)}
+              label="Ficheiros (contratos, documentos)"
+            />
           </CardContent>
         </Card>
 
