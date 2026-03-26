@@ -233,10 +233,52 @@ export default function ClienteDetailPage() {
 
       const matchedProduct = productList.find(p => p.name === renewProduct);
 
-      // 1. Optionally close active projects
+      // 1. Optionally close active projects + snapshot to portal history
       if (renewCloseActive && activeProjects.length > 0) {
+        // Get portal id for snapshots
+        const { data: portalRow } = await supabase.from('client_portals').select('id').eq('client_id', id).maybeSingle();
+        const portalId = portalRow?.id;
+
         for (const proj of activeProjects) {
           await supabase.from('projects').update({ status: 'concluido' }).eq('id', proj.id);
+
+          // Save snapshot of project data to portal history
+          if (portalId) {
+            // Fetch project full details
+            const { data: projDetail } = await supabase.from('projects')
+              .select('name, product_name, start_date, deadline, notes')
+              .eq('id', proj.id).maybeSingle();
+
+            // Fetch timeline phases if any
+            const { data: projPhases } = await supabase.from('portal_timeline_phases' as any)
+              .select('title, status, sort_order')
+              .eq('portal_id', portalId)
+              .order('sort_order');
+
+            // Fetch monthly summaries if any
+            const { data: projSummaries } = await supabase.from('portal_monthly_summaries' as any)
+              .select('month, year, content')
+              .eq('portal_id', portalId)
+              .order('year', { ascending: false })
+              .order('month', { ascending: false });
+
+            await supabase.from('portal_project_history' as any).insert({
+              portal_id: portalId,
+              project_id: proj.id,
+              project_name: projDetail?.name || proj.name,
+              product_name: projDetail?.product_name || null,
+              start_date: projDetail?.start_date || null,
+              end_date: format(new Date(), 'yyyy-MM-dd'),
+              status: 'concluido',
+              timeline_phases: projPhases || [],
+              monthly_summaries: projSummaries || [],
+              notes: projDetail?.notes || null,
+            });
+
+            // Clear current timeline phases and summaries for the new cycle
+            await supabase.from('portal_timeline_phases' as any).delete().eq('portal_id', portalId);
+            await supabase.from('portal_monthly_summaries' as any).delete().eq('portal_id', portalId);
+          }
         }
       }
 
