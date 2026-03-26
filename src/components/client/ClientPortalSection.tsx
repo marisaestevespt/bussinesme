@@ -46,6 +46,16 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
   const [newSummaryMonth, setNewSummaryMonth] = useState(new Date().getMonth() + 1);
   const [newSummaryYear, setNewSummaryYear] = useState(new Date().getFullYear());
   const [newSummaryContent, setNewSummaryContent] = useState('');
+  const [uploadingMaterial, setUploadingMaterial] = useState(false);
+
+  const { data: portalMaterials = [], refetch: refetchMaterials } = useQuery({
+    queryKey: ['portal-materials', portalId],
+    enabled: !!portalId,
+    queryFn: async () => {
+      const { data } = await supabase.from('portal_materials').select('*').eq('portal_id', portalId!).order('created_at', { ascending: false });
+      return (data || []) as any[];
+    },
+  });
 
   const portalUrl = portalData ? `${window.location.origin}/portal/${portalData.token}` : '';
 
