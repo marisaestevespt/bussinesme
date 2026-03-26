@@ -36,12 +36,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 const PROJECT_TYPES = [
   { value: 'interno', label: 'Interno', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
-  { value: 'lancamento', label: 'Lançamento', color: 'bg-rose-100 text-rose-800 border-rose-200' },
-  { value: 'cliente_projeto_unico', label: 'Cliente Projeto Único', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-  { value: 'cliente_servico_mensal', label: 'Cliente Serviço Mensal', color: 'bg-teal-100 text-teal-800 border-teal-200' },
+  { value: 'lancamento', label: 'Interno - Lançamento', color: 'bg-rose-100 text-rose-800 border-rose-200' },
+  { value: 'cliente_projeto_unico', label: 'Cliente - Projeto Único', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+  { value: 'cliente_servico_mensal', label: 'Cliente - Serviço Mensal', color: 'bg-teal-100 text-teal-800 border-teal-200' },
 ];
 
 const PROJECT_STATUSES = [
+  { value: 'em_onboarding', label: 'Em onboarding', color: 'bg-amber-100 text-amber-800 border-amber-300', dot: 'bg-amber-500' },
   { value: 'em_ideia', label: 'Em ideia', color: 'bg-gray-100 text-gray-700 border-gray-300', dot: 'bg-gray-400' },
   { value: 'em_curso', label: 'Em curso', color: 'bg-blue-100 text-blue-800 border-blue-300', dot: 'bg-blue-500' },
   { value: 'em_pausa', label: 'Em pausa', color: 'bg-yellow-100 text-yellow-800 border-yellow-300', dot: 'bg-yellow-500' },
