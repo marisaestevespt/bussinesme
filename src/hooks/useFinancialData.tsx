@@ -88,7 +88,7 @@ export function useFinancialData() {
     queryKey: ['financial-documents'],
     queryFn: async () => {
       const { data, error } = await supabase.from('financial_documents')
-        .select('id,title,document_type,due_date,status,file_url,file_name,amount,notes,period_month,period_year,period_start,created_at')
+        .select('id,title,doc_type,due_date,status,document_name,document_url,notes,period_month,period_year,period_start,period_end,created_at')
         .order('due_date', { ascending: true });
       if (error) throw error;
       return (data || []) as FinancialDocument[];
