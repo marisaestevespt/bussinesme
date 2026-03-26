@@ -90,6 +90,10 @@ export default function ClienteDetailPage() {
   const [meetingForm, setMeetingForm] = useState({ title: '', date_time: '', meeting_url: '', meeting_type: 'cliente' as 'recorrente' | 'projeto' | 'cliente', department: '' });
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
+  const [offboardingDialogOpen, setOffboardingDialogOpen] = useState(false);
+  const [offboardingNps, setOffboardingNps] = useState(true);
+  const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
+  const [pendingPaymentsTotal, setPendingPaymentsTotal] = useState(0);
 
   const queryClient = useQueryClient();
 
