@@ -308,6 +308,7 @@ Deno.serve(async (req) => {
       results.hr_offboarding_sop = sopErr ? `error: ${sopErr.message}` : "created";
     } else {
       results.hr_offboarding_sop = "exists";
+    }
 
     return new Response(JSON.stringify({ success: true, results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
