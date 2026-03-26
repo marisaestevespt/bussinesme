@@ -211,6 +211,107 @@ export default function ClienteDetailPage() {
 
   const productList = products.data || [];
 
+  // ─── Renewal / New Cycle ────────────────────────────────────────
+  const [renewDialogOpen, setRenewDialogOpen] = useState(false);
+  const [renewProduct, setRenewProduct] = useState('');
+  const [renewCloseActive, setRenewCloseActive] = useState(true);
+  const [renewStartDate, setRenewStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+
+  const activeProjects = clientProjects.filter((p: any) => !['concluido', 'cancelado', 'arquivado'].includes(p.status));
+
+  const openRenewDialog = () => {
+    setRenewProduct(form.current_product || '');
+    setRenewCloseActive(activeProjects.length > 0);
+    setRenewStartDate(format(new Date(), 'yyyy-MM-dd'));
+    setRenewDialogOpen(true);
+  };
+
+  const handleRenew = useMutation({
+    mutationFn: async () => {
+      if (!renewProduct) throw new Error('Selecione um produto');
+      if (!id) throw new Error('Cliente não guardado');
+
+      const matchedProduct = productList.find(p => p.name === renewProduct);
+
+      // 1. Optionally close active projects
+      if (renewCloseActive && activeProjects.length > 0) {
+        for (const proj of activeProjects) {
+          await supabase.from('projects').update({ status: 'concluido' }).eq('id', proj.id);
+        }
+      }
+
+      // 2. Calculate deadline
+      let deadline: string | null = null;
+      if (renewStartDate && matchedProduct?.cycle_duration) {
+        const start = parseISO(renewStartDate);
+        const end = new Date(start);
+        end.setMonth(end.getMonth() + matchedProduct.cycle_duration);
+        deadline = format(end, 'yyyy-MM-dd');
+      }
+
+      // 3. Create new project
+      const { data: newProject, error: projError } = await supabase.from('projects').insert({
+        name: `${renewProduct} — ${form.full_name || 'Cliente'}`,
+        type: 'cliente_projeto_unico',
+        status: 'em_onboarding',
+        department: 'clientes',
+        departments: ['clientes', 'operacao'],
+        client_name: form.full_name || null,
+        client_id: id,
+        product_id: matchedProduct?.id || null,
+        product_name: renewProduct,
+        start_date: renewStartDate,
+        deadline,
+      }).select('id').single();
+      if (projError) throw projError;
+
+      // 4. Update client current_product and start_date
+      await supabase.from('clients').update({
+        current_product: renewProduct,
+        start_date: renewStartDate,
+        status: 'ativo',
+      }).eq('id', id);
+
+      // 5. Auto-create/reactivate portal if product type supports it
+      if (matchedProduct?.product_type) {
+        const projetoTypes = ['projeto_1_1', 'consultoria_individual', 'consultoria_grupo', 'mentoria_individual', 'mentoria_grupo'];
+        let portalType: 'projeto_unico' | 'servico_mensal' | null = null;
+        if (projetoTypes.includes(matchedProduct.product_type)) portalType = 'projeto_unico';
+        else if (matchedProduct.product_type === 'servico_mensal') portalType = 'servico_mensal';
+
+        if (portalType) {
+          const { data: existingPortal } = await supabase.from('client_portals').select('id').eq('client_id', id).maybeSingle();
+          if (!existingPortal) {
+            await supabase.from('client_portals').insert({ client_id: id, portal_type: portalType, is_active: true });
+          } else {
+            await supabase.from('client_portals').update({ is_active: true, portal_type: portalType }).eq('id', existingPortal.id);
+          }
+        }
+      }
+
+      // 6. Add history entry
+      await supabase.from('client_history').insert({
+        client_id: id,
+        entry_date: format(new Date(), 'yyyy-MM-dd'),
+        milestone: `Renovação/Novo ciclo: ${renewProduct}`,
+        observations: renewCloseActive && activeProjects.length > 0
+          ? `Projetos anteriores concluídos: ${activeProjects.map((p: any) => p.name).join(', ')}`
+          : null,
+      });
+
+      return newProject.id;
+    },
+    onSuccess: (projectId) => {
+      queryClient.invalidateQueries({ queryKey: ['projects', 'client'] });
+      queryClient.invalidateQueries({ queryKey: ['client'] });
+      setRenewDialogOpen(false);
+      setForm(prev => ({ ...prev, current_product: renewProduct, start_date: renewStartDate, status: 'ativo' }));
+      toast.success('Novo ciclo criado com sucesso!');
+      navigate(`/hub/projetos/${projectId}`);
+    },
+    onError: (err: any) => toast.error(err.message || 'Erro ao criar novo ciclo'),
+  });
+
   if (!isNew && isLoading) {
     return <AppLayout><div className="flex items-center justify-center min-h-[60vh]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div></AppLayout>;
   }
