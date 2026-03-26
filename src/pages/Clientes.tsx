@@ -11,26 +11,16 @@ import { Plus, BarChart3, Globe, MessageSquare } from 'lucide-react';
 import { useClients, CLIENT_STATUS_OPTIONS, Client } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { format, parseISO, differenceInDays } from 'date-fns';
-import { pt } from 'date-fns/locale';
+import { format, parseISO } from 'date-fns';
 
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
   em_onboarding: { label: 'Em onboarding', className: 'bg-blue-100 text-blue-800' },
   ativo: { label: 'Ativo', className: 'bg-green-100 text-green-800' },
   pausado: { label: 'Pausado', className: 'bg-amber-100 text-amber-800' },
   altura_renovacao: { label: 'Altura de renovação', className: 'bg-purple-100 text-purple-800' },
+  em_offboarding: { label: 'Em offboarding', className: 'bg-orange-100 text-orange-800' },
   terminado: { label: 'Terminado', className: 'bg-muted text-muted-foreground' },
 };
-
-function EndOfCycleBadge({ date }: { date: string | null }) {
-  if (!date) return <span className="text-muted-foreground">—</span>;
-  const d = parseISO(date);
-  const days = differenceInDays(d, new Date());
-  const label = format(d, 'dd/MM/yyyy');
-  if (days < 0) return <Badge variant="outline" className="bg-red-100 text-red-800">{label}</Badge>;
-  if (days <= 30) return <Badge variant="outline" className="bg-amber-100 text-amber-800">{label}</Badge>;
-  return <span>{label}</span>;
-}
 
 export default function ClientesPage() {
   const navigate = useNavigate();
