@@ -23,13 +23,10 @@ interface Props {
 }
 
 const PAYMENT_METHODS = [
-  { value: 'transferencia', label: 'Transferência Bancária' },
-  { value: 'mbway', label: 'MB WAY' },
-  { value: 'debito_direto', label: 'Débito Direto' },
-  { value: 'cartao', label: 'Cartão de Crédito' },
-  { value: 'paypal', label: 'PayPal' },
-  { value: 'stripe', label: 'Stripe' },
-  { value: 'outro', label: 'Outro' },
+  { value: 'pagamento_total', label: 'Pagamento Total' },
+  { value: 'entrada_prestacoes', label: 'Pagamento Entrada + Prestações' },
+  { value: 'prestacoes', label: 'Pagamento Prestações' },
+  { value: 'avenca_mensal', label: 'Pagamento Avença Mensal' },
 ];
 
 export function ProjectGestaoTab({ projectId, projectName, clientName, clientId, onNewMeeting }: Props) {
