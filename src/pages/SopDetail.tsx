@@ -511,6 +511,8 @@ export default function SopDetailPage() {
     setSopType((sop as any).sop_type || 'operacional');
     setSopRoleTitle((sop as any).role_title || '');
     setSopProductId((sop as any).product_id || '');
+    setSopVersion((sop as any).version || 1);
+    setSopVersionNotes((sop as any).version_notes || '');
   }, [sop]);
 
   // ─── Save ───────────────────────────────────────────────────
@@ -538,6 +540,8 @@ export default function SopDetailPage() {
         sop_type: sopType,
         role_title: sopRoleTitle || null,
         product_id: sopProductId || null,
+        version: sopVersion,
+        version_notes: sopVersionNotes || null,
       } as any).eq('id', id!);
       if (error) throw error;
     },
