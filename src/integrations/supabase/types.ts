@@ -5120,6 +5120,66 @@ export type Database = {
           },
         ]
       }
+      portal_project_history: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          monthly_summaries: Json | null
+          notes: string | null
+          portal_id: string
+          product_name: string | null
+          project_id: string | null
+          project_name: string
+          start_date: string | null
+          status: string | null
+          timeline_phases: Json | null
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          monthly_summaries?: Json | null
+          notes?: string | null
+          portal_id: string
+          product_name?: string | null
+          project_id?: string | null
+          project_name?: string
+          start_date?: string | null
+          status?: string | null
+          timeline_phases?: Json | null
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          monthly_summaries?: Json | null
+          notes?: string | null
+          portal_id?: string
+          product_name?: string | null
+          project_id?: string | null
+          project_name?: string
+          start_date?: string | null
+          status?: string | null
+          timeline_phases?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_project_history_portal_id_fkey"
+            columns: ["portal_id"]
+            isOneToOne: false
+            referencedRelation: "client_portals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_project_history_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       portal_timeline_phases: {
         Row: {
           created_at: string
@@ -7665,6 +7725,21 @@ export type Database = {
           payment_date: string
           sale_month: number
           status: string
+        }[]
+      }
+      get_portal_project_history: {
+        Args: { _token: string }
+        Returns: {
+          created_at: string
+          end_date: string
+          id: string
+          monthly_summaries: Json
+          notes: string
+          product_name: string
+          project_name: string
+          start_date: string
+          status: string
+          timeline_phases: Json
         }[]
       }
       has_role: {

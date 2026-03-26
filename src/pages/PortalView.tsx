@@ -11,7 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare, MessageSquare, Star, Send, ClipboardList, BarChart3, Clock } from 'lucide-react';
+import { FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare, MessageSquare, Star, Send, ClipboardList, BarChart3, Clock, History } from 'lucide-react';
 import type { Portal } from '@/hooks/usePortalData';
 
 const sb = (table: string) => supabase.from(table as any) as any;
@@ -36,6 +36,7 @@ export default function PortalViewPage() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [phases, setPhases] = useState<any[]>([]);
   const [summaries, setSummaries] = useState<any[]>([]);
+  const [projectHistory, setProjectHistory] = useState<any[]>([]);
 
   const [commentText, setCommentText] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
@@ -94,7 +95,7 @@ export default function PortalViewPage() {
     const pid = portalData.id;
     const cid = portalData.client_id;
 
-    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, summR] = await Promise.all([
+    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, summR, historyR] = await Promise.all([
       sb('portal_faqs').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_initial_questions').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_comments').select('*').eq('portal_id', pid).order('created_at', { ascending: true }),
@@ -105,6 +106,7 @@ export default function PortalViewPage() {
       supabase.from('tasks').select('*').eq('visible_in_portal', true),
       sb('portal_timeline_phases').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_monthly_summaries').select('*').eq('portal_id', pid).order('year', { ascending: false }).order('month', { ascending: false }),
+      (supabase as any).rpc('get_portal_project_history', { _token: token }),
     ]);
 
     setFaqs(faqsR.data || []);
@@ -117,6 +119,7 @@ export default function PortalViewPage() {
     setTasks((tasksR as any).data || []);
     setPhases(phasesR.data || []);
     setSummaries(summR.data || []);
+    setProjectHistory((historyR as any).data || []);
     setLoading(false);
   };
 
@@ -175,6 +178,7 @@ export default function PortalViewPage() {
     ...(portal.show_meetings ? [{ key: 'meetings', label: 'Reuniões', icon: CalendarDays, always: false }] : []),
     ...(portal.show_payments ? [{ key: 'payments', label: 'Pagamentos', icon: CreditCard, always: false }] : []),
     ...(portal.show_faqs ? [{ key: 'faqs', label: "FAQ's", icon: HelpCircle, always: false }] : []),
+    ...(projectHistory.length > 0 ? [{ key: 'history', label: 'Histórico', icon: History, always: false }] : []),
   ];
 
   const completedOnb = onboarding.filter((o: any) => o.completed).length;
@@ -587,6 +591,68 @@ export default function PortalViewPage() {
                   </CardContent>
                 </Card>
               )}
+            </div>
+          )}
+
+          {activeSection === 'history' && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold">Histórico de Projetos</h2>
+              <p className="text-sm text-muted-foreground">Projetos anteriores concluídos com este negócio.</p>
+              {projectHistory.map((h: any) => (
+                <Card key={h.id}>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm">{h.project_name}</CardTitle>
+                      <Badge variant="outline" className="text-[10px] bg-green-100 text-green-800 border-green-200">Concluído</Badge>
+                    </div>
+                    <div className="flex gap-3 text-xs text-muted-foreground">
+                      {h.product_name && <span>Produto: {h.product_name}</span>}
+                      {h.start_date && <span>Início: {h.start_date}</span>}
+                      {h.end_date && <span>Fim: {h.end_date}</span>}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {/* Timeline phases snapshot */}
+                    {Array.isArray(h.timeline_phases) && h.timeline_phases.length > 0 && (
+                      <div>
+                        <p className="text-xs font-medium mb-2">Timeline</p>
+                        <div className="space-y-1">
+                          {h.timeline_phases.map((p: any, i: number) => (
+                            <div key={i} className="flex items-center gap-2 text-xs">
+                              <div className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold ${p.status === 'concluido' ? 'bg-green-500 text-white' : p.status === 'em_curso' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                                {i + 1}
+                              </div>
+                              <span className={p.status === 'concluido' ? 'line-through text-muted-foreground' : ''}>{p.title}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {/* Monthly summaries snapshot */}
+                    {Array.isArray(h.monthly_summaries) && h.monthly_summaries.length > 0 && (
+                      <Accordion type="single" collapsible>
+                        <AccordionItem value="summaries">
+                          <AccordionTrigger className="text-xs">Resumos Mensais ({h.monthly_summaries.length})</AccordionTrigger>
+                          <AccordionContent className="space-y-2">
+                            {h.monthly_summaries.map((s: any, i: number) => (
+                              <div key={i} className="border rounded p-2 text-xs">
+                                <p className="font-medium">{s.month}/{s.year}</p>
+                                <p className="text-muted-foreground whitespace-pre-wrap">{s.content}</p>
+                              </div>
+                            ))}
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    )}
+                    {h.notes && (
+                      <div>
+                        <p className="text-xs font-medium mb-1">Notas</p>
+                        <p className="text-xs text-muted-foreground">{h.notes}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
 
