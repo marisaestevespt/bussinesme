@@ -11,7 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare, MessageSquare, Star, Send, ClipboardList, BarChart3, Clock, History } from 'lucide-react';
+import { FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare, MessageSquare, Star, Send, ClipboardList, BarChart3, Clock, History, FolderOpen, Download } from 'lucide-react';
 import type { Portal } from '@/hooks/usePortalData';
 
 const sb = (table: string) => supabase.from(table as any) as any;
@@ -37,6 +37,7 @@ export default function PortalViewPage() {
   const [phases, setPhases] = useState<any[]>([]);
   const [summaries, setSummaries] = useState<any[]>([]);
   const [projectHistory, setProjectHistory] = useState<any[]>([]);
+  const [portalMaterials, setPortalMaterials] = useState<any[]>([]);
 
   const [commentText, setCommentText] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
@@ -95,7 +96,7 @@ export default function PortalViewPage() {
     const pid = portalData.id;
     const cid = portalData.client_id;
 
-    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, summR, historyR] = await Promise.all([
+    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, summR, historyR, materialsR] = await Promise.all([
       sb('portal_faqs').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_initial_questions').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_comments').select('*').eq('portal_id', pid).order('created_at', { ascending: true }),
@@ -107,6 +108,7 @@ export default function PortalViewPage() {
       sb('portal_timeline_phases').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_monthly_summaries').select('*').eq('portal_id', pid).order('year', { ascending: false }).order('month', { ascending: false }),
       (supabase as any).rpc('get_portal_project_history', { _token: token }),
+      sb('portal_materials').select('*').eq('portal_id', pid).order('created_at', { ascending: false }),
     ]);
 
     setFaqs(faqsR.data || []);
@@ -120,6 +122,7 @@ export default function PortalViewPage() {
     setPhases(phasesR.data || []);
     setSummaries(summR.data || []);
     setProjectHistory((historyR as any).data || []);
+    setPortalMaterials(materialsR.data || []);
     setLoading(false);
   };
 
@@ -178,6 +181,7 @@ export default function PortalViewPage() {
     ...(portal.show_meetings ? [{ key: 'meetings', label: 'Reuniões', icon: CalendarDays, always: false }] : []),
     ...(portal.show_payments ? [{ key: 'payments', label: 'Pagamentos', icon: CreditCard, always: false }] : []),
     ...(portal.show_faqs ? [{ key: 'faqs', label: "FAQ's", icon: HelpCircle, always: false }] : []),
+    ...((portal as any).show_materials && portalMaterials.length > 0 ? [{ key: 'materials', label: 'Materiais', icon: FolderOpen, always: false }] : []),
     ...(projectHistory.length > 0 ? [{ key: 'history', label: 'Histórico', icon: History, always: false }] : []),
   ];
 
@@ -590,6 +594,37 @@ export default function PortalViewPage() {
                     ))}
                   </CardContent>
                 </Card>
+              )}
+            </div>
+          )}
+
+          {activeSection === 'materials' && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold">Materiais</h2>
+              <p className="text-sm text-muted-foreground">Ficheiros partilhados pela equipa.</p>
+              {portalMaterials.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Sem materiais disponíveis.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {portalMaterials.map((m: any) => (
+                    <Card key={m.id}>
+                      <CardContent className="p-4 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <FileText className="h-5 w-5 shrink-0 text-primary" />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{m.file_name}</p>
+                            {m.description && <p className="text-xs text-muted-foreground">{m.description}</p>}
+                          </div>
+                        </div>
+                        <Button size="sm" variant="outline" asChild>
+                          <a href={m.file_url} target="_blank" rel="noopener noreferrer">
+                            <Download className="h-3.5 w-3.5 mr-1" />Abrir
+                          </a>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               )}
             </div>
           )}

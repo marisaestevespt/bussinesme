@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Copy, ExternalLink, Plus, Trash2, X, MessageSquare, RefreshCw } from 'lucide-react';
+import { Copy, ExternalLink, Plus, Trash2, X, MessageSquare, RefreshCw, Upload, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import {
@@ -25,6 +26,7 @@ interface Props {
 
 export function ClientPortalSection({ clientId, clientName, currentProduct }: Props) {
   const { products } = useProducts();
+  const queryClient = useQueryClient();
   const productList = products.data || [];
   const product = productList.find(p => p.name === currentProduct);
   const portalType = getPortalTypeFromProduct(product?.product_type || null);
@@ -44,6 +46,16 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
   const [newSummaryMonth, setNewSummaryMonth] = useState(new Date().getMonth() + 1);
   const [newSummaryYear, setNewSummaryYear] = useState(new Date().getFullYear());
   const [newSummaryContent, setNewSummaryContent] = useState('');
+  const [uploadingMaterial, setUploadingMaterial] = useState(false);
+
+  const { data: portalMaterials = [], refetch: refetchMaterials } = useQuery({
+    queryKey: ['portal-materials', portalId],
+    enabled: !!portalId,
+    queryFn: async () => {
+      const { data } = await supabase.from('portal_materials').select('*').eq('portal_id', portalId!).order('created_at', { ascending: false });
+      return (data || []) as any[];
+    },
+  });
 
   const portalUrl = portalData ? `${window.location.origin}/portal/${portalData.token}` : '';
 
@@ -170,6 +182,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
             <ToggleRow label="Pagamentos" checked={portalData.show_payments} onChange={() => toggleField('show_payments')} />
             <ToggleRow label="FAQ's" checked={portalData.show_faqs} onChange={() => toggleField('show_faqs')} />
             <ToggleRow label="Onboarding" checked={portalData.show_onboarding} onChange={() => toggleField('show_onboarding')} />
+            <ToggleRow label="Materiais" checked={(portalData as any).show_materials ?? true} onChange={() => toggleField('show_materials' as keyof Portal)} />
             {portalData.portal_type === 'projeto_unico' && (
               <ToggleRow label="Timeline" checked={portalData.show_timeline} onChange={() => toggleField('show_timeline')} />
             )}
@@ -313,6 +326,62 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Materials */}
+      {(portalData as any).show_materials && (
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm">Materiais Partilhados</CardTitle>
+            <label>
+              <input
+                type="file"
+                className="hidden"
+                multiple
+                onChange={async (e) => {
+                  if (!e.target.files?.length || !portalId) return;
+                  setUploadingMaterial(true);
+                  for (const file of Array.from(e.target.files)) {
+                    const path = `${portalId}/${Date.now()}-${file.name}`;
+                    const { error } = await supabase.storage.from('project-files').upload(path, file);
+                    if (error) { toast.error(`Erro: ${file.name}`); continue; }
+                    const { data: { publicUrl } } = supabase.storage.from('project-files').getPublicUrl(path);
+                    await supabase.from('portal_materials').insert({
+                      portal_id: portalId,
+                      file_url: publicUrl,
+                      file_name: file.name,
+                      file_type: file.type.startsWith('image') ? 'image' : 'file',
+                    } as any);
+                  }
+                  refetchMaterials();
+                  setUploadingMaterial(false);
+                  toast.success('Ficheiro(s) carregado(s)');
+                  e.target.value = '';
+                }}
+              />
+              <Button size="sm" variant="outline" asChild disabled={uploadingMaterial}>
+                <span className="cursor-pointer"><Upload className="h-3 w-3 mr-1" />{uploadingMaterial ? 'A carregar...' : 'Carregar'}</span>
+              </Button>
+            </label>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {portalMaterials.map((m: any) => (
+              <div key={m.id} className="flex items-center justify-between gap-2 border rounded-md p-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <a href={m.file_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline truncate">{m.file_name}</a>
+                </div>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive shrink-0" onClick={async () => {
+                  await supabase.from('portal_materials').delete().eq('id', m.id);
+                  refetchMaterials();
+                }}>
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            ))}
+            {portalMaterials.length === 0 && <p className="text-xs text-muted-foreground">Sem materiais partilhados</p>}
           </CardContent>
         </Card>
       )}
