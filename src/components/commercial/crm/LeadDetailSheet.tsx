@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,8 +12,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Plus, Trash2, GitBranch } from 'lucide-react';
-import { format } from 'date-fns';
+import { CalendarIcon, Plus, Trash2, GitBranch, UserPlus } from 'lucide-react';
+import { format, differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { CRM_STATUSES, CRM_SOURCES, INTERACTION_TYPES, statusLabel, getFollowUpState } from '@/hooks/useCrmData';
 import { useCrmData } from '@/hooks/useCrmData';
@@ -33,6 +34,7 @@ interface LeadDetailSheetProps {
 }
 
 export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, onSave, onDelete }: LeadDetailSheetProps) {
+  const navigate = useNavigate();
   const { useLeadInteractions, upsertInteraction, deleteInteraction, useLeadActions, upsertLeadAction, deleteLeadAction } = useCrmData();
   const { data: commercialMembers = [] } = useCommercialMembers();
   const [form, setForm] = useState<any>({});
@@ -119,6 +121,58 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
     if (!newAction.trim() || !lead?.id) return;
     upsertLeadAction.mutate({ lead_id: lead.id, task: newAction });
     setNewAction('');
+  };
+
+  const handleConvertToClient = async () => {
+    if (!lead?.id) return;
+    try {
+      // 1. Create client with mapped fields
+      const { data: newClient, error: clientError } = await supabase.from('clients').insert({
+        full_name: form.name || '',
+        email: form.email || null,
+        whatsapp: form.phone || null,
+        current_product: form.closed_product || form.potential_product || null,
+        documents: form.documents || null,
+        status: 'em_onboarding',
+      }).select('id').single();
+      if (clientError) throw clientError;
+
+      // 2. Calculate time in CRM
+      const addedDate = form.added_at ? parseISO(form.added_at) : new Date();
+      const daysInCrm = differenceInDays(new Date(), addedDate);
+
+      // 3. Build history entry text with CRM data
+      const responsibleName = profiles.find(p => p.id === form.responsible_id)?.full_name || '';
+      const parts = [
+        `Convertido de Lead CRM`,
+        form.source ? `Fonte: ${form.source}` : null,
+        form.potential_product ? `Produto potencial: ${form.potential_product}` : null,
+        form.closed_product ? `Produto fechado: ${form.closed_product}` : null,
+        form.estimated_value ? `Valor estimado: ${form.estimated_value}€` : null,
+        responsibleName ? `Responsável: ${responsibleName}` : null,
+        `Tempo no CRM: ${daysInCrm} dia(s)`,
+      ].filter(Boolean).join(' | ');
+
+      const observations = [
+        form.context || null,
+        form.followup_notes ? `Notas FU: ${form.followup_notes}` : null,
+      ].filter(Boolean).join('\n');
+
+      // 4. Create history entry
+      await supabase.from('client_history').insert({
+        client_id: newClient.id,
+        entry_date: format(new Date(), 'yyyy-MM-dd'),
+        milestone: parts,
+        observations: observations || null,
+      });
+
+      toast.success('Cliente criado com sucesso!');
+      onOpenChange(false);
+      navigate(`/hub/clientes/${newClient.id}`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao converter lead em cliente');
+    }
   };
 
   return (
@@ -236,6 +290,13 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
             )}
 
             <Button className="w-full" onClick={handleSave}>Guardar</Button>
+
+            {/* Convert to client button - only for saved leads with status "ganho" */}
+            {lead?.id && (form.status === 'ganho') && (
+              <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10" onClick={handleConvertToClient}>
+                <UserPlus className="h-4 w-4 mr-2" /> Converter em Cliente
+              </Button>
+            )}
 
             {/* Interactions - only for saved leads */}
             {lead?.id && (
