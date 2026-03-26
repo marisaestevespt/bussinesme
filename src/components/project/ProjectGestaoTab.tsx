@@ -446,7 +446,30 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             </div>
           )}
 
-          {hasExistingProjectSales && (
+          {payMethod === 'subscricao' && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div><Label className="text-xs">Valor da Subscrição s/ IVA (€)</Label><Input type="number" value={subscricaoValue} onChange={e => setSubscricaoValue(e.target.value)} placeholder="0.00" /></div>
+                <div><Label className="text-xs">Periodicidade</Label>
+                  <Select value={subscricaoPeriodicity} onValueChange={setSubscricaoPeriodicity}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {SUBSCRIPTION_PERIODICITIES.map(p => (
+                        <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              {subscricaoValue && parseFloat(subscricaoValue) > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {SUBSCRIPTION_PERIODICITIES.find(p => p.value === subscricaoPeriodicity)?.label}: {parseFloat(subscricaoValue).toFixed(2)}€
+                </p>
+              )}
+            </div>
+          )}
+
+
             <p className="text-xs text-muted-foreground">⚠️ Já existem pagamentos gerados para este projeto. Elimine-os primeiro para gerar novos.</p>
           )}
 
