@@ -598,6 +598,37 @@ export default function PortalViewPage() {
             </div>
           )}
 
+          {activeSection === 'materials' && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold">Materiais</h2>
+              <p className="text-sm text-muted-foreground">Ficheiros partilhados pela equipa.</p>
+              {portalMaterials.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Sem materiais disponíveis.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {portalMaterials.map((m: any) => (
+                    <Card key={m.id}>
+                      <CardContent className="p-4 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <FileText className="h-5 w-5 shrink-0 text-primary" />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{m.file_name}</p>
+                            {m.description && <p className="text-xs text-muted-foreground">{m.description}</p>}
+                          </div>
+                        </div>
+                        <Button size="sm" variant="outline" asChild>
+                          <a href={m.file_url} target="_blank" rel="noopener noreferrer">
+                            <Download className="h-3.5 w-3.5 mr-1" />Abrir
+                          </a>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {activeSection === 'history' && (
             <div className="space-y-4">
               <h2 className="text-lg font-bold">Histórico de Projetos</h2>
