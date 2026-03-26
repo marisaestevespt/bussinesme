@@ -119,6 +119,7 @@ export default function PortalViewPage() {
     setTasks((tasksR as any).data || []);
     setPhases(phasesR.data || []);
     setSummaries(summR.data || []);
+    setProjectHistory((historyR as any).data || []);
     setLoading(false);
   };
 
