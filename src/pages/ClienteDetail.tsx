@@ -498,6 +498,19 @@ export default function ClienteDetailPage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6 max-w-5xl mx-auto">
+        {/* Pending payments alert for offboarding */}
+        {form.status === 'em_offboarding' && clientSales.filter(s => s.status !== 'pago' && s.status !== 'cancelada').length > 0 && (
+          <div className="flex items-center gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+            <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-destructive">Pagamentos pendentes</p>
+              <p className="text-xs text-muted-foreground">
+                Este cliente tem {clientSales.filter(s => s.status !== 'pago' && s.status !== 'cancelada').length} pagamento(s)
+                pendente(s) no valor de {clientSales.filter(s => s.status !== 'pago' && s.status !== 'cancelada').reduce((sum, s) => sum + Number(s.base_value || 0), 0).toFixed(2)}€
+              </p>
+            </div>
+          </div>
+        )}
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
