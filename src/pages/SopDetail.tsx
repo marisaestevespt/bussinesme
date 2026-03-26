@@ -553,7 +553,44 @@ export default function SopDetailPage() {
     onError: () => toast.error('Erro ao guardar'),
   });
 
-  // ─── Template row mutations (for onboarding/offboarding SOPs) ──
+  const bumpVersion = useMutation({
+    mutationFn: async () => {
+      const newVersion = sopVersion + 1;
+      const { error } = await supabase.from('sops').update({
+        version: newVersion,
+        version_notes: `Atualizado para v${newVersion} em ${format(new Date(), 'dd/MM/yyyy HH:mm')}`,
+      } as any).eq('id', id!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sop', id] });
+      toast.success(`Versão atualizada para v${sopVersion + 1}`);
+    },
+  });
+
+  const createTasksFromSop = useMutation({
+    mutationFn: async () => {
+      const steps = parseJsonList((sop as any)?.passos).filter(s => s.trim());
+      if (steps.length === 0) throw new Error('Sem passos para criar tarefas');
+      const rows = steps.map((step, i) => ({
+        name: `[${sopId}] ${step}`,
+        project_id: taskProjectId || null,
+        department: taskDepartment || null,
+        deadline: taskDeadline || null,
+        status: 'por_comecar',
+        priority: 'alta',
+        notes: `Criada a partir do SOP: ${name}`,
+      }));
+      const { error } = await supabase.from('tasks').insert(rows);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Tarefas criadas a partir dos passos do SOP');
+      setShowCreateTasks(false);
+    },
+    onError: (e: any) => toast.error(e.message || 'Erro ao criar tarefas'),
+  });
+
   const addTemplateRow = useMutation({
     mutationFn: async () => {
       if (!templateTable || !linkedProductId) return;
