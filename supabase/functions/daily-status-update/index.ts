@@ -647,7 +647,40 @@ Deno.serve(async (req) => {
       results.push(`Project deadline alerts: ${deadlineNotifs}`);
     }
 
-    // ── Recurring expenses: auto-generate monthly ──
+    // ── Overdue task alerts ──
+    const { data: overdueTasks } = await supabase
+      .from("tasks")
+      .select("id, name, assigned_to, deadline")
+      .lt("deadline", todayStr)
+      .not("status", "in", '("done","cancelada")');
+
+    if (overdueTasks && overdueTasks.length > 0) {
+      let taskAlerts = 0;
+      for (const t of overdueTasks) {
+        const recipients = [ownerId, t.assigned_to].filter(Boolean);
+        for (const uid of new Set(recipients)) {
+          if (!uid) continue;
+          const dedupKey = `task-overdue-${t.id}-${todayStr}`;
+          const { count: existing } = await supabase
+            .from("notifications")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", uid)
+            .eq("message", dedupKey);
+          if ((existing || 0) > 0) continue;
+
+          await supabase.from("notifications").insert({
+            user_id: uid,
+            type: "task",
+            title: `Tarefa em atraso: ${t.name}`,
+            message: dedupKey,
+            link: "/tarefas",
+          });
+          taskAlerts++;
+        }
+      }
+      results.push(`Overdue task alerts: ${taskAlerts}`);
+    }
+
     const dayOfMonth = today.getDate();
     const currentMonth = today.getMonth() + 1;
     const currentYear = today.getFullYear();
