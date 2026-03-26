@@ -21,7 +21,6 @@ import { FinPrevisibilidade } from '@/components/financial/FinPrevisibilidade';
 import { FinGoals } from '@/components/financial/FinGoals';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 import { YearSelector } from '@/components/YearSelector';
-import { excludeCancelled } from '@/lib/utils';
 
 const TITLES: Record<string, string> = {
   mensal: 'Mensal',
