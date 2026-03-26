@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus } from 'lucide-react';
+import { Plus, FileText } from 'lucide-react';
 import { format, parseISO, isBefore, startOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useMyTasks, useProjects, STATUS_COLORS, STATUS_LABELS, PRIORITY_LABELS } from './secretaria-shared';
@@ -16,6 +17,7 @@ const today = startOfDay(new Date());
 export default function SecretariaTarefas() {
   const tasks = useMyTasks();
   const allProjects = useProjects();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [view, setView] = useState<'todo' | 'atrasadas' | 'concluidas'>('todo');
 
@@ -74,7 +76,16 @@ export default function SecretariaTarefas() {
               {view !== 'concluidas' && (
                 <TableCell><Checkbox checked={false} onCheckedChange={() => markDone(t.id)} /></TableCell>
               )}
-              <TableCell className="font-medium">{t.name}</TableCell>
+              <TableCell className="font-medium">
+                <div className="flex items-center gap-1.5">
+                  {t.name}
+                  {t.content_id && (
+                    <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={(e) => { e.stopPropagation(); navigate(`/hub/marketing/conteudos/${t.content_id}`); }}>
+                      <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                    </Button>
+                  )}
+                </div>
+              </TableCell>
               <TableCell><Badge className={cn('text-[10px]', STATUS_COLORS[t.status])}>{STATUS_LABELS[t.status] || t.status}</Badge></TableCell>
               <TableCell><Badge variant="outline" className="text-[10px]">{PRIORITY_LABELS[t.priority] || t.priority}</Badge></TableCell>
               <TableCell className="text-sm">{t.deadline ? format(parseISO(t.deadline), 'dd/MM/yyyy') : '—'}</TableCell>
