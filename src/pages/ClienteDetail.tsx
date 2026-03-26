@@ -303,11 +303,17 @@ export default function ClienteDetailPage() {
             <Card>
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm">Histórico de Projetos</CardTitle>
-                {!isNew && (
-                  <Button size="sm" variant="outline" onClick={() => { setNewProjectName(`${form.full_name || 'Cliente'} — ${form.current_product || 'Projeto'}`); setProjectDialogOpen(true); }}>
-                    <Plus className="h-3 w-3 mr-1" />Novo Projeto
-                  </Button>
-                )}
+                <Button size="sm" variant="outline" onClick={async () => {
+                  if (isNew) {
+                    const newId = await save();
+                    if (!newId) return;
+                    navigate(`/hub/clientes/${newId}`, { replace: true });
+                  }
+                  setNewProjectName(`${form.full_name || 'Cliente'} — ${form.current_product || 'Projeto'}`);
+                  setProjectDialogOpen(true);
+                }}>
+                  <Plus className="h-3 w-3 mr-1" />Novo Projeto
+                </Button>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[1fr_120px_100px] gap-2">
