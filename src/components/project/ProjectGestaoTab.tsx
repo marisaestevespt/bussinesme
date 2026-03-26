@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Plus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ExternalLink, Plus, CreditCard } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { EntryDetailSheet } from '@/components/financial/EntryDetailSheet';
+import { toast } from 'sonner';
 
 interface Props {
   projectId: string;
@@ -17,6 +21,16 @@ interface Props {
   clientId: string | undefined;
   onNewMeeting: () => void;
 }
+
+const PAYMENT_METHODS = [
+  { value: 'transferencia', label: 'Transferência Bancária' },
+  { value: 'mbway', label: 'MB WAY' },
+  { value: 'debito_direto', label: 'Débito Direto' },
+  { value: 'cartao', label: 'Cartão de Crédito' },
+  { value: 'paypal', label: 'PayPal' },
+  { value: 'stripe', label: 'Stripe' },
+  { value: 'outro', label: 'Outro' },
+];
 
 export function ProjectGestaoTab({ projectId, projectName, clientName, clientId, onNewMeeting }: Props) {
   const navigate = useNavigate();
@@ -86,8 +100,53 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     cancelada: { label: 'Cancelada', color: '#ef4444' },
   };
 
+  // ─── Client payment method ─────────────────────────────────────
+  const { data: clientData } = useQuery({
+    queryKey: ['client-payment-method', clientId],
+    queryFn: async () => {
+      if (!clientId) return null;
+      const { data } = await supabase.from('clients').select('payment_method').eq('id', clientId).maybeSingle();
+      return data;
+    },
+    enabled: !!clientId,
+  });
+
+  const qc = useQueryClient();
+  const updatePaymentMethod = useMutation({
+    mutationFn: async (method: string) => {
+      if (!clientId) return;
+      await supabase.from('clients').update({ payment_method: method }).eq('id', clientId);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['client-payment-method', clientId] });
+      toast.success('Forma de pagamento atualizada');
+    },
+  });
+
   return (
     <div className="space-y-6">
+      {/* Forma de Pagamento */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2"><CreditCard className="h-4 w-4" /> Forma de Pagamento</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Select
+            value={clientData?.payment_method || ''}
+            onValueChange={v => updatePaymentMethod.mutate(v)}
+          >
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder="Selecionar método..." />
+            </SelectTrigger>
+            <SelectContent>
+              {PAYMENT_METHODS.map(m => (
+                <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
       {/* Pagamentos */}
       <Card>
         <CardHeader className="pb-2">
