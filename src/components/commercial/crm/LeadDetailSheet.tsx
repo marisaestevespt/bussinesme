@@ -43,6 +43,11 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
   const [lostReasonDialog, setLostReasonDialog] = useState(false);
   const [lostReason, setLostReason] = useState('');
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+  const [meetingDialog, setMeetingDialog] = useState(false);
+  const [meetingDate, setMeetingDate] = useState<Date | undefined>(undefined);
+  const [meetingTime, setMeetingTime] = useState('10:00');
+  const [meetingTitle, setMeetingTitle] = useState('');
+  const qc = useQueryClient();
 
   const interactions = useLeadInteractions(lead?.id || null);
   const actions = useLeadActions(lead?.id || null);
