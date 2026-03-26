@@ -14,6 +14,7 @@ import { WeeklyAlignDetailSheet, type DetailField } from '@/components/executive
 import { WeeklyKpiCards, CapacityFinancialCards } from '@/components/executive/WeeklyAlignKpis';
 import { WeeklyStrategicMetrics } from '@/components/executive/WeeklyStrategicMetrics';
 import { MetasSection, AgendaSection, VendasSection, LeadsSection, ClientesSection, NpsSection, ExpiringContractsSection, OperacaoSection } from '@/components/executive/WeeklyAlignSections';
+import { RoutinesSection } from '@/components/executive/WeeklyAlignRoutines';
 import { ChevronLeft, ChevronRight, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { differenceInDays, parseISO } from 'date-fns';
@@ -128,6 +129,35 @@ export default function ExecutiveWeeklyAlign() {
     queryKey: ['wa-tasks-week', weekStartStr],
     queryFn: async () => {
       const { data } = await supabase.from('tasks').select('*').gte('deadline', weekStartStr).lte('deadline', weekEndStr).order('deadline');
+      return data || [];
+    },
+  });
+
+  // Routine tasks for this week and previous week
+  const routineTasksWeek = useQuery({
+    queryKey: ['wa-routine-tasks-week', weekStartStr, weekEndStr],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tasks')
+        .select('*, profiles:assigned_to(full_name), planning_routines:routine_id(title, role_function, recurrence_type)')
+        .eq('tag', 'Rotina')
+        .gte('deadline', weekStartStr)
+        .lte('deadline', weekEndStr)
+        .order('deadline');
+      return data || [];
+    },
+  });
+
+  const routineTasksPrevWeek = useQuery({
+    queryKey: ['wa-routine-tasks-prev-week', prevWeekStartStr, prevWeekEndStr],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tasks')
+        .select('*, profiles:assigned_to(full_name), planning_routines:routine_id(title, role_function, recurrence_type)')
+        .eq('tag', 'Rotina')
+        .gte('deadline', prevWeekStartStr)
+        .lte('deadline', prevWeekEndStr)
+        .order('deadline');
       return data || [];
     },
   });
