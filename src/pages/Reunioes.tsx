@@ -32,7 +32,7 @@ import { logAudit } from '@/lib/auditLog';
 // ─── Types ──────────────────────────────────────────────────────
 
 type MeetingStatus = 'por_confirmar' | 'marcada' | 'terminada';
-type MeetingType = 'recorrente' | 'projeto' | 'cliente';
+type MeetingType = 'recorrente' | 'projeto' | 'cliente' | 'diagnostico';
 
 const STATUSES: { value: MeetingStatus; label: string; color: string }[] = [
   { value: 'por_confirmar', label: 'Por confirmar', color: '#f59e0b' },
@@ -44,6 +44,7 @@ const MEETING_TYPES: { value: MeetingType; label: string; icon: React.ReactNode;
   { value: 'recorrente', label: 'Reunião Recorrente', icon: <Repeat className="h-5 w-5" />, description: 'Reunião periódica interna ou com cliente' },
   { value: 'projeto', label: 'Reunião de Projeto', icon: <FolderOpen className="h-5 w-5" />, description: 'Reunião associada a um projeto específico' },
   { value: 'cliente', label: 'Reunião com Cliente', icon: <UserCheck className="h-5 w-5" />, description: 'Reunião com cliente associado' },
+  { value: 'diagnostico', label: 'Reunião de Diagnóstico', icon: <Users className="h-5 w-5" />, description: 'Reunião de diagnóstico com lead ou potencial cliente' },
 ];
 
 interface MeetingRow {
@@ -148,8 +149,8 @@ function StatusBadge({ status }: { status: MeetingStatus }) {
 }
 
 function MeetingTypeBadge({ type }: { type: MeetingType }) {
-  const colors: Record<MeetingType, string> = { recorrente: '#6366f1', projeto: '#3b82f6', cliente: '#10b981' };
-  const labels: Record<MeetingType, string> = { recorrente: 'Recorrente', projeto: 'Projeto', cliente: 'Cliente' };
+  const colors: Record<MeetingType, string> = { recorrente: '#6366f1', projeto: '#3b82f6', cliente: '#10b981', diagnostico: '#f59e0b' };
+  const labels: Record<MeetingType, string> = { recorrente: 'Recorrente', projeto: 'Projeto', cliente: 'Cliente', diagnostico: 'Diagnóstico' };
   const c = colors[type] || '#6b7280';
   return (
     <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ backgroundColor: `${c}20`, color: c }}>

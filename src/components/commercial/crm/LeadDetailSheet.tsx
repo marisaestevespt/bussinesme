@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Plus, Trash2, GitBranch, UserPlus } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2, GitBranch, UserPlus, Video } from 'lucide-react';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { CRM_STATUSES, CRM_SOURCES, INTERACTION_TYPES, statusLabel, getFollowUpState } from '@/hooks/useCrmData';
@@ -43,6 +43,11 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
   const [lostReasonDialog, setLostReasonDialog] = useState(false);
   const [lostReason, setLostReason] = useState('');
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+  const [meetingDialog, setMeetingDialog] = useState(false);
+  const [meetingDate, setMeetingDate] = useState<Date | undefined>(undefined);
+  const [meetingTime, setMeetingTime] = useState('10:00');
+  const [meetingTitle, setMeetingTitle] = useState('');
+  const qc = useQueryClient();
 
   const interactions = useLeadInteractions(lead?.id || null);
   const actions = useLeadActions(lead?.id || null);
@@ -385,6 +390,13 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
               </Button>
             )}
 
+            {/* Schedule meeting button - for saved leads */}
+            {lead?.id && (
+              <Button variant="outline" className="w-full" onClick={() => { setMeetingTitle(`Diagnóstico — ${form.name || 'Lead'}`); setMeetingDate(undefined); setMeetingTime('10:00'); setMeetingDialog(true); }}>
+                <Video className="h-4 w-4 mr-2" /> Agendar Reunião
+              </Button>
+            )}
+
             {/* Interactions - only for saved leads */}
             {lead?.id && (
               <>
@@ -489,6 +501,67 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
               <Button variant="outline" className="flex-1" onClick={() => { setLostReasonDialog(false); setPendingStatus(null); }}>Cancelar</Button>
               <Button className="flex-1" onClick={handleLostReasonConfirm}>Confirmar</Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Meeting Dialog */}
+      <Dialog open={meetingDialog} onOpenChange={setMeetingDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Agendar Reunião</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Título</Label>
+              <Input value={meetingTitle} onChange={e => setMeetingTitle(e.target.value)} />
+            </div>
+            <div>
+              <Label>Data</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !meetingDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {meetingDate ? format(meetingDate, 'dd/MM/yyyy') : 'Selecionar data'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={meetingDate} onSelect={setMeetingDate} className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <Label>Hora</Label>
+              <Input type="time" value={meetingTime} onChange={e => setMeetingTime(e.target.value)} />
+            </div>
+            <Button className="w-full" disabled={!meetingDate || !meetingTitle.trim()} onClick={async () => {
+              if (!meetingDate || !meetingTitle.trim()) return;
+              const [h, m] = meetingTime.split(':').map(Number);
+              const dt = new Date(meetingDate);
+              dt.setHours(h || 10, m || 0, 0, 0);
+              const { error } = await supabase.from('meetings').insert({
+                title: meetingTitle.trim(),
+                date_time: dt.toISOString(),
+                status: 'por_confirmar',
+                meeting_type: 'diagnostico' as any,
+                client_name: form.name || null,
+                department: 'comercial',
+              });
+              if (error) { toast.error('Erro ao criar reunião'); return; }
+              // Also register interaction
+              if (lead?.id) {
+                await supabase.from('crm_interactions').insert({
+                  lead_id: lead.id,
+                  interaction_type: 'reuniao',
+                  interaction_date: format(meetingDate, 'yyyy-MM-dd'),
+                  notes: `Reunião de diagnóstico agendada: ${meetingTitle}`,
+                });
+              }
+              qc.invalidateQueries({ queryKey: ['meetings'] });
+              qc.invalidateQueries({ queryKey: ['crm-interactions'] });
+              setMeetingDialog(false);
+              toast.success('Reunião agendada');
+            }}>
+              Agendar
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
