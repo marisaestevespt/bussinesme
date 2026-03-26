@@ -26,6 +26,7 @@ interface Props {
 
 export function ClientPortalSection({ clientId, clientName, currentProduct }: Props) {
   const { products } = useProducts();
+  const queryClient = useQueryClient();
   const productList = products.data || [];
   const product = productList.find(p => p.name === currentProduct);
   const portalType = getPortalTypeFromProduct(product?.product_type || null);
