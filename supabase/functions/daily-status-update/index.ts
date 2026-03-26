@@ -681,6 +681,42 @@ Deno.serve(async (req) => {
       results.push(`Overdue task alerts: ${taskAlerts}`);
     }
 
+    // ── CRM Follow-up overdue alerts ──
+    {
+      const { data: overdueLeads } = await supabase
+        .from("crm_leads")
+        .select("id, name, next_followup, responsible_id")
+        .lt("next_followup", todayStr)
+        .not("status", "in", '("ganho","perdido")');
+
+      let followUpAlerts = 0;
+      if (overdueLeads && overdueLeads.length > 0) {
+        for (const lead of overdueLeads) {
+          const recipients = [ownerRole?.user_id, lead.responsible_id].filter(Boolean);
+          for (const uid of new Set(recipients)) {
+            if (!uid) continue;
+            const dedupKey = `followup-overdue-${lead.id}-${todayStr}`;
+            const { count: existing } = await supabase
+              .from("notifications")
+              .select("id", { count: "exact", head: true })
+              .eq("user_id", uid)
+              .eq("message", dedupKey);
+            if ((existing || 0) > 0) continue;
+
+            await supabase.from("notifications").insert({
+              user_id: uid,
+              type: "crm",
+              title: `📞 Follow-up em atraso: ${lead.name}`,
+              message: dedupKey,
+              link: "/comercial/crm",
+            });
+            followUpAlerts++;
+          }
+        }
+      }
+      results.push(`CRM follow-up alerts: ${followUpAlerts}`);
+    }
+
     // ── Routine missed alerts ──
     {
       const { data: missedRoutineTasks } = await supabase
