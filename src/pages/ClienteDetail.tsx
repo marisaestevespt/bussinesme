@@ -168,9 +168,9 @@ export default function ClienteDetailPage() {
     const { data: prod } = await supabase.from('products').select('id').eq('name', productName).maybeSingle();
     if (!prod) return;
     const { data: npsConfig } = await supabase.from('product_nps_config' as any).select('cadence_days').eq('product_id', prod.id).maybeSingle();
-    if (!npsConfig?.cadence_days) return;
+    const cadence = (npsConfig as any)?.cadence_days;
+    if (!cadence) return;
     const start = parseISO(startDate);
-    const cadence = npsConfig.cadence_days;
     const records = [];
     for (let i = 1; i <= Math.floor(730 / cadence); i++) {
       records.push({
