@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { InvoiceUpload, type DocEntry } from './InvoiceUpload';
 import { CategorySelect } from './CategorySelect';
+import { SupplierSelect } from './SupplierSelect';
 import type { Expense } from '@/hooks/useFinancialData';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 
@@ -60,6 +61,7 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
       source_type: expense.source_type,
       source_id: expense.source_id,
       department: expense.department || '',
+      supplier_id: expense.supplier_id || null,
     });
   }
 
@@ -100,6 +102,7 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
       expense_quarter: quarter,
       expense_year: year,
       department: form.department || null,
+      supplier_id: form.supplier_id || null,
     } as any);
     toast.success('Despesa atualizada');
     setSaving(false);
@@ -218,6 +221,15 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
               }
             </p>
           )}
+
+          {/* Supplier */}
+          <div>
+            <Label>Fornecedor <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+            <SupplierSelect
+              value={form.supplier_id || null}
+              onValueChange={v => setForm((f: any) => ({ ...f, supplier_id: v }))}
+            />
+          </div>
 
           {/* Location */}
           <div>
