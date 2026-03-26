@@ -34,6 +34,7 @@ const SecretariaProjetos = lazy(() => import('@/components/secretaria/Secretaria
 const SecretariaReunioes = lazy(() => import('@/components/secretaria/SecretariaReunioes'));
 const SecretariaProdutividade = lazy(() => import('@/components/secretaria/SecretariaProdutividade'));
 const SecretariaContrato = lazy(() => import('@/components/secretaria/SecretariaContrato'));
+const SecretariaConteudos = lazy(() => import('@/components/secretaria/SecretariaConteudos'));
 
 const today = startOfDay(new Date());
 
@@ -268,6 +269,10 @@ export default function SecretariaPage() {
                 </CardContent>
               </Card>
             )}
+
+            <Suspense fallback={null}>
+              <SecretariaConteudos />
+            </Suspense>
 
             <DashboardPersonalWidgets userId={user?.id} />
 

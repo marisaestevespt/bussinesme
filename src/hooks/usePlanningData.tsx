@@ -477,7 +477,7 @@ export function usePlanningData(year = currentYear) {
     queryFn: async () => {
       const startDate = `${year}-01-01`;
       const endDate = `${year}-12-31`;
-      const { data } = await supabase.from('financial_expenses').select('total_amount,category,expense_date').gte('expense_date', startDate).lte('expense_date', endDate);
+      const { data } = await supabase.from('financial_expenses').select('total_with_vat,category,expense_date').gte('expense_date', startDate).lte('expense_date', endDate);
       return data || [];
     },
     enabled: needsAutoCalc,
@@ -558,7 +558,7 @@ export function usePlanningData(year = currentYear) {
     if (source === 'bd_despesas') {
       let rows = autoExpensesRaw.data || [];
       if (sf.category) rows = rows.filter((r: any) => r.category === sf.category);
-      return rows.reduce((s: number, r: any) => s + Number(r.total_amount || 0), 0);
+      return rows.reduce((s: number, r: any) => s + Number(r.total_with_vat || 0), 0);
     }
     if (source === 'bd_projetos') {
       let rows = autoProjectsRaw.data || [];
@@ -677,7 +677,7 @@ export function usePlanningData(year = currentYear) {
     if (source === 'bd_despesas') {
       let rows = autoExpensesRaw.data || [];
       if (sf.category) rows = rows.filter((r: any) => r.category === sf.category);
-      return filterByMonth(rows, month, 'expense_date').reduce((s: number, r: any) => s + Number(r.total_amount || 0), 0);
+      return filterByMonth(rows, month, 'expense_date').reduce((s: number, r: any) => s + Number(r.total_with_vat || 0), 0);
     }
     if (source === 'bd_projetos') {
       let rows = autoProjectsRaw.data || [];

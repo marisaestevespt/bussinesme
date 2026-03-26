@@ -32,6 +32,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { ClientCustomerSuccess } from '@/components/client/ClientCustomerSuccess';
 import { BackNavigation } from '@/components/BackNavigation';
 import { ClientFeedbackSection } from '@/components/client/ClientFeedbackSection';
+import { CustomFieldsSection } from '@/components/CustomFieldsSection';
 
 // ─── Meetings query ─────────────────────────────────────────────
 function useFilteredMeetings(clientId: string | undefined) {
@@ -608,6 +609,42 @@ export default function ClienteDetailPage() {
             <Textarea value={form.observations || ''} onChange={e => update('observations', e.target.value)} rows={3} placeholder="Notas sobre este cliente..." />
           </CardContent>
         </Card>
+
+        {/* Custom Fields */}
+        {!isNew && id && (
+          <CustomFieldsSection entityType="client" entityId={id} showConfig={true} />
+        )}
+
+        {/* Final Settlement (offboarding/terminado) */}
+        {(form.status === 'em_offboarding' || form.status === 'terminado') && !isNew && (
+          <Card>
+            <CardHeader className="pb-2"><CardTitle className="text-sm">Liquidação Final</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Valor de Liquidação (€)</Label>
+                  <Input type="number" step="0.01" value={(form as any).final_settlement_amount || ''} onChange={e => update('final_settlement_amount', parseFloat(e.target.value) || 0)} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Estado</Label>
+                  <Select value={(form as any).final_settlement_status || 'pendente'} onValueChange={v => update('final_settlement_status', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pendente">Pendente</SelectItem>
+                      <SelectItem value="parcial">Parcial</SelectItem>
+                      <SelectItem value="liquidado">Liquidado</SelectItem>
+                      <SelectItem value="perdido">Perdido</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Notas</Label>
+                  <Input value={(form as any).final_settlement_notes || ''} onChange={e => update('final_settlement_notes', e.target.value)} placeholder="Notas sobre a liquidação..." />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Tabs */}
         <Tabs defaultValue="jornada" className="w-full">

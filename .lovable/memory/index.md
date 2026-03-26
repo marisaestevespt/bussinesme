@@ -4,12 +4,13 @@ Updated: now
 Design system: white-label HQ business management app. Matte ceramic surfaces, Geist/Inter defaults, HSL CSS variables injected from business_settings table.
 
 ## Schema
-- business_settings: stores theme (colors HSL, fonts, logo_url, business_name) + fiscal settings (tax_iva_regime, tax_irs_regime, activity_start_date, ss_exempt, iva_exempt)
+- business_settings: stores theme (colors HSL, fonts, logo_url, business_name)
 - user_roles: links users to app_role enum (owner/admin/member)
 - custom_roles: Owner-defined named roles
 - role_permissions: maps custom_role to module_key + can_view
 - members: links user to custom_role
 - profiles: auto-created on signup via trigger
+- custom_fields / custom_field_values: extensible fields for any entity
 
 ## Auth Flow
 1. No user → AuthPage (login/signup)
@@ -35,7 +36,7 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 - [Color tokens](mem://design/color-tokens) — Full semantic palette, surfaces, opacity system
 - [Cron jobs](mem://features/cron-jobs.md) — Backend cron jobs for auto-status updates, notifications, and data sync
 - [Client portal](mem://features/client-portal.md) — Client Portal system: public pages via /portal/[token] with OTP auth
-- [Fiscal management](mem://features/fiscal-management.md) — Fiscal settings, deadline tracking, task auto-creation, accountant export
+- [Fiscal management](mem://features/fiscal-management.md) — Fiscal deadlines, contabilidade export, custom fields, settlement
 - [Meeting types](mem://features/meeting-types.md) — Meeting type enum and distinct layouts per type
 - [New client flow](mem://features/new-client-flow.md) — Lead conversion auto-creates project, portal with FAQs
 - [Onboarding system](mem://features/onboarding-system.md) — Onboarding tour and setup wizard

@@ -360,9 +360,36 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                 <Label>Notas FU</Label>
                 <Input value={form.followup_notes || ''} onChange={e => set({ followup_notes: e.target.value })} />
               </div>
-              <div className="col-span-2">
-                <Label>Documentos (link)</Label>
-                <Input value={form.documents || ''} onChange={e => set({ documents: e.target.value })} placeholder="https://..." />
+              <div className="col-span-2 space-y-2">
+                <Label>Documentos</Label>
+                <Input value={form.documents || ''} onChange={e => set({ documents: e.target.value })} placeholder="Link para documentos (https://...)" />
+                {lead?.id && (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      className="text-xs"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file || !lead?.id) return;
+                        const path = `crm/${lead.id}/${Date.now()}_${file.name}`;
+                        const { error: uploadErr } = await supabase.storage.from('commercial-files').upload(path, file);
+                        if (uploadErr) { toast.error('Erro ao fazer upload'); return; }
+                        const { data: urlData } = supabase.storage.from('commercial-files').getPublicUrl(path);
+                        const currentDocs = form.documents || '';
+                        const newDocs = currentDocs ? `${currentDocs}\n${urlData.publicUrl}` : urlData.publicUrl;
+                        set({ documents: newDocs });
+                        toast.success('Ficheiro carregado!');
+                      }}
+                    />
+                  </div>
+                )}
+                {form.documents && form.documents.includes('\n') && (
+                  <div className="space-y-1">
+                    {form.documents.split('\n').filter(Boolean).map((url: string, i: number) => (
+                      <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline block truncate">{url.split('/').pop()}</a>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
