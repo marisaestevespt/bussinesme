@@ -390,6 +390,13 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
               </Button>
             )}
 
+            {/* Schedule meeting button - for saved leads */}
+            {lead?.id && (
+              <Button variant="outline" className="w-full" onClick={() => { setMeetingTitle(`Diagnóstico — ${form.name || 'Lead'}`); setMeetingDate(undefined); setMeetingTime('10:00'); setMeetingDialog(true); }}>
+                <Video className="h-4 w-4 mr-2" /> Agendar Reunião
+              </Button>
+            )}
+
             {/* Interactions - only for saved leads */}
             {lead?.id && (
               <>
