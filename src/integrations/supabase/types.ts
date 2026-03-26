@@ -3096,7 +3096,11 @@ export type Database = {
           expense_quarter: number | null
           expense_year: number | null
           id: string
+          is_recurring: boolean | null
           location: string
+          parent_expense_id: string | null
+          recurrence_day: number | null
+          recurrence_end_date: string | null
           source_id: string | null
           source_type: string | null
           status: string
@@ -3119,7 +3123,11 @@ export type Database = {
           expense_quarter?: number | null
           expense_year?: number | null
           id?: string
+          is_recurring?: boolean | null
           location?: string
+          parent_expense_id?: string | null
+          recurrence_day?: number | null
+          recurrence_end_date?: string | null
           source_id?: string | null
           source_type?: string | null
           status?: string
@@ -3142,7 +3150,11 @@ export type Database = {
           expense_quarter?: number | null
           expense_year?: number | null
           id?: string
+          is_recurring?: boolean | null
           location?: string
+          parent_expense_id?: string | null
+          recurrence_day?: number | null
+          recurrence_end_date?: string | null
           source_id?: string | null
           source_type?: string | null
           status?: string
@@ -3152,6 +3164,13 @@ export type Database = {
           vat_rate?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "financial_expenses_parent_expense_id_fkey"
+            columns: ["parent_expense_id"]
+            isOneToOne: false
+            referencedRelation: "financial_expenses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "financial_expenses_supplier_id_fkey"
             columns: ["supplier_id"]
@@ -7028,11 +7047,13 @@ export type Database = {
           category: string | null
           created_at: string | null
           email: string | null
+          iban: string | null
           id: string
           is_active: boolean | null
           name: string
           nif: string | null
           notes: string | null
+          payment_method: string | null
           phone: string | null
           updated_at: string | null
           website: string | null
@@ -7042,11 +7063,13 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           email?: string | null
+          iban?: string | null
           id?: string
           is_active?: boolean | null
           name: string
           nif?: string | null
           notes?: string | null
+          payment_method?: string | null
           phone?: string | null
           updated_at?: string | null
           website?: string | null
@@ -7056,11 +7079,13 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           email?: string | null
+          iban?: string | null
           id?: string
           is_active?: boolean | null
           name?: string
           nif?: string | null
           notes?: string | null
+          payment_method?: string | null
           phone?: string | null
           updated_at?: string | null
           website?: string | null

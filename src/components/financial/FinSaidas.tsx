@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Plus, CalendarIcon, Trash2 } from 'lucide-react';
+import { Plus, CalendarIcon, Trash2, RefreshCw } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,7 @@ import { type Expense } from '@/hooks/useFinancialData';
 import { InvoiceUpload, type DocEntry } from './InvoiceUpload';
 import { CategorySelect } from './CategorySelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
+import { SupplierSelect } from './SupplierSelect';
 
 const EXP_STATUS = [
   { value: 'por_pagar', label: 'Por Pagar' },
@@ -60,7 +61,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
   const [expForm, setExpForm] = useState<any>({});
 
   const openNewExpense = () => {
-    setExpForm({ status: 'por_pagar', category: 'outro', vat_rate: 23, location: 'portugal', base_value: '', description: '', includes_vat: false });
+    setExpForm({ status: 'por_pagar', category: 'outro', vat_rate: 23, location: 'portugal', base_value: '', description: '', includes_vat: false, supplier_id: null, is_recurring: false, recurrence_day: 1 });
     setExpOpen(true);
   };
 
@@ -94,6 +95,10 @@ export function FinSaidas({ fin, currentYear }: Props) {
       expense_month: month,
       expense_quarter: quarter,
       expense_year: year,
+      supplier_id: expForm.supplier_id || null,
+      is_recurring: expForm.is_recurring || false,
+      recurrence_day: expForm.is_recurring ? (expForm.recurrence_day || 1) : null,
+      recurrence_end_date: expForm.is_recurring && expForm.recurrence_end_date ? (typeof expForm.recurrence_end_date === 'string' ? expForm.recurrence_end_date : format(expForm.recurrence_end_date, 'yyyy-MM-dd')) : null,
     });
     setExpOpen(false);
     toast.success('Despesa guardada');
@@ -140,7 +145,10 @@ export function FinSaidas({ fin, currentYear }: Props) {
                     <TableCell><Badge variant="outline" className={e.status === 'pago' ? 'bg-success/10 text-success' : e.status === 'cancelado' ? 'bg-muted text-muted-foreground' : 'bg-warning/10 text-warning'}>{EXP_STATUS.find(s => s.value === e.status)?.label || e.status}</Badge></TableCell>
                     <TableCell className="font-mono text-xs">{e.expense_id}</TableCell>
                     <TableCell>{e.expense_date || '—'}</TableCell>
-                    <TableCell className="truncate max-w-[200px]">{e.description || '—'}</TableCell>
+                    <TableCell className="truncate max-w-[200px]">
+                      {e.description || '—'}
+                      {(e as any).is_recurring && <RefreshCw className="inline h-3 w-3 ml-1 text-muted-foreground" />}
+                    </TableCell>
                     <TableCell>{getCategoryLabel('expense', e.category)}</TableCell>
                     <TableCell className="text-right">{fmt(e.base_value)}</TableCell>
                     <TableCell>{e.vat_rate}%</TableCell>
@@ -181,6 +189,9 @@ export function FinSaidas({ fin, currentYear }: Props) {
               </Popover>
             </div>
             <div><Label>Descrição</Label><Input value={expForm.description || ''} onChange={e => setExpForm((f: any) => ({ ...f, description: e.target.value }))} /></div>
+            <div><Label>Fornecedor</Label>
+              <SupplierSelect value={expForm.supplier_id || null} onValueChange={v => setExpForm((f: any) => ({ ...f, supplier_id: v }))} />
+            </div>
             <div><Label>Categoria</Label>
               <CategorySelect type="expense" value={expForm.category || 'outro'} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))} />
             </div>
@@ -210,6 +221,28 @@ export function FinSaidas({ fin, currentYear }: Props) {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
               </Select>
+            </div>
+            {/* Recurring */}
+            <div className="rounded-lg border border-border p-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4 text-muted-foreground" />
+                  <Label className="text-sm font-normal">Despesa recorrente</Label>
+                </div>
+                <Switch checked={expForm.is_recurring || false} onCheckedChange={v => setExpForm((f: any) => ({ ...f, is_recurring: v }))} />
+              </div>
+              {expForm.is_recurring && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Dia do mês</Label>
+                    <Input type="number" min={1} max={28} value={expForm.recurrence_day || 1} onChange={e => setExpForm((f: any) => ({ ...f, recurrence_day: parseInt(e.target.value) || 1 }))} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Até (opcional)</Label>
+                    <Input type="date" value={expForm.recurrence_end_date || ''} onChange={e => setExpForm((f: any) => ({ ...f, recurrence_end_date: e.target.value }))} />
+                  </div>
+                </div>
+              )}
             </div>
             <InvoiceUpload
               documents={Array.isArray(expForm.documents) ? expForm.documents : []}
