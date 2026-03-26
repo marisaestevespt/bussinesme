@@ -104,6 +104,7 @@ export default function TarefasPage() {
   const [assignedTo, setAssignedTo] = useState('');
   const [department, setDepartment] = useState('');
   const [projectId, setProjectId] = useState('');
+  const [clientId, setClientId] = useState('');
   const [notes, setNotes] = useState('');
   const [parentTaskId, setParentTaskId] = useState('');
   const [dependsOnIds, setDependsOnIds] = useState<string[]>([]);
@@ -145,9 +146,17 @@ export default function TarefasPage() {
   });
 
   const { data: projects = [] } = useQuery({
-    queryKey: ['projects-list'],
+    queryKey: ['projects-list-with-client'],
     queryFn: async () => {
-      const { data } = await supabase.from('projects').select('id, name');
+      const { data } = await supabase.from('projects').select('id, name, client_id, client_name');
+      return data || [];
+    },
+  });
+
+  const { data: clients = [] } = useQuery({
+    queryKey: ['clients-list-simple'],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients').select('id, full_name').order('full_name');
       return data || [];
     },
   });
@@ -249,7 +258,7 @@ export default function TarefasPage() {
   function openNew() {
     setEditingTask(null);
     setName(''); setStatus('por_comecar'); setPriority('alta');
-    setDeadline(undefined); setAssignedTo(''); setDepartment(''); setProjectId(''); setNotes('');
+    setDeadline(undefined); setAssignedTo(''); setDepartment(''); setProjectId(''); setClientId(''); setNotes('');
     setParentTaskId(''); setDependsOnIds([]); setIsSubtask(false); setRecurrenceType(''); setRecurrenceEnd(undefined);
     setEstimatedTime(''); setSuggestion(null); setSuggestionDismissed(false);
     setDialogOpen(true);
@@ -260,7 +269,7 @@ export default function TarefasPage() {
     setName(task.name); setStatus(task.status); setPriority(task.priority);
     setDeadline(task.deadline ? parseISO(task.deadline) : undefined);
     setAssignedTo(task.assigned_to || ''); setDepartment(task.department || '');
-    setProjectId(task.project_id || ''); setNotes(task.notes || '');
+    setProjectId(task.project_id || ''); setClientId(task.client_id || ''); setNotes(task.notes || '');
     setParentTaskId(task.parent_task_id || '');
     setIsSubtask(!!task.parent_task_id);
     setRecurrenceType(task.recurrence_type || '');
@@ -425,6 +434,7 @@ export default function TarefasPage() {
       original_assignee: originalAssignee || (editingTask?.original_assignee || null),
       department: department || null,
       project_id: projectId && projectId !== 'none' ? projectId : null,
+      client_id: clientId && clientId !== 'none' ? clientId : null,
       parent_task_id: parentTaskId && parentTaskId !== 'none' ? parentTaskId : null,
       notes: notes || null,
       recurrence_type: recurrenceType || null,
@@ -816,12 +826,32 @@ export default function TarefasPage() {
 
             <div>
               <Label>Projeto associado</Label>
-              <Select value={projectId} onValueChange={setProjectId}>
+              <Select value={projectId} onValueChange={(v) => {
+                setProjectId(v);
+                // Auto-fill client from project
+                if (v && v !== 'none') {
+                  const proj = projects.find(p => p.id === v);
+                  if (proj?.client_id) setClientId(proj.client_id);
+                }
+              }}>
                 <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Nenhum</SelectItem>
                   {projects.map(p => (
                     <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Cliente associado</Label>
+              <Select value={clientId || 'none'} onValueChange={(v) => setClientId(v === 'none' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum</SelectItem>
+                  {clients.map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
