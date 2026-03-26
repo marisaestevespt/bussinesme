@@ -520,7 +520,7 @@ export default function ClienteDetailPage() {
                 <RefreshCw className="h-4 w-4 mr-1" />Renovar / Novo Ciclo
               </Button>
             )}
-            <Button size="sm" onClick={save}><Save className="h-4 w-4 mr-1" />Guardar</Button>
+            <Button size="sm" onClick={() => save()}><Save className="h-4 w-4 mr-1" />Guardar</Button>
           </div>
         </div>
 
