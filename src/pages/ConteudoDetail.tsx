@@ -118,6 +118,44 @@ export default function ConteudoDetailPage() {
     setSelectedChannels(itemChannelLinks.map(l => l.channel_id));
   }, [itemChannelLinks]);
 
+  const getStatusLabel = (status: string) => {
+    const opt = STATUS_OPTIONS.find(s => s.value === status);
+    return opt?.label || status;
+  };
+
+  const syncContentTask = async (contentId: string, contentTitle: string, status: string, assignedTo: string | null) => {
+    // Find existing active task for this content
+    const { data: existingTasks } = await supabase
+      .from('tasks')
+      .select('id, assigned_to, status')
+      .eq('content_id', contentId)
+      .neq('status', 'done');
+
+    const taskName = `[Conteúdo] ${contentTitle} — ${getStatusLabel(status)}`;
+
+    if (existingTasks && existingTasks.length > 0) {
+      // Update existing task: reassign + update name with current phase
+      const task = existingTasks[0];
+      await supabase.from('tasks').update({
+        name: taskName,
+        assigned_to: assignedTo || task.assigned_to,
+        tag: 'Conteúdo',
+        updated_at: new Date().toISOString(),
+      } as any).eq('id', task.id);
+    } else if (assignedTo) {
+      // Create new task linked to content
+      await supabase.from('tasks').insert({
+        name: taskName,
+        assigned_to: assignedTo,
+        content_id: contentId,
+        tag: 'Conteúdo',
+        department: 'marketing',
+        status: 'por_comecar',
+        priority: 'media',
+      } as any);
+    }
+  };
+
   const handleSave = async () => {
     if (!id) return;
     setSaving(true);
@@ -138,10 +176,30 @@ export default function ConteudoDetailPage() {
         selectedChannels.map(chId => ({ content_id: id, channel_id: chId })) as any
       );
     }
+
+    // Sync content task (create or update)
+    if (form.status !== 'publicado') {
+      await syncContentTask(id, form.title, form.status, form.assigned_to || null);
+    } else {
+      // Mark task as done when content is published
+      const { data: activeTasks } = await supabase
+        .from('tasks')
+        .select('id')
+        .eq('content_id', id)
+        .neq('status', 'done');
+      if (activeTasks?.length) {
+        await supabase.from('tasks').update({
+          status: 'done',
+          updated_at: new Date().toISOString(),
+        }).eq('id', activeTasks[0].id);
+      }
+    }
+
     queryClient.invalidateQueries({ queryKey: ['content-item', id] });
     queryClient.invalidateQueries({ queryKey: ['content-item-channels', id] });
     queryClient.invalidateQueries({ queryKey: ['content-items'] });
     queryClient.invalidateQueries({ queryKey: ['content-channels'] });
+    queryClient.invalidateQueries({ queryKey: ['my-tasks'] });
     toast.success('Guardado');
     setSaving(false);
   };
