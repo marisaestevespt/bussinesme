@@ -97,13 +97,20 @@ export default function ClienteDetailPage() {
 
   const update = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
 
-  const save = async () => {
-    if (!form.full_name?.trim()) { toast.error('Nome é obrigatório'); return; }
+  const save = async (): Promise<string | null> => {
+    if (!form.full_name?.trim()) { toast.error('Nome é obrigatório'); return null; }
     try {
-      await upsertClient.mutateAsync(form as any);
-      toast.success('Cliente guardado');
-      if (isNew) navigate('/hub/clientes');
-    } catch {}
+      if (isNew) {
+        const { data, error } = await supabase.from('clients').insert({ full_name: form.full_name, ...form } as any).select('id').single();
+        if (error) throw error;
+        toast.success('Cliente guardado');
+        return data.id;
+      } else {
+        await upsertClient.mutateAsync(form as any);
+        toast.success('Cliente guardado');
+        return id || null;
+      }
+    } catch { return null; }
   };
 
   const handleDuplicate = async () => {
