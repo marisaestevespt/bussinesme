@@ -102,7 +102,7 @@ export default function ClienteDetailPage() {
 
   const update = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
 
-  const save = async (): Promise<string | null> => {
+  const save = async (skipOffboardingCheck = false): Promise<string | null> => {
     if (!form.full_name?.trim()) { toast.error('Nome é obrigatório'); return null; }
     try {
       const prevStatus = client?.status;
@@ -112,7 +112,6 @@ export default function ClienteDetailPage() {
         const { data, error } = await supabase.from('clients').insert({ full_name: form.full_name, ...form } as any).select('id').single();
         if (error) throw error;
         toast.success('Cliente guardado');
-        // Auto-generate NPS if product exists
         if (form.current_product && form.start_date) {
           autoGenerateNps(data.id, form.current_product, form.start_date);
         }
@@ -120,9 +119,15 @@ export default function ClienteDetailPage() {
       } else {
         // Handle status transitions
         if (prevStatus !== newStatus && id) {
-          // em_offboarding → seed offboarding checklist from product template
-          if (newStatus === 'em_offboarding') {
-            await seedOffboardingChecklist(id, form.current_product || null);
+          // em_offboarding → show popup first
+          if (newStatus === 'em_offboarding' && !skipOffboardingCheck) {
+            // Check pending payments
+            const unpaid = clientSales.filter(s => s.status !== 'pago' && s.status !== 'cancelada');
+            setPendingPaymentsCount(unpaid.length);
+            setPendingPaymentsTotal(unpaid.reduce((sum, s) => sum + Number(s.base_value || 0), 0));
+            setOffboardingNps(true);
+            setOffboardingDialogOpen(true);
+            return null; // Don't save yet — wait for dialog confirmation
           }
           // terminado → set portal deactivation in 30 days
           if (newStatus === 'terminado') {
@@ -136,6 +141,62 @@ export default function ClienteDetailPage() {
         return id || null;
       }
     } catch { return null; }
+  };
+
+  const confirmOffboarding = async () => {
+    if (!id) return;
+    // 1. Seed offboarding checklist from product template
+    await seedOffboardingChecklist(id, form.current_product || null);
+
+    // 2. Add pending payments item to checklist if any
+    if (pendingPaymentsCount > 0) {
+      const { data: existing } = await supabase.from('client_offboarding')
+        .select('id').eq('client_id', id).limit(100);
+      const maxOrder = existing?.length || 0;
+      await supabase.from('client_offboarding').insert({
+        client_id: id,
+        activity: `⚠️ Verificar ${pendingPaymentsCount} pagamento(s) pendente(s) — ${pendingPaymentsTotal.toFixed(2)}€`,
+        phase: 'Financeiro',
+        responsible: null,
+        rule: 'Verificar antes de concluir offboarding',
+        sort_order: 0,
+        completed: false,
+      });
+      queryClient.invalidateQueries({ queryKey: ['client_offboarding', id] });
+    }
+
+    // 3. Schedule final NPS if requested
+    if (offboardingNps && form.current_product) {
+      const { data: prod } = await supabase.from('products').select('id').eq('name', form.current_product).maybeSingle();
+      if (prod) {
+        await supabase.from('client_nps_records').insert({
+          client_id: id,
+          product_id: prod.id,
+          expected_date: format(new Date(), 'yyyy-MM-dd'),
+          status: 'por_fazer',
+          is_manual: false,
+          notes: 'NPS Final — Offboarding',
+        } as any);
+        queryClient.invalidateQueries({ queryKey: ['client_nps_records'] });
+        toast.success('NPS final agendado');
+      }
+    }
+
+    // 4. Add history entry
+    await supabase.from('client_history').insert({
+      client_id: id,
+      entry_date: format(new Date(), 'yyyy-MM-dd'),
+      milestone: 'Início de offboarding',
+      observations: pendingPaymentsCount > 0
+        ? `${pendingPaymentsCount} pagamento(s) pendente(s): ${pendingPaymentsTotal.toFixed(2)}€`
+        : null,
+    });
+    queryClient.invalidateQueries({ queryKey: ['client_history', id] });
+
+    setOffboardingDialogOpen(false);
+
+    // 5. Now save with skip flag
+    await save(true);
   };
 
   const seedOffboardingChecklist = async (clientId: string, productName: string | null) => {
