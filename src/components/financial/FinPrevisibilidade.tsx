@@ -3,6 +3,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { parseISO } from 'date-fns';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+import { computeFiscalDeadlines, type FiscalConfig } from '@/lib/fiscalDeadlines';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 
 const FULL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -12,6 +14,7 @@ type Sale = {
   sale_month: number | null;
   sale_year: number | null;
   invoice_total: number;
+  base_value: number;
 };
 
 interface Props {
@@ -21,19 +24,67 @@ interface Props {
 }
 
 export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
+  const { settings } = useBusinessSettings();
   const subscriptions = fin.subscriptions.data || [];
   const payrollData = fin.payroll.data || [];
   const contractorsData = fin.contractors.data || [];
+  const expenses = fin.expenses.data || [];
 
   const activeSubs = subscriptions.filter(s => s.status === 'ativo');
   const totalMonthly = activeSubs.reduce((s, sub) => s + sub.monthly_equivalent, 0);
 
-  // Calculate average monthly revenue from past months of the current year
+  const s = settings as any;
+  const fiscalConfig: FiscalConfig = {
+    taxIvaRegime: s?.tax_iva_regime || 'trimestral',
+    taxIrsRegime: s?.tax_irs_regime || 'simplificado',
+    ssExempt: s?.ss_exempt ?? false,
+    ivaExempt: s?.iva_exempt ?? false,
+  };
+  const isContabOrganizada = fiscalConfig.taxIrsRegime === 'contabilidade_organizada';
+
   const now = new Date();
   const currentMonth = now.getFullYear() === currentYear ? now.getMonth() + 1 : 12;
 
+  // Estimate monthly tax burden
+  const taxByMonth = useMemo(() => {
+    const result: Record<number, { ss: number; iva: number; label: string }> = {};
+    for (let m = 1; m <= 12; m++) {
+      let ss = 0;
+      let iva = 0;
+      const labels: string[] = [];
+
+      // SS: if not exempt and not contab organizada, estimate from payroll
+      if (!fiscalConfig.ssExempt && !isContabOrganizada) {
+        const monthPayroll = payrollData.filter(p => p.year === currentYear && p.month === m);
+        const totalGross = monthPayroll.reduce((s, v) => s + (v as any).gross_salary || 0, 0);
+        ss = Math.round(totalGross * 0.2375 * 100) / 100; // 23.75% patronal
+        // For future months with no payroll data, estimate from current payroll
+        if (ss === 0 && m > currentMonth) {
+          const latestPayroll = payrollData.filter(p => p.year === currentYear && p.month <= currentMonth);
+          if (latestPayroll.length > 0) {
+            const avgGross = latestPayroll.reduce((s, v) => s + ((v as any).gross_salary || 0), 0) / latestPayroll.length;
+            ss = Math.round(avgGross * 0.2375 * 100) / 100;
+          }
+        }
+        if (ss > 0) labels.push('SS');
+      }
+
+      // IVA: estimate from sales - expenses IVA balance
+      if (!fiscalConfig.ivaExempt && !isContabOrganizada) {
+        const monthSales = sales.filter(sl => sl.sale_year === currentYear && sl.sale_month === m);
+        const ivaCobrado = monthSales.reduce((s, v) => s + (v.invoice_total - v.base_value), 0);
+        const monthExpenses = (expenses || []).filter(e => e.expense_year === currentYear && e.expense_month === m);
+        const ivaPago = monthExpenses.reduce((s, v) => s + (v.total_with_vat - v.base_value), 0);
+        iva = Math.round(Math.max(0, ivaCobrado - ivaPago) * 100) / 100;
+        if (iva > 0) labels.push('IVA');
+      }
+
+      result[m] = { ss, iva, label: labels.join(' + ') || '—' };
+    }
+    return result;
+  }, [fiscalConfig, isContabOrganizada, payrollData, currentYear, currentMonth, sales, expenses]);
+
   const predictability = useMemo(() => {
-    // Revenue per month from actual sales
     const revenueByMonth: Record<number, number> = {};
     sales.filter(s => s.sale_year === currentYear).forEach(s => {
       if (s.sale_month) {
@@ -41,7 +92,6 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
       }
     });
 
-    // Average of past months for future prediction
     const pastMonths = Object.entries(revenueByMonth).filter(([m]) => parseInt(m) <= currentMonth);
     const avgRevenue = pastMonths.length > 0
       ? pastMonths.reduce((s, [, v]) => s + v, 0) / pastMonths.length
@@ -52,9 +102,10 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
       const subsTotal = totalMonthly;
       const pessoal = payrollData.filter(p => p.year === currentYear && p.month === m).reduce((s, v) => s + v.total_cost, 0);
       const prest = contractorsData.filter(c => c.year === currentYear && c.month === m).reduce((s, v) => s + v.value, 0);
-      const totalSaidas = Math.round((subsTotal + pessoal + prest) * 100) / 100;
+      const tax = taxByMonth[m];
+      const impostos = tax.ss + tax.iva;
+      const totalSaidas = Math.round((subsTotal + pessoal + prest + impostos) * 100) / 100;
 
-      // Use actual revenue for past/current months, average for future
       const isPast = m <= currentMonth && now.getFullYear() === currentYear;
       const entradas = isPast ? (revenueByMonth[m] || 0) : Math.round(avgRevenue * 100) / 100;
       const balanco = Math.round((entradas - totalSaidas) * 100) / 100;
@@ -65,39 +116,50 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
         return rd.getMonth() + 1 === m;
       });
 
-      return { mes: FULL[i], entradas, subs: subsTotal, pessoal, prestadores: prest, totalSaidas, balanco, renewals, isPast };
+      return { mes: FULL[i], entradas, subs: subsTotal, pessoal, prestadores: prest, impostos, taxLabel: tax.label, totalSaidas, balanco, renewals, isPast };
     });
-  }, [totalMonthly, payrollData, contractorsData, subscriptions, currentYear, sales, currentMonth]);
+  }, [totalMonthly, payrollData, contractorsData, subscriptions, currentYear, sales, currentMonth, taxByMonth]);
 
   const totals = useMemo(() => {
     return predictability.reduce((acc, p) => ({
       entradas: acc.entradas + p.entradas,
       saidas: acc.saidas + p.totalSaidas,
+      impostos: acc.impostos + p.impostos,
       balanco: acc.balanco + p.balanco,
-    }), { entradas: 0, saidas: 0, balanco: 0 });
+    }), { entradas: 0, saidas: 0, impostos: 0, balanco: 0 });
   }, [predictability]);
 
   return (
     <div className="space-y-6 mt-4">
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Entradas Previstas (Ano)</p><p className="text-lg font-bold text-green-600">{fmt(totals.entradas)}</p></CardContent></Card>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Entradas Previstas (Ano)</p><p className="text-lg font-bold text-emerald-600">{fmt(totals.entradas)}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Saídas Previstas (Ano)</p><p className="text-lg font-bold text-red-600">{fmt(totals.saidas)}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Balanço Previsto (Ano)</p><p className={`text-lg font-bold ${totals.balanco >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fmt(totals.balanco)}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Impostos Previstos (Ano)</p><p className="text-lg font-bold text-amber-600">{fmt(totals.impostos)}</p>{isContabOrganizada && <p className="text-[10px] text-muted-foreground">Gerido pelo contabilista</p>}</CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Balanço Previsto (Ano)</p><p className={`text-lg font-bold ${totals.balanco >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(totals.balanco)}</p></CardContent></Card>
       </div>
 
+      {isContabOrganizada && (
+        <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800">
+          <CardContent className="pt-4">
+            <p className="text-sm text-muted-foreground">Em contabilidade organizada, os valores de impostos são estimativas. Os valores reais são geridos pelo teu contabilista.</p>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Mês</TableHead>
-                <TableHead className="text-right">Entradas (€)</TableHead>
-                <TableHead className="text-right">Subscrições (€)</TableHead>
-                <TableHead className="text-right">Pessoal (€)</TableHead>
-                <TableHead className="text-right">Prestadores (€)</TableHead>
-                <TableHead className="text-right">Total Saídas (€)</TableHead>
-                <TableHead className="text-right">Balanço (€)</TableHead>
+                <TableHead className="text-right">Entradas</TableHead>
+                <TableHead className="text-right">Subscrições</TableHead>
+                <TableHead className="text-right">Pessoal</TableHead>
+                <TableHead className="text-right">Prestadores</TableHead>
+                <TableHead className="text-right">Impostos</TableHead>
+                <TableHead className="text-right">Total Saídas</TableHead>
+                <TableHead className="text-right">Balanço</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
@@ -105,17 +167,21 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
               {predictability.map((p, i) => (
                 <TableRow key={i} className={!p.isPast ? 'opacity-70' : ''}>
                   <TableCell className="font-medium">{p.mes}</TableCell>
-                  <TableCell className="text-right text-green-600">
+                  <TableCell className="text-right text-emerald-600">
                     {fmt(p.entradas)}
                     {!p.isPast && <span className="text-[10px] text-muted-foreground ml-1">(est.)</span>}
                   </TableCell>
                   <TableCell className="text-right">{fmt(p.subs)}</TableCell>
                   <TableCell className="text-right">{fmt(p.pessoal)}</TableCell>
                   <TableCell className="text-right">{fmt(p.prestadores)}</TableCell>
+                  <TableCell className="text-right text-amber-600">
+                    {p.impostos > 0 ? fmt(p.impostos) : '—'}
+                    {p.impostos > 0 && <span className="text-[10px] text-muted-foreground ml-1">({p.taxLabel})</span>}
+                  </TableCell>
                   <TableCell className="text-right font-medium text-red-600">{fmt(p.totalSaidas)}</TableCell>
-                  <TableCell className={`text-right font-bold ${p.balanco >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(p.balanco)}</TableCell>
+                  <TableCell className={`text-right font-bold ${p.balanco >= 0 ? 'text-emerald-600' : 'text-destructive'}`}>{fmt(p.balanco)}</TableCell>
                   <TableCell>
-                    {p.renewals.length > 0 && <Badge variant="outline" className="bg-warning/10 text-warning text-xs">{p.renewals.length} renovação(ões)</Badge>}
+                    {p.renewals.length > 0 && <Badge variant="outline" className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 text-xs">{p.renewals.length} renovação(ões)</Badge>}
                   </TableCell>
                 </TableRow>
               ))}
