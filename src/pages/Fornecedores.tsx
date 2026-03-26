@@ -178,6 +178,37 @@ export default function FornecedoresPage() {
               <div><Label>Morada</Label><Input value={form.address || ''} onChange={e => setForm((f: any) => ({ ...f, address: e.target.value }))} /></div>
               <div><Label>Website</Label><Input value={form.website || ''} onChange={e => setForm((f: any) => ({ ...f, website: e.target.value }))} /></div>
               <div><Label>Notas</Label><Textarea value={form.notes || ''} onChange={e => setForm((f: any) => ({ ...f, notes: e.target.value }))} rows={3} /></div>
+              {/* Documents */}
+              <div className="space-y-2">
+                <Label>Documentos / Contratos</Label>
+                {form.documents && Array.isArray(form.documents) && form.documents.length > 0 && (
+                  <div className="space-y-1">
+                    {form.documents.map((doc: any, i: number) => (
+                      <div key={i} className="flex items-center gap-2 text-xs">
+                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate flex-1">{doc.name}</a>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => {
+                          setForm((f: any) => ({ ...f, documents: (f.documents || []).filter((_: any, idx: number) => idx !== i) }));
+                        }}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <Input
+                  type="file"
+                  className="text-xs"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const path = `suppliers/${form.id || 'new'}/${Date.now()}_${file.name}`;
+                    const { error: uploadErr } = await supabase.storage.from('financial-files').upload(path, file);
+                    if (uploadErr) { toast.error('Erro ao carregar ficheiro'); return; }
+                    const { data: urlData } = supabase.storage.from('financial-files').getPublicUrl(path);
+                    const docs = Array.isArray(form.documents) ? form.documents : [];
+                    setForm((f: any) => ({ ...f, documents: [...docs, { name: file.name, url: urlData.publicUrl }] }));
+                    toast.success('Ficheiro carregado!');
+                  }}
+                />
+              </div>
               <div className="flex gap-2">
                 <Button className="flex-1" onClick={() => upsert.mutate()} disabled={!form.name?.trim()}>Guardar</Button>
                 {form.id && (
