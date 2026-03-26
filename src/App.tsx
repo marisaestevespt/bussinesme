@@ -71,6 +71,7 @@ import VendaDetailPage from "./pages/VendaDetail";
 import CrmPipelinesPage from "./pages/CrmPipelines";
 import FinanceiroPage from "./pages/Financeiro";
 import FinanceiroSubPage from "./pages/FinanceiroSubPage";
+import FornecedoresPage from "./pages/Fornecedores";
 import OperacaoPage from "./pages/Operacao";
 import RecursosHumanosSubPage from "./pages/RecursosHumanosSubPage";
 import { ensureYearRoutineTasks } from '@/hooks/usePlanningRoutines';
@@ -170,6 +171,7 @@ function AppRoutes() {
       <Route path="/hub/clientes/feedback" element={<ClientesFeedbackPage />} />
       <Route path="/hub/clientes/:id" element={<ClienteDetailPage />} />
       <Route path="/hub/financeiro" element={<FinanceiroPage />} />
+      <Route path="/hub/financeiro/fornecedores" element={<FornecedoresPage />} />
       <Route path="/hub/financeiro/:section" element={<FinanceiroSubPage />} />
       <Route path="/hub/operacao" element={<OperacaoPage />} />
       <Route path="/hub/recursos-humanos" element={<ExecutiveGestaoEquipa />} />
