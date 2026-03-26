@@ -1241,6 +1241,9 @@ export type Database = {
           drive_folder_url: string | null
           email: string | null
           end_of_cycle: string | null
+          final_settlement_amount: number | null
+          final_settlement_notes: string | null
+          final_settlement_status: string | null
           fiscal_address: string | null
           full_name: string
           id: string
@@ -1266,6 +1269,9 @@ export type Database = {
           drive_folder_url?: string | null
           email?: string | null
           end_of_cycle?: string | null
+          final_settlement_amount?: number | null
+          final_settlement_notes?: string | null
+          final_settlement_status?: string | null
           fiscal_address?: string | null
           full_name: string
           id?: string
@@ -1291,6 +1297,9 @@ export type Database = {
           drive_folder_url?: string | null
           email?: string | null
           end_of_cycle?: string | null
+          final_settlement_amount?: number | null
+          final_settlement_notes?: string | null
+          final_settlement_status?: string | null
           fiscal_address?: string | null
           full_name?: string
           id?: string
@@ -2323,6 +2332,74 @@ export type Database = {
           name?: string
           sort_order?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      custom_field_values: {
+        Row: {
+          created_at: string | null
+          entity_id: string
+          field_id: string
+          id: string
+          updated_at: string | null
+          value: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id: string
+          field_id: string
+          id?: string
+          updated_at?: string | null
+          value?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string
+          field_id?: string
+          id?: string
+          updated_at?: string | null
+          value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_field_values_field_id_fkey"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "custom_fields"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_fields: {
+        Row: {
+          created_at: string | null
+          entity_type: string
+          field_name: string
+          field_options: Json | null
+          field_type: string
+          id: string
+          is_required: boolean | null
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          entity_type: string
+          field_name: string
+          field_options?: Json | null
+          field_type?: string
+          id?: string
+          is_required?: boolean | null
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          entity_type?: string
+          field_name?: string
+          field_options?: Json | null
+          field_type?: string
+          id?: string
+          is_required?: boolean | null
+          sort_order?: number | null
         }
         Relationships: []
       }
