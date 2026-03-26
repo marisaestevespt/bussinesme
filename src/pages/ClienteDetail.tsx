@@ -336,6 +336,11 @@ export default function ClienteDetailPage() {
           <div className="flex items-center gap-2">
             {!isNew && <Button variant="outline" size="sm" onClick={handleDuplicate}><Copy className="h-4 w-4 mr-1" />Duplicar</Button>}
             {!isNew && <Button variant="outline" size="sm" className="text-destructive" onClick={handleDelete}><Trash2 className="h-4 w-4 mr-1" />Eliminar</Button>}
+            {!isNew && (
+              <Button variant="outline" size="sm" onClick={openRenewDialog}>
+                <RefreshCw className="h-4 w-4 mr-1" />Renovar / Novo Ciclo
+              </Button>
+            )}
             <Button size="sm" onClick={save}><Save className="h-4 w-4 mr-1" />Guardar</Button>
           </div>
         </div>
