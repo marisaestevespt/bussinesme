@@ -97,13 +97,20 @@ export default function ClienteDetailPage() {
 
   const update = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }));
 
-  const save = async () => {
-    if (!form.full_name?.trim()) { toast.error('Nome é obrigatório'); return; }
+  const save = async (): Promise<string | null> => {
+    if (!form.full_name?.trim()) { toast.error('Nome é obrigatório'); return null; }
     try {
-      await upsertClient.mutateAsync(form as any);
-      toast.success('Cliente guardado');
-      if (isNew) navigate('/hub/clientes');
-    } catch {}
+      if (isNew) {
+        const { data, error } = await supabase.from('clients').insert({ full_name: form.full_name, ...form } as any).select('id').single();
+        if (error) throw error;
+        toast.success('Cliente guardado');
+        return data.id;
+      } else {
+        await upsertClient.mutateAsync(form as any);
+        toast.success('Cliente guardado');
+        return id || null;
+      }
+    } catch { return null; }
   };
 
   const handleDuplicate = async () => {
@@ -296,11 +303,17 @@ export default function ClienteDetailPage() {
             <Card>
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm">Histórico de Projetos</CardTitle>
-                {!isNew && (
-                  <Button size="sm" variant="outline" onClick={() => { setNewProjectName(`${form.full_name || 'Cliente'} — ${form.current_product || 'Projeto'}`); setProjectDialogOpen(true); }}>
-                    <Plus className="h-3 w-3 mr-1" />Novo Projeto
-                  </Button>
-                )}
+                <Button size="sm" variant="outline" onClick={async () => {
+                  if (isNew) {
+                    const newId = await save();
+                    if (!newId) return;
+                    navigate(`/hub/clientes/${newId}`, { replace: true });
+                  }
+                  setNewProjectName(`${form.full_name || 'Cliente'} — ${form.current_product || 'Projeto'}`);
+                  setProjectDialogOpen(true);
+                }}>
+                  <Plus className="h-3 w-3 mr-1" />Novo Projeto
+                </Button>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[1fr_120px_100px] gap-2">
