@@ -329,6 +329,62 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
           </CardContent>
         </Card>
       )}
+
+      {/* Materials */}
+      {(portalData as any).show_materials && (
+        <Card>
+          <CardHeader className="pb-2 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm">Materiais Partilhados</CardTitle>
+            <label>
+              <input
+                type="file"
+                className="hidden"
+                multiple
+                onChange={async (e) => {
+                  if (!e.target.files?.length || !portalId) return;
+                  setUploadingMaterial(true);
+                  for (const file of Array.from(e.target.files)) {
+                    const path = `${portalId}/${Date.now()}-${file.name}`;
+                    const { error } = await supabase.storage.from('project-files').upload(path, file);
+                    if (error) { toast.error(`Erro: ${file.name}`); continue; }
+                    const { data: { publicUrl } } = supabase.storage.from('project-files').getPublicUrl(path);
+                    await supabase.from('portal_materials').insert({
+                      portal_id: portalId,
+                      file_url: publicUrl,
+                      file_name: file.name,
+                      file_type: file.type.startsWith('image') ? 'image' : 'file',
+                    } as any);
+                  }
+                  refetchMaterials();
+                  setUploadingMaterial(false);
+                  toast.success('Ficheiro(s) carregado(s)');
+                  e.target.value = '';
+                }}
+              />
+              <Button size="sm" variant="outline" asChild disabled={uploadingMaterial}>
+                <span className="cursor-pointer"><Upload className="h-3 w-3 mr-1" />{uploadingMaterial ? 'A carregar...' : 'Carregar'}</span>
+              </Button>
+            </label>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {portalMaterials.map((m: any) => (
+              <div key={m.id} className="flex items-center justify-between gap-2 border rounded-md p-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <a href={m.file_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline truncate">{m.file_name}</a>
+                </div>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive shrink-0" onClick={async () => {
+                  await supabase.from('portal_materials').delete().eq('id', m.id);
+                  refetchMaterials();
+                }}>
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            ))}
+            {portalMaterials.length === 0 && <p className="text-xs text-muted-foreground">Sem materiais partilhados</p>}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
