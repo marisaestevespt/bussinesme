@@ -1306,6 +1306,45 @@ export default function SopDetailPage() {
           </AlertDialog>
         </div>
       </div>
+
+      {/* Create Tasks Dialog */}
+      <Dialog open={showCreateTasks} onOpenChange={setShowCreateTasks}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Criar Tarefas a partir deste SOP</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Serão criadas {parseJsonList((sop as any)?.passos).filter(s => s.trim()).length} tarefas a partir dos passos do processo.
+          </p>
+          <div className="space-y-3">
+            <div>
+              <Label>Projeto (opcional)</Label>
+              <Select value={taskProjectId || '_none_'} onValueChange={v => setTaskProjectId(v === '_none_' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none_">Nenhum</SelectItem>
+                  {projectsList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Departamento</Label>
+              <Select value={taskDepartment || '_none_'} onValueChange={v => setTaskDepartment(v === '_none_' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none_">Nenhum</SelectItem>
+                  {DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Prazo (opcional)</Label>
+              <Input type="date" value={taskDeadline} onChange={e => setTaskDeadline(e.target.value)} />
+            </div>
+            <Button className="w-full" onClick={() => createTasksFromSop.mutate()} disabled={createTasksFromSop.isPending}>
+              Criar {parseJsonList((sop as any)?.passos).filter(s => s.trim()).length} Tarefas
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
