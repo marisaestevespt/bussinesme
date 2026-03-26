@@ -6741,6 +6741,83 @@ export type Database = {
         }
         Relationships: []
       }
+      sop_offboarding_items: {
+        Row: {
+          created_at: string
+          deadline_days: number
+          id: string
+          sort_order: number
+          task: string
+          template_id: string
+        }
+        Insert: {
+          created_at?: string
+          deadline_days?: number
+          id?: string
+          sort_order?: number
+          task?: string
+          template_id: string
+        }
+        Update: {
+          created_at?: string
+          deadline_days?: number
+          id?: string
+          sort_order?: number
+          task?: string
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sop_offboarding_items_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "sop_offboarding_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sop_offboarding_templates: {
+        Row: {
+          created_at: string
+          department: string | null
+          id: string
+          product_id: string | null
+          role_title: string
+          sop_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          department?: string | null
+          id?: string
+          product_id?: string | null
+          role_title?: string
+          sop_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          department?: string | null
+          id?: string
+          product_id?: string | null
+          role_title?: string
+          sop_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sop_offboarding_templates_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sop_offboarding_templates_sop_id_fkey"
+            columns: ["sop_id"]
+            isOneToOne: false
+            referencedRelation: "sops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sop_onboarding_items: {
         Row: {
           created_at: string
@@ -7132,6 +7209,8 @@ export type Database = {
           address: string | null
           category: string | null
           created_at: string | null
+          default_vat_rate: number | null
+          documents: Json | null
           email: string | null
           iban: string | null
           id: string
@@ -7148,6 +7227,8 @@ export type Database = {
           address?: string | null
           category?: string | null
           created_at?: string | null
+          default_vat_rate?: number | null
+          documents?: Json | null
           email?: string | null
           iban?: string | null
           id?: string
@@ -7164,6 +7245,8 @@ export type Database = {
           address?: string | null
           category?: string | null
           created_at?: string | null
+          default_vat_rate?: number | null
+          documents?: Json | null
           email?: string | null
           iban?: string | null
           id?: string
