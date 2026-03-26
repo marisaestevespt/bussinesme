@@ -604,6 +604,49 @@ Deno.serve(async (req) => {
       results.push(`Meeting reminders: ${meetingNotifs}`);
     }
 
+    // ── 10. Project deadline overdue notifications ──
+    {
+      const { data: overdueProjects } = await supabase
+        .from("projects")
+        .select("id, name, deadline, client_name")
+        .lt("deadline", todayStr)
+        .not("status", "in", '("concluido","cancelado")');
+
+      let deadlineNotifs = 0;
+      if (overdueProjects && overdueProjects.length > 0) {
+        const { data: ownerRole } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("role", "owner")
+          .limit(1)
+          .single();
+
+        if (ownerRole) {
+          for (const proj of overdueProjects) {
+            const notifKey = `project-deadline-${proj.id}-${todayStr}`;
+            const { data: existing } = await supabase
+              .from("notifications")
+              .select("id")
+              .eq("user_id", ownerRole.user_id)
+              .eq("type", "project_deadline")
+              .eq("message", notifKey)
+              .limit(1);
+            if (existing && existing.length > 0) continue;
+
+            await supabase.from("notifications").insert({
+              user_id: ownerRole.user_id,
+              type: "project_deadline",
+              title: `⚠️ Projeto "${proj.name}" está com deadline em atraso${proj.client_name ? ` (${proj.client_name})` : ""}`,
+              message: notifKey,
+              link: `/hub/projetos/${proj.id}`,
+            });
+            deadlineNotifs++;
+          }
+        }
+      }
+      results.push(`Project deadline alerts: ${deadlineNotifs}`);
+    }
+
     return new Response(
       JSON.stringify({ success: true, results }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
