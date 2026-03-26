@@ -336,9 +336,7 @@ export function FinContabilidade({ currentYear }: Props) {
                   </div>
                 </>
               )}
-            </div>
 
-            <div className="flex gap-2">
               <Button variant="outline" onClick={handleExportPdf} className="gap-1.5">
                 <Download className="h-3.5 w-3.5" /> Exportar PDF
               </Button>
