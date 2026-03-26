@@ -296,17 +296,17 @@ export default function ProjetoDetailPage() {
   });
 
   // Fetch onboarding/offboarding for client projects
-  const clientId = (() => {
-    if (!project?.client_name) return undefined;
-    return undefined; // will be resolved by query below
-  })();
   const { data: clientForProject } = useQuery({
-    queryKey: ['client-by-name', project?.client_name],
+    queryKey: ['client-by-name', project?.client_id, project?.client_name],
     queryFn: async () => {
-      const { data } = await supabase.from('clients' as any).select('id').eq('full_name', project!.client_name!).maybeSingle();
-      return data as unknown as { id: string } | null;
+      // Use client_id directly if available, otherwise lookup by name
+      if (project!.client_id) {
+        return { id: project!.client_id };
+      }
+      const { data } = await supabase.from('clients').select('id').eq('full_name', project!.client_name!).maybeSingle();
+      return data as { id: string } | null;
     },
-    enabled: !!project?.client_name && (project?.type === 'clientes' || project?.type === 'cliente_projeto_unico' || project?.type === 'cliente_servico_mensal'),
+    enabled: !!(project?.client_id || project?.client_name),
   });
   const resolvedClientId = clientForProject?.id;
   const { data: clientOnboardingItems = [] } = useQuery({
