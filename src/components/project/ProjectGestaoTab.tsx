@@ -30,6 +30,15 @@ const PAYMENT_METHODS = [
   { value: 'entrada_prestacoes', label: 'Entrada + Prestações' },
   { value: 'prestacoes', label: 'Prestações' },
   { value: 'avenca_mensal', label: 'Avença Mensal' },
+  { value: 'subscricao', label: 'Subscrição' },
+];
+
+const SUBSCRIPTION_PERIODICITIES = [
+  { value: 'mensal', label: 'Mensal' },
+  { value: 'bimestral', label: 'Bimestral' },
+  { value: 'trimestral', label: 'Trimestral' },
+  { value: 'semestral', label: 'Semestral' },
+  { value: 'anual', label: 'Anual' },
 ];
 
 const SALE_STATUSES: Record<string, { label: string; color: string }> = {
@@ -53,6 +62,8 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   const [payDay, setPayDay] = useState('');
   const [numMeses, setNumMeses] = useState('');
   const [avencaValue, setAvencaValue] = useState('');
+  const [subscricaoValue, setSubscricaoValue] = useState('');
+  const [subscricaoPeriodicity, setSubscricaoPeriodicity] = useState('mensal');
 
   // ─── Client data (payment_method + start_date) ─────────────────
   const { data: clientData } = useQuery({
@@ -432,6 +443,29 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
                 {generateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                 Gerar Pagamentos
               </Button>
+            </div>
+          )}
+
+          {payMethod === 'subscricao' && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div><Label className="text-xs">Valor da Subscrição s/ IVA (€)</Label><Input type="number" value={subscricaoValue} onChange={e => setSubscricaoValue(e.target.value)} placeholder="0.00" /></div>
+                <div><Label className="text-xs">Periodicidade</Label>
+                  <Select value={subscricaoPeriodicity} onValueChange={setSubscricaoPeriodicity}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {SUBSCRIPTION_PERIODICITIES.map(p => (
+                        <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              {subscricaoValue && parseFloat(subscricaoValue) > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {SUBSCRIPTION_PERIODICITIES.find(p => p.value === subscricaoPeriodicity)?.label}: {parseFloat(subscricaoValue).toFixed(2)}€
+                </p>
+              )}
             </div>
           )}
 
