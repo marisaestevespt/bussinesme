@@ -15,8 +15,9 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import {
-  CalendarIcon, ArrowLeft, Trash2, Upload, FileText, Users, Plus, X, ExternalLink, StickyNote, Repeat,
+  CalendarIcon, ArrowLeft, Trash2, Upload, FileText, Users, Plus, X, ExternalLink, StickyNote, Repeat, ListTodo,
 } from 'lucide-react';
+import { CreateTasksFromMeetingDialog } from '@/components/meeting/CreateTasksFromMeetingDialog';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -305,6 +306,7 @@ export default function ReuniaoDetailPage() {
   const [localMeeting, setLocalMeeting] = useState<MeetingFull | null>(null);
   const [dirty, setDirty] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [createTasksOpen, setCreateTasksOpen] = useState(false);
 
   useEffect(() => {
     if (meeting && !localMeeting) setLocalMeeting(meeting);
@@ -689,7 +691,12 @@ export default function ReuniaoDetailPage() {
 
           {/* Próximos passos */}
           <div className="space-y-3">
-            <Label className="text-xs font-semibold text-foreground">→ Próximos Passos</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold text-foreground">→ Próximos Passos</Label>
+              <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5" onClick={() => setCreateTasksOpen(true)}>
+                <ListTodo className="h-3.5 w-3.5" /> Criar Tarefas
+              </Button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Owner actions */}
               <div className="rounded-lg border border-border p-4 space-y-3">
@@ -747,6 +754,19 @@ export default function ReuniaoDetailPage() {
             label="📝 Notas finais"
           />
         </div>
+
+        {/* Create tasks dialog */}
+        <CreateTasksFromMeetingDialog
+          open={createTasksOpen}
+          onOpenChange={setCreateTasksOpen}
+          ownerActions={m.owner_actions}
+          clientActions={m.client_actions}
+          ownerLabel={ownerLabel}
+          clientLabel={clientLabel}
+          meetingTitle={m.title}
+          projectId={m.project_id}
+          department={m.department}
+        />
 
         {/* Sticky save bar */}
         {dirty && (

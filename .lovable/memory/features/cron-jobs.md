@@ -9,11 +9,19 @@ Backend cron jobs for auto-status updates, notifications, and data sync.
   5. Checks expiring team member contracts (30 days ahead)
   6. **Capacity alert** — checks `time_entries` this week per active member vs `expected_weekly_hours`. If ≥90%, notifies owner. Dedup: 1 per member per week.
   7. **Payroll→Financial sync** — finds `financial_payroll` with status=pago and no `expense_id`, creates `financial_expenses` entry and links back. Also syncs `member_payments` with status=pago that have no matching expense (dedup by description+month+year).
+  8. **NPS auto-generation** — creates NPS records for clients based on product cadence.
+  9. **Meeting reminders** — notifies owner + meeting participants about meetings happening today. Type: `meeting_reminder`. Dedup by `meeting-reminder-{meeting_id}-{date}`.
   
 - `daily-birthday-check` — runs daily at 08:00 via pg_cron
   - Checks clients and team members with birthdays
   - Sends notifications at 30 days, 15 days, and on the day
   - Deduplicates by message key
+
+## Meeting Task Creation
+- `CreateTasksFromMeetingDialog` component in `src/components/meeting/`
+- Button "Criar Tarefas" in Próximos Passos section of ReuniaoDetail
+- Opens dialog with unchecked owner/client actions pre-filled
+- User can set deadline, department, assignee, priority, project per task
 
 ## Removed from frontend
 - `useCommercialData.tsx` — removed useEffect auto-status update of sales
