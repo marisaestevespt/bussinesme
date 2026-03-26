@@ -145,7 +145,10 @@ export function FinSaidas({ fin, currentYear }: Props) {
                     <TableCell><Badge variant="outline" className={e.status === 'pago' ? 'bg-success/10 text-success' : e.status === 'cancelado' ? 'bg-muted text-muted-foreground' : 'bg-warning/10 text-warning'}>{EXP_STATUS.find(s => s.value === e.status)?.label || e.status}</Badge></TableCell>
                     <TableCell className="font-mono text-xs">{e.expense_id}</TableCell>
                     <TableCell>{e.expense_date || '—'}</TableCell>
-                    <TableCell className="truncate max-w-[200px]">{e.description || '—'}</TableCell>
+                    <TableCell className="truncate max-w-[200px]">
+                      {e.description || '—'}
+                      {(e as any).is_recurring && <RefreshCw className="inline h-3 w-3 ml-1 text-muted-foreground" />}
+                    </TableCell>
                     <TableCell>{getCategoryLabel('expense', e.category)}</TableCell>
                     <TableCell className="text-right">{fmt(e.base_value)}</TableCell>
                     <TableCell>{e.vat_rate}%</TableCell>
