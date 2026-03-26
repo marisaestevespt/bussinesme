@@ -669,6 +669,10 @@ export default function ClienteDetailPage() {
               <Label className="text-xs text-muted-foreground">Documentos (link)</Label>
               <Input value={form.documents || ''} onChange={e => update('documents', e.target.value)} placeholder="URL ou referência" />
             </div>
+            <ClientFileUpload
+              files={Array.isArray(form.client_files) ? (form.client_files as any[]) : []}
+              onChange={(files) => update('client_files', files)}
+            />
           </CardContent>
         </Card>
 
