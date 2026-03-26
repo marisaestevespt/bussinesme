@@ -387,7 +387,7 @@ export function FinContabilidade({ currentYear }: Props) {
               <table className="w-full text-xs">
                 <thead><tr><th>Nome</th><th>Data</th></tr></thead>
                 <tbody>
-                  {filteredDocs.map(d => (<tr key={d.id}><td>{d.file_name}</td><td>{d.upload_date}</td></tr>))}
+                  {filteredDocs.map(d => (<tr key={d.id}><td>{d.document_name || d.title}</td><td>{d.period_start}</td></tr>))}
                 </tbody>
               </table>
             </>
