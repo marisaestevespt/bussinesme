@@ -263,11 +263,52 @@ export function useTeamData() {
         if (error) throw error;
       } else {
         delete rec.id;
-        const { error } = await supabase.from('member_contracts').insert(rec as TablesInsert<'member_contracts'>);
+        const { error, data: newContract } = await supabase.from('member_contracts').insert(rec as TablesInsert<'member_contracts'>).select().single();
         if (error) throw error;
+
+        // Auto-generate payroll for new contracts
+        const monthlyVal = Number(rec.monthly_value) || 0;
+        if (monthlyVal > 0 && rec.start_date) {
+          const startDate = new Date(rec.start_date);
+          let numMonths = 12; // default
+          if (rec.end_date) {
+            const endDate = new Date(rec.end_date);
+            numMonths = Math.max(1, (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth()) + 1);
+          }
+          // Get member name
+          const { data: memberData } = await supabase.from('team_members').select('full_name').eq('id', rec.member_id).maybeSingle();
+          const name = memberData?.full_name || 'Membro';
+
+          const payrollEntries = [];
+          const paymentEntries = [];
+          for (let i = 0; i < numMonths; i++) {
+            const payMonth = ((startDate.getMonth() + i) % 12) + 1;
+            const payYear = startDate.getFullYear() + Math.floor((startDate.getMonth() + i) / 12);
+            payrollEntries.push({
+              collaborator_name: name,
+              month: payMonth, year: payYear,
+              gross_salary: monthlyVal, net_salary: monthlyVal, total_cost: monthlyVal,
+              status: 'por_pagar',
+              withholding_rate: 0, withholding_value: 0, ss_employee: 0, ss_employer: 0,
+            });
+            paymentEntries.push({
+              member_id: rec.member_id, month: payMonth, year: payYear,
+              gross_value: monthlyVal, net_value: monthlyVal,
+              payment_type: rec.contract_type === 'contrato_prestacao' ? 'prestacao' as const : 'salario' as const,
+              status: 'por_pagar',
+            });
+          }
+          await Promise.all([
+            supabase.from('financial_payroll').insert(payrollEntries),
+            supabase.from('member_payments').insert(paymentEntries),
+          ]);
+        }
       }
     },
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate();
+      toast.success('Contrato guardado e pagamentos gerados');
+    },
     onError: () => toast.error('Erro ao guardar contrato'),
   });
 
