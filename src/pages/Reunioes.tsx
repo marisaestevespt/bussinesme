@@ -32,7 +32,7 @@ import { logAudit } from '@/lib/auditLog';
 // ─── Types ──────────────────────────────────────────────────────
 
 type MeetingStatus = 'por_confirmar' | 'marcada' | 'terminada';
-type MeetingType = 'recorrente' | 'projeto' | 'cliente';
+type MeetingType = 'recorrente' | 'projeto' | 'cliente' | 'diagnostico';
 
 const STATUSES: { value: MeetingStatus; label: string; color: string }[] = [
   { value: 'por_confirmar', label: 'Por confirmar', color: '#f59e0b' },
