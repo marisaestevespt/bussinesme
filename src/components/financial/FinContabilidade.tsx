@@ -118,7 +118,7 @@ export function FinContabilidade({ currentYear }: Props) {
         label: `${format(exportStartDate, 'dd/MM/yyyy')} — ${format(exportEndDate, 'dd/MM/yyyy')}`,
         filteredSales: sales.filter(s => s.payment_date && s.payment_date >= startStr && s.payment_date <= endStr),
         filteredExpenses: expenses.filter(e => e.expense_date && e.expense_date >= startStr && e.expense_date <= endStr),
-        filteredDocs: documents.filter(d => d.period_start && d.period_start >= startStr && d.period_start <= endStr),
+        filteredDocs: documents.filter(d => d.period_start != null && d.period_start >= startStr && d.period_start <= endStr),
       };
     }
     return {
@@ -126,7 +126,7 @@ export function FinContabilidade({ currentYear }: Props) {
       filteredSales: sales.filter(s => s.sale_year === currentYear && s.sale_month && s.sale_month >= range.startMonth && s.sale_month <= range.endMonth),
       filteredExpenses: expenses.filter(e => e.expense_year === currentYear && e.expense_month && e.expense_month >= range.startMonth && e.expense_month <= range.endMonth),
       filteredDocs: documents.filter(d => {
-        return d.period_year === currentYear && d.period_month >= range.startMonth && d.period_month <= range.endMonth;
+        return d.period_year === currentYear && d.period_month != null && d.period_month >= range.startMonth && d.period_month <= range.endMonth;
       }),
     };
   };

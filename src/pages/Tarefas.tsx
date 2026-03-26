@@ -122,13 +122,20 @@ export default function TarefasPage() {
   const [filterProject, setFilterProject] = useState('');
 
   // Queries
+  // Server-side status filter
+  const [filterStatus, setFilterStatus] = useState('');
+
   const tasksQuery = useInfiniteQuery<InfinitePageResult<any>>({
-    queryKey: ['tasks'],
+    queryKey: ['tasks', filterStatus],
     initialPageParam: 0,
     queryFn: async ({ pageParam = 0 }) => {
       const from = (pageParam as number) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const { data, error, count } = await supabase.from('tasks').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(from, to);
+      let query = supabase.from('tasks').select('*', { count: 'exact' }).order('created_at', { ascending: false });
+      if (filterStatus) {
+        query = query.eq('status', filterStatus);
+      }
+      const { data, error, count } = await query.range(from, to);
       if (error) throw error;
       return { data: data || [], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },

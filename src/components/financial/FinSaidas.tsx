@@ -20,6 +20,8 @@ import { InvoiceUpload, type DocEntry } from './InvoiceUpload';
 import { CategorySelect } from './CategorySelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 import { SupplierSelect } from './SupplierSelect';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const EXP_STATUS = [
   { value: 'por_pagar', label: 'Por Pagar' },
@@ -48,6 +50,15 @@ export function FinSaidas({ fin, currentYear }: Props) {
   const currentMonth = now.getMonth() + 1;
   const currentQuarter = Math.ceil(currentMonth / 3);
 
+  // Suppliers for auto-VAT
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ['suppliers-list-vat'],
+    queryFn: async () => {
+      const { data } = await supabase.from('suppliers').select('id, name, default_vat_rate').eq('is_active', true);
+      return data || [];
+    },
+  });
+
   const expenses = allExpenses.filter(e => {
     if (filter === 'all') return true;
     if (filter === 'year') return e.expense_year === currentYear;
@@ -63,6 +74,20 @@ export function FinSaidas({ fin, currentYear }: Props) {
   const openNewExpense = () => {
     setExpForm({ status: 'por_pagar', category: 'outro', vat_rate: 23, location: 'portugal', base_value: '', description: '', includes_vat: false, supplier_id: null, is_recurring: false, recurrence_day: 1 });
     setExpOpen(true);
+  };
+
+  // Auto-fill VAT from supplier
+  const handleSupplierChange = (supplierId: string | null) => {
+    setExpForm((f: any) => {
+      const updates: any = { ...f, supplier_id: supplierId };
+      if (supplierId) {
+        const supplier = suppliers.find((s: any) => s.id === supplierId);
+        if (supplier?.default_vat_rate != null) {
+          updates.vat_rate = supplier.default_vat_rate;
+        }
+      }
+      return updates;
+    });
   };
 
   const saveExpense = async () => {
@@ -190,7 +215,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
             </div>
             <div><Label>Descrição</Label><Input value={expForm.description || ''} onChange={e => setExpForm((f: any) => ({ ...f, description: e.target.value }))} /></div>
             <div><Label>Fornecedor</Label>
-              <SupplierSelect value={expForm.supplier_id || null} onValueChange={v => setExpForm((f: any) => ({ ...f, supplier_id: v }))} />
+              <SupplierSelect value={expForm.supplier_id || null} onValueChange={handleSupplierChange} />
             </div>
             <div><Label>Categoria</Label>
               <CategorySelect type="expense" value={expForm.category || 'outro'} onValueChange={v => setExpForm((f: any) => ({ ...f, category: v }))} />
