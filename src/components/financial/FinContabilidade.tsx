@@ -118,7 +118,7 @@ export function FinContabilidade({ currentYear }: Props) {
         label: `${format(exportStartDate, 'dd/MM/yyyy')} — ${format(exportEndDate, 'dd/MM/yyyy')}`,
         filteredSales: sales.filter(s => s.payment_date && s.payment_date >= startStr && s.payment_date <= endStr),
         filteredExpenses: expenses.filter(e => e.expense_date && e.expense_date >= startStr && e.expense_date <= endStr),
-        filteredDocs: documents.filter(d => d.upload_date && d.upload_date >= startStr && d.upload_date <= endStr),
+        filteredDocs: documents.filter(d => d.period_start && d.period_start >= startStr && d.period_start <= endStr),
       };
     }
     return {
@@ -126,10 +126,7 @@ export function FinContabilidade({ currentYear }: Props) {
       filteredSales: sales.filter(s => s.sale_year === currentYear && s.sale_month && s.sale_month >= range.startMonth && s.sale_month <= range.endMonth),
       filteredExpenses: expenses.filter(e => e.expense_year === currentYear && e.expense_month && e.expense_month >= range.startMonth && e.expense_month <= range.endMonth),
       filteredDocs: documents.filter(d => {
-        if (!d.upload_date) return false;
-        const m = parseInt(d.upload_date.slice(5, 7));
-        const y = parseInt(d.upload_date.slice(0, 4));
-        return y === currentYear && m >= range.startMonth && m <= range.endMonth;
+        return d.period_year === currentYear && d.period_month >= range.startMonth && d.period_month <= range.endMonth;
       }),
     };
   };
@@ -173,7 +170,7 @@ export function FinContabilidade({ currentYear }: Props) {
     if (filteredDocs.length > 0) {
       allRows.push(['', '', '', '', '', '', '', '']);
       allRows.push(['DOCUMENTOS', 'Nome', 'Data', '', '', '', '', '']);
-      filteredDocs.forEach(d => allRows.push(['', d.file_name || '', d.upload_date || '', '', '', '', '', '']));
+      filteredDocs.forEach(d => allRows.push(['', d.document_name || d.title || '', d.period_start || '', '', '', '', '', '']));
     }
 
     exportCsv(`contabilidade_${label.replace(/\s/g, '_')}.csv`, allHeaders, allRows);
