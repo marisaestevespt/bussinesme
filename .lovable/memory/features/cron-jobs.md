@@ -11,6 +11,7 @@ Backend cron jobs for auto-status updates, notifications, and data sync.
   7. **Payroll→Financial sync** — finds `financial_payroll` with status=pago and no `expense_id`, creates `financial_expenses` entry and links back. Also syncs `member_payments` with status=pago that have no matching expense (dedup by description+month+year).
   8. **NPS auto-generation** — creates NPS records for clients based on product cadence.
   9. **Meeting reminders** — notifies owner + meeting participants about meetings happening today. Type: `meeting_reminder`. Dedup by `meeting-reminder-{meeting_id}-{date}`.
+  10. **Project deadline alerts** — notifies owner about projects with overdue deadlines (not concluido/cancelado). Type: `project_deadline`. Dedup by `project-deadline-{project_id}-{date}`.
   
 - `daily-birthday-check` — runs daily at 08:00 via pg_cron
   - Checks clients and team members with birthdays
@@ -22,6 +23,12 @@ Backend cron jobs for auto-status updates, notifications, and data sync.
 - Button "Criar Tarefas" in Próximos Passos section of ReuniaoDetail
 - Opens dialog with unchecked owner/client actions pre-filled
 - User can set deadline, department, assignee, priority, project per task
+
+## Project Improvements
+- **Cost calculation** — `team_members.hourly_cost` × `time_entries.duration` aggregated per project. Displayed as badge.
+- **Auto-progress** — Progress auto-calculated from tasks + boarding items, auto-saved to DB.
+- **client_id FK** — Client select dropdown populates both `client_id` and `client_name` on projects.
+- **Deadline overdue banner** — Alert banner on project detail when deadline passed + daily cron notification.
 
 ## Removed from frontend
 - `useCommercialData.tsx` — removed useEffect auto-status update of sales

@@ -7290,6 +7290,7 @@ export type Database = {
           email: string | null
           expected_weekly_hours: number
           full_name: string
+          hourly_cost: number | null
           id: string
           identification: string | null
           member_type: string
@@ -7316,6 +7317,7 @@ export type Database = {
           email?: string | null
           expected_weekly_hours?: number
           full_name: string
+          hourly_cost?: number | null
           id?: string
           identification?: string | null
           member_type?: string
@@ -7342,6 +7344,7 @@ export type Database = {
           email?: string | null
           expected_weekly_hours?: number
           full_name?: string
+          hourly_cost?: number | null
           id?: string
           identification?: string | null
           member_type?: string

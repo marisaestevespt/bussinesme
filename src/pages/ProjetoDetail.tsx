@@ -16,7 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, ExternalLink, AlertTriangle, DollarSign } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import { useTaskTimeTotals, formatDuration } from '@/components/TaskTimeTracker';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -35,6 +35,8 @@ import { ProjectDeliverables } from '@/components/project/ProjectDeliverables';
 import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
+
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -295,6 +297,52 @@ export default function ProjetoDetailPage() {
     enabled: !!id,
   });
 
+  const { data: clientsList = [] } = useQuery({
+    queryKey: ['clients_list'],
+    queryFn: async () => { const { data } = await supabase.from('clients').select('id, full_name').order('full_name'); return data || []; },
+  });
+
+  // Project cost calculation: time_entries × team_members.hourly_cost
+  const { data: projectCost = 0 } = useQuery({
+    queryKey: ['project-cost', id],
+    queryFn: async () => {
+      // Get time entries for this project (direct + via tasks)
+      const { data: directEntries } = await supabase
+        .from('time_entries')
+        .select('duration, member_id')
+        .eq('project_id', id!);
+
+      const { data: taskIds } = await supabase
+        .from('tasks').select('id').eq('project_id', id!);
+
+      let taskEntries: { duration: number; member_id: string | null }[] = [];
+      if (taskIds && taskIds.length > 0) {
+        const { data } = await supabase
+          .from('time_entries')
+          .select('duration, member_id')
+          .in('task_id', taskIds.map(t => t.id));
+        taskEntries = (data || []) as any[];
+      }
+
+      const allEntries = [...(directEntries || []), ...taskEntries] as { duration: number; member_id: string | null }[];
+      if (allEntries.length === 0) return 0;
+
+      // Get unique member IDs
+      const memberIds = [...new Set(allEntries.filter(e => e.member_id).map(e => e.member_id!))];
+      const { data: members } = memberIds.length > 0
+        ? await supabase.from('team_members').select('id, hourly_cost').in('id', memberIds)
+        : { data: [] };
+      const costMap = new Map((members || []).map((m: any) => [m.id, m.hourly_cost || 0]));
+
+      return allEntries.reduce((sum, e) => {
+        const hours = (e.duration || 0) / 60;
+        const cost = e.member_id ? (costMap.get(e.member_id) || 0) : 0;
+        return sum + hours * cost;
+      }, 0);
+    },
+    enabled: !!id,
+  });
+
   // Fetch onboarding/offboarding for client projects
   const { data: clientForProject } = useQuery({
     queryKey: ['client-by-name', project?.client_id, project?.client_name],
@@ -334,6 +382,19 @@ export default function ProjetoDetailPage() {
     if (total === 0) return 0;
     return Math.round(((tasksDone + boardingDone) / total) * 100);
   }
+
+  // Auto-save progress when it changes
+  const autoProgress = getProjectProgress();
+  useEffect(() => {
+    if (local && autoProgress !== local.progress) {
+      supabase.from('projects').update({ progress: autoProgress }).eq('id', local.id);
+    }
+  }, [autoProgress, local?.id]);
+
+  // Deadline overdue check
+  const isOverdue = local?.deadline && local.status !== 'concluido' && local.status !== 'cancelado' && new Date(local.deadline) < new Date();
+
+  const formatCost = (v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}k €` : `${v.toFixed(0)} €`;
 
   const { data: meetings = [] } = useQuery({
     queryKey: ['project-meetings', id],
@@ -652,6 +713,16 @@ export default function ProjetoDetailPage() {
             </label>
           )}
 
+          {/* Deadline overdue banner */}
+          {isOverdue && (
+            <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription className="text-sm">
+                A deadline deste projeto ({format(new Date(local.deadline!), 'd MMM yyyy', { locale: pt })}) já passou. Atualiza o prazo ou conclui o projeto.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Header */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
@@ -661,7 +732,21 @@ export default function ProjetoDetailPage() {
             </div>
             <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-xl font-bold border-none px-0 focus-visible:ring-0" />
             <div className="grid grid-cols-2 gap-4">
-              <div><Label className="text-xs">Cliente</Label><Input value={local.client_name || ''} onChange={e => updateField('client_name', e.target.value)} /></div>
+              <div>
+                <Label className="text-xs">Cliente</Label>
+                <Select value={local.client_id || ''} onValueChange={v => {
+                  const selected = clientsList.find((c: any) => c.id === v);
+                  updateField('client_id', v || null);
+                  updateField('client_name', selected?.full_name || null);
+                }}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Selecionar cliente" /></SelectTrigger>
+                  <SelectContent>
+                    {clientsList.map((c: any) => (
+                      <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div>
                 <Label className="text-xs">Departamentos</Label>
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
@@ -707,7 +792,7 @@ export default function ProjetoDetailPage() {
                 <div><Label className="text-xs">Prazo</Label>
                   <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{local.deadline ? format(new Date(local.deadline), 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
                 </div>
-                <div><Label className="text-xs">Progresso ({getProjectProgress()}%)</Label><Progress value={getProjectProgress()} className="h-2 mt-3" /><p className="text-[10px] text-muted-foreground mt-1">{tasks.filter(t => t.status === 'concluida').length}/{tasks.length} tarefas{clientOnboardingItems.length + clientOffboardingItems.length > 0 ? ` + ${clientOnboardingItems.filter(i => i.completed).length + clientOffboardingItems.filter(i => i.completed).length}/${clientOnboardingItems.length + clientOffboardingItems.length} boarding` : ''}</p></div>
+                <div><Label className="text-xs">Progresso ({getProjectProgress()}%)</Label><Progress value={getProjectProgress()} className="h-2 mt-3" /><p className="text-[10px] text-muted-foreground mt-1">{tasks.filter(t => t.status === 'concluida').length}/{tasks.length} tarefas{clientOnboardingItems.length + clientOffboardingItems.length > 0 ? ` + ${clientOnboardingItems.filter(i => i.completed).length + clientOffboardingItems.filter(i => i.completed).length}/${clientOnboardingItems.length + clientOffboardingItems.length} boarding` : ''}{projectCost > 0 ? ` • Custo: ${formatCost(projectCost)}` : ''}</p></div>
               </div>
             )}
             <div><Label className="text-xs">Equipa</Label><div className="flex gap-1 mt-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div></div>
@@ -903,6 +988,16 @@ export default function ProjetoDetailPage() {
           </label>
         )}
 
+        {/* Deadline overdue banner */}
+        {isOverdue && (
+          <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="text-sm">
+              A deadline deste projeto ({format(new Date(local.deadline!), 'd MMM yyyy', { locale: pt })}) já passou. Atualiza o prazo ou conclui o projeto.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="space-y-3">
           <div className="flex items-center gap-3 flex-wrap">
             <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
@@ -926,6 +1021,11 @@ export default function ProjetoDetailPage() {
             )}
             <div className="flex -space-x-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-6 w-6 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div>
             <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
+            {projectCost > 0 && (
+              <Badge variant="outline" className="gap-1 text-xs">
+                <DollarSign className="h-3 w-3" /> {formatCost(projectCost)}
+              </Badge>
+            )}
             {local.status === 'concluido' && local.total_time_minutes != null && local.total_time_minutes > 0 && (
               <Badge variant="outline" className="gap-1 text-xs">
                 <Clock className="h-3 w-3" /> Tempo total: {formatDuration(local.total_time_minutes)}
