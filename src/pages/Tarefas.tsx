@@ -434,6 +434,7 @@ export default function TarefasPage() {
       original_assignee: originalAssignee || (editingTask?.original_assignee || null),
       department: department || null,
       project_id: projectId && projectId !== 'none' ? projectId : null,
+      client_id: clientId && clientId !== 'none' ? clientId : null,
       parent_task_id: parentTaskId && parentTaskId !== 'none' ? parentTaskId : null,
       notes: notes || null,
       recurrence_type: recurrenceType || null,
