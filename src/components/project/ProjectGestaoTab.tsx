@@ -102,24 +102,35 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
 
   // ─── Client payment method ─────────────────────────────────────
   const { data: clientData } = useQuery({
-    queryKey: ['client-payment-method', clientId],
+    queryKey: ['client-payment-method', clientId, clientName],
     queryFn: async () => {
-      if (!clientId) return null;
-      const { data } = await supabase.from('clients').select('payment_method').eq('id', clientId).maybeSingle();
-      return data;
+      if (clientId) {
+        const { data } = await supabase.from('clients').select('id, payment_method').eq('id', clientId).maybeSingle();
+        return data;
+      }
+      if (clientName) {
+        const { data } = await supabase.from('clients').select('id, payment_method').eq('full_name', clientName).maybeSingle();
+        return data;
+      }
+      return null;
     },
-    enabled: !!clientId,
+    enabled: !!clientId || !!clientName,
   });
+
+  const resolvedClientId = clientData?.id || clientId;
 
   const qc = useQueryClient();
   const updatePaymentMethod = useMutation({
     mutationFn: async (method: string) => {
-      if (!clientId) return;
-      await supabase.from('clients').update({ payment_method: method }).eq('id', clientId);
+      if (!resolvedClientId) throw new Error('Cliente não associado ao projeto');
+      await supabase.from('clients').update({ payment_method: method }).eq('id', resolvedClientId);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['client-payment-method', clientId] });
+      qc.invalidateQueries({ queryKey: ['client-payment-method', clientId, clientName] });
       toast.success('Forma de pagamento atualizada');
+    },
+    onError: () => {
+      toast.error('Não foi possível atualizar a forma de pagamento');
     },
   });
 
