@@ -61,7 +61,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
   const [expForm, setExpForm] = useState<any>({});
 
   const openNewExpense = () => {
-    setExpForm({ status: 'por_pagar', category: 'outro', vat_rate: 23, location: 'portugal', base_value: '', description: '', includes_vat: false });
+    setExpForm({ status: 'por_pagar', category: 'outro', vat_rate: 23, location: 'portugal', base_value: '', description: '', includes_vat: false, supplier_id: null, is_recurring: false, recurrence_day: 1 });
     setExpOpen(true);
   };
 
@@ -95,6 +95,10 @@ export function FinSaidas({ fin, currentYear }: Props) {
       expense_month: month,
       expense_quarter: quarter,
       expense_year: year,
+      supplier_id: expForm.supplier_id || null,
+      is_recurring: expForm.is_recurring || false,
+      recurrence_day: expForm.is_recurring ? (expForm.recurrence_day || 1) : null,
+      recurrence_end_date: expForm.is_recurring && expForm.recurrence_end_date ? (typeof expForm.recurrence_end_date === 'string' ? expForm.recurrence_end_date : format(expForm.recurrence_end_date, 'yyyy-MM-dd')) : null,
     });
     setExpOpen(false);
     toast.success('Despesa guardada');
