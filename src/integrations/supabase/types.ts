@@ -3100,6 +3100,7 @@ export type Database = {
           source_id: string | null
           source_type: string | null
           status: string
+          supplier_id: string | null
           total_with_vat: number
           updated_at: string
           vat_rate: number
@@ -3122,6 +3123,7 @@ export type Database = {
           source_id?: string | null
           source_type?: string | null
           status?: string
+          supplier_id?: string | null
           total_with_vat?: number
           updated_at?: string
           vat_rate?: number
@@ -3144,9 +3146,54 @@ export type Database = {
           source_id?: string | null
           source_type?: string | null
           status?: string
+          supplier_id?: string | null
           total_with_vat?: number
           updated_at?: string
           vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_expenses_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_goals: {
+        Row: {
+          created_at: string | null
+          expense_target: number | null
+          id: string
+          month: number
+          notes: string | null
+          profit_target: number | null
+          revenue_target: number | null
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          created_at?: string | null
+          expense_target?: number | null
+          id?: string
+          month: number
+          notes?: string | null
+          profit_target?: number | null
+          revenue_target?: number | null
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          created_at?: string | null
+          expense_target?: number | null
+          id?: string
+          month?: number
+          notes?: string | null
+          profit_target?: number | null
+          revenue_target?: number | null
+          updated_at?: string | null
+          year?: number
         }
         Relationships: []
       }
@@ -6972,6 +7019,51 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: string | null
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          category: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          nif: string | null
+          notes: string | null
+          phone: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          category?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          nif?: string | null
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          category?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          nif?: string | null
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          website?: string | null
         }
         Relationships: []
       }
