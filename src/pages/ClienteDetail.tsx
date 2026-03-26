@@ -665,6 +665,56 @@ export default function ClienteDetailPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Renewal dialog */}
+      <Dialog open={renewDialogOpen} onOpenChange={setRenewDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Renovar / Novo Ciclo</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <Label>Produto para o novo ciclo</Label>
+              <Select value={renewProduct} onValueChange={setRenewProduct}>
+                <SelectTrigger><SelectValue placeholder="Selecionar produto" /></SelectTrigger>
+                <SelectContent>
+                  {productList.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {renewProduct && renewProduct !== form.current_product && (
+                <p className="text-xs text-muted-foreground">
+                  ⚠️ Produto diferente do atual ({form.current_product || 'nenhum'})
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <Label>Data de início do novo ciclo</Label>
+              <Input type="date" value={renewStartDate} onChange={e => setRenewStartDate(e.target.value)} />
+            </div>
+
+            {activeProjects.length > 0 && (
+              <div className="flex items-center justify-between gap-3 rounded-md border p-3">
+                <div>
+                  <p className="text-sm font-medium">Concluir projetos ativos?</p>
+                  <p className="text-xs text-muted-foreground">
+                    {activeProjects.length} projeto(s) ativo(s): {activeProjects.map((p: any) => p.name).join(', ')}
+                  </p>
+                </div>
+                <Switch checked={renewCloseActive} onCheckedChange={setRenewCloseActive} />
+              </div>
+            )}
+
+            <p className="text-xs text-muted-foreground">
+              Será criado um novo projeto, o produto atual do cliente será atualizado, e o portal será reactivado (se aplicável).
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenewDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={() => handleRenew.mutate()} disabled={!renewProduct || handleRenew.isPending}>
+              {handleRenew.isPending ? 'A criar...' : 'Iniciar Novo Ciclo'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
