@@ -181,6 +181,7 @@ export default function PortalViewPage() {
     ...(portal.show_meetings ? [{ key: 'meetings', label: 'Reuniões', icon: CalendarDays, always: false }] : []),
     ...(portal.show_payments ? [{ key: 'payments', label: 'Pagamentos', icon: CreditCard, always: false }] : []),
     ...(portal.show_faqs ? [{ key: 'faqs', label: "FAQ's", icon: HelpCircle, always: false }] : []),
+    ...((portal as any).show_materials && portalMaterials.length > 0 ? [{ key: 'materials', label: 'Materiais', icon: FolderOpen, always: false }] : []),
     ...(projectHistory.length > 0 ? [{ key: 'history', label: 'Histórico', icon: History, always: false }] : []),
   ];
 
