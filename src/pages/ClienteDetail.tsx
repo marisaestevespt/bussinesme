@@ -850,7 +850,7 @@ export default function ClienteDetailPage() {
                 <CardHeader className="pb-2 flex flex-row items-center justify-between">
                   <CardTitle className="text-sm">Pagamentos</CardTitle>
                   <div className="flex items-center gap-2">
-                    {form.payment_method && form.payment_method !== 'pagamento_total' && (
+                    {form.payment_method && (
                       <Button size="sm" variant="secondary" onClick={generateInstallments}>
                         Gerar Pagamentos
                       </Button>
