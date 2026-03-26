@@ -12,6 +12,7 @@ import { startOfWeek, endOfWeek, format, subDays, addDays, addWeeks, startOfMont
 import { useTeamData } from '@/hooks/useTeamData';
 import { WeeklyAlignDetailSheet, type DetailField } from '@/components/executive/WeeklyAlignDetailSheet';
 import { WeeklyKpiCards, CapacityFinancialCards } from '@/components/executive/WeeklyAlignKpis';
+import { WeeklyStrategicMetrics } from '@/components/executive/WeeklyStrategicMetrics';
 import { MetasSection, AgendaSection, VendasSection, LeadsSection, ClientesSection, NpsSection, ExpiringContractsSection, OperacaoSection } from '@/components/executive/WeeklyAlignSections';
 import { ChevronLeft, ChevronRight, Save } from 'lucide-react';
 import { toast } from 'sonner';
@@ -356,6 +357,9 @@ export default function ExecutiveWeeklyAlign() {
         {!isCurrentWeek && (
           <p className="text-xs text-muted-foreground text-center -mt-2">Dados de semanas anteriores são apenas de leitura.</p>
         )}
+
+        {/* Strategic Metrics — compact row */}
+        <WeeklyStrategicMetrics />
 
         {/* KPI Summary Cards */}
         <WeeklyKpiCards
