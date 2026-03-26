@@ -8,13 +8,14 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Plus, Trash2, Save, ExternalLink, GripVertical } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, ExternalLink, GripVertical, ListChecks, History } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -212,7 +213,12 @@ export default function SopDetailPage() {
   const [sopType, setSopType] = useState('operacional');
   const [sopRoleTitle, setSopRoleTitle] = useState('');
   const [sopProductId, setSopProductId] = useState('');
-
+  const [sopVersion, setSopVersion] = useState(1);
+  const [sopVersionNotes, setSopVersionNotes] = useState('');
+  const [showCreateTasks, setShowCreateTasks] = useState(false);
+  const [taskProjectId, setTaskProjectId] = useState('');
+  const [taskDepartment, setTaskDepartment] = useState('');
+  const [taskDeadline, setTaskDeadline] = useState('');
   // Detect if this is an onboarding/offboarding SOP linked to a product
   const isOnboardingSop = useMemo(() => {
     if (!sop) return false;
@@ -505,6 +511,8 @@ export default function SopDetailPage() {
     setSopType((sop as any).sop_type || 'operacional');
     setSopRoleTitle((sop as any).role_title || '');
     setSopProductId((sop as any).product_id || '');
+    setSopVersion((sop as any).version || 1);
+    setSopVersionNotes((sop as any).version_notes || '');
   }, [sop]);
 
   // ─── Save ───────────────────────────────────────────────────
@@ -532,6 +540,8 @@ export default function SopDetailPage() {
         sop_type: sopType,
         role_title: sopRoleTitle || null,
         product_id: sopProductId || null,
+        version: sopVersion,
+        version_notes: sopVersionNotes || null,
       } as any).eq('id', id!);
       if (error) throw error;
     },
@@ -543,7 +553,44 @@ export default function SopDetailPage() {
     onError: () => toast.error('Erro ao guardar'),
   });
 
-  // ─── Template row mutations (for onboarding/offboarding SOPs) ──
+  const bumpVersion = useMutation({
+    mutationFn: async () => {
+      const newVersion = sopVersion + 1;
+      const { error } = await supabase.from('sops').update({
+        version: newVersion,
+        version_notes: `Atualizado para v${newVersion} em ${format(new Date(), 'dd/MM/yyyy HH:mm')}`,
+      } as any).eq('id', id!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sop', id] });
+      toast.success(`Versão atualizada para v${sopVersion + 1}`);
+    },
+  });
+
+  const createTasksFromSop = useMutation({
+    mutationFn: async () => {
+      const steps = parseJsonList((sop as any)?.passos).filter(s => s.trim());
+      if (steps.length === 0) throw new Error('Sem passos para criar tarefas');
+      const rows = steps.map((step, i) => ({
+        name: `[${sopId}] ${step}`,
+        project_id: taskProjectId || null,
+        department: taskDepartment || null,
+        deadline: taskDeadline || null,
+        status: 'por_comecar',
+        priority: 'alta',
+        notes: `Criada a partir do SOP: ${name}`,
+      }));
+      const { error } = await supabase.from('tasks').insert(rows);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Tarefas criadas a partir dos passos do SOP');
+      setShowCreateTasks(false);
+    },
+    onError: (e: any) => toast.error(e.message || 'Erro ao criar tarefas'),
+  });
+
   const addTemplateRow = useMutation({
     mutationFn: async () => {
       if (!templateTable || !linkedProductId) return;
@@ -616,9 +663,16 @@ export default function SopDetailPage() {
             <div className="flex items-center gap-2 mb-1">
               <Input value={sopId} onChange={e => setSopId(e.target.value)} className="w-24 font-mono text-xs h-7" />
               <Badge className={cn('text-xs', statusInfo.color)}>{statusInfo.label}</Badge>
+              <Badge variant="outline" className="text-xs font-mono">v{sopVersion}</Badge>
             </div>
             <Input value={name} onChange={e => setName(e.target.value)} className="text-xl font-bold border-none px-0 h-auto focus-visible:ring-0" />
           </div>
+          <Button variant="outline" size="sm" onClick={() => setShowCreateTasks(true)} title="Criar tarefas a partir dos passos">
+            <ListChecks className="h-4 w-4 mr-1" /> Criar Tarefas
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => bumpVersion.mutate()} disabled={bumpVersion.isPending} title="Criar nova versão">
+            <History className="h-4 w-4 mr-1" /> v{sopVersion + 1}
+          </Button>
           <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
             <Save className="h-4 w-4 mr-1" /> Guardar
           </Button>
@@ -688,6 +742,10 @@ export default function SopDetailPage() {
           <div>
             <Label className="text-xs text-muted-foreground">Data de criação</Label>
             <Input type="date" value={createdAt} onChange={e => setCreatedAt(e.target.value)} className="h-9" />
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Versão</Label>
+            <p className="text-sm pt-2 font-mono">v{sopVersion}{sopVersionNotes ? ` — ${sopVersionNotes}` : ''}</p>
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">Última atualização</Label>
@@ -1248,6 +1306,45 @@ export default function SopDetailPage() {
           </AlertDialog>
         </div>
       </div>
+
+      {/* Create Tasks Dialog */}
+      <Dialog open={showCreateTasks} onOpenChange={setShowCreateTasks}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Criar Tarefas a partir deste SOP</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Serão criadas {parseJsonList((sop as any)?.passos).filter(s => s.trim()).length} tarefas a partir dos passos do processo.
+          </p>
+          <div className="space-y-3">
+            <div>
+              <Label>Projeto (opcional)</Label>
+              <Select value={taskProjectId || '_none_'} onValueChange={v => setTaskProjectId(v === '_none_' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none_">Nenhum</SelectItem>
+                  {projectsList.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Departamento</Label>
+              <Select value={taskDepartment || '_none_'} onValueChange={v => setTaskDepartment(v === '_none_' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none_">Nenhum</SelectItem>
+                  {DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Prazo (opcional)</Label>
+              <Input type="date" value={taskDeadline} onChange={e => setTaskDeadline(e.target.value)} />
+            </div>
+            <Button className="w-full" onClick={() => createTasksFromSop.mutate()} disabled={createTasksFromSop.isPending}>
+              Criar {parseJsonList((sop as any)?.passos).filter(s => s.trim()).length} Tarefas
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }

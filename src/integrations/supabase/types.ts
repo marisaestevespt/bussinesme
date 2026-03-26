@@ -6760,6 +6760,8 @@ export type Database = {
           updated_at: string
           utilizacao_nao_usado: Json | null
           utilizacao_usado: Json | null
+          version: number | null
+          version_notes: string | null
         }
         Insert: {
           apply_to_all_active_clients?: boolean
@@ -6789,6 +6791,8 @@ export type Database = {
           updated_at?: string
           utilizacao_nao_usado?: Json | null
           utilizacao_usado?: Json | null
+          version?: number | null
+          version_notes?: string | null
         }
         Update: {
           apply_to_all_active_clients?: boolean
@@ -6818,6 +6822,8 @@ export type Database = {
           updated_at?: string
           utilizacao_nao_usado?: Json | null
           utilizacao_usado?: Json | null
+          version?: number | null
+          version_notes?: string | null
         }
         Relationships: [
           {
