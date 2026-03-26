@@ -27,6 +27,7 @@ import { useProducts } from '@/hooks/useProducts';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
 import { EntryDetailSheet } from '@/components/financial/EntryDetailSheet';
+import { InvoiceUpload } from '@/components/financial/InvoiceUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { DEPARTMENTS } from '@/lib/departments';
 import { useQuery, useMutation } from '@tanstack/react-query';
