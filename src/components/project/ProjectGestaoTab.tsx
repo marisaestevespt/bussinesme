@@ -469,7 +469,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             </div>
           )}
 
-
+          {hasExistingProjectSales && (
             <p className="text-xs text-muted-foreground">⚠️ Já existem pagamentos gerados para este projeto. Elimine-os primeiro para gerar novos.</p>
           )}
 
