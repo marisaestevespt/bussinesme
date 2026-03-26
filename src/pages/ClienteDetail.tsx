@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { AppLayout } from '@/components/AppLayout';
@@ -12,35 +12,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X } from 'lucide-react';
+import { Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { format, parseISO, differenceInDays } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import {
-  useClient, useClients, useClientHistory, useClientActivities, useClientOnboarding, useClientOffboarding,
+  useClient, useClients, useClientHistory,
   CLIENT_STATUS_OPTIONS, Client
 } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
 import { useCommercialData } from '@/hooks/useCommercialData';
-import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
 import { EntryDetailSheet } from '@/components/financial/EntryDetailSheet';
-import { InvoiceUpload } from '@/components/financial/InvoiceUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { DEPARTMENTS } from '@/lib/departments';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ClientCustomerSuccess } from '@/components/client/ClientCustomerSuccess';
-import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { BackNavigation } from '@/components/BackNavigation';
-import { LinkedSopsSection } from '@/components/LinkedSopsSection';
-import { ClientContactsSection } from '@/components/client/ClientContactsSection';
 import { ClientFeedbackSection } from '@/components/client/ClientFeedbackSection';
-import { ClientDeliverablesTab } from '@/components/client/ClientDeliverablesTab';
-import { useSensitiveAccess } from '@/hooks/useSensitiveAccess';
 
-// ─── Meetings query for filtered view ───────────────────────────
+// ─── Meetings query ─────────────────────────────────────────────
 function useFilteredMeetings(clientId: string | undefined) {
   return useQuery({
     queryKey: ['meetings', 'client', clientId],
@@ -72,67 +64,11 @@ function DateField({ value, onChange, label }: { value: string | null; onChange:
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={d => onChange(d ? format(d, 'yyyy-MM-dd') : null)}
-            locale={pt}
-          />
+          <Calendar mode="single" selected={date} onSelect={d => onChange(d ? format(d, 'yyyy-MM-dd') : null)} locale={pt} />
         </PopoverContent>
       </Popover>
     </div>
   );
-}
-
-// ─── End of cycle badge ─────────────────────────────────────────
-function EndOfCycleBadge({ date }: { date: string | null }) {
-  if (!date) return null;
-  const d = parseISO(date);
-  const days = differenceInDays(d, new Date());
-  if (days < 0) return <Badge variant="outline" className="bg-red-100 text-red-800 ml-2">Expirado</Badge>;
-  if (days <= 30) return <Badge variant="outline" className="bg-amber-100 text-amber-800 ml-2">Expira em {days}d</Badge>;
-  return null;
-}
-
-// ─── Auto-copy onboarding/offboarding from product template ─────
-function AutoCopyOnboardingFromProduct({ clientId, isNew, currentProduct, productList, onboardingData, offboardingData, addOnboarding, addOffboarding }: {
-  clientId: string | undefined; isNew: boolean; currentProduct: string | null; productList: any[];
-  onboardingData: any[]; offboardingData: any[];
-  addOnboarding: { mutateAsync: (v: any) => Promise<any> };
-  addOffboarding: { mutateAsync: (v: any) => Promise<any> };
-}) {
-  const copiedRef = useRef<{ onboarding: boolean; offboarding: boolean }>({ onboarding: false, offboarding: false });
-
-  useEffect(() => {
-    if (isNew || !clientId || !currentProduct) return;
-    const prod = productList.find(p => p.name === currentProduct);
-    if (!prod) return;
-
-    const copyOnboarding = async () => {
-      if (copiedRef.current.onboarding || onboardingData.length > 0) return;
-      copiedRef.current.onboarding = true;
-      const { data: template } = await supabase.from('product_onboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
-      if (!template || template.length === 0) return;
-      for (const t of template as any[]) {
-        await addOnboarding.mutateAsync({ client_id: clientId, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
-      }
-    };
-
-    const copyOffboarding = async () => {
-      if (copiedRef.current.offboarding || offboardingData.length > 0) return;
-      copiedRef.current.offboarding = true;
-      const { data: template } = await supabase.from('product_offboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
-      if (!template || template.length === 0) return;
-      for (const t of template as any[]) {
-        await addOffboarding.mutateAsync({ client_id: clientId, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
-      }
-    };
-
-    copyOnboarding();
-    copyOffboarding();
-  }, [isNew, clientId, currentProduct, onboardingData.length, offboardingData.length]);
-
-  return null;
 }
 
 export default function ClienteDetailPage() {
@@ -144,20 +80,13 @@ export default function ClienteDetailPage() {
   const { upsertClient, duplicateClient, deleteClient } = useClients();
   const { products } = useProducts();
   const commercialData = useCommercialData();
-  const { canSee } = useSensitiveAccess();
 
   const [form, setForm] = useState<Partial<Client>>({});
   const [initialized, setInitialized] = useState(false);
-  const [saleOpen, setSaleOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
   const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [meetingForm, setMeetingForm] = useState({ title: '', date_time: '', meeting_url: '', meeting_type: 'cliente' as 'recorrente' | 'projeto' | 'cliente', department: '' });
-  const [totalValue, setTotalValue] = useState('');
-  const [entradaValue, setEntradaValue] = useState('');
-  const [numPrestacoes, setNumPrestacoes] = useState('');
-  const [diaPagamento, setDiaPagamento] = useState('');
-  const [valorAvenca, setValorAvenca] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -182,14 +111,14 @@ export default function ClienteDetailPage() {
     if (client && confirm('Eliminar este cliente?')) { await deleteClient.mutateAsync(client.id); navigate('/hub/clientes'); }
   };
 
-  // Filtered payments from commercial sales
+  // Filtered payments
   const allSales = commercialData.sales.data || [];
   const clientSales = allSales.filter(s => s.client === form.full_name);
 
   // Filtered meetings
   const { data: clientMeetings = [] } = useFilteredMeetings(isNew ? undefined : id);
 
-  // Create meeting mutation
+  // Create meeting
   const createMeeting = useMutation({
     mutationFn: async (data: { title: string; date_time: string; meeting_url: string; meeting_type: string; department: string }) => {
       const { error } = await supabase.from('meetings').insert({
@@ -213,148 +142,21 @@ export default function ClienteDetailPage() {
     onError: () => toast.error('Erro ao criar reunião'),
   });
 
-  // Auto-generate installment payments
-  const generateInstallments = async () => {
-    const method = form.payment_method;
-    if (!method) { toast.error('Seleciona uma forma de pagamento'); return; }
-    if (!form.full_name) { toast.error('Nome do cliente é obrigatório'); return; }
-
-    const product = form.current_product || '';
-    const client = form.full_name;
-    const startDate = form.start_date ? new Date(form.start_date + 'T00:00:00') : new Date();
-
-    // Determine payments to create
-    let payments: { baseValue: number; index: number }[] = [];
-    const num = parseInt(numPrestacoes) || 0;
-
-    if (method === 'pagamento_total') {
-      const total = parseFloat(totalValue);
-      if (!total) { toast.error('Preenche o valor total'); return; }
-      payments.push({ baseValue: total, index: -1 });
-    } else if (method === 'entrada_prestacoes') {
-      const day = parseInt(diaPagamento);
-      if (!day || day < 1 || day > 31) { toast.error('Define o dia de pagamento'); return; }
-      const total = parseFloat(totalValue);
-      const entrada = parseFloat(entradaValue);
-      if (!total || !entrada) { toast.error('Preenche o valor total e o valor de entrada'); return; }
-      if (num < 2) { toast.error('Define a quantidade de prestações'); return; }
-      payments.push({ baseValue: entrada, index: -1 });
-      const remainder = total - entrada;
-      const perInstallment = Math.round((remainder / num) * 100) / 100;
-      for (let i = 0; i < num; i++) payments.push({ baseValue: perInstallment, index: i });
-    } else if (method === 'prestacoes') {
-      const day = parseInt(diaPagamento);
-      if (!day || day < 1 || day > 31) { toast.error('Define o dia de pagamento'); return; }
-      const total = parseFloat(totalValue);
-      if (!total) { toast.error('Preenche o valor total'); return; }
-      if (num < 2) { toast.error('Define a quantidade de prestações'); return; }
-      const perInstallment = Math.round((total / num) * 100) / 100;
-      // index -1 = first payment at start_date, rest from next month
-      payments.push({ baseValue: perInstallment, index: -1 });
-      for (let i = 0; i < num - 1; i++) payments.push({ baseValue: perInstallment, index: i });
-    } else if (method === 'avenca_mensal') {
-      const day = parseInt(diaPagamento);
-      if (!day || day < 1 || day > 31) { toast.error('Define o dia de pagamento'); return; }
-      const monthly = parseFloat(valorAvenca);
-      if (!monthly) { toast.error('Preenche o valor da avença mensal'); return; }
-      if (num < 2) { toast.error('Define a quantidade de meses'); return; }
-      // index -1 = first month at start_date, rest from next month
-      payments.push({ baseValue: monthly, index: -1 });
-      for (let i = 0; i < num - 1; i++) payments.push({ baseValue: monthly, index: i });
-    }
-
-    if (payments.length === 0) return;
-
-    try {
-      let vatMultiplier = 1.23;
-      if (product) {
-        const { data: prodData } = await supabase.from('products').select('vat_rate').eq('name', product).maybeSingle();
-        const rate = prodData?.vat_rate;
-        if (rate === 'isento') vatMultiplier = 1;
-        else if (rate) vatMultiplier = 1 + parseFloat(rate) / 100;
-      }
-
-      for (const p of payments) {
-        let payDate: Date;
-        if (p.index === -1) {
-          // First payment: use client start_date
-          payDate = startDate;
-        } else {
-          // Subsequent payments: from next month onward using the defined day
-          const day = parseInt(diaPagamento);
-          payDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1 + p.index, day);
-        }
-        const payMonth = payDate.getMonth() + 1;
-        const payQuarter = Math.ceil(payMonth / 3);
-        const payYear = payDate.getFullYear();
-        const payDateStr = format(payDate, 'yyyy-MM-dd');
-
-        const { data: countData } = await supabase.from('commercial_sales').select('id').eq('sale_year', payYear);
-        const nextNum = ((countData?.length || 0) + 1).toString().padStart(2, '0');
-        const saleId = `V${payYear}-${nextNum}`;
-
-        const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-        let description = '';
-        if (method === 'pagamento_total') {
-          description = `${form.client_id}_PagamentoTotal`;
-        } else if (p.index === -1 && method === 'entrada_prestacoes') {
-          description = `${form.client_id}_Entrada`;
-        } else {
-          description = `${form.client_id}_Pagamento_${monthNames[payMonth - 1]}`;
-        }
-
-        await supabase.from('commercial_sales').insert({
-          sale_id: saleId,
-          status: 'na',
-          payment_date: payDateStr,
-          description,
-          base_value: p.baseValue,
-          invoice_total: Math.round(p.baseValue * vatMultiplier * 100) / 100,
-          product,
-          client,
-          source: null,
-          documents: [],
-          sale_month: payMonth,
-          sale_quarter: payQuarter,
-          sale_year: payYear,
-        });
-      }
-      queryClient.invalidateQueries({ queryKey: ['commercial'] });
-      toast.success(`${payments.length} pagamento(s) criado(s) com sucesso`);
-    } catch (e) {
-      toast.error('Erro ao gerar pagamentos');
-    }
-  };
-
-  // Local tables
+  // History
   const { history, addEntry: addHistory, updateEntry: updateHistory, deleteEntry: deleteHistory } = useClientHistory(isNew ? undefined : id);
-  const { activities, addEntry: addActivity, updateEntry: updateActivity, deleteEntry: deleteActivity } = useClientActivities(isNew ? undefined : id);
-  const { onboarding, addEntry: addOnboarding, updateEntry: updateOnboarding, deleteEntry: deleteOnboarding } = useClientOnboarding(isNew ? undefined : id);
-  const { offboarding, addEntry: addOffboarding, updateEntry: updateOffboarding, deleteEntry: deleteOffboarding } = useClientOffboarding(isNew ? undefined : id);
 
-  const productList = products.data || [];
-
-  // Fetch allowed payment methods for selected product
-  const selectedProduct = productList.find(p => p.name === form.current_product);
-  const { data: allowedPaymentMethods = [] } = useQuery({
-    queryKey: ['product-payment-methods', selectedProduct?.id],
+  // Client projects
+  const { data: clientProjects = [] } = useQuery({
+    queryKey: ['projects', 'client', form.full_name],
     queryFn: async () => {
-      if (!selectedProduct?.id) return [];
-      const { data } = await supabase.from('product_payment_methods' as any).select('*').eq('product_id', selectedProduct.id);
-      return (data || []).map((pm: any) => pm.payment_method as string);
+      if (!form.full_name) return [];
+      const { data } = await supabase.from('projects').select('id, name, status, created_at').eq('client_name', form.full_name).order('created_at', { ascending: false });
+      return data || [];
     },
-    enabled: !!selectedProduct?.id,
+    enabled: !!form.full_name && !isNew,
   });
 
-  const allPaymentOptions = [
-    { value: 'pagamento_total', label: 'Pagamento Total' },
-    { value: 'entrada_prestacoes', label: 'Pagamento Entrada + Prestações' },
-    { value: 'prestacoes', label: 'Pagamento Prestações' },
-    { value: 'avenca_mensal', label: 'Pagamento Avença Mensal' },
-  ];
-  const availablePaymentOptions = allowedPaymentMethods.length > 0
-    ? allPaymentOptions.filter(o => allowedPaymentMethods.includes(o.value))
-    : allPaymentOptions;
+  const productList = products.data || [];
 
   if (!isNew && isLoading) {
     return <AppLayout><div className="flex items-center justify-center min-h-[60vh]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div></AppLayout>;
@@ -376,7 +178,6 @@ export default function ClienteDetailPage() {
               />
               {form.client_id && <p className="text-xs text-muted-foreground font-mono">{form.client_id}</p>}
             </div>
-            <EndOfCycleBadge date={form.end_of_cycle || null} />
           </div>
           <div className="flex items-center gap-2">
             {!isNew && <Button variant="outline" size="sm" onClick={handleDuplicate}><Copy className="h-4 w-4 mr-1" />Duplicar</Button>}
@@ -385,11 +186,10 @@ export default function ClienteDetailPage() {
           </div>
         </div>
 
-        {/* Properties grid */}
+        {/* Properties */}
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm">Propriedades</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            {/* Row 1: ID | Status | Produto Atual */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">ID</Label>
@@ -406,113 +206,7 @@ export default function ClienteDetailPage() {
               </div>
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Produto Atual</Label>
-                <Select value={form.current_product || ''} onValueChange={async (v) => {
-                  update('current_product', v);
-                  // Auto-fill payment method and ticket from product
-                  const selectedProd = productList.find(p => p.name === v);
-                  if (selectedProd) {
-                    // Pre-fill total value from product ticket
-                    if (selectedProd.ticket) {
-                      const ticketNum = parseFloat(selectedProd.ticket);
-                      if (!isNaN(ticketNum)) setTotalValue(String(ticketNum));
-                    }
-                    // Fetch allowed payment methods and auto-select if only one
-                    const { data: pmData } = await supabase.from('product_payment_methods' as any).select('payment_method').eq('product_id', selectedProd.id);
-                    const methods = (pmData || []).map((pm: any) => pm.payment_method);
-                    if (methods.length === 1) {
-                      update('payment_method', methods[0]);
-                      setEntradaValue(''); setNumPrestacoes(''); setDiaPagamento(''); setValorAvenca('');
-                    } else {
-                      update('payment_method', '');
-                      setEntradaValue(''); setNumPrestacoes(''); setDiaPagamento(''); setValorAvenca('');
-                    }
-                    queryClient.invalidateQueries({ queryKey: ['product-payment-methods', selectedProd.id] });
-                  }
-                  if (form.start_date) {
-                    const prod = productList.find(p => p.name === v);
-                    if (prod?.cycle_duration) {
-                      const start = parseISO(form.start_date);
-                      const end = new Date(start);
-                      end.setDate(end.getDate() + prod.cycle_duration);
-                      update('end_of_cycle', format(end, 'yyyy-MM-dd'));
-                    }
-                  }
-                  if (!isNew && id) {
-                    const prod = productList.find(p => p.name === v);
-                    if (prod) {
-                      const currentOnb = onboarding.data || [];
-                      if (currentOnb.length === 0) {
-                        const { data: onbTemplate } = await supabase.from('product_onboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
-                        if (onbTemplate && onbTemplate.length > 0) {
-                          for (const t of onbTemplate as any[]) {
-                            await addOnboarding.mutateAsync({ client_id: id, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
-                          }
-                          toast.success('Checklist de onboarding copiada automaticamente');
-                        }
-                      }
-                      const currentOffb = offboarding.data || [];
-                      if (currentOffb.length === 0) {
-                        const { data: offbTemplate } = await supabase.from('product_offboarding_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
-                        if (offbTemplate && offbTemplate.length > 0) {
-                          for (const t of offbTemplate as any[]) {
-                            await addOffboarding.mutateAsync({ client_id: id, phase: t.phase || '', activity: t.activity || '', responsible: t.responsible || '', rule: t.rule || '', documents_links: t.documents_links || '', sort_order: t.sort_order || 0 });
-                          }
-                          toast.success('Checklist de offboarding copiada automaticamente');
-                        }
-                      }
-                      const { data: projData, error: projErr } = await supabase.from('projects').insert({
-                        name: `${form.full_name || 'Cliente'} — ${v}`,
-                        type: 'clientes',
-                        status: 'em_curso',
-                        department: 'clientes',
-                        client_name: form.full_name || null,
-                      }).select('id').single();
-                      if (!projErr && projData) {
-                        const { data: taskTemplates } = await supabase.from('product_project_templates' as any).select('*').eq('product_id', prod.id).order('sort_order');
-                        if (taskTemplates && taskTemplates.length > 0) {
-                          for (const t of taskTemplates as any[]) {
-                            await supabase.from('tasks').insert({
-                              name: t.task_name || '',
-                              project_id: projData.id,
-                              department: 'clientes',
-                              status: 'pendente',
-                              priority: 'media',
-                            });
-                          }
-                        }
-                        toast.success('Projeto criado automaticamente');
-                      }
-                      if (form.start_date) {
-                        const { data: npsConf } = await supabase.from('product_nps_config' as any).select('*').eq('product_id', prod.id).maybeSingle();
-                        if (npsConf) {
-                          await supabase.from('client_nps_records' as any).delete().eq('client_id', id).eq('is_manual', false);
-                          const startD = parseISO(form.start_date);
-                          const cadence = (npsConf as any).cadence_days || 30;
-                          const npsRows = [];
-                          for (let i = 1; i <= Math.floor(730 / cadence); i++) {
-                            const d = new Date(startD);
-                            d.setDate(d.getDate() + cadence * i);
-                            npsRows.push({ client_id: id, product_id: prod.id, expected_date: format(d, 'yyyy-MM-dd'), status: 'por_fazer', is_manual: false });
-                          }
-                          if (npsRows.length) await supabase.from('client_nps_records' as any).insert(npsRows);
-                        }
-                        await supabase.from('client_milestones' as any).delete().eq('client_id', id).eq('product_id', prod.id);
-                        const { data: prodMs } = await supabase.from('product_milestones' as any).select('*').eq('product_id', prod.id).order('days_after_start');
-                        if (prodMs?.length) {
-                          const startD = parseISO(form.start_date);
-                          const msRows = (prodMs as any[]).map(m => ({
-                            client_id: id, product_id: prod.id, milestone: m.milestone,
-                            expected_date: format(new Date(startD.getTime() + m.days_after_start * 86400000), 'yyyy-MM-dd'),
-                            milestone_type: m.milestone_type, responsible_id: m.responsible_id, status: 'por_fazer',
-                          }));
-                          await supabase.from('client_milestones' as any).insert(msRows);
-                        }
-                        queryClient.invalidateQueries({ queryKey: ['client-nps-records', id] });
-                        queryClient.invalidateQueries({ queryKey: ['client-milestones', id] });
-                      }
-                    }
-                  }
-                }}>
+                <Select value={form.current_product || ''} onValueChange={v => update('current_product', v)}>
                   <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                   <SelectContent>
                     {productList.map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
@@ -520,8 +214,7 @@ export default function ClienteDetailPage() {
                 </Select>
               </div>
             </div>
-            {/* Row 2: Aniversário | E-mail | Whatsapp */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <DateField label="Aniversário" value={form.birthday || null} onChange={v => update('birthday', v)} />
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">E-mail</Label>
@@ -531,121 +224,20 @@ export default function ClienteDetailPage() {
                 <Label className="text-xs text-muted-foreground">Whatsapp</Label>
                 <Input value={form.whatsapp || ''} onChange={e => update('whatsapp', e.target.value)} />
               </div>
+              <DateField label="Data de Início" value={form.start_date || null} onChange={v => update('start_date', v)} />
             </div>
-            {/* Row 3: Data de Início | Fim de Ciclo */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <DateField label="Data de Início" value={form.start_date || null} onChange={v => {
-                update('start_date', v);
-                if (v && form.current_product) {
-                  const prod = productList.find(p => p.name === form.current_product);
-                  if (prod?.cycle_duration) {
-                    const start = parseISO(v);
-                    const end = new Date(start);
-                    end.setDate(end.getDate() + prod.cycle_duration);
-                    update('end_of_cycle', format(end, 'yyyy-MM-dd'));
-                  }
-                }
-              }} />
-              <DateField label="Fim de Ciclo" value={form.end_of_cycle || null} onChange={v => update('end_of_cycle', v)} />
-            </div>
-            {canSee('financial') && (
-              <>
-                {/* Row 4: Forma de Pagamento */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Forma de Pagamento</Label>
-                    <Select value={form.payment_method || ''} onValueChange={v => { update('payment_method', v); setEntradaValue(''); setNumPrestacoes(''); setDiaPagamento(''); setValorAvenca(''); setTotalValue(''); }}>
-                      <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                      <SelectContent>
-                        {availablePaymentOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {form.payment_method && form.payment_method !== 'avenca_mensal' && (
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Valor Total (s/ IVA) (€)</Label>
-                      <Input type="number" step="0.01" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="Ex: 900" />
-                    </div>
-                  )}
-                </div>
-                {form.payment_method === 'entrada_prestacoes' && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Valor Entrada (s/ IVA) (€)</Label>
-                      <Input type="number" step="0.01" value={entradaValue} onChange={e => setEntradaValue(e.target.value)} placeholder="Ex: 300" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Quantidade de Prestações</Label>
-                      <Select value={numPrestacoes} onValueChange={setNumPrestacoes}>
-                        <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 11 }, (_, i) => i + 2).map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
-                      <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
-                    </div>
-                    {totalValue && entradaValue && numPrestacoes && (
-                      <p className="text-xs text-muted-foreground md:col-span-3">
-                        Entrada: {parseFloat(entradaValue).toFixed(2)}€ + {numPrestacoes}× {((parseFloat(totalValue) - parseFloat(entradaValue)) / parseInt(numPrestacoes)).toFixed(2)}€ (s/ IVA)
-                      </p>
-                    )}
-                  </div>
-                )}
-                {form.payment_method === 'prestacoes' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Quantidade de Prestações</Label>
-                      <Select value={numPrestacoes} onValueChange={setNumPrestacoes}>
-                        <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 11 }, (_, i) => i + 2).map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
-                      <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
-                    </div>
-                    {totalValue && numPrestacoes && (
-                      <p className="text-xs text-muted-foreground md:col-span-2">
-                        {numPrestacoes}× {(parseFloat(totalValue) / parseInt(numPrestacoes)).toFixed(2)}€ (s/ IVA)
-                      </p>
-                    )}
-                  </div>
-                )}
-                {form.payment_method === 'avenca_mensal' && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Meses de Contrato</Label>
-                      <Input type="number" min="2" value={numPrestacoes} onChange={e => setNumPrestacoes(e.target.value)} placeholder="Ex: 12" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Dia de Pagamento</Label>
-                      <Input type="number" min="1" max="31" value={diaPagamento} onChange={e => setDiaPagamento(e.target.value)} placeholder="Ex: 15" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Valor Avença Mensal (s/ IVA) (€)</Label>
-                      <Input type="number" step="0.01" value={valorAvenca} onChange={e => setValorAvenca(e.target.value)} placeholder="Ex: 150" />
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
           </CardContent>
         </Card>
 
-        {/* Dados Fiscais — financial sensitive */}
-        {canSee('financial') && (
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Dados Fiscais</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Nome Completo</Label>
-                <Input value={form.full_name || ''} onChange={e => update('full_name', e.target.value)} />
-              </div>
+        {/* Dados Fiscais */}
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm">Dados Fiscais</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Nome Completo</Label>
+              <Input value={form.full_name || ''} onChange={e => update('full_name', e.target.value)} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">NIF</Label>
                 <Input value={form.nif || ''} onChange={e => update('nif', e.target.value)} />
@@ -654,175 +246,84 @@ export default function ClienteDetailPage() {
                 <Label className="text-xs text-muted-foreground">Morada Fiscal</Label>
                 <Input value={form.fiscal_address || ''} onChange={e => update('fiscal_address', e.target.value)} />
               </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Observações e Documentos */}
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Observações e Documentos</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Observações</Label>
-              <Textarea value={form.observations || ''} onChange={e => update('observations', e.target.value)} rows={2} />
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Documentos (link)</Label>
-              <Input value={form.documents || ''} onChange={e => update('documents', e.target.value)} placeholder="URL ou referência" />
-            </div>
-            <InvoiceUpload
-              documents={Array.isArray(form.client_files) ? (form.client_files as any[]) : []}
-              onChange={(files) => update('client_files', files)}
-              label="Ficheiros (contratos, documentos)"
-            />
           </CardContent>
         </Card>
 
-        {/* Content tabs */}
+        {/* Observações */}
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-sm">Observações</CardTitle></CardHeader>
+          <CardContent>
+            <Textarea value={form.observations || ''} onChange={e => update('observations', e.target.value)} rows={3} placeholder="Notas sobre este cliente..." />
+          </CardContent>
+        </Card>
+
+        {/* Tabs */}
         <Tabs defaultValue="jornada" className="w-full">
           <TabsList className="bg-transparent gap-2 flex-wrap">
             <TabsTrigger value="jornada">Jornada</TabsTrigger>
-            <TabsTrigger value="entregas">Entregas e Tarefas</TabsTrigger>
-            <TabsTrigger value="links">Links</TabsTrigger>
             <TabsTrigger value="gestao">Gestão do Cliente</TabsTrigger>
             <TabsTrigger value="customer-success">Customer Success</TabsTrigger>
-            <TabsTrigger value="uteis">Úteis</TabsTrigger>
           </TabsList>
 
-          {/* ─── Entregas e Tarefas ──────────────────── */}
-          <TabsContent value="entregas" className="space-y-6 mt-4">
-            {!isNew && id && form.full_name && (
-              <ClientDeliverablesTab clientName={form.full_name} clientId={id} />
-            )}
-          </TabsContent>
-
-          {/* ─── Jornada ───────────────────────────────── */}
+          {/* ─── Tab 1: Jornada ───────────────────────────── */}
           <TabsContent value="jornada" className="space-y-6 mt-4">
-            {/* Auto-copy from product template */}
-            <AutoCopyOnboardingFromProduct
-              clientId={id}
-              isNew={isNew}
-              currentProduct={form.current_product}
-              productList={productList}
-              onboardingData={onboarding.data || []}
-              offboardingData={offboarding.data || []}
-              addOnboarding={addOnboarding}
-              addOffboarding={addOffboarding}
-            />
-            {/* Onboarding checklist */}
+            {/* Projects history */}
             <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm">Checklist de Onboarding</CardTitle>
-                {!isNew && (
-                  <Button size="sm" variant="outline" onClick={() => addOnboarding.mutateAsync({ client_id: id!, activity: '' })}>
-                    <Plus className="h-3 w-3 mr-1" />Nova Entrada
-                  </Button>
-                )}
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Histórico de Projetos</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[32px_1fr_1fr_1fr_1fr_1fr_32px] gap-2">
-                  <span>✓</span><span>Fase</span><span>Atividade</span><span>Responsável</span><span>Regra</span><span>Docs/Links</span><span></span>
+                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[1fr_120px_100px] gap-2">
+                  <span>Projeto</span><span>Status</span><span>Data</span>
                 </div>
-                {(onboarding.data || []).length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8 text-sm">Sem entradas</p>
-                ) : (onboarding.data || []).map(o => (
-                  <div key={o.id} className={cn("px-4 py-2 text-xs grid grid-cols-[32px_1fr_1fr_1fr_1fr_1fr_32px] gap-2 border-b items-center", o.completed && "opacity-60")}>
-                    <Checkbox checked={o.completed} onCheckedChange={(v) => updateOnboarding.mutate({ id: o.id, completed: !!v })} />
-                    <Input className="h-7 text-xs" defaultValue={o.phase || ''} placeholder="Fase" onBlur={e => updateOnboarding.mutate({ id: o.id, phase: e.target.value })} />
-                    <Input className={cn("h-7 text-xs", o.completed && "line-through")} defaultValue={o.activity} placeholder="Atividade" onBlur={e => updateOnboarding.mutate({ id: o.id, activity: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={o.responsible || ''} placeholder="Responsável" onBlur={e => updateOnboarding.mutate({ id: o.id, responsible: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={o.rule || ''} placeholder="Regra" onBlur={e => updateOnboarding.mutate({ id: o.id, rule: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={(o as any).documents_links || ''} placeholder="URL/notas" onBlur={e => updateOnboarding.mutate({ id: o.id, documents_links: e.target.value } as any)} />
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteOnboarding.mutate(o.id)}><X className="h-3 w-3" /></Button>
+                {clientProjects.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8 text-sm">Sem projetos associados</p>
+                ) : clientProjects.map((p: any) => (
+                  <div
+                    key={p.id}
+                    className="px-4 py-2 text-xs grid grid-cols-[1fr_120px_100px] gap-2 border-b items-center cursor-pointer hover:bg-muted/50"
+                    onClick={() => navigate(`/hub/projetos/${p.id}`)}
+                  >
+                    <span className="font-medium">{p.name}</span>
+                    <Badge variant="outline" className="w-fit">{p.status}</Badge>
+                    <span>{p.created_at ? format(parseISO(p.created_at), 'dd/MM/yyyy') : '—'}</span>
                   </div>
                 ))}
               </CardContent>
             </Card>
 
-            {/* Offboarding checklist */}
+            {/* Client history */}
             <Card>
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm">Checklist de Offboarding</CardTitle>
+                <CardTitle className="text-sm">Histórico do Cliente</CardTitle>
                 {!isNew && (
-                  <Button size="sm" variant="outline" onClick={() => addOffboarding.mutateAsync({ client_id: id!, activity: '' })}>
+                  <Button size="sm" variant="outline" onClick={() => addHistory.mutateAsync({ client_id: id!, milestone: '', entry_date: format(new Date(), 'yyyy-MM-dd') })}>
                     <Plus className="h-3 w-3 mr-1" />Nova Entrada
                   </Button>
                 )}
               </CardHeader>
               <CardContent className="p-0">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[32px_1fr_1fr_1fr_1fr_1fr_32px] gap-2">
-                  <span>✓</span><span>Fase</span><span>Atividade</span><span>Responsável</span><span>Regra</span><span>Docs/Links</span><span></span>
+                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2">
+                  <span>Data</span><span>Entrada</span><span>Observações</span><span></span>
                 </div>
-                {(offboarding.data || []).length === 0 ? (
+                {(history.data || []).length === 0 ? (
                   <p className="text-center text-muted-foreground py-8 text-sm">Sem entradas</p>
-                ) : (offboarding.data || []).map(o => (
-                  <div key={o.id} className={cn("px-4 py-2 text-xs grid grid-cols-[32px_1fr_1fr_1fr_1fr_1fr_32px] gap-2 border-b items-center", o.completed && "opacity-60")}>
-                    <Checkbox checked={o.completed} onCheckedChange={(v) => updateOffboarding.mutate({ id: o.id, completed: !!v })} />
-                    <Input className="h-7 text-xs" defaultValue={o.phase || ''} placeholder="Fase" onBlur={e => updateOffboarding.mutate({ id: o.id, phase: e.target.value })} />
-                    <Input className={cn("h-7 text-xs", o.completed && "line-through")} defaultValue={o.activity} placeholder="Atividade" onBlur={e => updateOffboarding.mutate({ id: o.id, activity: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={o.responsible || ''} placeholder="Responsável" onBlur={e => updateOffboarding.mutate({ id: o.id, responsible: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={o.rule || ''} placeholder="Regra" onBlur={e => updateOffboarding.mutate({ id: o.id, rule: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={(o as any).documents_links || ''} placeholder="URL/notas" onBlur={e => updateOffboarding.mutate({ id: o.id, documents_links: e.target.value } as any)} />
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteOffboarding.mutate(o.id)}><X className="h-3 w-3" /></Button>
+                ) : (history.data || []).map(h => (
+                  <div key={h.id} className="px-4 py-2 text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2 border-b items-center">
+                    <Input type="date" className="h-7 text-xs" defaultValue={h.entry_date} onBlur={e => updateHistory.mutate({ id: h.id, entry_date: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={h.milestone} placeholder="O que aconteceu..." onBlur={e => updateHistory.mutate({ id: h.id, milestone: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={h.observations || ''} placeholder="Observações" onBlur={e => updateHistory.mutate({ id: h.id, observations: e.target.value })} />
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteHistory.mutate(h.id)}><X className="h-3 w-3" /></Button>
                   </div>
                 ))}
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* ─── Links ─────────────────────────────────── */}
-          <TabsContent value="links" className="space-y-6 mt-4">
-            {/* Drive folder */}
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Pasta Drive</CardTitle></CardHeader>
-              <CardContent>
-                <div className="flex gap-2">
-                  <Input
-                    value={form.drive_folder_url || ''}
-                    onChange={e => update('drive_folder_url', e.target.value)}
-                    placeholder="https://drive.google.com/..."
-                  />
-                  {form.drive_folder_url && (
-                    <Button variant="outline" size="icon" asChild>
-                      <a href={form.drive_folder_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* WhatsApp group */}
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Link Grupo WhatsApp</CardTitle></CardHeader>
-              <CardContent>
-                <div className="flex gap-2">
-                  <Input
-                    value={(form as any).whatsapp_group_url || ''}
-                    onChange={e => update('whatsapp_group_url' as any, e.target.value)}
-                    placeholder="https://chat.whatsapp.com/..."
-                  />
-                  {(form as any).whatsapp_group_url && (
-                    <Button variant="outline" size="icon" asChild>
-                      <a href={(form as any).whatsapp_group_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Portal de Cliente */}
-            {!isNew && id && (
-              <ClientPortalSection
-                clientId={id}
-                clientName={form.full_name || ''}
-                currentProduct={form.current_product || null}
-              />
-            )}
-          </TabsContent>
-
-          {/* ─── Gestão do Cliente ───────────────────────── */}
+          {/* ─── Tab 2: Gestão do Cliente ──────────────────── */}
           <TabsContent value="gestao" className="space-y-6 mt-4">
-            {/* Meetings filtered view */}
+            {/* Meetings */}
             <Card>
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm">Reuniões</CardTitle>
@@ -850,51 +351,73 @@ export default function ClienteDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Payments filtered view — financial sensitive */}
-            {canSee('financial') && (
-              <Card>
-                <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                  <CardTitle className="text-sm">Pagamentos</CardTitle>
-                  <div className="flex items-center gap-2">
-                    {form.payment_method && (
-                      <Button size="sm" variant="secondary" onClick={generateInstallments}>
-                        Gerar Pagamentos
-                      </Button>
-                    )}
-                    <Button size="sm" variant="outline" onClick={() => setSaleOpen(true)}><Plus className="h-3 w-3 mr-1" />Novo Pagamento</Button>
+            {/* Payments */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Pagamentos</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-6 gap-2">
+                  <span>Status</span><span>Data</span><span>Descrição</span><span>Valor Base</span><span>Fatura</span><span>Produto</span>
+                </div>
+                {clientSales.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8 text-sm">Sem pagamentos associados</p>
+                ) : clientSales.map(s => (
+                  <div key={s.id} className="px-4 py-2 text-xs grid grid-cols-6 gap-2 border-b items-center cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedPayment(s); setPaymentSheetOpen(true); }}>
+                    <span>{s.status}</span>
+                    <span>{s.payment_date || '—'}</span>
+                    <span className="truncate">{s.description || '—'}</span>
+                    <span>{Number(s.base_value).toFixed(2)}€</span>
+                    <span>{Number(s.invoice_total).toFixed(2)}€</span>
+                    <span className="truncate">{s.product || '—'}</span>
                   </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-9 gap-2">
-                    <span>Status</span><span>Data</span><span>Descrição</span><span>Valor Base</span><span>Fatura</span><span>Produto</span><span>Mês</span><span>Ano</span><span>Docs</span>
+                ))}
+                {clientSales.length > 0 && (
+                  <div className="px-4 py-3 text-xs font-medium border-t flex justify-between">
+                    <span>Total: {clientSales.length} pagamento(s)</span>
+                    <span>Valor total: {clientSales.reduce((s, p) => s + Number(p.invoice_total || 0), 0).toFixed(2)}€</span>
                   </div>
-                  {clientSales.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8 text-sm">Sem pagamentos associados</p>
-                   ) : clientSales.map(s => (
-                    <div key={s.id} className="px-4 py-2 text-xs grid grid-cols-9 gap-2 border-b items-center cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedPayment(s); setPaymentSheetOpen(true); }}>
-                      <span>{s.status}</span>
-                      <span>{s.payment_date || '—'}</span>
-                      <span className="truncate">{s.description || '—'}</span>
-                      <span>{Number(s.base_value).toFixed(2)}€</span>
-                      <span>{Number(s.invoice_total).toFixed(2)}€</span>
-                      <span className="truncate">{s.product || '—'}</span>
-                      <span>{s.sale_month || '—'}</span>
-                      <span>{s.sale_year || '—'}</span>
-                      <span className="truncate">{Array.isArray(s.documents) && s.documents.length > 0 ? `${s.documents.length} doc(s)` : '—'}</span>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
+                )}
+              </CardContent>
+            </Card>
 
             <EntryDetailSheet sale={selectedPayment} open={paymentSheetOpen} onOpenChange={setPaymentSheetOpen} />
 
-            {/* Feedback recebido */}
-            <ClientFeedbackSection clientId={isNew ? undefined : id} clientName={form.full_name || ''} />
+            {/* Links */}
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">Links</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Pasta Drive</Label>
+                  <div className="flex gap-2">
+                    <Input value={form.drive_folder_url || ''} onChange={e => update('drive_folder_url', e.target.value)} placeholder="https://drive.google.com/..." />
+                    {form.drive_folder_url && (
+                      <Button variant="outline" size="icon" asChild>
+                        <a href={form.drive_folder_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Grupo WhatsApp</Label>
+                  <div className="flex gap-2">
+                    <Input value={(form as any).whatsapp_group_url || ''} onChange={e => update('whatsapp_group_url' as any, e.target.value)} placeholder="https://chat.whatsapp.com/..." />
+                    {(form as any).whatsapp_group_url && (
+                      <Button variant="outline" size="icon" asChild>
+                        <a href={(form as any).whatsapp_group_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          {/* ─── Customer Success ──────────────────────── */}
+          {/* ─── Tab 3: Customer Success ──────────────────── */}
           <TabsContent value="customer-success" className="space-y-6 mt-4">
+            {/* Feedback */}
+            <ClientFeedbackSection clientId={isNew ? undefined : id} clientName={form.full_name || ''} />
+
             {!isNew && (
               <ClientCustomerSuccess
                 clientId={id!}
@@ -904,89 +427,8 @@ export default function ClienteDetailPage() {
               />
             )}
           </TabsContent>
-
-          {/* ─── Úteis ─────────────────────────────────── */}
-          <TabsContent value="uteis" className="space-y-6 mt-4">
-            {/* Additional Contacts */}
-            {!isNew && id && <ClientContactsSection clientId={id} />}
-
-            {/* Linked SOPs */}
-            {!isNew && id && (
-              <LinkedSopsSection
-                entityType="cliente"
-                entityId={id}
-                productId={productList.find(p => p.name === form.current_product)?.id}
-              />
-            )}
-            {/* Client history */}
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm">Histórico do Cliente</CardTitle>
-                {!isNew && (
-                  <Button size="sm" variant="outline" onClick={() => addHistory.mutateAsync({ client_id: id!, milestone: '', entry_date: format(new Date(), 'yyyy-MM-dd') })}>
-                    <Plus className="h-3 w-3 mr-1" />Nova Entrada
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2">
-                  <span>Data</span><span>Entrada</span><span>Observações</span><span></span>
-                </div>
-                {(history.data || []).length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8 text-sm">Sem entradas</p>
-                ) : (history.data || []).map(h => (
-                  <div key={h.id} className="px-4 py-2 text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2 border-b items-center">
-                    <Input type="date" className="h-7 text-xs" defaultValue={h.entry_date} onBlur={e => updateHistory.mutate({ id: h.id, entry_date: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={h.milestone} placeholder="O que aconteceu..." onBlur={e => updateHistory.mutate({ id: h.id, milestone: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={h.observations || ''} placeholder="Observações" onBlur={e => updateHistory.mutate({ id: h.id, observations: e.target.value })} />
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteHistory.mutate(h.id)}><X className="h-3 w-3" /></Button>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Activities map */}
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm">Mapa de Atividades Base</CardTitle>
-                {!isNew && (
-                  <Button size="sm" variant="outline" onClick={() => addActivity.mutateAsync({ client_id: id!, activity: '' })}>
-                    <Plus className="h-3 w-3 mr-1" />Nova Entrada
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[1fr_1fr_1fr_1fr_32px] gap-2">
-                  <span>Fase</span><span>Atividade</span><span>Responsável</span><span>Regra</span><span></span>
-                </div>
-                {(activities.data || []).length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8 text-sm">Sem entradas</p>
-                ) : (activities.data || []).map(a => (
-                  <div key={a.id} className="px-4 py-2 text-xs grid grid-cols-[1fr_1fr_1fr_1fr_32px] gap-2 border-b items-center">
-                    <Input className="h-7 text-xs" defaultValue={a.phase || ''} placeholder="Fase" onBlur={e => updateActivity.mutate({ id: a.id, phase: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={a.activity} placeholder="Atividade" onBlur={e => updateActivity.mutate({ id: a.id, activity: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={a.responsible || ''} placeholder="Responsável" onBlur={e => updateActivity.mutate({ id: a.id, responsible: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={a.rule || ''} placeholder="Regra" onBlur={e => updateActivity.mutate({ id: a.id, rule: e.target.value })} />
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteActivity.mutate(a.id)}><X className="h-3 w-3" /></Button>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </div>
-
-      {/* Sale dialog */}
-      <SaleFormDialog
-        open={saleOpen}
-        onOpenChange={setSaleOpen}
-        products={productList.map(p => p.name)}
-        initialData={{ client: form.full_name || '' }}
-        onSave={(sale) => {
-          commercialData.upsertSale.mutate(sale);
-          setSaleOpen(false);
-        }}
-      />
 
       {/* Meeting dialog */}
       <Dialog open={meetingOpen} onOpenChange={setMeetingOpen}>
