@@ -662,7 +662,33 @@ export default function ProjetoDetailPage() {
             <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-xl font-bold border-none px-0 focus-visible:ring-0" />
             <div className="grid grid-cols-2 gap-4">
               <div><Label className="text-xs">Cliente</Label><Input value={local.client_name || ''} onChange={e => updateField('client_name', e.target.value)} /></div>
-              <div><Label className="text-xs">Departamento</Label><Select value={local.department || ''} onValueChange={v => updateField('department', v)}><SelectTrigger><SelectValue placeholder="—" /></SelectTrigger><SelectContent>{DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent></Select></div>
+              <div>
+                <Label className="text-xs">Departamentos</Label>
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  {DEPARTMENTS.map(d => {
+                    const depts: string[] = (local.departments as string[]) || (local.department ? [local.department] : []);
+                    const active = depts.includes(d.value);
+                    return (
+                      <button
+                        key={d.value}
+                        type="button"
+                        onClick={() => {
+                          const current: string[] = (local.departments as string[]) || (local.department ? [local.department] : []);
+                          const next = active ? current.filter(v => v !== d.value) : [...current, d.value];
+                          updateField('departments', next);
+                          updateField('department', next[0] || null);
+                        }}
+                        className={cn(
+                          "px-2.5 py-1 rounded-full text-xs font-medium border transition-colors",
+                          active ? "bg-primary text-primary-foreground border-primary" : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
+                        )}
+                      >
+                        {d.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
             {local.product_name && (
               <div><Label className="text-xs">Produto</Label><Input value={local.product_name || ''} readOnly className="bg-muted/50" /></div>
