@@ -13,7 +13,8 @@ Backend cron jobs for auto-status updates, notifications, and data sync.
   9. **Meeting reminders** — notifies owner + meeting participants about meetings happening today. Type: `meeting_reminder`. Dedup by `meeting-reminder-{meeting_id}-{date}`.
    10. **Project deadline alerts** — notifies owner about projects with overdue deadlines (not concluido/cancelado). Type: `project_deadline`. Dedup by `project-deadline-{project_id}-{date}`.
    11. **Recurring expenses** — on `recurrence_day` of each month, auto-generates new expenses from templates marked `is_recurring=true`. Sets `parent_expense_id` for traceability. Skips if already generated for current month or past `recurrence_end_date`.
-  
+   12. **Overdue task alerts** — daily check for tasks past deadline (not done/cancelada). Notifies owner + assigned user. Type: `task`. Dedup by `task-overdue-{task_id}-{date}`.
+   
 - `daily-birthday-check` — runs daily at 08:00 via pg_cron
   - Checks clients and team members with birthdays
   - Sends notifications at 30 days, 15 days, and on the day
