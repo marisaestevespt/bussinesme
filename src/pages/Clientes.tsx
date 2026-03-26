@@ -11,26 +11,16 @@ import { Plus, BarChart3, Globe, MessageSquare } from 'lucide-react';
 import { useClients, CLIENT_STATUS_OPTIONS, Client } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { format, parseISO, differenceInDays } from 'date-fns';
-import { pt } from 'date-fns/locale';
+import { format, parseISO } from 'date-fns';
 
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
   em_onboarding: { label: 'Em onboarding', className: 'bg-blue-100 text-blue-800' },
   ativo: { label: 'Ativo', className: 'bg-green-100 text-green-800' },
   pausado: { label: 'Pausado', className: 'bg-amber-100 text-amber-800' },
   altura_renovacao: { label: 'Altura de renovação', className: 'bg-purple-100 text-purple-800' },
+  em_offboarding: { label: 'Em offboarding', className: 'bg-orange-100 text-orange-800' },
   terminado: { label: 'Terminado', className: 'bg-muted text-muted-foreground' },
 };
-
-function EndOfCycleBadge({ date }: { date: string | null }) {
-  if (!date) return <span className="text-muted-foreground">—</span>;
-  const d = parseISO(date);
-  const days = differenceInDays(d, new Date());
-  const label = format(d, 'dd/MM/yyyy');
-  if (days < 0) return <Badge variant="outline" className="bg-red-100 text-red-800">{label}</Badge>;
-  if (days <= 30) return <Badge variant="outline" className="bg-amber-100 text-amber-800">{label}</Badge>;
-  return <span>{label}</span>;
-}
 
 export default function ClientesPage() {
   const navigate = useNavigate();
@@ -136,16 +126,13 @@ export default function ClientesPage() {
               isFetchingNextPage={clients.isFetchingNextPage}
               fetchNextPage={clients.fetchNextPage}
             >
-              <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-9 gap-2">
+              <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-6 gap-2">
                 <span>ID</span>
-                <span>Data de Início</span>
                 <span>Status</span>
                 <span>Nome</span>
                 <span>E-mail</span>
                 <span>Whatsapp</span>
                 <span>Produto Atual</span>
-                <span>F. Pagamento</span>
-                <span>Fim de Ciclo</span>
               </div>
               {items.length === 0 ? (
                 <p className="text-center text-muted-foreground py-12 text-sm">Sem clientes registados</p>
@@ -153,11 +140,10 @@ export default function ClientesPage() {
                 items.map(c => (
                   <div
                     key={c.id}
-                    className="px-4 py-2.5 text-sm grid grid-cols-9 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
+                    className="px-4 py-2.5 text-sm grid grid-cols-6 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
                     onClick={() => navigate(`/hub/clientes/${c.id}`)}
                   >
                     <span className="font-mono text-xs">{c.client_id}</span>
-                    <span>{c.start_date ? format(parseISO(c.start_date), 'dd/MM/yyyy') : '—'}</span>
                     <span>
                       <Badge variant="outline" className={STATUS_BADGE[c.status]?.className || ''}>
                         {STATUS_BADGE[c.status]?.label || c.status}
@@ -167,8 +153,6 @@ export default function ClientesPage() {
                     <span className="truncate text-muted-foreground">{c.email || '—'}</span>
                     <span className="truncate text-muted-foreground">{c.whatsapp || '—'}</span>
                     <span className="truncate">{c.current_product || '—'}</span>
-                    <span className="text-muted-foreground">{c.payment_method || '—'}</span>
-                    <span><EndOfCycleBadge date={c.end_of_cycle} /></span>
                   </div>
                 ))
               )}
