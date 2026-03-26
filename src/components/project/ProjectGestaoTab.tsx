@@ -143,11 +143,12 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
         </CardHeader>
         <CardContent>
           <Select
-            value={clientData?.payment_method || ''}
+            value={clientData?.payment_method || undefined}
             onValueChange={v => updatePaymentMethod.mutate(v)}
+            disabled={!resolvedClientId || updatePaymentMethod.isPending}
           >
             <SelectTrigger className="w-64">
-              <SelectValue placeholder="Selecionar método..." />
+              <SelectValue placeholder={resolvedClientId ? 'Selecionar método...' : 'Associe um cliente ao projeto'} />
             </SelectTrigger>
             <SelectContent>
               {PAYMENT_METHODS.map(m => (
