@@ -13,6 +13,7 @@ import { Target, CalendarCheck, Lightbulb, Rocket, Clock, Trash2, Plus, Briefcas
 import { useExecutiveData } from '@/hooks/useExecutiveData';
 import { usePlanningData, planAreaLabel, planStatusLabel } from '@/hooks/usePlanningData';
 import { ExecutiveKpiAlerts } from '@/components/executive/ExecutiveKpiAlerts';
+import { StrategicMetricsSection } from '@/components/executive/StrategicMetricsSection';
 
 const currentMonth = new Date().getMonth() + 1;
 const currentYear = new Date().getFullYear();
@@ -43,6 +44,9 @@ export default function ExecutiveDashboard() {
 
         {/* KPIs — resumo executivo logo no topo */}
         <ExecutiveKpiAlerts />
+
+        {/* Strategic Business Health Metrics */}
+        <StrategicMetricsSection />
 
         {/* Navigation Cards — 2 columns */}
         <div className="grid gap-6 md:grid-cols-2">
