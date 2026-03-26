@@ -291,6 +291,13 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
 
             <Button className="w-full" onClick={handleSave}>Guardar</Button>
 
+            {/* Convert to client button - only for saved leads with status "ganho" */}
+            {lead?.id && (form.status === 'ganho') && (
+              <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10" onClick={handleConvertToClient}>
+                <UserPlus className="h-4 w-4 mr-2" /> Converter em Cliente
+              </Button>
+            )}
+
             {/* Interactions - only for saved leads */}
             {lead?.id && (
               <>
