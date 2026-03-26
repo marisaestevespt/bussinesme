@@ -825,12 +825,32 @@ export default function TarefasPage() {
 
             <div>
               <Label>Projeto associado</Label>
-              <Select value={projectId} onValueChange={setProjectId}>
+              <Select value={projectId} onValueChange={(v) => {
+                setProjectId(v);
+                // Auto-fill client from project
+                if (v && v !== 'none') {
+                  const proj = projects.find(p => p.id === v);
+                  if (proj?.client_id) setClientId(proj.client_id);
+                }
+              }}>
                 <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Nenhum</SelectItem>
                   {projects.map(p => (
                     <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Cliente associado</Label>
+              <Select value={clientId || 'none'} onValueChange={(v) => setClientId(v === 'none' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum</SelectItem>
+                  {clients.map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
