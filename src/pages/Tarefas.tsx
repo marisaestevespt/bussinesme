@@ -575,7 +575,7 @@ export default function TarefasPage() {
 
         {/* Dynamic filters */}
         {(() => {
-          const activeFilterCount = [filterDept, filterResponsible, filterPriority, filterProject].filter(Boolean).length;
+          const activeFilterCount = [filterDept, filterResponsible, filterPriority, filterProject, filterStatus].filter(Boolean).length;
           return (
             <div className="flex items-center gap-2 flex-wrap">
               <Popover>
@@ -586,6 +586,16 @@ export default function TarefasPage() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-64 space-y-3" align="start">
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Status (server-side)</Label>
+                    <Select value={filterStatus} onValueChange={v => setFilterStatus(v === '_all' ? '' : v)}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Todos" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_all">Todos</SelectItem>
+                        {TASK_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">Departamento</Label>
                     <Select value={filterDept} onValueChange={v => setFilterDept(v === '_all' ? '' : v)}>
@@ -627,7 +637,7 @@ export default function TarefasPage() {
                     </Select>
                   </div>
                   {activeFilterCount > 0 && (
-                    <Button size="sm" variant="ghost" className="w-full h-7 text-xs" onClick={() => { setFilterDept(''); setFilterResponsible(''); setFilterPriority(''); setFilterProject(''); }}>
+                    <Button size="sm" variant="ghost" className="w-full h-7 text-xs" onClick={() => { setFilterDept(''); setFilterResponsible(''); setFilterPriority(''); setFilterProject(''); setFilterStatus(''); }}>
                       <X className="h-3 w-3 mr-1" /> Limpar filtros
                     </Button>
                   )}
