@@ -858,6 +858,8 @@ export default function ProjetoDetailPage() {
                 projectName={local.name}
                 clientName={local.client_name}
                 clientId={resolvedClientId}
+                productName={local.product_name || null}
+                startDate={local.deadline ? null : null}
                 onNewMeeting={() => setMeetingDialogOpen(true)}
               />
             </TabsContent>
