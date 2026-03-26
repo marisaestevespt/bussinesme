@@ -1528,6 +1528,7 @@ export type Database = {
           invoice_total: number
           payment_date: string | null
           product: string | null
+          project_id: string | null
           sale_id: string
           sale_month: number | null
           sale_quarter: number | null
@@ -1547,6 +1548,7 @@ export type Database = {
           invoice_total?: number
           payment_date?: string | null
           product?: string | null
+          project_id?: string | null
           sale_id: string
           sale_month?: number | null
           sale_quarter?: number | null
@@ -1566,6 +1568,7 @@ export type Database = {
           invoice_total?: number
           payment_date?: string | null
           product?: string | null
+          project_id?: string | null
           sale_id?: string
           sale_month?: number | null
           sale_quarter?: number | null
@@ -1574,7 +1577,15 @@ export type Database = {
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "commercial_sales_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       commercial_sales_actions: {
         Row: {
