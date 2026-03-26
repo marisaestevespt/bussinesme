@@ -92,6 +92,7 @@ export function useTeamData() {
       const { data } = await supabase.from('team_members').select('*').order('full_name');
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const upsertMember = useMutation({
@@ -125,6 +126,7 @@ export function useTeamData() {
       const { data } = await supabase.from('member_onboarding').select('*').order('sort_order');
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const addOnboardingItem = useMutation({
@@ -254,6 +256,7 @@ export function useTeamData() {
       const { data } = await supabase.from('member_contracts').select('*').order('start_date', { ascending: false });
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const upsertContract = useMutation({

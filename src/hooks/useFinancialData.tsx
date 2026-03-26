@@ -79,6 +79,7 @@ export function useFinancialData() {
       if (error) throw error;
       return (data || []) as Subscription[];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const documents = useQuery({
@@ -88,6 +89,7 @@ export function useFinancialData() {
       if (error) throw error;
       return (data || []) as FinancialDocument[];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const payroll = useQuery({
@@ -97,6 +99,7 @@ export function useFinancialData() {
       if (error) throw error;
       return (data || []) as PayrollEntry[];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const contractors = useQuery({
@@ -106,6 +109,7 @@ export function useFinancialData() {
       if (error) throw error;
       return (data || []) as ContractorEntry[];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const upsertExpense = useMutation({

@@ -64,6 +64,7 @@ export function useCrmData() {
   const leadsQuery = useInfiniteQuery<InfinitePageResult<CrmLead>>({
     queryKey: [...key, 'leads'],
     initialPageParam: 0,
+    staleTime: 2 * 60 * 1000,
     queryFn: async ({ pageParam = 0 }) => {
       const from = (pageParam as number) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
