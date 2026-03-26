@@ -930,14 +930,14 @@ export default function ClienteDetailPage() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2">
-                  <span>Data</span><span>Marco</span><span>Observações</span><span></span>
+                  <span>Data</span><span>Entrada</span><span>Observações</span><span></span>
                 </div>
                 {(history.data || []).length === 0 ? (
                   <p className="text-center text-muted-foreground py-8 text-sm">Sem entradas</p>
                 ) : (history.data || []).map(h => (
                   <div key={h.id} className="px-4 py-2 text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2 border-b items-center">
                     <Input type="date" className="h-7 text-xs" defaultValue={h.entry_date} onBlur={e => updateHistory.mutate({ id: h.id, entry_date: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={h.milestone} placeholder="Marco" onBlur={e => updateHistory.mutate({ id: h.id, milestone: e.target.value })} />
+                    <Input className="h-7 text-xs" defaultValue={h.milestone} placeholder="O que aconteceu..." onBlur={e => updateHistory.mutate({ id: h.id, milestone: e.target.value })} />
                     <Input className="h-7 text-xs" defaultValue={h.observations || ''} placeholder="Observações" onBlur={e => updateHistory.mutate({ id: h.id, observations: e.target.value })} />
                     <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteHistory.mutate(h.id)}><X className="h-3 w-3" /></Button>
                   </div>

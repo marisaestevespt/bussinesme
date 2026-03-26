@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,8 +12,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Plus, Trash2, GitBranch } from 'lucide-react';
-import { format } from 'date-fns';
+import { CalendarIcon, Plus, Trash2, GitBranch, UserPlus } from 'lucide-react';
+import { format, differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { CRM_STATUSES, CRM_SOURCES, INTERACTION_TYPES, statusLabel, getFollowUpState } from '@/hooks/useCrmData';
 import { useCrmData } from '@/hooks/useCrmData';
