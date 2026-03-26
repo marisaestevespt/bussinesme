@@ -6271,6 +6271,7 @@ export type Database = {
           cronograma: string | null
           deadline: string | null
           department: string | null
+          departments: Json | null
           dependencias: string | null
           diretrizes: string | null
           entregaveis: string | null
@@ -6278,6 +6279,8 @@ export type Database = {
           name: string
           notes: string | null
           objetivo: string | null
+          product_id: string | null
+          product_name: string | null
           progress: number
           project_mode: string
           project_notes: string | null
@@ -6301,6 +6304,7 @@ export type Database = {
           cronograma?: string | null
           deadline?: string | null
           department?: string | null
+          departments?: Json | null
           dependencias?: string | null
           diretrizes?: string | null
           entregaveis?: string | null
@@ -6308,6 +6312,8 @@ export type Database = {
           name: string
           notes?: string | null
           objetivo?: string | null
+          product_id?: string | null
+          product_name?: string | null
           progress?: number
           project_mode?: string
           project_notes?: string | null
@@ -6331,6 +6337,7 @@ export type Database = {
           cronograma?: string | null
           deadline?: string | null
           department?: string | null
+          departments?: Json | null
           dependencias?: string | null
           diretrizes?: string | null
           entregaveis?: string | null
@@ -6338,6 +6345,8 @@ export type Database = {
           name?: string
           notes?: string | null
           objetivo?: string | null
+          product_id?: string | null
+          product_name?: string | null
           progress?: number
           project_mode?: string
           project_notes?: string | null
@@ -6355,6 +6364,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
