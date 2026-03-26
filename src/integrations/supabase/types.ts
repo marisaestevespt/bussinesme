@@ -7175,6 +7175,7 @@ export type Database = {
       tasks: {
         Row: {
           assigned_to: string | null
+          client_id: string | null
           created_at: string
           created_by: string | null
           deadline: string | null
@@ -7197,6 +7198,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          client_id?: string | null
           created_at?: string
           created_by?: string | null
           deadline?: string | null
@@ -7219,6 +7221,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          client_id?: string | null
           created_at?: string
           created_by?: string | null
           deadline?: string | null
@@ -7240,6 +7243,13 @@ export type Database = {
           visible_in_portal?: boolean
         }
         Relationships: [
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tasks_original_assignee_fkey"
             columns: ["original_assignee"]
