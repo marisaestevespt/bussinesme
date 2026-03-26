@@ -95,7 +95,7 @@ export default function PortalViewPage() {
     const pid = portalData.id;
     const cid = portalData.client_id;
 
-    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, summR] = await Promise.all([
+    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, summR, historyR] = await Promise.all([
       sb('portal_faqs').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_initial_questions').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_comments').select('*').eq('portal_id', pid).order('created_at', { ascending: true }),
@@ -106,6 +106,7 @@ export default function PortalViewPage() {
       supabase.from('tasks').select('*').eq('visible_in_portal', true),
       sb('portal_timeline_phases').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_monthly_summaries').select('*').eq('portal_id', pid).order('year', { ascending: false }).order('month', { ascending: false }),
+      (supabase as any).rpc('get_portal_project_history', { _token: token }),
     ]);
 
     setFaqs(faqsR.data || []);
