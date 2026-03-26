@@ -89,7 +89,9 @@ export function useTeamData() {
   const members = useQuery({
     queryKey: [...KEY, 'members'],
     queryFn: async () => {
-      const { data } = await supabase.from('team_members').select('*').order('full_name');
+      const { data } = await supabase.from('team_members')
+        .select('id,full_name,email,phone,role_title,status,member_type,department,photo_url,profile_id,work_areas,custom_role_id,birthday,start_date,exit_date,offboarding_status,nif,address,emergency_contact,observations,created_at')
+        .order('full_name');
       return data || [];
     },
     staleTime: 2 * 60 * 1000,

@@ -62,8 +62,11 @@ export function useUnifiedResponsibilities(userId?: string) {
   const tasksQ = useQuery({
     queryKey: ['unified-tasks', uid],
     enabled: !!uid,
+    staleTime: 2 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('tasks').select('*').eq('assigned_to', uid!).order('deadline');
+      const { data } = await supabase.from('tasks')
+        .select('id,name,status,deadline,priority,project_id,estimated_time,created_at')
+        .eq('assigned_to', uid!).order('deadline');
       return data || [];
     },
   });
@@ -72,8 +75,10 @@ export function useUnifiedResponsibilities(userId?: string) {
   const leadsQ = useQuery({
     queryKey: ['unified-crm', uid],
     enabled: !!uid,
+    staleTime: 2 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('crm_leads').select('*')
+      const { data } = await supabase.from('crm_leads')
+        .select('id,name,status,next_followup,responsible_id')
         .not('status', 'in', '("ganho","perdido")')
         .not('next_followup', 'is', null);
       return data || [];
@@ -84,8 +89,10 @@ export function useUnifiedResponsibilities(userId?: string) {
   const contentQ = useQuery({
     queryKey: ['unified-content', uid],
     enabled: !!uid,
+    staleTime: 2 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('content_items').select('*')
+      const { data } = await supabase.from('content_items')
+        .select('id,title,status,scheduled_at,assigned_to')
         .eq('assigned_to', uid!)
         .not('status', 'eq', 'publicado');
       return data || [];
@@ -96,11 +103,14 @@ export function useUnifiedResponsibilities(userId?: string) {
   const meetingsQ = useQuery({
     queryKey: ['unified-meetings', uid],
     enabled: !!uid,
+    staleTime: 2 * 60 * 1000,
     queryFn: async () => {
       const { data: partRows } = await supabase.from('meeting_participants').select('meeting_id').eq('profile_id', uid!);
       if (!partRows?.length) return [];
       const ids = partRows.map(r => r.meeting_id);
-      const { data } = await supabase.from('meetings').select('*').in('id', ids)
+      const { data } = await supabase.from('meetings')
+        .select('id,title,date_time,status')
+        .in('id', ids)
         .gte('date_time', todayStr)
         .lte('date_time', format(addDays(today, 7), 'yyyy-MM-dd\'T\'23:59:59'))
         .order('date_time');
@@ -112,11 +122,14 @@ export function useUnifiedResponsibilities(userId?: string) {
   const projectsQ = useQuery({
     queryKey: ['unified-projects', uid],
     enabled: !!uid,
+    staleTime: 2 * 60 * 1000,
     queryFn: async () => {
       const { data: memberRows } = await supabase.from('project_members').select('project_id').eq('profile_id', uid!);
       if (!memberRows?.length) return [];
       const ids = memberRows.map(r => r.project_id);
-      const { data } = await supabase.from('projects').select('*').in('id', ids)
+      const { data } = await supabase.from('projects')
+        .select('id,name,status,deadline')
+        .in('id', ids)
         .gte('deadline', todayStr)
         .lte('deadline', format(addDays(today, 7), 'yyyy-MM-dd'))
         .neq('status', 'concluido');
@@ -128,8 +141,10 @@ export function useUnifiedResponsibilities(userId?: string) {
   const npsQ = useQuery({
     queryKey: ['unified-nps', uid],
     enabled: !!uid,
+    staleTime: 2 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('client_nps_records').select('*, clients(full_name)')
+      const { data } = await supabase.from('client_nps_records')
+        .select('id,expected_date,status,client_id,clients(full_name)')
         .lte('expected_date', todayStr)
         .in('status', ['por_fazer', 'em_atraso']);
       return data || [];
@@ -140,8 +155,10 @@ export function useUnifiedResponsibilities(userId?: string) {
   const milestonesQ = useQuery({
     queryKey: ['unified-milestones', uid],
     enabled: !!uid,
+    staleTime: 2 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('client_milestones').select('*, clients(full_name)')
+      const { data } = await supabase.from('client_milestones')
+        .select('id,milestone,expected_date,status,client_id,clients(full_name)')
         .lte('expected_date', todayStr)
         .in('status', ['por_fazer', 'em_atraso']);
       return data || [];
@@ -152,8 +169,10 @@ export function useUnifiedResponsibilities(userId?: string) {
   const salesActionsQ = useQuery({
     queryKey: ['unified-sales-actions', uid],
     enabled: !!uid,
+    staleTime: 2 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('commercial_sales_actions').select('*')
+      const { data } = await supabase.from('commercial_sales_actions')
+        .select('id,action_name,status,start_date,end_date,created_at')
         .in('status', ['em_curso', 'por_comecar'])
         .lte('start_date', todayStr);
       return data || [];
@@ -164,8 +183,10 @@ export function useUnifiedResponsibilities(userId?: string) {
   const habitsQ = useQuery({
     queryKey: ['unified-habits', currentYear, currentMonth],
     enabled: !!uid,
+    staleTime: 2 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('executive_monthly_checklists').select('*')
+      const { data } = await supabase.from('executive_monthly_checklists')
+        .select('id,task,completed')
         .eq('year', currentYear)
         .eq('month', currentMonth)
         .eq('completed', false);
