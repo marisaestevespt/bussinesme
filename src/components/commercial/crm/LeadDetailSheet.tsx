@@ -123,6 +123,58 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
     setNewAction('');
   };
 
+  const handleConvertToClient = async () => {
+    if (!lead?.id) return;
+    try {
+      // 1. Create client with mapped fields
+      const { data: newClient, error: clientError } = await supabase.from('clients').insert({
+        full_name: form.name || '',
+        email: form.email || null,
+        whatsapp: form.phone || null,
+        current_product: form.closed_product || form.potential_product || null,
+        documents: form.documents || null,
+        status: 'em_onboarding',
+      }).select('id').single();
+      if (clientError) throw clientError;
+
+      // 2. Calculate time in CRM
+      const addedDate = form.added_at ? parseISO(form.added_at) : new Date();
+      const daysInCrm = differenceInDays(new Date(), addedDate);
+
+      // 3. Build history entry text with CRM data
+      const responsibleName = profiles.find(p => p.id === form.responsible_id)?.full_name || '';
+      const parts = [
+        `Convertido de Lead CRM`,
+        form.source ? `Fonte: ${form.source}` : null,
+        form.potential_product ? `Produto potencial: ${form.potential_product}` : null,
+        form.closed_product ? `Produto fechado: ${form.closed_product}` : null,
+        form.estimated_value ? `Valor estimado: ${form.estimated_value}€` : null,
+        responsibleName ? `Responsável: ${responsibleName}` : null,
+        `Tempo no CRM: ${daysInCrm} dia(s)`,
+      ].filter(Boolean).join(' | ');
+
+      const observations = [
+        form.context || null,
+        form.followup_notes ? `Notas FU: ${form.followup_notes}` : null,
+      ].filter(Boolean).join('\n');
+
+      // 4. Create history entry
+      await supabase.from('client_history').insert({
+        client_id: newClient.id,
+        entry_date: format(new Date(), 'yyyy-MM-dd'),
+        milestone: parts,
+        observations: observations || null,
+      });
+
+      toast.success('Cliente criado com sucesso!');
+      onOpenChange(false);
+      navigate(`/hub/clientes/${newClient.id}`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao converter lead em cliente');
+    }
+  };
+
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
