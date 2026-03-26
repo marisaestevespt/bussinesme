@@ -275,6 +275,40 @@ Deno.serve(async (req) => {
       results.sop_categories = "exists";
     }
 
+    // ─── 10. Default HR Offboarding SOP ───
+    const { data: existingOffboardingSop } = await supabase
+      .from("sops")
+      .select("id")
+      .eq("title", "Offboarding de Membro de Equipa")
+      .maybeSingle();
+
+    if (!existingOffboardingSop) {
+      const { data: sopData, error: sopErr } = await supabase
+        .from("sops")
+        .insert({
+          title: "Offboarding de Membro de Equipa",
+          department: "recursos-humanos",
+          departments: ["recursos-humanos"],
+          status: "ativo",
+          content: `<h2>Processo de Offboarding de Membro</h2>
+<p>Este SOP define os passos a seguir quando um membro da equipa termina a sua colaboração.</p>
+<h3>1. Comunicação</h3>
+<ul><li>Informar o membro da decisão ou receber aviso prévio</li><li>Agendar reunião de saída</li><li>Comunicar à equipa</li></ul>
+<h3>2. Reatribuição</h3>
+<ul><li>Listar tarefas e projetos pendentes</li><li>Reatribuir a outros membros</li><li>Transferir clientes ativos</li></ul>
+<h3>3. Documentação</h3>
+<ul><li>Recolher documentos e materiais</li><li>Atualizar contratos</li><li>Registar liquidação final</li></ul>
+<h3>4. Acessos</h3>
+<ul><li>Revogar acessos a ferramentas e plataformas (automático 7 dias após inativação)</li><li>Remover de grupos de comunicação</li><li>Retirar permissões da plataforma</li></ul>
+<h3>5. Encerramento</h3>
+<ul><li>Sessão de feedback final</li><li>Entregar certificado/carta de recomendação se aplicável</li><li>Mover para "Ex-membros"</li></ul>`,
+        })
+        .select("id")
+        .single();
+      results.hr_offboarding_sop = sopErr ? `error: ${sopErr.message}` : "created";
+    } else {
+      results.hr_offboarding_sop = "exists";
+
     return new Response(JSON.stringify({ success: true, results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
