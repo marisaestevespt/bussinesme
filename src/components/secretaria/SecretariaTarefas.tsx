@@ -17,6 +17,7 @@ const today = startOfDay(new Date());
 export default function SecretariaTarefas() {
   const tasks = useMyTasks();
   const allProjects = useProjects();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [view, setView] = useState<'todo' | 'atrasadas' | 'concluidas'>('todo');
 
