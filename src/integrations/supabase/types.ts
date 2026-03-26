@@ -7395,6 +7395,7 @@ export type Database = {
       }
       team_members: {
         Row: {
+          access_revoked: boolean | null
           birthday: string | null
           created_at: string
           custom_holidays: Json | null
@@ -7406,6 +7407,7 @@ export type Database = {
           hourly_cost: number | null
           id: string
           identification: string | null
+          inactivated_at: string | null
           member_type: string
           photo_url: string | null
           presentation: string | null
@@ -7413,6 +7415,9 @@ export type Database = {
           responsibilities: string | null
           role_color: string | null
           role_title: string | null
+          settlement_date: string | null
+          settlement_notes: string | null
+          settlement_value: number | null
           start_date: string | null
           status: string
           updated_at: string
@@ -7422,6 +7427,7 @@ export type Database = {
           works_holidays: boolean
         }
         Insert: {
+          access_revoked?: boolean | null
           birthday?: string | null
           created_at?: string
           custom_holidays?: Json | null
@@ -7433,6 +7439,7 @@ export type Database = {
           hourly_cost?: number | null
           id?: string
           identification?: string | null
+          inactivated_at?: string | null
           member_type?: string
           photo_url?: string | null
           presentation?: string | null
@@ -7440,6 +7447,9 @@ export type Database = {
           responsibilities?: string | null
           role_color?: string | null
           role_title?: string | null
+          settlement_date?: string | null
+          settlement_notes?: string | null
+          settlement_value?: number | null
           start_date?: string | null
           status?: string
           updated_at?: string
@@ -7449,6 +7459,7 @@ export type Database = {
           works_holidays?: boolean
         }
         Update: {
+          access_revoked?: boolean | null
           birthday?: string | null
           created_at?: string
           custom_holidays?: Json | null
@@ -7460,6 +7471,7 @@ export type Database = {
           hourly_cost?: number | null
           id?: string
           identification?: string | null
+          inactivated_at?: string | null
           member_type?: string
           photo_url?: string | null
           presentation?: string | null
@@ -7467,6 +7479,9 @@ export type Database = {
           responsibilities?: string | null
           role_color?: string | null
           role_title?: string | null
+          settlement_date?: string | null
+          settlement_notes?: string | null
+          settlement_value?: number | null
           start_date?: string | null
           status?: string
           updated_at?: string

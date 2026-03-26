@@ -812,6 +812,60 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ── 15. Auto-revoke access for inactive members (1 week after inactivation) ──
+    {
+      const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const { data: toRevoke } = await supabase
+        .from("team_members")
+        .select("id, full_name, profile_id")
+        .eq("status", "inativo")
+        .eq("access_revoked", false)
+        .not("inactivated_at", "is", null)
+        .lte("inactivated_at", oneWeekAgo);
+
+      if (toRevoke && toRevoke.length > 0) {
+        for (const member of toRevoke) {
+          // Mark access as revoked
+          await supabase
+            .from("team_members")
+            .update({ access_revoked: true })
+            .eq("id", member.id);
+
+          // Remove from members table (removes role/permissions)
+          if (member.profile_id) {
+            await supabase
+              .from("members")
+              .delete()
+              .eq("user_id", member.profile_id);
+          }
+
+          // Get owner for notification
+          const { data: owners } = await supabase
+            .from("user_roles")
+            .select("user_id")
+            .eq("role", "owner");
+          const ownerIds = (owners || []).map((o: any) => o.user_id);
+          const dedupKey = `access-revoked-${member.id}`;
+          for (const ownerId of ownerIds) {
+            const { data: existing } = await supabase
+              .from("notifications")
+              .select("id")
+              .eq("user_id", ownerId)
+              .eq("message", dedupKey)
+              .maybeSingle();
+            if (!existing) {
+              await supabase.from("notifications").insert({
+                user_id: ownerId,
+                message: dedupKey,
+                type: "team",
+              });
+            }
+          }
+          results.push(`Access revoked for: ${member.full_name}`);
+        }
+      }
+    }
+
     return new Response(
       JSON.stringify({ success: true, results }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
