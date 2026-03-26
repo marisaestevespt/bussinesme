@@ -207,14 +207,12 @@ Deno.serve(async (req) => {
         .eq("status", "ativo");
 
       if (activeMembers && activeMembers.length > 0) {
-        // Get all time entries for this week
         const { data: weekEntries } = await supabase
           .from("time_entries")
           .select("member_id, duration")
           .gte("entry_date", weekStartStr)
           .lte("entry_date", weekEndStr);
 
-        // Sum hours per member
         const hoursPerMember = new Map<string, number>();
         for (const entry of weekEntries || []) {
           if (!entry.member_id) continue;
@@ -231,7 +229,6 @@ Deno.serve(async (req) => {
           const occupancy = weeklyCapacity > 0 ? (hoursUsed / weeklyCapacity) * 100 : 0;
 
           if (occupancy >= 90) {
-            // Dedup: one notification per member per week
             const weekKey = `capacity-alert-${member.id}-${weekStartStr}`;
             const { data: existingAlert } = await supabase
               .from("notifications")
@@ -257,10 +254,6 @@ Deno.serve(async (req) => {
       }
 
       // ── 7. Payroll → Financial sync ──
-      // Sync paid payroll records that don't yet have a linked expense
-      const currentMonth = today.getMonth() + 1;
-      const currentYear = today.getFullYear();
-
       const { data: paidPayroll } = await supabase
         .from("financial_payroll")
         .select("id, collaborator_name, gross_salary, net_salary, total_cost, ss_employer, month, year, status, expense_id")
@@ -310,7 +303,6 @@ Deno.serve(async (req) => {
         .eq("status", "pago");
 
       if (paidMemberPayments && paidMemberPayments.length > 0) {
-        // Get member names
         const memberIds = [...new Set(paidMemberPayments.map(p => p.member_id))];
         const { data: memberNames } = await supabase
           .from("team_members")
@@ -320,7 +312,6 @@ Deno.serve(async (req) => {
         (memberNames || []).forEach((m: { id: string; full_name: string }) => nameMap.set(m.id, m.full_name));
 
         for (const mp of paidMemberPayments) {
-          // Check if expense already exists for this source
           const { data: existingExp } = await supabase
             .from("financial_expenses")
             .select("id")
@@ -328,7 +319,6 @@ Deno.serve(async (req) => {
             .eq("source_id", mp.id)
             .limit(1);
 
-          // Also check by member_payment source type
           const { data: existingExp2 } = await supabase
             .from("financial_expenses")
             .select("id")
@@ -340,10 +330,6 @@ Deno.serve(async (req) => {
             (!existingExp || existingExp.length === 0) &&
             (!existingExp2 || existingExp2.length === 0)
           ) {
-            // Check if a matching expense exists via contract source (FinMensal creates with source_type='contract')
-            // We need to avoid duplicating expenses that were already created by the frontend
-            // The frontend uses member_contracts.id as source_id, not member_payments.id
-            // So we check by description match as additional dedup
             const memberFullName = nameMap.get(mp.member_id) || "Membro";
             const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
               "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
@@ -386,6 +372,86 @@ Deno.serve(async (req) => {
       results.push(`Payroll synced: ${payrollSynced}`);
     }
 
+    // ── 8. Portal auto-deactivation (30 days after terminado) ──
+    const { data: expiredPortals } = await supabase
+      .from("clients")
+      .select("id")
+      .eq("status", "terminado")
+      .not("portal_deactivation_date", "is", null)
+      .lte("portal_deactivation_date", todayStr);
+
+    let portalsDeactivated = 0;
+    for (const client of expiredPortals || []) {
+      const { error: portalErr } = await supabase
+        .from("client_portals")
+        .update({ is_active: false })
+        .eq("client_id", client.id);
+      if (!portalErr) portalsDeactivated++;
+    }
+    results.push(`Portals deactivated: ${portalsDeactivated}`);
+
+    // ── 9. Auto-generate NPS records for active clients missing them ──
+    const { data: activeClients } = await supabase
+      .from("clients")
+      .select("id, current_product, start_date, status")
+      .in("status", ["ativo", "em_onboarding"])
+      .not("current_product", "is", null)
+      .not("start_date", "is", null);
+
+    let npsGenerated = 0;
+    if (activeClients && activeClients.length > 0) {
+      // Get all products with NPS config
+      const { data: allProducts } = await supabase
+        .from("products")
+        .select("id, name");
+      const prodNameToId = new Map<string, string>();
+      (allProducts || []).forEach((p: any) => prodNameToId.set(p.name, p.id));
+
+      const productIds = [...new Set([...prodNameToId.values()])];
+      const { data: npsConfigs } = await supabase
+        .from("product_nps_config")
+        .select("product_id, cadence_days")
+        .in("product_id", productIds);
+      const configMap = new Map<string, number>();
+      (npsConfigs || []).forEach((c: any) => configMap.set(c.product_id, c.cadence_days));
+
+      for (const client of activeClients) {
+        const productId = prodNameToId.get(client.current_product || "");
+        if (!productId) continue;
+        const cadence = configMap.get(productId);
+        if (!cadence) continue;
+
+        // Check if records already exist
+        const { data: existingNps } = await supabase
+          .from("client_nps_records")
+          .select("id")
+          .eq("client_id", client.id)
+          .limit(1);
+
+        if (existingNps && existingNps.length > 0) continue;
+
+        // Generate NPS records
+        const start = new Date(client.start_date + "T00:00:00");
+        const records = [];
+        for (let i = 1; i <= Math.floor(730 / cadence); i++) {
+          const expectedDate = new Date(start);
+          expectedDate.setDate(expectedDate.getDate() + cadence * i);
+          records.push({
+            client_id: client.id,
+            product_id: productId,
+            expected_date: expectedDate.toISOString().slice(0, 10),
+            status: "por_fazer",
+            is_manual: false,
+          });
+        }
+        if (records.length > 0) {
+          const { error: npsErr } = await supabase.from("client_nps_records").insert(records);
+          if (!npsErr) npsGenerated++;
+        }
+      }
+    }
+    results.push(`NPS auto-generated: ${npsGenerated}`);
+
     return new Response(
       JSON.stringify({ success: true, results }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -405,7 +471,7 @@ Deno.serve(async (req) => {
 function getWeekStart(date: Date): Date {
   const d = new Date(date);
   const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
   d.setDate(diff);
   d.setHours(0, 0, 0, 0);
   return d;

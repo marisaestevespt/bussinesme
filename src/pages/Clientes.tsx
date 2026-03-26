@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, BarChart3, Globe, MessageSquare } from 'lucide-react';
 import { useClients, CLIENT_STATUS_OPTIONS, Client } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
@@ -22,13 +22,21 @@ const STATUS_BADGE: Record<string, { label: string; className: string }> = {
   terminado: { label: 'Terminado', className: 'bg-muted text-muted-foreground' },
 };
 
+const ACTIVE_STATUSES = ['em_onboarding', 'ativo', 'pausado', 'altura_renovacao', 'em_offboarding'];
+const ARCHIVED_STATUSES = ['terminado'];
+
 export default function ClientesPage() {
   const navigate = useNavigate();
   const { clients } = useClients();
   const { products } = useProducts();
+  const [tab, setTab] = useState<'ativos' | 'arquivados'>('ativos');
 
   const items = clients.data || [];
-  const activeCount = items.filter(c => c.status !== 'terminado').length;
+  const activeItems = useMemo(() => items.filter(c => ACTIVE_STATUSES.includes(c.status)), [items]);
+  const archivedItems = useMemo(() => items.filter(c => ARCHIVED_STATUSES.includes(c.status)), [items]);
+  const displayItems = tab === 'ativos' ? activeItems : archivedItems;
+
+  const activeCount = activeItems.length;
 
   // Donut data
   const donutData = [
@@ -40,12 +48,31 @@ export default function ClientesPage() {
   // Bar chart: clients by product
   const byProduct = useMemo(() => {
     const map: Record<string, number> = {};
-    items.forEach(c => {
+    activeItems.forEach(c => {
       const p = c.current_product || 'Sem Produto';
       map[p] = (map[p] || 0) + 1;
     });
     return Object.entries(map).map(([name, count]) => ({ name, count }));
-  }, [items]);
+  }, [activeItems]);
+
+  const renderClientRow = (c: Client) => (
+    <div
+      key={c.id}
+      className="px-4 py-2.5 text-sm grid grid-cols-6 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
+      onClick={() => navigate(`/hub/clientes/${c.id}`)}
+    >
+      <span className="font-mono text-xs">{c.client_id}</span>
+      <span>
+        <Badge variant="outline" className={STATUS_BADGE[c.status]?.className || ''}>
+          {STATUS_BADGE[c.status]?.label || c.status}
+        </Badge>
+      </span>
+      <span className="truncate">{c.full_name}</span>
+      <span className="truncate text-muted-foreground">{c.email || '—'}</span>
+      <span className="truncate text-muted-foreground">{c.whatsapp || '—'}</span>
+      <span className="truncate">{c.current_product || '—'}</span>
+    </div>
+  );
 
   return (
     <AppLayout>
@@ -113,10 +140,22 @@ export default function ClientesPage() {
           </Card>
         </div>
 
-        {/* Full table */}
+        {/* Client list with tabs */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Lista Completa de Clientes & Alunos</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium">Lista de Clientes & Alunos</CardTitle>
+              <Tabs value={tab} onValueChange={v => setTab(v as any)}>
+                <TabsList className="h-8">
+                  <TabsTrigger value="ativos" className="text-xs px-3">
+                    Ativos ({activeItems.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="arquivados" className="text-xs px-3">
+                    Arquivados ({archivedItems.length})
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <InfiniteScrollList
@@ -134,27 +173,12 @@ export default function ClientesPage() {
                 <span>Whatsapp</span>
                 <span>Produto Atual</span>
               </div>
-              {items.length === 0 ? (
-                <p className="text-center text-muted-foreground py-12 text-sm">Sem clientes registados</p>
+              {displayItems.length === 0 ? (
+                <p className="text-center text-muted-foreground py-12 text-sm">
+                  {tab === 'ativos' ? 'Sem clientes ativos' : 'Sem clientes arquivados'}
+                </p>
               ) : (
-                items.map(c => (
-                  <div
-                    key={c.id}
-                    className="px-4 py-2.5 text-sm grid grid-cols-6 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
-                    onClick={() => navigate(`/hub/clientes/${c.id}`)}
-                  >
-                    <span className="font-mono text-xs">{c.client_id}</span>
-                    <span>
-                      <Badge variant="outline" className={STATUS_BADGE[c.status]?.className || ''}>
-                        {STATUS_BADGE[c.status]?.label || c.status}
-                      </Badge>
-                    </span>
-                    <span className="truncate">{c.full_name}</span>
-                    <span className="truncate text-muted-foreground">{c.email || '—'}</span>
-                    <span className="truncate text-muted-foreground">{c.whatsapp || '—'}</span>
-                    <span className="truncate">{c.current_product || '—'}</span>
-                  </div>
-                ))
+                displayItems.map(renderClientRow)
               )}
             </InfiniteScrollList>
           </CardContent>

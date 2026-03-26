@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Switch } from '@/components/ui/switch';
 import { Copy, Trash2, Plus, CalendarIcon, ExternalLink, Save, X, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, addDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import {
@@ -101,17 +101,89 @@ export default function ClienteDetailPage() {
   const save = async (): Promise<string | null> => {
     if (!form.full_name?.trim()) { toast.error('Nome é obrigatório'); return null; }
     try {
+      const prevStatus = client?.status;
+      const newStatus = form.status;
+
       if (isNew) {
         const { data, error } = await supabase.from('clients').insert({ full_name: form.full_name, ...form } as any).select('id').single();
         if (error) throw error;
         toast.success('Cliente guardado');
+        // Auto-generate NPS if product exists
+        if (form.current_product && form.start_date) {
+          autoGenerateNps(data.id, form.current_product, form.start_date);
+        }
         return data.id;
       } else {
+        // Handle status transitions
+        if (prevStatus !== newStatus && id) {
+          // em_offboarding → seed offboarding checklist from product template
+          if (newStatus === 'em_offboarding') {
+            await seedOffboardingChecklist(id, form.current_product || null);
+          }
+          // terminado → set portal deactivation in 30 days
+          if (newStatus === 'terminado') {
+            const deactivationDate = format(addDays(new Date(), 30), 'yyyy-MM-dd');
+            setForm(prev => ({ ...prev, portal_deactivation_date: deactivationDate }));
+            form.portal_deactivation_date = deactivationDate;
+          }
+        }
         await upsertClient.mutateAsync(form as any);
         toast.success('Cliente guardado');
         return id || null;
       }
     } catch { return null; }
+  };
+
+  const seedOffboardingChecklist = async (clientId: string, productName: string | null) => {
+    if (!productName) return;
+    // Find product
+    const { data: prod } = await supabase.from('products').select('id').eq('name', productName).maybeSingle();
+    if (!prod) return;
+    // Fetch offboarding template
+    const { data: templates } = await supabase
+      .from('product_offboarding_templates' as any)
+      .select('activity, phase, responsible, rule, sort_order')
+      .eq('product_id', prod.id)
+      .order('sort_order');
+    if (!templates?.length) return;
+    // Check if offboarding items already exist
+    const { data: existing } = await supabase.from('client_offboarding').select('id').eq('client_id', clientId).limit(1);
+    if (existing?.length) return;
+    // Seed
+    const rows = (templates as any[]).map(t => ({
+      client_id: clientId,
+      activity: t.activity || '',
+      phase: t.phase || null,
+      responsible: t.responsible || null,
+      rule: t.rule || null,
+      sort_order: t.sort_order || 0,
+      completed: false,
+    }));
+    await supabase.from('client_offboarding').insert(rows);
+    queryClient.invalidateQueries({ queryKey: ['client_offboarding', clientId] });
+    toast.success('Checklist de offboarding criada');
+  };
+
+  const autoGenerateNps = async (clientId: string, productName: string, startDate: string) => {
+    const { data: prod } = await supabase.from('products').select('id').eq('name', productName).maybeSingle();
+    if (!prod) return;
+    const { data: npsConfig } = await supabase.from('product_nps_config' as any).select('cadence_days').eq('product_id', prod.id).maybeSingle();
+    if (!npsConfig?.cadence_days) return;
+    const start = parseISO(startDate);
+    const cadence = npsConfig.cadence_days;
+    const records = [];
+    for (let i = 1; i <= Math.floor(730 / cadence); i++) {
+      records.push({
+        client_id: clientId,
+        product_id: prod.id,
+        expected_date: format(addDays(start, cadence * i), 'yyyy-MM-dd'),
+        status: 'por_fazer',
+        is_manual: false,
+      });
+    }
+    if (records.length) {
+      await supabase.from('client_nps_records' as any).insert(records);
+    }
   };
 
   const handleDuplicate = async () => {
