@@ -90,7 +90,7 @@ export function useTeamData() {
     queryKey: [...KEY, 'members'],
     queryFn: async () => {
       const { data } = await supabase.from('team_members')
-        .select('id,full_name,email,phone,role_title,status,member_type,department,photo_url,profile_id,work_areas,custom_role_id,birthday,start_date,exit_date,offboarding_status,nif,address,emergency_contact,observations,created_at')
+        .select('id,full_name,email,role_title,status,member_type,department,photo_url,profile_id,work_areas,custom_role_id,birthday,start_date,exit_date,offboarding_status,nif,address,emergency_contact,observations,created_at')
         .order('full_name');
       return data || [];
     },
