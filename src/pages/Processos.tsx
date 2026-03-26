@@ -84,6 +84,7 @@ export default function ProcessosPage() {
   const [newSopRoleOpen, setNewSopRoleOpen] = useState(false);
   const [newSopProductId, setNewSopProductId] = useState('');
   const [activeTab, setActiveTab] = useState('galeria');
+  const [filterRole, setFilterRole] = useState('');
 
   // ─── Queries ──────────────────────────────────────────────────
 
@@ -308,36 +309,58 @@ export default function ProcessosPage() {
 
         {/* ═══ TAB: Lista Total ═══ */}
         <TabsContent value="lista">
-          <h1 className="text-2xl font-bold tracking-tight mb-4">Lista Total de SOPs</h1>
-          {allSopsSorted.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Nenhum SOP criado.</p>
-          ) : (
-            <div className="border rounded-lg overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-24">Nº SOP</TableHead>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Departamento</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {allSopsSorted.map(sop => {
-                    const statusInfo = getStatusInfo(sop.status);
-                    return (
-                      <TableRow key={sop.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/processos/${sop.id}`)}>
-                        <TableCell className="font-mono text-sm">{sop.sop_id}</TableCell>
-                        <TableCell className="font-medium">{sop.name}</TableCell>
-                        <TableCell className="text-muted-foreground">{((sop as any).departments?.length ? (sop as any).departments : [sop.department]).map((d: string) => getDeptLabel(d)).join(', ')}</TableCell>
-                        <TableCell><Badge className={cn('text-xs', statusInfo.color)}>{statusInfo.label}</Badge></TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+          <div className="flex items-center justify-between mb-4 gap-3">
+            <h1 className="text-2xl font-bold tracking-tight">Lista Total de SOPs</h1>
+            <div className="flex items-center gap-2">
+              <Select value={filterRole || '_all_'} onValueChange={v => setFilterRole(v === '_all_' ? '' : v)}>
+                <SelectTrigger className="w-48 h-9"><SelectValue placeholder="Filtrar por função" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_all_">Todas as funções</SelectItem>
+                  {existingRoles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
-          )}
+          </div>
+          {(() => {
+            const filtered = filterRole
+              ? allSopsSorted.filter(s => (s as any).role_title === filterRole)
+              : allSopsSorted;
+            return filtered.length === 0 ? (
+              <p className="text-muted-foreground text-sm">Nenhum SOP encontrado.</p>
+            ) : (
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-24">Nº SOP</TableHead>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Função</TableHead>
+                      <TableHead>Departamento</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Versão</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map(sop => {
+                      const statusInfo = getStatusInfo(sop.status);
+                      return (
+                        <TableRow key={sop.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/processos/${sop.id}`)}>
+                          <TableCell className="font-mono text-sm">{sop.sop_id}</TableCell>
+                          <TableCell className="font-medium">{sop.name}</TableCell>
+                          <TableCell className="text-muted-foreground">{(sop as any).role_title || '—'}</TableCell>
+                          <TableCell className="text-muted-foreground">{((sop as any).departments?.length ? (sop as any).departments : [sop.department]).map((d: string) => getDeptLabel(d)).join(', ')}</TableCell>
+                          <TableCell><Badge variant="outline" className="text-xs">{(sop as any).sop_type || 'operacional'}</Badge></TableCell>
+                          <TableCell className="font-mono text-xs">v{(sop as any).version || 1}</TableCell>
+                          <TableCell><Badge className={cn('text-xs', statusInfo.color)}>{statusInfo.label}</Badge></TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            );
+          })()}
         </TabsContent>
       </Tabs>
 
