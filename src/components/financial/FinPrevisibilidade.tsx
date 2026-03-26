@@ -34,6 +34,7 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
   const totalMonthly = activeSubs.reduce((s, sub) => s + sub.monthly_equivalent, 0);
 
   const s = settings as any;
+  const ssType: string = s?.ss_type || 'independente';
   const fiscalConfig: FiscalConfig = {
     taxIvaRegime: s?.tax_iva_regime || 'trimestral',
     taxIrsRegime: s?.tax_irs_regime || 'simplificado',
@@ -41,6 +42,8 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
     ivaExempt: s?.iva_exempt ?? false,
   };
   const isContabOrganizada = fiscalConfig.taxIrsRegime === 'contabilidade_organizada';
+  const showIndependente = (ssType === 'independente' || ssType === 'ambos') && !fiscalConfig.ssExempt && !isContabOrganizada;
+  const showPatronal = (ssType === 'entidade_patronal' || ssType === 'ambos') && !fiscalConfig.ssExempt && !isContabOrganizada;
 
   const now = new Date();
   const currentMonth = now.getFullYear() === currentYear ? now.getMonth() + 1 : 12;
@@ -48,28 +51,58 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
   // Estimate monthly tax burden
   const taxByMonth = useMemo(() => {
     const result: Record<number, { ss: number; iva: number; label: string }> = {};
+
+    // Revenue by quarter for independente SS
+    const yearSalesData = sales.filter(sl => sl.sale_year === currentYear);
+    const revenueByQuarter: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    yearSalesData.forEach(sl => {
+      const m = sl.sale_month || 0;
+      if (m >= 1 && m <= 3) revenueByQuarter[1] += sl.invoice_total;
+      else if (m >= 4 && m <= 6) revenueByQuarter[2] += sl.invoice_total;
+      else if (m >= 7 && m <= 9) revenueByQuarter[3] += sl.invoice_total;
+      else if (m >= 10 && m <= 12) revenueByQuarter[4] += sl.invoice_total;
+    });
+
     for (let m = 1; m <= 12; m++) {
       let ss = 0;
       let iva = 0;
       const labels: string[] = [];
 
-      // SS: if not exempt and not contab organizada, estimate from payroll
-      if (!fiscalConfig.ssExempt && !isContabOrganizada) {
+      // SS Independente: 21.4% on 70% of quarterly revenue / 3
+      if (showIndependente) {
+        let qRevenue = 0;
+        if (m >= 7 && m <= 9) qRevenue = revenueByQuarter[1];
+        else if (m >= 10 && m <= 12) qRevenue = revenueByQuarter[2];
+        else if (m >= 1 && m <= 3) qRevenue = revenueByQuarter[3] || revenueByQuarter[1];
+        else if (m >= 4 && m <= 6) qRevenue = revenueByQuarter[4] || revenueByQuarter[2];
+
+        if (qRevenue === 0) {
+          const totalRev = Object.values(revenueByQuarter).reduce((s, v) => s + v, 0);
+          qRevenue = totalRev / 4;
+        }
+        const baseInd = (qRevenue * 0.70) / 3;
+        const ssInd = Math.round(baseInd * 0.214 * 100) / 100;
+        ss += baseInd > 0 ? Math.max(20, ssInd) : 0;
+        if (ss > 0) labels.push('SS Ind.');
+      }
+
+      // SS Patronal: 23.75% on gross salaries
+      if (showPatronal) {
         const monthPayroll = payrollData.filter(p => p.year === currentYear && p.month === m);
-        const totalGross = monthPayroll.reduce((s, v) => s + (v as any).gross_salary || 0, 0);
-        ss = Math.round(totalGross * 0.2375 * 100) / 100; // 23.75% patronal
-        // For future months with no payroll data, estimate from current payroll
-        if (ss === 0 && m > currentMonth) {
+        const totalGross = monthPayroll.reduce((s, v) => s + ((v as any).gross_salary || 0), 0);
+        let ssPat = Math.round(totalGross * 0.2375 * 100) / 100;
+        if (ssPat === 0 && m > currentMonth) {
           const latestPayroll = payrollData.filter(p => p.year === currentYear && p.month <= currentMonth);
           if (latestPayroll.length > 0) {
             const avgGross = latestPayroll.reduce((s, v) => s + ((v as any).gross_salary || 0), 0) / latestPayroll.length;
-            ss = Math.round(avgGross * 0.2375 * 100) / 100;
+            ssPat = Math.round(avgGross * 0.2375 * 100) / 100;
           }
         }
-        if (ss > 0) labels.push('SS');
+        ss += ssPat;
+        if (ssPat > 0) labels.push('SS Pat.');
       }
 
-      // IVA: estimate from sales - expenses IVA balance
+      // IVA
       if (!fiscalConfig.ivaExempt && !isContabOrganizada) {
         const monthSales = sales.filter(sl => sl.sale_year === currentYear && sl.sale_month === m);
         const ivaCobrado = monthSales.reduce((s, v) => s + (v.invoice_total - v.base_value), 0);
@@ -82,7 +115,7 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
       result[m] = { ss, iva, label: labels.join(' + ') || '—' };
     }
     return result;
-  }, [fiscalConfig, isContabOrganizada, payrollData, currentYear, currentMonth, sales, expenses]);
+  }, [fiscalConfig, isContabOrganizada, showIndependente, showPatronal, payrollData, currentYear, currentMonth, sales, expenses]);
 
   const predictability = useMemo(() => {
     const revenueByMonth: Record<number, number> = {};
