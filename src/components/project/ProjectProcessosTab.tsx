@@ -1,0 +1,316 @@
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Trash2, GripVertical } from 'lucide-react';
+import { toast } from 'sonner';
+import { LinkedSopsSection } from '@/components/LinkedSopsSection';
+
+interface Props {
+  projectId: string;
+  clientId: string | undefined;
+  productId?: string | null;
+}
+
+// ─── Checklist Table ─────────────────────────────────────────────
+function ChecklistTable({
+  title,
+  items,
+  onAdd,
+  onUpdate,
+  onDelete,
+  emptyText,
+}: {
+  title: string;
+  items: any[];
+  onAdd: () => void;
+  onUpdate: (id: string, fields: Record<string, any>) => void;
+  onDelete: (id: string) => void;
+  emptyText: string;
+}) {
+  return (
+    <Card>
+      <CardHeader className="pb-2 flex flex-row items-center justify-between">
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-sm">{title}</CardTitle>
+          {items.length > 0 && (
+            <Badge variant="secondary" className="text-[10px]">
+              {items.filter((i: any) => i.completed).length}/{items.length}
+            </Badge>
+          )}
+        </div>
+        <Button size="sm" variant="outline" onClick={onAdd}>
+          <Plus className="h-3 w-3 mr-1" />Adicionar
+        </Button>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[32px_1fr_120px_120px_120px_32px] gap-2">
+          <span>✓</span>
+          <span>Atividade</span>
+          <span>Fase</span>
+          <span>Responsável</span>
+          <span>Docs/Links</span>
+          <span></span>
+        </div>
+        {items.length === 0 ? (
+          <p className="text-center text-muted-foreground py-6 text-sm">{emptyText}</p>
+        ) : (
+          items.map((item: any) => (
+            <div key={item.id} className="px-4 py-2 text-xs grid grid-cols-[32px_1fr_120px_120px_120px_32px] gap-2 border-b items-center">
+              <Checkbox
+                checked={!!item.completed}
+                onCheckedChange={(v) => onUpdate(item.id, { completed: !!v })}
+              />
+              <Input
+                className="h-7 text-xs"
+                defaultValue={item.activity || ''}
+                placeholder="Atividade..."
+                onBlur={(e) => onUpdate(item.id, { activity: e.target.value })}
+              />
+              <Input
+                className="h-7 text-xs"
+                defaultValue={item.phase || ''}
+                placeholder="Fase"
+                onBlur={(e) => onUpdate(item.id, { phase: e.target.value })}
+              />
+              <Input
+                className="h-7 text-xs"
+                defaultValue={item.responsible || ''}
+                placeholder="Quem"
+                onBlur={(e) => onUpdate(item.id, { responsible: e.target.value })}
+              />
+              <Input
+                className="h-7 text-xs"
+                defaultValue={item.documents_links || ''}
+                placeholder="Link..."
+                onBlur={(e) => onUpdate(item.id, { documents_links: e.target.value })}
+              />
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => onDelete(item.id)}>
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </div>
+          ))
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Activities Table (no checkbox) ──────────────────────────────
+function ActivitiesTable({
+  items,
+  onAdd,
+  onUpdate,
+  onDelete,
+}: {
+  items: any[];
+  onAdd: () => void;
+  onUpdate: (id: string, fields: Record<string, any>) => void;
+  onDelete: (id: string) => void;
+}) {
+  return (
+    <Card>
+      <CardHeader className="pb-2 flex flex-row items-center justify-between">
+        <CardTitle className="text-sm">Mapa de Atividades Base</CardTitle>
+        <Button size="sm" variant="outline" onClick={onAdd}>
+          <Plus className="h-3 w-3 mr-1" />Adicionar
+        </Button>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[1fr_120px_120px_120px_32px] gap-2">
+          <span>Atividade</span>
+          <span>Fase</span>
+          <span>Responsável</span>
+          <span>Regra</span>
+          <span></span>
+        </div>
+        {items.length === 0 ? (
+          <p className="text-center text-muted-foreground py-6 text-sm">Sem atividades base</p>
+        ) : (
+          items.map((item: any) => (
+            <div key={item.id} className="px-4 py-2 text-xs grid grid-cols-[1fr_120px_120px_120px_32px] gap-2 border-b items-center">
+              <Input
+                className="h-7 text-xs"
+                defaultValue={item.activity || ''}
+                placeholder="Atividade..."
+                onBlur={(e) => onUpdate(item.id, { activity: e.target.value })}
+              />
+              <Input
+                className="h-7 text-xs"
+                defaultValue={item.phase || ''}
+                placeholder="Fase"
+                onBlur={(e) => onUpdate(item.id, { phase: e.target.value })}
+              />
+              <Input
+                className="h-7 text-xs"
+                defaultValue={item.responsible || ''}
+                placeholder="Quem"
+                onBlur={(e) => onUpdate(item.id, { responsible: e.target.value })}
+              />
+              <Input
+                className="h-7 text-xs"
+                defaultValue={item.rule || ''}
+                placeholder="Regra"
+                onBlur={(e) => onUpdate(item.id, { rule: e.target.value })}
+              />
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => onDelete(item.id)}>
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </div>
+          ))
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+export function ProjectProcessosTab({ projectId, clientId, productId }: Props) {
+  const qc = useQueryClient();
+
+  // ─── Onboarding ────────────────────────────────────────────────
+  const onbKey = ['client_onboarding', clientId];
+  const { data: onboarding = [] } = useQuery({
+    queryKey: onbKey,
+    queryFn: async () => {
+      if (!clientId) return [];
+      const { data } = await supabase.from('client_onboarding').select('*').eq('client_id', clientId).order('sort_order', { ascending: true });
+      return data || [];
+    },
+    enabled: !!clientId,
+  });
+
+  const addOnboarding = useMutation({
+    mutationFn: async () => {
+      await supabase.from('client_onboarding').insert({ client_id: clientId!, activity: '', sort_order: onboarding.length });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: onbKey }),
+  });
+
+  const updateOnboarding = useMutation({
+    mutationFn: async ({ id, ...fields }: any) => {
+      await supabase.from('client_onboarding').update(fields).eq('id', id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: onbKey }),
+  });
+
+  const deleteOnboarding = useMutation({
+    mutationFn: async (id: string) => {
+      await supabase.from('client_onboarding').delete().eq('id', id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: onbKey }),
+  });
+
+  // ─── Offboarding ──────────────────────────────────────────────
+  const offKey = ['client_offboarding', clientId];
+  const { data: offboarding = [] } = useQuery({
+    queryKey: offKey,
+    queryFn: async () => {
+      if (!clientId) return [];
+      const { data } = await supabase.from('client_offboarding').select('*').eq('client_id', clientId).order('sort_order', { ascending: true });
+      return data || [];
+    },
+    enabled: !!clientId,
+  });
+
+  const addOffboarding = useMutation({
+    mutationFn: async () => {
+      await supabase.from('client_offboarding').insert({ client_id: clientId!, activity: '', sort_order: offboarding.length });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: offKey }),
+  });
+
+  const updateOffboarding = useMutation({
+    mutationFn: async ({ id, ...fields }: any) => {
+      await supabase.from('client_offboarding').update(fields).eq('id', id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: offKey }),
+  });
+
+  const deleteOffboarding = useMutation({
+    mutationFn: async (id: string) => {
+      await supabase.from('client_offboarding').delete().eq('id', id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: offKey }),
+  });
+
+  // ─── Activities ───────────────────────────────────────────────
+  const actKey = ['client_activities', clientId];
+  const { data: activities = [] } = useQuery({
+    queryKey: actKey,
+    queryFn: async () => {
+      if (!clientId) return [];
+      const { data } = await supabase.from('client_activities').select('*').eq('client_id', clientId).order('sort_order', { ascending: true });
+      return data || [];
+    },
+    enabled: !!clientId,
+  });
+
+  const addActivity = useMutation({
+    mutationFn: async () => {
+      await supabase.from('client_activities').insert({ client_id: clientId!, activity: '', sort_order: activities.length });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: actKey }),
+  });
+
+  const updateActivity = useMutation({
+    mutationFn: async ({ id, ...fields }: any) => {
+      await supabase.from('client_activities').update(fields).eq('id', id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: actKey }),
+  });
+
+  const deleteActivity = useMutation({
+    mutationFn: async (id: string) => {
+      await supabase.from('client_activities').delete().eq('id', id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: actKey }),
+  });
+
+  if (!clientId) {
+    return (
+      <div className="space-y-6">
+        <LinkedSopsSection entityType="projeto" entityId={projectId} productId={productId || undefined} />
+        <p className="text-sm text-muted-foreground text-center py-6">Associe um cliente a este projeto para ver Onboarding, Offboarding e Atividades.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Processos e SOPs */}
+      <LinkedSopsSection entityType="projeto" entityId={projectId} productId={productId || undefined} />
+
+      {/* Onboarding */}
+      <ChecklistTable
+        title="Onboarding"
+        items={onboarding}
+        onAdd={() => addOnboarding.mutate()}
+        onUpdate={(id, fields) => updateOnboarding.mutate({ id, ...fields })}
+        onDelete={(id) => deleteOnboarding.mutate(id)}
+        emptyText="Sem checklist de onboarding"
+      />
+
+      {/* Offboarding */}
+      <ChecklistTable
+        title="Offboarding"
+        items={offboarding}
+        onAdd={() => addOffboarding.mutate()}
+        onUpdate={(id, fields) => updateOffboarding.mutate({ id, ...fields })}
+        onDelete={(id) => deleteOffboarding.mutate(id)}
+        emptyText="Sem checklist de offboarding"
+      />
+
+      {/* Mapa de Atividades Base */}
+      <ActivitiesTable
+        items={activities}
+        onAdd={() => addActivity.mutate()}
+        onUpdate={(id, fields) => updateActivity.mutate({ id, ...fields })}
+        onDelete={(id) => deleteActivity.mutate(id)}
+      />
+    </div>
+  );
+}

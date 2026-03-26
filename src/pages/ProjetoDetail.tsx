@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, ExternalLink } from 'lucide-react';
@@ -31,6 +32,9 @@ import { LinkedSopsSection } from '@/components/LinkedSopsSection';
 import { PROJECT_TYPES, PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInfo, getDeptLabel, getDeptInfo, getInitials } from './Projetos';
 import { LaunchDashboard } from '@/components/launch/LaunchDashboard';
 import { ProjectDeliverables } from '@/components/project/ProjectDeliverables';
+import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
+import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
+import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -292,17 +296,17 @@ export default function ProjetoDetailPage() {
   });
 
   // Fetch onboarding/offboarding for client projects
-  const clientId = (() => {
-    if (!project?.client_name) return undefined;
-    return undefined; // will be resolved by query below
-  })();
   const { data: clientForProject } = useQuery({
-    queryKey: ['client-by-name', project?.client_name],
+    queryKey: ['client-by-name', project?.client_id, project?.client_name],
     queryFn: async () => {
-      const { data } = await supabase.from('clients' as any).select('id').eq('full_name', project!.client_name!).maybeSingle();
-      return data as unknown as { id: string } | null;
+      // Use client_id directly if available, otherwise lookup by name
+      if (project!.client_id) {
+        return { id: project!.client_id };
+      }
+      const { data } = await supabase.from('clients').select('id').eq('full_name', project!.client_name!).maybeSingle();
+      return data as { id: string } | null;
     },
-    enabled: !!project?.client_name && (project?.type === 'clientes' || project?.type === 'cliente_projeto_unico' || project?.type === 'cliente_servico_mensal'),
+    enabled: !!(project?.client_id || project?.client_name),
   });
   const resolvedClientId = clientForProject?.id;
   const { data: clientOnboardingItems = [] } = useQuery({
@@ -369,7 +373,10 @@ export default function ProjetoDetailPage() {
       if (!local) return;
       const payload: Record<string, any> = {
         name: local.name, type: local.type, status: local.status, department: local.department,
-        client_name: local.client_name, deadline: local.deadline, progress: local.progress, notes: local.notes,
+        departments: local.departments,
+        client_name: local.client_name, client_id: local.client_id,
+        product_id: local.product_id, product_name: local.product_name,
+        deadline: local.deadline, progress: local.progress, notes: local.notes,
         objetivo: local.objetivo, diretrizes: local.diretrizes, cronograma: local.cronograma, dependencias: local.dependencias,
         entregaveis: local.entregaveis, recursos: local.recursos, project_notes: local.project_notes,
         closure_good: local.closure_good, closure_bad: local.closure_bad, closure_lessons: local.closure_lessons,
@@ -618,13 +625,16 @@ export default function ProjetoDetailPage() {
     );
   }
 
-  // ─── Service project ──────────────────────────────────────────
-  if (local.type === 'servico' || local.type === 'cliente_servico_mensal') {
+  // ─── Client project (cliente_projeto_unico or cliente_servico_mensal) ──
+  if (local.type === 'servico' || local.type === 'cliente_servico_mensal' || local.type === 'cliente_projeto_unico' || local.type === 'clientes') {
     const isRecorrente = (local as any).project_mode === 'recorrente';
     return (
       <AppLayout>
         <div className="space-y-6">
-          <BackNavigation />
+          <div className="flex items-center justify-between">
+            <BackNavigation />
+            {dirty && <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} size="sm" className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>}
+          </div>
 
           {/* Cover image */}
           {local.cover_url ? (
@@ -642,6 +652,7 @@ export default function ProjetoDetailPage() {
             </label>
           )}
 
+          {/* Header */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
@@ -653,11 +664,14 @@ export default function ProjetoDetailPage() {
               <div><Label className="text-xs">Cliente</Label><Input value={local.client_name || ''} onChange={e => updateField('client_name', e.target.value)} /></div>
               <div><Label className="text-xs">Departamento</Label><Select value={local.department || ''} onValueChange={v => updateField('department', v)}><SelectTrigger><SelectValue placeholder="—" /></SelectTrigger><SelectContent>{DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent></Select></div>
             </div>
+            {local.product_name && (
+              <div><Label className="text-xs">Produto</Label><Input value={local.product_name || ''} readOnly className="bg-muted/50" /></div>
+            )}
             <div>
               <Label className="text-xs flex items-center gap-1.5"><MessageSquare className="h-3 w-3" /> Grupo WhatsApp</Label>
               <Input value={(local as any).whatsapp_group_url || ''} onChange={e => updateField('whatsapp_group_url', e.target.value)} placeholder="https://chat.whatsapp.com/..." className="mt-1" />
               {(local as any).whatsapp_group_url && (
-                <a href={(local as any).whatsapp_group_url} target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-700 hover:underline flex items-center gap-1 mt-1">
+                <a href={(local as any).whatsapp_group_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
                   Abrir grupo <ExternalLink className="h-3 w-3" />
                 </a>
               )}
@@ -671,122 +685,158 @@ export default function ProjetoDetailPage() {
               </div>
             )}
             <div><Label className="text-xs">Equipa</Label><div className="flex gap-1 mt-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div></div>
-            <Separator />
-            {/* Deliverables - always shown for service projects */}
-            <ProjectDeliverables projectId={id!} profiles={profiles} />
-            <Separator />
-
-            {/* Menu Inicial */}
-            <div>
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Menu Inicial</h3>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                {[
-                  { key: 'objetivo' as SubPage, icon: Target, label: 'Objetivo e Definição' },
-                  { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes Iniciais' },
-                  { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral' },
-                  { key: 'dependencias' as SubPage, icon: Link2, label: 'Dependências' },
-                ].map(({ key, icon: Icon, label }) => (
-                  <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border overflow-hidden h-32 transition-all hover:shadow-md text-center">
-                    <div className="absolute inset-0 bg-primary opacity-[0.07] group-hover:opacity-[0.12] transition-opacity" />
-                    <Icon className="h-7 w-7 text-primary relative z-10" />
-                    <span className="text-sm font-semibold text-primary relative z-10 px-3">{label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Tarefas */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{isRecorrente ? 'Tarefas do Ciclo' : 'Estado e Prioridades'}</h3>
-                  <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" className="gap-1.5 h-8" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
-                  <Button size="sm" variant="outline" className="gap-1.5 h-8" onClick={() => setMeetingDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Reunião</Button>
-                </div>
-              </div>
-              {tasks.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-4">{isRecorrente ? 'As tarefas serão geradas automaticamente a partir das entregas recorrentes.' : 'Nenhuma tarefa ligada a este projeto'}</p>
-              ) : (
-                <div className="rounded-lg border">
-                  <Table>
-                    <TableHeader><TableRow>
-                      <TableHead>Status</TableHead><TableHead>Prioridade</TableHead><TableHead>Tarefa</TableHead><TableHead>Data final</TableHead><TableHead>Responsável</TableHead>
-                    </TableRow></TableHeader>
-                    <TableBody>
-                      {tasks.map(t => {
-                        const si = getTaskStatusInfo(t.status);
-                        const pi = getPriorityInfo(t.priority);
-                        const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
-                        return (
-                          <TableRow key={t.id}>
-                            <TableCell><Badge className={`${si.color} border-0 text-[10px]`}>{si.label}</Badge></TableCell>
-                            <TableCell><Badge className={`${pi.color} border-0 text-[10px]`}>{pi.label}</Badge></TableCell>
-                            <TableCell className="font-medium text-sm">{t.name}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground">{t.deadline ? format(new Date(t.deadline), 'd MMM', { locale: pt }) : '—'}</TableCell>
-                            <TableCell>{assignee ? <div className="flex items-center gap-1.5"><Avatar className="h-5 w-5"><AvatarImage src={assignee.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar><span className="text-xs">{assignee.full_name}</span></div> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </div>
-
-            {/* Desenvolvimento */}
-            <div>
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Desenvolvimento</h3>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                {[
-                  { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis' },
-                  { key: 'reunioes' as SubPage, icon: Users, label: `Reuniões (${meetings.length})` },
-                  { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos' },
-                  { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
-                ].map(({ key, icon: Icon, label }) => (
-                  <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border overflow-hidden h-32 transition-all hover:shadow-md text-center">
-                    <div className="absolute inset-0 bg-primary opacity-[0.07] group-hover:opacity-[0.12] transition-opacity" />
-                    <Icon className="h-7 w-7 text-primary relative z-10" />
-                    <span className="text-sm font-semibold text-primary relative z-10 px-3">{label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Processos */}
-            {id && <LinkedSopsSection entityType="projeto" entityId={id} />}
-
-            {/* Fecho de Projeto */}
-            <div>
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Fecho de Projeto</h3>
-              <div className="space-y-2">
-                {[
-                  { field: 'closure_good' as keyof ProjectFull, label: '✅ O que funcionou bem' },
-                  { field: 'closure_bad' as keyof ProjectFull, label: '❌ O que não voltaria a fazer' },
-                  { field: 'closure_lessons' as keyof ProjectFull, label: '💡 Lições finais' },
-                ].map(({ field, label }) => (
-                  <Collapsible key={field}>
-                    <CollapsibleTrigger asChild>
-                      <button className="flex items-center justify-between w-full p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
-                        <span className="text-sm font-medium">{label}</span>
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                      </button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="px-3 pb-3 pt-2">
-                      <MentionTextarea
-                        value={(local[field] as string) || ''}
-                        onChange={v => updateField(field, v)}
-                        rows={4}
-                        placeholder="Escreve aqui..."
-                      />
-                    </CollapsibleContent>
-                  </Collapsible>
-                ))}
-              </div>
-            </div>
           </div>
+
+          <Separator />
+
+          {/* ─── 3 Tabs ──────────────────────────────────────── */}
+          <Tabs defaultValue="projeto" className="w-full">
+            <TabsList className="bg-transparent gap-2">
+              <TabsTrigger value="projeto">Projeto</TabsTrigger>
+              <TabsTrigger value="processos">Processos</TabsTrigger>
+              <TabsTrigger value="gestao">Gestão</TabsTrigger>
+            </TabsList>
+
+            {/* ─── TAB 1: PROJETO ──────────────────────────── */}
+            <TabsContent value="projeto" className="space-y-6 mt-4">
+              {/* Deliverables */}
+              {isRecorrente && <ProjectDeliverables projectId={id!} profiles={profiles} />}
+
+              {/* Menu Inicial */}
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Menu Inicial</h3>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  {[
+                    { key: 'objetivo' as SubPage, icon: Target, label: 'Objetivo e Definição' },
+                    { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes Iniciais' },
+                    { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral' },
+                    { key: 'dependencias' as SubPage, icon: Link2, label: 'Dependências' },
+                  ].map(({ key, icon: Icon, label }) => (
+                    <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border overflow-hidden h-32 transition-all hover:shadow-md text-center">
+                      <div className="absolute inset-0 bg-primary opacity-[0.07] group-hover:opacity-[0.12] transition-opacity" />
+                      <Icon className="h-7 w-7 text-primary relative z-10" />
+                      <span className="text-sm font-semibold text-primary relative z-10 px-3">{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tarefas */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{isRecorrente ? 'Tarefas do Ciclo' : 'Estado e Prioridades'}</h3>
+                    <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
+                  </div>
+                  <Button size="sm" variant="outline" className="gap-1.5 h-8" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
+                </div>
+                {tasks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-4">{isRecorrente ? 'As tarefas serão geradas automaticamente a partir das entregas recorrentes.' : 'Nenhuma tarefa ligada a este projeto'}</p>
+                ) : (
+                  <div className="rounded-lg border">
+                    <Table>
+                      <TableHeader><TableRow>
+                        <TableHead>Status</TableHead><TableHead>Prioridade</TableHead><TableHead>Tarefa</TableHead><TableHead>Data final</TableHead><TableHead>Responsável</TableHead>
+                      </TableRow></TableHeader>
+                      <TableBody>
+                        {tasks.map(t => {
+                          const si = getTaskStatusInfo(t.status);
+                          const pi = getPriorityInfo(t.priority);
+                          const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
+                          return (
+                            <TableRow key={t.id}>
+                              <TableCell><Badge className={`${si.color} border-0 text-[10px]`}>{si.label}</Badge></TableCell>
+                              <TableCell><Badge className={`${pi.color} border-0 text-[10px]`}>{pi.label}</Badge></TableCell>
+                              <TableCell className="font-medium text-sm">{t.name}</TableCell>
+                              <TableCell className="text-sm text-muted-foreground">{t.deadline ? format(new Date(t.deadline), 'd MMM', { locale: pt }) : '—'}</TableCell>
+                              <TableCell>{assignee ? <div className="flex items-center gap-1.5"><Avatar className="h-5 w-5"><AvatarImage src={assignee.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar><span className="text-xs">{assignee.full_name}</span></div> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </div>
+
+              {/* Desenvolvimento */}
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Desenvolvimento</h3>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  {[
+                    { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis' },
+                    { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos' },
+                    { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
+                  ].map(({ key, icon: Icon, label }) => (
+                    <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border overflow-hidden h-32 transition-all hover:shadow-md text-center">
+                      <div className="absolute inset-0 bg-primary opacity-[0.07] group-hover:opacity-[0.12] transition-opacity" />
+                      <Icon className="h-7 w-7 text-primary relative z-10" />
+                      <span className="text-sm font-semibold text-primary relative z-10 px-3">{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Portal de Cliente */}
+              {resolvedClientId && local.client_name && (
+                <ClientPortalSection
+                  clientId={resolvedClientId}
+                  clientName={local.client_name}
+                  currentProduct={local.product_name || null}
+                />
+              )}
+
+              {/* Fecho de Projeto */}
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Fecho de Projeto</h3>
+                <div className="space-y-2">
+                  {[
+                    { field: 'closure_good' as keyof ProjectFull, label: '✅ O que funcionou bem' },
+                    { field: 'closure_bad' as keyof ProjectFull, label: '❌ O que não voltaria a fazer' },
+                    { field: 'closure_lessons' as keyof ProjectFull, label: '💡 Lições finais' },
+                  ].map(({ field, label }) => (
+                    <Collapsible key={field}>
+                      <CollapsibleTrigger asChild>
+                        <button className="flex items-center justify-between w-full p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
+                          <span className="text-sm font-medium">{label}</span>
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="px-3 pb-3 pt-2">
+                        <MentionTextarea
+                          value={(local[field] as string) || ''}
+                          onChange={v => updateField(field, v)}
+                          rows={4}
+                          placeholder="Escreve aqui..."
+                        />
+                      </CollapsibleContent>
+                    </Collapsible>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* ─── TAB 2: PROCESSOS ────────────────────────── */}
+            <TabsContent value="processos" className="mt-4">
+              <ProjectProcessosTab
+                projectId={id!}
+                clientId={resolvedClientId}
+                productId={local.product_id}
+              />
+            </TabsContent>
+
+            {/* ─── TAB 3: GESTÃO ───────────────────────────── */}
+            <TabsContent value="gestao" className="mt-4">
+              <ProjectGestaoTab
+                projectId={id!}
+                projectName={local.name}
+                clientName={local.client_name}
+                clientId={resolvedClientId}
+                onNewMeeting={() => setMeetingDialogOpen(true)}
+              />
+            </TabsContent>
+          </Tabs>
+
           {dirty && <div className="sticky bottom-4"><Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="gap-2 shadow-lg"><Save className="h-4 w-4" /> Guardar</Button></div>}
           <Separator />
           <AlertDialog>
