@@ -15,6 +15,7 @@ Backend cron jobs for auto-status updates, notifications, and data sync.
    11. **Recurring expenses** — on `recurrence_day` of each month, auto-generates new expenses from templates marked `is_recurring=true`. Sets `parent_expense_id` for traceability. Skips if already generated for current month or past `recurrence_end_date`.
    12. **Overdue task alerts** — daily check for tasks past deadline (not done/cancelada). Notifies owner + assigned user. Type: `task`. Dedup by `task-overdue-{task_id}-{date}`.
    13. **Routine missed alerts** — daily check for routine tasks (`tag=Rotina`) due today that are not completed. Notifies owner + assigned user + routine creator. Shows `role_function` in alert. Dedup by `routine-missed-{task_id}-{date}`.
+   14. **CRM follow-up overdue alerts** — daily check for leads with `next_followup < today` (not ganho/perdido). Notifies owner + responsible. Dedup by `followup-overdue-{lead_id}-{date}`.
    
 - `daily-birthday-check` — runs daily at 08:00 via pg_cron
   - Checks clients and team members with birthdays
