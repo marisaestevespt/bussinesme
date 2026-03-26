@@ -907,6 +907,48 @@ export default function ClienteDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Offboarding confirmation dialog */}
+      <Dialog open={offboardingDialogOpen} onOpenChange={setOffboardingDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Iniciar Offboarding</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            {pendingPaymentsCount > 0 && (
+              <div className="flex items-start gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-3">
+                <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-destructive">
+                    {pendingPaymentsCount} pagamento(s) pendente(s)
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Valor total em aberto: {pendingPaymentsTotal.toFixed(2)}€.
+                    Será adicionado um item à checklist de offboarding.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between gap-3 rounded-md border p-3">
+              <div>
+                <p className="text-sm font-medium">Agendar NPS Final?</p>
+                <p className="text-xs text-muted-foreground">
+                  Cria um registo de NPS para recolher feedback antes de terminar.
+                </p>
+              </div>
+              <Switch checked={offboardingNps} onCheckedChange={setOffboardingNps} />
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              A checklist de offboarding será criada com base no template do produto.
+              {pendingPaymentsCount > 0 && ' Um item de verificação de pagamentos pendentes será adicionado automaticamente.'}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOffboardingDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={confirmOffboarding}>Confirmar Offboarding</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
