@@ -319,6 +319,23 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
 
   const hasExistingProjectSales = projectSales.length > 0;
 
+  // ─── Auto-generate payments when all fields are filled ────────
+  const canAutoGenerate = !hasExistingProjectSales && !!clientStartDate && !!payMethod && !generateSales.isPending;
+
+  useEffect(() => {
+    if (!canAutoGenerate) return;
+    let ready = false;
+    if (payMethod === 'pagamento_total' && parseFloat(totalValue) > 0) ready = true;
+    if (payMethod === 'entrada_prestacoes' && parseFloat(totalValue) > 0 && parseFloat(entradaValue) > 0 && parseInt(numPrestacoes) > 0 && parseInt(payDay) > 0 && parseFloat(entradaValue) < parseFloat(totalValue)) ready = true;
+    if (payMethod === 'prestacoes' && parseFloat(totalValue) > 0 && parseInt(numPrestacoes) > 0 && parseInt(payDay) > 0) ready = true;
+    if (payMethod === 'avenca_mensal' && parseInt(numMeses) > 0 && parseInt(payDay) > 0 && parseFloat(avencaValue) > 0) ready = true;
+    if (ready) {
+      // Small delay so user can finish typing
+      const timer = setTimeout(() => generateSales.mutate(), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [payMethod, totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, canAutoGenerate]);
+
   return (
     <div className="space-y-6">
       {/* Forma de Pagamento + Gerador */}
