@@ -30,6 +30,15 @@ const PAYMENT_METHODS = [
   { value: 'entrada_prestacoes', label: 'Entrada + Prestações' },
   { value: 'prestacoes', label: 'Prestações' },
   { value: 'avenca_mensal', label: 'Avença Mensal' },
+  { value: 'subscricao', label: 'Subscrição' },
+];
+
+const SUBSCRIPTION_PERIODICITIES = [
+  { value: 'mensal', label: 'Mensal' },
+  { value: 'bimestral', label: 'Bimestral' },
+  { value: 'trimestral', label: 'Trimestral' },
+  { value: 'semestral', label: 'Semestral' },
+  { value: 'anual', label: 'Anual' },
 ];
 
 const SALE_STATUSES: Record<string, { label: string; color: string }> = {
@@ -53,6 +62,8 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   const [payDay, setPayDay] = useState('');
   const [numMeses, setNumMeses] = useState('');
   const [avencaValue, setAvencaValue] = useState('');
+  const [subscricaoValue, setSubscricaoValue] = useState('');
+  const [subscricaoPeriodicity, setSubscricaoPeriodicity] = useState('mensal');
 
   // ─── Client data (payment_method + start_date) ─────────────────
   const { data: clientData } = useQuery({
