@@ -70,6 +70,7 @@ export default function FornecedoresPage() {
         category: form.category || 'outro',
         notes: form.notes || null,
         is_active: form.is_active ?? true,
+        default_vat_rate: form.default_vat_rate ?? 23,
       };
       if (form.id) {
         await supabase.from('suppliers').update(record).eq('id', form.id);
