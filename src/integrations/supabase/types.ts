@@ -7727,6 +7727,21 @@ export type Database = {
           status: string
         }[]
       }
+      get_portal_project_history: {
+        Args: { _token: string }
+        Returns: {
+          created_at: string
+          end_date: string
+          id: string
+          monthly_summaries: Json
+          notes: string
+          product_name: string
+          project_name: string
+          start_date: string
+          status: string
+          timeline_phases: Json
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
