@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Plus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ExternalLink, Plus, CreditCard } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { EntryDetailSheet } from '@/components/financial/EntryDetailSheet';
+import { toast } from 'sonner';
 
 interface Props {
   projectId: string;
@@ -17,6 +21,16 @@ interface Props {
   clientId: string | undefined;
   onNewMeeting: () => void;
 }
+
+const PAYMENT_METHODS = [
+  { value: 'transferencia', label: 'Transferência Bancária' },
+  { value: 'mbway', label: 'MB WAY' },
+  { value: 'debito_direto', label: 'Débito Direto' },
+  { value: 'cartao', label: 'Cartão de Crédito' },
+  { value: 'paypal', label: 'PayPal' },
+  { value: 'stripe', label: 'Stripe' },
+  { value: 'outro', label: 'Outro' },
+];
 
 export function ProjectGestaoTab({ projectId, projectName, clientName, clientId, onNewMeeting }: Props) {
   const navigate = useNavigate();
