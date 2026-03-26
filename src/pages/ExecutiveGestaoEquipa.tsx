@@ -378,11 +378,15 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
     }
 
     // 5. Create notification for owner
-    await supabase.from('notifications').insert({
-      user_id: (await supabase.auth.getUser()).data.user?.id || '',
-      message: `Membro ${offboardingDialog.full_name} marcado como inativo. Acessos serão revogados em 7 dias.`,
-      type: 'team',
-    });
+    const currentUser = (await supabase.auth.getUser()).data.user;
+    if (currentUser) {
+      await supabase.from('notifications').insert({
+        user_id: currentUser.id,
+        title: `Offboarding: ${offboardingDialog.full_name}`,
+        message: `Membro ${offboardingDialog.full_name} marcado como inativo. Acessos serão revogados em 7 dias.`,
+        type: 'team',
+      });
+    }
 
     qc.invalidateQueries({ queryKey: ['team'] });
     toast.success('Membro marcado como inativo. Acessos serão revogados automaticamente em 7 dias.');
