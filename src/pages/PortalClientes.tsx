@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Copy } from 'lucide-react';
+import { Copy, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { useAllPortals } from '@/hooks/usePortalData';
@@ -70,9 +70,12 @@ export default function PortalClientesPage() {
                         {p.portal_type === 'projeto_unico' ? 'Projeto Único' : 'Serviço Mensal'}
                       </Badge>
                     </span>
-                    <span>
+                    <span className="flex items-center gap-1">
                       <Button variant="outline" size="sm" className="h-6 text-[10px] gap-1" onClick={() => { navigator.clipboard.writeText(portalUrl); toast.success('Link copiado'); }}>
                         <Copy className="h-3 w-3" />Copiar
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1" onClick={() => navigate(`/portal/${p.token}/view`)}>
+                        <ExternalLink className="h-3 w-3" />Abrir
                       </Button>
                     </span>
                     <span>
