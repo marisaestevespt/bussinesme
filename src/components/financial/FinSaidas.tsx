@@ -15,7 +15,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { useFinancialData } from '@/hooks/useFinancialData';
-import { type Expense } from '@/hooks/useFinancialData';
+import { type Expense, calcMonthlyEquivalent } from '@/hooks/useFinancialData';
 import { InvoiceUpload, type DocEntry } from './InvoiceUpload';
 import { CategorySelect } from './CategorySelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
@@ -35,12 +35,20 @@ const LOCATIONS = [
   { value: 'ue', label: 'União Europeia' },
   { value: 'fora_ue', label: 'Fora da UE' },
 ];
+const PERIODICITIES = [
+  { value: 'semanal', label: 'Semanal' },
+  { value: 'mensal', label: 'Mensal' },
+  { value: 'bimestral', label: 'Bimestral' },
+  { value: 'trimestral', label: 'Trimestral' },
+  { value: 'semestral', label: 'Semestral' },
+  { value: 'anual', label: 'Anual' },
+];
 
 interface Props { fin: ReturnType<typeof useFinancialData>; currentYear: number; }
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-type Filter = 'all' | 'month' | 'quarter' | 'year';
+type Filter = 'all' | 'month' | 'quarter' | 'year' | 'recurring';
 
 export function FinSaidas({ fin, currentYear }: Props) {
   const { getCategoryLabel } = useFinancialCategories();
@@ -61,18 +69,23 @@ export function FinSaidas({ fin, currentYear }: Props) {
 
   const expenses = allExpenses.filter(e => {
     if (filter === 'all') return true;
+    if (filter === 'recurring') return (e as any).is_recurring === true;
     if (filter === 'year') return e.expense_year === currentYear;
     if (filter === 'quarter') return e.expense_year === currentYear && e.expense_quarter === currentQuarter;
     if (filter === 'month') return e.expense_year === currentYear && e.expense_month === currentMonth;
     return true;
   });
 
+  // Summary for recurring
+  const recurringExpenses = allExpenses.filter(e => (e as any).is_recurring === true && e.status !== 'cancelado');
+  const totalMonthlyRecurring = recurringExpenses.reduce((s, e) => s + ((e as any).monthly_equivalent || 0), 0);
+
   // --- Expense Dialog ---
   const [expOpen, setExpOpen] = useState(false);
   const [expForm, setExpForm] = useState<any>({});
 
   const openNewExpense = () => {
-    setExpForm({ status: 'por_pagar', category: 'outro', vat_rate: 23, location: 'portugal', base_value: '', description: '', includes_vat: false, supplier_id: null, is_recurring: false, recurrence_day: 1 });
+    setExpForm({ status: 'por_pagar', category: 'outro', vat_rate: 23, location: 'portugal', base_value: '', description: '', includes_vat: false, supplier_id: null, is_recurring: false, periodicity: 'mensal' });
     setExpOpen(true);
   };
 
@@ -106,11 +119,17 @@ export function FinSaidas({ fin, currentYear }: Props) {
     const month = date ? parseInt(date.slice(5, 7)) : null;
     const quarter = month ? Math.ceil(month / 3) : null;
     const year = date ? parseInt(date.slice(0, 4)) : null;
+
+    const isRecurring = expForm.is_recurring || false;
+    const periodicity = isRecurring ? (expForm.periodicity || 'mensal') : null;
+    const monthlyEquivalent = isRecurring ? calcMonthlyEquivalent(base, periodicity || 'mensal') : 0;
+
     await fin.upsertExpense.mutateAsync({
       ...(expForm.id ? { id: expForm.id } : {}),
       status: expForm.status,
       expense_date: date,
       description: expForm.description || null,
+      expense_name: isRecurring ? (expForm.description || null) : null,
       category: expForm.category,
       base_value: base,
       vat_rate: vat,
@@ -121,10 +140,13 @@ export function FinSaidas({ fin, currentYear }: Props) {
       expense_quarter: quarter,
       expense_year: year,
       supplier_id: expForm.supplier_id || null,
-      is_recurring: expForm.is_recurring || false,
-      recurrence_day: expForm.is_recurring ? (expForm.recurrence_day || 1) : null,
-      recurrence_end_date: expForm.is_recurring && expForm.recurrence_end_date ? (typeof expForm.recurrence_end_date === 'string' ? expForm.recurrence_end_date : format(expForm.recurrence_end_date, 'yyyy-MM-dd')) : null,
-    });
+      is_recurring: isRecurring,
+      periodicity,
+      monthly_equivalent: monthlyEquivalent,
+    } as any);
+    if (isRecurring) {
+      fin.recurringExpenses.refetch();
+    }
     setExpOpen(false);
     toast.success('Despesa guardada');
   };
@@ -136,12 +158,22 @@ export function FinSaidas({ fin, currentYear }: Props) {
       <div>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2 flex-wrap">
-            {([['all', 'Todos'], ['month', 'Este mês'], ['quarter', 'Este trimestre'], ['year', 'Este ano']] as const).map(([k, l]) => (
-              <Button key={k} variant={filter === k ? 'default' : 'outline'} size="sm" onClick={() => setFilter(k)}>{l}</Button>
+            {([['all', 'Todos'], ['month', 'Este mês'], ['quarter', 'Este trimestre'], ['year', 'Este ano'], ['recurring', 'Recorrentes']] as const).map(([k, l]) => (
+              <Button key={k} variant={filter === k ? 'default' : 'outline'} size="sm" onClick={() => setFilter(k as Filter)}>{l}</Button>
             ))}
           </div>
           <Button size="sm" onClick={openNewExpense}><Plus className="h-4 w-4 mr-1" /> Nova Despesa</Button>
         </div>
+
+        {filter === 'recurring' && totalMonthlyRecurring > 0 && (
+          <Card className="mb-4">
+            <CardContent className="py-3 px-4 flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Custo mensal estimado (recorrentes ativas)</span>
+              <span className="font-semibold">{fmt(totalMonthlyRecurring)}</span>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardContent className="p-0">
             <Table>
@@ -156,7 +188,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
                   <TableHead>IVA</TableHead>
                   <TableHead className="text-right">Total c/ IVA</TableHead>
                   <TableHead>Localização</TableHead>
-                  <TableHead>Mês</TableHead>
+                  {filter === 'recurring' ? <TableHead>Periodicidade</TableHead> : <TableHead>Mês</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -164,7 +196,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
                   <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Sem despesas</TableCell></TableRow>
                 ) : expenses.map(e => (
                   <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
-                    setExpForm({ ...e, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.base_value.toString() });
+                    setExpForm({ ...e, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.base_value.toString(), periodicity: (e as any).periodicity || 'mensal' });
                     setExpOpen(true);
                   }}>
                     <TableCell><Badge variant="outline" className={e.status === 'pago' ? 'bg-success/10 text-success' : e.status === 'cancelado' ? 'bg-muted text-muted-foreground' : 'bg-warning/10 text-warning'}>{EXP_STATUS.find(s => s.value === e.status)?.label || e.status}</Badge></TableCell>
@@ -179,7 +211,10 @@ export function FinSaidas({ fin, currentYear }: Props) {
                     <TableCell>{e.vat_rate}%</TableCell>
                     <TableCell className="text-right font-medium">{fmt(e.total_with_vat)}</TableCell>
                     <TableCell>{LOCATIONS.find(l => l.value === e.location)?.label || e.location}</TableCell>
-                    <TableCell>{e.expense_month || '—'}</TableCell>
+                    {filter === 'recurring'
+                      ? <TableCell>{PERIODICITIES.find(p => p.value === (e as any).periodicity)?.label || '—'}</TableCell>
+                      : <TableCell>{e.expense_month || '—'}</TableCell>
+                    }
                   </TableRow>
                 ))}
               </TableBody>
@@ -257,15 +292,17 @@ export function FinSaidas({ fin, currentYear }: Props) {
                 <Switch checked={expForm.is_recurring || false} onCheckedChange={v => setExpForm((f: any) => ({ ...f, is_recurring: v }))} />
               </div>
               {expForm.is_recurring && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-xs">Dia do mês</Label>
-                    <Input type="number" min={1} max={28} value={expForm.recurrence_day || 1} onChange={e => setExpForm((f: any) => ({ ...f, recurrence_day: parseInt(e.target.value) || 1 }))} />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Até (opcional)</Label>
-                    <Input type="date" value={expForm.recurrence_end_date || ''} onChange={e => setExpForm((f: any) => ({ ...f, recurrence_end_date: e.target.value }))} />
-                  </div>
+                <div>
+                  <Label className="text-xs">Periodicidade</Label>
+                  <Select value={expForm.periodicity || 'mensal'} onValueChange={v => setExpForm((f: any) => ({ ...f, periodicity: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{PERIODICITIES.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                  {expForm.base_value && parseFloat(expForm.base_value) > 0 && expForm.periodicity !== 'mensal' && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Equivalente mensal: {fmt(calcMonthlyEquivalent(parseFloat(expForm.base_value) || 0, expForm.periodicity || 'mensal'))}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
