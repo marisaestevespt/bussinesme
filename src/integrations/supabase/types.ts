@@ -131,6 +131,45 @@ export type Database = {
         }
         Relationships: []
       }
+      backups: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          file_path: string
+          file_size_bytes: number | null
+          id: string
+          started_at: string
+          status: string
+          tables_count: number | null
+          trigger_type: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_path: string
+          file_size_bytes?: number | null
+          id?: string
+          started_at?: string
+          status?: string
+          tables_count?: number | null
+          trigger_type?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_path?: string
+          file_size_bytes?: number | null
+          id?: string
+          started_at?: string
+          status?: string
+          tables_count?: number | null
+          trigger_type?: string
+        }
+        Relationships: []
+      }
       brand_competitors: {
         Row: {
           comunicacao: string | null
