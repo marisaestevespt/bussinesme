@@ -51,7 +51,7 @@ export default function ExecutiveProductivity() {
   const productsQ = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
-      const { data } = await supabase.from('products').select('id, name, monthly_hours_per_client');
+      const { data } = await supabase.from('products').select('id, name, monthly_hours_per_client, max_simultaneous_clients');
       return (data || []) as any[];
     },
   });
