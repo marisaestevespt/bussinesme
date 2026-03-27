@@ -216,6 +216,39 @@ export function SettingsFiscal() {
 
       <Separator />
 
+      {/* IDENTIFICAÇÃO FISCAL */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-foreground">
+          <FileText className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+          <h2 className="text-sm font-semibold tracking-tight uppercase">Identificação Fiscal</h2>
+        </div>
+        <div className="rounded-lg border bg-card p-5 space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">NIF</Label>
+              <Input value={nif} onChange={e => setNif(e.target.value)} placeholder="Número de identificação fiscal" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Código CIRS</Label>
+              <Input value={cirsCode} onChange={e => setCirsCode(e.target.value)} placeholder="Ex: Art. 151.º — Atividades de consultoria" />
+              <p className="text-xs text-muted-foreground">Código da atividade no Código do IRS (tabela do art. 151.º)</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">CAE Principal</Label>
+              <Input value={caePrincipal} onChange={e => setCaePrincipal(e.target.value)} placeholder="Ex: 62010" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">CAEs Secundários</Label>
+              <Input value={caeSecundarios} onChange={e => setCaeSecundarios(e.target.value)} placeholder="Separados por vírgula" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
       {/* CONFIGURAÇÃO FISCAL */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-foreground">
