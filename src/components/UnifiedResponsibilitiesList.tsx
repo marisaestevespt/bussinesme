@@ -88,6 +88,7 @@ interface Props {
 
 export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px' }: Props) {
   const [filter, setFilter] = useState<SourceFilter>('todos');
+  const [selectedItem, setSelectedItem] = useState<UnifiedItem | null>(null);
   const navigate = useNavigate();
   const qc = useQueryClient();
 
