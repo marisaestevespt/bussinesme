@@ -576,14 +576,12 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
                   const currentClients = Number(item.current_clients);
                   const hoursUsed = hpc * currentClients;
                   const extraByHours = hpc > 0 && hoursRemaining > 0 ? Math.floor(hoursRemaining / hpc) : 0;
-                  const sourceProductForExtra = allProducts.find((p: Product) => p.id === item.product_id);
-                  const maxClientsForExtra = (sourceProductForExtra as any)?.max_simultaneous_clients as number | null;
-                  const extraByMax = maxClientsForExtra != null && maxClientsForExtra > 0 ? Math.max(0, maxClientsForExtra - currentClients) : Infinity;
-                  const extraPossible = Math.min(extraByHours, extraByMax);
                   const realCount = realClientCounts[item.product_name] || 0;
                   const itemRevenue = Number(item.price_per_client || 0) * currentClients;
                   const sourceProduct = allProducts.find((p: Product) => p.id === item.product_id);
                   const maxClients = (sourceProduct as any)?.max_simultaneous_clients as number | null;
+                  const extraByMax = maxClients != null && maxClients > 0 ? Math.max(0, maxClients - currentClients) : Infinity;
+                  const extraPossible = Math.min(extraByHours, extraByMax);
                   const atCapacity = maxClients != null && maxClients > 0 && currentClients >= maxClients;
 
                   return (
