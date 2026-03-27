@@ -346,12 +346,20 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
 
 // ── Independente Section ──
 function IndependenteSection({ data, currentYear, onSave, onToggle }: {
-  data: { month: number; quarterRevenue: number; rendimentoRelevante: number; baseIncidencia: number; contribution: number; paid: number; isPaid: boolean }[];
+  data: { month: number; quarterRevenue: number; rendimentoRelevante: number; baseIncidencia: number; contribution: number; paid: number; isPaid: boolean; hasData: boolean; srcLabel: string; declMonth: string; declYear: number }[];
   currentYear: number;
   onSave: (month: number, value: number) => Promise<void>;
   onToggle: (month: number) => Promise<void>;
 }) {
   const total = data.reduce((s, d) => s + d.contribution, 0);
+
+  // Group months by their source quarter for visual clarity
+  const quarterGroups = [
+    { label: 'Jan — Mar', months: [1, 2, 3] },
+    { label: 'Abr — Jun', months: [4, 5, 6] },
+    { label: 'Jul — Set', months: [7, 8, 9] },
+    { label: 'Out — Dez', months: [10, 11, 12] },
+  ];
 
   return (
     <div className="space-y-4">
@@ -359,9 +367,9 @@ function IndependenteSection({ data, currentYear, onSave, onToggle }: {
         <CardContent className="pt-4 flex gap-2">
           <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
           <div className="text-sm text-muted-foreground space-y-1">
-            <p><strong>Como funciona:</strong> A contribuição é calculada com base na declaração trimestral de rendimentos.</p>
-            <p>Faturação do trimestre × 70% = Rendimento relevante → ÷ 3 = Base mensal → × 21,4% = Contribuição mensal.</p>
-            <p>Mínimo: €20/mês. Pagamento entre dia 10 e 20 de cada mês. Podes ajustar ±25% na declaração.</p>
+            <p><strong>Como funciona:</strong> Declaras a faturação do trimestre → essa declaração define a contribuição dos 3 meses seguintes.</p>
+            <p>Faturação × 70% = Rendimento relevante → ÷ 3 = Base mensal → × 21,4% = Contribuição. Mínimo: €20/mês.</p>
+            <p className="text-xs">Declaração: Q1 em Abril · Q2 em Julho · Q3 em Outubro · Q4 em Janeiro do ano seguinte.</p>
           </div>
         </CardContent>
       </Card>
@@ -375,6 +383,8 @@ function IndependenteSection({ data, currentYear, onSave, onToggle }: {
             <TableHeader>
               <TableRow>
                 <TableHead>Mês</TableHead>
+                <TableHead>Base (Trimestre)</TableHead>
+                <TableHead>Declaração</TableHead>
                 <TableHead className="text-right">Fat. Trimestre</TableHead>
                 <TableHead className="text-right">Rend. Relevante</TableHead>
                 <TableHead className="text-right">Base Mensal</TableHead>
@@ -386,27 +396,62 @@ function IndependenteSection({ data, currentYear, onSave, onToggle }: {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map(d => (
-                <PaymentRow
-                  key={d.month}
-                  month={d.month}
-                  predicted={d.contribution}
-                  paid={d.paid}
-                  isPaid={d.isPaid}
-                  onSave={onSave}
-                  onToggle={onToggle}
-                  extraCells={
-                    <>
-                      <TableCell className="text-right text-muted-foreground">{d.quarterRevenue > 0 ? fmt(d.quarterRevenue) : '—'}</TableCell>
-                      <TableCell className="text-right text-muted-foreground">{d.rendimentoRelevante > 0 ? fmt(d.rendimentoRelevante) : '—'}</TableCell>
-                      <TableCell className="text-right">{d.baseIncidencia > 0 ? fmt(d.baseIncidencia) : '—'}</TableCell>
-                    </>
-                  }
-                />
-              ))}
+              {quarterGroups.map((group) => {
+                const groupData = data.filter(d => group.months.includes(d.month));
+                const first = groupData[0];
+                return groupData.map((d, idx) => (
+                  <TableRow key={d.month} className={idx === 0 ? 'border-t-2' : ''}>
+                    <TableCell className="font-medium">{String(d.month).padStart(2, '0')} {MONTHS[d.month - 1]}</TableCell>
+                    {idx === 0 ? (
+                      <>
+                        <TableCell rowSpan={3} className="align-top text-xs text-muted-foreground">
+                          {d.srcLabel}
+                          {!d.hasData && (
+                            <Badge variant="outline" className="ml-1 text-[10px] bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700">
+                              Sem dados
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell rowSpan={3} className="align-top text-xs text-muted-foreground">
+                          {d.declMonth} {d.declYear}
+                        </TableCell>
+                      </>
+                    ) : null}
+                    <TableCell className="text-right text-muted-foreground">{d.hasData && d.quarterRevenue > 0 ? fmt(d.quarterRevenue) : '—'}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{d.hasData && d.rendimentoRelevante > 0 ? fmt(d.rendimentoRelevante) : '—'}</TableCell>
+                    <TableCell className="text-right">{d.hasData && d.baseIncidencia > 0 ? fmt(d.baseIncidencia) : '—'}</TableCell>
+                    <TableCell className="text-right">{d.contribution > 0 ? fmt(d.contribution) : '—'}</TableCell>
+                    <TableCell className="text-right">{d.isPaid ? fmt(d.paid) : '—'}</TableCell>
+                    <TableCell>
+                      <Button
+                        size="sm"
+                        variant={d.isPaid ? 'outline' : 'default'}
+                        disabled={false}
+                        onClick={async () => {
+                          if (d.isPaid) await onToggle(d.month);
+                          else await onSave(d.month, d.contribution);
+                        }}
+                        className={d.isPaid ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-red-900/20 dark:hover:text-red-400 h-7 text-xs' : 'h-7 text-xs'}
+                      >
+                        {d.isPaid ? 'Pago ✓' : 'Confirmar'}
+                      </Button>
+                    </TableCell>
+                    <TableCell>
+                      {!d.isPaid && (
+                        <Input
+                          type="number"
+                          placeholder={d.contribution > 0 ? String(d.contribution) : '0.00'}
+                          className="h-8 text-sm w-[120px]"
+                        />
+                      )}
+                    </TableCell>
+                    <TableCell />
+                  </TableRow>
+                ));
+              })}
               <TableRow className="border-t-2 font-semibold">
                 <TableCell>Total</TableCell>
-                <TableCell colSpan={3} />
+                <TableCell colSpan={5} />
                 <TableCell className="text-right">{fmt(total)}</TableCell>
                 <TableCell className="text-right">{fmt(data.reduce((s, d) => s + d.paid, 0))}</TableCell>
                 <TableCell colSpan={3} />
