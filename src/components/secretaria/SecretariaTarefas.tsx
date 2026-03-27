@@ -67,7 +67,7 @@ export default function SecretariaTarefas() {
           </Button>
           <Button variant={view === 'concluidas' ? 'default' : 'outline'} size="sm" onClick={() => setView('concluidas')}>Concluídas</Button>
         </div>
-        <Button size="sm" onClick={() => window.open('/hub/tarefas', '_self')}><Plus className="h-4 w-4 mr-1" /> Nova Tarefa</Button>
+        <Button size="sm" onClick={() => setShowNewTask(true)}><Plus className="h-4 w-4 mr-1" /> Nova Tarefa</Button>
       </div>
 
       <Table>
