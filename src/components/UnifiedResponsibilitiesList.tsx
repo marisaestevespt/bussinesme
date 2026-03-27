@@ -1,23 +1,30 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ResponsibilityDetailDialog } from '@/components/ResponsibilityDetailDialog';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   CheckSquare, PhoneCall, FileText, Users, FolderKanban,
-  Star, ShoppingCart, ListChecks, Clock, Target, ChevronRight, Plus,
+  Star, ShoppingCart, ListChecks, Clock, Target, ChevronRight, Plus, CalendarIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { PROCESS_DEPARTMENTS } from '@/lib/departments';
 import type { UnifiedItem, ResponsibilitySource } from '@/hooks/useUnifiedResponsibilities';
 import { SOURCE_LABELS } from '@/hooks/useUnifiedResponsibilities';
 
@@ -93,12 +100,37 @@ interface Props {
 export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px', defaultDeadline }: Props) {
   const [filter, setFilter] = useState<SourceFilter>('todos');
   const [selectedItem, setSelectedItem] = useState<UnifiedItem | null>(null);
-  const [showQuickAdd, setShowQuickAdd] = useState(false);
-  const [quickAddName, setQuickAddName] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newDeadline, setNewDeadline] = useState<Date | undefined>(defaultDeadline ? parseISO(defaultDeadline) : new Date());
+  const [newPriority, setNewPriority] = useState('alta');
+  const [newDepartment, setNewDepartment] = useState('');
+  const [newAssignedTo, setNewAssignedTo] = useState('');
+  const [newProjectId, setNewProjectId] = useState('');
+  const [newNotes, setNewNotes] = useState('');
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { user } = useAuth();
+
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['profiles'],
+    enabled: addOpen,
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id, full_name');
+      return data || [];
+    },
+  });
+
+  const { data: projectsList = [] } = useQuery({
+    queryKey: ['projects-list-simple'],
+    enabled: addOpen,
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase.from('projects').select('id, name').neq('status', 'concluido').order('name');
+      return data || [];
+    },
+  });
 
   const toggleMutation = useMutation({
     mutationFn: async (item: UnifiedItem) => {
@@ -137,39 +169,54 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
     onError: () => toast.error('Erro ao atualizar'),
   });
 
-  const quickAddMutation = useMutation({
-    mutationFn: async (name: string) => {
-      if (!user?.id) throw new Error('No user');
-      const { error } = await supabase.from('tasks').insert({
-        name,
-        assigned_to: user.id,
-        status: 'todo',
-        deadline: defaultDeadline || format(new Date(), 'yyyy-MM-dd'),
-      } as any);
+  const createMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      const { error } = await supabase.from('tasks').insert({ ...payload, created_by: user?.id } as any);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['unified-tasks'] });
       qc.invalidateQueries({ queryKey: ['my-tasks'] });
+      qc.invalidateQueries({ queryKey: ['tasks'] });
       toast.success('Tarefa criada!');
-      setQuickAddName('');
-      setShowQuickAdd(false);
+      resetAddForm();
     },
     onError: () => toast.error('Erro ao criar tarefa'),
   });
 
-  const handleQuickAdd = () => {
-    const name = quickAddName.trim();
-    if (!name) return;
-    quickAddMutation.mutate(name);
-  };
+  function resetAddForm() {
+    setAddOpen(false);
+    setNewName('');
+    setNewDeadline(defaultDeadline ? parseISO(defaultDeadline) : new Date());
+    setNewPriority('alta');
+    setNewDepartment('');
+    setNewAssignedTo('');
+    setNewProjectId('');
+    setNewNotes('');
+  }
+
+  function handleCreate() {
+    if (!newName.trim() || !newDeadline) {
+      toast.error('Preenche o nome e o prazo');
+      return;
+    }
+    createMutation.mutate({
+      name: newName.trim(),
+      status: 'por_comecar',
+      priority: newPriority,
+      deadline: format(newDeadline, 'yyyy-MM-dd'),
+      assigned_to: newAssignedTo || user?.id || null,
+      department: newDepartment || null,
+      project_id: newProjectId || null,
+      notes: newNotes || null,
+    });
+  }
 
   const filtered = filter === 'todos' ? items : items.filter(i => i.source === filter);
 
   const countBySource: Partial<Record<ResponsibilitySource, number>> = {};
   items.forEach(i => { countBySource[i.source] = (countBySource[i.source] || 0) + 1; });
 
-  /** Sources that open in the detail dialog instead of navigating */
   const DIALOG_SOURCES: ResponsibilitySource[] = ['tarefa', 'marco', 'rotina'];
 
   const handleClick = (item: UnifiedItem) => {
@@ -183,7 +230,14 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
 
   const canToggle = (item: UnifiedItem) => !item.isInfoOnly && TOGGLEABLE_SOURCES.includes(item.source);
 
+  const PRIORITIES = [
+    { value: 'alta', label: 'Prioridade 1' },
+    { value: 'media', label: 'Prioridade 2' },
+    { value: 'baixa', label: 'Prioridade 3' },
+  ];
+
   return (
+    <>
     <Card>
       <CardHeader className="pb-3 flex flex-row items-center justify-between">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
@@ -191,31 +245,12 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
           variant="ghost"
           size="sm"
           className="h-7 gap-1 text-xs"
-          onClick={() => {
-            setShowQuickAdd(!showQuickAdd);
-            setTimeout(() => inputRef.current?.focus(), 50);
-          }}
+          onClick={() => setAddOpen(true)}
         >
           <Plus className="h-3.5 w-3.5" /> Adicionar
         </Button>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Quick-add inline form */}
-        {showQuickAdd && (
-          <div className="flex gap-2">
-            <Input
-              ref={inputRef}
-              placeholder="Nome da tarefa..."
-              value={quickAddName}
-              onChange={e => setQuickAddName(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleQuickAdd(); if (e.key === 'Escape') setShowQuickAdd(false); }}
-              className="h-8 text-sm"
-            />
-            <Button size="sm" className="h-8 px-3" onClick={handleQuickAdd} disabled={!quickAddName.trim() || quickAddMutation.isPending}>
-              Criar
-            </Button>
-          </div>
-        )}
         {/* Filters */}
         <div className="flex flex-wrap gap-1.5">
           {FILTER_OPTIONS.map(f => {
@@ -324,5 +359,85 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
         onOpenChange={(open) => { if (!open) setSelectedItem(null); }}
       />
     </Card>
+
+    {/* Add Task Dialog */}
+    <Dialog open={addOpen} onOpenChange={(open) => { if (!open) resetAddForm(); }}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Nova Tarefa</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label>Nome *</Label>
+            <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Ex: Preparar relatório mensal" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Prazo *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal h-9">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {newDeadline ? format(newDeadline, 'dd/MM/yyyy') : 'Selecionar'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={newDeadline} onSelect={setNewDeadline} initialFocus />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <Label>Prioridade</Label>
+              <Select value={newPriority} onValueChange={setNewPriority}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {PRIORITIES.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Responsável</Label>
+              <Select value={newAssignedTo} onValueChange={setNewAssignedTo}>
+                <SelectTrigger className="h-9"><SelectValue placeholder="Eu" /></SelectTrigger>
+                <SelectContent>
+                  {profiles.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Departamento</Label>
+              <Select value={newDepartment} onValueChange={setNewDepartment}>
+                <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  {PROCESS_DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div>
+            <Label>Projeto</Label>
+            <Select value={newProjectId} onValueChange={setNewProjectId}>
+              <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum" /></SelectTrigger>
+              <SelectContent>
+                {projectsList.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Notas</Label>
+            <Textarea value={newNotes} onChange={e => setNewNotes(e.target.value)} placeholder="Observações..." rows={2} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={resetAddForm}>Cancelar</Button>
+          <Button onClick={handleCreate} disabled={!newName.trim() || !newDeadline || createMutation.isPending}>
+            Criar Tarefa
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
