@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Plus, CalendarIcon, Trash2, RefreshCw } from 'lucide-react';
+import { Plus, CalendarIcon, Trash2, RefreshCw, Truck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Switch } from '@/components/ui/switch';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -43,6 +44,7 @@ const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2,
 type Filter = 'all' | 'month' | 'quarter' | 'year';
 
 export function FinSaidas({ fin, currentYear }: Props) {
+  const navigate = useNavigate();
   const { getCategoryLabel } = useFinancialCategories();
   const allExpenses = fin.expenses.data || [];
   const [filter, setFilter] = useState<Filter>('year');
@@ -140,7 +142,10 @@ export function FinSaidas({ fin, currentYear }: Props) {
               <Button key={k} variant={filter === k ? 'default' : 'outline'} size="sm" onClick={() => setFilter(k)}>{l}</Button>
             ))}
           </div>
-          <Button size="sm" onClick={openNewExpense}><Plus className="h-4 w-4 mr-1" /> Nova Despesa</Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => navigate('/hub/financeiro/fornecedores')}><Truck className="h-4 w-4 mr-1" /> Fornecedores</Button>
+            <Button size="sm" onClick={openNewExpense}><Plus className="h-4 w-4 mr-1" /> Nova Despesa</Button>
+          </div>
         </div>
         <Card>
           <CardContent className="p-0">
