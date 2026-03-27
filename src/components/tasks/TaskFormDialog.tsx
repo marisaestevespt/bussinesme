@@ -66,7 +66,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
   const [recurrenceType, setRecurrenceType] = useState('');
   const [recurrenceEnd, setRecurrenceEnd] = useState<Date | undefined>();
   const [estimatedTime, setEstimatedTime] = useState('');
-  const [timerPromptTaskId, setTimerPromptTaskId] = useState<string | null>(null);
+  // timerPromptTaskId removed — timer auto-starts on status change
 
   // Queries
   const { data: profiles = [] } = useQuery({
@@ -246,7 +246,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
       }
       return { taskId, newStatus: taskPayload.status, prevStatus: _prevStatus };
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['task-dependencies'] });
       queryClient.invalidateQueries({ queryKey: ['unified-tasks'] });
@@ -261,7 +261,11 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
         }
       }
       if (result && result.newStatus === 'a_fazer' && result.prevStatus !== 'a_fazer') {
-        setTimerPromptTaskId(result.taskId);
+        // Auto-start timer
+        const taskName = allTasks.find(t => t.id === result.taskId)?.name || name;
+        await globalStartTimer(result.taskId, taskName);
+        toast.success('Timer iniciado automaticamente! ▶️');
+        onOpenChange(false);
       } else {
         onOpenChange(false);
       }
@@ -338,7 +342,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
 
   return (
     <>
-      <Dialog open={open && !timerPromptTaskId} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingTask ? 'Editar Tarefa' : 'Nova Tarefa'}</DialogTitle>
@@ -596,27 +600,6 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               )}
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Timer prompt */}
-      <Dialog open={!!timerPromptTaskId} onOpenChange={v => { if (!v) { toast('Não te esqueças de iniciar o timer! ⏱️'); setTimerPromptTaskId(null); onOpenChange(false); } }}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Play className="h-4 w-4" /> Iniciar o timer?</DialogTitle>
-            <DialogDescription>Mudaste o status para "A fazer". Queres iniciar o timer?</DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex gap-2 sm:gap-2">
-            <Button variant="outline" onClick={() => { toast('Não te esqueças de iniciar o timer! ⏱️'); setTimerPromptTaskId(null); onOpenChange(false); }}>Agora não</Button>
-            <Button onClick={async () => {
-              if (timerPromptTaskId) {
-                const taskName = allTasks.find(t => t.id === timerPromptTaskId)?.name || name;
-                await globalStartTimer(timerPromptTaskId, taskName);
-                toast.success('Timer iniciado! ▶️');
-              }
-              setTimerPromptTaskId(null); onOpenChange(false);
-            }} className="gap-1"><Play className="h-3.5 w-3.5" /> Sim, iniciar</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
