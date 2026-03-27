@@ -23,7 +23,7 @@ const SOURCE_ICON: Record<ResponsibilitySource, typeof CheckSquare> = {
   nps: Star,
   marco: Target,
   acao_venda: ShoppingCart,
-  habito: ListChecks,
+  rotina: ListChecks,
 };
 
 const SOURCE_COLOR: Record<ResponsibilitySource, string> = {
@@ -35,7 +35,7 @@ const SOURCE_COLOR: Record<ResponsibilitySource, string> = {
   nps: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   marco: 'bg-cyan-100 text-cyan-800 border-cyan-200',
   acao_venda: 'bg-orange-100 text-orange-800 border-orange-200',
-  habito: 'bg-purple-100 text-purple-800 border-purple-200',
+  rotina: 'bg-purple-100 text-purple-800 border-purple-200',
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
@@ -53,7 +53,7 @@ const FILTER_OPTIONS: { value: SourceFilter; label: string }[] = [
   { value: 'nps', label: 'NPS' },
   { value: 'marco', label: 'Marcos' },
   { value: 'acao_venda', label: 'Ações' },
-  { value: 'habito', label: 'Hábitos' },
+  { value: 'rotina', label: 'Rotinas' },
 ];
 
 /** Maps a unified item to the route where its source detail lives */
@@ -67,7 +67,7 @@ function getItemRoute(item: UnifiedItem): string | null {
     case 'nps': return null; // opens inside client detail
     case 'marco': return null;
     case 'acao_venda': return `/comercial/acoes`;
-    case 'habito': return `/executive/planeamento`;
+     case 'rotina': return `/executive/planeamento`;
     default: return null;
   }
 }
