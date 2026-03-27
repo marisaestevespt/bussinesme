@@ -116,7 +116,7 @@ export default function TarefasPage() {
   });
 
   const tasksQuery = useInfiniteQuery<InfinitePageResult<any>>({
-    queryKey: ['tasks', filterStatus, user?.id, myProfileId, isOwner],
+    queryKey: ['tasks', filterStatus],
     initialPageParam: 0,
     staleTime: 2 * 60 * 1000,
     queryFn: async ({ pageParam = 0 }) => {
@@ -125,10 +125,6 @@ export default function TarefasPage() {
       let query = supabase.from('tasks').select('id,name,status,priority,deadline,assigned_to,department,project_id,client_id,notes,parent_task_id,recurrence_type,recurrence_end,estimated_time,tag,created_at,updated_at', { count: 'exact' }).order('created_at', { ascending: false });
       if (filterStatus) {
         query = query.eq('status', filterStatus);
-      }
-      if (!isOwner && user?.id) {
-        const assigneeIds = [user.id, myProfileId].filter(Boolean) as string[];
-        query = query.in('assigned_to', assigneeIds);
       }
       const { data, error, count } = await query.range(from, to);
       if (error) throw error;
@@ -458,12 +454,19 @@ export default function TarefasPage() {
     let result: typeof tasks;
     switch (view) {
       case 'todo':
-        result = tasks.filter(t => t.status !== 'done'); break;
+        result = tasks.filter(t => t.status !== 'done').sort((a, b) => {
+          const da = a.deadline || '9999';
+          const db = b.deadline || '9999';
+          return da.localeCompare(db);
+        }); break;
       case 'atrasadas':
         result = tasks.filter(t => t.status !== 'done' && t.deadline && isBefore(parseISO(t.deadline), today)); break;
       case 'proximas':
-        result = tasks.filter(t => t.status !== 'done' && t.deadline && !isBefore(parseISO(t.deadline), today)); break;
+        result = tasks.filter(t => t.status === 'por_comecar' && t.deadline && !isBefore(parseISO(t.deadline), today)); break;
+      case 'historico':
+        result = tasks.filter(t => t.status === 'done'); break;
       case 'todas':
+      case 'responsavel':
       case 'calendario':
       default:
         result = tasks;
