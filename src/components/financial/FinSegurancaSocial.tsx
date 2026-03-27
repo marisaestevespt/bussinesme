@@ -31,6 +31,8 @@ interface Props {
   sales: { invoice_total: number; base_value: number; sale_month: number | null; sale_year: number | null }[];
 }
 
+type Sale = Props['sales'][number];
+
 export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props) {
   const { settings } = useBusinessSettings();
   const s = settings as any;
