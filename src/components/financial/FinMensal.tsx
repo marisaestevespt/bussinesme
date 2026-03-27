@@ -304,6 +304,9 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
         />
       </div>
 
+      {/* Fiscal Obligations Checklist */}
+      <FiscalChecklistCard month={m} year={currentYear} />
+
       <div id="fin-mensal-report" className="space-y-6">
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

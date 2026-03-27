@@ -135,42 +135,59 @@ export function FinContabilidade({ currentYear }: Props) {
     const { label, filteredSales, filteredExpenses, filteredDocs } = getFilteredData();
     const businessName = settings?.business_name || 'Negócio';
 
-    // Entradas sheet
-    const salesHeaders = ['Data', 'Descrição', 'Categoria', 'Valor s/IVA', 'IVA', 'Valor c/IVA', 'Nº Documento'];
-    const salesRows = filteredSales.map(s => [
-      s.payment_date || '', s.description || s.client || '', s.product || '', s.base_value, s.invoice_total - s.base_value, s.invoice_total, s.sale_id,
+    // Entradas sheet — with client data
+    const salesHeaders = ['Data', 'Descrição', 'Produto', 'Cliente', 'NIF Cliente', 'Valor s/IVA', 'IVA', 'Valor c/IVA', 'Nº Documento'];
+    const salesRows = filteredSales.map((s: any) => [
+      s.payment_date || '', s.description || '', s.product || '', s.client || '', s.client_nif || '', s.base_value, s.invoice_total - s.base_value, s.invoice_total, s.sale_id,
     ]);
 
-    // Saídas sheet
-    const expHeaders = ['Data', 'Descrição', 'Categoria', 'Fornecedor', 'Valor s/IVA', 'IVA', 'Valor c/IVA', 'Nº Documento'];
-    const expRows = filteredExpenses.map(e => [
-      e.expense_date || '', e.description || '', e.category || '', (e as any).supplier_name || '', e.base_value, e.total_with_vat - e.base_value, e.total_with_vat, e.expense_id,
+    // Saídas sheet — with location (PT/UE/Fora UE)
+    const LOC_EXPORT: Record<string, string> = { portugal: 'Portugal', ue: 'UE', fora_ue: 'Fora UE' };
+    const expHeaders = ['Data', 'Descrição', 'Categoria', 'Fornecedor', 'Localização', 'Valor s/IVA', 'IVA (%)', 'IVA (€)', 'Valor c/IVA', 'Departamento', 'Nº Documento'];
+    const expRows = filteredExpenses.map((e: any) => [
+      e.expense_date || '', e.description || '', e.category || '', e.supplier_name || '', LOC_EXPORT[e.location] || e.location || '', e.base_value, e.vat_rate ?? 0, e.total_with_vat - e.base_value, e.total_with_vat, e.department || '', e.expense_id,
     ]);
 
-    // For simplicity, export as CSV (Excel-compatible)
     const totalEnt = filteredSales.reduce((s, v) => s + v.invoice_total, 0);
     const totalSai = filteredExpenses.reduce((s, v) => s + v.total_with_vat, 0);
 
-    // Summary + Entradas + Saídas in one CSV
-    const allHeaders = ['Secção', ...salesHeaders];
+    const pad = (arr: any[], len: number) => [...arr, ...Array(Math.max(0, len - arr.length)).fill('')];
+    const colCount = Math.max(salesHeaders.length, expHeaders.length) + 1;
+
+    const allHeaders = ['Secção', ...expHeaders]; // use wider headers
     const allRows: (string | number)[][] = [
-      ['RESUMO', businessName, '', '', '', '', '', ''],
-      ['', 'Período', label, '', '', '', '', ''],
-      ['', 'Total Entradas', '', '', fmt(totalEnt), '', '', ''],
-      ['', 'Total Saídas', '', '', fmt(totalSai), '', '', ''],
-      ['', 'Resultado', '', '', fmt(totalEnt - totalSai), '', '', ''],
-      ['', '', '', '', '', '', '', ''],
-      ['ENTRADAS', ...salesHeaders.slice(1)],
-      ...salesRows.map(r => ['', ...r]),
-      ['', '', '', '', '', '', '', ''],
-      ['SAÍDAS', ...expHeaders.slice(1)],
+      pad(['RESUMO', businessName], colCount),
+      pad(['', 'Período', label], colCount),
+      pad(['', 'Total Entradas', '', '', '', fmt(totalEnt)], colCount),
+      pad(['', 'Total Saídas', '', '', '', fmt(totalSai)], colCount),
+      pad(['', 'Resultado', '', '', '', fmt(totalEnt - totalSai)], colCount),
+      pad([], colCount),
+      pad(['ENTRADAS', ...salesHeaders], colCount),
+      ...salesRows.map(r => pad(['', ...r], colCount)),
+      pad([], colCount),
+      ['SAÍDAS', ...expHeaders],
       ...expRows.map(r => ['', ...r]),
     ];
 
-    if (filteredDocs.length > 0) {
-      allRows.push(['', '', '', '', '', '', '', '']);
-      allRows.push(['DOCUMENTOS', 'Nome', 'Data', '', '', '', '', '']);
-      filteredDocs.forEach(d => allRows.push(['', d.document_name || d.title || '', d.period_start || '', '', '', '', '', '']));
+    // Bank statements + Meta Ads docs
+    const bankDocs = filteredDocs.filter(d => (d as any).doc_type === 'extrato_bancario');
+    const metaDocs = filteredDocs.filter(d => (d as any).doc_type === 'meta_ads_report');
+    const otherDocs = filteredDocs.filter(d => (d as any).doc_type !== 'extrato_bancario' && (d as any).doc_type !== 'meta_ads_report');
+
+    if (bankDocs.length > 0) {
+      allRows.push(pad([], colCount));
+      allRows.push(pad(['EXTRATOS BANCÁRIOS', 'Nome', 'Mês', 'URL'], colCount));
+      bankDocs.forEach(d => allRows.push(pad(['', d.document_name || d.title || '', `${(d as any).period_month}/${(d as any).period_year}`, (d as any).document_url || ''], colCount)));
+    }
+    if (metaDocs.length > 0) {
+      allRows.push(pad([], colCount));
+      allRows.push(pad(['RELATÓRIOS META ADS', 'Nome', 'Mês', 'URL'], colCount));
+      metaDocs.forEach(d => allRows.push(pad(['', d.document_name || d.title || '', `${(d as any).period_month}/${(d as any).period_year}`, (d as any).document_url || ''], colCount)));
+    }
+    if (otherDocs.length > 0) {
+      allRows.push(pad([], colCount));
+      allRows.push(pad(['DOCUMENTOS', 'Nome', 'Data'], colCount));
+      otherDocs.forEach(d => allRows.push(pad(['', d.document_name || d.title || '', d.period_start || ''], colCount)));
     }
 
     exportCsv(`contabilidade_${label.replace(/\s/g, '_')}.csv`, allHeaders, allRows);
