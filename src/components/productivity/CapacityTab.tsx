@@ -568,8 +568,9 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
             {/* Summary cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <Card><CardContent className="p-4 text-center">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Clientes simulados</p>
-                <p className="text-2xl font-bold">{totalSimClients}</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Clientes totais</p>
+                <p className="text-2xl font-bold">{totalRealClients + totalSimExtra}</p>
+                {totalSimExtra > 0 && <p className="text-[10px] text-muted-foreground">{totalRealClients} ativos + {totalSimExtra} simulados</p>}
               </CardContent></Card>
               <Card><CardContent className="p-4 text-center">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Horas ocupadas</p>
