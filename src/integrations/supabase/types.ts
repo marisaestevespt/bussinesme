@@ -6511,6 +6511,7 @@ export type Database = {
           included_items: Json | null
           invoice_denomination: string | null
           logo_url: string | null
+          max_simultaneous_clients: number | null
           monthly_hours_per_client: number | null
           name: string
           product_type: string | null
@@ -6543,6 +6544,7 @@ export type Database = {
           included_items?: Json | null
           invoice_denomination?: string | null
           logo_url?: string | null
+          max_simultaneous_clients?: number | null
           monthly_hours_per_client?: number | null
           name: string
           product_type?: string | null
@@ -6575,6 +6577,7 @@ export type Database = {
           included_items?: Json | null
           invoice_denomination?: string | null
           logo_url?: string | null
+          max_simultaneous_clients?: number | null
           monthly_hours_per_client?: number | null
           name?: string
           product_type?: string | null
