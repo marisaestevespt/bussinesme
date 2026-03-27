@@ -123,8 +123,20 @@ export function SettingsFiscal() {
         } as any)
         .eq('id', settings.id);
       if (error) throw error;
+
+      // Save business_setup fields (NIF, CAE, CIRS)
+      const setupPayload = { nif, cae_principal: caePrincipal, cae_secundarios: caeSecundarios, cirs_code: cirsCode };
+      if (setupData?.id) {
+        const { error: e2 } = await supabase.from('business_setup' as any).update(setupPayload).eq('id', setupData.id);
+        if (e2) throw e2;
+      } else {
+        const { error: e2 } = await supabase.from('business_setup' as any).insert(setupPayload);
+        if (e2) throw e2;
+      }
+
       toast.success('Definições fiscais atualizadas!');
       await refetch();
+      qc.invalidateQueries({ queryKey: ['business-setup'] });
     } catch (err: any) {
       toast.error(err.message || 'Erro ao guardar.');
     } finally {
