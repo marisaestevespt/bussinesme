@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Plus, CalendarIcon, ListTodo, AlertTriangle, Clock, CalendarDays, List, Users, Link2, GitBranch, ChevronRight, Play, Repeat, Filter, X, History } from 'lucide-react';
+import { RotinasView } from '@/components/tasks/RotinasView';
 import { TaskTimeTracker } from '@/components/TaskTimeTracker';
 import { HistoricoView } from '@/components/tasks/HistoricoView';
 import { useActiveTimer } from '@/hooks/useActiveTimer';
@@ -47,7 +48,7 @@ const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
   { value: 'mensal_primeiro', label: '1º dia de cada mês' },
 ];
 
-type View = 'todo' | 'atrasadas' | 'proximas' | 'calendario' | 'responsavel' | 'todas';
+type View = 'todo' | 'atrasadas' | 'proximas' | 'calendario' | 'responsavel' | 'todas' | 'rotinas';
 
 const DEFAULT_VIEWS: DefaultView[] = [
   { key: 'todo', label: 'To Do', icon: <ListTodo className="h-4 w-4" />, isDefault: true },
@@ -57,6 +58,7 @@ const DEFAULT_VIEWS: DefaultView[] = [
   { key: 'calendario', label: 'Calendário', icon: <CalendarDays className="h-4 w-4" />, isDefault: true },
   { key: 'todas', label: 'Todas as Tarefas', icon: <List className="h-4 w-4" />, isDefault: true },
   { key: 'historico', label: 'Histórico', icon: <History className="h-4 w-4" />, isDefault: true },
+  { key: 'rotinas', label: 'Rotinas', icon: <Repeat className="h-4 w-4" />, isDefault: true },
 ];
 
 // ─── Main Page ──────────────────────────────────────────────────
@@ -682,6 +684,8 @@ export default function TarefasPage() {
             projects={projects}
             timeEntries={allTimeEntries}
           />
+        ) : view === 'rotinas' ? (
+          <RotinasView />
         ) : (
           <TaskTable
             tasks={filteredTasks}

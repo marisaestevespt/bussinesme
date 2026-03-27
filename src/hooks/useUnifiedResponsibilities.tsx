@@ -197,20 +197,7 @@ export function useUnifiedResponsibilities(userId?: string) {
     },
   });
 
-  // 9. Monthly habits (checklists)
-  const habitsQ = useQuery({
-    queryKey: ['unified-habits', currentYear, currentMonth],
-    enabled: !!uid,
-    staleTime: 2 * 60 * 1000,
-    queryFn: async () => {
-      const { data } = await supabase.from('executive_monthly_checklists')
-        .select('id,task,completed')
-        .eq('year', currentYear)
-        .eq('month', currentMonth)
-        .eq('completed', false);
-      return data || [];
-    },
-  });
+  // 9. Routine tasks — already included via tasksQ (tag='Rotina'), no separate query needed
 
   // ─── Aggregate ─────────────────────────────────────────────
 
@@ -352,20 +339,7 @@ export function useUnifiedResponsibilities(userId?: string) {
       });
     });
 
-    // 9. Rotinas (monthly checklists)
-    (habitsQ.data || []).forEach(h => {
-      const taskName = h.task.includes('::') ? h.task.split('::')[1] : h.task;
-      result.push({
-        id: `rotina-${h.id}`,
-        sourceId: h.id,
-        source: 'rotina',
-        title: `Rotina — ${taskName}`,
-        date: format(today, 'yyyy-MM-dd'),
-        isInfoOnly: false,
-        completed: false,
-        estimatedHours: 0,
-      });
-    });
+    // 9. Rotinas — routine tasks already included via tasks source (tag='Rotina')
 
     // Sort by date
     result.sort((a, b) => {
@@ -375,7 +349,7 @@ export function useUnifiedResponsibilities(userId?: string) {
     });
 
     return result;
-  }, [tasksQ.data, leadsQ.data, contentQ.data, meetingsQ.data, projectsQ.data, npsQ.data, milestonesQ.data, salesActionsQ.data, habitsQ.data, uid, today]);
+  }, [tasksQ.data, leadsQ.data, contentQ.data, meetingsQ.data, projectsQ.data, npsQ.data, milestonesQ.data, salesActionsQ.data, uid, today]);
 
   // ─── Filtered views ────────────────────────────────────────
 
