@@ -665,6 +665,20 @@ function CapacitySimulatorView({ members: teamMembers, entries, clients: allClie
           </CardContent></Card>
         )}
       </div>
+
+      <Separator />
+
+      {/* ═══ PASSO 4: SIMULAÇÃO DE CONTRATAÇÃO ═══ */}
+      <div className="space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">4</div>
+            Simulação de contratação
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5 ml-8">Simula novas contratações e analisa o impacto na capacidade e custos.</p>
+        </div>
+        <HiringSimulator members={members} entries={entries} />
+      </div>
     </div>
   );
 }
