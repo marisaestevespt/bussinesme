@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Save, Info } from 'lucide-react';
+import { Save, Info, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +14,8 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import type { Expense } from '@/hooks/useFinancialData';
 import { FinDocumentsUpload, type FinDocItem } from './FinDocumentsUpload';
+import { exportCsv } from '@/lib/exportCsv';
+import { exportPdf } from '@/lib/exportPdf';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -256,8 +258,27 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
 
   const hasBothTabs = showIndependente && showPatronal;
 
+  const handleExportCsv = () => {
+    if (showIndependente) {
+      const headers = ['Mês', 'Rendimento Trimestre', 'Rend. Relevante (70%)', 'SS Prevista', 'SS Paga'];
+      const rows = independenteData.map(d => [MONTHS[d.month - 1], d.quarterRevenue, d.rendimentoRelevante, d.ssExpected, d.paid]);
+      exportCsv(`ss_independente_${currentYear}.csv`, headers, rows);
+    }
+    if (showPatronal) {
+      const headers = ['Mês', 'Salário Bruto', 'SS Entidade', 'SS Trabalhador', 'SS Total', 'SS Paga'];
+      const rows = patronalData.map(d => [MONTHS[d.month - 1], d.totalGross, d.ssEmployer, d.ssEmployee, d.totalSS, d.paid]);
+      exportCsv(`ss_patronal_${currentYear}.csv`, headers, rows);
+    }
+    toast.success('CSV exportado');
+  };
+
   return (
     <div className="space-y-6 mt-4">
+      <div className="flex items-center justify-end gap-2">
+        <Button size="sm" variant="outline" onClick={handleExportCsv}><Download className="h-3.5 w-3.5 mr-1" /> CSV</Button>
+        <Button size="sm" variant="outline" onClick={() => { exportPdf(`Segurança Social — ${currentYear}`, 'fin-ss-export'); toast.success('PDF a gerar...'); }}><Download className="h-3.5 w-3.5 mr-1" /> PDF</Button>
+      </div>
+      <div id="fin-ss-export">
       {/* Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {showIndependente && (
