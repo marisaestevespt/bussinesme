@@ -21,9 +21,6 @@ export function PageAccessButton({ pagePath, pageTitle }: PageAccessButtonProps)
   const [open, setOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState('');
 
-  // Only owners/admins can grant access
-  if (!isOwner) return null;
-
   const { data: grants = [] } = useQuery({
     queryKey: ['page-access-grants', pagePath],
     queryFn: async () => {
@@ -33,7 +30,7 @@ export function PageAccessButton({ pagePath, pageTitle }: PageAccessButtonProps)
         .eq('page_path', pagePath);
       return (data || []) as any[];
     },
-    enabled: open,
+    enabled: open && isOwner,
   });
 
   const { data: profiles = [] } = useQuery({
@@ -42,8 +39,11 @@ export function PageAccessButton({ pagePath, pageTitle }: PageAccessButtonProps)
       const { data } = await supabase.from('profiles').select('user_id, full_name').order('full_name');
       return data || [];
     },
-    enabled: open,
+    enabled: open && isOwner,
   });
+
+  // Only owners/admins can grant access
+  if (!isOwner) return null;
 
   const grantAccess = async () => {
     if (!selectedUser) return;
