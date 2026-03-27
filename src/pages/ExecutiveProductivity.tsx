@@ -2,14 +2,14 @@ import { useState, useMemo } from 'react';
 import { BackNavigation } from '@/components/BackNavigation';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
-import { Clock, BarChart3, Building2, Cpu, AlertTriangle } from 'lucide-react';
+import { Clock, BarChart3, Building2, AlertTriangle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { OverviewTab } from '@/components/productivity/OverviewTab';
 import { TimeTab } from '@/components/productivity/TimeTab';
 import { CapacityTab } from '@/components/productivity/CapacityTab';
-import { CapacitySimulator } from '@/components/productivity/CapacitySimulator';
+
 import { OverloadTab } from '@/components/productivity/OverloadTab';
 import { format } from 'date-fns';
 
@@ -17,7 +17,6 @@ const MAIN_TABS = [
   { value: 'overview', label: 'Visão Geral', icon: BarChart3 },
   { value: 'time', label: 'Tempo', icon: Clock },
   { value: 'capacity', label: 'Capacidade', icon: Building2 },
-  { value: 'simulation', label: 'Simulação', icon: Cpu },
   { value: 'overload', label: 'Sobrecarga', icon: AlertTriangle },
 ];
 
@@ -184,7 +183,6 @@ export default function ExecutiveProductivity() {
         {active === 'overview' && <OverviewTab entries={e} members={m} tasks={t} />}
         {active === 'time' && <TimeTab entries={e} members={m} clients={c} projects={pr} tasks={t} scenario={sc} scenarioProducts={sp} />}
         {active === 'capacity' && <CapacityTab members={m} entries={e} clients={c} products={p} scenario={sc} scenarioProducts={sp} />}
-        {active === 'simulation' && <div className="space-y-4"><CapacitySimulator members={m} entries={e} clients={c} products={p} /></div>}
         {active === 'overload' && <OverloadTab entries={e} members={m} tasks={t} />}
       </div>
     </AppLayout>

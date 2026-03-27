@@ -10,7 +10,8 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Calculator, Clock, AlertTriangle, TrendingUp, ArrowRight, CheckCircle2, Plus, Trash2, UserPlus } from 'lucide-react';
+import { Users, Calculator, Clock, AlertTriangle, TrendingUp, ArrowRight, CheckCircle2, Plus, Trash2, UserPlus, Rocket } from 'lucide-react';
+import { HiringSimulator } from './CapacitySimulator';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -28,13 +29,13 @@ export function CapacityTab({ members, entries, clients, products, scenario, sce
     <Tabs defaultValue="team" className="space-y-4">
       <TabsList className="flex-wrap">
         <TabsTrigger value="team"><Users className="h-3.5 w-3.5 mr-1.5" />Ocupação da Equipa</TabsTrigger>
-        <TabsTrigger value="simulator"><Calculator className="h-3.5 w-3.5 mr-1.5" />Simulador de Clientes</TabsTrigger>
+        <TabsTrigger value="simulator"><Rocket className="h-3.5 w-3.5 mr-1.5" />Simulador de Crescimento</TabsTrigger>
       </TabsList>
       <TabsContent value="team">
         <TeamCapacityView members={members} entries={entries} />
       </TabsContent>
       <TabsContent value="simulator">
-        <CapacitySimulatorView members={members} clients={clients} products={products} scenario={scenario} scenarioProducts={scenarioProducts} />
+        <CapacitySimulatorView members={members} entries={entries} clients={clients} products={products} scenario={scenario} scenarioProducts={scenarioProducts} />
       </TabsContent>
     </Tabs>
   );
@@ -166,8 +167,8 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
   );
 }
 
-function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, products: allProductsRaw, scenario: scenarioData, scenarioProducts: scenarioProductsRawData }: {
-  members: any[]; clients: any[]; products: any[]; scenario: any; scenarioProducts: any[];
+function CapacitySimulatorView({ members: teamMembers, entries, clients: allClientsRaw, products: allProductsRaw, scenario: scenarioData, scenarioProducts: scenarioProductsRawData }: {
+  members: any[]; entries: any[]; clients: any[]; products: any[]; scenario: any; scenarioProducts: any[];
 }) {
   const qc = useQueryClient();
   const { products: productsHook } = useProducts();
@@ -663,6 +664,20 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
             Adiciona produtos no passo 2 para ver o diagnóstico.
           </CardContent></Card>
         )}
+      </div>
+
+      <Separator />
+
+      {/* ═══ PASSO 4: SIMULAÇÃO DE CONTRATAÇÃO ═══ */}
+      <div className="space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">4</div>
+            Simulação de contratação
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5 ml-8">Simula novas contratações e analisa o impacto na capacidade e custos.</p>
+        </div>
+        <HiringSimulator members={members} entries={entries} />
       </div>
     </div>
   );

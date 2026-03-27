@@ -137,7 +137,7 @@ interface PhantomMember {
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-function HiringSimulator({ members, entries }: { members: any[]; entries: any[] }) {
+export function HiringSimulator({ members, entries }: { members: any[]; entries: any[] }) {
   const { user } = useAuth();
   const [phantoms, setPhantoms] = useState<PhantomMember[]>([]);
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
