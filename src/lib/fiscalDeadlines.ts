@@ -69,79 +69,84 @@ function isAfterExemptionEnd(deadlineDate: string, exemptionEndDate?: string | n
 export function computeFiscalDeadlines(year: number, config: FiscalConfig): FiscalDeadline[] {
   const deadlines: FiscalDeadline[] = [];
 
-  // ── Segurança Social (monthly, day 20 of next month) ──
+  const push = (dl: FiscalDeadline, exemptionEnd?: string | null) => {
+    if (isAfterExemptionEnd(dl.date, exemptionEnd)) deadlines.push(dl);
+  };
+
+  const makeDl = (key: string, name: string, rawDate: Date, category: FiscalDeadline['category']): FiscalDeadline => {
+    const adjusted = adjustToPrevBusinessDay(rawDate);
+    return { key, name, date: fmtDate(adjusted), rawDate: fmtDate(rawDate), category };
+  };
+
+  // ── Segurança Social (monthly — payment until day 20 of next month) ──
   if (!config.ssExempt && config.taxIrsRegime !== 'contabilidade_organizada') {
     for (let m = 1; m <= 12; m++) {
-      const nextMonth = m === 12 ? 1 : m + 1;
-      const nextYear = m === 12 ? year + 1 : year;
-      const raw = new Date(nextYear, nextMonth - 1, 20);
-      const adjusted = adjustToPrevBusinessDay(raw);
-      const dl: FiscalDeadline = {
-        key: `ss-${year}-${m}`,
-        name: `Pagamento SS — ${MONTH_NAMES[m - 1]} ${year}`,
-        date: fmtDate(adjusted),
-        rawDate: fmtDate(raw),
-        category: 'ss',
-      };
-      if (isAfterExemptionEnd(dl.date, config.ssExemptionEndDate)) {
-        deadlines.push(dl);
-      }
+      const nm = m === 12 ? 1 : m + 1;
+      const ny = m === 12 ? year + 1 : year;
+      push(
+        makeDl(`ss-${year}-${m}`, `SS Pagamento — ${MONTH_NAMES[m - 1]} ${year} (até dia 20/${nm})`, new Date(ny, nm - 1, 20), 'ss'),
+        config.ssExemptionEndDate,
+      );
     }
   }
 
-  // ── IVA Trimestral ──
+  // ── IVA Trimestral (declaration day 20, payment day 25 of 2nd month after quarter) ──
   if (!config.ivaExempt && config.taxIvaRegime === 'trimestral' && config.taxIrsRegime !== 'contabilidade_organizada') {
     const quarters = [
-      { q: 1, label: '1º Trim (Jan-Mar)', deadlineMonth: 5, deadlineYear: year },
-      { q: 2, label: '2º Trim (Abr-Jun)', deadlineMonth: 8, deadlineYear: year },
-      { q: 3, label: '3º Trim (Jul-Set)', deadlineMonth: 11, deadlineYear: year },
-      { q: 4, label: '4º Trim (Out-Dez)', deadlineMonth: 2, deadlineYear: year + 1 },
+      { q: 1, label: '1º Trim (Jan-Mar)', dm: 5, dy: year },
+      { q: 2, label: '2º Trim (Abr-Jun)', dm: 8, dy: year },
+      { q: 3, label: '3º Trim (Jul-Set)', dm: 11, dy: year },
+      { q: 4, label: '4º Trim (Out-Dez)', dm: 2, dy: year + 1 },
     ];
     for (const q of quarters) {
-      const raw = lastDayOfMonth(q.deadlineYear, q.deadlineMonth);
-      const adjusted = adjustToPrevBusinessDay(raw);
-      const dl: FiscalDeadline = {
-        key: `iva-q${q.q}-${year}`,
-        name: `IVA ${q.label} ${year}`,
-        date: fmtDate(adjusted),
-        rawDate: fmtDate(raw),
-        category: 'iva',
-      };
-      if (isAfterExemptionEnd(dl.date, config.ivaExemptionEndDate)) {
-        deadlines.push(dl);
-      }
+      // Declaration — until day 20
+      push(
+        makeDl(`iva-decl-q${q.q}-${year}`, `IVA Declaração ${q.label} ${year} (até dia 20/${q.dm})`, new Date(q.dy, q.dm - 1, 20), 'iva'),
+        config.ivaExemptionEndDate,
+      );
+      // Payment — until day 25
+      push(
+        makeDl(`iva-pay-q${q.q}-${year}`, `IVA Pagamento ${q.label} ${year} (até dia 25/${q.dm})`, new Date(q.dy, q.dm - 1, 25), 'iva'),
+        config.ivaExemptionEndDate,
+      );
     }
   }
 
-  // ── IVA Mensal ──
+  // ── IVA Mensal (declaration day 20, payment day 25 of 2nd month after) ──
   if (!config.ivaExempt && config.taxIvaRegime === 'mensal' && config.taxIrsRegime !== 'contabilidade_organizada') {
     for (let m = 1; m <= 12; m++) {
-      const nextMonth = m === 12 ? 1 : m + 1;
-      const nextYear = m === 12 ? year + 1 : year;
-      const raw = new Date(nextYear, nextMonth - 1, 20);
-      const adjusted = adjustToPrevBusinessDay(raw);
-      const dl: FiscalDeadline = {
-        key: `iva-m${m}-${year}`,
-        name: `IVA — ${MONTH_NAMES[m - 1]} ${year}`,
-        date: fmtDate(adjusted),
-        rawDate: fmtDate(raw),
-        category: 'iva',
-      };
-      if (isAfterExemptionEnd(dl.date, config.ivaExemptionEndDate)) {
-        deadlines.push(dl);
-      }
+      // Declaration & payment fall in m+2 (e.g., Jan IVA due in March)
+      const declMonth = ((m - 1 + 2) % 12) + 1;
+      const declYear = m + 2 > 12 ? year + 1 : year;
+      push(
+        makeDl(`iva-decl-m${m}-${year}`, `IVA Declaração — ${MONTH_NAMES[m - 1]} ${year} (até dia 20/${declMonth})`, new Date(declYear, declMonth - 1, 20), 'iva'),
+        config.ivaExemptionEndDate,
+      );
+      push(
+        makeDl(`iva-pay-m${m}-${year}`, `IVA Pagamento — ${MONTH_NAMES[m - 1]} ${year} (até dia 25/${declMonth})`, new Date(declYear, declMonth - 1, 25), 'iva'),
+        config.ivaExemptionEndDate,
+      );
     }
   }
 
-  // ── IRS/IRC (simplified regime) ──
+  // ── IRS (simplified regime — April 1 to June 30 of next year) ──
   if (config.taxIrsRegime === 'simplificado') {
-    const raw = new Date(year + 1, 5, 30); // June 30 of next year
-    const adjusted = adjustToPrevBusinessDay(raw);
+    // Submission opens April 1, deadline June 30
+    const rawStart = new Date(year + 1, 3, 1); // April 1
+    const rawEnd = new Date(year + 1, 5, 30);  // June 30
+    const adjustedEnd = adjustToPrevBusinessDay(rawEnd);
     deadlines.push({
-      key: `irs-${year}`,
-      name: `Entrega IRS — Ano ${year}`,
-      date: fmtDate(adjusted),
-      rawDate: fmtDate(raw),
+      key: `irs-start-${year}`,
+      name: `IRS ${year} — Início da entrega (1 de Abril)`,
+      date: fmtDate(rawStart),
+      rawDate: fmtDate(rawStart),
+      category: 'irs',
+    });
+    deadlines.push({
+      key: `irs-end-${year}`,
+      name: `IRS ${year} — Prazo final (30 de Junho)`,
+      date: fmtDate(adjustedEnd),
+      rawDate: fmtDate(rawEnd),
       category: 'irs',
     });
   }
