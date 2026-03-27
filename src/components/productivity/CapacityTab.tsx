@@ -457,7 +457,7 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
             <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">2</div>
             Produtos e clientes
           </h3>
-          <p className="text-xs text-muted-foreground mt-0.5 ml-8">Quantos clientes tens (ou queres simular) em cada produto.</p>
+          <p className="text-xs text-muted-foreground mt-0.5 ml-8">Vê quantos clientes ativos tens, simula adicionar mais e analisa o impacto nas horas.</p>
         </div>
 
         {items.length > 0 && (
@@ -467,53 +467,52 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
                 <TableHeader>
                   <TableRow>
                     <TableHead>Produto</TableHead>
+                    <TableHead className="text-right w-24">Clientes ativos</TableHead>
                     <TableHead className="text-right w-28">h/cliente/mês</TableHead>
-                    <TableHead className="text-right w-24">Clientes reais</TableHead>
-                    <TableHead className="text-right w-28">Simular com</TableHead>
+                    <TableHead className="text-right w-24">Simular +</TableHead>
                     <TableHead className="text-right w-24">Máximo</TableHead>
-                    <TableHead className="text-right w-28">Horas consumidas</TableHead>
-                    <TableHead className="text-right w-24">Podes aceitar +</TableHead>
+                    <TableHead className="text-right w-32">Análise (horas)</TableHead>
+                    <TableHead className="text-right w-28">Podes adicionar +</TableHead>
                     <TableHead className="w-8"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {items.map(item => {
                     const hpc = Number(item.hours_per_client_month);
-                    const currentClients = Number(item.current_clients);
-                    const hoursUsed = hpc * currentClients;
+                    const simExtra = Number(item.current_clients); // current_clients stores the "simulate +X" value
                     const realCount = realClientCounts[item.product_name] || 0;
                     const sourceProduct = allProducts.find((p: Product) => p.id === item.product_id);
                     const maxClients = (sourceProduct as any)?.max_simultaneous_clients as number | null;
-                    const extraByHours = hpc > 0 && hoursRemaining > 0 ? Math.floor(hoursRemaining / hpc) : 0;
-                    const extraByMax = maxClients != null && maxClients > 0 ? Math.max(0, maxClients - currentClients) : Infinity;
-                    const extraPossible = Math.min(extraByHours, extraByMax);
-                    const atCapacity = maxClients != null && maxClients > 0 && currentClients >= maxClients;
+                    const totalClients = realCount + simExtra;
+                    const totalHours = hpc * totalClients;
+                    const canAddByMax = maxClients != null && maxClients > 0 ? Math.max(0, maxClients - totalClients) : null;
+                    const canAddByHours = hpc > 0 && hoursRemaining > 0 ? Math.floor(hoursRemaining / hpc) : 0;
+                    const canAdd = canAddByMax != null ? Math.min(canAddByMax, canAddByHours) : canAddByHours;
+                    const atCapacity = maxClients != null && maxClients > 0 && totalClients >= maxClients;
 
                     return (
                       <TableRow key={item.id} className={atCapacity ? 'bg-destructive/5' : ''}>
                         <TableCell className="font-medium text-sm">{item.product_name}</TableCell>
+                        <TableCell className="text-right text-sm tabular-nums font-medium">{realCount}</TableCell>
                         <TableCell className="text-right">
                           <Input type="number" className="h-7 w-20 text-sm text-right ml-auto" defaultValue={hpc}
                             onBlur={e => { const val = parseFloat(e.target.value); if (!isNaN(val) && val !== hpc) updateScenarioProduct.mutate({ id: item.id, hours_per_client_month: val }); }} />
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <span className="text-sm tabular-nums">{realCount}</span>
-                            <Button size="sm" variant="ghost" className="h-5 px-1.5 text-[10px]" onClick={() => updateScenarioProduct.mutate({ id: item.id, current_clients: realCount })}>Usar</Button>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Input type="number" className="h-7 w-20 text-sm text-right ml-auto" defaultValue={currentClients}
-                            onBlur={e => updateScenarioProduct.mutate({ id: item.id, current_clients: Number(e.target.value) })} />
+                          <Input type="number" min={0} className="h-7 w-20 text-sm text-right ml-auto" defaultValue={simExtra}
+                            onBlur={e => updateScenarioProduct.mutate({ id: item.id, current_clients: Math.max(0, Number(e.target.value)) })} />
                         </TableCell>
                         <TableCell className="text-right text-sm tabular-nums">
                           {maxClients != null && maxClients > 0 ? (
                             <Badge variant={atCapacity ? 'destructive' : 'outline'} className="text-[10px]">{maxClients}</Badge>
                           ) : <span className="text-muted-foreground">—</span>}
                         </TableCell>
-                        <TableCell className="text-right text-sm tabular-nums font-medium">{hoursUsed}h</TableCell>
+                        <TableCell className="text-right text-sm tabular-nums">
+                          <span className="font-medium">{totalHours}h</span>
+                          {simExtra > 0 && <span className="text-[10px] text-muted-foreground ml-1">({realCount}+{simExtra} × {hpc}h)</span>}
+                        </TableCell>
                         <TableCell className="text-right">
-                          <span className={`text-sm font-semibold tabular-nums ${extraPossible === 0 ? 'text-muted-foreground' : 'text-primary'}`}>+{extraPossible}</span>
+                          <span className={`text-sm font-semibold tabular-nums ${canAdd === 0 ? 'text-muted-foreground' : 'text-primary'}`}>+{canAdd}</span>
                         </TableCell>
                         <TableCell>
                           <button onClick={() => deleteScenarioProduct.mutate(item.id)} className="text-muted-foreground hover:text-destructive">
