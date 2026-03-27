@@ -457,7 +457,6 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                 </Popover>
               </div>
             )}
-            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
