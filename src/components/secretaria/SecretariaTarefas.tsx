@@ -119,6 +119,16 @@ export default function SecretariaTarefas() {
           }}
         />
       )}
+
+      <TaskFormDialog
+        open={showNewTask}
+        onOpenChange={setShowNewTask}
+        onSuccess={() => {
+          setShowNewTask(false);
+          qc.invalidateQueries({ queryKey: ['my-tasks'] });
+          qc.invalidateQueries({ queryKey: ['unified-tasks'] });
+        }}
+      />
     </div>
   );
 }
