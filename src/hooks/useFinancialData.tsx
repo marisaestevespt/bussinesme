@@ -79,99 +79,20 @@ export function useFinancialData() {
     totalCount: getInfiniteCount(expensesQuery.data?.pages),
   };
 
-  const subscriptions = useQuery({
-    queryKey: ['financial-subscriptions'],
+  const recurringExpensesQuery = useQuery({
+    queryKey: ['recurring-expenses'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('financial_subscriptions')
-        .select('id,platform_name,category,value,periodicity,monthly_equivalent,start_date,status,notes,created_at')
+      const { data, error } = await supabase.from('financial_expenses')
+        .select('*')
+        .eq('is_recurring', true)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return (data || []) as Subscription[];
+      return (data || []) as RecurringExpense[];
     },
     staleTime: 2 * 60 * 1000,
   });
 
-  const documents = useQuery({
-    queryKey: ['financial-documents'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('financial_documents')
-        .select('id,title,doc_type,due_date,status,document_name,document_url,notes,period_month,period_year,period_start,period_end,created_at')
-        .order('due_date', { ascending: true });
-      if (error) throw error;
-      return (data || []) as FinancialDocument[];
-    },
-    staleTime: 2 * 60 * 1000,
-  });
-
-  const payroll = useQuery({
-    queryKey: ['financial-payroll'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('financial_payroll')
-        .select('id,collaborator_name,month,year,gross_salary,net_salary,total_cost,withholding_rate,withholding_value,ss_employee,ss_employer,status,expense_id,created_at')
-        .order('year', { ascending: false }).order('month', { ascending: false });
-      if (error) throw error;
-      return (data || []) as PayrollEntry[];
-    },
-    staleTime: 2 * 60 * 1000,
-  });
-
-  const contractors = useQuery({
-    queryKey: ['financial-contractors'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('financial_contractors')
-        .select('id,contractor_name,month,year,value,status,location,expense_id,created_at')
-        .order('year', { ascending: false }).order('month', { ascending: false });
-      if (error) throw error;
-      return (data || []) as ContractorEntry[];
-    },
-    staleTime: 2 * 60 * 1000,
-  });
-
-  const upsertExpense = useMutation({
-    mutationFn: async (exp: Partial<Expense> & { description?: string }) => {
-      if (exp.id) {
-        const { error } = await supabase.from('financial_expenses').update(exp as TablesUpdate<'financial_expenses'>).eq('id', exp.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('financial_expenses').insert(exp as TablesInsert<'financial_expenses'>);
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['financial-expenses'] }),
-    onError: () => toast.error('Erro ao guardar despesa'),
-  });
-
-  const deleteExpense = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('financial_expenses').delete().eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['financial-expenses'] }),
-  });
-
-  const upsertSubscription = useMutation({
-    mutationFn: async (sub: Partial<Subscription> & { platform_name: string }) => {
-      const monthly = calcMonthlyEquivalent(sub.value || 0, sub.periodicity || 'mensal');
-      const record = { ...sub, monthly_equivalent: monthly };
-      if (sub.id) {
-        const { error } = await supabase.from('financial_subscriptions').update(record as TablesUpdate<'financial_subscriptions'>).eq('id', sub.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('financial_subscriptions').insert(record as TablesInsert<'financial_subscriptions'>);
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['financial-subscriptions'] }),
-    onError: () => toast.error('Erro ao guardar subscrição'),
-  });
-
-  const deleteSubscription = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('financial_subscriptions').delete().eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['financial-subscriptions'] }),
-  });
+  const recurringExpenses = recurringExpensesQuery;
 
   const upsertDocument = useMutation({
     mutationFn: async (doc: Partial<FinancialDocument> & { title: string }) => {
