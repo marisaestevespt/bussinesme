@@ -8301,6 +8301,7 @@ export type Database = {
           title: string
         }[]
       }
+      get_portal_payment_methods: { Args: { _token: string }; Returns: Json }
       get_portal_payments: {
         Args: { _token: string }
         Returns: {
