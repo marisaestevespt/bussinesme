@@ -346,10 +346,17 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
   });
 
   const items = scenarioProducts.data || [];
-  const totalHoursUsed = items.reduce((sum, p) => sum + (Number(p.hours_per_client_month) * Number(p.current_clients)), 0);
+  // current_clients now stores "simulate +X extra", so total = real + extra
+  const totalHoursUsed = items.reduce((sum, p) => {
+    const hpc = Number(p.hours_per_client_month);
+    const real = realClientCounts[p.product_name] || 0;
+    const simExtra = Number(p.current_clients);
+    return sum + hpc * (real + simExtra);
+  }, 0);
   const hoursRemaining = teamSummary.available - totalHoursUsed;
   const capacityPercent = teamSummary.available > 0 ? Math.round((totalHoursUsed / teamSummary.available) * 100) : 0;
-  const totalSimClients = items.reduce((s, p) => s + Number(p.current_clients), 0);
+  const totalRealClients = items.reduce((s, p) => s + (realClientCounts[p.product_name] || 0), 0);
+  const totalSimExtra = items.reduce((s, p) => s + Number(p.current_clients), 0);
 
   const addedProductIds = items.map(p => p.product_id);
   const availableToAdd = allProducts.filter((p: Product) => !addedProductIds.includes(p.id));
