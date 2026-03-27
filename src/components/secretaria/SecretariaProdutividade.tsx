@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { exportPdf } from '@/lib/exportPdf';
+import { exportProductivityReport } from '@/lib/exportProductivityReport';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -160,9 +160,23 @@ export default function SecretariaProdutividade() {
   const openTasks = useMemo(() => allTasks.filter((t: any) => t.status !== 'done'), [allTasks]);
 
   return (
-    <div className="space-y-6 mt-4" id="produtividade-report">
+    <div className="space-y-6 mt-4">
       <div className="flex flex-wrap items-end gap-2">
-        <Button variant="outline" size="sm" className="ml-auto" onClick={() => exportPdf('Relatório de Produtividade', 'produtividade-report')}>
+        <Button variant="outline" size="sm" className="ml-auto" onClick={() => {
+          const periodLabel = period === 'week' ? 'Esta semana' : period === 'month' ? 'Este mês' : `${customFrom ? format(customFrom, 'dd/MM/yyyy') : '?'} — ${customTo ? format(customTo, 'dd/MM/yyyy') : '?'}`;
+          exportProductivityReport({
+            memberName: teamMember.data?.full_name || 'Membro',
+            periodLabel,
+            periodStart,
+            periodEnd,
+            entries: periodEntries,
+            tasks: allTasks,
+            completedTasks,
+            overdueTasks,
+            projects: allProjects.data || [],
+            expectedDailyHours: expectedDaily,
+          });
+        }}>
           <FileDown className="h-4 w-4 mr-1" /> Exportar PDF
         </Button>
         <Button variant={period === 'week' ? 'default' : 'outline'} size="sm" onClick={() => setPeriod('week')}>Esta semana</Button>
