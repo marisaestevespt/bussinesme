@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -11,6 +11,7 @@ import { Plus, FileText } from 'lucide-react';
 import { format, parseISO, isBefore, startOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useMyTasks, useProjects, STATUS_COLORS, STATUS_LABELS, PRIORITY_LABELS } from './secretaria-shared';
+import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 
 const today = startOfDay(new Date());
 
@@ -20,6 +21,16 @@ export default function SecretariaTarefas() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [view, setView] = useState<'todo' | 'atrasadas' | 'concluidas'>('todo');
+  const [editTaskId, setEditTaskId] = useState<string | null>(null);
+
+  const editTask = useQuery({
+    queryKey: ['edit-task-secretaria-tarefas', editTaskId],
+    enabled: !!editTaskId,
+    queryFn: async () => {
+      const { data } = await supabase.from('tasks').select('*').eq('id', editTaskId!).single();
+      return data;
+    },
+  });
 
   const getProjectName = (id: string | null) => allProjects.data?.find(p => p.id === id)?.name || '';
 
@@ -72,9 +83,9 @@ export default function SecretariaTarefas() {
         <TableBody>
           {filtered.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Sem tarefas.</TableCell></TableRow>}
           {filtered.map((t: any) => (
-            <TableRow key={t.id}>
+            <TableRow key={t.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setEditTaskId(t.id)}>
               {view !== 'concluidas' && (
-                <TableCell><Checkbox checked={false} onCheckedChange={() => markDone(t.id)} /></TableCell>
+                <TableCell><Checkbox checked={false} onCheckedChange={(e) => { e; markDone(t.id); }} onClick={(e) => e.stopPropagation()} /></TableCell>
               )}
               <TableCell className="font-medium">
                 <div className="flex items-center gap-1.5">
@@ -94,6 +105,19 @@ export default function SecretariaTarefas() {
           ))}
         </TableBody>
       </Table>
+
+      {editTask.data && (
+        <TaskFormDialog
+          open={!!editTaskId}
+          onOpenChange={(open) => { if (!open) setEditTaskId(null); }}
+          editingTask={editTask.data}
+          onSuccess={() => {
+            setEditTaskId(null);
+            qc.invalidateQueries({ queryKey: ['my-tasks'] });
+            qc.invalidateQueries({ queryKey: ['unified-tasks'] });
+          }}
+        />
+      )}
     </div>
   );
 }
