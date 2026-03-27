@@ -684,6 +684,8 @@ export default function TarefasPage() {
             projects={projects}
             timeEntries={allTimeEntries}
           />
+        ) : view === 'rotinas' ? (
+          <RotinasView />
         ) : (
           <TaskTable
             tasks={filteredTasks}
