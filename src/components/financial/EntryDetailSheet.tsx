@@ -164,6 +164,52 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
             </div>
           </div>
 
+          {/* Client fiscal data for invoicing */}
+          {clientData && (clientData.nif || clientData.fiscal_address) && (
+            <>
+              <Separator />
+              <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <FileText className="h-3.5 w-3.5" />
+                  Dados para faturação
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-muted-foreground text-xs">Nome completo</p>
+                      <p className="font-medium">{clientData.full_name || sale.client}</p>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { navigator.clipboard.writeText(clientData.full_name || sale.client || ''); toast.success('Copiado'); }}>
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  {clientData.nif && (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-muted-foreground text-xs">NIF</p>
+                        <p className="font-medium font-mono">{clientData.nif}</p>
+                      </div>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { navigator.clipboard.writeText(clientData.nif); toast.success('NIF copiado'); }}>
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  )}
+                  {clientData.fiscal_address && (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-muted-foreground text-xs">Morada fiscal</p>
+                        <p className="font-medium">{clientData.fiscal_address}</p>
+                      </div>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { navigator.clipboard.writeText(clientData.fiscal_address); toast.success('Morada copiada'); }}>
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
           {/* Other details */}
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
