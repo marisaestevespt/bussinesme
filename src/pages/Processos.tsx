@@ -279,7 +279,7 @@ export default function ProcessosPage() {
                               {pr.active ? 'Ativa' : 'Inativa'}
                             </Badge>
                           </div>
-                          <div className="flex flex-col gap-1 items-end shrink-0">
+                          <div className="flex flex-col gap-1 items-end shrink-0" onClick={e => e.stopPropagation()}>
                             <Switch
                               checked={pr.active}
                               onCheckedChange={(v) => planningRoutines.toggleActive.mutate({ id: pr.id, active: v })}
