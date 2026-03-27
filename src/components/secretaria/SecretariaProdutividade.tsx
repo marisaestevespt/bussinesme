@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { exportPdf } from '@/lib/exportPdf';
+import { exportProductivityReport } from '@/lib/exportProductivityReport';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
