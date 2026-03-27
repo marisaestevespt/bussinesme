@@ -30,6 +30,7 @@ const OWNER_DEFAULT_SECTIONS: Record<string, boolean> = {
   projetos_novos: true,
   tempo_trabalhado: true,
   resumo_membros: true,
+  prazos_fiscais: true,
 };
 
 const MEMBER_DEFAULT_SECTIONS: Record<string, boolean> = {
