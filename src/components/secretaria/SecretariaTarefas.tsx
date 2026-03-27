@@ -22,6 +22,7 @@ export default function SecretariaTarefas() {
   const qc = useQueryClient();
   const [view, setView] = useState<'todo' | 'atrasadas' | 'concluidas'>('todo');
   const [editTaskId, setEditTaskId] = useState<string | null>(null);
+  const [showNewTask, setShowNewTask] = useState(false);
 
   const editTask = useQuery({
     queryKey: ['edit-task-secretaria-tarefas', editTaskId],
