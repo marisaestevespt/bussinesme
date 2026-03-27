@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Plus, CalendarIcon, Trash2, RefreshCw } from 'lucide-react';
+import { Plus, CalendarIcon, Trash2, RefreshCw, Download } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -22,6 +22,8 @@ import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 import { SupplierSelect } from './SupplierSelect';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { exportCsv } from '@/lib/exportCsv';
+import { exportPdf } from '@/lib/exportPdf';
 
 const EXP_STATUS = [
   { value: 'por_pagar', label: 'Por Pagar' },
@@ -172,7 +174,16 @@ export function FinSaidas({ fin, currentYear }: Props) {
               <Button key={k} variant={filter === k ? 'default' : 'outline'} size="sm" onClick={() => setFilter(k as Filter)}>{l}</Button>
             ))}
           </div>
-          <Button size="sm" onClick={openNewExpense}><Plus className="h-4 w-4 mr-1" /> Nova Despesa</Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => {
+              const headers = ['ID', 'Data', 'Descrição', 'Categoria', 'Valor Base', 'IVA %', 'Total c/ IVA', 'Localização', 'Recorrente', 'Periodicidade'];
+              const rows = expenses.map(e => [e.expense_id, e.expense_date || '', e.description || '', e.category, e.base_value, e.vat_rate, e.total_with_vat, e.location, (e as any).is_recurring ? 'Sim' : 'Não', (e as any).periodicity || '']);
+              exportCsv(`saidas_${currentYear}.csv`, headers, rows);
+              toast.success('CSV exportado');
+            }}><Download className="h-3.5 w-3.5 mr-1" /> CSV</Button>
+            <Button size="sm" variant="outline" onClick={() => { exportPdf(`Saídas — ${currentYear}`, 'fin-saidas-export'); toast.success('PDF a gerar...'); }}><Download className="h-3.5 w-3.5 mr-1" /> PDF</Button>
+            <Button size="sm" onClick={openNewExpense}><Plus className="h-4 w-4 mr-1" /> Nova Despesa</Button>
+          </div>
         </div>
 
         {filter === 'recurring' && totalMonthlyRecurring > 0 && (
@@ -184,7 +195,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
           </Card>
         )}
 
-        <Card>
+        <Card id="fin-saidas-export">
           <CardContent className="p-0">
             <Table>
               <TableHeader>

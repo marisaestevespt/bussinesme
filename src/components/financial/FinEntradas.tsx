@@ -3,8 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
 import { EntryDetailSheet } from './EntryDetailSheet';
 import { EntryStatusSelect } from './InlineStatusSelect';
+import { exportCsv } from '@/lib/exportCsv';
+import { exportPdf } from '@/lib/exportPdf';
+import { toast } from 'sonner';
 
 type Sale = {
   id: string; sale_id: string; status: string; payment_date: string | null;
@@ -45,19 +49,32 @@ export function FinEntradas({ sales, currentYear }: Props) {
     setSheetOpen(true);
   };
 
+  const handleExportCsv = () => {
+    const headers = ['ID', 'Data Pgto.', 'Descrição', 'Valor Base', 'Fatura Total', 'Produto', 'Cliente', 'Fonte', 'Mês', 'Trimestre', 'Ano'];
+    const rows = filtered.map(s => [s.sale_id, s.payment_date || '', s.description || '', s.base_value, s.invoice_total, s.product || '', s.client || '', s.source || '', s.sale_month || '', `T${s.sale_quarter || ''}`, s.sale_year || '']);
+    exportCsv(`entradas_${currentYear}.csv`, headers, rows);
+    toast.success('CSV exportado');
+  };
+
   return (
     <div className="space-y-4 mt-4">
-      <div className="flex items-center gap-2 flex-wrap">
-        {([['all', 'Todos'], ['month', 'Este mês'], ['quarter', 'Este trimestre'], ['year', 'Este ano']] as const).map(([k, l]) => (
-          <Button key={k} variant={filter === k ? 'default' : 'outline'} size="sm" onClick={() => setFilter(k)}>{l}</Button>
-        ))}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 flex-wrap">
+          {([['all', 'Todos'], ['month', 'Este mês'], ['quarter', 'Este trimestre'], ['year', 'Este ano']] as const).map(([k, l]) => (
+            <Button key={k} variant={filter === k ? 'default' : 'outline'} size="sm" onClick={() => setFilter(k)}>{l}</Button>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={handleExportCsv}><Download className="h-3.5 w-3.5 mr-1" /> CSV</Button>
+          <Button size="sm" variant="outline" onClick={() => { exportPdf(`Entradas — ${currentYear}`, 'fin-entradas-export'); toast.success('PDF a gerar...'); }}><Download className="h-3.5 w-3.5 mr-1" /> PDF</Button>
+        </div>
       </div>
       <div className="grid grid-cols-3 gap-4">
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Valor Base</p><p className="text-lg font-bold">{fmt(totalBase)}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Total Fatura</p><p className="text-lg font-bold">{fmt(totalInvoice)}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Registos</p><p className="text-lg font-bold">{filtered.length}</p></CardContent></Card>
       </div>
-      <Card>
+      <Card id="fin-entradas-export">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
