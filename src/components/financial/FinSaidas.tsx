@@ -94,19 +94,18 @@ export function FinSaidas({ fin, currentYear }: Props) {
   const [expForm, setExpForm] = useState<any>({});
 
   const openNewExpense = () => {
-    setExpForm({ status: 'por_pagar', category: 'outro', vat_rate: 23, location: 'portugal', base_value: '', description: '', includes_vat: false, supplier_id: null, is_recurring: false, periodicity: 'mensal' });
+    setExpForm({ status: 'por_pagar', category: 'outro', vat_rate: 23, location: 'portugal', base_value: '', description: '', includes_vat: false, supplier_id: null, is_recurring: false, periodicity: 'mensal', payment_method: '' });
     setExpOpen(true);
   };
 
-  // Auto-fill VAT from supplier
-  const handleSupplierChange = (supplierId: string | null) => {
+  // Auto-fill VAT + payment method from supplier
+  const handleSupplierChange = (supplierId: string | null, supplier?: any) => {
     setExpForm((f: any) => {
       const updates: any = { ...f, supplier_id: supplierId };
-      if (supplierId) {
-        const supplier = suppliers.find((s: any) => s.id === supplierId);
-        if (supplier?.default_vat_rate != null) {
-          updates.vat_rate = supplier.default_vat_rate;
-        }
+      const s = supplier || (supplierId ? suppliers.find((s: any) => s.id === supplierId) : null);
+      if (s) {
+        if (s.default_vat_rate != null) updates.vat_rate = s.default_vat_rate;
+        if (s.payment_method) updates.payment_method = s.payment_method;
       }
       return updates;
     });
