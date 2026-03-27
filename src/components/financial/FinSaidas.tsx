@@ -142,10 +142,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
               <Button key={k} variant={filter === k ? 'default' : 'outline'} size="sm" onClick={() => setFilter(k)}>{l}</Button>
             ))}
           </div>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => navigate('/hub/financeiro/fornecedores')}><Truck className="h-4 w-4 mr-1" /> Fornecedores</Button>
-            <Button size="sm" onClick={openNewExpense}><Plus className="h-4 w-4 mr-1" /> Nova Despesa</Button>
-          </div>
+          <Button size="sm" onClick={openNewExpense}><Plus className="h-4 w-4 mr-1" /> Nova Despesa</Button>
         </div>
         <Card>
           <CardContent className="p-0">

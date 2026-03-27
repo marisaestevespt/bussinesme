@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Switch } from '@/components/ui/switch';
-import { Plus, CalendarIcon, Trash2 } from 'lucide-react';
+import { Plus, CalendarIcon, Trash2, Truck } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -136,6 +136,14 @@ export function FinSetupFinanceiro({ fin }: Props) {
 
   return (
     <div className="space-y-8">
+      {/* FORNECEDORES */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Fornecedores</h3>
+        <Button size="sm" variant="outline" onClick={() => navigate('/hub/financeiro/fornecedores')}>
+          <Truck className="h-4 w-4 mr-1" /> Gerir Fornecedores
+        </Button>
+      </div>
+
       {/* PRODUTOS */}
       <div>
         <h3 className="text-lg font-semibold mb-3">Produtos — Visão Financeira</h3>
