@@ -75,7 +75,9 @@ export default function DefinicoesPage() {
         </div>
 
         {/* Tab content */}
-        <div className="max-w-2xl">
+        <div className={cn(
+          tab === 'utilizadores' || tab === 'auditoria' ? 'max-w-4xl' : 'max-w-2xl'
+        )}>
           {tab === 'identidade' && <SettingsIdentity />}
           {tab === 'fiscal' && <SettingsFiscal />}
           {tab === 'setup-negocio' && <FinSetupNegocio />}
