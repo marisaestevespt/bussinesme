@@ -246,6 +246,7 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
           )}
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }
