@@ -26,6 +26,34 @@ function prevBusinessDay(d: Date): Date {
   return result;
 }
 
+/** Move to next business day */
+function nextBusinessDay(d: Date): Date {
+  const result = new Date(d);
+  do {
+    result.setDate(result.getDate() + 1);
+  } while (!isBusinessDay(result));
+  return result;
+}
+
+/** Get last day of the month */
+function lastDayOfMonth(year: number, month: number): Date {
+  return new Date(year, month + 1, 0);
+}
+
+/** Get first business day of the month */
+function firstBusinessDayOfMonth(year: number, month: number): Date {
+  let d = new Date(year, month, 1);
+  while (!isBusinessDay(d)) d = nextBusinessDay(d);
+  return d;
+}
+
+/** Get last business day of the month */
+function lastBusinessDayOfMonth(year: number, month: number): Date {
+  let d = lastDayOfMonth(year, month);
+  while (!isBusinessDay(d)) d = prevBusinessDay(d);
+  return d;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -110,6 +138,21 @@ Deno.serve(async (req) => {
         case "mensal_primeiro":
           shouldFire = monthDay === 1;
           break;
+        case "mensal_ultimo": {
+          const last = lastDayOfMonth(date.getFullYear(), date.getMonth());
+          shouldFire = date.getDate() === last.getDate();
+          break;
+        }
+        case "primeiro_dia_util": {
+          const firstBiz = firstBusinessDayOfMonth(date.getFullYear(), date.getMonth());
+          shouldFire = date.getDate() === firstBiz.getDate() && date.getMonth() === firstBiz.getMonth();
+          break;
+        }
+        case "ultimo_dia_util": {
+          const lastBiz = lastBusinessDayOfMonth(date.getFullYear(), date.getMonth());
+          shouldFire = date.getDate() === lastBiz.getDate() && date.getMonth() === lastBiz.getMonth();
+          break;
+        }
       }
 
       // Adjust to business day if needed
