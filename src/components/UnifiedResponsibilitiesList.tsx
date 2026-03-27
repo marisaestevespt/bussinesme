@@ -255,6 +255,12 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px' 
           </div>
         </ScrollArea>
       </CardContent>
+
+      <ResponsibilityDetailDialog
+        item={selectedItem}
+        open={!!selectedItem}
+        onOpenChange={(open) => { if (!open) setSelectedItem(null); }}
+      />
     </Card>
   );
 }
