@@ -578,13 +578,21 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
                   const extraPossible = hpc > 0 && hoursRemaining > 0 ? Math.floor(hoursRemaining / hpc) : 0;
                   const realCount = realClientCounts[item.product_name] || 0;
                   const itemRevenue = Number(item.price_per_client || 0) * currentClients;
+                  const sourceProduct = allProducts.find((p: Product) => p.id === item.product_id);
+                  const maxClients = (sourceProduct as any)?.max_simultaneous_clients as number | null;
+                  const atCapacity = maxClients != null && maxClients > 0 && currentClients >= maxClients;
 
                   return (
-                    <div key={item.id} className="rounded-lg border p-4 space-y-3">
+                    <div key={item.id} className={`rounded-lg border p-4 space-y-3 ${atCapacity ? 'border-amber-400/60 bg-amber-50/30' : ''}`}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <h4 className="font-medium text-sm">{item.product_name}</h4>
                           {itemRevenue > 0 && <Badge variant="secondary" className="text-[10px]">{itemRevenue.toLocaleString('pt-PT')}€/mês</Badge>}
+                          {maxClients != null && maxClients > 0 && (
+                            <Badge variant={atCapacity ? 'destructive' : 'outline'} className="text-[10px]">
+                              {currentClients}/{maxClients} máx.
+                            </Badge>
+                          )}
                         </div>
                         <button onClick={() => deleteScenarioProduct.mutate(item.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
                       </div>

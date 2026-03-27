@@ -359,6 +359,10 @@ export default function ProdutoDetailPage() {
                 <Input type="number" value={form.monthly_hours_per_client ?? ''} onChange={e => update('monthly_hours_per_client', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 20" className="h-9" readOnly={!isOwner} />
               </div>
               <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Máx. clientes em simultâneo</Label>
+                <Input type="number" min={0} value={(form as any).max_simultaneous_clients ?? ''} onChange={e => update('max_simultaneous_clients', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 10" className="h-9" readOnly={!isOwner} />
+              </div>
+              <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Tempo de Acesso</Label>
                 <div className="flex items-center gap-2">
                   <Input type="number" min={0} placeholder="Ex: 90" value={form.cycle_duration ?? ''} onChange={e => update('cycle_duration', e.target.value ? parseInt(e.target.value) : null)} className="h-9" readOnly={!isOwner} />
