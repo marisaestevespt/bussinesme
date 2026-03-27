@@ -91,6 +91,11 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
     const quarter = month ? Math.ceil(month / 3) : null;
     const year = date ? parseInt(date.slice(0, 4)) : null;
 
+    // Merge regular docs + meta ads docs (tagged)
+    const regularDocs = form.documents || [];
+    const metaDocs = (form.meta_ads_docs || []).map((d: any) => ({ ...d, type: 'meta_ads' }));
+    const allDocs = [...regularDocs, ...metaDocs];
+
     await fin.upsertExpense.mutateAsync({
       id: form.id,
       status: form.status,
@@ -101,7 +106,7 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
       vat_rate: vat,
       total_with_vat: total,
       location: form.location,
-      documents: form.documents || [],
+      documents: allDocs,
       expense_month: month,
       expense_quarter: quarter,
       expense_year: year,
