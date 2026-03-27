@@ -349,7 +349,7 @@ export function useUnifiedResponsibilities(userId?: string) {
     });
 
     return result;
-  }, [tasksQ.data, leadsQ.data, contentQ.data, meetingsQ.data, projectsQ.data, npsQ.data, milestonesQ.data, salesActionsQ.data, habitsQ.data, uid, today]);
+  }, [tasksQ.data, leadsQ.data, contentQ.data, meetingsQ.data, projectsQ.data, npsQ.data, milestonesQ.data, salesActionsQ.data, uid, today]);
 
   // ─── Filtered views ────────────────────────────────────────
 
