@@ -1,16 +1,18 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ResponsibilityDetailDialog } from '@/components/ResponsibilityDetailDialog';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   CheckSquare, PhoneCall, FileText, Users, FolderKanban,
-  Star, ShoppingCart, ListChecks, Clock, Target, ChevronRight,
+  Star, ShoppingCart, ListChecks, Clock, Target, ChevronRight, Plus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
