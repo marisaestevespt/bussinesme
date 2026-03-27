@@ -28,9 +28,6 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
 
-  // Only show if project has a product associated
-  if (!productId) return null;
-
   const applyMutation = useMutation({
     mutationFn: async () => {
       // 1. Fetch template tasks
