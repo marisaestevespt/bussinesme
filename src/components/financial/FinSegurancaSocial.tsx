@@ -383,8 +383,6 @@ function IndependenteSection({ data, currentYear, onSave, onToggle }: {
             <TableHeader>
               <TableRow>
                 <TableHead>Mês</TableHead>
-                <TableHead>Base (Trimestre)</TableHead>
-                <TableHead>Declaração</TableHead>
                 <TableHead className="text-right">Fat. Trimestre</TableHead>
                 <TableHead className="text-right">Rend. Relevante</TableHead>
                 <TableHead className="text-right">Base Mensal</TableHead>
