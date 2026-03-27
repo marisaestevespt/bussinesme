@@ -48,19 +48,28 @@ export default function FinanceiroPage() {
   const com = useCommercialData(year);
   const navigate = useNavigate();
 
-  // Filter IVA / SS sections based on fiscal settings
+  // Filter IVA / SS / Ordenados sections based on fiscal settings
   const s = settings as any;
   const ivaExempt = s?.iva_exempt ?? false;
   const ssExempt = s?.ss_exempt ?? false;
   const isContabOrganizada = (s?.tax_irs_regime || '') === 'contabilidade_organizada';
+  const teamType = s?.team_type || 'externa';
+  const hasInternalTeam = teamType === 'interna' || teamType === 'ambas';
 
   const SECTIONS_ROW1 = useMemo(() => {
     return ALL_SECTIONS_ROW1.filter(sec => {
-      if (sec.key === 'iva' && (ivaExempt || isContabOrganizada)) return false;
-      if (sec.key === 'ss' && (ssExempt || isContabOrganizada)) return false;
+      if (sec.key === 'iva' && ivaExempt && !isContabOrganizada) return false;
+      if (sec.key === 'ss' && ssExempt && !isContabOrganizada) return false;
       return true;
     });
   }, [ivaExempt, ssExempt, isContabOrganizada]);
+
+  const SECTIONS_ROW2 = useMemo(() => {
+    return ALL_SECTIONS_ROW2.filter(sec => {
+      if (sec.key === 'ordenados' && !hasInternalTeam) return false;
+      return true;
+    });
+  }, [hasInternalTeam]);
 
   const sales = excludeCancelled(com.sales.data || []);
   const expenses = excludeCancelled(fin.expenses.data || []);
