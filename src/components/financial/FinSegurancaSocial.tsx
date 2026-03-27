@@ -261,7 +261,7 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
   const handleExportCsv = () => {
     if (showIndependente) {
       const headers = ['Mês', 'Rendimento Trimestre', 'Rend. Relevante (70%)', 'SS Prevista', 'SS Paga'];
-      const rows = independenteData.map(d => [MONTHS[d.month - 1], d.quarterRevenue, d.rendimentoRelevante, d.ssExpected, d.paid]);
+      const rows = independenteData.map(d => [MONTHS[d.month - 1], d.quarterRevenue, d.rendimentoRelevante, d.contribution, d.paid]);
       exportCsv(`ss_independente_${currentYear}.csv`, headers, rows);
     }
     if (showPatronal) {
