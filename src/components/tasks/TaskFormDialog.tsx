@@ -338,7 +338,9 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
       notes: notes || null,
       recurrence_type: recurrenceType || null,
       recurrence_end: recurrenceEnd ? format(recurrenceEnd, 'yyyy-MM-dd') : null,
+      recurrence_interval_days: recurrenceType === 'personalizado' && recurrenceIntervalDays ? parseInt(recurrenceIntervalDays) : null,
       estimated_time: estimatedTime ? parseFloat(estimatedTime) : null,
+      scheduled_time: scheduledTime || null,
       _dependsOnIds: dependsOnIds,
       _prevStatus: editingTask?.status || null,
     };
