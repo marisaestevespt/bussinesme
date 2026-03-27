@@ -563,6 +563,7 @@ export type Database = {
           cae_principal: string
           cae_secundarios: string
           capital_social: string
+          cirs_code: string | null
           contabilista: string
           contabilista_contacto: string
           created_at: string
@@ -581,6 +582,7 @@ export type Database = {
           cae_principal?: string
           cae_secundarios?: string
           capital_social?: string
+          cirs_code?: string | null
           contabilista?: string
           contabilista_contacto?: string
           created_at?: string
@@ -599,6 +601,7 @@ export type Database = {
           cae_principal?: string
           cae_secundarios?: string
           capital_social?: string
+          cirs_code?: string | null
           contabilista?: string
           contabilista_contacto?: string
           created_at?: string

@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Save, Receipt, Info, Building2, Users, BookOpen } from 'lucide-react';
+import { Save, Receipt, Info, Building2, Users, BookOpen, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -16,7 +18,29 @@ import { Separator } from '@/components/ui/separator';
 
 export function SettingsFiscal() {
   const { settings, refetch } = useBusinessSettings();
+  const qc = useQueryClient();
   const [saving, setSaving] = useState(false);
+
+  // Business setup (NIF, CAE, CIRS)
+  const { data: setupData } = useQuery({
+    queryKey: ['business-setup'],
+    queryFn: async () => {
+      const { data } = await supabase.from('business_setup' as any).select('*').maybeSingle();
+      return data as any;
+    },
+  });
+  const [nif, setNif] = useState('');
+  const [caePrincipal, setCaePrincipal] = useState('');
+  const [caeSecundarios, setCaeSecundarios] = useState('');
+  const [cirsCode, setCirsCode] = useState('');
+
+  useEffect(() => {
+    if (!setupData) return;
+    setNif(setupData.nif || '');
+    setCaePrincipal(setupData.cae_principal || '');
+    setCaeSecundarios(setupData.cae_secundarios || '');
+    setCirsCode(setupData.cirs_code || '');
+  }, [setupData]);
 
   const [businessType, setBusinessType] = useState('eni');
   const [ivaRegime, setIvaRegime] = useState('trimestral');
@@ -99,8 +123,20 @@ export function SettingsFiscal() {
         } as any)
         .eq('id', settings.id);
       if (error) throw error;
+
+      // Save business_setup fields (NIF, CAE, CIRS)
+      const setupPayload = { nif, cae_principal: caePrincipal, cae_secundarios: caeSecundarios, cirs_code: cirsCode };
+      if (setupData?.id) {
+        const { error: e2 } = await supabase.from('business_setup' as any).update(setupPayload).eq('id', setupData.id);
+        if (e2) throw e2;
+      } else {
+        const { error: e2 } = await supabase.from('business_setup' as any).insert(setupPayload);
+        if (e2) throw e2;
+      }
+
       toast.success('Definições fiscais atualizadas!');
       await refetch();
+      qc.invalidateQueries({ queryKey: ['business-setup'] });
     } catch (err: any) {
       toast.error(err.message || 'Erro ao guardar.');
     } finally {
@@ -175,6 +211,39 @@ export function SettingsFiscal() {
               <span>{exemptionGuide}</span>
             </div>
           )}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* IDENTIFICAÇÃO FISCAL */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-foreground">
+          <FileText className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+          <h2 className="text-sm font-semibold tracking-tight uppercase">Identificação Fiscal</h2>
+        </div>
+        <div className="rounded-lg border bg-card p-5 space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">NIF</Label>
+              <Input value={nif} onChange={e => setNif(e.target.value)} placeholder="Número de identificação fiscal" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Código CIRS</Label>
+              <Input value={cirsCode} onChange={e => setCirsCode(e.target.value)} placeholder="Ex: Art. 151.º — Atividades de consultoria" />
+              <p className="text-xs text-muted-foreground">Código da atividade no Código do IRS (tabela do art. 151.º)</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">CAE Principal</Label>
+              <Input value={caePrincipal} onChange={e => setCaePrincipal(e.target.value)} placeholder="Ex: 62010" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">CAEs Secundários</Label>
+              <Input value={caeSecundarios} onChange={e => setCaeSecundarios(e.target.value)} placeholder="Separados por vírgula" />
+            </div>
+          </div>
         </div>
       </div>
 
