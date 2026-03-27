@@ -90,11 +90,23 @@ export function useMyTeamMember() {
 
 export function useMyTasks() {
   const { user } = useAuth();
+  const profileQ = useQuery({
+    queryKey: ['my-profile-id', user?.id],
+    enabled: !!user?.id,
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id').eq('user_id', user!.id).maybeSingle();
+      return data?.id as string | null;
+    },
+  });
+  const profileId = profileQ.data;
+  const assigneeIds = [user?.id!, ...(profileId && profileId !== user?.id ? [profileId] : [])];
+
   return useQuery({
-    queryKey: ['my-tasks', user?.id],
+    queryKey: ['my-tasks', user?.id, profileId],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data } = await supabase.from('tasks').select('*').eq('assigned_to', user!.id).order('deadline');
+      const { data } = await supabase.from('tasks').select('*').in('assigned_to', assigneeIds).order('deadline');
       return data || [];
     },
   });
