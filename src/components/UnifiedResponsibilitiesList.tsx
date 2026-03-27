@@ -358,5 +358,85 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
         onOpenChange={(open) => { if (!open) setSelectedItem(null); }}
       />
     </Card>
+
+    {/* Add Task Dialog */}
+    <Dialog open={addOpen} onOpenChange={(open) => { if (!open) resetAddForm(); }}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Nova Tarefa</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label>Nome *</Label>
+            <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="Ex: Preparar relatório mensal" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Prazo *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal h-9">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {newDeadline ? format(newDeadline, 'dd/MM/yyyy') : 'Selecionar'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={newDeadline} onSelect={setNewDeadline} initialFocus />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div>
+              <Label>Prioridade</Label>
+              <Select value={newPriority} onValueChange={setNewPriority}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {PRIORITIES.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Responsável</Label>
+              <Select value={newAssignedTo} onValueChange={setNewAssignedTo}>
+                <SelectTrigger className="h-9"><SelectValue placeholder="Eu" /></SelectTrigger>
+                <SelectContent>
+                  {profiles.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Departamento</Label>
+              <Select value={newDepartment} onValueChange={setNewDepartment}>
+                <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  {PROCESS_DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div>
+            <Label>Projeto</Label>
+            <Select value={newProjectId} onValueChange={setNewProjectId}>
+              <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum" /></SelectTrigger>
+              <SelectContent>
+                {projectsList.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Notas</Label>
+            <Textarea value={newNotes} onChange={e => setNewNotes(e.target.value)} placeholder="Observações..." rows={2} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={resetAddForm}>Cancelar</Button>
+          <Button onClick={handleCreate} disabled={!newName.trim() || !newDeadline || createMutation.isPending}>
+            Criar Tarefa
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
