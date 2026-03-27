@@ -575,7 +575,11 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
                   const hpc = Number(item.hours_per_client_month);
                   const currentClients = Number(item.current_clients);
                   const hoursUsed = hpc * currentClients;
-                  const extraPossible = hpc > 0 && hoursRemaining > 0 ? Math.floor(hoursRemaining / hpc) : 0;
+                  const extraByHours = hpc > 0 && hoursRemaining > 0 ? Math.floor(hoursRemaining / hpc) : 0;
+                  const sourceProductForExtra = allProducts.find((p: Product) => p.id === item.product_id);
+                  const maxClientsForExtra = (sourceProductForExtra as any)?.max_simultaneous_clients as number | null;
+                  const extraByMax = maxClientsForExtra != null && maxClientsForExtra > 0 ? Math.max(0, maxClientsForExtra - currentClients) : Infinity;
+                  const extraPossible = Math.min(extraByHours, extraByMax);
                   const realCount = realClientCounts[item.product_name] || 0;
                   const itemRevenue = Number(item.price_per_client || 0) * currentClients;
                   const sourceProduct = allProducts.find((p: Product) => p.id === item.product_id);
