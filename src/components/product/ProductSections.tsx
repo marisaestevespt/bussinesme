@@ -445,7 +445,7 @@ function OfferCalculatorWrapper(props: {
   return (
     <OfferCalculator
       vatRate={props.vatRate}
-      costs={props.costs as Array<{ id: string; name: string; value: number; usage_desc?: string }>}
+      costs={props.costs as Array<{ id: string; name: string; value: number; usage_desc: string }>}
       isOwner={props.isOwner}
       onAddCost={props.onAddCost}
       onUpdateCost={props.onUpdateCost}
