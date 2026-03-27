@@ -116,7 +116,7 @@ export default function TarefasPage() {
   });
 
   const tasksQuery = useInfiniteQuery<InfinitePageResult<any>>({
-    queryKey: ['tasks', filterStatus, user?.id, myProfileId, isOwner],
+    queryKey: ['tasks', filterStatus],
     initialPageParam: 0,
     staleTime: 2 * 60 * 1000,
     queryFn: async ({ pageParam = 0 }) => {
