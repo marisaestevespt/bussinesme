@@ -165,7 +165,7 @@ export default function SecretariaProdutividade() {
         <Button variant="outline" size="sm" className="ml-auto" onClick={() => {
           const periodLabel = period === 'week' ? 'Esta semana' : period === 'month' ? 'Este mês' : `${customFrom ? format(customFrom, 'dd/MM/yyyy') : '?'} — ${customTo ? format(customTo, 'dd/MM/yyyy') : '?'}`;
           exportProductivityReport({
-            memberName: teamMember.data?.name || 'Membro',
+            memberName: teamMember.data?.full_name || 'Membro',
             periodLabel,
             periodStart,
             periodEnd,
