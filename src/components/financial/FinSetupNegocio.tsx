@@ -155,22 +155,6 @@ export function FinSetupNegocio() {
         </CardContent>
       </Card>
 
-      {/* Contabilista */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Contabilista</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Nome</Label>
-            <Input value={current.contabilista} onChange={e => update('contabilista', e.target.value)} />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Contacto</Label>
-            <Input value={current.contabilista_contacto} onChange={e => update('contabilista_contacto', e.target.value)} placeholder="Email ou telefone" />
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Notas */}
       <Card>
