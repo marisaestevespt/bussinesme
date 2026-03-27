@@ -364,6 +364,7 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
         documents={ssDocuments}
         onUpdate={handleDocsUpdate}
       />
+      </div>
     </div>
   );
 }
