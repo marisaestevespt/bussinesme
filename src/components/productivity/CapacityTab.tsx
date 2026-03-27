@@ -10,7 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Calculator, Clock, AlertTriangle, TrendingUp, ArrowRight, CheckCircle2, Plus, Trash2, UserPlus, Rocket } from 'lucide-react';
+import { Users, Calculator, Clock, AlertTriangle, TrendingUp, ArrowRight, CheckCircle2, Plus, Trash2, UserPlus, Rocket, Euro, ArrowUpRight } from 'lucide-react';
 import { HiringSimulator } from './CapacitySimulator';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -668,11 +668,145 @@ function CapacitySimulatorView({ members: teamMembers, entries, clients: allClie
 
       <Separator />
 
-      {/* ═══ PASSO 4: SIMULAÇÃO DE CONTRATAÇÃO ═══ */}
+      {/* ═══ PASSO 4: IMPACTO FINANCEIRO ═══ */}
       <div className="space-y-3">
         <div>
           <h3 className="text-sm font-semibold flex items-center gap-2">
             <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">4</div>
+            Impacto financeiro
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5 ml-8">Compara a faturação atual com a simulada para perceber o impacto de aceitar mais clientes.</p>
+        </div>
+
+        {items.length > 0 ? (() => {
+          const finData = items.map(item => {
+            const realCount = realClientCounts[item.product_name] || 0;
+            const simExtra = Number(item.current_clients);
+            const price = Number(item.price_per_client) || 0;
+            const currentRevenue = realCount * price;
+            const simRevenue = (realCount + simExtra) * price;
+            return {
+              product: item.product_name,
+              realCount,
+              simExtra,
+              price,
+              currentRevenue,
+              simRevenue,
+              diff: simRevenue - currentRevenue,
+            };
+          });
+          const totalCurrentMonthly = finData.reduce((s, f) => s + f.currentRevenue, 0);
+          const totalSimMonthly = finData.reduce((s, f) => s + f.simRevenue, 0);
+          const diffMonthly = totalSimMonthly - totalCurrentMonthly;
+          const diffAnnual = diffMonthly * 12;
+          const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+
+          return (
+            <div className="space-y-4">
+              {/* Summary cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <Card><CardContent className="p-4 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Faturação atual/mês</p>
+                  <p className="text-2xl font-bold tabular-nums">{fmt(totalCurrentMonthly)}</p>
+                  <p className="text-[10px] text-muted-foreground">{totalRealClients} clientes</p>
+                </CardContent></Card>
+                <Card className={diffMonthly > 0 ? 'border-primary/30 bg-primary/5' : ''}><CardContent className="p-4 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Faturação simulada/mês</p>
+                  <p className="text-2xl font-bold tabular-nums">{fmt(totalSimMonthly)}</p>
+                  <p className="text-[10px] text-muted-foreground">{totalRealClients + totalSimExtra} clientes</p>
+                </CardContent></Card>
+                <Card className={diffMonthly > 0 ? 'border-primary/30 bg-primary/5' : ''}><CardContent className="p-4 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Diferença mensal</p>
+                  <p className={`text-2xl font-bold tabular-nums ${diffMonthly > 0 ? 'text-primary' : diffMonthly < 0 ? 'text-destructive' : ''}`}>
+                    {diffMonthly > 0 ? '+' : ''}{fmt(diffMonthly)}
+                  </p>
+                </CardContent></Card>
+                <Card className={diffMonthly > 0 ? 'border-primary/30 bg-primary/5' : ''}><CardContent className="p-4 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Diferença anual</p>
+                  <p className={`text-2xl font-bold tabular-nums ${diffAnnual > 0 ? 'text-primary' : diffAnnual < 0 ? 'text-destructive' : ''}`}>
+                    {diffAnnual > 0 ? '+' : ''}{fmt(diffAnnual)}
+                  </p>
+                </CardContent></Card>
+              </div>
+
+              {/* Per-product table */}
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Produto</TableHead>
+                        <TableHead className="text-right">Preço/cliente</TableHead>
+                        <TableHead className="text-right">Clientes ativos</TableHead>
+                        <TableHead className="text-right">Simulados (+)</TableHead>
+                        <TableHead className="text-right">Faturação atual</TableHead>
+                        <TableHead className="text-right">Faturação simulada</TableHead>
+                        <TableHead className="text-right">Diferença</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {finData.map(f => (
+                        <TableRow key={f.product}>
+                          <TableCell className="font-medium text-sm">{f.product}</TableCell>
+                          <TableCell className="text-right text-sm tabular-nums">{fmt(f.price)}</TableCell>
+                          <TableCell className="text-right text-sm tabular-nums">{f.realCount}</TableCell>
+                          <TableCell className="text-right text-sm tabular-nums">{f.simExtra > 0 ? `+${f.simExtra}` : '—'}</TableCell>
+                          <TableCell className="text-right text-sm tabular-nums">{fmt(f.currentRevenue)}</TableCell>
+                          <TableCell className="text-right text-sm tabular-nums font-medium">{fmt(f.simRevenue)}</TableCell>
+                          <TableCell className={`text-right text-sm tabular-nums font-semibold ${f.diff > 0 ? 'text-primary' : ''}`}>
+                            {f.diff > 0 ? '+' : ''}{fmt(f.diff)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow className="border-t-2">
+                        <TableCell colSpan={4} className="text-sm font-semibold text-right">Total</TableCell>
+                        <TableCell className="text-right text-sm font-bold tabular-nums">{fmt(totalCurrentMonthly)}</TableCell>
+                        <TableCell className="text-right text-sm font-bold tabular-nums">{fmt(totalSimMonthly)}</TableCell>
+                        <TableCell className={`text-right text-sm font-bold tabular-nums ${diffMonthly > 0 ? 'text-primary' : diffMonthly < 0 ? 'text-destructive' : ''}`}>
+                          {diffMonthly > 0 ? '+' : ''}{fmt(diffMonthly)}
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              {/* Conclusion */}
+              {totalSimExtra > 0 && (
+                <Card className={diffMonthly > 0 ? 'border-primary/30 bg-primary/5' : 'border-muted'}>
+                  <CardContent className="p-4 flex items-start gap-3">
+                    <ArrowUpRight className={`h-5 w-5 shrink-0 mt-0.5 ${diffMonthly > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <div className="text-sm space-y-1">
+                      <p><strong>Com +{totalSimExtra} clientes</strong>, passarias a faturar <strong>{fmt(totalSimMonthly)}/mês</strong> ({fmt(diffAnnual > 0 ? diffAnnual : 0)}/ano a mais).</p>
+                      {hoursRemaining < 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          ⚠️ Mas precisas de mais {Math.abs(hoursRemaining)}h/mês de capacidade. Vê o passo 5 para simular contratações.
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {totalSimExtra === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-2">Simula +clientes no passo 2 para ver o impacto financeiro.</p>
+              )}
+            </div>
+          );
+        })() : (
+          <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">
+            Adiciona produtos no passo 2 para ver o impacto financeiro.
+          </CardContent></Card>
+        )}
+      </div>
+
+      <Separator />
+
+      {/* ═══ PASSO 5: SIMULAÇÃO DE CONTRATAÇÃO ═══ */}
+      <div className="space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">5</div>
             Simulação de contratação
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5 ml-8">Simula novas contratações e analisa o impacto na capacidade e custos.</p>
