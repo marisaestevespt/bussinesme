@@ -195,7 +195,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
           </Card>
         )}
 
-        <Card>
+        <Card id="fin-saidas-export">
           <CardContent className="p-0">
             <Table>
               <TableHeader>

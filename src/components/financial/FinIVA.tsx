@@ -2,10 +2,15 @@ import { useMemo, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Download } from 'lucide-react';
 import type { Expense } from '@/hooks/useFinancialData';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import { FinDocumentsUpload, type FinDocItem } from './FinDocumentsUpload';
+import { exportCsv } from '@/lib/exportCsv';
+import { exportPdf } from '@/lib/exportPdf';
+import { toast } from 'sonner';
 
 const FULL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
@@ -87,8 +92,21 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
   const cobradoDetail = cobradoMonth !== null ? ivaCobrado[cobradoMonth] : null;
   const pagoDetail = pagoMonth !== null ? ivaPago[pagoMonth] : null;
 
+  const handleExportCsv = () => {
+    const headers = ['Mês', 'IVA Cobrado', 'IVA Pago', 'Balanço'];
+    const rows = balanco.map(b => [b.mes, b.cobrado, b.pago, b.balanco]);
+    rows.push(['TOTAL', totalCobrado, totalPago, totalBalanco]);
+    exportCsv(`iva_${currentYear}.csv`, headers, rows);
+    toast.success('CSV exportado');
+  };
+
   return (
     <div className="space-y-6 mt-4">
+      <div className="flex items-center justify-end gap-2">
+        <Button size="sm" variant="outline" onClick={handleExportCsv}><Download className="h-3.5 w-3.5 mr-1" /> CSV</Button>
+        <Button size="sm" variant="outline" onClick={() => { exportPdf(`IVA — ${currentYear}`, 'fin-iva-export'); toast.success('PDF a gerar...'); }}><Download className="h-3.5 w-3.5 mr-1" /> PDF</Button>
+      </div>
+      <div id="fin-iva-export">
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm">IVA — {currentYear}</CardTitle>
