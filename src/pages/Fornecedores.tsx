@@ -119,6 +119,7 @@ export default function FornecedoresPage() {
           is_recurring: true,
           periodicity,
           monthly_equivalent: calcMonthlyEquivalent(base, periodicity),
+          recurrence_day: form.recurring_day || null,
           payment_method: form.payment_method || null,
           expense_date: date,
           expense_month: now.getMonth() + 1,
