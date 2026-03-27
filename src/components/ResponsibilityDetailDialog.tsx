@@ -74,11 +74,20 @@ function TaskDetail({ item, onClose }: { item: UnifiedItem; onClose: () => void 
   const { data: task } = useQuery({
     queryKey: ['task-detail', item.sourceId],
     queryFn: async () => {
-      const { data } = await supabase.from('tasks')
-        .select('*, profiles:assigned_to(full_name), planning_routines:routine_id(id, title, recurrence_type, weekday, month_day)')
+      const { data, error } = await supabase.from('tasks')
+        .select('*, planning_routines:routine_id(id, title, recurrence_type, weekday, month_day)')
         .eq('id', item.sourceId)
         .single();
-      return data;
+      if (error) throw error;
+      // Fetch profile name separately since there's no FK
+      if (data?.assigned_to) {
+        const { data: profile } = await supabase.from('profiles')
+          .select('full_name')
+          .eq('id', data.assigned_to)
+          .maybeSingle();
+        return { ...data, profiles: profile };
+      }
+      return { ...data, profiles: null };
     },
   });
 
