@@ -10,7 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Calculator, Clock, AlertTriangle, TrendingUp, ArrowRight, CheckCircle2, Plus, Trash2 } from 'lucide-react';
+import { Users, Calculator, Clock, AlertTriangle, TrendingUp, ArrowRight, CheckCircle2, Plus, Trash2, UserPlus } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -166,138 +166,6 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
   );
 }
 
-function GrowthScenarioSection({ members, clients, products }: { members: any[]; clients: any[]; products: Product[] }) {
-  const [newClients, setNewClients] = useState(5);
-  const [selectedProduct, setSelectedProduct] = useState(products[0]?.id || '');
-
-  const CLIENT_WORK_AREAS = ['cliente_servico', 'cliente_comercial', 'cliente_administrativo'];
-  const allActive = members.filter((m: any) => m.status === 'ativo' || m.status === 'prestador');
-  const clientFacingActive = allActive.filter((m: any) => {
-    const areas: string[] = Array.isArray(m.work_areas) ? m.work_areas : [];
-    return areas.some(a => CLIENT_WORK_AREAS.includes(a));
-  });
-  const activeMembers = clientFacingActive.length > 0 ? clientFacingActive : allActive;
-  const activeClients = clients.filter((c: any) => c.status === 'ativo');
-
-  const product = products.find((p: Product) => p.id === selectedProduct);
-  const hoursPerClient = product?.monthly_hours_per_client || 0;
-
-  const simulation = useMemo(() => {
-    const memberLoad: Record<string, { name: string; dept: string; capacity: number; committed: number; clients: number }> = {};
-    activeMembers.forEach((m: any) => {
-      const monthlyH = (Number(m.expected_weekly_hours) || 0) * WEEKS_PER_MONTH;
-      const assignedClients = activeClients.filter((c: any) => c.dp === m.full_name);
-      let committed = 0;
-      assignedClients.forEach((c: any) => {
-        const prod = products.find((p: Product) => p.name === c.current_product);
-        committed += prod?.monthly_hours_per_client || 0;
-      });
-      memberLoad[m.id] = { name: m.full_name, dept: m.department || '—', capacity: Math.round(monthlyH), committed, clients: assignedClients.length };
-    });
-
-    const totalNeededHours = newClients * hoursPerClient;
-    const totalFreeHours = Object.values(memberLoad).reduce((s, m) => s + Math.max(0, m.capacity - m.committed), 0);
-    const hoursDeficit = Math.max(0, totalNeededHours - totalFreeHours);
-    const membersNeeded = hoursDeficit > 0 ? Math.ceil(hoursDeficit / (40 * WEEKS_PER_MONTH * 0.7)) : 0;
-
-    const sortedMembers = Object.values(memberLoad).sort((a, b) => (b.capacity - b.committed) - (a.capacity - a.committed));
-
-    let remaining = newClients;
-    const distribution: { name: string; dept: string; newClients: number; newLoad: number; totalLoad: number; capacity: number }[] = [];
-    sortedMembers.forEach(m => {
-      if (remaining <= 0) return;
-      const freeH = Math.max(0, m.capacity - m.committed);
-      const canTake = hoursPerClient > 0 ? Math.floor(freeH / hoursPerClient) : 0;
-      const takes = Math.min(canTake, remaining);
-      if (takes > 0) {
-        distribution.push({ name: m.name, dept: m.dept, newClients: takes, newLoad: takes * hoursPerClient, totalLoad: m.committed + takes * hoursPerClient, capacity: m.capacity });
-        remaining -= takes;
-      }
-    });
-
-    return { totalNeededHours, totalFreeHours: Math.round(totalFreeHours), hoursDeficit: Math.round(hoursDeficit), membersNeeded, distribution, remainingUnassigned: remaining };
-  }, [activeMembers, activeClients, products, newClients, hoursPerClient]);
-
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2"><TrendingUp className="h-4 w-4" /> Cenário de crescimento</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex flex-wrap items-end gap-4">
-          <div>
-            <Label className="text-xs font-medium text-muted-foreground block mb-1">Novos clientes</Label>
-            <Input type="number" value={newClients} onChange={e => setNewClients(Number(e.target.value))} className="h-8 w-24 text-sm" min={1} />
-          </div>
-          <div>
-            <Label className="text-xs font-medium text-muted-foreground block mb-1">Produto</Label>
-            <Select value={selectedProduct} onValueChange={setSelectedProduct}>
-              <SelectTrigger className="h-8 w-48 text-sm"><SelectValue placeholder="Selecionar produto" /></SelectTrigger>
-              <SelectContent>
-                {products.map((p: Product) => (
-                  <SelectItem key={p.id} value={p.id}>{p.name} ({p.monthly_hours_per_client || 0}h/mês)</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="text-sm text-muted-foreground pb-1">
-            = <strong>{simulation.totalNeededHours}h/mês</strong> necessárias
-          </div>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-4">
-          <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Horas necessárias</p><p className="text-lg font-bold">{simulation.totalNeededHours}h</p></div>
-          <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Horas livres na equipa</p><p className="text-lg font-bold">{simulation.totalFreeHours}h</p></div>
-          <div className={`rounded-lg border p-3 ${simulation.hoursDeficit > 0 ? 'border-destructive/50' : ''}`}><p className="text-xs text-muted-foreground">Défice</p><p className={`text-lg font-bold ${simulation.hoursDeficit > 0 ? 'text-destructive' : 'text-foreground'}`}>{simulation.hoursDeficit > 0 ? `${simulation.hoursDeficit}h` : 'Nenhum'}</p></div>
-          <div className={`rounded-lg border p-3 ${simulation.membersNeeded > 0 ? 'border-primary/50 bg-primary/5' : ''}`}><p className="text-xs text-muted-foreground">Contratações necessárias</p><p className="text-lg font-bold">{simulation.membersNeeded}</p></div>
-        </div>
-
-        {simulation.distribution.length > 0 && (
-          <Table>
-            <TableHeader><TableRow>
-              <TableHead>Membro</TableHead><TableHead>Departamento</TableHead><TableHead className="text-right">Novos clientes</TableHead><TableHead className="text-right">+Horas</TableHead><TableHead className="text-right">Carga total</TableHead><TableHead className="text-right">Capacidade</TableHead><TableHead>Ocupação</TableHead>
-            </TableRow></TableHeader>
-            <TableBody>
-              {simulation.distribution.map((d, i) => {
-                const pct = d.capacity > 0 ? Math.round((d.totalLoad / d.capacity) * 100) : 0;
-                return (
-                  <TableRow key={i}>
-                    <TableCell className="text-sm font-medium">{d.name}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{d.dept}</TableCell>
-                    <TableCell className="text-sm text-right">+{d.newClients}</TableCell>
-                    <TableCell className="text-sm text-right">+{d.newLoad}h</TableCell>
-                    <TableCell className="text-sm text-right">{d.totalLoad}h</TableCell>
-                    <TableCell className="text-sm text-right">{d.capacity}h</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-2 w-16 rounded-full overflow-hidden bg-muted">
-                          <div className={`h-full rounded-full ${pct > 100 ? 'bg-destructive' : pct > 85 ? 'bg-amber-500' : 'bg-primary'}`} style={{ width: `${Math.min(pct, 100)}%` }} />
-                        </div>
-                        <span className="text-xs">{pct}%</span>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        )}
-
-        {simulation.remainingUnassigned > 0 && (
-          <div className="rounded-lg border border-amber-400/50 bg-amber-50/50 dark:bg-amber-950/20 p-3 text-sm">
-            <p className="font-medium text-amber-700 dark:text-amber-400">
-              ⚠ {simulation.remainingUnassigned} cliente{simulation.remainingUnassigned > 1 ? 's' : ''} sem capacidade na equipa atual.
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Será necessário contratar {simulation.membersNeeded} pessoa{simulation.membersNeeded > 1 ? 's' : ''} para absorver a carga adicional de {simulation.hoursDeficit}h/mês.
-            </p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
 function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, products: allProductsRaw, scenario: scenarioData, scenarioProducts: scenarioProductsRawData }: {
   members: any[]; clients: any[]; products: any[]; scenario: any; scenarioProducts: any[];
 }) {
@@ -342,6 +210,7 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
     };
   }, [scenarioProductsRaw.data, allProducts]);
 
+  // ─── Client-facing selection ───
   const [clientFacingIds, setClientFacingIds] = useState<Set<string>>(new Set());
   const [cfInitialized, setCfInitialized] = useState(false);
 
@@ -357,50 +226,58 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
     setCfInitialized(true);
   }
 
+  // ─── Overhead in HOURS per member ───
   const [memberOverhead, setMemberOverhead] = useState<Record<string, { admin: number; business: number }>>({});
   const [overheadInitialized, setOverheadInitialized] = useState(false);
 
   if (members.length > 0 && scenario.data && !overheadInitialized) {
-    const defaultAdmin = Number(scenario.data.admin_percent) || 20;
-    const defaultBusiness = Number(scenario.data.business_percent) || 0;
     const saved = (scenario.data as any).member_overheads;
     const initial: Record<string, { admin: number; business: number }> = {};
     for (const m of members) {
-      if (saved && saved[m.id]) initial[m.id] = saved[m.id];
-      else initial[m.id] = { admin: defaultAdmin, business: defaultBusiness };
+      const monthlyH = Math.round((Number(m.expected_weekly_hours) || 0) * WEEKS_PER_MONTH);
+      if (saved && saved[m.id]) {
+        const s = saved[m.id];
+        // Migrate from % to hours: if values look like percentages (both < 100 and monthlyH > 100), convert
+        if (s.admin <= 100 && s.business <= 100 && monthlyH > 100) {
+          initial[m.id] = { admin: Math.round(monthlyH * s.admin / 100), business: Math.round(monthlyH * s.business / 100) };
+        } else if (s.admin <= 100 && s.business <= 100 && monthlyH <= 100) {
+          // Could be either; if admin+business < monthlyH treat as hours, else as %
+          if (s.admin + s.business <= monthlyH) initial[m.id] = s;
+          else initial[m.id] = { admin: Math.round(monthlyH * s.admin / 100), business: Math.round(monthlyH * s.business / 100) };
+        } else {
+          initial[m.id] = s;
+        }
+      } else {
+        // Default: 20% of monthly hours for admin, 0 for business
+        initial[m.id] = { admin: Math.round(monthlyH * 0.2), business: 0 };
+      }
     }
     setMemberOverhead(initial);
     setOverheadInitialized(true);
   }
 
   const setMemberAdmin = (id: string, val: number) => {
-    setMemberOverhead(prev => ({ ...prev, [id]: { ...prev[id], admin: val, business: prev[id]?.business || 0 } }));
+    setMemberOverhead(prev => ({ ...prev, [id]: { ...prev[id], admin: Math.max(0, val), business: prev[id]?.business || 0 } }));
   };
   const setMemberBusiness = (id: string, val: number) => {
-    setMemberOverhead(prev => ({ ...prev, [id]: { admin: prev[id]?.admin || 0, business: val } }));
+    setMemberOverhead(prev => ({ ...prev, [id]: { admin: prev[id]?.admin || 0, business: Math.max(0, val) } }));
   };
 
+  // ─── Computed values ───
   const clientFacingMembers = useMemo(() => members.filter(m => clientFacingIds.has(m.id)), [members, clientFacingIds]);
-  const clientFacingMonthlyHours = useMemo(() => clientFacingMembers.reduce((sum, m) => sum + (Number(m.expected_weekly_hours) || 0) * WEEKS_PER_MONTH, 0), [clientFacingMembers]);
 
-  const availableHours = useMemo(() => {
-    return clientFacingMembers.reduce((sum, m) => {
+  const teamSummary = useMemo(() => {
+    let totalMonthly = 0, totalAdmin = 0, totalBusiness = 0;
+    clientFacingMembers.forEach(m => {
       const monthlyH = (Number(m.expected_weekly_hours) || 0) * WEEKS_PER_MONTH;
-      const oh = memberOverhead[m.id] || { admin: 20, business: 0 };
-      return sum + monthlyH * (1 - Math.min(oh.admin + oh.business, 100) / 100);
-    }, 0);
+      const oh = memberOverhead[m.id] || { admin: 0, business: 0 };
+      totalMonthly += monthlyH;
+      totalAdmin += oh.admin;
+      totalBusiness += oh.business;
+    });
+    const available = Math.max(0, totalMonthly - totalAdmin - totalBusiness);
+    return { totalMonthly: Math.round(totalMonthly), totalAdmin: Math.round(totalAdmin), totalBusiness: Math.round(totalBusiness), available: Math.round(available) };
   }, [clientFacingMembers, memberOverhead]);
-
-  const totalOverheadHours = useMemo(() => {
-    return clientFacingMembers.reduce((sum, m) => {
-      const monthlyH = (Number(m.expected_weekly_hours) || 0) * WEEKS_PER_MONTH;
-      const oh = memberOverhead[m.id] || { admin: 20, business: 0 };
-      return sum + monthlyH * (Math.min(oh.admin + oh.business, 100) / 100);
-    }, 0);
-  }, [clientFacingMembers, memberOverhead]);
-
-  const effectiveTeamSize = members.length;
-  const effectiveClientFacing = clientFacingMembers.length;
 
   const realClientCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -412,6 +289,7 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
     return counts;
   }, [allClients]);
 
+  // ─── Mutations ───
   const ensureScenario = useMutation({
     mutationFn: async () => {
       if (scenario.data) return scenario.data.id;
@@ -427,12 +305,14 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
       let scenarioId = scenario.data?.id;
       if (!scenarioId) scenarioId = await ensureScenario.mutateAsync();
       const { error } = await supabase.from('capacity_scenarios').update({
-        useful_hours_per_month: Math.round(clientFacingMonthlyHours), admin_percent: 0, business_percent: 0,
-        team_size: effectiveTeamSize, client_facing_count: effectiveClientFacing, member_overheads: memberOverhead,
+        useful_hours_per_month: teamSummary.available,
+        team_size: members.length,
+        client_facing_count: clientFacingMembers.length,
+        member_overheads: memberOverhead,
       } as any).eq('id', scenarioId);
       if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['capacity-scenario'] }); toast.success('Definições guardadas'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['capacity-scenario'] }); toast.success('Parâmetros guardados'); },
   });
 
   const addProduct = useMutation({
@@ -467,219 +347,313 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
 
   const items = scenarioProducts.data || [];
   const totalHoursUsed = items.reduce((sum, p) => sum + (Number(p.hours_per_client_month) * Number(p.current_clients)), 0);
-  const hoursRemaining = availableHours - totalHoursUsed;
-  const capacityPercent = availableHours > 0 ? Math.round((totalHoursUsed / availableHours) * 100) : 0;
-
-  const currentRevenue = items.reduce((sum, p) => sum + (Number(p.price_per_client || 0) * Number(p.current_clients)), 0);
-
-  const maxRevenue = useMemo(() => {
-    if (items.length === 0) return 0;
-    const totalCurrentClients = items.reduce((s, p) => s + Number(p.current_clients), 0);
-    if (totalCurrentClients === 0) {
-      let best = 0;
-      for (const p of items) { const hpc = Number(p.hours_per_client_month); const price = Number(p.price_per_client || 0); if (hpc > 0) best = Math.max(best, Math.floor(availableHours / hpc) * price); }
-      return best;
-    }
-    const weights = items.map(p => ({ hpc: Number(p.hours_per_client_month), price: Number(p.price_per_client || 0), ratio: Number(p.current_clients) / totalCurrentClients }));
-    const hoursPerUnit = weights.reduce((s, w) => s + w.hpc * w.ratio, 0);
-    const revenuePerUnit = weights.reduce((s, w) => s + w.price * w.ratio, 0);
-    if (hoursPerUnit <= 0) return currentRevenue;
-    return Math.round(revenuePerUnit * Math.floor(availableHours / hoursPerUnit));
-  }, [items, availableHours, currentRevenue]);
+  const hoursRemaining = teamSummary.available - totalHoursUsed;
+  const capacityPercent = teamSummary.available > 0 ? Math.round((totalHoursUsed / teamSummary.available) * 100) : 0;
+  const totalSimClients = items.reduce((s, p) => s + Number(p.current_clients), 0);
 
   const addedProductIds = items.map(p => p.product_id);
   const availableToAdd = allProducts.filter((p: Product) => !addedProductIds.includes(p.id));
-  const clientHours = Math.round(availableHours);
 
+  // ─── RENDER ───
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
-      <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><Clock className="h-4 w-4" /> Parâmetros base</CardTitle></CardHeader>
-        <CardContent className="space-y-5">
-          <div className="space-y-3">
-            <Label className="text-xs font-medium flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Equipa ({effectiveTeamSize} membros)</Label>
-            <p className="text-[10px] text-muted-foreground">Membros com área de trabalho de cliente são pré-selecionados automaticamente. Podes ajustar manualmente.</p>
-            <div className="space-y-2 max-h-[400px] overflow-y-auto">
-              {members.map(m => {
-                const weeklyH = Number(m.expected_weekly_hours) || 0;
-                const monthlyH = Math.round(weeklyH * WEEKS_PER_MONTH);
-                const isSelected = clientFacingIds.has(m.id);
-                const oh = memberOverhead[m.id] || { admin: 20, business: 0 };
-                const totalOh = Math.min(oh.admin + oh.business, 100);
-                const availH = Math.round(monthlyH * (1 - totalOh / 100));
-                return (
-                  <div key={m.id} className={`rounded-lg border p-2.5 space-y-2 ${isSelected ? 'border-primary/30 bg-primary/5' : 'opacity-60'}`}>
-                    <label className="flex items-center gap-2 cursor-pointer text-sm">
-                      <Checkbox checked={isSelected} onCheckedChange={(checked) => { const next = new Set(clientFacingIds); if (checked) next.add(m.id); else next.delete(m.id); setClientFacingIds(next); }} />
-                      <span className="flex-1 truncate font-medium">{m.full_name}</span>
-                      <span className="text-xs text-muted-foreground tabular-nums">{weeklyH}h/sem ≈ {monthlyH}h/mês</span>
-                    </label>
-                    {isSelected && (
-                      <div className="grid grid-cols-3 gap-2 pl-6">
-                        <div className="space-y-0.5"><Label className="text-[9px] text-muted-foreground">Admin %</Label><Input type="number" className="h-6 text-xs" min={0} max={100} value={oh.admin} onChange={e => setMemberAdmin(m.id, Math.min(Number(e.target.value), 100))} /></div>
-                        <div className="space-y-0.5"><Label className="text-[9px] text-muted-foreground">Negócio %</Label><Input type="number" className="h-6 text-xs" min={0} max={100} value={oh.business} onChange={e => setMemberBusiness(m.id, Math.min(Number(e.target.value), 100))} /></div>
-                        <div className="space-y-0.5"><Label className="text-[9px] text-muted-foreground">Disponível</Label><div className="h-6 flex items-center text-xs font-medium text-primary">{availH}h</div></div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-              {members.length === 0 && <p className="text-xs text-muted-foreground py-2">Nenhum membro ativo encontrado</p>}
-            </div>
-            <div className="rounded-md bg-muted/50 px-3 py-2 space-y-1">
-              <div className="flex justify-between text-xs"><span className="text-muted-foreground">{effectiveClientFacing} em entrega</span><span className="font-medium">{Math.round(clientFacingMonthlyHours)}h/mês bruto</span></div>
-              <div className="flex justify-between text-xs"><span className="text-muted-foreground">Overhead total</span><span className="font-medium">−{Math.round(totalOverheadHours)}h</span></div>
-              <div className="flex justify-between text-sm font-bold border-t pt-1"><span>Horas para clientes</span><span className="text-primary">{clientHours}h</span></div>
-            </div>
+    <div className="space-y-8">
+      {/* ═══ PASSO 1: EQUIPA ═══ */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">1</div>
+              Horas da equipa para clientes
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5 ml-8">Define quanto tempo cada membro gasta com admin e negócio. O resto fica disponível para clientes.</p>
           </div>
-          <Button size="sm" className="w-full" onClick={() => saveSettings.mutate()}>Guardar parâmetros</Button>
-        </CardContent>
-      </Card>
-
-      <div className="lg:col-span-2 space-y-4">
-        <div className="grid grid-cols-3 gap-4">
-          <Card><CardContent className="p-4 text-center"><p className="text-xs text-muted-foreground">Horas usadas</p><p className="text-2xl font-bold">{totalHoursUsed.toFixed(0)}h</p><p className="text-[10px] text-muted-foreground">de {availableHours.toFixed(0)}h disponíveis</p></CardContent></Card>
-          <Card><CardContent className="p-4 text-center"><p className="text-xs text-muted-foreground">Ocupação</p><p className={`text-2xl font-bold ${capacityPercent > 90 ? 'text-destructive' : capacityPercent > 70 ? 'text-amber-500' : 'text-foreground'}`}>{capacityPercent}%</p><Progress value={Math.min(capacityPercent, 100)} className="h-2 mt-1" /></CardContent></Card>
-          <Card><CardContent className="p-4 text-center"><p className="text-xs text-muted-foreground">Horas livres</p><p className={`text-2xl font-bold ${hoursRemaining < 0 ? 'text-destructive' : 'text-foreground'}`}>{hoursRemaining.toFixed(0)}h</p>{hoursRemaining < 0 && <p className="text-[10px] text-destructive font-medium">Sobre-capacidade!</p>}</CardContent></Card>
+          <Button size="sm" variant="outline" onClick={() => saveSettings.mutate()} disabled={saveSettings.isPending}>Guardar</Button>
         </div>
 
-        {items.some(p => Number(p.price_per_client || 0) > 0) && (
-          <Card>
-            <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><TrendingUp className="h-4 w-4" /> Projeção de faturação mensal</CardTitle></CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-4">
-                <div className="flex-1 rounded-lg border p-4 text-center">
-                  <p className="text-xs text-muted-foreground">Faturação atual</p>
-                  <p className="text-2xl font-bold">{currentRevenue.toLocaleString('pt-PT')}€</p>
-                  <p className="text-[10px] text-muted-foreground">{items.reduce((s, p) => s + Number(p.current_clients), 0)} clientes</p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />
-                <div className="flex-1 rounded-lg border p-4 text-center border-primary/30 bg-primary/5">
-                  <p className="text-xs text-muted-foreground">Se lotares a capacidade</p>
-                  <p className="text-2xl font-bold text-primary">{maxRevenue.toLocaleString('pt-PT')}€</p>
-                  {maxRevenue > currentRevenue && <p className="text-[10px] text-muted-foreground">+{(maxRevenue - currentRevenue).toLocaleString('pt-PT')}€ potencial</p>}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         <Card>
-          <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><Calculator className="h-4 w-4" /> Produtos no simulador</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            {items.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">Adiciona produtos para simular a capacidade</p>
-            ) : (
-              <div className="space-y-3">
-                {items.map(item => {
-                  const hpc = Number(item.hours_per_client_month);
-                  const currentClients = Number(item.current_clients);
-                  const hoursUsed = hpc * currentClients;
-                  const extraByHours = hpc > 0 && hoursRemaining > 0 ? Math.floor(hoursRemaining / hpc) : 0;
-                  const realCount = realClientCounts[item.product_name] || 0;
-                  const itemRevenue = Number(item.price_per_client || 0) * currentClients;
-                  const sourceProduct = allProducts.find((p: Product) => p.id === item.product_id);
-                  const maxClients = (sourceProduct as any)?.max_simultaneous_clients as number | null;
-                  const extraByMax = maxClients != null && maxClients > 0 ? Math.max(0, maxClients - currentClients) : Infinity;
-                  const extraPossible = Math.min(extraByHours, extraByMax);
-                  const atCapacity = maxClients != null && maxClients > 0 && currentClients >= maxClients;
-
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-8"></TableHead>
+                  <TableHead>Membro</TableHead>
+                  <TableHead className="text-right w-28">Horas/mês</TableHead>
+                  <TableHead className="text-right w-28">Admin (h)</TableHead>
+                  <TableHead className="text-right w-28">Negócio (h)</TableHead>
+                  <TableHead className="text-right w-32">Disponível p/ clientes</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {members.map(m => {
+                  const weeklyH = Number(m.expected_weekly_hours) || 0;
+                  const monthlyH = Math.round(weeklyH * WEEKS_PER_MONTH);
+                  const isSelected = clientFacingIds.has(m.id);
+                  const oh = memberOverhead[m.id] || { admin: 0, business: 0 };
+                  const availH = Math.max(0, monthlyH - oh.admin - oh.business);
                   return (
-                    <div key={item.id} className={`rounded-lg border p-4 space-y-3 ${atCapacity ? 'border-amber-400/60 bg-amber-50/30' : ''}`}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-medium text-sm">{item.product_name}</h4>
-                          {itemRevenue > 0 && <Badge variant="secondary" className="text-[10px]">{itemRevenue.toLocaleString('pt-PT')}€/mês</Badge>}
-                          {maxClients != null && maxClients > 0 && (
-                            <Badge variant={atCapacity ? 'destructive' : 'outline'} className="text-[10px]">
-                              {currentClients}/{maxClients} máx.
-                            </Badge>
-                          )}
-                        </div>
-                        <button onClick={() => deleteScenarioProduct.mutate(item.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
-                      </div>
-                      <div className="grid grid-cols-6 gap-3">
-                        <div className="space-y-1">
-                          <Label className="text-[10px]">Horas/cliente/mês</Label>
-                          <Input type="number" className="h-7 text-sm" defaultValue={hpc} onBlur={e => { const val = parseFloat(e.target.value); if (!isNaN(val) && val !== hpc) updateScenarioProduct.mutate({ id: item.id, hours_per_client_month: val }); }} />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px]">€/cliente/mês</Label>
-                          <Input type="number" className="h-7 text-sm" defaultValue={Number(item.price_per_client || 0)} onBlur={e => updateScenarioProduct.mutate({ id: item.id, price_per_client: Number(e.target.value) })} />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px]">Clientes reais</Label>
-                          <div className="h-7 flex items-center gap-1.5">
-                            <span className="text-sm font-semibold">{realCount}</span>
-                            <Button size="sm" variant="ghost" className="h-5 px-1.5 text-[10px]" onClick={() => updateScenarioProduct.mutate({ id: item.id, current_clients: realCount })}>Usar</Button>
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px]">Carga atual</Label>
-                          <div className="h-7 flex items-center">
-                            <span className={`text-sm font-semibold ${hoursUsed > 0 ? 'text-foreground' : 'text-muted-foreground'}`}>{hoursUsed.toFixed(0)}h/mês</span>
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px]">Simular c/ clientes</Label>
-                          <Input type="number" className="h-7 text-sm" defaultValue={currentClients} onBlur={e => updateScenarioProduct.mutate({ id: item.id, current_clients: Number(e.target.value) })} />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px]">Podes aceitar +</Label>
-                          <div className="h-7 flex items-center"><span className={`text-sm font-semibold flex items-center gap-1 ${extraPossible === 0 ? 'text-muted-foreground' : 'text-primary'}`}><Users className="h-3 w-3" /> {extraPossible}</span></div>
-                        </div>
-                      </div>
-                    </div>
+                    <TableRow key={m.id} className={!isSelected ? 'opacity-40' : ''}>
+                      <TableCell>
+                        <Checkbox checked={isSelected} onCheckedChange={(checked) => {
+                          const next = new Set(clientFacingIds);
+                          if (checked) next.add(m.id); else next.delete(m.id);
+                          setClientFacingIds(next);
+                        }} />
+                      </TableCell>
+                      <TableCell className="font-medium text-sm">{m.full_name}</TableCell>
+                      <TableCell className="text-right tabular-nums text-sm text-muted-foreground">{monthlyH}h</TableCell>
+                      <TableCell className="text-right">
+                        {isSelected ? (
+                          <Input type="number" className="h-7 w-20 text-sm text-right ml-auto" min={0} max={monthlyH}
+                            value={oh.admin} onChange={e => setMemberAdmin(m.id, Number(e.target.value))} />
+                        ) : <span className="text-sm text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {isSelected ? (
+                          <Input type="number" className="h-7 w-20 text-sm text-right ml-auto" min={0} max={monthlyH}
+                            value={oh.business} onChange={e => setMemberBusiness(m.id, Number(e.target.value))} />
+                        ) : <span className="text-sm text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className={`text-sm font-semibold tabular-nums ${isSelected ? 'text-primary' : 'text-muted-foreground'}`}>{isSelected ? `${availH}h` : '—'}</span>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-              </div>
-            )}
-
-            {availableToAdd.length > 0 && (
-              <>
-                <Separator />
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">Adicionar produto</p>
-                  <div className="flex flex-wrap gap-2">
-                    {availableToAdd.map((p: Product) => (
-                      <Button key={p.id} size="sm" variant="outline" className="text-xs h-7 gap-1" onClick={() => addProduct.mutate(p)}><Plus className="h-3 w-3" /> {p.name}</Button>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
+                {members.length === 0 && (
+                  <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-6">Nenhum membro ativo</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
 
+        {/* Team summary */}
+        <div className="grid grid-cols-4 gap-3">
+          <div className="rounded-lg border bg-muted/30 p-3 text-center">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Total bruto</p>
+            <p className="text-lg font-bold tabular-nums">{teamSummary.totalMonthly}h</p>
+          </div>
+          <div className="rounded-lg border bg-muted/30 p-3 text-center">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Admin</p>
+            <p className="text-lg font-bold tabular-nums">−{teamSummary.totalAdmin}h</p>
+          </div>
+          <div className="rounded-lg border bg-muted/30 p-3 text-center">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Negócio</p>
+            <p className="text-lg font-bold tabular-nums">−{teamSummary.totalBusiness}h</p>
+          </div>
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-center">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Para clientes</p>
+            <p className="text-lg font-bold tabular-nums text-primary">{teamSummary.available}h</p>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* ═══ PASSO 2: PRODUTOS & CLIENTES ═══ */}
+      <div className="space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">2</div>
+            Produtos e clientes
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5 ml-8">Quantos clientes tens (ou queres simular) em cada produto.</p>
+        </div>
+
         {items.length > 0 && (
-          <Card className={hoursRemaining < 0 ? 'border-destructive/50 bg-destructive/5' : 'border-primary/30 bg-primary/5'}>
-            <CardContent className="p-4 flex items-start gap-3">
-              {hoursRemaining < 0 ? <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" /> : <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />}
-              <div className="text-sm space-y-1">
-                {hoursRemaining < 0 ? (
-                  <p>Estás <strong>{Math.abs(hoursRemaining).toFixed(0)}h acima</strong> da capacidade mensal. Considera ajustar a carga ou expandir a equipa.</p>
-                ) : hoursRemaining < 10 ? (
-                  <p>Capacidade <strong>quase no limite</strong> — apenas {hoursRemaining.toFixed(0)}h livres por mês.</p>
-                ) : (
-                  <>
-                    <p>Tens <strong>{hoursRemaining.toFixed(0)}h livres</strong> por mês. Com essa margem podes aceitar:</p>
-                    <ul className="text-xs text-muted-foreground space-y-0.5 mt-1">
-                      {items.filter(p => Number(p.hours_per_client_month) > 0).map(p => {
-                        const extra = Math.floor(hoursRemaining / Number(p.hours_per_client_month));
-                        return (
-                          <li key={p.id}><strong>+{extra}</strong> clientes de <em>{p.product_name}</em>{Number(p.price_per_client || 0) > 0 && <span className="text-muted-foreground"> (+{(extra * Number(p.price_per_client)).toLocaleString('pt-PT')}€/mês)</span>}</li>
-                        );
-                      })}
-                    </ul>
-                    <p className="text-[10px] text-muted-foreground mt-1">(valores exclusivos — aceitar clientes de um produto reduz espaço para outros)</p>
-                  </>
-                )}
-              </div>
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Produto</TableHead>
+                    <TableHead className="text-right w-28">h/cliente/mês</TableHead>
+                    <TableHead className="text-right w-24">Clientes reais</TableHead>
+                    <TableHead className="text-right w-28">Simular com</TableHead>
+                    <TableHead className="text-right w-24">Máximo</TableHead>
+                    <TableHead className="text-right w-28">Horas consumidas</TableHead>
+                    <TableHead className="text-right w-24">Podes aceitar +</TableHead>
+                    <TableHead className="w-8"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {items.map(item => {
+                    const hpc = Number(item.hours_per_client_month);
+                    const currentClients = Number(item.current_clients);
+                    const hoursUsed = hpc * currentClients;
+                    const realCount = realClientCounts[item.product_name] || 0;
+                    const sourceProduct = allProducts.find((p: Product) => p.id === item.product_id);
+                    const maxClients = (sourceProduct as any)?.max_simultaneous_clients as number | null;
+                    const extraByHours = hpc > 0 && hoursRemaining > 0 ? Math.floor(hoursRemaining / hpc) : 0;
+                    const extraByMax = maxClients != null && maxClients > 0 ? Math.max(0, maxClients - currentClients) : Infinity;
+                    const extraPossible = Math.min(extraByHours, extraByMax);
+                    const atCapacity = maxClients != null && maxClients > 0 && currentClients >= maxClients;
+
+                    return (
+                      <TableRow key={item.id} className={atCapacity ? 'bg-destructive/5' : ''}>
+                        <TableCell className="font-medium text-sm">{item.product_name}</TableCell>
+                        <TableCell className="text-right">
+                          <Input type="number" className="h-7 w-20 text-sm text-right ml-auto" defaultValue={hpc}
+                            onBlur={e => { const val = parseFloat(e.target.value); if (!isNaN(val) && val !== hpc) updateScenarioProduct.mutate({ id: item.id, hours_per_client_month: val }); }} />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <span className="text-sm tabular-nums">{realCount}</span>
+                            <Button size="sm" variant="ghost" className="h-5 px-1.5 text-[10px]" onClick={() => updateScenarioProduct.mutate({ id: item.id, current_clients: realCount })}>Usar</Button>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Input type="number" className="h-7 w-20 text-sm text-right ml-auto" defaultValue={currentClients}
+                            onBlur={e => updateScenarioProduct.mutate({ id: item.id, current_clients: Number(e.target.value) })} />
+                        </TableCell>
+                        <TableCell className="text-right text-sm tabular-nums">
+                          {maxClients != null && maxClients > 0 ? (
+                            <Badge variant={atCapacity ? 'destructive' : 'outline'} className="text-[10px]">{maxClients}</Badge>
+                          ) : <span className="text-muted-foreground">—</span>}
+                        </TableCell>
+                        <TableCell className="text-right text-sm tabular-nums font-medium">{hoursUsed}h</TableCell>
+                        <TableCell className="text-right">
+                          <span className={`text-sm font-semibold tabular-nums ${extraPossible === 0 ? 'text-muted-foreground' : 'text-primary'}`}>+{extraPossible}</span>
+                        </TableCell>
+                        <TableCell>
+                          <button onClick={() => deleteScenarioProduct.mutate(item.id)} className="text-muted-foreground hover:text-destructive">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         )}
 
-        <GrowthScenarioSection members={members} clients={allClients} products={allProducts} />
+        {items.length === 0 && (
+          <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">Adiciona produtos abaixo para simular a capacidade</CardContent></Card>
+        )}
+
+        {availableToAdd.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            <span className="text-xs text-muted-foreground self-center mr-1">Adicionar:</span>
+            {availableToAdd.map((p: Product) => (
+              <Button key={p.id} size="sm" variant="outline" className="text-xs h-7 gap-1" onClick={() => addProduct.mutate(p)}>
+                <Plus className="h-3 w-3" /> {p.name}
+              </Button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <Separator />
+
+      {/* ═══ PASSO 3: DIAGNÓSTICO ═══ */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">3</div>
+            Diagnóstico
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5 ml-8">Resultado da simulação com os dados acima.</p>
+        </div>
+
+        {items.length > 0 ? (
+          <>
+            {/* Summary cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Card><CardContent className="p-4 text-center">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Clientes simulados</p>
+                <p className="text-2xl font-bold">{totalSimClients}</p>
+              </CardContent></Card>
+              <Card><CardContent className="p-4 text-center">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Horas ocupadas</p>
+                <p className="text-2xl font-bold tabular-nums">{totalHoursUsed}h</p>
+                <p className="text-[10px] text-muted-foreground">de {teamSummary.available}h</p>
+              </CardContent></Card>
+              <Card><CardContent className="p-4 text-center">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Ocupação</p>
+                <p className={`text-2xl font-bold ${capacityPercent > 90 ? 'text-destructive' : capacityPercent > 70 ? 'text-amber-600' : 'text-foreground'}`}>{capacityPercent}%</p>
+                <Progress value={Math.min(capacityPercent, 100)} className="h-2 mt-1" />
+              </CardContent></Card>
+              <Card><CardContent className="p-4 text-center">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Horas livres</p>
+                <p className={`text-2xl font-bold ${hoursRemaining < 0 ? 'text-destructive' : 'text-foreground'}`}>{hoursRemaining}h</p>
+                {hoursRemaining < 0 && <p className="text-[10px] text-destructive font-medium">Sobre-capacidade!</p>}
+              </CardContent></Card>
+            </div>
+
+            {/* Conclusion */}
+            <Card className={hoursRemaining < 0 ? 'border-destructive/50 bg-destructive/5' : hoursRemaining < 20 ? 'border-amber-400/50 bg-amber-50/30' : 'border-primary/30 bg-primary/5'}>
+              <CardContent className="p-4 flex items-start gap-3">
+                {hoursRemaining < 0 ? (
+                  <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                ) : (
+                  <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                )}
+                <div className="text-sm space-y-2">
+                  {hoursRemaining < 0 ? (
+                    <>
+                      <p><strong>Capacidade esgotada.</strong> Estás {Math.abs(hoursRemaining)}h acima do que a equipa consegue entregar.</p>
+                      <p className="text-xs text-muted-foreground">
+                        💡 Opções: reduzir clientes, delegar tarefas admin, ou contratar alguém com ~{Math.abs(hoursRemaining)}h/mês disponíveis.
+                      </p>
+                    </>
+                  ) : hoursRemaining < 20 ? (
+                    <>
+                      <p><strong>Quase no limite.</strong> Só tens {hoursRemaining}h livres por mês.</p>
+                      <p className="text-xs text-muted-foreground">
+                        💡 Antes de aceitar mais clientes, considera delegar horas de admin ou preparar uma contratação.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p><strong>Tens margem.</strong> {hoursRemaining}h livres por mês. Podes aceitar mais clientes:</p>
+                      <ul className="text-xs text-muted-foreground space-y-0.5 mt-1">
+                        {items.filter(p => Number(p.hours_per_client_month) > 0).map(p => {
+                          const hpc = Number(p.hours_per_client_month);
+                          const sourceP = allProducts.find((pr: Product) => pr.id === p.product_id);
+                          const maxC = (sourceP as any)?.max_simultaneous_clients as number | null;
+                          const extraH = Math.floor(hoursRemaining / hpc);
+                          const extraM = maxC != null && maxC > 0 ? Math.max(0, maxC - Number(p.current_clients)) : Infinity;
+                          const extra = Math.min(extraH, extraM);
+                          const limited = extraM < extraH && maxC != null;
+                          return (
+                            <li key={p.id}>
+                              <strong>+{extra}</strong> clientes de <em>{p.product_name}</em>
+                              {limited && <span className="text-amber-600"> (limitado pelo máximo de {maxC})</span>}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                      <p className="text-[10px] text-muted-foreground mt-1">(valores exclusivos — aceitar de um produto reduz espaço para outros)</p>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* If over capacity, show hiring suggestion */}
+            {hoursRemaining < 0 && (
+              <Card className="border-primary/30 bg-primary/5">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <UserPlus className="h-5 w-5 text-primary shrink-0" />
+                    <div className="text-sm">
+                      <p className="font-medium">Precisas de mais ~{Math.abs(hoursRemaining)}h/mês</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Isso equivale a contratar alguém a {Math.abs(hoursRemaining) <= 80 ? 'part-time' : 'full-time'} (~{Math.ceil(Math.abs(hoursRemaining) / WEEKS_PER_MONTH)}h/semana).
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </>
+        ) : (
+          <Card><CardContent className="p-6 text-center text-sm text-muted-foreground">
+            Adiciona produtos no passo 2 para ver o diagnóstico.
+          </CardContent></Card>
+        )}
       </div>
     </div>
   );
