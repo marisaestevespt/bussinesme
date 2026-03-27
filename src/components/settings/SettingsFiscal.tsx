@@ -229,9 +229,9 @@ export function SettingsFiscal() {
               <Input value={nif} onChange={e => setNif(e.target.value)} placeholder="Número de identificação fiscal" />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Código CIRS</Label>
-              <Input value={cirsCode} onChange={e => setCirsCode(e.target.value)} placeholder="Ex: Art. 151.º — Atividades de consultoria" />
-              <p className="text-xs text-muted-foreground">Código da atividade no Código do IRS (tabela do art. 151.º)</p>
+              <Label className="text-sm font-medium">Código(s) CIRS</Label>
+              <Input value={cirsCode} onChange={e => setCirsCode(e.target.value)} placeholder="Ex: 1519, 6201 (separados por vírgula)" />
+              <p className="text-xs text-muted-foreground">Código(s) da atividade no Código do IRS (tabela do art. 151.º). Separa por vírgula se tiveres mais do que um.</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
