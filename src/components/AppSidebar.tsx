@@ -154,7 +154,7 @@ export function AppSidebar() {
           )}
           {!collapsed && (
             <span className="text-sm font-semibold tracking-tight truncate">
-              HQ | {settings?.business_name || 'Negócio'}
+              Lirah | {settings?.business_name || 'Negócio'}
             </span>
           )}
         </div>
