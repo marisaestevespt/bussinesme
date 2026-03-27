@@ -246,7 +246,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
       }
       return { taskId, newStatus: taskPayload.status, prevStatus: _prevStatus };
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['task-dependencies'] });
       queryClient.invalidateQueries({ queryKey: ['unified-tasks'] });
