@@ -5,10 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { InvoiceUpload, DocEntry } from './InvoiceUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
+import { FileText, Copy } from 'lucide-react';
 
 const ENTRY_STATUSES = [
   { value: 'aguarda_pagamento', label: 'Aguarda Pagamento', cls: 'bg-warning/10 text-warning' },
@@ -64,6 +66,22 @@ const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2,
 
 export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
   const qc = useQueryClient();
+
+  // Fetch client fiscal data for invoice emission
+  const { data: clientData } = useQuery({
+    queryKey: ['client-fiscal', sale?.client],
+    queryFn: async () => {
+      if (!sale?.client) return null;
+      const { data } = await supabase
+        .from('clients')
+        .select('full_name, nif, fiscal_address, email')
+        .eq('full_name', sale.client)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!sale?.client,
+  });
+
   const [status, setStatus] = useState(sale?.status || 'aguarda_pagamento');
   const [docs, setDocs] = useState<DocEntry[]>([]);
   const [saving, setSaving] = useState(false);
