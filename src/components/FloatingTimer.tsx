@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useActiveTimer } from '@/hooks/useActiveTimer';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Pause, Play, Square, CheckCircle2 } from 'lucide-react';
+import { Pause, Play, Square, CheckCircle2, Coffee } from 'lucide-react';
 import { toast } from 'sonner';
+
+const WELLNESS_BREAK_SECONDS = 25 * 60; // 25 minutes
 
 function formatTimer(totalSeconds: number): string {
   const h = Math.floor(totalSeconds / 3600);
