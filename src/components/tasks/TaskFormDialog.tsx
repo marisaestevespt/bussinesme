@@ -24,14 +24,16 @@ import { format, parseISO, isBefore, startOfDay, startOfWeek, endOfWeek } from '
 import { pt } from 'date-fns/locale';
 import { toast } from 'sonner';
 
-type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'diario';
+type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'mensal_ultimo' | 'diario' | 'personalizado';
 const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
   { value: '', label: 'Não se repete' },
   { value: 'diario', label: 'Todos os dias' },
   { value: 'semanal', label: 'Todas as semanas' },
   { value: 'quinzenal', label: 'A cada 2 semanas' },
   { value: 'mensal', label: 'Todos os meses (mesmo dia)' },
-  { value: 'mensal_primeiro', label: '1º dia de cada mês' },
+  { value: 'mensal_primeiro', label: '1º dia útil de cada mês' },
+  { value: 'mensal_ultimo', label: 'Último dia útil do mês' },
+  { value: 'personalizado', label: 'Personalizado (a cada X dias)' },
 ];
 
 interface TaskFormDialogProps {
@@ -65,7 +67,9 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
   const [isSubtask, setIsSubtask] = useState(false);
   const [recurrenceType, setRecurrenceType] = useState('');
   const [recurrenceEnd, setRecurrenceEnd] = useState<Date | undefined>();
+  const [recurrenceIntervalDays, setRecurrenceIntervalDays] = useState('');
   const [estimatedTime, setEstimatedTime] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('');
   // timerPromptTaskId removed — timer auto-starts on status change
 
   // Queries
@@ -144,14 +148,16 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
         setIsSubtask(!!editingTask.parent_task_id);
         setRecurrenceType(editingTask.recurrence_type || '');
         setRecurrenceEnd(editingTask.recurrence_end ? parseISO(editingTask.recurrence_end) : undefined);
+        setRecurrenceIntervalDays(editingTask.recurrence_interval_days != null ? String(editingTask.recurrence_interval_days) : '');
         setEstimatedTime(editingTask.estimated_time != null ? String(editingTask.estimated_time) : '');
+        setScheduledTime(editingTask.scheduled_time || '');
         const deps = taskDependencies.filter(d => d.task_id === editingTask.id).map(d => d.depends_on_task_id);
         setDependsOnIds(deps);
       } else {
         setName(''); setStatus('por_comecar'); setPriority('alta');
         setDeadline(defaultDeadline || undefined); setAssignedTo(''); setDepartment(''); setProjectId(''); setClientId(''); setNotes('');
         setParentTaskId(''); setDependsOnIds([]); setIsSubtask(false); setRecurrenceType(''); setRecurrenceEnd(undefined);
-        setEstimatedTime('');
+        setRecurrenceIntervalDays(''); setEstimatedTime(''); setScheduledTime('');
       }
     }
   }, [open, editingTask]);
@@ -332,7 +338,9 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
       notes: notes || null,
       recurrence_type: recurrenceType || null,
       recurrence_end: recurrenceEnd ? format(recurrenceEnd, 'yyyy-MM-dd') : null,
+      recurrence_interval_days: recurrenceType === 'personalizado' && recurrenceIntervalDays ? parseInt(recurrenceIntervalDays) : null,
       estimated_time: estimatedTime ? parseFloat(estimatedTime) : null,
+      scheduled_time: scheduledTime || null,
       _dependsOnIds: dependsOnIds,
       _prevStatus: editingTask?.status || null,
     };
@@ -381,19 +389,25 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               </div>
             </div>
 
-            <div>
-              <Label>Prazo *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !deadline && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {deadline ? format(deadline, 'PPP', { locale: pt }) : 'Selecionar data'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={deadline} onSelect={setDeadline} initialFocus className="p-3 pointer-events-auto" />
-                </PopoverContent>
-              </Popover>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Prazo *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !deadline && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {deadline ? format(deadline, 'PPP', { locale: pt }) : 'Selecionar data'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={deadline} onSelect={setDeadline} initialFocus className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Hora (opcional)</Label>
+                <Input type="time" value={scheduledTime} onChange={e => setScheduledTime(e.target.value)} placeholder="HH:MM" />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -404,7 +418,13 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                   <SelectContent>{RECURRENCE_OPTIONS.map(o => <SelectItem key={o.value || 'none'} value={o.value || 'none'}>{o.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              {recurrenceType && (
+              {recurrenceType === 'personalizado' && (
+                <div>
+                  <Label>A cada X dias</Label>
+                  <Input type="number" min="1" max="365" value={recurrenceIntervalDays} onChange={e => setRecurrenceIntervalDays(e.target.value)} placeholder="Ex: 3" />
+                </div>
+              )}
+              {recurrenceType && recurrenceType !== 'personalizado' && (
                 <div>
                   <Label>Repetir até</Label>
                   <Popover>
@@ -421,6 +441,22 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                 </div>
               )}
             </div>
+            {recurrenceType === 'personalizado' && (
+              <div>
+                <Label>Repetir até</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !recurrenceEnd && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {recurrenceEnd ? format(recurrenceEnd, 'PPP', { locale: pt }) : 'Sem limite'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={recurrenceEnd} onSelect={setRecurrenceEnd} initialFocus className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div>
