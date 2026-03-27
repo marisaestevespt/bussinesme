@@ -3547,6 +3547,39 @@ export type Database = {
         }
         Relationships: []
       }
+      fiscal_monthly_checks: {
+        Row: {
+          check_key: string
+          checked: boolean
+          checked_at: string | null
+          created_at: string
+          id: string
+          month: number
+          notes: string | null
+          year: number
+        }
+        Insert: {
+          check_key: string
+          checked?: boolean
+          checked_at?: string | null
+          created_at?: string
+          id?: string
+          month: number
+          notes?: string | null
+          year: number
+        }
+        Update: {
+          check_key?: string
+          checked?: boolean
+          checked_at?: string | null
+          created_at?: string
+          id?: string
+          month?: number
+          notes?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
       hiring_simulations: {
         Row: {
           created_at: string

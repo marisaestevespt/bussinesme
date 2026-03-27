@@ -23,6 +23,7 @@ const OWNER_SECTION_LABELS: Record<string, string> = {
   projetos_novos: 'Projetos criados hoje',
   tempo_trabalhado: 'Tempo trabalhado hoje (equipa)',
   resumo_membros: 'Resumo de cada membro',
+  prazos_fiscais: 'Prazos fiscais próximos ou em atraso',
 };
 
 export function SettingsDigest() {
