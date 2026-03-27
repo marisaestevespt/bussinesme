@@ -833,6 +833,8 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
     taxIrsRegime: s?.tax_irs_regime || 'simplificado',
     ssExempt: s?.ss_exempt ?? false,
     ivaExempt: s?.iva_exempt ?? false,
+    ivaExemptionEndDate: s?.iva_exemption_end_date || null,
+    ssExemptionEndDate: s?.ss_exemption_end_date || null,
   };
 
   const isContabOrganizada = fiscalConfig.taxIrsRegime === 'contabilidade_organizada';
@@ -841,22 +843,27 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
   const checkItems = useMemo(() => {
     const items: { key: string; label: string }[] = [];
 
-    // SS — always if not exempt (paid in following month, so check for previous month's payment)
-    if (!fiscalConfig.ssExempt) {
+    // Helper: check if this month/year is after exemption end
+    const monthDateStr = `${year}-${String(month).padStart(2, '0')}-01`;
+    const isAfterIvaEnd = !fiscalConfig.ivaExemptionEndDate || monthDateStr >= fiscalConfig.ivaExemptionEndDate;
+    const isAfterSsEnd = !fiscalConfig.ssExemptionEndDate || monthDateStr >= fiscalConfig.ssExemptionEndDate;
+
+    // SS — always if not exempt and after exemption end
+    if (!fiscalConfig.ssExempt && isAfterSsEnd) {
       items.push({ key: 'ss_payment', label: `Pagamento Segurança Social — ${MONTHS[month - 1]}` });
     }
 
     // IVA trimestral — quarterly declaration months (Feb for Q4, May for Q1, Aug for Q2, Nov for Q3)
-    if (!fiscalConfig.ivaExempt && fiscalConfig.taxIvaRegime === 'trimestral') {
+    if (!fiscalConfig.ivaExempt && fiscalConfig.taxIvaRegime === 'trimestral' && isAfterIvaEnd) {
       const qMonths = [2, 5, 8, 11]; // declaration months
       if (qMonths.includes(month)) {
-        const qLabels: Record<number, string> = { 2: '4º Trim', 5: '1º Trim', 8: '2º Trim', 11: '3º Trim' };
+        const qLabels: Record<number, string> = { 2: `4º Trim ${year - 1}`, 5: `1º Trim ${year}`, 8: `2º Trim ${year}`, 11: `3º Trim ${year}` };
         items.push({ key: `iva_quarterly_${month}`, label: `Declaração IVA Trimestral — ${qLabels[month]}` });
       }
     }
 
     // IVA mensal — every month
-    if (!fiscalConfig.ivaExempt && fiscalConfig.taxIvaRegime === 'mensal') {
+    if (!fiscalConfig.ivaExempt && fiscalConfig.taxIvaRegime === 'mensal' && isAfterIvaEnd) {
       items.push({ key: 'iva_monthly', label: `Declaração IVA Mensal — ${MONTHS[month - 1]}` });
     }
 

@@ -474,12 +474,14 @@ export type Database = {
           has_accountant: boolean
           id: string
           iva_exempt: boolean
+          iva_exemption_end_date: string | null
           login_bg_url: string | null
           logo_url: string | null
           primary_color: string
           proposta_unica_valor: string | null
           secondary_color: string
           ss_exempt: boolean
+          ss_exemption_end_date: string | null
           ss_type: string
           support_hours: string | null
           tax_irs_regime: string
@@ -503,12 +505,14 @@ export type Database = {
           has_accountant?: boolean
           id?: string
           iva_exempt?: boolean
+          iva_exemption_end_date?: string | null
           login_bg_url?: string | null
           logo_url?: string | null
           primary_color?: string
           proposta_unica_valor?: string | null
           secondary_color?: string
           ss_exempt?: boolean
+          ss_exemption_end_date?: string | null
           ss_type?: string
           support_hours?: string | null
           tax_irs_regime?: string
@@ -532,12 +536,14 @@ export type Database = {
           has_accountant?: boolean
           id?: string
           iva_exempt?: boolean
+          iva_exemption_end_date?: string | null
           login_bg_url?: string | null
           logo_url?: string | null
           primary_color?: string
           proposta_unica_valor?: string | null
           secondary_color?: string
           ss_exempt?: boolean
+          ss_exemption_end_date?: string | null
           ss_type?: string
           support_hours?: string | null
           tax_irs_regime?: string
