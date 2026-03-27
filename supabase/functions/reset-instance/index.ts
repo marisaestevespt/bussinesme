@@ -58,44 +58,80 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Operational tables to delete — order: children first for FK constraints
-    // PRESERVED: business_settings, kpi_settings, profiles, user_roles, members,
-    // custom_roles, role_permissions, team_members, marketing_channels, channel_pages,
-    // routines, product_kpis, marketing_automations, marketing_funnels, sops,
-    // strategy_channel_details, strategy_channel_formats, strategy_channel_frames,
-    // strategy_editorial_lines, strategy_distribution_cards, strategy_settings,
-    // marketing_pages, internal_documents, business_plan_settings, business_plan_cards,
-    // business_plan_custom_columns, platform_accesses, brand_*, custom_fonts
+    // ── TABLES TO DELETE (operational data) ──
+    // Order: deepest children first → parents last to respect FK constraints
+    // 
+    // PRESERVED (config/structure — NOT deleted):
+    //   automation_settings, business_settings, business_setup, brand_*,
+    //   business_plan_settings, business_plan_cards, business_plan_custom_columns,
+    //   custom_fields, custom_fonts, custom_roles, custom_views,
+    //   departments, department_whatsapp_links, digest_settings,
+    //   event_types, financial_categories, kpi_settings,
+    //   marketing_channels, channel_pages, marketing_automations, marketing_funnels,
+    //   marketing_pages, internal_documents, members, member_sensitive_access,
+    //   platform_accesses, profiles, role_permissions, routines,
+    //   sop_categories, sops, sop_onboarding_templates, sop_onboarding_items,
+    //   sop_offboarding_templates, sop_offboarding_items,
+    //   strategy_channel_details, strategy_channel_formats, strategy_channel_frames,
+    //   strategy_editorial_lines, strategy_distribution_cards, strategy_settings,
+    //   team_members, user_roles
+
     const tablesToDelete = [
-      // Content children
+      // ── Portal children (deepest) ──
+      "portal_comments",
+      "portal_timeline_phases",
+      "portal_monthly_summaries",
+      "portal_initial_questions",
+      "portal_materials",
+      "portal_feedback",
+      "portal_faqs",
+      "portal_project_history",
+
+      // ── Content children ──
       "content_attachments",
       "content_channels",
       "content_metrics",
-      // CRM children
+
+      // ── CRM children ──
       "crm_interactions",
       "crm_lead_actions",
-      // Client children
+      "crm_pipeline_leads",
+
+      // ── Client children ──
       "client_activities",
+      "client_contacts",
+      "client_feedback",
       "client_history",
       "client_milestones",
       "client_nps_records",
       "client_offboarding",
       "client_onboarding",
-      // Event children
+      "client_portals",
+
+      // ── Event children ──
       "event_attachments",
       "event_members",
-      // Meeting children
+
+      // ── Meeting children ──
       "meeting_participants",
-      // Project children
+      "meeting_projects",
+
+      // ── Project children ──
+      "project_deliverables",
       "project_members",
-      // Task children
+
+      // ── Task children ──
       "task_dependencies",
       "task_time_entries",
-      // Product children (values only, not definitions)
+
+      // ── Product children (values, not config definitions) ──
       "product_automations",
       "product_costs",
+      "product_deliverable_templates",
+      "product_documents",
       "product_feedbacks",
       "product_funnels",
+      "product_improvements",
       "product_kpi_values",
       "product_kpi_reports",
       "product_metrics_analysis",
@@ -104,30 +140,104 @@ Deno.serve(async (req) => {
       "product_nps_records",
       "product_offboarding_templates",
       "product_onboarding_templates",
+      "product_payment_methods",
       "product_project_templates",
+      "product_team_members",
       "product_traffic_ads",
       "product_useful_links",
-      // Objective children
+
+      // ── Objective children ──
       "objective_actions",
       "objective_criteria",
       "objective_metrics",
-      // Channel metrics (not channel config)
+
+      // ── Channel metrics ──
       "channel_monthly_metrics",
       "channel_reports",
-      // Traffic
+
+      // ── Traffic ──
       "traffic_report_cards",
       "traffic_report_files",
       "traffic_creatives",
-      // Financial children
+
+      // ── Financial children ──
       "financial_documents",
-      // Planning children
+      "financial_goals",
+
+      // ── Launch children ──
+      "launch_tasks",
+      "launch_data",
+
+      // ── Planning children ──
       "planning_routines",
-      // Commercial children
+
+      // ── Commercial children ──
       "commercial_library_entries",
       "commercial_sales_actions",
-      // Main operational tables
-      "content_items",
+      "commercial_strategy_projects",
+
+      // ── Capacity scenarios ──
+      "capacity_scenario_products",
+      "capacity_scenarios",
+
+      // ── Member operational data ──
+      "member_contracts",
+      "member_onboarding",
+      "member_payments",
+      "member_personal_images",
+      "member_personal_links",
+      "member_personal_notes",
+      "team_member_vacations",
+
+      // ── Hiring ──
+      "hiring_simulations",
+
+      // ── Training ──
+      "training_courses",
+      "training_doubts",
+
+      // ── Performance ──
+      "feedback_sessions",
+      "performance_monthly",
+      "performance_weekly",
+
+      // ── Innovation ──
+      "innovation_docs",
+      "innovation_ideas",
+
+      // ── Mural ──
+      "mural_comments",
+      "mural_reactions",
+      "mural_posts",
+
+      // ── Website ──
+      "website_page_files",
+      "website_pages",
+
+      // ── Marketing operational ──
+      "marketing_ideas",
+      "marketing_resource_links",
+      "marketing_monthly_analysis",
+
+      // ── Custom field values (not definitions) ──
+      "custom_field_values",
+
+      // ── Misc operational ──
+      "audit_logs",
+      "page_access_grants",
+      "user_views",
+      "weekly_align_notes",
+      "metric_history",
+      "suppliers",
+
+      // ── CRM parents (after children) ──
+      "crm_pipeline_stages",
+      "crm_pipelines",
+      "crm_saved_views",
       "crm_leads",
+
+      // ── Main operational tables (parents — last) ──
+      "content_items",
       "clients",
       "events",
       "meetings",
@@ -142,7 +252,6 @@ Deno.serve(async (req) => {
       "commercial_product_goals",
       "commercial_monthly_analysis",
       "clients_monthly_analysis",
-      "marketing_monthly_analysis",
       "executive_brain_dump",
       "executive_goals",
       "executive_monthly_checklists",
@@ -154,30 +263,11 @@ Deno.serve(async (req) => {
       "notifications",
       "user_favorites",
       "recommendations",
-      "mural_comments",
-      "mural_reactions",
-      "mural_posts",
-      "feedback_sessions",
-      "performance_monthly",
-      "performance_weekly",
-      "innovation_docs",
-      "innovation_ideas",
-      "metric_history",
       "absence_coverage",
       "financial_expenses",
       "financial_payroll",
       "financial_subscriptions",
       "financial_contractors",
-      "member_payments",
-      "member_personal_images",
-      "member_personal_links",
-      "member_personal_notes",
-      "training_courses",
-      "training_doubts",
-      "website_page_files",
-      "website_pages",
-      "marketing_ideas",
-      "marketing_resource_links",
     ];
 
     const errors: string[] = [];
