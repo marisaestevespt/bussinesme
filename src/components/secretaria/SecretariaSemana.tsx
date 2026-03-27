@@ -33,7 +33,7 @@ export default function SecretariaSemana() {
       <RoutineMonthCard tasks={routineTasks.data || []} />
 
       <div className="grid grid-cols-3 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Responsabilidades esta semana</p><p className="text-2xl font-bold">{unified.weekItems.length}</p></CardContent></Card>
+        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas esta semana</p><p className="text-2xl font-bold">{unified.weekItems.length}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Reuniões esta semana</p><p className="text-2xl font-bold">{weekMeetings.length}</p></CardContent></Card>
         <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Horas registadas</p><p className="text-2xl font-bold">{weekHours.toFixed(1)}h</p></CardContent></Card>
       </div>
@@ -63,7 +63,7 @@ export default function SecretariaSemana() {
 
       <UnifiedResponsibilitiesList
         items={unified.weekItems}
-        title="Esta Semana — Todas as Responsabilidades"
+        title="Tarefas desta semana"
       />
     </div>
   );

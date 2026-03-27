@@ -204,15 +204,16 @@ export function useUnifiedResponsibilities(userId?: string) {
   const items: UnifiedItem[] = useMemo(() => {
     const result: UnifiedItem[] = [];
 
-    // 1. Tasks
+    // 1. Tasks (split into tarefa vs rotina based on tag)
     (tasksQ.data || []).forEach(t => {
-      if (t.status === 'done') return; // skip completed for "today" view
+      if (t.status === 'done') return;
+      const isRoutine = t.tag === 'Rotina' || !!t.routine_id;
       result.push({
-        id: `tarefa-${t.id}`,
+        id: `${isRoutine ? 'rotina' : 'tarefa'}-${t.id}`,
         sourceId: t.id,
-        source: 'tarefa',
+        source: isRoutine ? 'rotina' : 'tarefa',
         title: t.name,
-        subtitle: t.project_id ? undefined : undefined,
+        subtitle: undefined,
         date: t.deadline || t.created_at,
         deadline: t.deadline || undefined,
         priority: t.priority,
