@@ -463,6 +463,24 @@ export default function PortalViewPage() {
           {activeSection === 'payments' && (
             <div className="space-y-4">
               <h2 className="text-lg font-bold">Pagamentos</h2>
+
+              {/* Payment methods info */}
+              {paymentMethods.length > 0 && (
+                <Card className="border-l-4 border-l-primary">
+                  <CardContent className="p-4 space-y-3">
+                    <p className="text-sm font-medium">Dados para pagamento</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {paymentMethods.map((pm: any, i: number) => (
+                        <div key={i} className="rounded-md border bg-muted/30 p-3 space-y-1">
+                          <p className="text-xs font-medium text-muted-foreground">{pm.label || pm.type}</p>
+                          <p className="text-sm font-mono select-all">{pm.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               <Card>
                 <CardContent className="p-0">
                   <div className="bg-muted px-4 py-2 font-medium text-xs grid grid-cols-4 gap-2">
