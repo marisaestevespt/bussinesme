@@ -148,6 +148,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
       expense_quarter: quarter,
       expense_year: year,
       supplier_id: expForm.supplier_id || null,
+      payment_method: expForm.payment_method || null,
       is_recurring: isRecurring,
       periodicity,
       monthly_equivalent: monthlyEquivalent,
@@ -284,11 +285,22 @@ export function FinSaidas({ fin, currentYear }: Props) {
                 }
               </p>
             )}
-            <div><Label>Localização</Label>
-              <Select value={expForm.location || 'portugal'} onValueChange={v => setExpForm((f: any) => ({ ...f, location: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Localização</Label>
+                <Select value={expForm.location || 'portugal'} onValueChange={v => setExpForm((f: any) => ({ ...f, location: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div><Label>Método Pagamento</Label>
+                <Select value={expForm.payment_method || '__none__'} onValueChange={v => setExpForm((f: any) => ({ ...f, payment_method: v === '__none__' ? '' : v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">—</SelectItem>
+                    {PAYMENT_METHODS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             {/* Recurring */}
             <div className="rounded-lg border border-border p-3 space-y-3">

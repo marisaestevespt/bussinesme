@@ -3304,6 +3304,7 @@ export type Database = {
           location: string
           monthly_equivalent: number | null
           parent_expense_id: string | null
+          payment_method: string | null
           periodicity: string | null
           recurrence_day: number | null
           recurrence_end_date: string | null
@@ -3335,6 +3336,7 @@ export type Database = {
           location?: string
           monthly_equivalent?: number | null
           parent_expense_id?: string | null
+          payment_method?: string | null
           periodicity?: string | null
           recurrence_day?: number | null
           recurrence_end_date?: string | null
@@ -3366,6 +3368,7 @@ export type Database = {
           location?: string
           monthly_equivalent?: number | null
           parent_expense_id?: string | null
+          payment_method?: string | null
           periodicity?: string | null
           recurrence_day?: number | null
           recurrence_end_date?: string | null
