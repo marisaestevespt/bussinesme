@@ -756,3 +756,62 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
     </TableRow>
   );
 }
+
+function MonthlyDocUpload({ title, icon, docs, docType, accept, onUpload, onDelete }: {
+  title: string;
+  icon: React.ReactNode;
+  docs: any[];
+  docType: string;
+  accept: string;
+  onUpload: (file: File) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    await onUpload(file);
+    setUploading(false);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  return (
+    <Card>
+      <CardContent className="pt-4 pb-3 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            {icon}
+            <span>{title}</span>
+          </div>
+          <div>
+            <input ref={inputRef} type="file" accept={accept} className="hidden" onChange={handleFile} />
+            <Button size="sm" variant="outline" disabled={uploading} onClick={() => inputRef.current?.click()}>
+              <FileUp className="h-3.5 w-3.5 mr-1" />
+              {uploading ? 'A carregar...' : 'Upload'}
+            </Button>
+          </div>
+        </div>
+        {docs.length > 0 ? (
+          <div className="space-y-1.5">
+            {docs.map((doc: any) => (
+              <div key={doc.id} className="flex items-center gap-2 text-sm rounded-md bg-muted/50 px-3 py-1.5">
+                <a href={doc.document_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 flex-1 min-w-0 hover:underline text-foreground">
+                  <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
+                  <span className="truncate">{doc.document_name || doc.title}</span>
+                </a>
+                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => onDelete(doc.id)}>
+                  <TrashIcon className="h-3 w-3 text-muted-foreground" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">Nenhum ficheiro carregado para este mês.</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
