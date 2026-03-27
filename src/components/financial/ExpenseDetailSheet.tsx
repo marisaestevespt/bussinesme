@@ -247,6 +247,15 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
             label="Ficheiros (faturas, comprovativos, recibos)"
           />
 
+          {/* Meta Ads Report — shown for marketing expenses */}
+          {(form.category === 'marketing' || form.department === 'marketing' || (form.description || '').toLowerCase().includes('meta') || (form.description || '').toLowerCase().includes('ads')) && (
+            <InvoiceUpload
+              documents={Array.isArray(form.meta_ads_docs) ? form.meta_ads_docs : []}
+              onChange={docs => setForm((f: any) => ({ ...f, meta_ads_docs: docs }))}
+              label="Relatório Meta Ads (opcional)"
+            />
+          )}
+
           {/* Actions */}
           <div className="flex gap-2">
             <Button className="flex-1" onClick={handleSave} disabled={saving}>
