@@ -559,7 +559,10 @@ export type Database = {
       business_setup: {
         Row: {
           banco: string
+          business_email: string | null
           business_legal_name: string
+          business_phone: string | null
+          business_website: string | null
           cae_principal: string
           cae_secundarios: string
           capital_social: string
@@ -572,13 +575,17 @@ export type Database = {
           morada_fiscal: string
           nif: string
           notas: string
+          payment_methods: Json | null
           regime_fiscal: string
           regime_iva: string
           updated_at: string
         }
         Insert: {
           banco?: string
+          business_email?: string | null
           business_legal_name?: string
+          business_phone?: string | null
+          business_website?: string | null
           cae_principal?: string
           cae_secundarios?: string
           capital_social?: string
@@ -591,13 +598,17 @@ export type Database = {
           morada_fiscal?: string
           nif?: string
           notas?: string
+          payment_methods?: Json | null
           regime_fiscal?: string
           regime_iva?: string
           updated_at?: string
         }
         Update: {
           banco?: string
+          business_email?: string | null
           business_legal_name?: string
+          business_phone?: string | null
+          business_website?: string | null
           cae_principal?: string
           cae_secundarios?: string
           capital_social?: string
@@ -610,6 +621,7 @@ export type Database = {
           morada_fiscal?: string
           nif?: string
           notas?: string
+          payment_methods?: Json | null
           regime_fiscal?: string
           regime_iva?: string
           updated_at?: string
@@ -8289,6 +8301,7 @@ export type Database = {
           title: string
         }[]
       }
+      get_portal_payment_methods: { Args: { _token: string }; Returns: Json }
       get_portal_payments: {
         Args: { _token: string }
         Returns: {
