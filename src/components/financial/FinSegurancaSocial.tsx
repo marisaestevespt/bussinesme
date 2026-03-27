@@ -398,60 +398,47 @@ function IndependenteSection({ data, currentYear, onSave, onToggle }: {
             <TableBody>
               {quarterGroups.map((group) => {
                 const groupData = data.filter(d => group.months.includes(d.month));
-                const first = groupData[0];
-                return groupData.map((d, idx) => (
-                  <TableRow key={d.month} className={idx === 0 ? 'border-t-2' : ''}>
-                    <TableCell className="font-medium">{String(d.month).padStart(2, '0')} {MONTHS[d.month - 1]}</TableCell>
-                    {idx === 0 ? (
-                      <>
-                        <TableCell rowSpan={3} className="align-top text-xs text-muted-foreground">
-                          {d.srcLabel}
-                          {!d.hasData && (
-                            <Badge variant="outline" className="ml-1 text-[10px] bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700">
-                              Sem dados
+                return (
+                  <>
+                    {/* Quarter header row */}
+                    <TableRow key={`header-${group.label}`} className="border-t-2 bg-muted/30">
+                      <TableCell colSpan={11} className="py-1.5">
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="font-semibold text-foreground">{group.label}</span>
+                          <span className="text-muted-foreground">— Base: {groupData[0].srcLabel}</span>
+                          <span className="text-muted-foreground">· Declaração: {groupData[0].declMonth} {groupData[0].declYear}</span>
+                          {!groupData[0].hasData && (
+                            <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700">
+                              Sem dados de faturação
                             </Badge>
                           )}
-                        </TableCell>
-                        <TableCell rowSpan={3} className="align-top text-xs text-muted-foreground">
-                          {d.declMonth} {d.declYear}
-                        </TableCell>
-                      </>
-                    ) : null}
-                    <TableCell className="text-right text-muted-foreground">{d.hasData && d.quarterRevenue > 0 ? fmt(d.quarterRevenue) : '—'}</TableCell>
-                    <TableCell className="text-right text-muted-foreground">{d.hasData && d.rendimentoRelevante > 0 ? fmt(d.rendimentoRelevante) : '—'}</TableCell>
-                    <TableCell className="text-right">{d.hasData && d.baseIncidencia > 0 ? fmt(d.baseIncidencia) : '—'}</TableCell>
-                    <TableCell className="text-right">{d.contribution > 0 ? fmt(d.contribution) : '—'}</TableCell>
-                    <TableCell className="text-right">{d.isPaid ? fmt(d.paid) : '—'}</TableCell>
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        variant={d.isPaid ? 'outline' : 'default'}
-                        disabled={false}
-                        onClick={async () => {
-                          if (d.isPaid) await onToggle(d.month);
-                          else await onSave(d.month, d.contribution);
-                        }}
-                        className={d.isPaid ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-red-900/20 dark:hover:text-red-400 h-7 text-xs' : 'h-7 text-xs'}
-                      >
-                        {d.isPaid ? 'Pago ✓' : 'Confirmar'}
-                      </Button>
-                    </TableCell>
-                    <TableCell>
-                      {!d.isPaid && (
-                        <Input
-                          type="number"
-                          placeholder={d.contribution > 0 ? String(d.contribution) : '0.00'}
-                          className="h-8 text-sm w-[120px]"
-                        />
-                      )}
-                    </TableCell>
-                    <TableCell />
-                  </TableRow>
-                ));
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    {groupData.map(d => (
+                      <PaymentRow
+                        key={d.month}
+                        month={d.month}
+                        predicted={d.contribution}
+                        paid={d.paid}
+                        isPaid={d.isPaid}
+                        onSave={onSave}
+                        onToggle={onToggle}
+                        extraCells={
+                          <>
+                            <TableCell className="text-right text-muted-foreground">{d.hasData && d.quarterRevenue > 0 ? fmt(d.quarterRevenue) : '—'}</TableCell>
+                            <TableCell className="text-right text-muted-foreground">{d.hasData && d.rendimentoRelevante > 0 ? fmt(d.rendimentoRelevante) : '—'}</TableCell>
+                            <TableCell className="text-right">{d.hasData && d.baseIncidencia > 0 ? fmt(d.baseIncidencia) : '—'}</TableCell>
+                          </>
+                        }
+                      />
+                    ))}
+                  </>
+                );
               })}
               <TableRow className="border-t-2 font-semibold">
                 <TableCell>Total</TableCell>
-                <TableCell colSpan={5} />
+                <TableCell colSpan={3} />
                 <TableCell className="text-right">{fmt(total)}</TableCell>
                 <TableCell className="text-right">{fmt(data.reduce((s, d) => s + d.paid, 0))}</TableCell>
                 <TableCell colSpan={3} />
