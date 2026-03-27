@@ -29,6 +29,15 @@ const EXP_STATUS = [
   { value: 'cancelado', label: 'Cancelado' },
 ];
 
+const PAYMENT_METHODS = [
+  { value: 'transferencia', label: 'Transferência' },
+  { value: 'debito_direto', label: 'Débito Direto' },
+  { value: 'mbway', label: 'MB Way' },
+  { value: 'plataforma', label: 'Plataforma' },
+  { value: 'cartao', label: 'Cartão' },
+  { value: 'outro', label: 'Outro' },
+];
+
 const VAT_OPTIONS = [0, 6, 13, 23];
 const LOCATIONS = [
   { value: 'portugal', label: 'Portugal' },
@@ -85,19 +94,18 @@ export function FinSaidas({ fin, currentYear }: Props) {
   const [expForm, setExpForm] = useState<any>({});
 
   const openNewExpense = () => {
-    setExpForm({ status: 'por_pagar', category: 'outro', vat_rate: 23, location: 'portugal', base_value: '', description: '', includes_vat: false, supplier_id: null, is_recurring: false, periodicity: 'mensal' });
+    setExpForm({ status: 'por_pagar', category: 'outro', vat_rate: 23, location: 'portugal', base_value: '', description: '', includes_vat: false, supplier_id: null, is_recurring: false, periodicity: 'mensal', payment_method: '' });
     setExpOpen(true);
   };
 
-  // Auto-fill VAT from supplier
-  const handleSupplierChange = (supplierId: string | null) => {
+  // Auto-fill VAT + payment method from supplier
+  const handleSupplierChange = (supplierId: string | null, supplier?: any) => {
     setExpForm((f: any) => {
       const updates: any = { ...f, supplier_id: supplierId };
-      if (supplierId) {
-        const supplier = suppliers.find((s: any) => s.id === supplierId);
-        if (supplier?.default_vat_rate != null) {
-          updates.vat_rate = supplier.default_vat_rate;
-        }
+      const s = supplier || (supplierId ? suppliers.find((s: any) => s.id === supplierId) : null);
+      if (s) {
+        if (s.default_vat_rate != null) updates.vat_rate = s.default_vat_rate;
+        if (s.payment_method) updates.payment_method = s.payment_method;
       }
       return updates;
     });
@@ -140,6 +148,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
       expense_quarter: quarter,
       expense_year: year,
       supplier_id: expForm.supplier_id || null,
+      payment_method: expForm.payment_method || null,
       is_recurring: isRecurring,
       periodicity,
       monthly_equivalent: monthlyEquivalent,
@@ -276,11 +285,22 @@ export function FinSaidas({ fin, currentYear }: Props) {
                 }
               </p>
             )}
-            <div><Label>Localização</Label>
-              <Select value={expForm.location || 'portugal'} onValueChange={v => setExpForm((f: any) => ({ ...f, location: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Localização</Label>
+                <Select value={expForm.location || 'portugal'} onValueChange={v => setExpForm((f: any) => ({ ...f, location: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div><Label>Método Pagamento</Label>
+                <Select value={expForm.payment_method || '__none__'} onValueChange={v => setExpForm((f: any) => ({ ...f, payment_method: v === '__none__' ? '' : v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">—</SelectItem>
+                    {PAYMENT_METHODS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             {/* Recurring */}
             <div className="rounded-lg border border-border p-3 space-y-3">

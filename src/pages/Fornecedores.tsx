@@ -10,7 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Plus, Trash2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Plus, Trash2, RefreshCw } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,6 +27,22 @@ const PAYMENT_METHODS = [
 ];
 const PAYMENT_LABELS = Object.fromEntries(PAYMENT_METHODS.map(m => [m.value, m.label]));
 
+const PERIODICITIES = [
+  { value: 'semanal', label: 'Semanal' },
+  { value: 'mensal', label: 'Mensal' },
+  { value: 'bimestral', label: 'Bimestral' },
+  { value: 'trimestral', label: 'Trimestral' },
+  { value: 'semestral', label: 'Semestral' },
+  { value: 'anual', label: 'Anual' },
+];
+
+const calcMonthlyEquivalent = (base: number, periodicity: string) => {
+  const map: Record<string, number> = { semanal: 52/12, mensal: 1, bimestral: 1/2, trimestral: 1/3, semestral: 1/6, anual: 1/12 };
+  return Math.round(base * (map[periodicity] || 1) * 100) / 100;
+};
+
+const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+
 export default function FornecedoresPage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -39,7 +56,6 @@ export default function FornecedoresPage() {
     },
   });
 
-  // Count expenses per supplier
   const { data: expenseCounts = {} } = useQuery({
     queryKey: ['supplier-expense-counts'],
     queryFn: async () => {
@@ -72,15 +88,50 @@ export default function FornecedoresPage() {
         is_active: form.is_active ?? true,
         default_vat_rate: form.default_vat_rate ?? 23,
       };
+
+      let supplierId = form.id;
       if (form.id) {
         await supabase.from('suppliers').update(record).eq('id', form.id);
       } else {
-        await supabase.from('suppliers').insert(record);
+        const { data } = await supabase.from('suppliers').insert(record).select('id').single();
+        supplierId = data?.id;
+      }
+
+      // Create linked recurring expense if toggled
+      if (form.create_recurring && supplierId && form.recurring_value) {
+        const base = parseFloat(form.recurring_value) || 0;
+        const vat = form.default_vat_rate ?? 23;
+        const total = Math.round(base * (1 + vat / 100) * 100) / 100;
+        const periodicity = form.recurring_periodicity || 'mensal';
+        const now = new Date();
+        const date = now.toISOString().slice(0, 10);
+
+        await supabase.from('financial_expenses').insert({
+          description: form.name,
+          expense_name: form.name,
+          supplier_id: supplierId,
+          base_value: base,
+          vat_rate: vat,
+          total_with_vat: total,
+          category: form.category || 'outro',
+          status: 'por_pagar',
+          location: 'portugal',
+          is_recurring: true,
+          periodicity,
+          monthly_equivalent: calcMonthlyEquivalent(base, periodicity),
+          payment_method: form.payment_method || null,
+          expense_date: date,
+          expense_month: now.getMonth() + 1,
+          expense_quarter: Math.ceil((now.getMonth() + 1) / 3),
+          expense_year: now.getFullYear(),
+        } as any);
       }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['suppliers-all'] });
       qc.invalidateQueries({ queryKey: ['suppliers-list'] });
+      qc.invalidateQueries({ queryKey: ['suppliers-list-vat'] });
+      qc.invalidateQueries({ queryKey: ['financial-expenses'] });
       toast.success('Fornecedor guardado');
       setOpen(false);
     },
@@ -104,7 +155,7 @@ export default function FornecedoresPage() {
         <BackNavigation />
         <PageHeader title="Fornecedores" />
         <div className="flex justify-end">
-          <Button size="sm" onClick={() => { setForm({ is_active: true }); setOpen(true); }}>
+          <Button size="sm" onClick={() => { setForm({ is_active: true, payment_method: 'transferencia', default_vat_rate: 23 }); setOpen(true); }}>
             <Plus className="h-4 w-4 mr-1" /> Novo Fornecedor
           </Button>
         </div>
@@ -118,18 +169,18 @@ export default function FornecedoresPage() {
                   <TableHead>NIF</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Telefone</TableHead>
-                   <TableHead>IBAN</TableHead>
-                   <TableHead>Pagamento</TableHead>
-                   <TableHead>Categoria</TableHead>
-                   <TableHead className="text-right">Despesas</TableHead>
-                   <TableHead>Status</TableHead>
+                  <TableHead>IBAN</TableHead>
+                  <TableHead>Pagamento</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead className="text-right">Despesas</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {suppliers.length === 0 ? (
                   <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Sem fornecedores</TableCell></TableRow>
                 ) : suppliers.map((s: any) => (
-                  <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setForm(s); setOpen(true); }}>
+                  <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setForm({ ...s, create_recurring: false }); setOpen(true); }}>
                     <TableCell className="font-medium">{s.name}</TableCell>
                     <TableCell className="text-muted-foreground">{s.nif || '—'}</TableCell>
                     <TableCell className="text-muted-foreground">{s.email || '—'}</TableCell>
@@ -178,6 +229,36 @@ export default function FornecedoresPage() {
               <div><Label>Morada</Label><Input value={form.address || ''} onChange={e => setForm((f: any) => ({ ...f, address: e.target.value }))} /></div>
               <div><Label>Website</Label><Input value={form.website || ''} onChange={e => setForm((f: any) => ({ ...f, website: e.target.value }))} /></div>
               <div><Label>Notas</Label><Textarea value={form.notes || ''} onChange={e => setForm((f: any) => ({ ...f, notes: e.target.value }))} rows={3} /></div>
+
+              {/* Recurring expense link */}
+              <div className="rounded-lg border border-border p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <RefreshCw className="h-4 w-4 text-muted-foreground" />
+                    <Label className="text-sm font-normal">Criar despesa recorrente</Label>
+                  </div>
+                  <Switch checked={form.create_recurring || false} onCheckedChange={v => setForm((f: any) => ({ ...f, create_recurring: v }))} />
+                </div>
+                {form.create_recurring && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div><Label className="text-xs">Valor base (€)</Label><Input type="number" step="0.01" value={form.recurring_value || ''} onChange={e => setForm((f: any) => ({ ...f, recurring_value: e.target.value }))} /></div>
+                      <div><Label className="text-xs">Periodicidade</Label>
+                        <Select value={form.recurring_periodicity || 'mensal'} onValueChange={v => setForm((f: any) => ({ ...f, recurring_periodicity: v }))}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>{PERIODICITIES.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    {form.recurring_value && parseFloat(form.recurring_value) > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Equivalente mensal: {fmt(calcMonthlyEquivalent(parseFloat(form.recurring_value), form.recurring_periodicity || 'mensal'))}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Documents */}
               <div className="space-y-2">
                 <Label>Documentos / Contratos</Label>
