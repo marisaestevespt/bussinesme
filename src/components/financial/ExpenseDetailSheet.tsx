@@ -46,6 +46,9 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
   // Sync form when expense changes
   if (expense && expense.id !== lastId) {
     setLastId(expense.id);
+    const allDocs = Array.isArray(expense.documents) ? expense.documents : [];
+    const regularDocs = (allDocs as any[]).filter((d: any) => d.type !== 'meta_ads');
+    const metaDocs = (allDocs as any[]).filter((d: any) => d.type === 'meta_ads');
     setForm({
       id: expense.id,
       status: expense.status || 'por_pagar',
@@ -56,7 +59,8 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
       vat_rate: expense.vat_rate ?? 23,
       total_with_vat: expense.total_with_vat,
       location: expense.location || 'portugal',
-      documents: Array.isArray(expense.documents) ? expense.documents : [],
+      documents: regularDocs,
+      meta_ads_docs: metaDocs.map((d: any) => ({ name: d.name, url: d.url })),
       includes_vat: false,
       source_type: expense.source_type,
       source_id: expense.source_id,
