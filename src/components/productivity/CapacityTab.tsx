@@ -10,7 +10,8 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Calculator, Clock, AlertTriangle, TrendingUp, ArrowRight, CheckCircle2, Plus, Trash2, UserPlus } from 'lucide-react';
+import { Users, Calculator, Clock, AlertTriangle, TrendingUp, ArrowRight, CheckCircle2, Plus, Trash2, UserPlus, Rocket } from 'lucide-react';
+import { HiringSimulator } from './CapacitySimulator';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -28,13 +29,13 @@ export function CapacityTab({ members, entries, clients, products, scenario, sce
     <Tabs defaultValue="team" className="space-y-4">
       <TabsList className="flex-wrap">
         <TabsTrigger value="team"><Users className="h-3.5 w-3.5 mr-1.5" />Ocupação da Equipa</TabsTrigger>
-        <TabsTrigger value="simulator"><Calculator className="h-3.5 w-3.5 mr-1.5" />Simulador de Clientes</TabsTrigger>
+        <TabsTrigger value="simulator"><Rocket className="h-3.5 w-3.5 mr-1.5" />Simulador de Crescimento</TabsTrigger>
       </TabsList>
       <TabsContent value="team">
         <TeamCapacityView members={members} entries={entries} />
       </TabsContent>
       <TabsContent value="simulator">
-        <CapacitySimulatorView members={members} clients={clients} products={products} scenario={scenario} scenarioProducts={scenarioProducts} />
+        <CapacitySimulatorView members={members} entries={entries} clients={clients} products={products} scenario={scenario} scenarioProducts={scenarioProducts} />
       </TabsContent>
     </Tabs>
   );
