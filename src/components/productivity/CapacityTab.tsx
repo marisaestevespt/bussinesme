@@ -167,8 +167,8 @@ function TeamCapacityView({ members, entries }: { members: any[]; entries: any[]
   );
 }
 
-function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, products: allProductsRaw, scenario: scenarioData, scenarioProducts: scenarioProductsRawData }: {
-  members: any[]; clients: any[]; products: any[]; scenario: any; scenarioProducts: any[];
+function CapacitySimulatorView({ members: teamMembers, entries, clients: allClientsRaw, products: allProductsRaw, scenario: scenarioData, scenarioProducts: scenarioProductsRawData }: {
+  members: any[]; entries: any[]; clients: any[]; products: any[]; scenario: any; scenarioProducts: any[];
 }) {
   const qc = useQueryClient();
   const { products: productsHook } = useProducts();
