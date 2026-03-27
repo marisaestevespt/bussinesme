@@ -20,6 +20,20 @@ export function FloatingTimer() {
   const { activeTimer, elapsed, pauseTimer, resumeTimer, stopTimer } = useActiveTimer();
   const queryClient = useQueryClient();
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
+  const [showWellnessAlert, setShowWellnessAlert] = useState(false);
+  const wellnessShownRef = useRef(false);
+
+  // Wellness break reminder after 25 continuous minutes
+  useEffect(() => {
+    if (!activeTimer || activeTimer.paused) {
+      wellnessShownRef.current = false;
+      return;
+    }
+    if (elapsed >= WELLNESS_BREAK_SECONDS && !wellnessShownRef.current) {
+      wellnessShownRef.current = true;
+      setShowWellnessAlert(true);
+    }
+  }, [elapsed, activeTimer]);
 
   if (!activeTimer && !showCompletionDialog) return null;
 
