@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, Check, Download } from 'lucide-react';
+import { Plus, Check, Download, FileUp, BarChart3, ExternalLink, Trash2 as TrashIcon } from 'lucide-react';
 import { exportPdf } from '@/lib/exportPdf';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
