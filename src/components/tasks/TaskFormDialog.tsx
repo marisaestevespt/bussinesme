@@ -66,7 +66,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
   const [recurrenceType, setRecurrenceType] = useState('');
   const [recurrenceEnd, setRecurrenceEnd] = useState<Date | undefined>();
   const [estimatedTime, setEstimatedTime] = useState('');
-  const [timerPromptTaskId, setTimerPromptTaskId] = useState<string | null>(null);
+  // timerPromptTaskId removed — timer auto-starts on status change
 
   // Queries
   const { data: profiles = [] } = useQuery({
