@@ -6333,32 +6333,57 @@ export type Database = {
       product_project_templates: {
         Row: {
           created_at: string
+          department: string | null
+          estimated_time: number | null
           id: string
-          phase: string | null
+          is_subtask: boolean
+          notes: string | null
+          parent_template_id: string | null
+          priority: string
           product_id: string
           responsible: string | null
+          rule: string | null
           sort_order: number
           task_name: string
         }
         Insert: {
           created_at?: string
+          department?: string | null
+          estimated_time?: number | null
           id?: string
-          phase?: string | null
+          is_subtask?: boolean
+          notes?: string | null
+          parent_template_id?: string | null
+          priority?: string
           product_id: string
           responsible?: string | null
+          rule?: string | null
           sort_order?: number
           task_name?: string
         }
         Update: {
           created_at?: string
+          department?: string | null
+          estimated_time?: number | null
           id?: string
-          phase?: string | null
+          is_subtask?: boolean
+          notes?: string | null
+          parent_template_id?: string | null
+          priority?: string
           product_id?: string
           responsible?: string | null
+          rule?: string | null
           sort_order?: number
           task_name?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "product_project_templates_parent_template_id_fkey"
+            columns: ["parent_template_id"]
+            isOneToOne: false
+            referencedRelation: "product_project_templates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "product_project_templates_product_id_fkey"
             columns: ["product_id"]
