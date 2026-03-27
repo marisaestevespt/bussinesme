@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { ResponsibilityDetailDialog } from '@/components/ResponsibilityDetailDialog';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
@@ -90,6 +91,7 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
   const [filter, setFilter] = useState<SourceFilter>('todos');
   const [selectedItem, setSelectedItem] = useState<UnifiedItem | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [editTaskId, setEditTaskId] = useState<string | null>(null);
   const navigate = useNavigate();
   const qc = useQueryClient();
 
