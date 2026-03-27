@@ -833,6 +833,8 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
     taxIrsRegime: s?.tax_irs_regime || 'simplificado',
     ssExempt: s?.ss_exempt ?? false,
     ivaExempt: s?.iva_exempt ?? false,
+    ivaExemptionEndDate: s?.iva_exemption_end_date || null,
+    ssExemptionEndDate: s?.ss_exemption_end_date || null,
   };
 
   const isContabOrganizada = fiscalConfig.taxIrsRegime === 'contabilidade_organizada';
