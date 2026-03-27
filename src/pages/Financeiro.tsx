@@ -228,7 +228,7 @@ export default function FinanceiroPage() {
 
         {/* Navigation cards */}
         <div className="space-y-3">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {SECTIONS_ROW1.map(s => (
               <Card
                 key={s.path}
@@ -244,7 +244,7 @@ export default function FinanceiroPage() {
               </Card>
             ))}
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {SECTIONS_ROW2.map(s => (
               <Card
                 key={s.path}
