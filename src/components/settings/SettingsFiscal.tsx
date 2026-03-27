@@ -250,7 +250,7 @@ export function SettingsFiscal() {
                 </Button>
               )}
             </div>
-          )
+          )}
 
           {/* SS Exempt toggle */}
           <div className="flex items-center justify-between py-2">
@@ -298,7 +298,7 @@ export function SettingsFiscal() {
                 </Button>
               )}
             </div>
-          )
+          )}
 
           {/* SS Type — only if not exempt */}
           {!ssExempt && (
