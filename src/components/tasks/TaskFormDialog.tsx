@@ -389,19 +389,25 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
               </div>
             </div>
 
-            <div>
-              <Label>Prazo *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !deadline && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {deadline ? format(deadline, 'PPP', { locale: pt }) : 'Selecionar data'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={deadline} onSelect={setDeadline} initialFocus className="p-3 pointer-events-auto" />
-                </PopoverContent>
-              </Popover>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Prazo *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !deadline && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {deadline ? format(deadline, 'PPP', { locale: pt }) : 'Selecionar data'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={deadline} onSelect={setDeadline} initialFocus className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Hora (opcional)</Label>
+                <Input type="time" value={scheduledTime} onChange={e => setScheduledTime(e.target.value)} placeholder="HH:MM" />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -412,7 +418,13 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                   <SelectContent>{RECURRENCE_OPTIONS.map(o => <SelectItem key={o.value || 'none'} value={o.value || 'none'}>{o.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              {recurrenceType && (
+              {recurrenceType === 'personalizado' && (
+                <div>
+                  <Label>A cada X dias</Label>
+                  <Input type="number" min="1" max="365" value={recurrenceIntervalDays} onChange={e => setRecurrenceIntervalDays(e.target.value)} placeholder="Ex: 3" />
+                </div>
+              )}
+              {recurrenceType && recurrenceType !== 'personalizado' && (
                 <div>
                   <Label>Repetir até</Label>
                   <Popover>
@@ -428,6 +440,23 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                   </Popover>
                 </div>
               )}
+            </div>
+            {recurrenceType === 'personalizado' && (
+              <div>
+                <Label>Repetir até</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !recurrenceEnd && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {recurrenceEnd ? format(recurrenceEnd, 'PPP', { locale: pt }) : 'Sem limite'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={recurrenceEnd} onSelect={setRecurrenceEnd} initialFocus className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
