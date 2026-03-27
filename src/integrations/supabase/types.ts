@@ -467,9 +467,11 @@ export type Database = {
           activity_start_date: string | null
           background_color: string
           business_name: string
+          business_type: string
           created_at: string
           font_body: string
           font_display: string
+          has_accountant: boolean
           id: string
           iva_exempt: boolean
           login_bg_url: string | null
@@ -482,6 +484,7 @@ export type Database = {
           support_hours: string | null
           tax_irs_regime: string
           tax_iva_regime: string
+          team_type: string
           text_color: string
           updated_at: string
           welcome_text: string | null
@@ -493,9 +496,11 @@ export type Database = {
           activity_start_date?: string | null
           background_color?: string
           business_name: string
+          business_type?: string
           created_at?: string
           font_body?: string
           font_display?: string
+          has_accountant?: boolean
           id?: string
           iva_exempt?: boolean
           login_bg_url?: string | null
@@ -508,6 +513,7 @@ export type Database = {
           support_hours?: string | null
           tax_irs_regime?: string
           tax_iva_regime?: string
+          team_type?: string
           text_color?: string
           updated_at?: string
           welcome_text?: string | null
@@ -519,9 +525,11 @@ export type Database = {
           activity_start_date?: string | null
           background_color?: string
           business_name?: string
+          business_type?: string
           created_at?: string
           font_body?: string
           font_display?: string
+          has_accountant?: boolean
           id?: string
           iva_exempt?: boolean
           login_bg_url?: string | null
@@ -534,6 +542,7 @@ export type Database = {
           support_hours?: string | null
           tax_irs_regime?: string
           tax_iva_regime?: string
+          team_type?: string
           text_color?: string
           updated_at?: string
           welcome_text?: string | null
