@@ -75,55 +75,49 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
   );
 
   // ── Independente calculations ──
-  const yearSales = useMemo(() =>
-    sales.filter(sl => sl.sale_year === currentYear),
-    [sales, currentYear]
-  );
+  // Need both current and previous year sales for quarter mapping
+  const prevYear = currentYear - 1;
+
+  const salesByQuarter = useMemo(() => {
+    // Build a map: "YYYY-Q" -> total revenue
+    const map: Record<string, number> = {};
+    sales.forEach(sl => {
+      if (!sl.sale_month || !sl.sale_year) return;
+      const q = Math.ceil(sl.sale_month / 3);
+      const key = `${sl.sale_year}-Q${q}`;
+      map[key] = (map[key] || 0) + sl.invoice_total;
+    });
+    return map;
+  }, [sales]);
+
+  /*
+   * SS Independente — Declaração trimestral e efeito nos meses:
+   *
+   * Trimestre    | Declaração em | Aplica-se a       | Dados necessários
+   * Q3 ano-1    | Outubro ano-1 | Jan, Fev, Mar     | Faturação Jul-Set ano-1
+   * Q4 ano-1    | Janeiro       | Abr, Mai, Jun     | Faturação Out-Dez ano-1
+   * Q1           | Abril         | Jul, Ago, Set     | Faturação Jan-Mar
+   * Q2           | Julho         | Out, Nov, Dez     | Faturação Abr-Jun
+   */
+  const QUARTER_MAP = [
+    // For each contribution month: which quarter's revenue, declaration month
+    { months: [1, 2, 3], srcYear: prevYear, srcQ: 3, declMonth: 'Outubro', declYear: prevYear, srcLabel: `Q3 ${prevYear} (Jul-Set)` },
+    { months: [4, 5, 6], srcYear: prevYear, srcQ: 4, declMonth: 'Janeiro', declYear: currentYear, srcLabel: `Q4 ${prevYear} (Out-Dez)` },
+    { months: [7, 8, 9], srcYear: currentYear, srcQ: 1, declMonth: 'Abril', declYear: currentYear, srcLabel: `Q1 ${currentYear} (Jan-Mar)` },
+    { months: [10, 11, 12], srcYear: currentYear, srcQ: 2, declMonth: 'Julho', declYear: currentYear, srcLabel: `Q2 ${currentYear} (Abr-Jun)` },
+  ];
 
   const independenteData = useMemo(() => {
-    // Group sales by quarter for declaration-based calculation
-    const quarters = [
-      { q: 1, months: [1, 2, 3], appliesTo: [7, 8, 9] },    // Q1 declaration → Jul-Sep contributions
-      { q: 2, months: [4, 5, 6], appliesTo: [10, 11, 12] },  // Q2 declaration → Oct-Dec
-      { q: 3, months: [7, 8, 9], appliesTo: [1, 2, 3] },     // Q3 declaration → Jan-Mar (+1 year)
-      { q: 4, months: [10, 11, 12], appliesTo: [4, 5, 6] },   // Q4 declaration → Apr-Jun (+1 year)
-    ];
-
-    // Revenue by quarter
-    const revenueByQuarter: Record<number, number> = {};
-    quarters.forEach(q => {
-      revenueByQuarter[q.q] = yearSales
-        .filter(sl => q.months.includes(sl.sale_month || 0))
-        .reduce((s, v) => s + v.invoice_total, 0);
-    });
-
-    // For each month, find which quarter's declaration applies
-    // Simplified: use previous quarter's revenue to estimate contribution
     return Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
-
-      // Find which quarter's revenue applies to this month
-      let quarterRevenue = 0;
-      // Months 1-3 come from Q3 of previous year (we don't have that data easily, estimate from Q4 of prev or Q1 current)
-      // Months 4-6 come from Q4 of previous year
-      // Months 7-9 come from Q1 of current year
-      // Months 10-12 come from Q2 of current year
-      if (m >= 7 && m <= 9) quarterRevenue = revenueByQuarter[1] || 0;
-      else if (m >= 10 && m <= 12) quarterRevenue = revenueByQuarter[2] || 0;
-      else if (m >= 1 && m <= 3) quarterRevenue = revenueByQuarter[3] || 0; // Q3 prev year - estimate with Q1
-      else if (m >= 4 && m <= 6) quarterRevenue = revenueByQuarter[4] || 0; // Q4 prev year - estimate with Q2
-
-      // If no data for the applied quarter, estimate from average of available quarters
-      if (quarterRevenue === 0) {
-        const totalYearRevenue = Object.values(revenueByQuarter).reduce((s, v) => s + v, 0);
-        quarterRevenue = totalYearRevenue / 4;
-      }
+      const mapping = QUARTER_MAP.find(qm => qm.months.includes(m))!;
+      const key = `${mapping.srcYear}-Q${mapping.srcQ}`;
+      const quarterRevenue = salesByQuarter[key] || 0;
+      const hasData = key in salesByQuarter;
 
       const rendimentoRelevante = quarterRevenue * SS_RENDIMENTO_RELEVANTE;
       const baseIncidencia = Math.round(rendimentoRelevante / 3 * 100) / 100;
       const contribution = Math.round(baseIncidencia * SS_INDEPENDENTE_RATE * 100) / 100;
-
-      // Apply minimum (€20) if there's any revenue
       const finalContribution = baseIncidencia > 0 ? Math.max(20, contribution) : 0;
 
       const paid = ssExpenses.find(e => e.expense_month === m && e.description?.toLowerCase().includes('independente'));
@@ -136,9 +130,13 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
         contribution: finalContribution,
         paid: paid?.total_with_vat ?? 0,
         isPaid: (paid?.total_with_vat ?? 0) > 0,
+        hasData,
+        srcLabel: mapping.srcLabel,
+        declMonth: mapping.declMonth,
+        declYear: mapping.declYear,
       };
     });
-  }, [yearSales, ssExpenses, currentYear]);
+  }, [salesByQuarter, ssExpenses, currentYear, prevYear]);
 
   // ── Patronal calculations ──
   const contractMemberIds = useMemo(() => new Set(contracts.map((c: any) => c.member_id)), [contracts]);
