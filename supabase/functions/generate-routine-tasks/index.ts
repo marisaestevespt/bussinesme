@@ -1,0 +1,184 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
+
+/** Map JS getDay() (0=Sun) to ISO weekday (1=Mon..7=Sun) */
+function jsToIso(jsDay: number): number {
+  return jsDay === 0 ? 7 : jsDay;
+}
+
+/** Check if a date is a business day (Mon-Fri) */
+function isBusinessDay(d: Date): boolean {
+  const dow = d.getDay();
+  return dow >= 1 && dow <= 5;
+}
+
+/** Move to previous business day */
+function prevBusinessDay(d: Date): Date {
+  const result = new Date(d);
+  do {
+    result.setDate(result.getDate() - 1);
+  } while (!isBusinessDay(result));
+  return result;
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, serviceKey);
+
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+  const todayIsoWeekday = jsToIso(today.getDay());
+  const todayMonthDay = today.getDate();
+
+  // Look ahead window: generate tasks for today + next 7 days
+  const lookAheadDays = 7;
+  const dates: Date[] = [];
+  for (let i = 0; i <= lookAheadDays; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i);
+    dates.push(d);
+  }
+
+  // Fetch active routines
+  const { data: routines, error: rErr } = await supabase
+    .from("planning_routines")
+    .select("*")
+    .eq("active", true);
+
+  if (rErr) {
+    console.error("Error fetching routines:", rErr);
+    return new Response(JSON.stringify({ error: rErr.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  if (!routines || routines.length === 0) {
+    return new Response(JSON.stringify({ message: "No active routines", created: 0 }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  // Fetch team members to resolve role_function → profile_id
+  const { data: teamMembers } = await supabase
+    .from("team_members")
+    .select("id, profile_id, role_title, status")
+    .eq("status", "ativo");
+
+  let createdCount = 0;
+
+  for (const routine of routines) {
+    // Determine which dates this routine should fire
+    const targetDates: string[] = [];
+
+    for (const date of dates) {
+      const dateStr = date.toISOString().split("T")[0];
+      const isoWeekday = jsToIso(date.getDay());
+      const monthDay = date.getDate();
+      let shouldFire = false;
+
+      switch (routine.recurrence_type) {
+        case "diario":
+          shouldFire = true;
+          break;
+        case "semanal":
+          shouldFire = routine.weekday != null && isoWeekday === routine.weekday;
+          break;
+        case "quinzenal":
+          // Fire on the weekday, every other week (use week number parity)
+          if (routine.weekday != null && isoWeekday === routine.weekday) {
+            const weekNum = Math.floor(
+              (date.getTime() - new Date(date.getFullYear(), 0, 1).getTime()) /
+                (7 * 24 * 60 * 60 * 1000)
+            );
+            shouldFire = weekNum % 2 === 0;
+          }
+          break;
+        case "mensal":
+          shouldFire = routine.month_day != null && monthDay === routine.month_day;
+          break;
+        case "mensal_primeiro":
+          shouldFire = monthDay === 1;
+          break;
+      }
+
+      // Adjust to business day if needed
+      if (shouldFire && routine.adjust_to_business_day && !isBusinessDay(date)) {
+        const adjusted = prevBusinessDay(date);
+        const adjustedStr = adjusted.toISOString().split("T")[0];
+        // Only add if adjusted date is within our window
+        if (adjusted >= today) {
+          targetDates.push(adjustedStr);
+        }
+      } else if (shouldFire) {
+        targetDates.push(dateStr);
+      }
+    }
+
+    if (targetDates.length === 0) continue;
+
+    // Resolve responsible: by role_function or direct responsible
+    let assignedTo: string | null = routine.responsible || null;
+
+    if (!assignedTo && routine.role_function && teamMembers) {
+      const match = teamMembers.find(
+        (m) =>
+          m.role_title &&
+          m.role_title.toLowerCase() === routine.role_function.toLowerCase() &&
+          m.profile_id
+      );
+      if (match) {
+        assignedTo = match.profile_id;
+      }
+    }
+
+    // For each target date, check if task already exists (avoid duplicates)
+    for (const dateStr of targetDates) {
+      const { data: existing } = await supabase
+        .from("tasks")
+        .select("id")
+        .eq("routine_id", routine.id)
+        .eq("deadline", dateStr)
+        .limit(1);
+
+      if (existing && existing.length > 0) continue;
+
+      // Create the task
+      const { error: insertErr } = await supabase.from("tasks").insert({
+        name: routine.title,
+        status: "por_comecar",
+        priority: "media",
+        deadline: dateStr,
+        assigned_to: assignedTo,
+        department: routine.department || null,
+        project_id: routine.project_id || null,
+        routine_id: routine.id,
+        recurrence_type: routine.recurrence_type,
+        tag: "Rotina",
+        estimated_time: routine.estimated_time || null,
+        created_by: routine.created_by || null,
+      });
+
+      if (insertErr) {
+        console.error(`Error creating task for routine ${routine.id} on ${dateStr}:`, insertErr);
+      } else {
+        createdCount++;
+      }
+    }
+  }
+
+  return new Response(
+    JSON.stringify({ message: "Routine tasks generated", created: createdCount }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+});
