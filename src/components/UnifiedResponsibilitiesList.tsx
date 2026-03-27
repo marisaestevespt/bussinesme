@@ -24,6 +24,9 @@ import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { PROCESS_DEPARTMENTS } from '@/lib/departments';
+import { pt } from 'date-fns/locale';
+import { toast } from 'sonner';
 import type { UnifiedItem, ResponsibilitySource } from '@/hooks/useUnifiedResponsibilities';
 import { SOURCE_LABELS } from '@/hooks/useUnifiedResponsibilities';
 
