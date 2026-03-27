@@ -99,12 +99,37 @@ interface Props {
 export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px', defaultDeadline }: Props) {
   const [filter, setFilter] = useState<SourceFilter>('todos');
   const [selectedItem, setSelectedItem] = useState<UnifiedItem | null>(null);
-  const [showQuickAdd, setShowQuickAdd] = useState(false);
-  const [quickAddName, setQuickAddName] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newDeadline, setNewDeadline] = useState<Date | undefined>(defaultDeadline ? parseISO(defaultDeadline) : new Date());
+  const [newPriority, setNewPriority] = useState('alta');
+  const [newDepartment, setNewDepartment] = useState('');
+  const [newAssignedTo, setNewAssignedTo] = useState('');
+  const [newProjectId, setNewProjectId] = useState('');
+  const [newNotes, setNewNotes] = useState('');
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { user } = useAuth();
+
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['profiles'],
+    enabled: addOpen,
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id, full_name');
+      return data || [];
+    },
+  });
+
+  const { data: projectsList = [] } = useQuery({
+    queryKey: ['projects-list-simple'],
+    enabled: addOpen,
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase.from('projects').select('id, name').neq('status', 'concluido').order('name');
+      return data || [];
+    },
+  });
 
   const toggleMutation = useMutation({
     mutationFn: async (item: UnifiedItem) => {
@@ -143,39 +168,54 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
     onError: () => toast.error('Erro ao atualizar'),
   });
 
-  const quickAddMutation = useMutation({
-    mutationFn: async (name: string) => {
-      if (!user?.id) throw new Error('No user');
-      const { error } = await supabase.from('tasks').insert({
-        name,
-        assigned_to: user.id,
-        status: 'todo',
-        deadline: defaultDeadline || format(new Date(), 'yyyy-MM-dd'),
-      } as any);
+  const createMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      const { error } = await supabase.from('tasks').insert({ ...payload, created_by: user?.id } as any);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['unified-tasks'] });
       qc.invalidateQueries({ queryKey: ['my-tasks'] });
+      qc.invalidateQueries({ queryKey: ['tasks'] });
       toast.success('Tarefa criada!');
-      setQuickAddName('');
-      setShowQuickAdd(false);
+      resetAddForm();
     },
     onError: () => toast.error('Erro ao criar tarefa'),
   });
 
-  const handleQuickAdd = () => {
-    const name = quickAddName.trim();
-    if (!name) return;
-    quickAddMutation.mutate(name);
-  };
+  function resetAddForm() {
+    setAddOpen(false);
+    setNewName('');
+    setNewDeadline(defaultDeadline ? parseISO(defaultDeadline) : new Date());
+    setNewPriority('alta');
+    setNewDepartment('');
+    setNewAssignedTo('');
+    setNewProjectId('');
+    setNewNotes('');
+  }
+
+  function handleCreate() {
+    if (!newName.trim() || !newDeadline) {
+      toast.error('Preenche o nome e o prazo');
+      return;
+    }
+    createMutation.mutate({
+      name: newName.trim(),
+      status: 'por_comecar',
+      priority: newPriority,
+      deadline: format(newDeadline, 'yyyy-MM-dd'),
+      assigned_to: newAssignedTo || user?.id || null,
+      department: newDepartment || null,
+      project_id: newProjectId || null,
+      notes: newNotes || null,
+    });
+  }
 
   const filtered = filter === 'todos' ? items : items.filter(i => i.source === filter);
 
   const countBySource: Partial<Record<ResponsibilitySource, number>> = {};
   items.forEach(i => { countBySource[i.source] = (countBySource[i.source] || 0) + 1; });
 
-  /** Sources that open in the detail dialog instead of navigating */
   const DIALOG_SOURCES: ResponsibilitySource[] = ['tarefa', 'marco', 'rotina'];
 
   const handleClick = (item: UnifiedItem) => {
@@ -189,7 +229,14 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
 
   const canToggle = (item: UnifiedItem) => !item.isInfoOnly && TOGGLEABLE_SOURCES.includes(item.source);
 
+  const PRIORITIES = [
+    { value: 'alta', label: 'Prioridade 1' },
+    { value: 'media', label: 'Prioridade 2' },
+    { value: 'baixa', label: 'Prioridade 3' },
+  ];
+
   return (
+    <>
     <Card>
       <CardHeader className="pb-3 flex flex-row items-center justify-between">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
@@ -197,31 +244,12 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
           variant="ghost"
           size="sm"
           className="h-7 gap-1 text-xs"
-          onClick={() => {
-            setShowQuickAdd(!showQuickAdd);
-            setTimeout(() => inputRef.current?.focus(), 50);
-          }}
+          onClick={() => setAddOpen(true)}
         >
           <Plus className="h-3.5 w-3.5" /> Adicionar
         </Button>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Quick-add inline form */}
-        {showQuickAdd && (
-          <div className="flex gap-2">
-            <Input
-              ref={inputRef}
-              placeholder="Nome da tarefa..."
-              value={quickAddName}
-              onChange={e => setQuickAddName(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleQuickAdd(); if (e.key === 'Escape') setShowQuickAdd(false); }}
-              className="h-8 text-sm"
-            />
-            <Button size="sm" className="h-8 px-3" onClick={handleQuickAdd} disabled={!quickAddName.trim() || quickAddMutation.isPending}>
-              Criar
-            </Button>
-          </div>
-        )}
         {/* Filters */}
         <div className="flex flex-wrap gap-1.5">
           {FILTER_OPTIONS.map(f => {
