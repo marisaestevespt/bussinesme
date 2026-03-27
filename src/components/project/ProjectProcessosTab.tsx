@@ -9,11 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import { LinkedSopsSection } from '@/components/LinkedSopsSection';
+import { ApplyProductTemplate } from '@/components/project/ApplyProductTemplate';
 
 interface Props {
   projectId: string;
   clientId: string | undefined;
   productId?: string | null;
+  projectStartDate?: string | null;
 }
 
 // ─── Checklist Table ─────────────────────────────────────────────
