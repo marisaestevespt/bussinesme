@@ -410,6 +410,6 @@ export function useUnifiedResponsibilities(userId?: string) {
     todayItems,
     weekItems,
     getItemHours,
-    isLoading: tasksQ.isLoading || leadsQ.isLoading || contentQ.isLoading || meetingsQ.isLoading,
+    isLoading: profileQ.isLoading || tasksQ.isLoading || leadsQ.isLoading || contentQ.isLoading || meetingsQ.isLoading,
   };
 }
