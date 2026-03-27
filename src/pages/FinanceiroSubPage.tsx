@@ -48,7 +48,7 @@ export default function FinanceiroSubPage() {
   const com = useCommercialData(year);
   const sales = excludeCancelled(com.sales.data || []);
   const expenses = excludeCancelled(fin.expenses.data || []);
-  const subscriptions = fin.subscriptions.data || [];
+  const recurringExpenses = fin.recurringExpenses.data || [];
   const payrollData = fin.payroll.data || [];
   const contractorsData = fin.contractors.data || [];
   const documents = fin.documents.data || [];
@@ -70,7 +70,7 @@ export default function FinanceiroSubPage() {
   const renderContent = () => {
     switch (section) {
       case 'mensal':
-        return <FinMensal sales={sales} expenses={expenses} subscriptions={subscriptions} payrollData={payrollData} contractorsData={contractorsData} documents={documents} currentYear={year} fin={fin} />;
+        return <FinMensal sales={sales} expenses={expenses} payrollData={payrollData} contractorsData={contractorsData} documents={documents} currentYear={year} fin={fin} />;
       case 'trimestral':
         return <FinTrimestral sales={sales} expenses={expenses} currentYear={year} />;
       case 'entradas':

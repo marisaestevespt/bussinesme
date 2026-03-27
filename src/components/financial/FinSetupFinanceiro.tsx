@@ -18,9 +18,10 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import type { useFinancialData } from '@/hooks/useFinancialData';
-import { calcMonthlyEquivalent, type Subscription } from '@/hooks/useFinancialData';
+import { calcMonthlyEquivalent } from '@/hooks/useFinancialData';
 
 import { CategorySelect } from './CategorySelect';
+import { SupplierSelect } from './SupplierSelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 
 const VAT_OPTIONS = [0, 6, 13, 23];
@@ -37,9 +38,8 @@ const PERIODICITIES = [
   { value: 'semestral', label: 'Semestral' },
   { value: 'anual', label: 'Anual' },
 ];
-const SUB_STATUS = [
-  { value: 'ativo', label: 'Ativo' },
-  { value: 'pausado', label: 'Pausado' },
+const REC_STATUS = [
+  { value: 'por_pagar', label: 'Ativo' },
   { value: 'cancelado', label: 'Cancelado' },
 ];
 
@@ -63,8 +63,7 @@ interface Props {
 export function FinSetupFinanceiro({ fin }: Props) {
   const navigate = useNavigate();
   const { getCategoryLabel } = useFinancialCategories();
-  const subscriptions = fin.subscriptions.data || [];
-  const today = new Date();
+  const recurringExpenses = fin.recurringExpenses.data || [];
 
   // Products with payment methods
   const { data: products = [] } = useQuery({
@@ -97,42 +96,52 @@ export function FinSetupFinanceiro({ fin }: Props) {
     return t * (1 + v / 100);
   };
 
-  // --- Subscription Dialog ---
+  // --- Recurring Expense Dialog ---
   const [subOpen, setSubOpen] = useState(false);
   const [subForm, setSubForm] = useState<any>({});
 
-  const openNewSub = () => {
-    setSubForm({ category: 'outro', periodicity: 'mensal', location: 'portugal', country: 'Portugal', status: 'ativo', value: '', platform_name: '', vat_rate: 0, includes_vat: false, nif: '' });
+  const openNew = () => {
+    setSubForm({ category: 'plataformas', periodicity: 'mensal', location: 'portugal', status: 'por_pagar', base_value: '', expense_name: '', vat_rate: 0, includes_vat: false, supplier_id: null });
     setSubOpen(true);
   };
 
   const saveSub = async () => {
-    if (!subForm.platform_name?.trim()) { toast.error('Nome é obrigatório'); return; }
-    const val = parseFloat(subForm.value) || 0;
+    if (!subForm.expense_name?.trim()) { toast.error('Nome é obrigatório'); return; }
+    const val = parseFloat(subForm.base_value) || 0;
     const vatRate = parseInt(subForm.vat_rate) || 0;
-    await fin.upsertSubscription.mutateAsync({
+    let baseValue: number, totalWithVat: number;
+    if (subForm.includes_vat) {
+      totalWithVat = val;
+      baseValue = Math.round(val / (1 + vatRate / 100) * 100) / 100;
+    } else {
+      baseValue = val;
+      totalWithVat = Math.round(val * (1 + vatRate / 100) * 100) / 100;
+    }
+    const startDate = subForm.start_date
+      ? (typeof subForm.start_date === 'string' ? subForm.start_date : format(subForm.start_date, 'yyyy-MM-dd'))
+      : format(new Date(), 'yyyy-MM-dd');
+
+    await fin.upsertRecurringExpense.mutateAsync({
       ...(subForm.id ? { id: subForm.id } : {}),
-      platform_name: subForm.platform_name,
+      expense_name: subForm.expense_name,
+      description: subForm.expense_name,
       category: subForm.category,
-      value: val,
+      base_value: baseValue,
+      total_with_vat: totalWithVat,
+      vat_rate: vatRate,
       periodicity: subForm.periodicity,
       location: subForm.location,
-      start_date: subForm.start_date ? (typeof subForm.start_date === 'string' ? subForm.start_date : format(subForm.start_date, 'yyyy-MM-dd')) : null,
-      renewal_date: null,
+      expense_date: startDate,
       status: subForm.status,
-      notes: subForm.notes || null,
-      documents: subForm.documents || [],
-      vat_rate: vatRate,
-      includes_vat: !!subForm.includes_vat,
-      nif: subForm.nif || '',
-      country: subForm.country || '',
+      supplier_id: subForm.supplier_id || null,
+      source_type: 'subscription',
     } as any);
     setSubOpen(false);
-    toast.success('Subscrição guardada');
+    toast.success('Despesa recorrente guardada');
   };
 
-  const activeSubs = subscriptions.filter(s => s.status === 'ativo');
-  const totalMonthly = activeSubs.reduce((s, sub) => s + sub.monthly_equivalent, 0);
+  const activeRecs = recurringExpenses.filter(s => s.status !== 'cancelado');
+  const totalMonthly = activeRecs.reduce((s, sub) => s + (sub.monthly_equivalent || 0), 0);
 
   return (
     <div className="space-y-8">
@@ -195,64 +204,79 @@ export function FinSetupFinanceiro({ fin }: Props) {
         </Card>
       </div>
 
-      {/* SUBSCRIPTIONS */}
+      {/* RECURRING EXPENSES (ex-subscriptions) */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold">Plataformas & Subscrições</h3>
-          <Button size="sm" onClick={openNewSub}><Plus className="h-4 w-4 mr-1" /> Nova Plataforma</Button>
+          <div>
+            <h3 className="text-lg font-semibold">Despesas Recorrentes</h3>
+            {totalMonthly > 0 && <p className="text-sm text-muted-foreground">Custo mensal estimado: {fmt(totalMonthly)}</p>}
+          </div>
+          <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Nova Despesa Recorrente</Button>
         </div>
         <Card>
           <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Plataforma</TableHead>
+                  <TableHead>Nome</TableHead>
                   <TableHead>Categoria</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
+                  <TableHead className="text-right">Valor Base</TableHead>
                   <TableHead>Periodicidade</TableHead>
                   <TableHead className="text-right">Custo Mensal</TableHead>
                   <TableHead>Localização</TableHead>
-                   <TableHead>Status</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {subscriptions.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Sem subscrições</TableCell></TableRow>
-                ) : subscriptions.map(s => (
-                    <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
-                      setSubForm({ ...s, value: s.value.toString(), start_date: s.start_date ? new Date(s.start_date + 'T00:00:00') : undefined });
-                      setSubOpen(true);
-                    }}>
-                      <TableCell className="font-medium">{s.platform_name}</TableCell>
-                      <TableCell>{getCategoryLabel('subscription', s.category)}</TableCell>
-                      <TableCell className="text-right">{fmt(s.value)}</TableCell>
-                      <TableCell>{PERIODICITIES.find(p => p.value === s.periodicity)?.label || s.periodicity}</TableCell>
-                      <TableCell className="text-right font-medium">{fmt(s.monthly_equivalent)}</TableCell>
-                      <TableCell>{LOCATIONS.find(l => l.value === s.location)?.label || s.location}</TableCell>
-                      <TableCell><Badge variant="outline" className={s.status === 'ativo' ? 'bg-success/10 text-success' : s.status === 'pausado' ? 'bg-warning/10 text-warning' : 'bg-muted text-muted-foreground'}>{SUB_STATUS.find(st => st.value === s.status)?.label || s.status}</Badge></TableCell>
-                    </TableRow>
+                {recurringExpenses.length === 0 ? (
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Sem despesas recorrentes</TableCell></TableRow>
+                ) : recurringExpenses.map(s => (
+                  <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
+                    setSubForm({
+                      ...s,
+                      base_value: String(s.base_value),
+                      expense_name: s.expense_name || s.description,
+                      start_date: s.expense_date ? new Date(s.expense_date + 'T00:00:00') : undefined,
+                      includes_vat: false,
+                    });
+                    setSubOpen(true);
+                  }}>
+                    <TableCell className="font-medium">{s.expense_name || s.description}</TableCell>
+                    <TableCell>{getCategoryLabel('expense', s.category)}</TableCell>
+                    <TableCell className="text-right">{fmt(s.base_value)}</TableCell>
+                    <TableCell>{PERIODICITIES.find(p => p.value === s.periodicity)?.label || s.periodicity || '—'}</TableCell>
+                    <TableCell className="text-right font-medium">{fmt(s.monthly_equivalent || 0)}</TableCell>
+                    <TableCell>{LOCATIONS.find(l => l.value === s.location)?.label || s.location}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={s.status !== 'cancelado' ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}>
+                        {s.status !== 'cancelado' ? 'Ativo' : 'Cancelado'}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
                 ))}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
-        
       </div>
 
-      {/* SUBSCRIPTION DIALOG */}
+      {/* RECURRING EXPENSE DIALOG */}
       <Dialog open={subOpen} onOpenChange={setSubOpen}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{subForm.id ? 'Editar Subscrição' : 'Nova Plataforma'}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{subForm.id ? 'Editar Despesa Recorrente' : 'Nova Despesa Recorrente'}</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <div><Label>Nome da Plataforma</Label><Input value={subForm.platform_name || ''} onChange={e => setSubForm((f: any) => ({ ...f, platform_name: e.target.value }))} /></div>
+            <div><Label>Nome</Label><Input value={subForm.expense_name || ''} onChange={e => setSubForm((f: any) => ({ ...f, expense_name: e.target.value }))} /></div>
+            <div><Label>Fornecedor</Label>
+              <SupplierSelect value={subForm.supplier_id || null} onValueChange={v => setSubForm((f: any) => ({ ...f, supplier_id: v }))} />
+            </div>
             <div><Label>Categoria</Label>
-              <CategorySelect type="subscription" value={subForm.category || 'outro'} onValueChange={v => setSubForm((f: any) => ({ ...f, category: v }))} />
+              <CategorySelect type="expense" value={subForm.category || 'plataformas'} onValueChange={v => setSubForm((f: any) => ({ ...f, category: v }))} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Status</Label>
-                <Select value={subForm.status || 'ativo'} onValueChange={v => setSubForm((f: any) => ({ ...f, status: v }))}>
+                <Select value={subForm.status || 'por_pagar'} onValueChange={v => setSubForm((f: any) => ({ ...f, status: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{SUB_STATUS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                  <SelectContent>{REC_STATUS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div><Label>Data de Início</Label>
@@ -270,7 +294,7 @@ export function FinSetupFinanceiro({ fin }: Props) {
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3">
-              <div><Label>{subForm.includes_vat ? 'Valor c/ IVA (€)' : 'Valor (€)'}</Label><Input type="number" step="0.01" value={subForm.value || ''} onChange={e => setSubForm((f: any) => ({ ...f, value: e.target.value }))} /></div>
+              <div><Label>{subForm.includes_vat ? 'Valor c/ IVA (€)' : 'Valor (€)'}</Label><Input type="number" step="0.01" value={subForm.base_value || ''} onChange={e => setSubForm((f: any) => ({ ...f, base_value: e.target.value }))} /></div>
               <div><Label>IVA (%)</Label>
                 <Select value={String(subForm.vat_rate ?? 0)} onValueChange={v => setSubForm((f: any) => ({ ...f, vat_rate: parseInt(v) }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -288,30 +312,23 @@ export function FinSetupFinanceiro({ fin }: Props) {
               <Switch checked={subForm.includes_vat || false} onCheckedChange={v => setSubForm((f: any) => ({ ...f, includes_vat: v }))} />
               <Label className="text-sm font-normal">Valor inclui IVA</Label>
             </div>
-            {subForm.value && parseFloat(subForm.value) > 0 && (subForm.vat_rate ?? 0) > 0 && (
+            {subForm.base_value && parseFloat(subForm.base_value) > 0 && (subForm.vat_rate ?? 0) > 0 && (
               <p className="text-xs text-muted-foreground">
                 {subForm.includes_vat
-                  ? `Base: ${(parseFloat(subForm.value) / (1 + (subForm.vat_rate ?? 0) / 100)).toFixed(2)} € · IVA: ${(parseFloat(subForm.value) - parseFloat(subForm.value) / (1 + (subForm.vat_rate ?? 0) / 100)).toFixed(2)} €`
-                  : `Total c/ IVA: ${(parseFloat(subForm.value) * (1 + (subForm.vat_rate ?? 0) / 100)).toFixed(2)} € · IVA: ${(parseFloat(subForm.value) * (subForm.vat_rate ?? 0) / 100).toFixed(2)} €`
+                  ? `Base: ${(parseFloat(subForm.base_value) / (1 + (subForm.vat_rate ?? 0) / 100)).toFixed(2)} € · IVA: ${(parseFloat(subForm.base_value) - parseFloat(subForm.base_value) / (1 + (subForm.vat_rate ?? 0) / 100)).toFixed(2)} €`
+                  : `Total c/ IVA: ${(parseFloat(subForm.base_value) * (1 + (subForm.vat_rate ?? 0) / 100)).toFixed(2)} € · IVA: ${(parseFloat(subForm.base_value) * (subForm.vat_rate ?? 0) / 100).toFixed(2)} €`
                 }
               </p>
             )}
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label>NIF da Plataforma</Label><Input value={subForm.nif || ''} onChange={e => setSubForm((f: any) => ({ ...f, nif: e.target.value }))} placeholder="Ex: 123456789" /></div>
-              <div><Label>País</Label>
-                <Select value={subForm.location || 'portugal'} onValueChange={v => {
-                  const countryMap: Record<string, string> = { portugal: 'Portugal', ue: 'União Europeia', fora_ue: 'Fora da UE' };
-                  setSubForm((f: any) => ({ ...f, location: v, country: countryMap[v] || '' }));
-                }}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
+            <div><Label>Localização</Label>
+              <Select value={subForm.location || 'portugal'} onValueChange={v => setSubForm((f: any) => ({ ...f, location: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+              </Select>
             </div>
-            <div><Label>Notas</Label><Input value={subForm.notes || ''} onChange={e => setSubForm((f: any) => ({ ...f, notes: e.target.value }))} /></div>
             <div className="flex gap-2">
               <Button className="flex-1" onClick={saveSub}>Guardar</Button>
-              {subForm.id && <Button variant="destructive" size="icon" onClick={async () => { await fin.deleteSubscription.mutateAsync(subForm.id); setSubOpen(false); toast.success('Eliminada'); }}><Trash2 className="h-4 w-4" /></Button>}
+              {subForm.id && <Button variant="destructive" size="icon" onClick={async () => { await fin.deleteRecurringExpense.mutateAsync(subForm.id); setSubOpen(false); toast.success('Eliminada'); }}><Trash2 className="h-4 w-4" /></Button>}
             </div>
           </div>
         </DialogContent>

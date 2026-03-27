@@ -1,32 +1,62 @@
-# Project Memory
+# Memory: index.md
+Updated: now
 
-## Core
-System name is Lirah. Portuguese UI. Supabase backend via Lovable Cloud.
-Pagination: use useInfiniteSupabaseQuery + InfiniteScrollList for large tables.
-Never store roles on profile table — use user_roles with has_role() function.
-Products use product_sub_tables pattern (features, benefits, objections, etc.).
+Design system: white-label Lirah business management app. Matte ceramic surfaces, Geist/Inter defaults, HSL CSS variables injected from business_settings table.
+
+## Brand
+- Name: **Lirah** (L·I·R·A·H = Leveza, Independência, Rotinas, Automações, Human)
+- Inspired by the lyre — harmony, orchestration of business areas
+
+## Schema
+- business_settings: stores theme (colors HSL, fonts, logo_url, business_name)
+- user_roles: links users to app_role enum (owner/admin/member)
+- custom_roles: Owner-defined named roles
+- role_permissions: maps custom_role to module_key + can_view
+- members: links user to custom_role
+- profiles: auto-created on signup via trigger
+
+## Auth Flow
+1. No user → AuthPage (login/signup)
+2. No business_settings → SetupPage (first user becomes Owner)
+3. Setup complete → AppLayout with sidebar
+
+## Module Keys
+comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, administrativo, marketing, financeiro, comercial, clientes, equipa, operacao, planeamento, weekly-align, gestao-equipa-ceo
+
+## Design Tokens
+- --brand-primary, --brand-secondary injected from DB
+- --font-display, --font-body injected from DB
+- --shadow-subtle, --transition-ease defined in index.css
+- .hq-card, .hq-surface-sunken, .hq-transition utility classes
+
+## Rules
+- No hardcoded colors in components
+- Executive Room only visible to Owner
+- Owner role cannot be edited/deleted (is_owner=true in custom_roles)
+- has_role() is SECURITY DEFINER function for RLS
 
 ## Memories
-- [Brand name](mem://design/brand-name) — System name is Lirah, an acronym and symbolic reference to the lyre
-- [Fiscal management](mem://features/fiscal-management) — Business type (ENI/Empresa), regime, exemptions, team type, accountant config; conditional module visibility
-- [Onboarding system](mem://features/onboarding-system) — Multi-step setup wizard for new instances
-- [Pagination](mem://features/pagination) — useInfiniteSupabaseQuery + InfiniteScrollList for large tables
-- [Planning improvements](mem://features/planning-improvements) — Planning objectives with sources, filters, goal tracking
-- [Product/deliverable templates](mem://features/product-deliverable-templates) — Product deliverable templates and milestone auto-creation
-- [Products](mem://features/produtos) — Product detail page structure and tab organization
-- [Team management refactor](mem://features/team-management-refactor) — Split 2410-line ExecutiveGestaoEquipa.tsx into modules
-- [Executive room refactor](mem://features/executive-room-refactor) — Executive dashboard restructuring
-- [Cron jobs](mem://features/cron-jobs) — Scheduled edge functions for daily tasks
-- [Backups](mem://features/backups) — Automated backup system with storage
-- [Routines system](mem://features/routines-system) — Routines auto-generate tasks via daily cron
-- [Member offboarding](mem://features/member-offboarding) — Reassignment popup, settlement, auto-revoke access
-- [Meeting types](mem://features/meeting-types) — Meeting type enum and distinct layouts
-- [New client flow](mem://features/new-client-flow) — Lead conversion auto-creates project, portal, payments
-- [Payment generator](mem://features/payment-generator) — Payment generator logic in ProjectGestaoTab
-- [Security audit](mem://features/security-audit) — RLS hardening for 23 tables
-- [System efficiency](mem://features/system-efficiency) — Observability, tests, onboarding tour
-- [Secretaria refactor](mem://features/secretaria-refactor) — Refactored from ~1700 to ~260 line orchestrator
-- [Permissions system](mem://features/permissions-system) — Multi-dept, sensitive access, per-page grants
-- [Work areas](mem://features/work-areas) — Members can have multiple work_areas
-- [Client portal](mem://features/client-portal) — Public pages for clients via /portal/[token] with OTP
-- [Unified responsibilities](mem://features/unified-responsibilities) — Aggregates items from 8 DB sources
+- [Brand name](mem://design/brand-name.md) — Lirah: acronym meaning, lyre symbolism, usage locations
+- [Color tokens](mem://design/color-tokens) — Full semantic palette, surfaces, opacity system
+- [Cron jobs](mem://features/cron-jobs.md) — Backend cron jobs for auto-status updates, notifications, and data sync
+- [Client portal](mem://features/client-portal.md) — Client Portal system: public pages via /portal/[token] with OTP auth
+- [Fiscal management](mem://features/fiscal-management.md) — Fiscal deadlines, IVA/IRS/SS rules
+- [Meeting types](mem://features/meeting-types.md) — Meeting type enum and distinct layouts per type
+- [New client flow](mem://features/new-client-flow.md) — Lead conversion auto-creates project, portal with FAQs
+- [Onboarding system](mem://features/onboarding-system.md) — Onboarding tour and setup wizard
+- [Pagination](mem://features/pagination.md) — Infinite scroll pagination system
+- [Payment generator](mem://features/payment-generator.md) — Payment generator logic in ProjectGestaoTab
+- [Permissions system](mem://features/permissions-system.md) — Multi-dept, sensitive access, per-page grants
+- [Planning improvements](mem://features/planning-improvements.md) — Planning module improvements
+- [Product deliverable templates](mem://features/product-deliverable-templates.md) — Product deliverable templates
+- [Products](mem://features/produtos.md) — Product detail page structure and tab organization
+- [Routines system](mem://features/routines-system.md) — Routines auto-generate tasks via daily cron; managed in Tarefas > Rotinas tab
+- [Secretaria refactor](mem://features/secretaria-refactor.md) — Secretaria.tsx refactored to lazy-loaded tabs
+- [Security audit](mem://features/security-audit.md) — RLS hardening for 23 tables
+- [SS Independente](mem://features/ss-independente.md) — Correct quarterly declaration mapping: Q1→Abr-Jun, Q2→Jul-Set, Q3→Out-Dez, Q4→Jan-Mar(+1)
+- [System efficiency](mem://features/system-efficiency.md) — Observability, tests, onboarding tour
+- [Team management refactor](mem://features/team-management-refactor.md) — Team management refactoring
+- [Unified expenses](mem://features/unified-expenses.md) — Subscriptions merged into financial_expenses with is_recurring, periodicity, monthly_equivalent
+- [Unified responsibilities](mem://features/unified-responsibilities.md) — Aggregates items from 8 DB sources
+- [Work areas](mem://features/work-areas.md) — Team member work areas system
+- [Member offboarding](mem://features/member-offboarding.md) — Team member offboarding: reassignment, settlement, auto-revoke, ex-members tab
