@@ -1120,8 +1120,6 @@ export default function TarefasPage() {
 }
 
 // Sub-components (TaskTable, CalendarView, ResponsavelView) extracted to src/components/tasks/
-  profiles: any[];
-  isOverdue: (t: any) => boolean;
   isDoneAfterDeadline: (t: any) => boolean;
   getProfileName: (id: string | null) => string;
   getProjectName: (id: string | null) => string;
