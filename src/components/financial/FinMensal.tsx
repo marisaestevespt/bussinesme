@@ -93,12 +93,13 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
     return da.localeCompare(db);
   }), [expenses, currentYear, m]);
 
-  // Subscriptions due this month (based on start_date + periodicity)
+  // Recurring expenses due this month (based on expense_date + periodicity)
+  const recurringExps = fin.recurringExpenses.data || [];
   const dueSubscriptions = useMemo(() => {
-    return (subscriptions || []).filter(s => 
-      s.status === 'ativo' && getSubscriptionOccurrences(s.start_date, s.periodicity, m, currentYear) > 0
+    return recurringExps.filter(s => 
+      s.status !== 'cancelado' && s.periodicity && getSubscriptionOccurrences(s.expense_date, s.periodicity, m, currentYear) > 0
     );
-  }, [subscriptions, m, currentYear]);
+  }, [recurringExps, m, currentYear]);
 
   // Check which subs already have a confirmed expense for this month
   const subExpenseMap = useMemo(() => {
@@ -625,7 +626,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 }
 
 function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpenseClick }: {
-  sub: Subscription;
+  sub: RecurringExpense;
   linkedExpense: Expense | undefined;
   isPaid: boolean;
   month: number;

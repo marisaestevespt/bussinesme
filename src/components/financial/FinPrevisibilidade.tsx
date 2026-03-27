@@ -143,15 +143,15 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
       const entradas = isPast ? (revenueByMonth[m] || 0) : Math.round(avgRevenue * 100) / 100;
       const balanco = Math.round((entradas - totalSaidas) * 100) / 100;
 
-      const renewals = subscriptions.filter(s => {
-        if (!s.renewal_date || s.status !== 'ativo') return false;
-        const rd = parseISO(s.renewal_date);
+      const renewals = recurringExpenses.filter(s => {
+        if (!(s as any).renewal_date || s.status === 'cancelado') return false;
+        const rd = parseISO((s as any).renewal_date);
         return rd.getMonth() + 1 === m;
       });
 
       return { mes: FULL[i], entradas, subs: subsTotal, pessoal, prestadores: prest, impostos, taxLabel: tax.label, totalSaidas, balanco, renewals, isPast };
     });
-  }, [totalMonthly, payrollData, contractorsData, subscriptions, currentYear, sales, currentMonth, taxByMonth]);
+  }, [totalMonthly, payrollData, contractorsData, recurringExpenses, currentYear, sales, currentMonth, taxByMonth]);
 
   const totals = useMemo(() => {
     return predictability.reduce((acc, p) => ({
