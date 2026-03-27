@@ -86,13 +86,19 @@ interface Props {
   items: UnifiedItem[];
   title: string;
   maxHeight?: string;
+  /** Default deadline for quick-add tasks (ISO date string, e.g. today or end of week) */
+  defaultDeadline?: string;
 }
 
-export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px' }: Props) {
+export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px', defaultDeadline }: Props) {
   const [filter, setFilter] = useState<SourceFilter>('todos');
   const [selectedItem, setSelectedItem] = useState<UnifiedItem | null>(null);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [quickAddName, setQuickAddName] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { user } = useAuth();
 
   const toggleMutation = useMutation({
     mutationFn: async (item: UnifiedItem) => {
