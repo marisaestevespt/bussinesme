@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Save, Receipt, Info, Building2, Users, BookOpen } from 'lucide-react';
+import { Save, Receipt, Info, Building2, Users, BookOpen, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -16,7 +18,29 @@ import { Separator } from '@/components/ui/separator';
 
 export function SettingsFiscal() {
   const { settings, refetch } = useBusinessSettings();
+  const qc = useQueryClient();
   const [saving, setSaving] = useState(false);
+
+  // Business setup (NIF, CAE, CIRS)
+  const { data: setupData } = useQuery({
+    queryKey: ['business-setup'],
+    queryFn: async () => {
+      const { data } = await supabase.from('business_setup' as any).select('*').maybeSingle();
+      return data as any;
+    },
+  });
+  const [nif, setNif] = useState('');
+  const [caePrincipal, setCaePrincipal] = useState('');
+  const [caeSecundarios, setCaeSecundarios] = useState('');
+  const [cirsCode, setCirsCode] = useState('');
+
+  useEffect(() => {
+    if (!setupData) return;
+    setNif(setupData.nif || '');
+    setCaePrincipal(setupData.cae_principal || '');
+    setCaeSecundarios(setupData.cae_secundarios || '');
+    setCirsCode(setupData.cirs_code || '');
+  }, [setupData]);
 
   const [businessType, setBusinessType] = useState('eni');
   const [ivaRegime, setIvaRegime] = useState('trimestral');
