@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, Check, Download, FileUp, BarChart3, ExternalLink, Trash2 as TrashIcon } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, Check, Download, FileUp, BarChart3, ExternalLink, Trash2 as TrashIcon, ClipboardCheck } from 'lucide-react';
 import { exportPdf } from '@/lib/exportPdf';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
@@ -17,7 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import type { Expense, Subscription, PayrollEntry, ContractorEntry, FinancialDocument } from '@/hooks/useFinancialData';
 import { getSubscriptionOccurrences } from '@/hooks/useFinancialData';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { InvoiceUpload } from './InvoiceUpload';
 import { CategorySelect } from './CategorySelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
@@ -25,6 +26,8 @@ import { EntryStatusSelect, ExpenseStatusSelect } from './InlineStatusSelect';
 import { EntryDetailSheet } from './EntryDetailSheet';
 import { ExpenseDetailSheet } from './ExpenseDetailSheet';
 import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+import { computeFiscalDeadlines, type FiscalConfig } from '@/lib/fiscalDeadlines';
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 const VAT_RATES = [0, 6, 13, 23];
@@ -814,6 +817,117 @@ function MonthlyDocUpload({ title, icon, docs, docType, accept, onUpload, onDele
         ) : (
           <p className="text-xs text-muted-foreground">Nenhum ficheiro carregado para este mês.</p>
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ── Fiscal Obligations Checklist ──
+function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
+  const { settings } = useBusinessSettings();
+  const qc = useQueryClient();
+  const s = settings as any;
+
+  const fiscalConfig: FiscalConfig = {
+    taxIvaRegime: s?.tax_iva_regime || 'trimestral',
+    taxIrsRegime: s?.tax_irs_regime || 'simplificado',
+    ssExempt: s?.ss_exempt ?? false,
+    ivaExempt: s?.iva_exempt ?? false,
+  };
+
+  const isContabOrganizada = fiscalConfig.taxIrsRegime === 'contabilidade_organizada';
+
+  // Determine which checks are applicable this month
+  const checkItems = useMemo(() => {
+    const items: { key: string; label: string }[] = [];
+
+    // SS — always if not exempt (paid in following month, so check for previous month's payment)
+    if (!fiscalConfig.ssExempt) {
+      items.push({ key: 'ss_payment', label: `Pagamento Segurança Social — ${MONTHS[month - 1]}` });
+    }
+
+    // IVA trimestral — quarterly declaration months (Feb for Q4, May for Q1, Aug for Q2, Nov for Q3)
+    if (!fiscalConfig.ivaExempt && fiscalConfig.taxIvaRegime === 'trimestral') {
+      const qMonths = [2, 5, 8, 11]; // declaration months
+      if (qMonths.includes(month)) {
+        const qLabels: Record<number, string> = { 2: '4º Trim', 5: '1º Trim', 8: '2º Trim', 11: '3º Trim' };
+        items.push({ key: `iva_quarterly_${month}`, label: `Declaração IVA Trimestral — ${qLabels[month]}` });
+      }
+    }
+
+    // IVA mensal — every month
+    if (!fiscalConfig.ivaExempt && fiscalConfig.taxIvaRegime === 'mensal') {
+      items.push({ key: 'iva_monthly', label: `Declaração IVA Mensal — ${MONTHS[month - 1]}` });
+    }
+
+    // IRS — June of next year (so show in June)
+    if (fiscalConfig.taxIrsRegime === 'simplificado' && month === 6) {
+      items.push({ key: 'irs_annual', label: `Entrega IRS — Ano ${year - 1}` });
+    }
+
+    // Bank statement upload check
+    items.push({ key: 'bank_statement', label: 'Extrato bancário carregado' });
+
+    return items;
+  }, [month, year, fiscalConfig]);
+
+  // Load saved checks
+  const { data: checks = [] } = useQuery({
+    queryKey: ['fiscal-checks', year, month],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('fiscal_monthly_checks')
+        .select('*')
+        .eq('year', year)
+        .eq('month', month);
+      return data || [];
+    },
+  });
+
+  const checkedMap = useMemo(() => {
+    const map: Record<string, boolean> = {};
+    checks.forEach((c: any) => { map[c.check_key] = c.checked; });
+    return map;
+  }, [checks]);
+
+  const toggleCheck = useMutation({
+    mutationFn: async ({ key, checked }: { key: string; checked: boolean }) => {
+      const existing = checks.find((c: any) => c.check_key === key);
+      if (existing) {
+        await supabase.from('fiscal_monthly_checks').update({ checked, checked_at: checked ? new Date().toISOString() : null }).eq('id', (existing as any).id);
+      } else {
+        await supabase.from('fiscal_monthly_checks').insert({ year, month, check_key: key, checked, checked_at: checked ? new Date().toISOString() : null });
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['fiscal-checks', year, month] }),
+  });
+
+  if (checkItems.length === 0) return null;
+
+  const doneCount = checkItems.filter(i => checkedMap[i.key]).length;
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <ClipboardCheck className="h-4 w-4" />
+          Obrigações Fiscais — {MONTHS[month - 1]}
+          <Badge variant="secondary" className="ml-auto text-xs">{doneCount}/{checkItems.length}</Badge>
+        </CardTitle>
+        {isContabOrganizada && (
+          <p className="text-xs text-muted-foreground">O teu contabilista trata destas obrigações — usa esta checklist como guia.</p>
+        )}
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {checkItems.map(item => (
+          <label key={item.key} className="flex items-center gap-3 py-1.5 px-2 rounded-md hover:bg-muted/50 cursor-pointer">
+            <Checkbox
+              checked={checkedMap[item.key] || false}
+              onCheckedChange={(v) => toggleCheck.mutate({ key: item.key, checked: !!v })}
+            />
+            <span className={cn('text-sm', checkedMap[item.key] && 'line-through text-muted-foreground')}>{item.label}</span>
+          </label>
+        ))}
       </CardContent>
     </Card>
   );
