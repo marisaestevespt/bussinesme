@@ -143,6 +143,28 @@ export function FloatingTimer() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={showWellnessAlert} onOpenChange={setShowWellnessAlert}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Coffee className="h-4 w-4 text-amber-500" /> Hora de uma pausa! ☕
+            </DialogTitle>
+            <DialogDescription className="space-y-2">
+              <span className="block">Já estás a trabalhar há mais de 25 minutos sem parar.</span>
+              <span className="block">Levanta-te, estica-te, bebe água ou simplesmente respira fundo. O teu corpo e mente agradecem! 🌿</span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setShowWellnessAlert(false)}>
+              Continuar a trabalhar
+            </Button>
+            <Button onClick={() => { setShowWellnessAlert(false); pauseTimer(); }} className="gap-1">
+              <Pause className="h-3.5 w-3.5" /> Pausar e descansar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
