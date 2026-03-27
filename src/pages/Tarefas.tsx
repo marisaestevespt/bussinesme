@@ -101,8 +101,22 @@ export default function TarefasPage() {
   // Server-side status filter
   const [filterStatus, setFilterStatus] = useState('');
 
+  const { data: myProfileId } = useQuery({
+    queryKey: ['my-profile-id', user?.id],
+    enabled: !!user?.id,
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user!.id)
+        .maybeSingle();
+      return data?.id as string | null;
+    },
+  });
+
   const tasksQuery = useInfiniteQuery<InfinitePageResult<any>>({
-    queryKey: ['tasks', filterStatus],
+    queryKey: ['tasks', filterStatus, user?.id, myProfileId, isOwner],
     initialPageParam: 0,
     staleTime: 2 * 60 * 1000,
     queryFn: async ({ pageParam = 0 }) => {
@@ -111,6 +125,10 @@ export default function TarefasPage() {
       let query = supabase.from('tasks').select('id,name,status,priority,deadline,assigned_to,department,project_id,client_id,notes,parent_task_id,recurrence_type,recurrence_end,estimated_time,tag,created_at,updated_at', { count: 'exact' }).order('created_at', { ascending: false });
       if (filterStatus) {
         query = query.eq('status', filterStatus);
+      }
+      if (!isOwner && user?.id) {
+        const assigneeIds = [user.id, myProfileId].filter(Boolean) as string[];
+        query = query.in('assigned_to', assigneeIds);
       }
       const { data, error, count } = await query.range(from, to);
       if (error) throw error;
@@ -124,7 +142,7 @@ export default function TarefasPage() {
   const { data: profiles = [] } = useQuery({
     queryKey: ['profiles'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id, full_name, avatar_url');
+      const { data } = await supabase.from('profiles').select('id, user_id, full_name, avatar_url');
       return data || [];
     },
   });
