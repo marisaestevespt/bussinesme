@@ -12,7 +12,7 @@ import {
 
 export type ResponsibilitySource =
   | 'tarefa' | 'crm' | 'conteudo' | 'reuniao'
-  | 'projeto' | 'nps' | 'marco' | 'acao_venda' | 'habito';
+  | 'projeto' | 'nps' | 'marco' | 'acao_venda' | 'rotina';
 
 export interface UnifiedItem {
   id: string;
@@ -40,7 +40,7 @@ const SOURCE_LABELS: Record<ResponsibilitySource, string> = {
   nps: 'NPS',
   marco: 'Marcos',
   acao_venda: 'Ações de Venda',
-  habito: 'Hábitos',
+  rotina: 'Rotinas',
 };
 
 export { SOURCE_LABELS };
@@ -334,14 +334,14 @@ export function useUnifiedResponsibilities(userId?: string) {
       });
     });
 
-    // 9. Habits
+    // 9. Rotinas (monthly checklists)
     (habitsQ.data || []).forEach(h => {
       const taskName = h.task.includes('::') ? h.task.split('::')[1] : h.task;
       result.push({
-        id: `habito-${h.id}`,
+        id: `rotina-${h.id}`,
         sourceId: h.id,
-        source: 'habito',
-        title: `Hábito — ${taskName}`,
+        source: 'rotina',
+        title: `Rotina — ${taskName}`,
         date: format(today, 'yyyy-MM-dd'),
         isInfoOnly: false,
         completed: false,
