@@ -9,7 +9,6 @@ import { EntryStatusSelect } from './InlineStatusSelect';
 import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
 import { toast } from 'sonner';
-import { EntryStatusSelect } from './InlineStatusSelect';
 
 type Sale = {
   id: string; sale_id: string; status: string; payment_date: string | null;
