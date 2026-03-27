@@ -24,14 +24,16 @@ import { format, parseISO, isBefore, startOfDay, startOfWeek, endOfWeek } from '
 import { pt } from 'date-fns/locale';
 import { toast } from 'sonner';
 
-type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'diario';
+type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'mensal_ultimo' | 'diario' | 'personalizado';
 const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
   { value: '', label: 'Não se repete' },
   { value: 'diario', label: 'Todos os dias' },
   { value: 'semanal', label: 'Todas as semanas' },
   { value: 'quinzenal', label: 'A cada 2 semanas' },
   { value: 'mensal', label: 'Todos os meses (mesmo dia)' },
-  { value: 'mensal_primeiro', label: '1º dia de cada mês' },
+  { value: 'mensal_primeiro', label: '1º dia útil de cada mês' },
+  { value: 'mensal_ultimo', label: 'Último dia útil do mês' },
+  { value: 'personalizado', label: 'Personalizado (a cada X dias)' },
 ];
 
 interface TaskFormDialogProps {
