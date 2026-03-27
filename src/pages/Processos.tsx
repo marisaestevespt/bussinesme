@@ -268,8 +268,9 @@ export default function ProcessosPage() {
                     const recLabel = pr.recurrence_type === 'semanal'
                       ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][pr.weekday || 0]} feira${hourLabel}`
                       : `Mensal — dia ${pr.month_day}${hourLabel}${pr.adjust_to_business_day ? ' (ajuste dia útil)' : ''}`;
+                    const linkedSop = sops.find((s: any) => s.routine_id === pr.id);
                     return (
-                      <Card key={pr.id} className="p-3">
+                      <Card key={pr.id} className={cn("p-3", linkedSop && "cursor-pointer hover:shadow-md transition-shadow")} onClick={() => { if (linkedSop) navigate(`/hub/processos/${linkedSop.id}`); }}>
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium line-clamp-2">{pr.title}</p>
