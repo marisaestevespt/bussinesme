@@ -36,6 +36,7 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 
 ## Memories
 - [Color tokens](mem://design/color-tokens) — Full semantic palette, surfaces, opacity system
+- [Backups](mem://features/backups.md) — Weekly automated backups to storage with manual trigger and history UI
 - [Cron jobs](mem://features/cron-jobs.md) — Backend cron jobs for auto-status updates, notifications, and data sync
 - [Client portal](mem://features/client-portal.md) — Client Portal system: public pages via /portal/[token] with OTP auth
 - [Fiscal management](mem://features/fiscal-management.md) — Fiscal deadlines, contabilidade export, custom fields, settlement
