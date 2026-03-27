@@ -25,20 +25,19 @@ const PIE_COLORS = ['hsl(var(--primary))', '#10b981', '#f59e0b', '#8b5cf6', '#ec
 const ALL_SECTIONS_ROW1 = [
   { path: '/hub/financeiro/mensal', label: 'Mensal', icon: CalendarDays, iconColor: 'text-blue-600', color: 'from-blue-500/10 to-blue-600/5 hover:from-blue-500/20 hover:to-blue-600/10', key: 'mensal' },
   { path: '/hub/financeiro/trimestral', label: 'Trimestral', icon: CalendarRange, iconColor: 'text-violet-600', color: 'from-violet-500/10 to-violet-600/5 hover:from-violet-500/20 hover:to-violet-600/10', key: 'trimestral' },
-  { path: '/hub/financeiro/contabilidade', label: 'Contabilidade', icon: BookOpen, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10', key: 'contabilidade' },
+  { path: '/hub/financeiro/documentos', label: 'Documentos', icon: FolderOpen, iconColor: 'text-orange-600', color: 'from-orange-500/10 to-orange-600/5 hover:from-orange-500/20 hover:to-orange-600/10', key: 'documentos' },
   { path: '/hub/financeiro/iva', label: 'IVA', icon: Receipt, iconColor: 'text-amber-600', color: 'from-amber-500/10 to-amber-600/5 hover:from-amber-500/20 hover:to-amber-600/10', key: 'iva' },
   { path: '/hub/financeiro/seguranca-social', label: 'Segurança Social', icon: Shield, iconColor: 'text-cyan-600', color: 'from-cyan-500/10 to-cyan-600/5 hover:from-cyan-500/20 hover:to-cyan-600/10', key: 'ss' },
-  { path: '/hub/financeiro/documentos', label: 'Documentos', icon: FolderOpen, iconColor: 'text-orange-600', color: 'from-orange-500/10 to-orange-600/5 hover:from-orange-500/20 hover:to-orange-600/10', key: 'documentos' },
+  { path: '/hub/financeiro/contabilidade', label: 'Contabilidade', icon: BookOpen, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10', key: 'contabilidade' },
 ];
 
 const ALL_SECTIONS_ROW2 = [
+  { path: '/hub/financeiro/previsibilidade', label: 'Previsibilidade', icon: TrendingUp, iconColor: 'text-indigo-600', color: 'from-indigo-500/10 to-indigo-600/5 hover:from-indigo-500/20 hover:to-indigo-600/10', key: 'previsibilidade' },
   { path: '/hub/financeiro/entradas', label: 'Entradas', icon: ArrowDownLeft, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10', key: 'entradas' },
   { path: '/hub/financeiro/saidas', label: 'Saídas', icon: ArrowUpRight, iconColor: 'text-red-600', color: 'from-red-500/10 to-red-600/5 hover:from-red-500/20 hover:to-red-600/10', key: 'saidas' },
-  { path: '/hub/financeiro/ordenados', label: 'Ordenados', icon: Users, iconColor: 'text-purple-600', color: 'from-purple-500/10 to-purple-600/5 hover:from-purple-500/20 hover:to-purple-600/10', key: 'ordenados' },
-  { path: '/hub/financeiro/previsibilidade', label: 'Previsibilidade', icon: TrendingUp, iconColor: 'text-indigo-600', color: 'from-indigo-500/10 to-indigo-600/5 hover:from-indigo-500/20 hover:to-indigo-600/10', key: 'previsibilidade' },
   { path: '/hub/financeiro/metas-financeiras', label: 'Metas', icon: Target, iconColor: 'text-pink-600', color: 'from-pink-500/10 to-pink-600/5 hover:from-pink-500/20 hover:to-pink-600/10', key: 'metas' },
-  
   { path: '/hub/financeiro/setup-financeiro', label: 'Setup Financeiro', icon: Settings, iconColor: 'text-slate-600', color: 'from-slate-500/10 to-slate-600/5 hover:from-slate-500/20 hover:to-slate-600/10', key: 'setup' },
+  { path: '/hub/financeiro/ordenados', label: 'Ordenados', icon: Users, iconColor: 'text-purple-600', color: 'from-purple-500/10 to-purple-600/5 hover:from-purple-500/20 hover:to-purple-600/10', key: 'ordenados' },
 ];
 
 export default function FinanceiroPage() {
