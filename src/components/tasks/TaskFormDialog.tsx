@@ -148,14 +148,16 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
         setIsSubtask(!!editingTask.parent_task_id);
         setRecurrenceType(editingTask.recurrence_type || '');
         setRecurrenceEnd(editingTask.recurrence_end ? parseISO(editingTask.recurrence_end) : undefined);
+        setRecurrenceIntervalDays(editingTask.recurrence_interval_days != null ? String(editingTask.recurrence_interval_days) : '');
         setEstimatedTime(editingTask.estimated_time != null ? String(editingTask.estimated_time) : '');
+        setScheduledTime(editingTask.scheduled_time || '');
         const deps = taskDependencies.filter(d => d.task_id === editingTask.id).map(d => d.depends_on_task_id);
         setDependsOnIds(deps);
       } else {
         setName(''); setStatus('por_comecar'); setPriority('alta');
         setDeadline(defaultDeadline || undefined); setAssignedTo(''); setDepartment(''); setProjectId(''); setClientId(''); setNotes('');
         setParentTaskId(''); setDependsOnIds([]); setIsSubtask(false); setRecurrenceType(''); setRecurrenceEnd(undefined);
-        setEstimatedTime('');
+        setRecurrenceIntervalDays(''); setEstimatedTime(''); setScheduledTime('');
       }
     }
   }, [open, editingTask]);
