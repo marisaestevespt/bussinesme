@@ -137,32 +137,6 @@ export function FinSetupNegocio() {
         </CardContent>
       </Card>
 
-      {/* Regime Fiscal */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Regime Fiscal & IVA</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Regime de IVA</Label>
-            <Select value={current.regime_iva} onValueChange={v => update('regime_iva', v)}>
-              <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
-              <SelectContent>
-                {REGIME_IVA_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Regime Fiscal</Label>
-            <Select value={current.regime_fiscal} onValueChange={v => update('regime_fiscal', v)}>
-              <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
-              <SelectContent>
-                {REGIME_FISCAL_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Dados Bancários */}
       <Card>
