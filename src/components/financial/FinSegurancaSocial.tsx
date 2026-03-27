@@ -93,18 +93,21 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
   /*
    * SS Independente — Declaração trimestral e efeito nos meses:
    *
-   * Trimestre    | Declaração em | Aplica-se a       | Dados necessários
-   * Q3 ano-1    | Outubro ano-1 | Jan, Fev, Mar     | Faturação Jul-Set ano-1
-   * Q4 ano-1    | Janeiro       | Abr, Mai, Jun     | Faturação Out-Dez ano-1
-   * Q1           | Abril         | Jul, Ago, Set     | Faturação Jan-Mar
-   * Q2           | Julho         | Out, Nov, Dez     | Faturação Abr-Jun
+   * Rendimentos de  | Declaração em       | Contribuição aplica-se a
+   * Jan-Mar (Q1)    | Abril               | Abr, Mai, Jun
+   * Abr-Jun (Q2)    | Julho               | Jul, Ago, Set
+   * Jul-Set (Q3)    | Outubro             | Out, Nov, Dez
+   * Out-Dez (Q4)    | Janeiro (ano+1)     | Jan, Fev, Mar (ano+1)
    */
   const QUARTER_MAP = [
-    // For each contribution month: which quarter's revenue, declaration month
-    { months: [1, 2, 3], srcYear: prevYear, srcQ: 3, declMonth: 'Outubro', declYear: prevYear, srcLabel: `Q3 ${prevYear} (Jul-Set)` },
-    { months: [4, 5, 6], srcYear: prevYear, srcQ: 4, declMonth: 'Janeiro', declYear: currentYear, srcLabel: `Q4 ${prevYear} (Out-Dez)` },
-    { months: [7, 8, 9], srcYear: currentYear, srcQ: 1, declMonth: 'Abril', declYear: currentYear, srcLabel: `Q1 ${currentYear} (Jan-Mar)` },
-    { months: [10, 11, 12], srcYear: currentYear, srcQ: 2, declMonth: 'Julho', declYear: currentYear, srcLabel: `Q2 ${currentYear} (Abr-Jun)` },
+    // Jan-Mar contributions come from Q4 of previous year (Oct-Dec), declared in January
+    { months: [1, 2, 3], srcYear: prevYear, srcQ: 4, declMonth: 'Janeiro', declYear: currentYear, srcLabel: `Out-Dez ${prevYear}` },
+    // Apr-Jun contributions come from Q1 of current year (Jan-Mar), declared in April
+    { months: [4, 5, 6], srcYear: currentYear, srcQ: 1, declMonth: 'Abril', declYear: currentYear, srcLabel: `Jan-Mar ${currentYear}` },
+    // Jul-Sep contributions come from Q2 of current year (Apr-Jun), declared in July
+    { months: [7, 8, 9], srcYear: currentYear, srcQ: 2, declMonth: 'Julho', declYear: currentYear, srcLabel: `Abr-Jun ${currentYear}` },
+    // Oct-Dec contributions come from Q3 of current year (Jul-Sep), declared in October
+    { months: [10, 11, 12], srcYear: currentYear, srcQ: 3, declMonth: 'Outubro', declYear: currentYear, srcLabel: `Jul-Set ${currentYear}` },
   ];
 
   const independenteData = useMemo(() => {
