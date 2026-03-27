@@ -31,25 +31,11 @@ import { cn } from '@/lib/utils';
 import { format, isPast, isToday, startOfDay, isBefore, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, addDays, addWeeks, isSameDay, setDate as setDateFns, startOfWeek, endOfWeek } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { PROCESS_DEPARTMENTS } from '@/lib/departments';
+import { TaskTable, TASK_STATUSES, PRIORITIES, getStatusInfo, getPriorityInfo, getDeptInfo } from '@/components/tasks/TaskTable';
+import { CalendarView } from '@/components/tasks/CalendarView';
+import { ResponsavelView } from '@/components/tasks/ResponsavelView';
 
 // ─── Constants ──────────────────────────────────────────────────
-
-const TASK_STATUSES = [
-  { value: 'por_comecar', label: 'Por começar', color: 'bg-muted text-muted-foreground' },
-  { value: 'a_fazer', label: 'A fazer', color: 'bg-blue-100 text-blue-800 border-blue-200' },
-  { value: 'aguarda_feedback', label: 'Aguarda Feedback', color: 'bg-amber-100 text-amber-800 border-amber-200' },
-  { value: 'para_aprovacao', label: 'Para Aprovação', color: 'bg-purple-100 text-purple-800 border-purple-200' },
-  { value: 'precisa_alteracoes', label: 'Precisa de Alterações', color: 'bg-orange-100 text-orange-800 border-orange-200' },
-  { value: 'done', label: 'Done', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-];
-
-const PRIORITIES = [
-  { value: 'alta', label: 'Prioridade 1', color: 'bg-red-100 text-red-700 border-red-300' },
-  { value: 'media', label: 'Prioridade 2', color: 'bg-amber-100 text-amber-700 border-amber-300' },
-  { value: 'baixa', label: 'Prioridade 3', color: 'bg-slate-100 text-slate-500 border-slate-300' },
-];
-
-// Departments imported from shared constants
 
 type RecurrenceType = 'semanal' | 'quinzenal' | 'mensal' | 'mensal_primeiro' | 'diario';
 const RECURRENCE_OPTIONS: { value: RecurrenceType | ''; label: string }[] = [
@@ -72,16 +58,6 @@ const DEFAULT_VIEWS: DefaultView[] = [
   { key: 'todas', label: 'Todas as Tarefas', icon: <List className="h-4 w-4" />, isDefault: true },
   { key: 'historico', label: 'Histórico', icon: <History className="h-4 w-4" />, isDefault: true },
 ];
-
-function getStatusInfo(val: string) {
-  return TASK_STATUSES.find(s => s.value === val) || TASK_STATUSES[0];
-}
-function getPriorityInfo(val: string) {
-  return PRIORITIES.find(p => p.value === val) || PRIORITIES[2];
-}
-function getDeptInfo(val: string) {
-  return PROCESS_DEPARTMENTS.find(d => d.value === val);
-}
 
 // ─── Main Page ──────────────────────────────────────────────────
 
@@ -1143,9 +1119,7 @@ export default function TarefasPage() {
   );
 }
 
-// ─── Task Table ─────────────────────────────────────────────────
-
-function TaskTable({
+// Sub-components (TaskTable, CalendarView, ResponsavelView) extracted to src/components/tasks/
   tasks, isOverdue, isDoneAfterDeadline, getProfileName, getProjectName, onTaskClick, taskDependencies = [], allTasks = [],
 }: {
   tasks: any[];
