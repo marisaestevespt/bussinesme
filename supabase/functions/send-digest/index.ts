@@ -528,6 +528,15 @@ async function buildOwnerDigest(
     }
   }
 
+  // ── Prazos Fiscais ──
+  if (sections.prazos_fiscais) {
+    const fiscalHtml = await buildFiscalDeadlinesSection(supabase, todayStr);
+    if (fiscalHtml) {
+      hasContent = true;
+      html += fiscalHtml;
+    }
+  }
+
   if (!hasContent) {
     html = `<p style="color:#888;font-style:italic">Dia tranquilo — sem registos para hoje. 🌿</p>`;
   }
@@ -856,6 +865,112 @@ function buildEmailHtml(opts: {
 }
 
 // ─── Helpers ──────────────────────────────────────────────
+
+// ── Fiscal Deadlines (inline computation for edge function) ──
+const PT_FIXED_HOLIDAYS = [
+  [1, 1], [4, 25], [5, 1], [6, 10], [8, 15], [10, 5], [11, 1], [12, 1], [12, 8], [12, 25],
+];
+
+function isNonBusinessDay(d: Date): boolean {
+  const day = d.getDay();
+  if (day === 0 || day === 6) return true;
+  const m = d.getMonth() + 1;
+  const dd = d.getDate();
+  return PT_FIXED_HOLIDAYS.some(([hm, hd]) => hm === m && hd === dd);
+}
+
+function adjustToPrevBiz(d: Date): Date {
+  const result = new Date(d);
+  while (isNonBusinessDay(result)) result.setDate(result.getDate() - 1);
+  return result;
+}
+
+function fmtDeadline(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+interface FiscalDl { name: string; date: string; category: string; }
+
+function computeDigestFiscalDeadlines(year: number, config: { taxIvaRegime: string; taxIrsRegime: string; ssExempt: boolean; ivaExempt: boolean }): FiscalDl[] {
+  const dls: FiscalDl[] = [];
+  const ML = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  if (!config.ssExempt && config.taxIrsRegime !== 'contabilidade_organizada') {
+    for (let m = 1; m <= 12; m++) {
+      const nm = m === 12 ? 1 : m + 1;
+      const ny = m === 12 ? year + 1 : year;
+      const raw = new Date(ny, nm - 1, 20);
+      dls.push({ name: `Pagamento SS — ${ML[m-1]} ${year}`, date: fmtDeadline(adjustToPrevBiz(raw)), category: 'ss' });
+    }
+  }
+
+  if (!config.ivaExempt && config.taxIvaRegime === 'trimestral' && config.taxIrsRegime !== 'contabilidade_organizada') {
+    const qs = [
+      { q: 1, label: '1º Trim', dm: 5 }, { q: 2, label: '2º Trim', dm: 8 },
+      { q: 3, label: '3º Trim', dm: 11 }, { q: 4, label: '4º Trim', dm: 2 },
+    ];
+    for (const q of qs) {
+      const dy = q.q === 4 ? year + 1 : year;
+      const raw = new Date(dy, q.dm, 0); // last day of month
+      dls.push({ name: `IVA ${q.label} ${year}`, date: fmtDeadline(adjustToPrevBiz(raw)), category: 'iva' });
+    }
+  }
+
+  if (!config.ivaExempt && config.taxIvaRegime === 'mensal' && config.taxIrsRegime !== 'contabilidade_organizada') {
+    for (let m = 1; m <= 12; m++) {
+      const nm = m === 12 ? 1 : m + 1;
+      const ny = m === 12 ? year + 1 : year;
+      const raw = new Date(ny, nm - 1, 20);
+      dls.push({ name: `IVA — ${ML[m-1]} ${year}`, date: fmtDeadline(adjustToPrevBiz(raw)), category: 'iva' });
+    }
+  }
+
+  if (config.taxIrsRegime === 'simplificado') {
+    const raw = new Date(year + 1, 5, 30);
+    dls.push({ name: `Entrega IRS — Ano ${year}`, date: fmtDeadline(adjustToPrevBiz(raw)), category: 'irs' });
+  }
+
+  return dls.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+async function buildFiscalDeadlinesSection(supabase: any, todayStr: string): Promise<string> {
+  const { data: bizSettings } = await supabase.from("business_settings").select("tax_iva_regime, tax_irs_regime, ss_exempt, iva_exempt").limit(1).single();
+  if (!bizSettings) return "";
+
+  const year = parseInt(todayStr.substring(0, 4));
+  const deadlines = computeDigestFiscalDeadlines(year, {
+    taxIvaRegime: bizSettings.tax_iva_regime || 'trimestral',
+    taxIrsRegime: bizSettings.tax_irs_regime || 'simplificado',
+    ssExempt: bizSettings.ss_exempt ?? false,
+    ivaExempt: bizSettings.iva_exempt ?? false,
+  });
+
+  // Show deadlines that are today or within next 15 days, or overdue
+  const upcoming = deadlines.filter(dl => {
+    if (dl.date < todayStr) return true; // overdue
+    const d = new Date(dl.date + 'T00:00:00');
+    const t = new Date(todayStr + 'T00:00:00');
+    const diff = Math.ceil((d.getTime() - t.getTime()) / (1000 * 60 * 60 * 24));
+    return diff <= 15;
+  });
+
+  if (upcoming.length === 0) return "";
+
+  let html = sectionHeader("📋 Prazos Fiscais");
+  html += "<ul>";
+  for (const dl of upcoming) {
+    const isOverdue = dl.date < todayStr;
+    const isToday = dl.date === todayStr;
+    const emoji = isOverdue ? "🔴" : isToday ? "📌" : "🟡";
+    const label = isOverdue
+      ? `em atraso (${daysDiff(dl.date, todayStr)} dias)`
+      : isToday ? "HOJE" : `em ${daysDiff(todayStr, dl.date)} dias`;
+    html += `<li>${emoji} ${esc(dl.name)} — <strong>${label}</strong></li>`;
+  }
+  html += "</ul>";
+  return html;
+}
+
 function sectionHeader(title: string): string {
   return `<h2 style="font-size:12px;font-weight:600;color:%%PRIMARY%%;margin:20px 0 6px;border-bottom:2px solid %%SECONDARY%%;padding-bottom:5px;font-family:%%DISPLAY_FONT%%;text-transform:uppercase;letter-spacing:0.5px">${title}</h2>`;
 }
