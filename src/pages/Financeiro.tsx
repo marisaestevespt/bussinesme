@@ -31,14 +31,14 @@ const ALL_SECTIONS_ROW1 = [
   { path: '/hub/financeiro/documentos', label: 'Documentos', icon: FolderOpen, iconColor: 'text-orange-600', color: 'from-orange-500/10 to-orange-600/5 hover:from-orange-500/20 hover:to-orange-600/10', key: 'documentos' },
 ];
 
-const SECTIONS_ROW2 = [
-  { path: '/hub/financeiro/entradas', label: 'Entradas', icon: ArrowDownLeft, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10' },
-  { path: '/hub/financeiro/saidas', label: 'Saídas', icon: ArrowUpRight, iconColor: 'text-red-600', color: 'from-red-500/10 to-red-600/5 hover:from-red-500/20 hover:to-red-600/10' },
-  { path: '/hub/financeiro/ordenados', label: 'Ordenados', icon: Users, iconColor: 'text-purple-600', color: 'from-purple-500/10 to-purple-600/5 hover:from-purple-500/20 hover:to-purple-600/10' },
-  { path: '/hub/financeiro/previsibilidade', label: 'Previsibilidade', icon: TrendingUp, iconColor: 'text-indigo-600', color: 'from-indigo-500/10 to-indigo-600/5 hover:from-indigo-500/20 hover:to-indigo-600/10' },
-  { path: '/hub/financeiro/metas-financeiras', label: 'Metas', icon: Target, iconColor: 'text-pink-600', color: 'from-pink-500/10 to-pink-600/5 hover:from-pink-500/20 hover:to-pink-600/10' },
-  { path: '/hub/financeiro/fornecedores', label: 'Fornecedores', icon: Truck, iconColor: 'text-teal-600', color: 'from-teal-500/10 to-teal-600/5 hover:from-teal-500/20 hover:to-teal-600/10' },
-  { path: '/hub/financeiro/setup-financeiro', label: 'Setup Financeiro', icon: Settings, iconColor: 'text-slate-600', color: 'from-slate-500/10 to-slate-600/5 hover:from-slate-500/20 hover:to-slate-600/10' },
+const ALL_SECTIONS_ROW2 = [
+  { path: '/hub/financeiro/entradas', label: 'Entradas', icon: ArrowDownLeft, iconColor: 'text-emerald-600', color: 'from-emerald-500/10 to-emerald-600/5 hover:from-emerald-500/20 hover:to-emerald-600/10', key: 'entradas' },
+  { path: '/hub/financeiro/saidas', label: 'Saídas', icon: ArrowUpRight, iconColor: 'text-red-600', color: 'from-red-500/10 to-red-600/5 hover:from-red-500/20 hover:to-red-600/10', key: 'saidas' },
+  { path: '/hub/financeiro/ordenados', label: 'Ordenados', icon: Users, iconColor: 'text-purple-600', color: 'from-purple-500/10 to-purple-600/5 hover:from-purple-500/20 hover:to-purple-600/10', key: 'ordenados' },
+  { path: '/hub/financeiro/previsibilidade', label: 'Previsibilidade', icon: TrendingUp, iconColor: 'text-indigo-600', color: 'from-indigo-500/10 to-indigo-600/5 hover:from-indigo-500/20 hover:to-indigo-600/10', key: 'previsibilidade' },
+  { path: '/hub/financeiro/metas-financeiras', label: 'Metas', icon: Target, iconColor: 'text-pink-600', color: 'from-pink-500/10 to-pink-600/5 hover:from-pink-500/20 hover:to-pink-600/10', key: 'metas' },
+  { path: '/hub/financeiro/fornecedores', label: 'Fornecedores', icon: Truck, iconColor: 'text-teal-600', color: 'from-teal-500/10 to-teal-600/5 hover:from-teal-500/20 hover:to-teal-600/10', key: 'fornecedores' },
+  { path: '/hub/financeiro/setup-financeiro', label: 'Setup Financeiro', icon: Settings, iconColor: 'text-slate-600', color: 'from-slate-500/10 to-slate-600/5 hover:from-slate-500/20 hover:to-slate-600/10', key: 'setup' },
 ];
 
 export default function FinanceiroPage() {
