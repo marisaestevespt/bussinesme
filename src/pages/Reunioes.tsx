@@ -64,7 +64,7 @@ interface MeetingRow {
   is_recurring: boolean;
 }
 
-interface ProjectOption {
+export interface ProjectOption {
   id: string;
   name: string;
   client_id: string | null;
@@ -73,7 +73,7 @@ interface ProjectOption {
   type: string | null;
 }
 
-interface Profile {
+export interface Profile {
   id: string;
   user_id: string;
   full_name: string | null;
@@ -311,7 +311,7 @@ function MeetingTypeStep({ onSelect }: { onSelect: (type: MeetingType) => void }
 
 // ─── New Meeting Dialog ─────────────────────────────────────────
 
-function MeetingFormDialog({
+export function MeetingFormDialog({
   open, onOpenChange, profiles, projects, clients,
 }: {
   open: boolean; onOpenChange: (o: boolean) => void; profiles: Profile[]; projects: ProjectOption[]; clients: { id: string; full_name: string }[];
