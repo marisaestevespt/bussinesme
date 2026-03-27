@@ -12,6 +12,7 @@ import { SettingsKpis } from '@/components/settings/SettingsKpis';
 import { SettingsDigest } from '@/components/settings/SettingsDigest';
 import { SettingsAuditLog } from '@/components/settings/SettingsAuditLog';
 import { SettingsAutomations } from '@/components/settings/SettingsAutomations';
+import { SettingsBackups } from '@/components/settings/SettingsBackups';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,7 @@ const BASE_TABS = [
 const OWNER_TABS = [
   ...BASE_TABS,
   { key: 'automacoes' as const, label: 'Automações' },
+  { key: 'backups' as const, label: 'Backups' },
   { key: 'auditoria' as const, label: 'Auditoria' },
 ] as const;
 
@@ -76,7 +78,7 @@ export default function DefinicoesPage() {
 
         {/* Tab content */}
         <div className={cn(
-          tab === 'utilizadores' || tab === 'auditoria' ? 'max-w-4xl' : 'max-w-2xl'
+          tab === 'utilizadores' || tab === 'auditoria' || tab === 'backups' ? 'max-w-4xl' : 'max-w-2xl'
         )}>
           {tab === 'identidade' && <SettingsIdentity />}
           {tab === 'fiscal' && <SettingsFiscal />}
@@ -86,6 +88,7 @@ export default function DefinicoesPage() {
           {tab === 'kpis' && <SettingsKpis />}
           {tab === 'resumo' && <SettingsDigest />}
           {tab === 'automacoes' && <SettingsAutomations />}
+          {tab === 'backups' && <SettingsBackups />}
           {tab === 'auditoria' && <SettingsAuditLog />}
         </div>
 
