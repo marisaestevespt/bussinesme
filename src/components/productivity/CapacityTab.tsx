@@ -621,7 +621,9 @@ function CapacitySimulatorView({ members: teamMembers, clients: allClientsRaw, p
                           const sourceP = allProducts.find((pr: Product) => pr.id === p.product_id);
                           const maxC = (sourceP as any)?.max_simultaneous_clients as number | null;
                           const extraH = Math.floor(hoursRemaining / hpc);
-                          const extraM = maxC != null && maxC > 0 ? Math.max(0, maxC - Number(p.current_clients)) : Infinity;
+                          const realC = realClientCounts[p.product_name] || 0;
+                          const simE = Number(p.current_clients);
+                          const extraM = maxC != null && maxC > 0 ? Math.max(0, maxC - realC - simE) : Infinity;
                           const extra = Math.min(extraH, extraM);
                           const limited = extraM < extraH && maxC != null;
                           return (
