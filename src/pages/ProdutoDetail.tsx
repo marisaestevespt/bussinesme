@@ -86,9 +86,9 @@ export default function ProdutoDetailPage() {
   // ─── Sub-table queries ───────────────────────────────────────
   const subQueryOpts = (key: string, table: string, filterCol: string, filterVal: string | undefined, orderCol = 'created_at') => ({
     queryKey: [key, filterVal],
-    queryFn: async () => {
+    queryFn: async (): Promise<Record<string, unknown>[]> => {
       if (!filterVal) return [];
-      const { data } = await supabase.from(table as 'clients').select('*').eq(filterCol, filterVal).order(orderCol) as { data: Record<string, unknown>[] | null };
+      const { data } = await (supabase as any).from(table).select('*').eq(filterCol, filterVal).order(orderCol);
       return data || [];
     },
     enabled: !!filterVal,
