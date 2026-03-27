@@ -38,6 +38,7 @@ export default function PortalViewPage() {
   const [summaries, setSummaries] = useState<any[]>([]);
   const [projectHistory, setProjectHistory] = useState<any[]>([]);
   const [portalMaterials, setPortalMaterials] = useState<any[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
 
   const [commentText, setCommentText] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
@@ -96,7 +97,7 @@ export default function PortalViewPage() {
     const pid = portalData.id;
     const cid = portalData.client_id;
 
-    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, summR, historyR, materialsR] = await Promise.all([
+    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, summR, historyR, materialsR, pmR] = await Promise.all([
       sb('portal_faqs').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_initial_questions').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_comments').select('*').eq('portal_id', pid).order('created_at', { ascending: true }),
@@ -109,6 +110,7 @@ export default function PortalViewPage() {
       sb('portal_monthly_summaries').select('*').eq('portal_id', pid).order('year', { ascending: false }).order('month', { ascending: false }),
       (supabase as any).rpc('get_portal_project_history', { _token: token }),
       sb('portal_materials').select('*').eq('portal_id', pid).order('created_at', { ascending: false }),
+      (supabase as any).rpc('get_portal_payment_methods', { _token: token }),
     ]);
 
     setFaqs(faqsR.data || []);
@@ -123,6 +125,8 @@ export default function PortalViewPage() {
     setSummaries(summR.data || []);
     setProjectHistory((historyR as any).data || []);
     setPortalMaterials(materialsR.data || []);
+    const pmData = pmR?.data;
+    setPaymentMethods(Array.isArray(pmData) ? pmData : []);
     setLoading(false);
   };
 
