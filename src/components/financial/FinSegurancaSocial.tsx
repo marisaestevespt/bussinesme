@@ -400,7 +400,7 @@ function IndependenteSection({ data, currentYear, onSave, onToggle }: {
                   <>
                     {/* Quarter header row */}
                     <TableRow key={`header-${group.label}`} className="border-t-2 bg-muted/30">
-                      <TableCell colSpan={11} className="py-1.5">
+                      <TableCell colSpan={9} className="py-1.5">
                         <div className="flex items-center gap-2 text-xs">
                           <span className="font-semibold text-foreground">{group.label}</span>
                           <span className="text-muted-foreground">— Base: {groupData[0].srcLabel}</span>
