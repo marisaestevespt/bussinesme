@@ -5107,6 +5107,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           department: string | null
+          estimated_time: number | null
           hour_time: string | null
           id: string
           month_day: number | null
@@ -5114,6 +5115,7 @@ export type Database = {
           recurrence_type: string
           responsible: string | null
           role_function: string | null
+          sop_id: string | null
           title: string
           weekday: number | null
         }
@@ -5123,6 +5125,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           department?: string | null
+          estimated_time?: number | null
           hour_time?: string | null
           id?: string
           month_day?: number | null
@@ -5130,6 +5133,7 @@ export type Database = {
           recurrence_type?: string
           responsible?: string | null
           role_function?: string | null
+          sop_id?: string | null
           title: string
           weekday?: number | null
         }
@@ -5139,6 +5143,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           department?: string | null
+          estimated_time?: number | null
           hour_time?: string | null
           id?: string
           month_day?: number | null
@@ -5146,6 +5151,7 @@ export type Database = {
           recurrence_type?: string
           responsible?: string | null
           role_function?: string | null
+          sop_id?: string | null
           title?: string
           weekday?: number | null
         }
@@ -5162,6 +5168,13 @@ export type Database = {
             columns: ["responsible"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planning_routines_sop_id_fkey"
+            columns: ["sop_id"]
+            isOneToOne: false
+            referencedRelation: "sops"
             referencedColumns: ["id"]
           },
         ]
