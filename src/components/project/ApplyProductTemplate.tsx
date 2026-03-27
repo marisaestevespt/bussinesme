@@ -75,10 +75,9 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
 
       // 3. Fetch historical avg times for matching task names
       const taskNames = templateTasks.map(t => (t as any).task_name).filter(Boolean);
-      let historicalAvg: Record<string, number> = {};
+      let historicalAvg: Record<string, { sum: number; count: number }> = {};
 
       if (taskNames.length > 0) {
-        // Find completed tasks with same names and get their time entries
         const { data: historicalTasks } = await supabase
           .from('tasks')
           .select('id, name')
@@ -90,24 +89,20 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
           const { data: timeEntries } = await supabase
             .from('task_time_entries')
             .select('task_id, duration_minutes')
-            .in('task_id', taskIds);
+            .in('task_id', taskIds)
+            .not('ended_at', 'is', null)
+            .or('is_manual.eq.true');
 
           if (timeEntries?.length) {
-            // Group by task name
             const taskIdToName: Record<string, string> = {};
             for (const t of historicalTasks) taskIdToName[t.id] = t.name;
 
-            const totals: Record<string, { sum: number; count: number }> = {};
             for (const te of timeEntries) {
               const name = taskIdToName[te.task_id];
               if (!name) continue;
-              if (!totals[name]) totals[name] = { sum: 0, count: 0 };
-              totals[name].sum += te.duration_minutes;
-              totals[name].count += 1;
-            }
-
-            for (const [name, { sum, count }] of Object.entries(totals)) {
-              historicalAvg[name] = Math.round((sum / count / 60) * 10) / 10; // hours, 1 decimal
+              if (!historicalAvg[name]) historicalAvg[name] = { sum: 0, count: 0 };
+              historicalAvg[name].sum += (te.duration_minutes || 0) / 60; // hours
+              historicalAvg[name].count += 1;
             }
           }
         }
