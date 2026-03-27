@@ -3296,14 +3296,18 @@ export type Database = {
           expense_date: string | null
           expense_id: string
           expense_month: number | null
+          expense_name: string | null
           expense_quarter: number | null
           expense_year: number | null
           id: string
           is_recurring: boolean | null
           location: string
+          monthly_equivalent: number | null
           parent_expense_id: string | null
+          periodicity: string | null
           recurrence_day: number | null
           recurrence_end_date: string | null
+          renewal_date: string | null
           source_id: string | null
           source_type: string | null
           status: string
@@ -3323,14 +3327,18 @@ export type Database = {
           expense_date?: string | null
           expense_id?: string
           expense_month?: number | null
+          expense_name?: string | null
           expense_quarter?: number | null
           expense_year?: number | null
           id?: string
           is_recurring?: boolean | null
           location?: string
+          monthly_equivalent?: number | null
           parent_expense_id?: string | null
+          periodicity?: string | null
           recurrence_day?: number | null
           recurrence_end_date?: string | null
+          renewal_date?: string | null
           source_id?: string | null
           source_type?: string | null
           status?: string
@@ -3350,14 +3358,18 @@ export type Database = {
           expense_date?: string | null
           expense_id?: string
           expense_month?: number | null
+          expense_name?: string | null
           expense_quarter?: number | null
           expense_year?: number | null
           id?: string
           is_recurring?: boolean | null
           location?: string
+          monthly_equivalent?: number | null
           parent_expense_id?: string | null
+          periodicity?: string | null
           recurrence_day?: number | null
           recurrence_end_date?: string | null
+          renewal_date?: string | null
           source_id?: string | null
           source_type?: string | null
           status?: string
@@ -3505,6 +3517,7 @@ export type Database = {
           renewal_date: string | null
           start_date: string | null
           status: string
+          supplier_id: string | null
           updated_at: string
           value: number
           vat_rate: number
@@ -3526,6 +3539,7 @@ export type Database = {
           renewal_date?: string | null
           start_date?: string | null
           status?: string
+          supplier_id?: string | null
           updated_at?: string
           value?: number
           vat_rate?: number
@@ -3547,11 +3561,20 @@ export type Database = {
           renewal_date?: string | null
           start_date?: string | null
           status?: string
+          supplier_id?: string | null
           updated_at?: string
           value?: number
           vat_rate?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "financial_subscriptions_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       fiscal_monthly_checks: {
         Row: {
