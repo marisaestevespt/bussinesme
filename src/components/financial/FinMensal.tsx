@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { useFinancialData } from '@/hooks/useFinancialData';
-import type { Expense, Subscription, PayrollEntry, ContractorEntry, FinancialDocument } from '@/hooks/useFinancialData';
+import type { Expense, RecurringExpense, PayrollEntry, ContractorEntry, FinancialDocument } from '@/hooks/useFinancialData';
 import { getSubscriptionOccurrences } from '@/hooks/useFinancialData';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { InvoiceUpload } from './InvoiceUpload';
@@ -39,7 +39,6 @@ type Sale = { invoice_total: number; base_value: number; sale_month: number | nu
 interface Props {
   sales: Sale[];
   expenses: Expense[];
-  subscriptions: Subscription[];
   payrollData: PayrollEntry[];
   contractorsData: ContractorEntry[];
   documents: FinancialDocument[];
@@ -49,7 +48,7 @@ interface Props {
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: Props) {
+export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   const { getCategoryLabel } = useFinancialCategories();
   const qc = useQueryClient();
   const currentMonth = new Date().getMonth() + 1;

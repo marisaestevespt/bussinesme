@@ -25,13 +25,13 @@ interface Props {
 
 export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
   const { settings } = useBusinessSettings();
-  const subscriptions = fin.subscriptions.data || [];
+  const recurringExpenses = fin.recurringExpenses.data || [];
   const payrollData = fin.payroll.data || [];
   const contractorsData = fin.contractors.data || [];
   const expenses = fin.expenses.data || [];
 
-  const activeSubs = subscriptions.filter(s => s.status === 'ativo');
-  const totalMonthly = activeSubs.reduce((s, sub) => s + sub.monthly_equivalent, 0);
+  const activeRecs = recurringExpenses.filter(s => s.status !== 'cancelado');
+  const totalMonthly = activeRecs.reduce((s, sub) => s + ((sub as any).monthly_equivalent || 0), 0);
 
   const s = settings as any;
   const ssType: string = s?.ss_type || 'independente';
