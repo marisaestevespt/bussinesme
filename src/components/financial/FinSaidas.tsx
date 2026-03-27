@@ -29,6 +29,15 @@ const EXP_STATUS = [
   { value: 'cancelado', label: 'Cancelado' },
 ];
 
+const PAYMENT_METHODS = [
+  { value: 'transferencia', label: 'Transferência' },
+  { value: 'debito_direto', label: 'Débito Direto' },
+  { value: 'mbway', label: 'MB Way' },
+  { value: 'plataforma', label: 'Plataforma' },
+  { value: 'cartao', label: 'Cartão' },
+  { value: 'outro', label: 'Outro' },
+];
+
 const VAT_OPTIONS = [0, 6, 13, 23];
 const LOCATIONS = [
   { value: 'portugal', label: 'Portugal' },
