@@ -291,6 +291,16 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
       onOpenChange={setAddOpen}
       defaultDeadline={defaultDeadline ? parseISO(defaultDeadline) : undefined}
     />
+
+    <TaskFormDialog
+      open={!!editTaskId && !!editTask}
+      onOpenChange={(open) => { if (!open) setEditTaskId(null); }}
+      editingTask={editTask}
+      onSuccess={() => {
+        setEditTaskId(null);
+        qc.invalidateQueries({ queryKey: ['unified-tasks'] });
+      }}
+    />
     </>
   );
 }
