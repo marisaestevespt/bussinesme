@@ -170,7 +170,7 @@ function ActivitiesTable({
   );
 }
 
-export function ProjectProcessosTab({ projectId, clientId, productId }: Props) {
+export function ProjectProcessosTab({ projectId, clientId, productId, projectStartDate }: Props) {
   const qc = useQueryClient();
 
   // ─── Onboarding ────────────────────────────────────────────────
@@ -275,7 +275,10 @@ export function ProjectProcessosTab({ projectId, clientId, productId }: Props) {
   if (!clientId) {
     return (
       <div className="space-y-6">
-        <LinkedSopsSection entityType="projeto" entityId={projectId} productId={productId || undefined} />
+        <div className="flex items-center justify-between">
+          <LinkedSopsSection entityType="projeto" entityId={projectId} productId={productId || undefined} />
+        </div>
+        <ApplyProductTemplate projectId={projectId} productId={productId} clientId={clientId} projectStartDate={projectStartDate} />
         <p className="text-sm text-muted-foreground text-center py-6">Associe um cliente a este projeto para ver Onboarding, Offboarding e Atividades.</p>
       </div>
     );
@@ -283,6 +286,9 @@ export function ProjectProcessosTab({ projectId, clientId, productId }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* Apply Template Button */}
+      <ApplyProductTemplate projectId={projectId} productId={productId} clientId={clientId} projectStartDate={projectStartDate} />
+
       {/* Processos e SOPs */}
       <LinkedSopsSection entityType="projeto" entityId={projectId} productId={productId || undefined} />
 
