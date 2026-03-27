@@ -19,6 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { format, isToday, isBefore, startOfToday, isAfter, endOfWeek, startOfWeek, subDays, differenceInDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { OperacaoKpis, OperacaoAlertsSummary } from '@/components/operacao/OperacaoKpis';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -531,140 +532,24 @@ export default function OperacaoPage() {
       <div className="p-4 md:p-6 space-y-6">
         <PageHeader title="Operação" subtitle="Vista operacional de projetos de clientes e internos" />
 
-        {/* ═══════════════ KPI CARDS ═══════════════ */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <Card className="border-l-4 border-l-primary/60">
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Projetos Ativos</p>
-                  <p className="text-2xl font-bold mt-1">{allActiveProjects.length}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    {activeClientPontuais.length + activeInternoPontuais.length} pontuais · {activeClientRecorrentes.length + activeInternoRecorrentes.length} recorrentes
-                  </p>
-                </div>
-                <div className="p-2 rounded-md bg-primary/10">
-                  <FolderOpen className="h-4 w-4 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <OperacaoKpis
+          allActiveCount={allActiveProjects.length}
+          pontuaisCount={activeClientPontuais.length + activeInternoPontuais.length}
+          recorrentesCount={activeClientRecorrentes.length + activeInternoRecorrentes.length}
+          overdueTasks={overdueTasks.length}
+          weeklyCompletion={weeklyCompletion}
+          allocatedMembers={allocatedMembers}
+        />
 
-          <Card className={`border-l-4 ${overdueTasks.length > 0 ? 'border-l-destructive' : 'border-l-emerald-500'}`}>
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Tarefas Atrasadas</p>
-                  <p className={`text-2xl font-bold mt-1 ${overdueTasks.length > 0 ? 'text-destructive' : 'text-emerald-600'}`}>
-                    {overdueTasks.length}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    {overdueTasks.length > 0 ? 'Requer atenção' : 'Tudo em dia ✓'}
-                  </p>
-                </div>
-                <div className={`p-2 rounded-md ${overdueTasks.length > 0 ? 'bg-destructive/10' : 'bg-emerald-500/10'}`}>
-                  <AlertTriangle className={`h-4 w-4 ${overdueTasks.length > 0 ? 'text-destructive' : 'text-emerald-600'}`} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-blue-500/60">
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Conclusão Semanal</p>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <p className="text-2xl font-bold">{weeklyCompletion.done}</p>
-                    <span className="text-sm text-muted-foreground">/ {weeklyCompletion.total}</span>
-                  </div>
-                </div>
-                <div className="p-2 rounded-md bg-blue-500/10">
-                  <TrendingUp className="h-4 w-4 text-blue-600" />
-                </div>
-              </div>
-              <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
-                <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${Math.min(weeklyCompletion.rate, 100)}%` }} />
-              </div>
-              <p className="text-[10px] text-muted-foreground mt-1">{weeklyCompletion.rate}% concluído</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-l-4 border-l-violet-500/60">
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Membros Alocados</p>
-                  <p className="text-2xl font-bold mt-1">{allocatedMembers}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">em projetos ativos</p>
-                </div>
-                <div className="p-2 rounded-md bg-violet-500/10">
-                  <Users className="h-4 w-4 text-violet-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* ═══════════════ ALERTAS OPERACIONAIS ═══════════════ */}
-        {totalAlerts > 0 && (
-          <Card className="border border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-950/20">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-600" />
-                  <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-400">Alertas Operacionais</h3>
-                  <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-[10px]">{totalAlerts}</Badge>
-                </div>
-                <Button variant="ghost" size="sm" className="h-7 text-xs text-amber-700" onClick={() => setAlertsOpen(true)}>
-                  Ver detalhes →
-                </Button>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                {stalledProjects.length > 0 && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="h-4 w-4 text-amber-600 shrink-0" />
-                    <span className="text-amber-800 dark:text-amber-300">
-                      <strong>{stalledProjects.length}</strong> projeto{stalledProjects.length > 1 ? 's' : ''} sem progresso
-                    </span>
-                  </div>
-                )}
-                {clientsNearEndOfCycle.length > 0 && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <CalendarClock className="h-4 w-4 text-amber-600 shrink-0" />
-                    <span className="text-amber-800 dark:text-amber-300">
-                      <strong>{clientsNearEndOfCycle.length}</strong> cliente{clientsNearEndOfCycle.length > 1 ? 's' : ''} perto do fim de ciclo
-                    </span>
-                  </div>
-                )}
-                {unassignedTasks.length > 0 && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <UserX className="h-4 w-4 text-amber-600 shrink-0" />
-                    <span className="text-amber-800 dark:text-amber-300">
-                      <strong>{unassignedTasks.length}</strong> tarefa{unassignedTasks.length > 1 ? 's' : ''} sem responsável
-                    </span>
-                  </div>
-                )}
-                {overdueDeliverables.length > 0 && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
-                    <span className="text-amber-800 dark:text-amber-300">
-                      <strong>{overdueDeliverables.length}</strong> entrega{overdueDeliverables.length > 1 ? 's' : ''} atrasada{overdueDeliverables.length > 1 ? 's' : ''}
-                    </span>
-                  </div>
-                )}
-                {recurrentesWithoutDeliverables.length > 0 && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Rocket className="h-4 w-4 text-amber-600 shrink-0" />
-                    <span className="text-amber-800 dark:text-amber-300">
-                      <strong>{recurrentesWithoutDeliverables.length}</strong> recorrente{recurrentesWithoutDeliverables.length > 1 ? 's' : ''} sem entregas
-                    </span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <OperacaoAlertsSummary
+          stalledCount={stalledProjects.length}
+          nearEndCount={clientsNearEndOfCycle.length}
+          unassignedCount={unassignedTasks.length}
+          overdueDeliverablesCount={overdueDeliverables.length}
+          recurrentesWithoutDeliverablesCount={recurrentesWithoutDeliverables.length}
+          totalAlerts={totalAlerts}
+          onViewDetails={() => setAlertsOpen(true)}
+        />
 
         {/* Alerts detail dialog */}
         <Dialog open={alertsOpen} onOpenChange={setAlertsOpen}>
