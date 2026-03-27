@@ -26,7 +26,7 @@ function NotificationItem({ n, onRead, onDelete, onNavigate }: { n: any; onRead:
       <span className="text-base mt-0.5 shrink-0">{TYPE_ICONS[n.type] || TYPE_ICONS.info}</span>
       <div className="flex-1 min-w-0 space-y-0.5">
         <p className={`text-sm leading-tight ${!n.read ? 'font-medium' : 'text-muted-foreground'}`}>{n.title}</p>
-        {n.message && <p className="text-xs text-muted-foreground truncate">{n.message}</p>}
+        {n.message && <p className="text-xs text-muted-foreground whitespace-normal break-words">{n.message}</p>}
         <p className="text-[10px] text-muted-foreground">
           {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: pt })}
         </p>
@@ -86,7 +86,7 @@ export function NotificationBell() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
+      <PopoverContent className="w-[420px] max-w-[calc(100vw-24px)] p-0" align="end">
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <h3 className="text-sm font-semibold">Notificações</h3>
           {unreadCount > 0 && (
