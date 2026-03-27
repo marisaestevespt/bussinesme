@@ -56,6 +56,14 @@ export interface FiscalConfig {
   taxIrsRegime: string; // 'simplificado' | 'contabilidade_organizada'
   ssExempt: boolean;
   ivaExempt: boolean;
+  ivaExemptionEndDate?: string | null; // yyyy-MM-dd — when IVA exemption ended
+  ssExemptionEndDate?: string | null;  // yyyy-MM-dd — when SS exemption ended
+}
+
+/** Check if a deadline date is after the exemption end date */
+function isAfterExemptionEnd(deadlineDate: string, exemptionEndDate?: string | null): boolean {
+  if (!exemptionEndDate) return true; // No end date = never was exempt, show all
+  return deadlineDate >= exemptionEndDate;
 }
 
 export function computeFiscalDeadlines(year: number, config: FiscalConfig): FiscalDeadline[] {
@@ -68,13 +76,16 @@ export function computeFiscalDeadlines(year: number, config: FiscalConfig): Fisc
       const nextYear = m === 12 ? year + 1 : year;
       const raw = new Date(nextYear, nextMonth - 1, 20);
       const adjusted = adjustToPrevBusinessDay(raw);
-      deadlines.push({
+      const dl: FiscalDeadline = {
         key: `ss-${year}-${m}`,
         name: `Pagamento SS — ${MONTH_NAMES[m - 1]} ${year}`,
         date: fmtDate(adjusted),
         rawDate: fmtDate(raw),
         category: 'ss',
-      });
+      };
+      if (isAfterExemptionEnd(dl.date, config.ssExemptionEndDate)) {
+        deadlines.push(dl);
+      }
     }
   }
 
@@ -89,13 +100,16 @@ export function computeFiscalDeadlines(year: number, config: FiscalConfig): Fisc
     for (const q of quarters) {
       const raw = lastDayOfMonth(q.deadlineYear, q.deadlineMonth);
       const adjusted = adjustToPrevBusinessDay(raw);
-      deadlines.push({
+      const dl: FiscalDeadline = {
         key: `iva-q${q.q}-${year}`,
         name: `IVA ${q.label} ${year}`,
         date: fmtDate(adjusted),
         rawDate: fmtDate(raw),
         category: 'iva',
-      });
+      };
+      if (isAfterExemptionEnd(dl.date, config.ivaExemptionEndDate)) {
+        deadlines.push(dl);
+      }
     }
   }
 
@@ -106,13 +120,16 @@ export function computeFiscalDeadlines(year: number, config: FiscalConfig): Fisc
       const nextYear = m === 12 ? year + 1 : year;
       const raw = new Date(nextYear, nextMonth - 1, 20);
       const adjusted = adjustToPrevBusinessDay(raw);
-      deadlines.push({
+      const dl: FiscalDeadline = {
         key: `iva-m${m}-${year}`,
         name: `IVA — ${MONTH_NAMES[m - 1]} ${year}`,
         date: fmtDate(adjusted),
         rawDate: fmtDate(raw),
         category: 'iva',
-      });
+      };
+      if (isAfterExemptionEnd(dl.date, config.ivaExemptionEndDate)) {
+        deadlines.push(dl);
+      }
     }
   }
 
