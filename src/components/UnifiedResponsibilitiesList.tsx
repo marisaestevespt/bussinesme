@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { ResponsibilityDetailDialog } from '@/components/ResponsibilityDetailDialog';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
@@ -90,6 +91,7 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
   const [filter, setFilter] = useState<SourceFilter>('todos');
   const [selectedItem, setSelectedItem] = useState<UnifiedItem | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [editTaskId, setEditTaskId] = useState<string | null>(null);
   const navigate = useNavigate();
   const qc = useQueryClient();
 
@@ -135,9 +137,24 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
   const countBySource: Partial<Record<ResponsibilitySource, number>> = {};
   items.forEach(i => { countBySource[i.source] = (countBySource[i.source] || 0) + 1; });
 
-  const DIALOG_SOURCES: ResponsibilitySource[] = ['tarefa', 'marco', 'rotina'];
+  const DIALOG_SOURCES: ResponsibilitySource[] = ['marco', 'rotina'];
+
+  // Fetch full task for editing
+  const { data: editTask } = useQuery({
+    queryKey: ['task-edit', editTaskId],
+    enabled: !!editTaskId,
+    queryFn: async () => {
+      const { data, error } = await supabase.from('tasks').select('*').eq('id', editTaskId!).single();
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const handleClick = (item: UnifiedItem) => {
+    if (item.source === 'tarefa') {
+      setEditTaskId(item.sourceId);
+      return;
+    }
     if (DIALOG_SOURCES.includes(item.source)) {
       setSelectedItem(item);
       return;
@@ -273,6 +290,16 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
       open={addOpen}
       onOpenChange={setAddOpen}
       defaultDeadline={defaultDeadline ? parseISO(defaultDeadline) : undefined}
+    />
+
+    <TaskFormDialog
+      open={!!editTaskId && !!editTask}
+      onOpenChange={(open) => { if (!open) setEditTaskId(null); }}
+      editingTask={editTask}
+      onSuccess={() => {
+        setEditTaskId(null);
+        qc.invalidateQueries({ queryKey: ['unified-tasks'] });
+      }}
     />
     </>
   );
