@@ -153,26 +153,7 @@ export function useFinancialData() {
   });
 
 
-    mutationFn: async (doc: Partial<FinancialDocument> & { title: string }) => {
-      if (doc.id) {
-        const { error } = await supabase.from('financial_documents').update(doc as TablesUpdate<'financial_documents'>).eq('id', doc.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('financial_documents').insert(doc as TablesInsert<'financial_documents'>);
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['financial-documents'] }),
-    onError: () => toast.error('Erro ao guardar documento'),
-  });
 
-  const deleteDocument = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('financial_documents').delete().eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['financial-documents'] }),
-  });
 
   const upsertPayroll = useMutation({
     mutationFn: async (entry: Partial<PayrollEntry> & { collaborator_name: string; month: number; year: number }) => {
