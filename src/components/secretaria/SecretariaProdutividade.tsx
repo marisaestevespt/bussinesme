@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { exportPdf } from '@/lib/exportPdf';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -10,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Clock, Play, Square, CalendarIcon, Trash2 } from 'lucide-react';
+import { Clock, Play, Square, CalendarIcon, Trash2, FileDown } from 'lucide-react';
 import { format, parseISO, isBefore, isWithinInterval, startOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, addDays, differenceInSeconds } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -159,8 +160,11 @@ export default function SecretariaProdutividade() {
   const openTasks = useMemo(() => allTasks.filter((t: any) => t.status !== 'done'), [allTasks]);
 
   return (
-    <div className="space-y-6 mt-4">
+    <div className="space-y-6 mt-4" id="produtividade-report">
       <div className="flex flex-wrap items-end gap-2">
+        <Button variant="outline" size="sm" className="ml-auto" onClick={() => exportPdf('Relatório de Produtividade', 'produtividade-report')}>
+          <FileDown className="h-4 w-4 mr-1" /> Exportar PDF
+        </Button>
         <Button variant={period === 'week' ? 'default' : 'outline'} size="sm" onClick={() => setPeriod('week')}>Esta semana</Button>
         <Button variant={period === 'month' ? 'default' : 'outline'} size="sm" onClick={() => setPeriod('month')}>Este mês</Button>
         <Button variant={period === 'custom' ? 'default' : 'outline'} size="sm" onClick={() => setPeriod('custom')}>Personalizado</Button>
