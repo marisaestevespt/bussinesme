@@ -50,7 +50,7 @@ export function useWeeklyAlignData(weekOffset: number) {
         supabase.from('tasks').select('id,name,status,deadline,assigned_to,department').gte('deadline', weekStartStr).lte('deadline', weekEndStr).order('deadline'),
         supabase.from('meetings').select('id,title,date_time,status').gte('date_time', weekStartStr).lte('date_time', weekEndStr + 'T23:59:59').order('date_time'),
         supabase.from('content_items').select('id,title,status,scheduled_at').gte('scheduled_at', weekStartStr).lte('scheduled_at', weekEndStr + 'T23:59:59').order('scheduled_at'),
-        supabase.from('tasks').select('*, profiles:assigned_to(full_name), planning_routines:routine_id(title, role_function, recurrence_type)').eq('tag', 'Rotina').gte('deadline', weekStartStr).lte('deadline', weekEndStr).order('deadline'),
+        supabase.from('tasks').select('*, planning_routines:routine_id(title, role_function, recurrence_type)').eq('tag', 'Rotina').gte('deadline', weekStartStr).lte('deadline', weekEndStr).order('deadline'),
         supabase.from('client_nps_records').select('*, clients!client_nps_records_client_id_fkey(full_name, current_product)').gte('expected_date', weekStartStr).lte('expected_date', weekEndStr).order('expected_date'),
         supabase.from('client_milestones').select('*, clients!client_milestones_client_id_fkey(full_name, current_product)').gte('expected_date', weekStartStr).lte('expected_date', weekEndStr).order('expected_date'),
       ]);
@@ -75,7 +75,7 @@ export function useWeeklyAlignData(weekOffset: number) {
         supabase.from('commercial_sales').select('invoice_total').gte('payment_date', prevWeekStartStr).lte('payment_date', prevWeekEndStr),
         supabase.from('tasks').select('id,status').gte('deadline', prevWeekStartStr).lte('deadline', prevWeekEndStr),
         supabase.from('meetings').select('id').gte('date_time', prevWeekStartStr).lte('date_time', prevWeekEndStr + 'T23:59:59'),
-        supabase.from('tasks').select('*, profiles:assigned_to(full_name), planning_routines:routine_id(title, role_function, recurrence_type)').eq('tag', 'Rotina').gte('deadline', prevWeekStartStr).lte('deadline', prevWeekEndStr).order('deadline'),
+        supabase.from('tasks').select('*, planning_routines:routine_id(title, role_function, recurrence_type)').eq('tag', 'Rotina').gte('deadline', prevWeekStartStr).lte('deadline', prevWeekEndStr).order('deadline'),
       ]);
       return {
         prevSalesWeek: salesRes.data || [],

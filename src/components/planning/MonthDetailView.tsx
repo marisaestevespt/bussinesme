@@ -112,7 +112,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       const mEnd = format(endOfMonth(new Date(year, monthIdx, 1)), 'yyyy-MM-dd');
       const { data } = await supabase
         .from('tasks')
-        .select('*, profiles:assigned_to(full_name), planning_routines:routine_id(title, role_function, recurrence_type)')
+        .select('*, planning_routines:routine_id(title, role_function, recurrence_type)')
         .eq('tag', 'Rotina')
         .gte('deadline', mStart)
         .lte('deadline', mEnd)
