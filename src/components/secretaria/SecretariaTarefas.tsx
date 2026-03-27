@@ -22,6 +22,7 @@ export default function SecretariaTarefas() {
   const qc = useQueryClient();
   const [view, setView] = useState<'todo' | 'atrasadas' | 'concluidas'>('todo');
   const [editTaskId, setEditTaskId] = useState<string | null>(null);
+  const [showNewTask, setShowNewTask] = useState(false);
 
   const editTask = useQuery({
     queryKey: ['edit-task-secretaria-tarefas', editTaskId],
@@ -66,7 +67,7 @@ export default function SecretariaTarefas() {
           </Button>
           <Button variant={view === 'concluidas' ? 'default' : 'outline'} size="sm" onClick={() => setView('concluidas')}>Concluídas</Button>
         </div>
-        <Button size="sm" onClick={() => window.open('/hub/tarefas', '_self')}><Plus className="h-4 w-4 mr-1" /> Nova Tarefa</Button>
+        <Button size="sm" onClick={() => setShowNewTask(true)}><Plus className="h-4 w-4 mr-1" /> Nova Tarefa</Button>
       </div>
 
       <Table>
@@ -118,6 +119,16 @@ export default function SecretariaTarefas() {
           }}
         />
       )}
+
+      <TaskFormDialog
+        open={showNewTask}
+        onOpenChange={setShowNewTask}
+        onSuccess={() => {
+          setShowNewTask(false);
+          qc.invalidateQueries({ queryKey: ['my-tasks'] });
+          qc.invalidateQueries({ queryKey: ['unified-tasks'] });
+        }}
+      />
     </div>
   );
 }
