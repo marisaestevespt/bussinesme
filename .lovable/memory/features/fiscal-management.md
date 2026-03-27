@@ -1,8 +1,26 @@
 ---
 name: Fiscal management system
-description: Fiscal settings with SS type (independente/patronal/ambos), automatic module visibility, deadline tracking, accountant export
+description: Business type (ENI/Empresa), regime, exemptions, team type, accountant config; conditional module visibility
 type: feature
 ---
+
+## Business Type (business_settings.business_type)
+- 'eni': Empresário em Nome Individual
+- 'empresa': Sociedade — always contabilidade_organizada, always has_accountant
+
+## Team Type (business_settings.team_type)
+- 'externa': only external contractors — no Ordenados page
+- 'interna': only internal employees — Ordenados visible
+- 'ambas': both — Ordenados visible
+
+## Has Accountant (business_settings.has_accountant)
+- Forced true when contabilidade_organizada
+- When true + contabilidade_organizada: IVA/SS pages become informational guides (not hidden)
+
+## ENI First Year Rules
+- 1st year (<12 months from activity_start_date): auto-exempt IVA + SS (user can opt out)
+- 2nd year+: still exempt IVA by default, SS becomes obligatory
+- All configurable via toggles in Definições > Fiscal
 
 ## Fiscal Settings (business_settings)
 - tax_iva_regime: 'isento' | 'trimestral' | 'mensal'
@@ -12,43 +30,27 @@ type: feature
 - ss_exempt: BOOLEAN
 - iva_exempt: BOOLEAN
 
+## Module Visibility Logic
+- iva_exempt=true AND NOT contabilidade_organizada → IVA page hidden
+- ss_exempt=true AND NOT contabilidade_organizada → SS page hidden
+- contabilidade_organizada: IVA/SS pages SHOWN as informational guides
+- team_type='externa' → Ordenados page hidden
+
 ## SS Type Logic
-- independente: 21.4% on 70% of revenue (rendimento relevante), based on quarterly declaration
-- entidade_patronal: 23.75% employer + 11% employee on gross salaries (contrato trabalho)
-- ambos: both calculations shown in tabs
-
-## SS Independente Calculation
-- Revenue of quarter × 70% = Rendimento Relevante
-- Rendimento Relevante ÷ 3 = Base Mensal
-- Base Mensal × 21.4% = Contribuição
-- Minimum: €20/month, Maximum: €1,379.35/month
-- Exempt first 12 months of activity
-- Payment: day 10-20 of each month
-- Quarterly declaration deadlines: Apr 30, Jul 31, Oct 31, Jan 31
-
-## Module Activation Logic
-- iva_exempt=true OR contabilidade_organizada → IVA page hidden from Financeiro
-- ss_exempt=true OR contabilidade_organizada → SS page hidden from Financeiro
-- Settings tab "Fiscal" allows manual toggle of exemptions
+- independente: 21.4% on 70% of revenue (rendimento relevante)
+- entidade_patronal: 23.75% employer + 11% employee on gross salaries
+- ambos: both calculations shown
 
 ## Fiscal Deadlines (src/lib/fiscalDeadlines.ts)
 - SS: day 20 of next month (if not exempt)
-- IVA trimestral: last day of May/Aug/Nov/Feb+1 (if trimestral regime)
-- IVA mensal: day 20 of next month (if mensal regime)
+- IVA trimestral: last day of May/Aug/Nov/Feb+1
+- IVA mensal: day 20 of next month
 - IRS: June 30 of next year (if simplificado)
 - Weekends/holidays → adjusted to previous business day (PT fixed holidays)
 
-## Auto Task Creation (daily-status-update)
-- Creates fiscal tasks 30 days before each deadline
-- Priority: alta, department: contabilidade, tag: Fiscal
-- Deduplication by task name
-
-## Accountant Export (FinContabilidade)
-- Period selector: month/quarter/year/custom
-- Exports CSV (Excel-compatible) and PDF
-- Content: summary, entries, expenses, documents
-
-## Previsibilidade Financeira
-- Includes tax forecast column (SS + IVA) per month
-- SS calculation adapts to ss_type setting
-- Shows breakdown label (SS Ind. + SS Pat. + IVA)
+## Planned (not yet implemented)
+- Bank statement upload (monthly, in Mensal section + stored in Documentos)
+- Meta Ads report attachment on expense transactions
+- Accountant export improvements (meta ads, bank statements, transactions with client data, PT/UE/fora UE location)
+- Fiscal deadlines in daily digest emails
+- Monthly fiscal obligations checklist in Mensal (SS paid, quarterly declaration, etc.)
