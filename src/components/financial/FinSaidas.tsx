@@ -152,6 +152,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
       is_recurring: isRecurring,
       periodicity,
       monthly_equivalent: monthlyEquivalent,
+      recurrence_day: isRecurring ? (expForm.recurrence_day || null) : null,
     } as any);
     if (isRecurring) {
       fin.recurringExpenses.refetch();
