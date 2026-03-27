@@ -124,7 +124,7 @@ export function FloatingTimer() {
       )}
 
       <Dialog open={showCompletionDialog} onOpenChange={(open) => { if (!open) setShowCompletionDialog(false); }}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" /> A tarefa ficou concluída?
@@ -145,7 +145,7 @@ export function FloatingTimer() {
       </Dialog>
 
       <Dialog open={showWellnessAlert} onOpenChange={setShowWellnessAlert}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Coffee className="h-4 w-4 text-amber-500" /> Hora de uma pausa! ☕
