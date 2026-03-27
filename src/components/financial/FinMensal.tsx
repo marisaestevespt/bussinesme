@@ -640,21 +640,13 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
 
 
   const vatRate = sub.vat_rate || 0;
-  let displayBase: number, displayTotal: number;
-  if (linkedExpense) {
-    displayBase = linkedExpense.base_value;
-    displayTotal = linkedExpense.total_with_vat;
-  } else if (sub.includes_vat) {
-    displayTotal = sub.value;
-    displayBase = Math.round(sub.value / (1 + vatRate / 100) * 100) / 100;
-  } else {
-    displayBase = sub.value;
-    displayTotal = Math.round(sub.value * (1 + vatRate / 100) * 100) / 100;
-  }
+  const displayBase = linkedExpense ? linkedExpense.base_value : sub.base_value;
+  const displayTotal = linkedExpense ? linkedExpense.total_with_vat : sub.total_with_vat;
 
   const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
   const currentStatus = linkedExpense?.status || 'pendente';
+  const subName = sub.expense_name || sub.description || '';
 
   const handleStatusChange = async (_id: string, newStatus: string) => {
     setConfirming(true);
@@ -662,16 +654,13 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
     if (linkedExpense) {
       await fin.upsertExpense.mutateAsync({ id: linkedExpense.id, status: newStatus } as any);
     } else {
-      const vr = sub.vat_rate || 0;
-      let base: number, total: number;
-      if (sub.includes_vat) { total = sub.value; base = Math.round(sub.value / (1 + vr / 100) * 100) / 100; }
-      else { base = sub.value; total = Math.round(sub.value * (1 + vr / 100) * 100) / 100; }
       await fin.upsertExpense.mutateAsync({
-        description: `${sub.platform_name} — ${MONTHS_LABEL[month - 1]} ${currentYear}`,
-        category: 'plataformas', base_value: base, vat_rate: vr, total_with_vat: total,
+        description: `${subName} — ${MONTHS_LABEL[month - 1]} ${currentYear}`,
+        category: sub.category || 'plataformas', base_value: sub.base_value, vat_rate: vatRate, total_with_vat: sub.total_with_vat,
         location: sub.location, expense_date: dateStr, expense_month: month,
         expense_quarter: Math.ceil(month / 3), expense_year: currentYear,
         status: newStatus, source_type: 'subscription', source_id: sub.id,
+        supplier_id: sub.supplier_id,
       } as any);
     }
     setConfirming(false);
@@ -682,9 +671,9 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
       <TableCell onClick={e => e.stopPropagation()}>
         <ExpenseStatusSelect expenseId={linkedExpense?.id || `sub-${sub.id}`} currentStatus={currentStatus} onUpdate={handleStatusChange} />
       </TableCell>
-      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">SUB</TableCell>
-      <TableCell className="font-medium">{sub.platform_name}</TableCell>
-      <TableCell className="text-xs text-muted-foreground">Subscrição</TableCell>
+      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">REC</TableCell>
+      <TableCell className="font-medium">{subName}</TableCell>
+      <TableCell className="text-xs text-muted-foreground">Recorrente</TableCell>
       <TableCell>{LOC_LABELS[sub.location] || sub.location}</TableCell>
       <TableCell className="text-right">{fmt(displayBase)}</TableCell>
       <TableCell className="text-right">{vatRate}%</TableCell>
