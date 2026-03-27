@@ -15,7 +15,7 @@ import { format, parseISO, isBefore, isWithinInterval, startOfDay, startOfWeek, 
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { useMyTasks, useMyTimeEntries, useMyTeamMember, useProjects, TIME_CATEGORIES, formatTimer } from './secretaria-shared';
+import { useMyTasks, useMyTimeEntries, useMyTeamMember, useMyMeetings, useProjects, TIME_CATEGORIES, formatTimer } from './secretaria-shared';
 
 const today = startOfDay(new Date());
 const weekStart = startOfWeek(today, { weekStartsOn: 1 });
@@ -73,7 +73,36 @@ export default function SecretariaProdutividade() {
   const periodStart = period === 'week' ? weekStart : period === 'month' ? monthStart : (customFrom ? startOfDay(customFrom) : weekStart);
   const periodEnd = period === 'week' ? weekEnd : period === 'month' ? monthEnd : (customTo ? startOfDay(customTo) : weekEnd);
 
-  const allTimeEntries = timeEntries.data || [];
+  const myMeetings = useMyMeetings();
+
+  // Merge meetings into virtual time entries
+  const allTimeEntries = useMemo(() => {
+    const raw = timeEntries.data || [];
+    const memberId = teamMember.data?.id;
+    if (!memberId) return raw;
+
+    const meetingEntries: any[] = [];
+    (myMeetings.data || []).forEach((meeting: any) => {
+      if (!meeting.duration_minutes || meeting.duration_minutes <= 0) return;
+      if (meeting.status === 'por_confirmar') return;
+      const durationHours = Number((meeting.duration_minutes / 60).toFixed(2));
+      const entryDate = format(new Date(meeting.date_time), 'yyyy-MM-dd');
+      meetingEntries.push({
+        id: `meeting-${meeting.id}`,
+        entry_date: entryDate,
+        member_id: memberId,
+        duration: durationHours,
+        category: 'reuniao',
+        client_id: meeting.client_id || null,
+        project_id: meeting.project_id || null,
+        task_id: null,
+        description: `Reunião: ${meeting.title}`,
+        _isMeeting: true,
+      });
+    });
+    return [...raw, ...meetingEntries];
+  }, [timeEntries.data, myMeetings.data, teamMember.data?.id]);
+
   const allTasks = tasks.data || [];
 
   const periodEntries = useMemo(() => allTimeEntries.filter((e: any) => {
