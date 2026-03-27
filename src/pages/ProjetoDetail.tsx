@@ -933,6 +933,7 @@ export default function ProjetoDetailPage() {
                 projectId={id!}
                 clientId={resolvedClientId}
                 productId={local.product_id}
+                projectStartDate={local.start_date}
               />
             </TabsContent>
 
