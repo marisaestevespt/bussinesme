@@ -207,6 +207,63 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
     setExpForm({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [], includes_vat: false });
   };
 
+  // Bank statements for this month
+  const { data: bankStatements = [], refetch: refetchStatements } = useQuery({
+    queryKey: ['bank-statements', currentYear, m],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('financial_documents')
+        .select('*')
+        .eq('doc_type', 'extrato_bancario')
+        .eq('period_month', m)
+        .eq('period_year', currentYear)
+        .order('created_at', { ascending: false });
+      return data || [];
+    },
+  });
+
+  // Meta Ads reports for this month
+  const { data: metaAdsReports = [], refetch: refetchMetaAds } = useQuery({
+    queryKey: ['meta-ads-reports', currentYear, m],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('financial_documents')
+        .select('*')
+        .eq('doc_type', 'meta_ads_report')
+        .eq('period_month', m)
+        .eq('period_year', currentYear)
+        .order('created_at', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const uploadMonthlyDoc = async (file: File, docType: string, titlePrefix: string) => {
+    const ext = file.name.split('.').pop();
+    const path = `${docType}/${currentYear}/${m}/${Date.now()}.${ext}`;
+    const { error: uploadErr } = await supabase.storage.from('financial-files').upload(path, file);
+    if (uploadErr) { toast.error('Erro ao carregar ficheiro'); return; }
+    const { data: { publicUrl } } = supabase.storage.from('financial-files').getPublicUrl(path);
+    await supabase.from('financial_documents').insert({
+      title: `${titlePrefix} — ${MONTHS[m - 1]} ${currentYear}`,
+      doc_type: docType,
+      document_url: publicUrl,
+      document_name: file.name,
+      period_month: m,
+      period_year: currentYear,
+      status: 'ativo',
+    });
+    if (docType === 'extrato_bancario') refetchStatements();
+    else refetchMetaAds();
+    toast.success('Ficheiro carregado');
+  };
+
+  const deleteMonthlyDoc = async (id: string, docType: string) => {
+    await supabase.from('financial_documents').delete().eq('id', id);
+    if (docType === 'extrato_bancario') refetchStatements();
+    else refetchMetaAds();
+    toast.success('Ficheiro removido');
+  };
+
   return (
     <div className="space-y-6 mt-4">
       <div className="flex items-center justify-between">
@@ -223,6 +280,28 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
         }}>
           <Download className="h-3.5 w-3.5 mr-1" /> Exportar PDF
         </Button>
+      </div>
+
+      {/* Monthly Documents: Bank Statement + Meta Ads */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <MonthlyDocUpload
+          title="Extrato Bancário"
+          icon={<FileUp className="h-4 w-4" />}
+          docs={bankStatements}
+          docType="extrato_bancario"
+          accept=".pdf,.png,.jpg,.jpeg"
+          onUpload={(file) => uploadMonthlyDoc(file, 'extrato_bancario', 'Extrato Bancário')}
+          onDelete={(id) => deleteMonthlyDoc(id, 'extrato_bancario')}
+        />
+        <MonthlyDocUpload
+          title="Relatório Meta Ads"
+          icon={<BarChart3 className="h-4 w-4" />}
+          docs={metaAdsReports}
+          docType="meta_ads_report"
+          accept=".pdf,.png,.jpg,.jpeg,.csv,.xlsx"
+          onUpload={(file) => uploadMonthlyDoc(file, 'meta_ads_report', 'Relatório Meta Ads')}
+          onDelete={(id) => deleteMonthlyDoc(id, 'meta_ads_report')}
+        />
       </div>
 
       <div id="fin-mensal-report" className="space-y-6">
