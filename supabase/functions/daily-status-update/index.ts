@@ -20,8 +20,29 @@ Deno.serve(async (req) => {
   const todayStr = today.toISOString().slice(0, 10);
   const results: string[] = [];
 
+  // ── Load automation settings ──
+  const enabledMap = new Map<string, boolean>();
+  try {
+    const { data: settings } = await supabase
+      .from("automation_settings")
+      .select("automation_key, enabled");
+    for (const s of settings || []) {
+      enabledMap.set(s.automation_key, s.enabled);
+    }
+  } catch {
+    // If table doesn't exist yet, run everything (backwards compat)
+  }
+
+  function isEnabled(key: string): boolean {
+    return enabledMap.get(key) ?? true; // default enabled
+  }
+
   // Helper: run a section safely, log errors but continue
-  async function runSection(name: string, fn: () => Promise<string | null>) {
+  async function runSection(name: string, key: string, fn: () => Promise<string | null>) {
+    if (!isEnabled(key)) {
+      results.push(`[SKIP] ${name}: disabled`);
+      return;
+    }
     try {
       const result = await fn();
       if (result) results.push(result);
@@ -45,7 +66,7 @@ Deno.serve(async (req) => {
   } catch { /* no owner */ }
 
   // ── 1. Sales: mark overdue ──
-  await runSection("sales-overdue", async () => {
+  await runSection("sales-overdue", "sales_overdue", async () => {
     const { data: overdueSales } = await supabase
       .from("commercial_sales")
       .select("id")
@@ -58,7 +79,7 @@ Deno.serve(async (req) => {
   });
 
   // ── 2. Sales: mark awaiting payment ──
-  await runSection("sales-awaiting", async () => {
+  await runSection("sales-awaiting", "sales_awaiting", async () => {
     const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
     const monthEnd = nextMonth.toISOString().slice(0, 10);
     const { data: awaitingSales } = await supabase
@@ -74,7 +95,7 @@ Deno.serve(async (req) => {
   });
 
   // ── 3. Client renewal check ──
-  await runSection("client-renewal", async () => {
+  await runSection("client-renewal", "client_renewal", async () => {
     if (!ownerId) return null;
     const { data: clients } = await supabase
       .from("clients")
@@ -120,7 +141,7 @@ Deno.serve(async (req) => {
   });
 
   // ── 4. Contract expiry check ──
-  await runSection("contract-expiry", async () => {
+  await runSection("contract-expiry", "contract_expiry", async () => {
     if (!ownerId) return null;
     const thirtyDaysAhead = new Date(today);
     thirtyDaysAhead.setDate(thirtyDaysAhead.getDate() + 30);
@@ -152,7 +173,7 @@ Deno.serve(async (req) => {
   });
 
   // ── 5. Capacity alert ──
-  await runSection("capacity-alert", async () => {
+  await runSection("capacity-alert", "capacity_alert", async () => {
     if (!ownerId) return null;
     const weekStart = getWeekStart(today);
     const weekEnd = getWeekEnd(today);
@@ -195,7 +216,7 @@ Deno.serve(async (req) => {
   });
 
   // ── 6. Payroll → Financial sync ──
-  await runSection("payroll-sync", async () => {
+  await runSection("payroll-sync", "payroll_sync", async () => {
     const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
       "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
     const { data: paidPayroll } = await supabase
@@ -260,7 +281,7 @@ Deno.serve(async (req) => {
   });
 
   // ── 7. Auto-generate monthly payroll ──
-  await runSection("payroll-autogen", async () => {
+  await runSection("payroll-autogen", "payroll_autogen", async () => {
     const currentMonth = today.getMonth() + 1;
     const currentYear = today.getFullYear();
     const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -313,7 +334,7 @@ Deno.serve(async (req) => {
   });
 
   // ── 8. Portal auto-deactivation ──
-  await runSection("portal-deactivation", async () => {
+  await runSection("portal-deactivation", "portal_deactivation", async () => {
     const { data: expiredPortals } = await supabase
       .from("clients")
       .select("id")
@@ -329,7 +350,7 @@ Deno.serve(async (req) => {
   });
 
   // ── 9. Auto-generate NPS records ──
-  await runSection("nps-autogen", async () => {
+  await runSection("nps-autogen", "nps_autogen", async () => {
     const { data: activeClients } = await supabase
       .from("clients")
       .select("id, current_product, start_date, status")
@@ -369,7 +390,7 @@ Deno.serve(async (req) => {
   });
 
   // ── 10. Meeting reminders ──
-  await runSection("meeting-reminders", async () => {
+  await runSection("meeting-reminders", "meeting_reminders", async () => {
     const tomorrowStr = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString().slice(0, 10);
     const { data: todayMeetings } = await supabase
       .from("meetings")
@@ -411,7 +432,7 @@ Deno.serve(async (req) => {
   });
 
   // ── 11. Project deadline overdue ──
-  await runSection("project-deadlines", async () => {
+  await runSection("project-deadlines", "project_deadlines", async () => {
     if (!ownerId) return null;
     const { data: overdueProjects } = await supabase
       .from("projects")
@@ -434,7 +455,7 @@ Deno.serve(async (req) => {
   });
 
   // ── 12. Overdue task alerts ──
-  await runSection("overdue-tasks", async () => {
+  await runSection("overdue-tasks", "overdue_tasks", async () => {
     const { data: overdueTasks } = await supabase
       .from("tasks")
       .select("id, name, assigned_to, deadline")
@@ -458,7 +479,7 @@ Deno.serve(async (req) => {
   });
 
   // ── 13. CRM Follow-up overdue ──
-  await runSection("crm-followup", async () => {
+  await runSection("crm-followup", "crm_followup", async () => {
     const { data: overdueLeads } = await supabase
       .from("crm_leads")
       .select("id, name, next_followup, responsible_id")
@@ -482,7 +503,7 @@ Deno.serve(async (req) => {
   });
 
   // ── 14. Routine missed alerts ──
-  await runSection("routine-missed", async () => {
+  await runSection("routine-missed", "routine_missed", async () => {
     const { data: missedRoutineTasks } = await supabase
       .from("tasks")
       .select("id, name, routine_id, assigned_to, deadline")
@@ -515,7 +536,7 @@ Deno.serve(async (req) => {
   });
 
   // ── 15. Recurring expenses ──
-  await runSection("recurring-expenses", async () => {
+  await runSection("recurring-expenses", "recurring_expenses", async () => {
     const dayOfMonth = today.getDate();
     const currentMonth = today.getMonth() + 1;
     const currentYear = today.getFullYear();
@@ -545,7 +566,7 @@ Deno.serve(async (req) => {
   });
 
   // ── 16. Fiscal tasks ──
-  await runSection("fiscal-tasks", async () => {
+  await runSection("fiscal-tasks", "fiscal_tasks", async () => {
     if (!ownerId) return null;
     const currentMonth2 = today.getMonth() + 1;
     const currentYear2 = today.getFullYear();
@@ -576,7 +597,7 @@ Deno.serve(async (req) => {
   });
 
   // ── 17. Auto-revoke access for inactive members ──
-  await runSection("access-revoke", async () => {
+  await runSection("access-revoke", "access_revoke", async () => {
     const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const { data: toRevoke } = await supabase
       .from("team_members")

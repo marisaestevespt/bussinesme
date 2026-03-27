@@ -11,6 +11,7 @@ import { SettingsUsers } from '@/components/settings/SettingsUsers';
 import { SettingsKpis } from '@/components/settings/SettingsKpis';
 import { SettingsDigest } from '@/components/settings/SettingsDigest';
 import { SettingsAuditLog } from '@/components/settings/SettingsAuditLog';
+import { SettingsAutomations } from '@/components/settings/SettingsAutomations';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ const BASE_TABS = [
 
 const OWNER_TABS = [
   ...BASE_TABS,
+  { key: 'automacoes' as const, label: 'Automações' },
   { key: 'auditoria' as const, label: 'Auditoria' },
 ] as const;
 
@@ -81,6 +83,7 @@ export default function DefinicoesPage() {
           {tab === 'utilizadores' && <SettingsUsers />}
           {tab === 'kpis' && <SettingsKpis />}
           {tab === 'resumo' && <SettingsDigest />}
+          {tab === 'automacoes' && <SettingsAutomations />}
           {tab === 'auditoria' && <SettingsAuditLog />}
         </div>
 

@@ -11,6 +11,7 @@ Design system: white-label HQ business management app. Matte ceramic surfaces, G
 - members: links user to custom_role
 - profiles: auto-created on signup via trigger
 - custom_fields / custom_field_values: extensible fields for any entity
+- automation_settings: toggles for each cron automation (all enabled by default)
 
 ## Auth Flow
 1. No user → AuthPage (login/signup)
@@ -31,6 +32,7 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 - Executive Room only visible to Owner
 - Owner role cannot be edited/deleted (is_owner=true in custom_roles)
 - has_role() is SECURITY DEFINER function for RLS
+- All cron automations configurable via Definições > Automações (owner only)
 
 ## Memories
 - [Color tokens](mem://design/color-tokens) — Full semantic palette, surfaces, opacity system

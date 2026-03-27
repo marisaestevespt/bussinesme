@@ -101,6 +101,36 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_settings: {
+        Row: {
+          automation_key: string
+          created_at: string
+          description: string | null
+          enabled: boolean
+          id: string
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          automation_key: string
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          automation_key?: string
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          label?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       brand_competitors: {
         Row: {
           comunicacao: string | null
