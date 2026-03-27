@@ -7518,8 +7518,10 @@ export type Database = {
           priority: string
           project_id: string | null
           recurrence_end: string | null
+          recurrence_interval_days: number | null
           recurrence_type: string | null
           routine_id: string | null
+          scheduled_time: string | null
           status: string
           tag: string | null
           updated_at: string
@@ -7542,8 +7544,10 @@ export type Database = {
           priority?: string
           project_id?: string | null
           recurrence_end?: string | null
+          recurrence_interval_days?: number | null
           recurrence_type?: string | null
           routine_id?: string | null
+          scheduled_time?: string | null
           status?: string
           tag?: string | null
           updated_at?: string
@@ -7566,8 +7570,10 @@ export type Database = {
           priority?: string
           project_id?: string | null
           recurrence_end?: string | null
+          recurrence_interval_days?: number | null
           recurrence_type?: string | null
           routine_id?: string | null
+          scheduled_time?: string | null
           status?: string
           tag?: string | null
           updated_at?: string
