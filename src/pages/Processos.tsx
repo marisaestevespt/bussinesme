@@ -268,8 +268,9 @@ export default function ProcessosPage() {
                     const recLabel = pr.recurrence_type === 'semanal'
                       ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][pr.weekday || 0]} feira${hourLabel}`
                       : `Mensal — dia ${pr.month_day}${hourLabel}${pr.adjust_to_business_day ? ' (ajuste dia útil)' : ''}`;
+                    const linkedSop = sops.find((s: any) => s.routine_id === pr.id);
                     return (
-                      <Card key={pr.id} className="p-3">
+                      <Card key={pr.id} className={cn("p-3", linkedSop && "cursor-pointer hover:shadow-md transition-shadow")} onClick={() => { if (linkedSop) navigate(`/hub/processos/${linkedSop.id}`); }}>
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium line-clamp-2">{pr.title}</p>
@@ -278,7 +279,7 @@ export default function ProcessosPage() {
                               {pr.active ? 'Ativa' : 'Inativa'}
                             </Badge>
                           </div>
-                          <div className="flex flex-col gap-1 items-end shrink-0">
+                          <div className="flex flex-col gap-1 items-end shrink-0" onClick={e => e.stopPropagation()}>
                             <Switch
                               checked={pr.active}
                               onCheckedChange={(v) => planningRoutines.toggleActive.mutate({ id: pr.id, active: v })}
@@ -312,6 +313,13 @@ export default function ProcessosPage() {
           <div className="flex items-center justify-between mb-4 gap-3">
             <h1 className="text-2xl font-bold tracking-tight">Lista Total de SOPs</h1>
             <div className="flex items-center gap-2">
+              <Select value={selectedDept || '_all_'} onValueChange={v => setSelectedDept(v === '_all_' ? null : v)}>
+                <SelectTrigger className="w-48 h-9"><SelectValue placeholder="Filtrar por dept." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_all_">Todos os departamentos</SelectItem>
+                  {DEPARTMENTS.map(d => <SelectItem key={d.value} value={d.value}>{d.icon} {d.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
               <Select value={filterRole || '_all_'} onValueChange={v => setFilterRole(v === '_all_' ? '' : v)}>
                 <SelectTrigger className="w-48 h-9"><SelectValue placeholder="Filtrar por função" /></SelectTrigger>
                 <SelectContent>
@@ -322,9 +330,13 @@ export default function ProcessosPage() {
             </div>
           </div>
           {(() => {
-            const filtered = filterRole
-              ? allSopsSorted.filter(s => (s as any).role_title === filterRole)
-              : allSopsSorted;
+            let filtered = allSopsSorted;
+            if (selectedDept) {
+              filtered = filtered.filter(s => (s as any).departments?.includes(selectedDept) || s.department === selectedDept);
+            }
+            if (filterRole) {
+              filtered = filtered.filter(s => (s as any).role_title === filterRole);
+            }
             return filtered.length === 0 ? (
               <p className="text-muted-foreground text-sm">Nenhum SOP encontrado.</p>
             ) : (

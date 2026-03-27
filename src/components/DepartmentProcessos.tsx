@@ -140,6 +140,7 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
     const { data: sopData } = await supabase.from('sops').insert({
       name: prTitle,
       department,
+      departments: [department],
       status: 'ativo',
       created_by: user?.id,
       routine_id: routineResult.id,
@@ -234,8 +235,14 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
                   const recLabel = pr.recurrence_type === 'semanal'
                     ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][pr.weekday || 0]} feira${hourLabel}`
                     : `Mensal — dia ${pr.month_day}${hourLabel}`;
+                  // Find linked SOP
+                  const linkedSop = sops.find((s: any) => s.routine_id === pr.id);
                   return (
-                    <TableRow key={pr.id}>
+                    <TableRow
+                      key={pr.id}
+                      className={cn("cursor-pointer", linkedSop && "hover:bg-muted/50")}
+                      onClick={() => { if (linkedSop) navigate(`/hub/processos/${linkedSop.id}`); }}
+                    >
                       <TableCell className="font-medium">{pr.title}</TableCell>
                       <TableCell>{recLabel}</TableCell>
                       <TableCell>
@@ -249,7 +256,7 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
                           <Switch
                             checked={pr.active}
                             onCheckedChange={(v) => planningRoutines.toggleActive.mutate({ id: pr.id, active: v })}
