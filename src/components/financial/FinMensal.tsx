@@ -843,33 +843,42 @@ function FiscalChecklistCard({ month, year }: { month: number; year: number }) {
   const checkItems = useMemo(() => {
     const items: { key: string; label: string }[] = [];
 
-    // Helper: check if this month/year is after exemption end
     const monthDateStr = `${year}-${String(month).padStart(2, '0')}-01`;
     const isAfterIvaEnd = !fiscalConfig.ivaExemptionEndDate || monthDateStr >= fiscalConfig.ivaExemptionEndDate;
     const isAfterSsEnd = !fiscalConfig.ssExemptionEndDate || monthDateStr >= fiscalConfig.ssExemptionEndDate;
 
-    // SS — always if not exempt and after exemption end
+    // SS — payment until day 20 of next month (checklist shown in payment month)
     if (!fiscalConfig.ssExempt && isAfterSsEnd) {
-      items.push({ key: 'ss_payment', label: `Pagamento Segurança Social — ${MONTHS[month - 1]}` });
+      const refMonth = month === 1 ? 12 : month - 1;
+      const refYear = month === 1 ? year - 1 : year;
+      items.push({ key: 'ss_payment', label: `SS Pagamento — ${MONTHS[refMonth - 1]} ${refYear} (até dia 20)` });
     }
 
-    // IVA trimestral — quarterly declaration months (Feb for Q4, May for Q1, Aug for Q2, Nov for Q3)
+    // IVA trimestral — declaration (dia 20) & payment (dia 25)
     if (!fiscalConfig.ivaExempt && fiscalConfig.taxIvaRegime === 'trimestral' && isAfterIvaEnd) {
-      const qMonths = [2, 5, 8, 11]; // declaration months
-      if (qMonths.includes(month)) {
-        const qLabels: Record<number, string> = { 2: `4º Trim ${year - 1}`, 5: `1º Trim ${year}`, 8: `2º Trim ${year}`, 11: `3º Trim ${year}` };
-        items.push({ key: `iva_quarterly_${month}`, label: `Declaração IVA Trimestral — ${qLabels[month]}` });
+      const qMonths: Record<number, string> = { 2: `4º Trim ${year - 1}`, 5: `1º Trim ${year}`, 8: `2º Trim ${year}`, 11: `3º Trim ${year}` };
+      if (qMonths[month]) {
+        items.push({ key: `iva_decl_q_${month}`, label: `IVA Declaração — ${qMonths[month]} (até dia 20)` });
+        items.push({ key: `iva_pay_q_${month}`, label: `IVA Pagamento — ${qMonths[month]} (até dia 25)` });
       }
     }
 
-    // IVA mensal — every month
+    // IVA mensal — declaration (dia 20) & payment (dia 25)
     if (!fiscalConfig.ivaExempt && fiscalConfig.taxIvaRegime === 'mensal' && isAfterIvaEnd) {
-      items.push({ key: 'iva_monthly', label: `Declaração IVA Mensal — ${MONTHS[month - 1]}` });
+      const refMonth = month <= 2 ? 10 + month : month - 2;
+      const refYear = month <= 2 ? year - 1 : year;
+      items.push({ key: 'iva_decl_m', label: `IVA Declaração — ${MONTHS[refMonth - 1]} ${refYear} (até dia 20)` });
+      items.push({ key: 'iva_pay_m', label: `IVA Pagamento — ${MONTHS[refMonth - 1]} ${refYear} (até dia 25)` });
     }
 
-    // IRS — June of next year (so show in June)
-    if (fiscalConfig.taxIrsRegime === 'simplificado' && month === 6) {
-      items.push({ key: 'irs_annual', label: `Entrega IRS — Ano ${year - 1}` });
+    // IRS — April to June (submission period)
+    if (fiscalConfig.taxIrsRegime === 'simplificado') {
+      if (month === 4) {
+        items.push({ key: 'irs_start', label: `IRS ${year - 1} — Início da entrega (1 de Abril)` });
+      }
+      if (month >= 4 && month <= 6) {
+        items.push({ key: 'irs_deadline', label: `IRS ${year - 1} — Prazo final (30 de Junho)` });
+      }
     }
 
     // Bank statement upload check
