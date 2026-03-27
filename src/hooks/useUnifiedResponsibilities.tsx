@@ -58,15 +58,33 @@ export function useUnifiedResponsibilities(userId?: string) {
   const currentMonth = today.getMonth() + 1;
   const currentYear = today.getFullYear();
 
+  // Fetch profile id (profile.id != auth user.id)
+  const profileQ = useQuery({
+    queryKey: ['unified-profile-id', uid],
+    enabled: !!uid,
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles')
+        .select('id')
+        .eq('user_id', uid!)
+        .maybeSingle();
+      return data?.id as string | null;
+    },
+  });
+  const profileId = profileQ.data;
+
+  // Collect all IDs that could be used as assigned_to
+  const assigneeIds = [uid!, ...(profileId && profileId !== uid ? [profileId] : [])];
+
   // 1. Tasks
   const tasksQ = useQuery({
-    queryKey: ['unified-tasks', uid],
+    queryKey: ['unified-tasks', uid, profileId],
     enabled: !!uid,
     staleTime: 2 * 60 * 1000,
     queryFn: async () => {
       const { data } = await supabase.from('tasks')
-        .select('id,name,status,deadline,priority,project_id,estimated_time,created_at')
-        .eq('assigned_to', uid!).order('deadline');
+        .select('id,name,status,deadline,priority,project_id,estimated_time,created_at,tag,routine_id')
+        .in('assigned_to', assigneeIds).order('deadline');
       return data || [];
     },
   });
@@ -392,6 +410,6 @@ export function useUnifiedResponsibilities(userId?: string) {
     todayItems,
     weekItems,
     getItemHours,
-    isLoading: tasksQ.isLoading || leadsQ.isLoading || contentQ.isLoading || meetingsQ.isLoading,
+    isLoading: profileQ.isLoading || tasksQ.isLoading || leadsQ.isLoading || contentQ.isLoading || meetingsQ.isLoading,
   };
 }
