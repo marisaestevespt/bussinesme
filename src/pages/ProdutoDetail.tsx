@@ -579,7 +579,7 @@ export default function ProdutoDetailPage() {
               isOwner={isOwner}
               productId={id!}
               onUpdateField={(field, value) => update(field, value)}
-              onAddCost={() => addRow.mutate({ table: 'product_costs', data: { product_id: id, name: '', usage_desc: '', value: 0 } })}
+              onAddCost={() => { if (!id) { toast.error('Guarda o produto primeiro'); return; } addRow.mutate({ table: 'product_costs', data: { product_id: id, name: '', usage_desc: '', value: 0 } }); }}
               onUpdateCost={(costId, data) => updateRow.mutate({ table: 'product_costs', id: costId, data })}
               onDeleteCost={(costId) => deleteRow.mutate({ table: 'product_costs', id: costId })}
             />
