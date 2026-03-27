@@ -90,7 +90,7 @@ function TaskDetail({ item, onClose }: { item: UnifiedItem; onClose: () => void 
     enabled: !!routineId,
     queryFn: async () => {
       const { data } = await supabase.from('sops')
-        .select('id, sop_id, name, steps, department')
+        .select('id, sop_id, name, passos, department')
         .eq('routine_id', routineId!)
         .maybeSingle();
       return data;
@@ -201,17 +201,17 @@ function TaskDetail({ item, onClose }: { item: UnifiedItem; onClose: () => void 
             <div className="p-3 rounded-lg border bg-card">
               <p className="text-sm font-medium">{linkedSop.name}</p>
               <p className="text-xs text-muted-foreground font-mono">{linkedSop.sop_id}</p>
-              {linkedSop.steps && Array.isArray(linkedSop.steps) && (linkedSop.steps as any[]).length > 0 && (
+              {linkedSop.passos && Array.isArray(linkedSop.passos) && (linkedSop.passos as any[]).length > 0 && (
                 <div className="mt-3 space-y-1.5">
                   <p className="text-xs font-medium text-muted-foreground">Passos</p>
-                  {(linkedSop.steps as any[]).slice(0, 8).map((step: any, i: number) => (
+                  {(linkedSop.passos as any[]).slice(0, 8).map((step: any, i: number) => (
                     <div key={i} className="flex items-start gap-2 text-xs">
                       <span className="text-muted-foreground shrink-0 mt-0.5">{i + 1}.</span>
                       <span>{typeof step === 'string' ? step : step.text || step.title || JSON.stringify(step)}</span>
                     </div>
                   ))}
-                  {(linkedSop.steps as any[]).length > 8 && (
-                    <p className="text-[10px] text-muted-foreground">+{(linkedSop.steps as any[]).length - 8} passos...</p>
+                  {(linkedSop.passos as any[]).length > 8 && (
+                    <p className="text-[10px] text-muted-foreground">+{(linkedSop.passos as any[]).length - 8} passos...</p>
                   )}
                 </div>
               )}
