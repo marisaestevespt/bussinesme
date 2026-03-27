@@ -131,10 +131,17 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
         const ruleDays = parseRuleDays(t.rule);
         const deadline = ruleDays ? addDays(baseDate, ruleDays).toISOString().split('T')[0] : null;
 
-        // Use template estimated_time, fallback to historical avg
-        const estimatedTime = t.estimated_time != null
-          ? Number(t.estimated_time)
-          : (historicalAvg[t.task_name] ?? null);
+        // Combine template estimated_time as one more data point in the historical average
+        const hist = historicalAvg[t.task_name];
+        let estimatedTime: number | null = null;
+        if (t.estimated_time != null && hist) {
+          // Average of historical avg + template value
+          estimatedTime = Math.round(((hist.sum + Number(t.estimated_time)) / (hist.count + 1)) * 10) / 10;
+        } else if (hist) {
+          estimatedTime = Math.round((hist.sum / hist.count) * 10) / 10;
+        } else if (t.estimated_time != null) {
+          estimatedTime = Number(t.estimated_time);
+        }
 
         const { data: inserted, error } = await supabase
           .from('tasks')
@@ -174,9 +181,15 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
         const ruleDays = parseRuleDays(t.rule);
         const deadline = ruleDays ? addDays(baseDate, ruleDays).toISOString().split('T')[0] : null;
 
-        const estimatedTime = t.estimated_time != null
-          ? Number(t.estimated_time)
-          : (historicalAvg[t.task_name] ?? null);
+        const histSub = historicalAvg[t.task_name];
+        let estimatedTime: number | null = null;
+        if (t.estimated_time != null && histSub) {
+          estimatedTime = Math.round(((histSub.sum + Number(t.estimated_time)) / (histSub.count + 1)) * 10) / 10;
+        } else if (histSub) {
+          estimatedTime = Math.round((histSub.sum / histSub.count) * 10) / 10;
+        } else if (t.estimated_time != null) {
+          estimatedTime = Number(t.estimated_time);
+        }
 
         const { error } = await supabase
           .from('tasks')
