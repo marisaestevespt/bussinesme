@@ -5,10 +5,17 @@ import { toast } from 'sonner';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
 export type Expense = Tables<'financial_expenses'>;
-export type Subscription = Tables<'financial_subscriptions'>;
 export type FinancialDocument = Tables<'financial_documents'>;
 export type PayrollEntry = Tables<'financial_payroll'>;
 export type ContractorEntry = Tables<'financial_contractors'>;
+
+// Recurring expense = unified model replacing old subscriptions
+export type RecurringExpense = Expense & {
+  expense_name: string | null;
+  periodicity: string | null;
+  monthly_equivalent: number;
+  renewal_date: string | null;
+};
 
 const MONTH_LABELS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
