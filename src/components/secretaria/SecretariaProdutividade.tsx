@@ -150,6 +150,7 @@ export default function SecretariaProdutividade() {
   const monthCompletedTasks = useMemo(() => allTasks.filter((t: any) => t.status === 'done' && t.updated_at && isWithinInterval(parseISO(t.updated_at), { start: monthStart, end: monthEnd })), [allTasks]);
 
   const deleteEntry = async (id: string) => {
+    if (id.startsWith('meeting-')) { toast.error('Reuniões não podem ser eliminadas aqui'); return; }
     await supabase.from('time_entries').delete().eq('id', id);
     qc.invalidateQueries({ queryKey: ['my-time-entries'] });
     toast.success('Registo eliminado');
