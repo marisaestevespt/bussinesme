@@ -228,10 +228,41 @@ export function useFinancialData() {
     },
   });
 
+  // Add upsert/delete for recurring expenses
+  const upsertRecurringExpense = useMutation({
+    mutationFn: async (rec: Partial<Expense> & { expense_name: string; periodicity: string; base_value: number }) => {
+      const monthly = calcMonthlyEquivalent(rec.base_value, rec.periodicity);
+      const record = { ...rec, is_recurring: true, monthly_equivalent: monthly };
+      if (rec.id) {
+        const { error } = await supabase.from('financial_expenses').update(record as any).eq('id', rec.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('financial_expenses').insert(record as any);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['recurring-expenses'] });
+      qc.invalidateQueries({ queryKey: ['financial-expenses'] });
+    },
+    onError: () => toast.error('Erro ao guardar despesa recorrente'),
+  });
+
+  const deleteRecurringExpense = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('financial_expenses').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['recurring-expenses'] });
+      qc.invalidateQueries({ queryKey: ['financial-expenses'] });
+    },
+  });
+
   return {
-    expenses, subscriptions, documents, payroll, contractors,
+    expenses, recurringExpenses, documents, payroll, contractors,
     upsertExpense, deleteExpense,
-    upsertSubscription, deleteSubscription,
+    upsertRecurringExpense, deleteRecurringExpense,
     upsertDocument, deleteDocument,
     upsertPayroll, deletePayroll,
     upsertContractor, deleteContractor,
