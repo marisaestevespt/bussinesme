@@ -261,7 +261,11 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
         }
       }
       if (result && result.newStatus === 'a_fazer' && result.prevStatus !== 'a_fazer') {
-        setTimerPromptTaskId(result.taskId);
+        // Auto-start timer
+        const taskName = allTasks.find(t => t.id === result.taskId)?.name || name;
+        await globalStartTimer(result.taskId, taskName);
+        toast.success('Timer iniciado automaticamente! ▶️');
+        onOpenChange(false);
       } else {
         onOpenChange(false);
       }
