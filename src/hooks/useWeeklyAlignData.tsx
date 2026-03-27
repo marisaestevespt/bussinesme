@@ -75,7 +75,7 @@ export function useWeeklyAlignData(weekOffset: number) {
         supabase.from('commercial_sales').select('invoice_total').gte('payment_date', prevWeekStartStr).lte('payment_date', prevWeekEndStr),
         supabase.from('tasks').select('id,status').gte('deadline', prevWeekStartStr).lte('deadline', prevWeekEndStr),
         supabase.from('meetings').select('id').gte('date_time', prevWeekStartStr).lte('date_time', prevWeekEndStr + 'T23:59:59'),
-        supabase.from('tasks').select('*, profiles:assigned_to(full_name), planning_routines:routine_id(title, role_function, recurrence_type)').eq('tag', 'Rotina').gte('deadline', prevWeekStartStr).lte('deadline', prevWeekEndStr).order('deadline'),
+        supabase.from('tasks').select('*, planning_routines:routine_id(title, role_function, recurrence_type)').eq('tag', 'Rotina').gte('deadline', prevWeekStartStr).lte('deadline', prevWeekEndStr).order('deadline'),
       ]);
       return {
         prevSalesWeek: salesRes.data || [],
