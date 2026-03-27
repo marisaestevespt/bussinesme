@@ -342,7 +342,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
 
   return (
     <>
-      <Dialog open={open && !timerPromptTaskId} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingTask ? 'Editar Tarefa' : 'Nova Tarefa'}</DialogTitle>
