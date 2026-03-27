@@ -370,9 +370,9 @@ function IndependenteSection({ data, currentYear, onSave, onToggle }: {
         <CardContent className="pt-4 flex gap-2">
           <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
           <div className="text-sm text-muted-foreground space-y-1">
-            <p><strong>Como funciona:</strong> Declaras a faturação do trimestre → essa declaração define a contribuição dos 3 meses seguintes.</p>
-            <p>Faturação × 70% = Rendimento relevante → ÷ 3 = Base mensal → × 21,4% = Contribuição. Mínimo: €20/mês.</p>
-            <p className="text-xs">Declaração: Q1 em Abril · Q2 em Julho · Q3 em Outubro · Q4 em Janeiro do ano seguinte.</p>
+            <p><strong>Como funciona:</strong> Declaras a faturação do trimestre → essa declaração define a contribuição do mês da declaração + 2 meses seguintes.</p>
+            <p>Faturação × 70% = Rendimento relevante → ÷ 3 = Base mensal → × 21,4% = Contribuição. Mínimo: contribuição mínima mensal.</p>
+            <p className="text-xs">Declaração: Jan (Out-Dez anterior) · Abr (Jan-Mar) · Jul (Abr-Jun) · Out (Jul-Set). Pagamento: dia 10-20 do mês seguinte.</p>
           </div>
         </CardContent>
       </Card>
