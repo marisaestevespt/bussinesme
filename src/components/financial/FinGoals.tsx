@@ -32,7 +32,7 @@ export function FinGoals({ currentYear, yearSales, yearExpenses }: Props) {
     },
   });
 
-  const [edits, setEdits] = useState<Record<number, { revenue: string; expense: string; profit: string }>>({});
+  const [edits, setEdits] = useState<Record<number, { expense: string; profit: string }>>({});
 
   const save = useMutation({
     mutationFn: async (month: number) => {
@@ -42,7 +42,6 @@ export function FinGoals({ currentYear, yearSales, yearExpenses }: Props) {
       const record = {
         year: currentYear,
         month,
-        revenue_target: parseFloat(e.revenue) || 0,
         expense_target: parseFloat(e.expense) || 0,
         profit_target: parseFloat(e.profit) || 0,
       };
@@ -62,7 +61,6 @@ export function FinGoals({ currentYear, yearSales, yearExpenses }: Props) {
     if (edits[month]) return edits[month];
     const g = goals.find((g: any) => g.month === month);
     return {
-      revenue: g ? String((g as any).revenue_target || 0) : '',
       expense: g ? String((g as any).expense_target || 0) : '',
       profit: g ? String((g as any).profit_target || 0) : '',
     };
@@ -85,26 +83,14 @@ export function FinGoals({ currentYear, yearSales, yearExpenses }: Props) {
     });
   }, [yearSales, yearExpenses]);
 
-  const totalTargetRevenue = goals.reduce((s: number, g: any) => s + ((g as any).revenue_target || 0), 0);
   const totalTargetExpense = goals.reduce((s: number, g: any) => s + ((g as any).expense_target || 0), 0);
-  const totalActualRevenue = actuals.reduce((s, a) => s + a.revenue, 0);
+  const totalTargetProfit = goals.reduce((s: number, g: any) => s + ((g as any).profit_target || 0), 0);
   const totalActualExpense = actuals.reduce((s, a) => s + a.expense, 0);
+  const totalActualProfit = actuals.reduce((s, a) => s + a.profit, 0);
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Meta Receita Anual</p>
-            <p className="text-lg font-bold">{fmt(totalTargetRevenue)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Receita Real</p>
-            <p className="text-lg font-bold text-success">{fmt(totalActualRevenue)}</p>
-          </CardContent>
-        </Card>
         <Card>
           <CardContent className="pt-4">
             <p className="text-xs text-muted-foreground">Meta Despesa Anual</p>
@@ -117,23 +103,34 @@ export function FinGoals({ currentYear, yearSales, yearExpenses }: Props) {
             <p className="text-lg font-bold text-destructive">{fmt(totalActualExpense)}</p>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <p className="text-xs text-muted-foreground">Meta Lucro Anual</p>
+            <p className="text-lg font-bold">{fmt(totalTargetProfit)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <p className="text-xs text-muted-foreground">Lucro Real</p>
+            <p className={`text-lg font-bold ${totalActualProfit >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(totalActualProfit)}</p>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Metas Financeiras — {currentYear}</CardTitle>
+          <CardTitle className="text-sm">Metas Despesa & Lucro — {currentYear}</CardTitle>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Mês</TableHead>
-                <TableHead className="text-right">Meta Receita</TableHead>
-                <TableHead className="text-right">Real Receita</TableHead>
+                <TableHead className="text-right">Receita Real</TableHead>
                 <TableHead className="text-right">Meta Despesa</TableHead>
-                <TableHead className="text-right">Real Despesa</TableHead>
+                <TableHead className="text-right">Despesa Real</TableHead>
                 <TableHead className="text-right">Meta Lucro</TableHead>
-                <TableHead className="text-right">Real Lucro</TableHead>
+                <TableHead className="text-right">Lucro Real</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
@@ -145,16 +142,7 @@ export function FinGoals({ currentYear, yearSales, yearExpenses }: Props) {
                 return (
                   <TableRow key={m}>
                     <TableCell className="font-medium">{name}</TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        className="h-8 text-sm text-right w-28"
-                        value={edit.revenue}
-                        onChange={e => setEdit(m, 'revenue', e.target.value)}
-                        placeholder="0"
-                      />
-                    </TableCell>
-                    <TableCell className="text-right text-success">{fmt(actual.revenue)}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{fmt(actual.revenue)}</TableCell>
                     <TableCell>
                       <Input
                         type="number"
