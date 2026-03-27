@@ -32,6 +32,7 @@ export default function SecretariaDia() {
       <UnifiedResponsibilitiesList
         items={unified.todayItems}
         title="Tarefas para hoje"
+        defaultDeadline={todayStr}
       />
 
       {todayTime.length > 0 && (

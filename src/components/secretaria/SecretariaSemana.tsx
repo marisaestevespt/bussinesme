@@ -64,6 +64,7 @@ export default function SecretariaSemana() {
       <UnifiedResponsibilitiesList
         items={unified.weekItems}
         title="Tarefas desta semana"
+        defaultDeadline={format(endOfWeek(today, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
       />
     </div>
   );

@@ -1,16 +1,18 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ResponsibilityDetailDialog } from '@/components/ResponsibilityDetailDialog';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   CheckSquare, PhoneCall, FileText, Users, FolderKanban,
-  Star, ShoppingCart, ListChecks, Clock, Target, ChevronRight,
+  Star, ShoppingCart, ListChecks, Clock, Target, ChevronRight, Plus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
@@ -84,13 +86,19 @@ interface Props {
   items: UnifiedItem[];
   title: string;
   maxHeight?: string;
+  /** Default deadline for quick-add tasks (ISO date string, e.g. today or end of week) */
+  defaultDeadline?: string;
 }
 
-export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px' }: Props) {
+export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px', defaultDeadline }: Props) {
   const [filter, setFilter] = useState<SourceFilter>('todos');
   const [selectedItem, setSelectedItem] = useState<UnifiedItem | null>(null);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [quickAddName, setQuickAddName] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { user } = useAuth();
 
   const toggleMutation = useMutation({
     mutationFn: async (item: UnifiedItem) => {
@@ -129,6 +137,33 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px' 
     onError: () => toast.error('Erro ao atualizar'),
   });
 
+  const quickAddMutation = useMutation({
+    mutationFn: async (name: string) => {
+      if (!user?.id) throw new Error('No user');
+      const { error } = await supabase.from('tasks').insert({
+        name,
+        assigned_to: user.id,
+        status: 'todo',
+        deadline: defaultDeadline || format(new Date(), 'yyyy-MM-dd'),
+      } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['unified-tasks'] });
+      qc.invalidateQueries({ queryKey: ['my-tasks'] });
+      toast.success('Tarefa criada!');
+      setQuickAddName('');
+      setShowQuickAdd(false);
+    },
+    onError: () => toast.error('Erro ao criar tarefa'),
+  });
+
+  const handleQuickAdd = () => {
+    const name = quickAddName.trim();
+    if (!name) return;
+    quickAddMutation.mutate(name);
+  };
+
   const filtered = filter === 'todos' ? items : items.filter(i => i.source === filter);
 
   const countBySource: Partial<Record<ResponsibilitySource, number>> = {};
@@ -150,10 +185,37 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px' 
 
   return (
     <Card>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 flex flex-row items-center justify-between">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 gap-1 text-xs"
+          onClick={() => {
+            setShowQuickAdd(!showQuickAdd);
+            setTimeout(() => inputRef.current?.focus(), 50);
+          }}
+        >
+          <Plus className="h-3.5 w-3.5" /> Adicionar
+        </Button>
       </CardHeader>
       <CardContent className="space-y-3">
+        {/* Quick-add inline form */}
+        {showQuickAdd && (
+          <div className="flex gap-2">
+            <Input
+              ref={inputRef}
+              placeholder="Nome da tarefa..."
+              value={quickAddName}
+              onChange={e => setQuickAddName(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleQuickAdd(); if (e.key === 'Escape') setShowQuickAdd(false); }}
+              className="h-8 text-sm"
+            />
+            <Button size="sm" className="h-8 px-3" onClick={handleQuickAdd} disabled={!quickAddName.trim() || quickAddMutation.isPending}>
+              Criar
+            </Button>
+          </div>
+        )}
         {/* Filters */}
         <div className="flex flex-wrap gap-1.5">
           {FILTER_OPTIONS.map(f => {
