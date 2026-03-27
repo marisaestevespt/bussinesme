@@ -212,6 +212,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
   // Only show if project has a product associated
   if (!productId) return null;
 
+  return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button variant="outline" size="sm">
