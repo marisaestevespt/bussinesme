@@ -213,9 +213,9 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px' 
 
                   {/* Content */}
                   <div
-                    className={cn('flex-1 min-w-0', route && toggleable && 'cursor-pointer')}
+                    className={cn('flex-1 min-w-0', toggleable && 'cursor-pointer')}
                     onClick={(e) => {
-                      if (toggleable && route) {
+                      if (toggleable) {
                         e.stopPropagation();
                         handleClick(item);
                       }
