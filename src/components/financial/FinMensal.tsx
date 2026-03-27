@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { FinancialHealthSection } from './FinancialHealthSection';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, Check, Download } from 'lucide-react';
+import { Plus, Check, Download, FileUp, BarChart3, ExternalLink, Trash2 as TrashIcon } from 'lucide-react';
 import { exportPdf } from '@/lib/exportPdf';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
@@ -207,6 +207,63 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
     setExpForm({ description: '', category: 'outro', base_value: '', vat_rate: '23', location: 'portugal', documents: [], includes_vat: false });
   };
 
+  // Bank statements for this month
+  const { data: bankStatements = [], refetch: refetchStatements } = useQuery({
+    queryKey: ['bank-statements', currentYear, m],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('financial_documents')
+        .select('*')
+        .eq('doc_type', 'extrato_bancario')
+        .eq('period_month', m)
+        .eq('period_year', currentYear)
+        .order('created_at', { ascending: false });
+      return data || [];
+    },
+  });
+
+  // Meta Ads reports for this month
+  const { data: metaAdsReports = [], refetch: refetchMetaAds } = useQuery({
+    queryKey: ['meta-ads-reports', currentYear, m],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('financial_documents')
+        .select('*')
+        .eq('doc_type', 'meta_ads_report')
+        .eq('period_month', m)
+        .eq('period_year', currentYear)
+        .order('created_at', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const uploadMonthlyDoc = async (file: File, docType: string, titlePrefix: string) => {
+    const ext = file.name.split('.').pop();
+    const path = `${docType}/${currentYear}/${m}/${Date.now()}.${ext}`;
+    const { error: uploadErr } = await supabase.storage.from('financial-files').upload(path, file);
+    if (uploadErr) { toast.error('Erro ao carregar ficheiro'); return; }
+    const { data: { publicUrl } } = supabase.storage.from('financial-files').getPublicUrl(path);
+    await supabase.from('financial_documents').insert({
+      title: `${titlePrefix} — ${MONTHS[m - 1]} ${currentYear}`,
+      doc_type: docType,
+      document_url: publicUrl,
+      document_name: file.name,
+      period_month: m,
+      period_year: currentYear,
+      status: 'ativo',
+    });
+    if (docType === 'extrato_bancario') refetchStatements();
+    else refetchMetaAds();
+    toast.success('Ficheiro carregado');
+  };
+
+  const deleteMonthlyDoc = async (id: string, docType: string) => {
+    await supabase.from('financial_documents').delete().eq('id', id);
+    if (docType === 'extrato_bancario') refetchStatements();
+    else refetchMetaAds();
+    toast.success('Ficheiro removido');
+  };
+
   return (
     <div className="space-y-6 mt-4">
       <div className="flex items-center justify-between">
@@ -223,6 +280,28 @@ export function FinMensal({ sales, expenses, subscriptions, fin, currentYear }: 
         }}>
           <Download className="h-3.5 w-3.5 mr-1" /> Exportar PDF
         </Button>
+      </div>
+
+      {/* Monthly Documents: Bank Statement + Meta Ads */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <MonthlyDocUpload
+          title="Extrato Bancário"
+          icon={<FileUp className="h-4 w-4" />}
+          docs={bankStatements}
+          docType="extrato_bancario"
+          accept=".pdf,.png,.jpg,.jpeg"
+          onUpload={(file) => uploadMonthlyDoc(file, 'extrato_bancario', 'Extrato Bancário')}
+          onDelete={(id) => deleteMonthlyDoc(id, 'extrato_bancario')}
+        />
+        <MonthlyDocUpload
+          title="Relatório Meta Ads"
+          icon={<BarChart3 className="h-4 w-4" />}
+          docs={metaAdsReports}
+          docType="meta_ads_report"
+          accept=".pdf,.png,.jpg,.jpeg,.csv,.xlsx"
+          onUpload={(file) => uploadMonthlyDoc(file, 'meta_ads_report', 'Relatório Meta Ads')}
+          onDelete={(id) => deleteMonthlyDoc(id, 'meta_ads_report')}
+        />
       </div>
 
       <div id="fin-mensal-report" className="space-y-6">
@@ -675,5 +754,64 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
       <TableCell className="text-right">{fmt(value)}</TableCell>
       <TableCell>—</TableCell>
     </TableRow>
+  );
+}
+
+function MonthlyDocUpload({ title, icon, docs, docType, accept, onUpload, onDelete }: {
+  title: string;
+  icon: React.ReactNode;
+  docs: any[];
+  docType: string;
+  accept: string;
+  onUpload: (file: File) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    await onUpload(file);
+    setUploading(false);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  return (
+    <Card>
+      <CardContent className="pt-4 pb-3 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            {icon}
+            <span>{title}</span>
+          </div>
+          <div>
+            <input ref={inputRef} type="file" accept={accept} className="hidden" onChange={handleFile} />
+            <Button size="sm" variant="outline" disabled={uploading} onClick={() => inputRef.current?.click()}>
+              <FileUp className="h-3.5 w-3.5 mr-1" />
+              {uploading ? 'A carregar...' : 'Upload'}
+            </Button>
+          </div>
+        </div>
+        {docs.length > 0 ? (
+          <div className="space-y-1.5">
+            {docs.map((doc: any) => (
+              <div key={doc.id} className="flex items-center gap-2 text-sm rounded-md bg-muted/50 px-3 py-1.5">
+                <a href={doc.document_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 flex-1 min-w-0 hover:underline text-foreground">
+                  <ExternalLink className="h-3 w-3 shrink-0 text-muted-foreground" />
+                  <span className="truncate">{doc.document_name || doc.title}</span>
+                </a>
+                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => onDelete(doc.id)}>
+                  <TrashIcon className="h-3 w-3 text-muted-foreground" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">Nenhum ficheiro carregado para este mês.</p>
+        )}
+      </CardContent>
+    </Card>
   );
 }

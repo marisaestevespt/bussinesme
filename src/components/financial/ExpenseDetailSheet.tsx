@@ -46,6 +46,9 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
   // Sync form when expense changes
   if (expense && expense.id !== lastId) {
     setLastId(expense.id);
+    const allDocs = Array.isArray(expense.documents) ? expense.documents : [];
+    const regularDocs = (allDocs as any[]).filter((d: any) => d.type !== 'meta_ads');
+    const metaDocs = (allDocs as any[]).filter((d: any) => d.type === 'meta_ads');
     setForm({
       id: expense.id,
       status: expense.status || 'por_pagar',
@@ -56,7 +59,8 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
       vat_rate: expense.vat_rate ?? 23,
       total_with_vat: expense.total_with_vat,
       location: expense.location || 'portugal',
-      documents: Array.isArray(expense.documents) ? expense.documents : [],
+      documents: regularDocs,
+      meta_ads_docs: metaDocs.map((d: any) => ({ name: d.name, url: d.url })),
       includes_vat: false,
       source_type: expense.source_type,
       source_id: expense.source_id,
@@ -87,6 +91,11 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
     const quarter = month ? Math.ceil(month / 3) : null;
     const year = date ? parseInt(date.slice(0, 4)) : null;
 
+    // Merge regular docs + meta ads docs (tagged)
+    const regularDocs = form.documents || [];
+    const metaDocs = (form.meta_ads_docs || []).map((d: any) => ({ ...d, type: 'meta_ads' }));
+    const allDocs = [...regularDocs, ...metaDocs];
+
     await fin.upsertExpense.mutateAsync({
       id: form.id,
       status: form.status,
@@ -97,7 +106,7 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
       vat_rate: vat,
       total_with_vat: total,
       location: form.location,
-      documents: form.documents || [],
+      documents: allDocs,
       expense_month: month,
       expense_quarter: quarter,
       expense_year: year,
@@ -246,6 +255,15 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
             onChange={docs => setForm((f: any) => ({ ...f, documents: docs }))}
             label="Ficheiros (faturas, comprovativos, recibos)"
           />
+
+          {/* Meta Ads Report — shown for marketing expenses */}
+          {(form.category === 'marketing' || form.department === 'marketing' || (form.description || '').toLowerCase().includes('meta') || (form.description || '').toLowerCase().includes('ads')) && (
+            <InvoiceUpload
+              documents={Array.isArray(form.meta_ads_docs) ? form.meta_ads_docs : []}
+              onChange={docs => setForm((f: any) => ({ ...f, meta_ads_docs: docs }))}
+              label="Relatório Meta Ads (opcional)"
+            />
+          )}
 
           {/* Actions */}
           <div className="flex gap-2">
