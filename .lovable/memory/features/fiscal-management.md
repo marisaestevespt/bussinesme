@@ -48,9 +48,12 @@ type: feature
 - IRS: June 30 of next year (if simplificado)
 - Weekends/holidays → adjusted to previous business day (PT fixed holidays)
 
+## Implemented
+- Bank statement upload (monthly, in Mensal section + stored in financial_documents with doc_type=extrato_bancario)
+- Meta Ads report attachment on expense transactions (stored in documents JSON with type=meta_ads) + monthly upload in Mensal
+- Accountant export includes: client name/NIF, location (PT/UE/fora UE), department, bank statements, Meta Ads reports
+- Fiscal deadlines in daily digest emails (prazos_fiscais section, shows overdue/next-15-days)
+- Monthly fiscal obligations checklist in Mensal (fiscal_monthly_checks table: SS paid, quarterly declaration, IRS, bank statement)
+
 ## Planned (not yet implemented)
-- Bank statement upload (monthly, in Mensal section + stored in Documentos)
-- Meta Ads report attachment on expense transactions
-- Accountant export improvements (meta ads, bank statements, transactions with client data, PT/UE/fora UE location)
-- Fiscal deadlines in daily digest emails
-- Monthly fiscal obligations checklist in Mensal (SS paid, quarterly declaration, etc.)
+- Fiscal deadlines in daily digest emails for member digests (currently owner only)
