@@ -134,7 +134,14 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px' 
   const countBySource: Partial<Record<ResponsibilitySource, number>> = {};
   items.forEach(i => { countBySource[i.source] = (countBySource[i.source] || 0) + 1; });
 
+  /** Sources that open in the detail dialog instead of navigating */
+  const DIALOG_SOURCES: ResponsibilitySource[] = ['tarefa', 'marco', 'rotina'];
+
   const handleClick = (item: UnifiedItem) => {
+    if (DIALOG_SOURCES.includes(item.source)) {
+      setSelectedItem(item);
+      return;
+    }
     const route = getItemRoute(item);
     if (route) navigate(route);
   };
