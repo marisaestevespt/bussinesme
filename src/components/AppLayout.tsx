@@ -23,7 +23,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <header className="h-12 flex items-center border-b px-4 shrink-0">
               <SidebarTrigger className="mr-3" />
               <span className="text-sm text-muted-foreground truncate flex-1">
-                HQ | {settings?.business_name || ''}
+                Lirah | {settings?.business_name || ''}
               </span>
               <div className="flex items-center gap-1">
                 <FavoriteButton />
