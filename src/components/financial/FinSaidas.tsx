@@ -152,6 +152,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
       is_recurring: isRecurring,
       periodicity,
       monthly_equivalent: monthlyEquivalent,
+      recurrence_day: isRecurring ? (expForm.recurrence_day || null) : null,
     } as any);
     if (isRecurring) {
       fin.recurringExpenses.refetch();
@@ -312,12 +313,27 @@ export function FinSaidas({ fin, currentYear }: Props) {
                 <Switch checked={expForm.is_recurring || false} onCheckedChange={v => setExpForm((f: any) => ({ ...f, is_recurring: v }))} />
               </div>
               {expForm.is_recurring && (
-                <div>
-                  <Label className="text-xs">Periodicidade</Label>
-                  <Select value={expForm.periodicity || 'mensal'} onValueChange={v => setExpForm((f: any) => ({ ...f, periodicity: v }))}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{PERIODICITIES.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-                  </Select>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs">Periodicidade</Label>
+                      <Select value={expForm.periodicity || 'mensal'} onValueChange={v => setExpForm((f: any) => ({ ...f, periodicity: v }))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>{PERIODICITIES.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Dia de pagamento</Label>
+                      <Select value={String(expForm.recurrence_day || '')} onValueChange={v => setExpForm((f: any) => ({ ...f, recurrence_day: v ? parseInt(v) : null }))}>
+                        <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                            <SelectItem key={d} value={String(d)}>Dia {d}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                   {expForm.base_value && parseFloat(expForm.base_value) > 0 && expForm.periodicity !== 'mensal' && (
                     <p className="text-xs text-muted-foreground mt-1">
                       Equivalente mensal: {fmt(calcMonthlyEquivalent(parseFloat(expForm.base_value) || 0, expForm.periodicity || 'mensal'))}

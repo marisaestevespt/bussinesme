@@ -119,6 +119,7 @@ export default function FornecedoresPage() {
           is_recurring: true,
           periodicity,
           monthly_equivalent: calcMonthlyEquivalent(base, periodicity),
+          recurrence_day: form.recurring_day || null,
           payment_method: form.payment_method || null,
           expense_date: date,
           expense_month: now.getMonth() + 1,
@@ -241,12 +242,22 @@ export default function FornecedoresPage() {
                 </div>
                 {form.create_recurring && (
                   <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-3 gap-3">
                       <div><Label className="text-xs">Valor base (€)</Label><Input type="number" step="0.01" value={form.recurring_value || ''} onChange={e => setForm((f: any) => ({ ...f, recurring_value: e.target.value }))} /></div>
                       <div><Label className="text-xs">Periodicidade</Label>
                         <Select value={form.recurring_periodicity || 'mensal'} onValueChange={v => setForm((f: any) => ({ ...f, recurring_periodicity: v }))}>
                           <SelectTrigger><SelectValue /></SelectTrigger>
                           <SelectContent>{PERIODICITIES.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
+                      <div><Label className="text-xs">Dia pagamento</Label>
+                        <Select value={String(form.recurring_day || '')} onValueChange={v => setForm((f: any) => ({ ...f, recurring_day: v ? parseInt(v) : null }))}>
+                          <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                              <SelectItem key={d} value={String(d)}>Dia {d}</SelectItem>
+                            ))}
+                          </SelectContent>
                         </Select>
                       </div>
                     </div>
