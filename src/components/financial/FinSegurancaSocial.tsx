@@ -31,6 +31,8 @@ interface Props {
   sales: { invoice_total: number; base_value: number; sale_month: number | null; sale_year: number | null }[];
 }
 
+type Sale = Props['sales'][number];
+
 export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props) {
   const { settings } = useBusinessSettings();
   const s = settings as any;
@@ -73,55 +75,49 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
   );
 
   // ── Independente calculations ──
-  const yearSales = useMemo(() =>
-    sales.filter(sl => sl.sale_year === currentYear),
-    [sales, currentYear]
-  );
+  // Need both current and previous year sales for quarter mapping
+  const prevYear = currentYear - 1;
+
+  const salesByQuarter = useMemo(() => {
+    // Build a map: "YYYY-Q" -> total revenue
+    const map: Record<string, number> = {};
+    sales.forEach(sl => {
+      if (!sl.sale_month || !sl.sale_year) return;
+      const q = Math.ceil(sl.sale_month / 3);
+      const key = `${sl.sale_year}-Q${q}`;
+      map[key] = (map[key] || 0) + sl.invoice_total;
+    });
+    return map;
+  }, [sales]);
+
+  /*
+   * SS Independente — Declaração trimestral e efeito nos meses:
+   *
+   * Trimestre    | Declaração em | Aplica-se a       | Dados necessários
+   * Q3 ano-1    | Outubro ano-1 | Jan, Fev, Mar     | Faturação Jul-Set ano-1
+   * Q4 ano-1    | Janeiro       | Abr, Mai, Jun     | Faturação Out-Dez ano-1
+   * Q1           | Abril         | Jul, Ago, Set     | Faturação Jan-Mar
+   * Q2           | Julho         | Out, Nov, Dez     | Faturação Abr-Jun
+   */
+  const QUARTER_MAP = [
+    // For each contribution month: which quarter's revenue, declaration month
+    { months: [1, 2, 3], srcYear: prevYear, srcQ: 3, declMonth: 'Outubro', declYear: prevYear, srcLabel: `Q3 ${prevYear} (Jul-Set)` },
+    { months: [4, 5, 6], srcYear: prevYear, srcQ: 4, declMonth: 'Janeiro', declYear: currentYear, srcLabel: `Q4 ${prevYear} (Out-Dez)` },
+    { months: [7, 8, 9], srcYear: currentYear, srcQ: 1, declMonth: 'Abril', declYear: currentYear, srcLabel: `Q1 ${currentYear} (Jan-Mar)` },
+    { months: [10, 11, 12], srcYear: currentYear, srcQ: 2, declMonth: 'Julho', declYear: currentYear, srcLabel: `Q2 ${currentYear} (Abr-Jun)` },
+  ];
 
   const independenteData = useMemo(() => {
-    // Group sales by quarter for declaration-based calculation
-    const quarters = [
-      { q: 1, months: [1, 2, 3], appliesTo: [7, 8, 9] },    // Q1 declaration → Jul-Sep contributions
-      { q: 2, months: [4, 5, 6], appliesTo: [10, 11, 12] },  // Q2 declaration → Oct-Dec
-      { q: 3, months: [7, 8, 9], appliesTo: [1, 2, 3] },     // Q3 declaration → Jan-Mar (+1 year)
-      { q: 4, months: [10, 11, 12], appliesTo: [4, 5, 6] },   // Q4 declaration → Apr-Jun (+1 year)
-    ];
-
-    // Revenue by quarter
-    const revenueByQuarter: Record<number, number> = {};
-    quarters.forEach(q => {
-      revenueByQuarter[q.q] = yearSales
-        .filter(sl => q.months.includes(sl.sale_month || 0))
-        .reduce((s, v) => s + v.invoice_total, 0);
-    });
-
-    // For each month, find which quarter's declaration applies
-    // Simplified: use previous quarter's revenue to estimate contribution
     return Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
-
-      // Find which quarter's revenue applies to this month
-      let quarterRevenue = 0;
-      // Months 1-3 come from Q3 of previous year (we don't have that data easily, estimate from Q4 of prev or Q1 current)
-      // Months 4-6 come from Q4 of previous year
-      // Months 7-9 come from Q1 of current year
-      // Months 10-12 come from Q2 of current year
-      if (m >= 7 && m <= 9) quarterRevenue = revenueByQuarter[1] || 0;
-      else if (m >= 10 && m <= 12) quarterRevenue = revenueByQuarter[2] || 0;
-      else if (m >= 1 && m <= 3) quarterRevenue = revenueByQuarter[3] || 0; // Q3 prev year - estimate with Q1
-      else if (m >= 4 && m <= 6) quarterRevenue = revenueByQuarter[4] || 0; // Q4 prev year - estimate with Q2
-
-      // If no data for the applied quarter, estimate from average of available quarters
-      if (quarterRevenue === 0) {
-        const totalYearRevenue = Object.values(revenueByQuarter).reduce((s, v) => s + v, 0);
-        quarterRevenue = totalYearRevenue / 4;
-      }
+      const mapping = QUARTER_MAP.find(qm => qm.months.includes(m))!;
+      const key = `${mapping.srcYear}-Q${mapping.srcQ}`;
+      const quarterRevenue = salesByQuarter[key] || 0;
+      const hasData = key in salesByQuarter;
 
       const rendimentoRelevante = quarterRevenue * SS_RENDIMENTO_RELEVANTE;
       const baseIncidencia = Math.round(rendimentoRelevante / 3 * 100) / 100;
       const contribution = Math.round(baseIncidencia * SS_INDEPENDENTE_RATE * 100) / 100;
-
-      // Apply minimum (€20) if there's any revenue
       const finalContribution = baseIncidencia > 0 ? Math.max(20, contribution) : 0;
 
       const paid = ssExpenses.find(e => e.expense_month === m && e.description?.toLowerCase().includes('independente'));
@@ -134,9 +130,13 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
         contribution: finalContribution,
         paid: paid?.total_with_vat ?? 0,
         isPaid: (paid?.total_with_vat ?? 0) > 0,
+        hasData,
+        srcLabel: mapping.srcLabel,
+        declMonth: mapping.declMonth,
+        declYear: mapping.declYear,
       };
     });
-  }, [yearSales, ssExpenses, currentYear]);
+  }, [salesByQuarter, ssExpenses, currentYear, prevYear]);
 
   // ── Patronal calculations ──
   const contractMemberIds = useMemo(() => new Set(contracts.map((c: any) => c.member_id)), [contracts]);
@@ -346,12 +346,20 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
 
 // ── Independente Section ──
 function IndependenteSection({ data, currentYear, onSave, onToggle }: {
-  data: { month: number; quarterRevenue: number; rendimentoRelevante: number; baseIncidencia: number; contribution: number; paid: number; isPaid: boolean }[];
+  data: { month: number; quarterRevenue: number; rendimentoRelevante: number; baseIncidencia: number; contribution: number; paid: number; isPaid: boolean; hasData: boolean; srcLabel: string; declMonth: string; declYear: number }[];
   currentYear: number;
   onSave: (month: number, value: number) => Promise<void>;
   onToggle: (month: number) => Promise<void>;
 }) {
   const total = data.reduce((s, d) => s + d.contribution, 0);
+
+  // Group months by their source quarter for visual clarity
+  const quarterGroups = [
+    { label: 'Jan — Mar', months: [1, 2, 3] },
+    { label: 'Abr — Jun', months: [4, 5, 6] },
+    { label: 'Jul — Set', months: [7, 8, 9] },
+    { label: 'Out — Dez', months: [10, 11, 12] },
+  ];
 
   return (
     <div className="space-y-4">
@@ -359,9 +367,9 @@ function IndependenteSection({ data, currentYear, onSave, onToggle }: {
         <CardContent className="pt-4 flex gap-2">
           <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
           <div className="text-sm text-muted-foreground space-y-1">
-            <p><strong>Como funciona:</strong> A contribuição é calculada com base na declaração trimestral de rendimentos.</p>
-            <p>Faturação do trimestre × 70% = Rendimento relevante → ÷ 3 = Base mensal → × 21,4% = Contribuição mensal.</p>
-            <p>Mínimo: €20/mês. Pagamento entre dia 10 e 20 de cada mês. Podes ajustar ±25% na declaração.</p>
+            <p><strong>Como funciona:</strong> Declaras a faturação do trimestre → essa declaração define a contribuição dos 3 meses seguintes.</p>
+            <p>Faturação × 70% = Rendimento relevante → ÷ 3 = Base mensal → × 21,4% = Contribuição. Mínimo: €20/mês.</p>
+            <p className="text-xs">Declaração: Q1 em Abril · Q2 em Julho · Q3 em Outubro · Q4 em Janeiro do ano seguinte.</p>
           </div>
         </CardContent>
       </Card>
@@ -386,24 +394,46 @@ function IndependenteSection({ data, currentYear, onSave, onToggle }: {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map(d => (
-                <PaymentRow
-                  key={d.month}
-                  month={d.month}
-                  predicted={d.contribution}
-                  paid={d.paid}
-                  isPaid={d.isPaid}
-                  onSave={onSave}
-                  onToggle={onToggle}
-                  extraCells={
-                    <>
-                      <TableCell className="text-right text-muted-foreground">{d.quarterRevenue > 0 ? fmt(d.quarterRevenue) : '—'}</TableCell>
-                      <TableCell className="text-right text-muted-foreground">{d.rendimentoRelevante > 0 ? fmt(d.rendimentoRelevante) : '—'}</TableCell>
-                      <TableCell className="text-right">{d.baseIncidencia > 0 ? fmt(d.baseIncidencia) : '—'}</TableCell>
-                    </>
-                  }
-                />
-              ))}
+              {quarterGroups.map((group) => {
+                const groupData = data.filter(d => group.months.includes(d.month));
+                return (
+                  <>
+                    {/* Quarter header row */}
+                    <TableRow key={`header-${group.label}`} className="border-t-2 bg-muted/30">
+                      <TableCell colSpan={9} className="py-1.5">
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="font-semibold text-foreground">{group.label}</span>
+                          <span className="text-muted-foreground">— Base: {groupData[0].srcLabel}</span>
+                          <span className="text-muted-foreground">· Declaração: {groupData[0].declMonth} {groupData[0].declYear}</span>
+                          {!groupData[0].hasData && (
+                            <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700">
+                              Sem dados de faturação
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    {groupData.map(d => (
+                      <PaymentRow
+                        key={d.month}
+                        month={d.month}
+                        predicted={d.contribution}
+                        paid={d.paid}
+                        isPaid={d.isPaid}
+                        onSave={onSave}
+                        onToggle={onToggle}
+                        extraCells={
+                          <>
+                            <TableCell className="text-right text-muted-foreground">{d.hasData && d.quarterRevenue > 0 ? fmt(d.quarterRevenue) : '—'}</TableCell>
+                            <TableCell className="text-right text-muted-foreground">{d.hasData && d.rendimentoRelevante > 0 ? fmt(d.rendimentoRelevante) : '—'}</TableCell>
+                            <TableCell className="text-right">{d.hasData && d.baseIncidencia > 0 ? fmt(d.baseIncidencia) : '—'}</TableCell>
+                          </>
+                        }
+                      />
+                    ))}
+                  </>
+                );
+              })}
               <TableRow className="border-t-2 font-semibold">
                 <TableCell>Total</TableCell>
                 <TableCell colSpan={3} />
