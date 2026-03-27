@@ -1,0 +1,374 @@
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { FileText, Clock, CheckCircle2, Circle, User, Calendar, ExternalLink, Target, RotateCw } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
+import { pt } from 'date-fns/locale';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import type { UnifiedItem } from '@/hooks/useUnifiedResponsibilities';
+import { SOURCE_LABELS } from '@/hooks/useUnifiedResponsibilities';
+
+const TASK_STATUSES = [
+  { value: 'por_comecar', label: 'Por Começar', color: 'bg-gray-100 text-gray-800' },
+  { value: 'pendente', label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
+  { value: 'em_progresso', label: 'Em Progresso', color: 'bg-blue-100 text-blue-800' },
+  { value: 'done', label: 'Concluída', color: 'bg-emerald-100 text-emerald-800' },
+];
+
+const MILESTONE_STATUSES = [
+  { value: 'por_fazer', label: 'Por Fazer', color: 'bg-gray-100 text-gray-800' },
+  { value: 'em_atraso', label: 'Em Atraso', color: 'bg-red-100 text-red-800' },
+  { value: 'concluido', label: 'Concluído', color: 'bg-emerald-100 text-emerald-800' },
+];
+
+interface Props {
+  item: UnifiedItem | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function ResponsibilityDetailDialog({ item, open, onOpenChange }: Props) {
+  if (!item) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="text-base pr-6">{item.title}</DialogTitle>
+        </DialogHeader>
+        <ScrollArea className="flex-1 -mx-6 px-6">
+          <DetailContent item={item} onClose={() => onOpenChange(false)} />
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DetailContent({ item, onClose }: { item: UnifiedItem; onClose: () => void }) {
+  switch (item.source) {
+    case 'tarefa':
+      return <TaskDetail item={item} onClose={onClose} />;
+    case 'marco':
+      return <MilestoneDetail item={item} onClose={onClose} />;
+    case 'rotina':
+      return <RoutineChecklistDetail item={item} onClose={onClose} />;
+    default:
+      return <GenericDetail item={item} />;
+  }
+}
+
+// ─── Task Detail (includes SOP if routine) ───────────────────
+
+function TaskDetail({ item, onClose }: { item: UnifiedItem; onClose: () => void }) {
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+
+  const { data: task } = useQuery({
+    queryKey: ['task-detail', item.sourceId],
+    queryFn: async () => {
+      const { data } = await supabase.from('tasks')
+        .select('*, profiles:assigned_to(full_name), planning_routines:routine_id(id, title, recurrence_type, weekday, month_day)')
+        .eq('id', item.sourceId)
+        .single();
+      return data;
+    },
+  });
+
+  const routineId = (task as any)?.routine_id;
+
+  // Fetch linked SOP if this task belongs to a routine
+  const { data: linkedSop } = useQuery({
+    queryKey: ['routine-sop', routineId],
+    enabled: !!routineId,
+    queryFn: async () => {
+      const { data } = await supabase.from('sops')
+        .select('id, sop_id, name, passos, department')
+        .eq('routine_id', routineId!)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const updateStatus = useMutation({
+    mutationFn: async (status: string) => {
+      const { error } = await supabase.from('tasks').update({ status }).eq('id', item.sourceId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['unified-tasks'] });
+      qc.invalidateQueries({ queryKey: ['task-detail', item.sourceId] });
+      qc.invalidateQueries({ queryKey: ['my-tasks'] });
+      toast.success('Status atualizado');
+    },
+  });
+
+  if (!task) return <div className="py-6 text-center text-sm text-muted-foreground">A carregar...</div>;
+
+  const routine = (task as any)?.planning_routines;
+  const recLabel = routine
+    ? routine.recurrence_type === 'semanal'
+      ? `Semanal — ${['', '2ª', '3ª', '4ª', '5ª', '6ª', 'Sáb', 'Dom'][routine.weekday || 0]} feira`
+      : `Mensal — dia ${routine.month_day}`
+    : null;
+
+  return (
+    <div className="space-y-4 pb-4">
+      {/* Meta info */}
+      <div className="flex flex-wrap gap-2">
+        <Badge variant="outline" className="gap-1 text-xs">
+          <Calendar className="h-3 w-3" />
+          {task.deadline ? format(parseISO(task.deadline), 'd MMM yyyy', { locale: pt }) : 'Sem prazo'}
+        </Badge>
+        {task.priority && (
+          <Badge variant="outline" className="text-xs">
+            Prioridade: {task.priority === 'alta' ? 'Alta' : task.priority === 'media' ? 'Média' : 'Baixa'}
+          </Badge>
+        )}
+        {(task as any).profiles?.full_name && (
+          <Badge variant="outline" className="gap-1 text-xs">
+            <User className="h-3 w-3" />
+            {(task as any).profiles.full_name}
+          </Badge>
+        )}
+      </div>
+
+      {/* Routine badge */}
+      {routine && (
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-violet-50 border border-violet-200">
+          <RotateCw className="h-4 w-4 text-violet-600 shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-violet-900">{routine.title}</p>
+            <p className="text-xs text-violet-700">{recLabel}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Status change */}
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-muted-foreground">Status</label>
+        <Select value={task.status} onValueChange={(v) => updateStatus.mutate(v)}>
+          <SelectTrigger className="h-9">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {TASK_STATUSES.map(s => (
+              <SelectItem key={s.value} value={s.value}>
+                <div className="flex items-center gap-2">
+                  <div className={cn('h-2 w-2 rounded-full', s.value === 'done' ? 'bg-emerald-500' : s.value === 'em_progresso' ? 'bg-blue-500' : 'bg-gray-400')} />
+                  {s.label}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Notes */}
+      {task.notes && (
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">Notas</label>
+          <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg">{task.notes}</p>
+        </div>
+      )}
+
+      {/* Linked SOP */}
+      {linkedSop && (
+        <>
+          <Separator />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">SOP Associado</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs gap-1"
+                onClick={() => { onClose(); navigate(`/hub/processos/${linkedSop.id}`); }}
+              >
+                Abrir SOP <ExternalLink className="h-3 w-3" />
+              </Button>
+            </div>
+            <div className="p-3 rounded-lg border bg-card">
+              <p className="text-sm font-medium">{linkedSop.name}</p>
+              <p className="text-xs text-muted-foreground font-mono">{linkedSop.sop_id}</p>
+              {linkedSop.passos && Array.isArray(linkedSop.passos) && (linkedSop.passos as any[]).length > 0 && (
+                <div className="mt-3 space-y-1.5">
+                  <p className="text-xs font-medium text-muted-foreground">Passos</p>
+                  {(linkedSop.passos as any[]).slice(0, 8).map((step: any, i: number) => (
+                    <div key={i} className="flex items-start gap-2 text-xs">
+                      <span className="text-muted-foreground shrink-0 mt-0.5">{i + 1}.</span>
+                      <span>{typeof step === 'string' ? step : step.text || step.title || JSON.stringify(step)}</span>
+                    </div>
+                  ))}
+                  {(linkedSop.passos as any[]).length > 8 && (
+                    <p className="text-[10px] text-muted-foreground">+{(linkedSop.passos as any[]).length - 8} passos...</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Milestone Detail ────────────────────────────────────────
+
+function MilestoneDetail({ item, onClose }: { item: UnifiedItem; onClose: () => void }) {
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+
+  const { data: milestone } = useQuery({
+    queryKey: ['milestone-detail', item.sourceId],
+    queryFn: async () => {
+      const { data } = await supabase.from('client_milestones')
+        .select('*, clients(full_name, id)')
+        .eq('id', item.sourceId)
+        .single();
+      return data;
+    },
+  });
+
+  const updateStatus = useMutation({
+    mutationFn: async (status: string) => {
+      const { error } = await supabase.from('client_milestones').update({ status }).eq('id', item.sourceId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['unified-milestones'] });
+      qc.invalidateQueries({ queryKey: ['milestone-detail', item.sourceId] });
+      toast.success('Marco atualizado');
+    },
+  });
+
+  if (!milestone) return <div className="py-6 text-center text-sm text-muted-foreground">A carregar...</div>;
+
+  return (
+    <div className="space-y-4 pb-4">
+      <div className="flex flex-wrap gap-2">
+        <Badge variant="outline" className="gap-1 text-xs">
+          <Target className="h-3 w-3" />
+          {milestone.milestone_type || 'Marco'}
+        </Badge>
+        <Badge variant="outline" className="gap-1 text-xs">
+          <Calendar className="h-3 w-3" />
+          {format(parseISO(milestone.expected_date), 'd MMM yyyy', { locale: pt })}
+        </Badge>
+        {(milestone as any).clients?.full_name && (
+          <Badge
+            variant="outline"
+            className="gap-1 text-xs cursor-pointer hover:bg-accent"
+            onClick={() => { onClose(); navigate(`/hub/clientes/${(milestone as any).clients.id}`); }}
+          >
+            <User className="h-3 w-3" />
+            {(milestone as any).clients.full_name}
+          </Badge>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-muted-foreground">Descrição</label>
+        <p className="text-sm">{milestone.milestone}</p>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-muted-foreground">Status</label>
+        <Select value={milestone.status} onValueChange={(v) => updateStatus.mutate(v)}>
+          <SelectTrigger className="h-9">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {MILESTONE_STATUSES.map(s => (
+              <SelectItem key={s.value} value={s.value}>
+                <div className="flex items-center gap-2">
+                  <div className={cn('h-2 w-2 rounded-full',
+                    s.value === 'concluido' ? 'bg-emerald-500' : s.value === 'em_atraso' ? 'bg-red-500' : 'bg-gray-400'
+                  )} />
+                  {s.label}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {milestone.notes && (
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">Notas</label>
+          <p className="text-sm bg-muted/50 p-3 rounded-lg">{milestone.notes}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Routine Checklist Detail ────────────────────────────────
+
+function RoutineChecklistDetail({ item, onClose }: { item: UnifiedItem; onClose: () => void }) {
+  const qc = useQueryClient();
+
+  const toggleMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('executive_monthly_checklists')
+        .update({ completed: true })
+        .eq('id', item.sourceId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['unified-habits'] });
+      qc.invalidateQueries({ queryKey: ['executive'] });
+      toast.success('Rotina marcada como concluída');
+      onClose();
+    },
+  });
+
+  return (
+    <div className="space-y-4 pb-4">
+      <div className="flex items-center gap-2 p-3 rounded-lg bg-purple-50 border border-purple-200">
+        <RotateCw className="h-4 w-4 text-purple-600 shrink-0" />
+        <p className="text-sm text-purple-900">Rotina mensal do Planeamento Executivo</p>
+      </div>
+
+      <p className="text-sm">{item.title.replace('Rotina — ', '')}</p>
+
+      <Button
+        className="w-full gap-2"
+        onClick={() => toggleMutation.mutate()}
+        disabled={toggleMutation.isPending}
+      >
+        <CheckCircle2 className="h-4 w-4" />
+        Marcar como Concluída
+      </Button>
+    </div>
+  );
+}
+
+// ─── Generic Detail (fallback) ───────────────────────────────
+
+function GenericDetail({ item }: { item: UnifiedItem }) {
+  return (
+    <div className="space-y-4 pb-4">
+      <div className="flex flex-wrap gap-2">
+        <Badge variant="outline" className="text-xs">{SOURCE_LABELS[item.source]}</Badge>
+        {item.deadline && (
+          <Badge variant="outline" className="gap-1 text-xs">
+            <Clock className="h-3 w-3" />
+            {format(parseISO(item.deadline.split('T')[0]), 'd MMM yyyy', { locale: pt })}
+          </Badge>
+        )}
+      </div>
+      {item.subtitle && <p className="text-sm text-muted-foreground">{item.subtitle}</p>}
+    </div>
+  );
+}

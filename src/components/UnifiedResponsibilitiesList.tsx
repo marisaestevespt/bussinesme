@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ResponsibilityDetailDialog } from '@/components/ResponsibilityDetailDialog';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
@@ -87,6 +88,7 @@ interface Props {
 
 export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px' }: Props) {
   const [filter, setFilter] = useState<SourceFilter>('todos');
+  const [selectedItem, setSelectedItem] = useState<UnifiedItem | null>(null);
   const navigate = useNavigate();
   const qc = useQueryClient();
 
@@ -132,7 +134,14 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px' 
   const countBySource: Partial<Record<ResponsibilitySource, number>> = {};
   items.forEach(i => { countBySource[i.source] = (countBySource[i.source] || 0) + 1; });
 
+  /** Sources that open in the detail dialog instead of navigating */
+  const DIALOG_SOURCES: ResponsibilitySource[] = ['tarefa', 'marco', 'rotina'];
+
   const handleClick = (item: UnifiedItem) => {
+    if (DIALOG_SOURCES.includes(item.source)) {
+      setSelectedItem(item);
+      return;
+    }
     const route = getItemRoute(item);
     if (route) navigate(route);
   };
@@ -204,9 +213,9 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px' 
 
                   {/* Content */}
                   <div
-                    className={cn('flex-1 min-w-0', route && toggleable && 'cursor-pointer')}
+                    className={cn('flex-1 min-w-0', toggleable && 'cursor-pointer')}
                     onClick={(e) => {
-                      if (toggleable && route) {
+                      if (toggleable) {
                         e.stopPropagation();
                         handleClick(item);
                       }
@@ -246,6 +255,12 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px' 
           </div>
         </ScrollArea>
       </CardContent>
+
+      <ResponsibilityDetailDialog
+        item={selectedItem}
+        open={!!selectedItem}
+        onOpenChange={(open) => { if (!open) setSelectedItem(null); }}
+      />
     </Card>
   );
 }
