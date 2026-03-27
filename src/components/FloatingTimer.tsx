@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useActiveTimer } from '@/hooks/useActiveTimer';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Pause, Play, Square, CheckCircle2 } from 'lucide-react';
+import { Pause, Play, Square, CheckCircle2, Coffee } from 'lucide-react';
 import { toast } from 'sonner';
+
+const WELLNESS_BREAK_SECONDS = 25 * 60; // 25 minutes
 
 function formatTimer(totalSeconds: number): string {
   const h = Math.floor(totalSeconds / 3600);
@@ -18,6 +20,20 @@ export function FloatingTimer() {
   const { activeTimer, elapsed, pauseTimer, resumeTimer, stopTimer } = useActiveTimer();
   const queryClient = useQueryClient();
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
+  const [showWellnessAlert, setShowWellnessAlert] = useState(false);
+  const wellnessShownRef = useRef(false);
+
+  // Wellness break reminder after 25 continuous minutes
+  useEffect(() => {
+    if (!activeTimer || activeTimer.paused) {
+      wellnessShownRef.current = false;
+      return;
+    }
+    if (elapsed >= WELLNESS_BREAK_SECONDS && !wellnessShownRef.current) {
+      wellnessShownRef.current = true;
+      setShowWellnessAlert(true);
+    }
+  }, [elapsed, activeTimer]);
 
   if (!activeTimer && !showCompletionDialog) return null;
 
@@ -123,6 +139,28 @@ export function FloatingTimer() {
             </Button>
             <Button onClick={handleStopAndComplete} className="gap-1">
               <CheckCircle2 className="h-3.5 w-3.5" /> Sim, concluída
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showWellnessAlert} onOpenChange={setShowWellnessAlert}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Coffee className="h-4 w-4 text-amber-500" /> Hora de uma pausa! ☕
+            </DialogTitle>
+            <DialogDescription className="space-y-2">
+              <span className="block">Já estás a trabalhar há mais de 25 minutos sem parar.</span>
+              <span className="block">Levanta-te, estica-te, bebe água ou simplesmente respira fundo. O teu corpo e mente agradecem! 🌿</span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setShowWellnessAlert(false)}>
+              Continuar a trabalhar
+            </Button>
+            <Button onClick={() => { setShowWellnessAlert(false); pauseTimer(); }} className="gap-1">
+              <Pause className="h-3.5 w-3.5" /> Pausar e descansar
             </Button>
           </DialogFooter>
         </DialogContent>
