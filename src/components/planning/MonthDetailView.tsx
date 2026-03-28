@@ -966,7 +966,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                       'flex items-center gap-2 p-2 rounded-md border cursor-pointer hover:shadow-sm transition-shadow',
                       isLate && 'border-destructive/50 bg-destructive/5',
                     )}
-                    onClick={() => navigate('/tarefas')}
+                    onClick={() => navigate('/hub/tarefas')}
                   >
                     {isDone ? (
                       completedLate ? (
@@ -991,49 +991,6 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         </CardContent>
       </Card>
 
-      {/* ═══ SECTION 9: Checklists ═══ */}
-      <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Checklists do Mês — Hábitos Mensais</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          {checklist.length === 0 && (
-            <div className="text-center py-6">
-              <p className="text-sm text-muted-foreground">A criar checklists para {monthName}…</p>
-            </div>
-          )}
-          {checklistGrouped.map(([catKey, group]) => (
-            <div key={catKey} className="space-y-1.5">
-              <Badge className={cn('text-[10px]', group.color)}>{group.label}</Badge>
-              <div className="space-y-1">
-                {group.items.map((item: any) => (
-                  <div key={item.id} className="flex items-center gap-2 p-1.5 rounded-md bg-muted/20 border border-border/30">
-                    <Checkbox checked={item.completed} onCheckedChange={(v) => toggleCheck.mutate({ id: item.id, completed: !!v })} />
-                    <span className={cn('text-sm flex-1', item.completed && 'line-through text-muted-foreground')}>{item.displayTask}</span>
-                    <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => deleteCheck.mutate(item.id)}><Trash2 className="h-3 w-3" /></Button>
-                  </div>
-                ))}
-              </div>
-              {addingToGroup === catKey ? (
-                <div className="flex gap-1">
-                  <Input value={newTask} onChange={e => setNewTask(e.target.value)} placeholder="Novo item..." className="h-7 text-xs" onKeyDown={e => { if (e.key === 'Enter' && newTask.trim()) { addCheckItem.mutate(`${catKey}::${newTask.trim()}`); setNewTask(''); setAddingToGroup(null); }}} />
-                  <Button size="sm" className="h-7 text-xs" onClick={() => { if (newTask.trim()) { addCheckItem.mutate(`${catKey}::${newTask.trim()}`); setNewTask(''); setAddingToGroup(null); }}}>OK</Button>
-                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setAddingToGroup(null)}>✕</Button>
-                </div>
-              ) : (
-                <Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1" onClick={() => { setAddingToGroup(catKey); setNewTask(''); }}><Plus className="h-3 w-3" /> Adicionar</Button>
-              )}
-            </div>
-          ))}
-          <Separator />
-          <div className="flex gap-2">
-            <Input value={newCat} onChange={e => setNewCat(e.target.value)} placeholder="Nome do novo grupo..." className="h-7 text-xs max-w-48" />
-            <Button size="sm" variant="outline" className="h-7 text-xs gap-1" disabled={!newCat.trim()} onClick={() => {
-              const slug = newCat.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-              addCheckItem.mutate(`${slug}::Primeiro item`);
-              setNewCat('');
-            }}><Plus className="h-3 w-3" /> Novo grupo</Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* ═══ DETAIL SHEETS ═══ */}
       <ObjectiveDetailSheet
