@@ -51,8 +51,28 @@ export function FinContabilidade({ currentYear }: Props) {
   };
 
   const isContabOrganizada = fiscalConfig.taxIrsRegime === 'contabilidade_organizada';
+  const hasAccountant = s?.has_accountant ?? false;
+  const accountantType = s?.accountant_type || 'externo';
+  const accountantMemberId = s?.accountant_member_id || null;
 
-  const deadlines = useMemo(() => computeFiscalDeadlines(currentYear, fiscalConfig), [currentYear, fiscalConfig]);
+  // Get the accountant's profile_id for task assignment (internal accountant)
+  const { data: accountantMember } = useQuery({
+    queryKey: ['accountant-member', accountantMemberId],
+    enabled: !!accountantMemberId && accountantType === 'interno',
+    queryFn: async () => {
+      const { data } = await supabase.from('team_members').select('id, full_name, profile_id').eq('id', accountantMemberId).maybeSingle();
+      return data;
+    },
+  });
+
+  const deadlines = useMemo(() => {
+    const allDeadlines = computeFiscalDeadlines(currentYear, fiscalConfig);
+    // External accountant: filter out declarations (accountant handles them)
+    if (hasAccountant && accountantType === 'externo') {
+      return allDeadlines.filter(dl => dl.deadline_type === 'pagamento');
+    }
+    return allDeadlines;
+  }, [currentYear, fiscalConfig, hasAccountant, accountantType]);
 
   const todayStr = useMemo(() => {
     const d = new Date();
@@ -74,6 +94,15 @@ export function FinContabilidade({ currentYear }: Props) {
         return;
       }
 
+      // Determine assignment:
+      // - Payments → always owner
+      // - Declarations with internal accountant → accountant's profile_id
+      // - Otherwise → owner
+      let assignedTo = user.id;
+      if (dl.deadline_type === 'declaracao' && hasAccountant && accountantType === 'interno' && accountantMember?.profile_id) {
+        assignedTo = accountantMember.profile_id;
+      }
+
       await supabase.from('tasks').insert({
         name: dl.name,
         status: 'por_comecar',
@@ -81,7 +110,7 @@ export function FinContabilidade({ currentYear }: Props) {
         deadline: dl.date,
         department: 'contabilidade',
         created_by: user.id,
-        assigned_to: user.id,
+        assigned_to: assignedTo,
         tag: 'Fiscal',
       });
       toast.success('Tarefa criada!');
