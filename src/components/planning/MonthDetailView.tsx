@@ -22,6 +22,7 @@ import { pt } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
 import { ObjectiveDialog } from './ObjectiveDialog';
+import { WeeklyAlignDetailSheet, type DetailField } from '@/components/executive/WeeklyAlignDetailSheet';
 import { BackNavigation } from '@/components/BackNavigation';
 import { CLIENT_STATUS_OPTIONS } from '@/hooks/useClients';
 import { LeadDetailSheet } from '@/components/commercial/crm/LeadDetailSheet';
@@ -57,6 +58,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const [calMonth, setCalMonth] = useState(new Date(year, monthIdx, 1));
   const [selectedObjective, setSelectedObjective] = useState<any>(null);
   const [objDialogOpen, setObjDialogOpen] = useState(false);
+  const [selectedRoutineTask, setSelectedRoutineTask] = useState<any>(null);
   const [goalEditOpen, setGoalEditOpen] = useState(false);
   const [goalEditValue, setGoalEditValue] = useState('');
   const navigate = useNavigate();
@@ -890,7 +892,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                       'flex items-center gap-2 p-2 rounded-md border cursor-pointer hover:shadow-sm transition-shadow',
                       isLate && 'border-destructive/50 bg-destructive/5',
                     )}
-                    onClick={() => navigate('/hub/tarefas')}
+                    onClick={() => setSelectedRoutineTask(t)}
                   >
                     {isDone ? (
                       completedLate ? (
@@ -915,6 +917,31 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         </CardContent>
       </Card>
 
+
+      {/* ═══ ROUTINE TASK DETAIL ═══ */}
+      {selectedRoutineTask && (() => {
+        const t = selectedRoutineTask;
+        const isDone = t.status === 'done' || t.status === 'concluida';
+        const routineInfo = t.planning_routines as any;
+        const fields: DetailField[] = [
+          { label: 'Estado', value: isDone ? 'Concluída' : 'Por fazer', badge: true, badgeVariant: isDone ? 'default' : 'destructive' },
+          { label: 'Data limite', value: t.deadline ? format(parseISO(t.deadline), "d 'de' MMMM yyyy", { locale: pt }) : '—' },
+          { label: 'Responsável', value: (t.profiles as any)?.full_name || '—' },
+          { label: 'Função', value: routineInfo?.role_function || '—' },
+          { label: 'Departamento', value: routineInfo?.department || '—' },
+          { label: 'Recorrência', value: routineInfo?.recurrence_type || '—' },
+          ...(t.completed_at ? [{ label: 'Concluída em', value: format(parseISO(t.completed_at), "d MMM yyyy 'às' HH:mm", { locale: pt }) }] : []),
+        ];
+        return (
+          <WeeklyAlignDetailSheet
+            open={!!selectedRoutineTask}
+            onOpenChange={(o) => !o && setSelectedRoutineTask(null)}
+            title={t.name}
+            subtitle="Tarefa de rotina"
+            fields={fields}
+          />
+        );
+      })()}
 
       {/* ═══ DETAIL SHEETS ═══ */}
       <ObjectiveDetailSheet
