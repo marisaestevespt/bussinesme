@@ -11,7 +11,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, CalendarIcon, User, Trash2, FileText, Plus, ExternalLink, Upload, X } from 'lucide-react';
+import { ArrowLeft, CalendarIcon, User, Trash2, FileText, Plus, ExternalLink, Upload, X, Gift } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -23,6 +24,7 @@ import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUplo
 
 const STATUS_OPTIONS = ENTRY_STATUSES;
 const DEFAULT_SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
+const SPECIAL_OFFER_REASONS = ['Campanha especial', 'Cliente antigo', 'Parceria', 'Desconto de lançamento', 'Upgrade de produto'];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function VendaDetailPage() {
@@ -129,7 +131,9 @@ export default function VendaDetailPage() {
       sale_month: saleMonth,
       sale_quarter: saleQuarter,
       sale_year: saleYear,
-    }).eq('id', id!);
+      is_special_offer: form.is_special_offer || false,
+      special_offer_reason: form.is_special_offer ? (form.special_offer_reason || null) : null,
+    } as any).eq('id', id!);
 
     if (error) { toast.error('Erro ao guardar'); return; }
     toast.success('Venda guardada');
@@ -274,6 +278,37 @@ export default function VendaDetailPage() {
                       {(clientsList || []).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
+                </div>
+
+                {/* Special Offer */}
+                <div className="rounded-lg border border-border p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium flex items-center gap-1.5"><Gift className="h-4 w-4" /> Oferta Especial</Label>
+                    <Switch
+                      checked={form.is_special_offer || false}
+                      onCheckedChange={v => setForm((f: any) => ({ ...f, is_special_offer: v, special_offer_reason: v ? f.special_offer_reason : '' }))}
+                      disabled={!isOwner}
+                    />
+                  </div>
+                  {form.is_special_offer && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Motivo da oferta</Label>
+                      <Select value={form.special_offer_reason || ''} onValueChange={v => {
+                        if (v === '__custom__') {
+                          const custom = prompt('Introduz o motivo da oferta especial:');
+                          if (custom?.trim()) setForm((f: any) => ({ ...f, special_offer_reason: custom.trim() }));
+                          return;
+                        }
+                        setForm((f: any) => ({ ...f, special_offer_reason: v }));
+                      }} disabled={!isOwner}>
+                        <SelectTrigger><SelectValue placeholder="Selecionar motivo" /></SelectTrigger>
+                        <SelectContent>
+                          {SPECIAL_OFFER_REASONS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                          <SelectItem value="__custom__">+ Adicionar outro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
 
                 <InvoiceUpload

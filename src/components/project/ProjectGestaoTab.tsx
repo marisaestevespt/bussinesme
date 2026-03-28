@@ -8,10 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ExternalLink, Plus, CreditCard, Loader2 } from 'lucide-react';
+import { ExternalLink, Plus, CreditCard, Loader2, Gift } from 'lucide-react';
 import { format, parseISO, addMonths, setDate } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { EntryDetailSheet } from '@/components/financial/EntryDetailSheet';
+// EntryDetailSheet no longer used — payments navigate to VendaDetail
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -51,8 +51,7 @@ const SALE_STATUSES: Record<string, { label: string; color: string }> = {
 export function ProjectGestaoTab({ projectId, projectName, clientName, clientId, productName, startDate, onNewMeeting }: Props) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [selectedPayment, setSelectedPayment] = useState<any>(null);
-  const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
+  // Payments now navigate to VendaDetail page directly
 
   // ─── Payment config form state ─────────────────────────────────
   const [payMethod, setPayMethod] = useState<string>('');
@@ -502,11 +501,11 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
                 <div
                   key={s.id}
                   className="px-4 py-2 text-xs grid grid-cols-6 gap-2 border-b items-center cursor-pointer hover:bg-muted/50"
-                  onClick={() => { setSelectedPayment(s); setPaymentSheetOpen(true); }}
+                  onClick={() => navigate(`/hub/comercial/vendas/${s.id}`)}
                 >
                   <span><Badge variant="outline" className={`text-[10px] ${si.color}`}>{si.label}</Badge></span>
                   <span>{s.payment_date ? format(parseISO(s.payment_date), 'dd/MM/yyyy') : '—'}</span>
-                  <span className="truncate">{s.description || '—'}</span>
+                  <span className="truncate">{s.description || '—'}{s.is_special_offer && <Gift className="inline h-3 w-3 ml-1 text-amber-500" />}</span>
                   <span>{Number(s.base_value).toFixed(2)}€</span>
                   <span>{Number(s.invoice_total).toFixed(2)}€</span>
                   <span className="truncate">{s.product || '—'}</span>
@@ -523,7 +522,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
         </CardContent>
       </Card>
 
-      <EntryDetailSheet sale={selectedPayment} open={paymentSheetOpen} onOpenChange={setPaymentSheetOpen} />
+      
 
       {/* Reuniões */}
       <Card>
