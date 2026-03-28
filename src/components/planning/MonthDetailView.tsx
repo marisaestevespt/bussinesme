@@ -35,27 +35,6 @@ function monthRange(monthIdx: number, year: number) {
   return { start, end, label: `01/${String(monthIdx+1).padStart(2,'0')}/${year} → ${format(end,'dd/MM/yyyy')}` };
 }
 
-// Default habit groups
-const DEFAULT_HABITS: { category: string; label: string; color: string; tasks: string[] }[] = [
-  { category: 'fecho_financeiro', label: 'Fecho Financeiro', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300', tasks: [
-    'Rever todos os recebimentos do mês','Confirmar se há valores em falta ou pendentes','Validar faturação total do mês','Verificar IVA (faturas emitidas e a pagar)','Organizar documentos do mês','Pagar ordenado','Pagar segurança social [dia 20]'
-  ]},
-  { category: 'analise_vendas', label: 'Análise de Vendas', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300', tasks: [
-    'Analisar KPIs de cada produto','Identificar o que não vendeu','Perceber o que contribuiu mais para a faturação'
-  ]},
-  { category: 'clientes_operacao', label: 'Clientes & Operação', color: 'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300', tasks: [
-    'Rever clientes ativos vs finalizados','Arquivar projetos/serviços terminados','Atualizar estado de contratos ou renovações','Identificar clientes que precisam de acompanhamento extra','Backup Notion','Backup contactos CRM'
-  ]},
-  { category: 'marketing_conteudo', label: 'Marketing & Conteúdo', color: 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300', tasks: [
-    'Rever o que foi publicado','Analisar métricas e fazer report do mês'
-  ]},
-  { category: 'organizacao_sistema', label: 'Organização & Sistema', color: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300', tasks: [
-    'Limpar bases','Rever se algum processo precisa de ajuste','Anotar melhorias para implementar'
-  ]},
-  { category: 'fecho_consciente', label: 'Fecho Consciente', color: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300', tasks: [
-    'Análise do mês (o que correu bem, o que não correu, melhorias, etc)'
-  ]},
-];
 
 interface Props {
   monthIdx: number;
@@ -121,34 +100,6 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
     },
   });
 
-  // Checklists
-  const checklistQ = useQuery({ queryKey: ['md-checklist', year, monthNum], queryFn: async () => { const { data } = await supabase.from('executive_monthly_checklists').select('*').eq('year', year).eq('month', monthNum).order('created_at'); return data || []; }});
-
-  // Auto-seed checklist when month has none
-  const seededRef = useRef<string | null>(null);
-  useEffect(() => {
-    const key = `${year}-${monthNum}`;
-    if (checklistQ.isSuccess && checklistQ.data?.length === 0 && seededRef.current !== key) {
-      seededRef.current = key;
-      const items = DEFAULT_HABITS.flatMap(g => g.tasks.map(t => ({ year, month: monthNum, task: `${g.category}::${t}`, completed: false })));
-      supabase.from('executive_monthly_checklists').insert(items).then(() => {
-        qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] });
-      });
-    }
-  }, [checklistQ.isSuccess, checklistQ.data, year, monthNum, qc]);
-
-  const addCheckItem = useMutation({
-    mutationFn: async (task: string) => { const { error } = await supabase.from('executive_monthly_checklists').insert({ year, month: monthNum, task, completed: false }); if (error) throw error; },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] }),
-  });
-  const toggleCheck = useMutation({
-    mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => { const { error } = await supabase.from('executive_monthly_checklists').update({ completed }).eq('id', id); if (error) throw error; },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] }),
-  });
-  const deleteCheck = useMutation({
-    mutationFn: async (id: string) => { const { error } = await supabase.from('executive_monthly_checklists').delete().eq('id', id); if (error) throw error; },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] }),
-  });
 
   const upsertGoal = useMutation({
     mutationFn: async (amount: number) => {
@@ -290,33 +241,6 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
     }).filter(m => m.committed > 0);
   }, [team, monthTasks]);
 
-  // Checklist grouped
-  const checklist = checklistQ.data || [];
-  const checklistGrouped = useMemo(() => {
-    const groups: Record<string, { label: string; color: string; items: any[] }> = {};
-    // Init default groups
-    DEFAULT_HABITS.forEach(g => { groups[g.category] = { label: g.label, color: g.color, items: [] }; });
-    checklist.forEach((item: any) => {
-      const sep = item.task.indexOf('::');
-      if (sep > -1) {
-        const cat = item.task.substring(0, sep);
-        const taskText = item.task.substring(sep + 2);
-        if (!groups[cat]) groups[cat] = { label: cat, color: 'bg-muted text-muted-foreground', items: [] };
-        groups[cat].items.push({ ...item, displayTask: taskText });
-      } else {
-        if (!groups['_other']) groups['_other'] = { label: 'Outros', color: 'bg-muted text-muted-foreground', items: [] };
-        groups['_other'].items.push({ ...item, displayTask: item.task });
-      }
-    });
-    return Object.entries(groups).filter(([, g]) => g.items.length > 0);
-  }, [checklist]);
-
-  
-
-  // New checklist item state
-  const [newCat, setNewCat] = useState('');
-  const [newTask, setNewTask] = useState('');
-  const [addingToGroup, setAddingToGroup] = useState<string | null>(null);
 
   // Product sales breakdown for "goal" tab — always show all active products
   const prodSalesData = useMemo(() => {
@@ -966,7 +890,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                       'flex items-center gap-2 p-2 rounded-md border cursor-pointer hover:shadow-sm transition-shadow',
                       isLate && 'border-destructive/50 bg-destructive/5',
                     )}
-                    onClick={() => navigate('/tarefas')}
+                    onClick={() => navigate('/hub/tarefas')}
                   >
                     {isDone ? (
                       completedLate ? (
@@ -991,49 +915,6 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         </CardContent>
       </Card>
 
-      {/* ═══ SECTION 9: Checklists ═══ */}
-      <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Checklists do Mês — Hábitos Mensais</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          {checklist.length === 0 && (
-            <div className="text-center py-6">
-              <p className="text-sm text-muted-foreground">A criar checklists para {monthName}…</p>
-            </div>
-          )}
-          {checklistGrouped.map(([catKey, group]) => (
-            <div key={catKey} className="space-y-1.5">
-              <Badge className={cn('text-[10px]', group.color)}>{group.label}</Badge>
-              <div className="space-y-1">
-                {group.items.map((item: any) => (
-                  <div key={item.id} className="flex items-center gap-2 p-1.5 rounded-md bg-muted/20 border border-border/30">
-                    <Checkbox checked={item.completed} onCheckedChange={(v) => toggleCheck.mutate({ id: item.id, completed: !!v })} />
-                    <span className={cn('text-sm flex-1', item.completed && 'line-through text-muted-foreground')}>{item.displayTask}</span>
-                    <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => deleteCheck.mutate(item.id)}><Trash2 className="h-3 w-3" /></Button>
-                  </div>
-                ))}
-              </div>
-              {addingToGroup === catKey ? (
-                <div className="flex gap-1">
-                  <Input value={newTask} onChange={e => setNewTask(e.target.value)} placeholder="Novo item..." className="h-7 text-xs" onKeyDown={e => { if (e.key === 'Enter' && newTask.trim()) { addCheckItem.mutate(`${catKey}::${newTask.trim()}`); setNewTask(''); setAddingToGroup(null); }}} />
-                  <Button size="sm" className="h-7 text-xs" onClick={() => { if (newTask.trim()) { addCheckItem.mutate(`${catKey}::${newTask.trim()}`); setNewTask(''); setAddingToGroup(null); }}}>OK</Button>
-                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setAddingToGroup(null)}>✕</Button>
-                </div>
-              ) : (
-                <Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1" onClick={() => { setAddingToGroup(catKey); setNewTask(''); }}><Plus className="h-3 w-3" /> Adicionar</Button>
-              )}
-            </div>
-          ))}
-          <Separator />
-          <div className="flex gap-2">
-            <Input value={newCat} onChange={e => setNewCat(e.target.value)} placeholder="Nome do novo grupo..." className="h-7 text-xs max-w-48" />
-            <Button size="sm" variant="outline" className="h-7 text-xs gap-1" disabled={!newCat.trim()} onClick={() => {
-              const slug = newCat.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-              addCheckItem.mutate(`${slug}::Primeiro item`);
-              setNewCat('');
-            }}><Plus className="h-3 w-3" /> Novo grupo</Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* ═══ DETAIL SHEETS ═══ */}
       <ObjectiveDetailSheet
