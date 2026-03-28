@@ -472,6 +472,47 @@ export function SettingsFiscal() {
             />
           </div>
 
+          {/* Accountant type - only when has accountant */}
+          {hasAccountant && (
+            <>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Tipo de contabilista</Label>
+                <Select value={accountantType} onValueChange={setAccountantType}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="externo">Externo (gabinete de contabilidade)</SelectItem>
+                    <SelectItem value="interno">Interno (membro da equipa)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {accountantType === 'externo'
+                    ? 'Contabilista externo trata das declarações fiscais. Tarefas de declaração não são criadas.'
+                    : 'Contabilista é membro da equipa. Tarefas de declaração são atribuídas a esta pessoa.'}
+                </p>
+              </div>
+
+              {accountantType === 'interno' && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Contabilista (membro)</Label>
+                  <Select value={accountantMemberId || 'none'} onValueChange={v => setAccountantMemberId(v === 'none' ? null : v)}>
+                    <SelectTrigger className="h-11">
+                      <SelectValue placeholder="Selecionar membro..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">— Nenhum —</SelectItem>
+                      {(teamMembers || []).map(m => (
+                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">As tarefas de declaração fiscal serão atribuídas a este membro.</p>
+                </div>
+              )}
+            </>
+          )}
+
           {/* Team type */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Tipo de equipa</Label>
