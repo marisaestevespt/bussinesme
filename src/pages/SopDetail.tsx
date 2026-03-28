@@ -114,6 +114,7 @@ export default function SopDetailPage() {
   const [sopVersion, setSopVersion] = useState(1);
   const [sopVersionNotes, setSopVersionNotes] = useState('');
   const [showCreateTasks, setShowCreateTasks] = useState(false);
+  const [sopEstimatedTime, setSopEstimatedTime] = useState('');
   const [taskProjectId, setTaskProjectId] = useState('');
   const [taskDepartment, setTaskDepartment] = useState('');
   const [taskDeadline, setTaskDeadline] = useState('');
@@ -411,6 +412,7 @@ export default function SopDetailPage() {
     setSopProductId((sop as any).product_id || '');
     setSopVersion((sop as any).version || 1);
     setSopVersionNotes((sop as any).version_notes || '');
+    setSopEstimatedTime((sop as any).estimated_time != null ? String((sop as any).estimated_time) : '');
   }, [sop]);
 
   // ─── Save ───────────────────────────────────────────────────
@@ -440,6 +442,7 @@ export default function SopDetailPage() {
         product_id: sopProductId || null,
         version: sopVersion,
         version_notes: sopVersionNotes || null,
+        estimated_time: sopEstimatedTime ? parseFloat(sopEstimatedTime) : null,
       } as any).eq('id', id!);
       if (error) throw error;
     },
