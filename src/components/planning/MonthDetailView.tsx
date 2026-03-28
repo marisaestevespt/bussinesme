@@ -58,6 +58,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const [calMonth, setCalMonth] = useState(new Date(year, monthIdx, 1));
   const [selectedObjective, setSelectedObjective] = useState<any>(null);
   const [objDialogOpen, setObjDialogOpen] = useState(false);
+  const [selectedRoutineTask, setSelectedRoutineTask] = useState<any>(null);
   const [goalEditOpen, setGoalEditOpen] = useState(false);
   const [goalEditValue, setGoalEditValue] = useState('');
   const navigate = useNavigate();
