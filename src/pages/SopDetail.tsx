@@ -652,6 +652,10 @@ export default function SopDetailPage() {
             <Label className="text-xs text-muted-foreground">Última atualização</Label>
             <p className="text-sm pt-2">{sop.updated_at ? format(new Date(sop.updated_at), "dd MMM yyyy, HH:mm", { locale: pt }) : '—'}</p>
           </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Tempo Estimado (horas)</Label>
+            <Input type="number" min="0" step="0.5" value={sopEstimatedTime} onChange={e => setSopEstimatedTime(e.target.value)} placeholder="Ex: 2.5" className="h-9" />
+          </div>
         </div>
 
         {/* Routine info */}
