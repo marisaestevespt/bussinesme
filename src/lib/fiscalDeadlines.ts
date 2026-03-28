@@ -74,9 +74,9 @@ export function computeFiscalDeadlines(year: number, config: FiscalConfig): Fisc
     if (isAfterExemptionEnd(dl.date, exemptionEnd)) deadlines.push(dl);
   };
 
-  const makeDl = (key: string, name: string, rawDate: Date, category: FiscalDeadline['category']): FiscalDeadline => {
+  const makeDl = (key: string, name: string, rawDate: Date, category: FiscalDeadline['category'], deadline_type: FiscalDeadline['deadline_type'] = 'declaracao'): FiscalDeadline => {
     const adjusted = adjustToPrevBusinessDay(rawDate);
-    return { key, name, date: fmtDate(adjusted), rawDate: fmtDate(rawDate), category };
+    return { key, name, date: fmtDate(adjusted), rawDate: fmtDate(rawDate), category, deadline_type };
   };
 
   // ── Segurança Social (monthly — payment until day 20 of next month) ──
