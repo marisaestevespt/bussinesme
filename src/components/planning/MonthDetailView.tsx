@@ -35,27 +35,6 @@ function monthRange(monthIdx: number, year: number) {
   return { start, end, label: `01/${String(monthIdx+1).padStart(2,'0')}/${year} → ${format(end,'dd/MM/yyyy')}` };
 }
 
-// Default habit groups
-const DEFAULT_HABITS: { category: string; label: string; color: string; tasks: string[] }[] = [
-  { category: 'fecho_financeiro', label: 'Fecho Financeiro', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300', tasks: [
-    'Rever todos os recebimentos do mês','Confirmar se há valores em falta ou pendentes','Validar faturação total do mês','Verificar IVA (faturas emitidas e a pagar)','Organizar documentos do mês','Pagar ordenado','Pagar segurança social [dia 20]'
-  ]},
-  { category: 'analise_vendas', label: 'Análise de Vendas', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300', tasks: [
-    'Analisar KPIs de cada produto','Identificar o que não vendeu','Perceber o que contribuiu mais para a faturação'
-  ]},
-  { category: 'clientes_operacao', label: 'Clientes & Operação', color: 'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300', tasks: [
-    'Rever clientes ativos vs finalizados','Arquivar projetos/serviços terminados','Atualizar estado de contratos ou renovações','Identificar clientes que precisam de acompanhamento extra','Backup Notion','Backup contactos CRM'
-  ]},
-  { category: 'marketing_conteudo', label: 'Marketing & Conteúdo', color: 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300', tasks: [
-    'Rever o que foi publicado','Analisar métricas e fazer report do mês'
-  ]},
-  { category: 'organizacao_sistema', label: 'Organização & Sistema', color: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300', tasks: [
-    'Limpar bases','Rever se algum processo precisa de ajuste','Anotar melhorias para implementar'
-  ]},
-  { category: 'fecho_consciente', label: 'Fecho Consciente', color: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300', tasks: [
-    'Análise do mês (o que correu bem, o que não correu, melhorias, etc)'
-  ]},
-];
 
 interface Props {
   monthIdx: number;
