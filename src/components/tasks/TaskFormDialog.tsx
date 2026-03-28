@@ -162,7 +162,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
     }
   }, [open, editingTask]);
 
-  // Similarity search
+  // Similarity search — auto-fill estimated_time from historical average
   const [suggestion, setSuggestion] = useState<{ taskName: string; avgHours: number } | null>(null);
   const [suggestionDismissed, setSuggestionDismissed] = useState(false);
 
@@ -177,14 +177,27 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
       if (!taskTimeMap[e.task_id]) taskTimeMap[e.task_id] = [];
       taskTimeMap[e.task_id].push(e.duration_minutes);
     });
+    // Aggregate times across ALL matching tasks (not just the first one)
+    let totalMinutes = 0;
+    let totalEntries = 0;
+    let matchedName = '';
     for (const t of allTasks) {
       if (!taskTimeMap[t.id]) continue;
       const tn = normalize(t.name);
       if (tn === norm || tn.includes(norm) || norm.includes(tn)) {
         const times = taskTimeMap[t.id];
-        const avgMinutes = times.reduce((s, v) => s + v, 0) / times.length;
-        const avgHours = Math.round((avgMinutes / 60) * 10) / 10;
-        if (avgHours > 0) { setSuggestion({ taskName: t.name, avgHours }); return; }
+        totalMinutes += times.reduce((s, v) => s + v, 0);
+        totalEntries += times.length;
+        if (!matchedName) matchedName = t.name;
+      }
+    }
+    if (totalEntries > 0) {
+      const avgHours = Math.round((totalMinutes / totalEntries / 60) * 10) / 10;
+      if (avgHours > 0) {
+        setSuggestion({ taskName: matchedName, avgHours });
+        // Auto-fill estimated time
+        setEstimatedTime(String(avgHours));
+        return;
       }
     }
     setSuggestion(null);
