@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -51,8 +52,28 @@ export function FinContabilidade({ currentYear }: Props) {
   };
 
   const isContabOrganizada = fiscalConfig.taxIrsRegime === 'contabilidade_organizada';
+  const hasAccountant = s?.has_accountant ?? false;
+  const accountantType = s?.accountant_type || 'externo';
+  const accountantMemberId = s?.accountant_member_id || null;
 
-  const deadlines = useMemo(() => computeFiscalDeadlines(currentYear, fiscalConfig), [currentYear, fiscalConfig]);
+  // Get the accountant's profile_id for task assignment (internal accountant)
+  const { data: accountantMember } = useQuery({
+    queryKey: ['accountant-member', accountantMemberId],
+    enabled: !!accountantMemberId && accountantType === 'interno',
+    queryFn: async () => {
+      const { data } = await supabase.from('team_members').select('id, full_name, profile_id').eq('id', accountantMemberId).maybeSingle();
+      return data;
+    },
+  });
+
+  const deadlines = useMemo(() => {
+    const allDeadlines = computeFiscalDeadlines(currentYear, fiscalConfig);
+    // External accountant: filter out declarations (accountant handles them)
+    if (hasAccountant && accountantType === 'externo') {
+      return allDeadlines.filter(dl => dl.deadline_type === 'pagamento');
+    }
+    return allDeadlines;
+  }, [currentYear, fiscalConfig, hasAccountant, accountantType]);
 
   const todayStr = useMemo(() => {
     const d = new Date();
@@ -74,6 +95,15 @@ export function FinContabilidade({ currentYear }: Props) {
         return;
       }
 
+      // Determine assignment:
+      // - Payments → always owner
+      // - Declarations with internal accountant → accountant's profile_id
+      // - Otherwise → owner
+      let assignedTo = user.id;
+      if (dl.deadline_type === 'declaracao' && hasAccountant && accountantType === 'interno' && accountantMember?.profile_id) {
+        assignedTo = accountantMember.profile_id;
+      }
+
       await supabase.from('tasks').insert({
         name: dl.name,
         status: 'por_comecar',
@@ -81,7 +111,7 @@ export function FinContabilidade({ currentYear }: Props) {
         deadline: dl.date,
         department: 'contabilidade',
         created_by: user.id,
-        assigned_to: user.id,
+        assigned_to: assignedTo,
         tag: 'Fiscal',
       });
       toast.success('Tarefa criada!');
@@ -232,23 +262,34 @@ export function FinContabilidade({ currentYear }: Props) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Prazo</TableHead>
+                    <TableHead>Tipo</TableHead>
                     <TableHead>Data Limite</TableHead>
                     <TableHead>Estado</TableHead>
+                    <TableHead>Atribuído a</TableHead>
                     <TableHead className="text-right">Ação</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {deadlines.map(dl => {
                     const status = getDeadlineStatus(dl.date, todayStr);
+                    const assigneeName = dl.deadline_type === 'declaracao' && hasAccountant && accountantType === 'interno' && accountantMember?.full_name
+                      ? accountantMember.full_name
+                      : 'Owner';
                     return (
                       <TableRow key={dl.key}>
                         <TableCell className="font-medium">{dl.name}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-[10px]">
+                            {dl.deadline_type === 'pagamento' ? 'Pagamento' : 'Declaração'}
+                          </Badge>
+                        </TableCell>
                         <TableCell>{new Date(dl.date + 'T00:00:00').toLocaleDateString('pt-PT')}</TableCell>
                         <TableCell>
                           {status === 'overdue' && <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> Em atraso</Badge>}
                           {status === 'soon' && <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 gap-1"><Clock className="h-3 w-3" /> Próximo</Badge>}
                           {status === 'upcoming' && <Badge variant="secondary" className="gap-1">Por vir</Badge>}
                         </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{assigneeName}</TableCell>
                         <TableCell className="text-right">
                           <Button
                             size="sm"

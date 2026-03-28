@@ -46,6 +46,7 @@ export interface FiscalDeadline {
   date: string; // yyyy-MM-dd (adjusted)
   rawDate: string; // yyyy-MM-dd (original before adjustment)
   category: 'ss' | 'iva' | 'irs';
+  deadline_type: 'declaracao' | 'pagamento';
 }
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -73,9 +74,9 @@ export function computeFiscalDeadlines(year: number, config: FiscalConfig): Fisc
     if (isAfterExemptionEnd(dl.date, exemptionEnd)) deadlines.push(dl);
   };
 
-  const makeDl = (key: string, name: string, rawDate: Date, category: FiscalDeadline['category']): FiscalDeadline => {
+  const makeDl = (key: string, name: string, rawDate: Date, category: FiscalDeadline['category'], deadline_type: FiscalDeadline['deadline_type'] = 'declaracao'): FiscalDeadline => {
     const adjusted = adjustToPrevBusinessDay(rawDate);
-    return { key, name, date: fmtDate(adjusted), rawDate: fmtDate(rawDate), category };
+    return { key, name, date: fmtDate(adjusted), rawDate: fmtDate(rawDate), category, deadline_type };
   };
 
   // ── Segurança Social (monthly — payment until day 20 of next month) ──
@@ -84,7 +85,7 @@ export function computeFiscalDeadlines(year: number, config: FiscalConfig): Fisc
       const nm = m === 12 ? 1 : m + 1;
       const ny = m === 12 ? year + 1 : year;
       push(
-        makeDl(`ss-${year}-${m}`, `SS Pagamento — ${MONTH_NAMES[m - 1]} ${year} (até dia 20/${nm})`, new Date(ny, nm - 1, 20), 'ss'),
+        makeDl(`ss-${year}-${m}`, `SS Pagamento — ${MONTH_NAMES[m - 1]} ${year} (até dia 20/${nm})`, new Date(ny, nm - 1, 20), 'ss', 'pagamento'),
         config.ssExemptionEndDate,
       );
     }
@@ -101,12 +102,12 @@ export function computeFiscalDeadlines(year: number, config: FiscalConfig): Fisc
     for (const q of quarters) {
       // Declaration — until day 20
       push(
-        makeDl(`iva-decl-q${q.q}-${year}`, `IVA Declaração ${q.label} ${year} (até dia 20/${q.dm})`, new Date(q.dy, q.dm - 1, 20), 'iva'),
+        makeDl(`iva-decl-q${q.q}-${year}`, `IVA Declaração ${q.label} ${year} (até dia 20/${q.dm})`, new Date(q.dy, q.dm - 1, 20), 'iva', 'declaracao'),
         config.ivaExemptionEndDate,
       );
       // Payment — until day 25
       push(
-        makeDl(`iva-pay-q${q.q}-${year}`, `IVA Pagamento ${q.label} ${year} (até dia 25/${q.dm})`, new Date(q.dy, q.dm - 1, 25), 'iva'),
+        makeDl(`iva-pay-q${q.q}-${year}`, `IVA Pagamento ${q.label} ${year} (até dia 25/${q.dm})`, new Date(q.dy, q.dm - 1, 25), 'iva', 'pagamento'),
         config.ivaExemptionEndDate,
       );
     }
@@ -119,11 +120,11 @@ export function computeFiscalDeadlines(year: number, config: FiscalConfig): Fisc
       const declMonth = ((m - 1 + 2) % 12) + 1;
       const declYear = m + 2 > 12 ? year + 1 : year;
       push(
-        makeDl(`iva-decl-m${m}-${year}`, `IVA Declaração — ${MONTH_NAMES[m - 1]} ${year} (até dia 20/${declMonth})`, new Date(declYear, declMonth - 1, 20), 'iva'),
+        makeDl(`iva-decl-m${m}-${year}`, `IVA Declaração — ${MONTH_NAMES[m - 1]} ${year} (até dia 20/${declMonth})`, new Date(declYear, declMonth - 1, 20), 'iva', 'declaracao'),
         config.ivaExemptionEndDate,
       );
       push(
-        makeDl(`iva-pay-m${m}-${year}`, `IVA Pagamento — ${MONTH_NAMES[m - 1]} ${year} (até dia 25/${declMonth})`, new Date(declYear, declMonth - 1, 25), 'iva'),
+        makeDl(`iva-pay-m${m}-${year}`, `IVA Pagamento — ${MONTH_NAMES[m - 1]} ${year} (até dia 25/${declMonth})`, new Date(declYear, declMonth - 1, 25), 'iva', 'pagamento'),
         config.ivaExemptionEndDate,
       );
     }
@@ -141,6 +142,7 @@ export function computeFiscalDeadlines(year: number, config: FiscalConfig): Fisc
       date: fmtDate(rawStart),
       rawDate: fmtDate(rawStart),
       category: 'irs',
+      deadline_type: 'declaracao',
     });
     deadlines.push({
       key: `irs-end-${year}`,
@@ -148,6 +150,7 @@ export function computeFiscalDeadlines(year: number, config: FiscalConfig): Fisc
       date: fmtDate(adjustedEnd),
       rawDate: fmtDate(rawEnd),
       category: 'irs',
+      deadline_type: 'declaracao',
     });
   }
 
