@@ -464,6 +464,8 @@ export type Database = {
         Row: {
           about_text: string | null
           accent_color: string
+          accountant_member_id: string | null
+          accountant_type: string
           activity_start_date: string | null
           background_color: string
           business_name: string
@@ -495,6 +497,8 @@ export type Database = {
         Insert: {
           about_text?: string | null
           accent_color?: string
+          accountant_member_id?: string | null
+          accountant_type?: string
           activity_start_date?: string | null
           background_color?: string
           business_name: string
@@ -526,6 +530,8 @@ export type Database = {
         Update: {
           about_text?: string | null
           accent_color?: string
+          accountant_member_id?: string | null
+          accountant_type?: string
           activity_start_date?: string | null
           background_color?: string
           business_name?: string
@@ -554,7 +560,15 @@ export type Database = {
           welcome_text?: string | null
           whatsapp_team_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "business_settings_accountant_member_id_fkey"
+            columns: ["accountant_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       business_setup: {
         Row: {
