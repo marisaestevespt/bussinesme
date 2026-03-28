@@ -48,11 +48,22 @@ export function SettingsFiscal() {
   const [ssType, setSsType] = useState('independente');
   const [teamType, setTeamType] = useState('externa');
   const [hasAccountant, setHasAccountant] = useState(false);
+  const [accountantType, setAccountantType] = useState('externo');
+  const [accountantMemberId, setAccountantMemberId] = useState<string | null>(null);
   const [activityStartDate, setActivityStartDate] = useState<Date | undefined>();
   const [ssExempt, setSsExempt] = useState(false);
   const [ivaExempt, setIvaExempt] = useState(false);
   const [ivaExemptionEndDate, setIvaExemptionEndDate] = useState<Date | undefined>();
   const [ssExemptionEndDate, setSsExemptionEndDate] = useState<Date | undefined>();
+
+  // Team members for internal accountant picker
+  const { data: teamMembers } = useQuery({
+    queryKey: ['team-members-fiscal'],
+    queryFn: async () => {
+      const { data } = await supabase.from('team_members').select('id, name').eq('status', 'active').order('name');
+      return data || [];
+    },
+  });
 
   useEffect(() => {
     if (!settings) return;
@@ -63,6 +74,8 @@ export function SettingsFiscal() {
     setSsType(s.ss_type || 'independente');
     setTeamType(s.team_type || 'externa');
     setHasAccountant(s.has_accountant ?? false);
+    setAccountantType(s.accountant_type || 'externo');
+    setAccountantMemberId(s.accountant_member_id || null);
     setActivityStartDate(s.activity_start_date ? new Date(s.activity_start_date + 'T00:00:00') : undefined);
     setSsExempt(s.ss_exempt ?? false);
     setIvaExempt(s.iva_exempt ?? false);
