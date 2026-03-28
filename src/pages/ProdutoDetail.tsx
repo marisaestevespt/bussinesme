@@ -540,7 +540,7 @@ export default function ProdutoDetailPage() {
           </div>
 
           {openSection === 'clientes-vendas' && (
-            <ProductSalesTab productName={form.name || ''} ticketValue={Number(form.ticket_value) || undefined} />
+            <ProductSalesTab productName={form.name || ''} />
           )}
 
           {openSection === 'entregas' && (
