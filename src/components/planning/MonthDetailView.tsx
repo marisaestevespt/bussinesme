@@ -918,6 +918,31 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       </Card>
 
 
+      {/* ═══ ROUTINE TASK DETAIL ═══ */}
+      {selectedRoutineTask && (() => {
+        const t = selectedRoutineTask;
+        const isDone = t.status === 'done' || t.status === 'concluida';
+        const routineInfo = t.planning_routines as any;
+        const fields: DetailField[] = [
+          { label: 'Estado', value: isDone ? 'Concluída' : 'Por fazer', badge: true, badgeVariant: isDone ? 'default' : 'destructive' },
+          { label: 'Data limite', value: t.deadline ? format(parseISO(t.deadline), "d 'de' MMMM yyyy", { locale: pt }) : '—' },
+          { label: 'Responsável', value: (t.profiles as any)?.full_name || '—' },
+          { label: 'Função', value: routineInfo?.role_function || '—' },
+          { label: 'Departamento', value: routineInfo?.department || '—' },
+          { label: 'Recorrência', value: routineInfo?.recurrence_type || '—' },
+          ...(t.completed_at ? [{ label: 'Concluída em', value: format(parseISO(t.completed_at), "d MMM yyyy 'às' HH:mm", { locale: pt }) }] : []),
+        ];
+        return (
+          <WeeklyAlignDetailSheet
+            open={!!selectedRoutineTask}
+            onOpenChange={(o) => !o && setSelectedRoutineTask(null)}
+            title={t.name}
+            subtitle="Tarefa de rotina"
+            fields={fields}
+          />
+        );
+      })()}
+
       {/* ═══ DETAIL SHEETS ═══ */}
       <ObjectiveDetailSheet
         open={!!selectedObjective}
