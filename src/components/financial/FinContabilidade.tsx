@@ -262,23 +262,34 @@ export function FinContabilidade({ currentYear }: Props) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Prazo</TableHead>
+                    <TableHead>Tipo</TableHead>
                     <TableHead>Data Limite</TableHead>
                     <TableHead>Estado</TableHead>
+                    <TableHead>Atribuído a</TableHead>
                     <TableHead className="text-right">Ação</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {deadlines.map(dl => {
                     const status = getDeadlineStatus(dl.date, todayStr);
+                    const assigneeName = dl.deadline_type === 'declaracao' && hasAccountant && accountantType === 'interno' && accountantMember?.full_name
+                      ? accountantMember.full_name
+                      : 'Owner';
                     return (
                       <TableRow key={dl.key}>
                         <TableCell className="font-medium">{dl.name}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-[10px]">
+                            {dl.deadline_type === 'pagamento' ? 'Pagamento' : 'Declaração'}
+                          </Badge>
+                        </TableCell>
                         <TableCell>{new Date(dl.date + 'T00:00:00').toLocaleDateString('pt-PT')}</TableCell>
                         <TableCell>
                           {status === 'overdue' && <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> Em atraso</Badge>}
                           {status === 'soon' && <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 gap-1"><Clock className="h-3 w-3" /> Próximo</Badge>}
                           {status === 'upcoming' && <Badge variant="secondary" className="gap-1">Por vir</Badge>}
                         </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{assigneeName}</TableCell>
                         <TableCell className="text-right">
                           <Button
                             size="sm"
