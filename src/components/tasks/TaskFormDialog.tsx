@@ -137,6 +137,15 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
     },
   });
 
+  const { data: sopsList = [] } = useQuery({
+    queryKey: ['sops-list-for-tasks'],
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase.from('sops').select('id, sop_id, name, estimated_time').order('name');
+      return (data || []) as { id: string; sop_id: string; name: string; estimated_time: number | null }[];
+    },
+  });
+
   // Populate form when editing
   useEffect(() => {
     if (open) {
@@ -151,6 +160,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
         setRecurrenceEnd(editingTask.recurrence_end ? parseISO(editingTask.recurrence_end) : undefined);
         setRecurrenceIntervalDays(editingTask.recurrence_interval_days != null ? String(editingTask.recurrence_interval_days) : '');
         setEstimatedTime(editingTask.estimated_time != null ? String(editingTask.estimated_time) : '');
+        setSopId(editingTask.sop_id || '');
         setScheduledTime(editingTask.scheduled_time || '');
         const deps = taskDependencies.filter(d => d.task_id === editingTask.id).map(d => d.depends_on_task_id);
         setDependsOnIds(deps);
@@ -158,7 +168,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
         setName(''); setStatus('por_comecar'); setPriority('alta');
         setDeadline(defaultDeadline || undefined); setAssignedTo(''); setDepartment(''); setProjectId(''); setClientId(''); setNotes('');
         setParentTaskId(''); setDependsOnIds([]); setIsSubtask(false); setRecurrenceType(''); setRecurrenceEnd(undefined);
-        setRecurrenceIntervalDays(''); setEstimatedTime(''); setScheduledTime('');
+        setRecurrenceIntervalDays(''); setEstimatedTime(''); setScheduledTime(''); setSopId('');
       }
     }
   }, [open, editingTask]);
