@@ -20,7 +20,7 @@ interface Props {
 export function WeeklyAlignDetailSheet({ open, onOpenChange, title, subtitle, fields }: Props) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="overflow-y-auto">
+      <SheetContent side="right" className="overflow-y-auto bg-background">
         <SheetHeader>
           <SheetTitle className="text-lg">{title}</SheetTitle>
           {subtitle && <SheetDescription>{subtitle}</SheetDescription>}

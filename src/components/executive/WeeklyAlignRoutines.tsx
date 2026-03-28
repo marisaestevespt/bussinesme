@@ -46,7 +46,7 @@ export function RoutinesSection({ thisWeekRoutines, prevWeekRoutines }: Routines
                   <TableRow
                     key={t.id}
                     className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => navigate('/tarefas')}
+                    onClick={() => navigate('/hub/tarefas')}
                   >
                     <TableCell>
                       {isDone ? (
