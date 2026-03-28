@@ -60,7 +60,7 @@ export function SettingsFiscal() {
   const { data: teamMembers } = useQuery({
     queryKey: ['team-members-fiscal'],
     queryFn: async () => {
-      const { data } = await supabase.from('team_members').select('id, name').eq('status', 'active').order('name');
+      const { data } = await supabase.from('team_members').select('id, full_name').eq('status', 'active').order('full_name');
       return data || [];
     },
   });
@@ -503,7 +503,7 @@ export function SettingsFiscal() {
                     <SelectContent>
                       <SelectItem value="none">— Nenhum —</SelectItem>
                       {(teamMembers || []).map(m => (
-                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                        <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
