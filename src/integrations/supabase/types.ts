@@ -1683,6 +1683,7 @@ export type Database = {
           documents: Json | null
           id: string
           invoice_total: number
+          is_special_offer: boolean
           payment_date: string | null
           product: string | null
           project_id: string | null
@@ -1691,6 +1692,7 @@ export type Database = {
           sale_quarter: number | null
           sale_year: number | null
           source: string | null
+          special_offer_reason: string | null
           status: string
           updated_at: string
         }
@@ -1703,6 +1705,7 @@ export type Database = {
           documents?: Json | null
           id?: string
           invoice_total?: number
+          is_special_offer?: boolean
           payment_date?: string | null
           product?: string | null
           project_id?: string | null
@@ -1711,6 +1714,7 @@ export type Database = {
           sale_quarter?: number | null
           sale_year?: number | null
           source?: string | null
+          special_offer_reason?: string | null
           status?: string
           updated_at?: string
         }
@@ -1723,6 +1727,7 @@ export type Database = {
           documents?: Json | null
           id?: string
           invoice_total?: number
+          is_special_offer?: boolean
           payment_date?: string | null
           product?: string | null
           project_id?: string | null
@@ -1731,6 +1736,7 @@ export type Database = {
           sale_quarter?: number | null
           sale_year?: number | null
           source?: string | null
+          special_offer_reason?: string | null
           status?: string
           updated_at?: string
         }
