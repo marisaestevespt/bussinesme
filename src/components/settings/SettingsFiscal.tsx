@@ -128,6 +128,8 @@ export function SettingsFiscal() {
           ss_type: ssType,
           team_type: teamType,
           has_accountant: hasAccountant,
+          accountant_type: hasAccountant ? accountantType : 'externo',
+          accountant_member_id: hasAccountant && accountantType === 'interno' ? accountantMemberId : null,
           activity_start_date: activityStartDate ? format(activityStartDate, 'yyyy-MM-dd') : null,
           ss_exempt: ssExempt,
           iva_exempt: ivaExempt,
