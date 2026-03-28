@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ExternalLink, Plus, CreditCard, Loader2, Gift } from 'lucide-react';
 import { format, parseISO, addMonths, setDate } from 'date-fns';
 import { pt } from 'date-fns/locale';
-// EntryDetailSheet no longer used — payments navigate to VendaDetail
+import { SaleDetailDialog } from '@/components/commercial/SaleDetailDialog';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -51,7 +51,7 @@ const SALE_STATUSES: Record<string, { label: string; color: string }> = {
 export function ProjectGestaoTab({ projectId, projectName, clientName, clientId, productName, startDate, onNewMeeting }: Props) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  // Payments now navigate to VendaDetail page directly
+  const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
 
   // ─── Payment config form state ─────────────────────────────────
   const [payMethod, setPayMethod] = useState<string>('');
@@ -501,7 +501,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
                 <div
                   key={s.id}
                   className="px-4 py-2 text-xs grid grid-cols-6 gap-2 border-b items-center cursor-pointer hover:bg-muted/50"
-                  onClick={() => navigate(`/hub/comercial/vendas/${s.id}`)}
+                  onClick={() => setSelectedSaleId(s.id)}
                 >
                   <span><Badge variant="outline" className={`text-[10px] ${si.color}`}>{si.label}</Badge></span>
                   <span>{s.payment_date ? format(parseISO(s.payment_date), 'dd/MM/yyyy') : '—'}</span>
@@ -522,7 +522,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
         </CardContent>
       </Card>
 
-      
+      <SaleDetailDialog saleId={selectedSaleId} open={!!selectedSaleId} onOpenChange={o => { if (!o) setSelectedSaleId(null); }} />
 
       {/* Reuniões */}
       <Card>
