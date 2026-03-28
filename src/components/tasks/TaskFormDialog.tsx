@@ -364,6 +364,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
       recurrence_end: recurrenceEnd ? format(recurrenceEnd, 'yyyy-MM-dd') : null,
       recurrence_interval_days: recurrenceType === 'personalizado' && recurrenceIntervalDays ? parseInt(recurrenceIntervalDays) : null,
       estimated_time: estimatedTime ? parseFloat(estimatedTime) : null,
+      sop_id: sopId || null,
       scheduled_time: scheduledTime || null,
       _dependsOnIds: dependsOnIds,
       _prevStatus: editingTask?.status || null,
@@ -521,6 +522,26 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                 <SelectContent>
                   <SelectItem value="none">Nenhum</SelectItem>
                   {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" /> Processo (SOP) associado</Label>
+              <Select value={sopId || 'none'} onValueChange={v => {
+                const newSopId = v === 'none' ? '' : v;
+                setSopId(newSopId);
+                if (newSopId) {
+                  const sop = sopsList.find(s => s.id === newSopId);
+                  if (sop?.estimated_time != null) {
+                    setEstimatedTime(String(sop.estimated_time));
+                  }
+                }
+              }}>
+                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum</SelectItem>
+                  {sopsList.map(s => <SelectItem key={s.id} value={s.id}>{s.sop_id ? `${s.sop_id} — ` : ''}{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
