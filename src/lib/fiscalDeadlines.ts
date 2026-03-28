@@ -46,6 +46,7 @@ export interface FiscalDeadline {
   date: string; // yyyy-MM-dd (adjusted)
   rawDate: string; // yyyy-MM-dd (original before adjustment)
   category: 'ss' | 'iva' | 'irs';
+  deadline_type: 'declaracao' | 'pagamento';
 }
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
