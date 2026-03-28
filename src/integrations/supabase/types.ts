@@ -7173,6 +7173,7 @@ export type Database = {
           decisoes: Json | null
           department: string
           departments: string[] | null
+          estimated_time: number | null
           id: string
           inputs: Json | null
           linked_entity_id: string | null
@@ -7204,6 +7205,7 @@ export type Database = {
           decisoes?: Json | null
           department?: string
           departments?: string[] | null
+          estimated_time?: number | null
           id?: string
           inputs?: Json | null
           linked_entity_id?: string | null
@@ -7235,6 +7237,7 @@ export type Database = {
           decisoes?: Json | null
           department?: string
           departments?: string[] | null
+          estimated_time?: number | null
           id?: string
           inputs?: Json | null
           linked_entity_id?: string | null
@@ -7639,6 +7642,7 @@ export type Database = {
           recurrence_type: string | null
           routine_id: string | null
           scheduled_time: string | null
+          sop_id: string | null
           status: string
           tag: string | null
           updated_at: string
@@ -7665,6 +7669,7 @@ export type Database = {
           recurrence_type?: string | null
           routine_id?: string | null
           scheduled_time?: string | null
+          sop_id?: string | null
           status?: string
           tag?: string | null
           updated_at?: string
@@ -7691,6 +7696,7 @@ export type Database = {
           recurrence_type?: string | null
           routine_id?: string | null
           scheduled_time?: string | null
+          sop_id?: string | null
           status?: string
           tag?: string | null
           updated_at?: string
@@ -7737,6 +7743,13 @@ export type Database = {
             columns: ["routine_id"]
             isOneToOne: false
             referencedRelation: "planning_routines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_sop_id_fkey"
+            columns: ["sop_id"]
+            isOneToOne: false
+            referencedRelation: "sops"
             referencedColumns: ["id"]
           },
         ]

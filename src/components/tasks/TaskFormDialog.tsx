@@ -18,7 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { TaskTimeTracker } from '@/components/TaskTimeTracker';
 import { TASK_STATUSES, PRIORITIES, getStatusInfo } from '@/components/tasks/TaskTable';
 import { PROCESS_DEPARTMENTS } from '@/lib/departments';
-import { CalendarIcon, AlertTriangle, Clock, Repeat, GitBranch, Link2, Play } from 'lucide-react';
+import { CalendarIcon, AlertTriangle, Clock, Repeat, GitBranch, Link2, Play, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO, isBefore, startOfDay, startOfWeek, endOfWeek } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -70,6 +70,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
   const [recurrenceIntervalDays, setRecurrenceIntervalDays] = useState('');
   const [estimatedTime, setEstimatedTime] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
+  const [sopId, setSopId] = useState('');
   // timerPromptTaskId removed — timer auto-starts on status change
 
   // Queries
@@ -136,6 +137,15 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
     },
   });
 
+  const { data: sopsList = [] } = useQuery({
+    queryKey: ['sops-list-for-tasks'],
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase.from('sops').select('id, sop_id, name, estimated_time').order('name');
+      return (data || []) as { id: string; sop_id: string; name: string; estimated_time: number | null }[];
+    },
+  });
+
   // Populate form when editing
   useEffect(() => {
     if (open) {
@@ -150,6 +160,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
         setRecurrenceEnd(editingTask.recurrence_end ? parseISO(editingTask.recurrence_end) : undefined);
         setRecurrenceIntervalDays(editingTask.recurrence_interval_days != null ? String(editingTask.recurrence_interval_days) : '');
         setEstimatedTime(editingTask.estimated_time != null ? String(editingTask.estimated_time) : '');
+        setSopId(editingTask.sop_id || '');
         setScheduledTime(editingTask.scheduled_time || '');
         const deps = taskDependencies.filter(d => d.task_id === editingTask.id).map(d => d.depends_on_task_id);
         setDependsOnIds(deps);
@@ -157,7 +168,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
         setName(''); setStatus('por_comecar'); setPriority('alta');
         setDeadline(defaultDeadline || undefined); setAssignedTo(''); setDepartment(''); setProjectId(''); setClientId(''); setNotes('');
         setParentTaskId(''); setDependsOnIds([]); setIsSubtask(false); setRecurrenceType(''); setRecurrenceEnd(undefined);
-        setRecurrenceIntervalDays(''); setEstimatedTime(''); setScheduledTime('');
+        setRecurrenceIntervalDays(''); setEstimatedTime(''); setScheduledTime(''); setSopId('');
       }
     }
   }, [open, editingTask]);
@@ -353,6 +364,7 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
       recurrence_end: recurrenceEnd ? format(recurrenceEnd, 'yyyy-MM-dd') : null,
       recurrence_interval_days: recurrenceType === 'personalizado' && recurrenceIntervalDays ? parseInt(recurrenceIntervalDays) : null,
       estimated_time: estimatedTime ? parseFloat(estimatedTime) : null,
+      sop_id: sopId || null,
       scheduled_time: scheduledTime || null,
       _dependsOnIds: dependsOnIds,
       _prevStatus: editingTask?.status || null,
@@ -510,6 +522,26 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
                 <SelectContent>
                   <SelectItem value="none">Nenhum</SelectItem>
                   {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" /> Processo (SOP) associado</Label>
+              <Select value={sopId || 'none'} onValueChange={v => {
+                const newSopId = v === 'none' ? '' : v;
+                setSopId(newSopId);
+                if (newSopId) {
+                  const sop = sopsList.find(s => s.id === newSopId);
+                  if (sop?.estimated_time != null) {
+                    setEstimatedTime(String(sop.estimated_time));
+                  }
+                }
+              }}>
+                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum</SelectItem>
+                  {sopsList.map(s => <SelectItem key={s.id} value={s.id}>{s.sop_id ? `${s.sop_id} — ` : ''}{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
