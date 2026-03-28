@@ -11,8 +11,17 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { Switch } from '@/components/ui/switch';
 import { ENTRY_STATUSES } from '@/components/financial/EntryDetailSheet';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
+
+const SPECIAL_OFFER_REASONS = [
+  'Campanha especial',
+  'Cliente antigo',
+  'Parceria',
+  'Desconto de lançamento',
+  'Upgrade de produto',
+];
 
 const STATUS_OPTIONS = ENTRY_STATUSES.map(s => ({ value: s.value, label: s.label }));
 
@@ -39,6 +48,8 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
     client: '',
     source: '',
     documents: [] as DocEntry[],
+    is_special_offer: false,
+    special_offer_reason: '',
   });
 
   useEffect(() => {
@@ -56,9 +67,11 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
         client: initialData.client || '',
         source: initialData.source || '',
         documents: Array.isArray(rawDocs) ? rawDocs : [],
+        is_special_offer: initialData.is_special_offer || false,
+        special_offer_reason: initialData.special_offer_reason || '',
       });
     } else {
-      setForm({ id: '', sale_id: '', status: 'aguarda_pagamento', payment_date: undefined, description: '', base_value: '', invoice_total: '', product: '', client: '', source: '', documents: [] });
+      setForm({ id: '', sale_id: '', status: 'aguarda_pagamento', payment_date: undefined, description: '', base_value: '', invoice_total: '', product: '', client: '', source: '', documents: [], is_special_offer: false, special_offer_reason: '' });
     }
   }, [initialData, open]);
 
@@ -134,6 +147,8 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
       client: form.client || null,
       source: form.source || null,
       documents: form.documents,
+      is_special_offer: form.is_special_offer,
+      special_offer_reason: form.is_special_offer ? form.special_offer_reason : null,
     });
   };
 
@@ -230,6 +245,32 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
                 <SelectItem value="__custom__">+ Adicionar outro</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          {/* Special Offer */}
+          <div className="space-y-3 rounded-lg border border-border p-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium">Oferta Especial</Label>
+              <Switch checked={form.is_special_offer} onCheckedChange={v => setForm(f => ({ ...f, is_special_offer: v, special_offer_reason: v ? f.special_offer_reason : '' }))} />
+            </div>
+            {form.is_special_offer && (
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Motivo da oferta</Label>
+                <Select value={form.special_offer_reason} onValueChange={v => {
+                  if (v === '__custom__') {
+                    const custom = prompt('Introduz o motivo da oferta especial:');
+                    if (custom?.trim()) setForm(f => ({ ...f, special_offer_reason: custom.trim() }));
+                    return;
+                  }
+                  setForm(f => ({ ...f, special_offer_reason: v }));
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Selecionar motivo" /></SelectTrigger>
+                  <SelectContent>
+                    {SPECIAL_OFFER_REASONS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                    <SelectItem value="__custom__">+ Adicionar outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <InvoiceUpload
             documents={form.documents}
