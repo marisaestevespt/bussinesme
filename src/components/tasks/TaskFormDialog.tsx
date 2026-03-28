@@ -18,7 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { TaskTimeTracker } from '@/components/TaskTimeTracker';
 import { TASK_STATUSES, PRIORITIES, getStatusInfo } from '@/components/tasks/TaskTable';
 import { PROCESS_DEPARTMENTS } from '@/lib/departments';
-import { CalendarIcon, AlertTriangle, Clock, Repeat, GitBranch, Link2, Play } from 'lucide-react';
+import { CalendarIcon, AlertTriangle, Clock, Repeat, GitBranch, Link2, Play, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO, isBefore, startOfDay, startOfWeek, endOfWeek } from 'date-fns';
 import { pt } from 'date-fns/locale';
