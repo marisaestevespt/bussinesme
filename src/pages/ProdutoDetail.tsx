@@ -24,6 +24,7 @@ import { ProductEntregasSection } from '@/components/product/ProductEntregasSect
 import { ProductComercialSection } from '@/components/product/ProductComercialSection';
 import { ProductMarketingSection } from '@/components/product/ProductMarketingSection';
 import { ProductProcessosSection, ProductBackofficeSection, ProductArquivoSection, ProductContabilidadeSection } from '@/components/product/ProductSections';
+import { ProductSalesTab } from '@/components/product/ProductSalesTab';
 import { format, parseISO, isFuture, isToday } from 'date-fns';
 import { BackNavigation } from '@/components/BackNavigation';
 import { cn } from '@/lib/utils';
@@ -526,6 +527,7 @@ export default function ProdutoDetailPage() {
         {/* ═══ SECTION BUTTONS ═══ */}
         <div className="space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <SectionButton sectionKey="clientes-vendas" label="Clientes e Vendas" />
             <SectionButton sectionKey="entregas" label="Entregas" />
             <SectionButton sectionKey="comercial" label="Comercial" />
             <SectionButton sectionKey="marketing" label="Marketing" />
@@ -536,6 +538,10 @@ export default function ProdutoDetailPage() {
             <SectionButton sectionKey="metricas" label="Métricas" />
             <SectionButton sectionKey="arquivo" label="Arquivo" />
           </div>
+
+          {openSection === 'clientes-vendas' && (
+            <ProductSalesTab productName={form.name || ''} ticketValue={Number(form.ticket_value) || undefined} />
+          )}
 
           {openSection === 'entregas' && (
             <ProductEntregasSection
