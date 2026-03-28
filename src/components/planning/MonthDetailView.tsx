@@ -121,34 +121,6 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
     },
   });
 
-  // Checklists
-  const checklistQ = useQuery({ queryKey: ['md-checklist', year, monthNum], queryFn: async () => { const { data } = await supabase.from('executive_monthly_checklists').select('*').eq('year', year).eq('month', monthNum).order('created_at'); return data || []; }});
-
-  // Auto-seed checklist when month has none
-  const seededRef = useRef<string | null>(null);
-  useEffect(() => {
-    const key = `${year}-${monthNum}`;
-    if (checklistQ.isSuccess && checklistQ.data?.length === 0 && seededRef.current !== key) {
-      seededRef.current = key;
-      const items = DEFAULT_HABITS.flatMap(g => g.tasks.map(t => ({ year, month: monthNum, task: `${g.category}::${t}`, completed: false })));
-      supabase.from('executive_monthly_checklists').insert(items).then(() => {
-        qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] });
-      });
-    }
-  }, [checklistQ.isSuccess, checklistQ.data, year, monthNum, qc]);
-
-  const addCheckItem = useMutation({
-    mutationFn: async (task: string) => { const { error } = await supabase.from('executive_monthly_checklists').insert({ year, month: monthNum, task, completed: false }); if (error) throw error; },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] }),
-  });
-  const toggleCheck = useMutation({
-    mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => { const { error } = await supabase.from('executive_monthly_checklists').update({ completed }).eq('id', id); if (error) throw error; },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] }),
-  });
-  const deleteCheck = useMutation({
-    mutationFn: async (id: string) => { const { error } = await supabase.from('executive_monthly_checklists').delete().eq('id', id); if (error) throw error; },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['md-checklist', year, monthNum] }),
-  });
 
   const upsertGoal = useMutation({
     mutationFn: async (amount: number) => {
@@ -290,33 +262,6 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
     }).filter(m => m.committed > 0);
   }, [team, monthTasks]);
 
-  // Checklist grouped
-  const checklist = checklistQ.data || [];
-  const checklistGrouped = useMemo(() => {
-    const groups: Record<string, { label: string; color: string; items: any[] }> = {};
-    // Init default groups
-    DEFAULT_HABITS.forEach(g => { groups[g.category] = { label: g.label, color: g.color, items: [] }; });
-    checklist.forEach((item: any) => {
-      const sep = item.task.indexOf('::');
-      if (sep > -1) {
-        const cat = item.task.substring(0, sep);
-        const taskText = item.task.substring(sep + 2);
-        if (!groups[cat]) groups[cat] = { label: cat, color: 'bg-muted text-muted-foreground', items: [] };
-        groups[cat].items.push({ ...item, displayTask: taskText });
-      } else {
-        if (!groups['_other']) groups['_other'] = { label: 'Outros', color: 'bg-muted text-muted-foreground', items: [] };
-        groups['_other'].items.push({ ...item, displayTask: item.task });
-      }
-    });
-    return Object.entries(groups).filter(([, g]) => g.items.length > 0);
-  }, [checklist]);
-
-  
-
-  // New checklist item state
-  const [newCat, setNewCat] = useState('');
-  const [newTask, setNewTask] = useState('');
-  const [addingToGroup, setAddingToGroup] = useState<string | null>(null);
 
   // Product sales breakdown for "goal" tab — always show all active products
   const prodSalesData = useMemo(() => {
