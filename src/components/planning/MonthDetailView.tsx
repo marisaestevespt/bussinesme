@@ -857,7 +857,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
       </Card>
 
       {/* ═══ SECTION 8.5: Rotinas Semanais e Mensais ═══ */}
-      <Card className="border-secondary bg-background">
+      <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
             Rotinas Semanais e Mensais
