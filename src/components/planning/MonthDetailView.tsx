@@ -22,6 +22,7 @@ import { pt } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { ObjectiveDetailSheet } from './ObjectiveDetailSheet';
 import { ObjectiveDialog } from './ObjectiveDialog';
+import { WeeklyAlignDetailSheet, type DetailField } from '@/components/executive/WeeklyAlignDetailSheet';
 import { BackNavigation } from '@/components/BackNavigation';
 import { CLIENT_STATUS_OPTIONS } from '@/hooks/useClients';
 import { LeadDetailSheet } from '@/components/commercial/crm/LeadDetailSheet';
@@ -890,7 +891,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
                       'flex items-center gap-2 p-2 rounded-md border cursor-pointer hover:shadow-sm transition-shadow',
                       isLate && 'border-destructive/50 bg-destructive/5',
                     )}
-                    onClick={() => navigate('/hub/tarefas')}
+                    onClick={() => setSelectedRoutineTask(t)}
                   >
                     {isDone ? (
                       completedLate ? (
