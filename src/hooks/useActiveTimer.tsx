@@ -48,10 +48,10 @@ export function ActiveTimerProvider({ children }: { children: ReactNode }) {
       .is('ended_at', null)
       .eq('is_manual', false)
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (data && data.started_at) {
-      const { data: task } = await supabase.from('tasks').select('name').eq('id', data.task_id).single();
+      const { data: task } = await supabase.from('tasks').select('name').eq('id', data.task_id).maybeSingle();
       setActiveTimer({
         entryId: data.id,
         taskId: data.task_id,

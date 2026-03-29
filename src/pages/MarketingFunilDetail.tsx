@@ -54,7 +54,7 @@ export default function MarketingFunilDetail() {
   const { data: item, isLoading } = useQuery({
     queryKey: ['marketing-funnel', id],
     queryFn: async () => {
-      const { data } = await supabase.from('marketing_funnels').select('*').eq('id', id!).single() as any;
+      const { data } = await supabase.from('marketing_funnels').select('*').eq('id', id!).maybeSingle() as any;
       return data as FunnelFull | null;
     },
     enabled: !!id,

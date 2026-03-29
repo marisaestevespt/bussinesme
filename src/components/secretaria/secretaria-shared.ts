@@ -70,7 +70,7 @@ export function useMyProfile() {
     queryKey: ['my-profile', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('*').eq('user_id', user!.id).single();
+      const { data } = await supabase.from('profiles').select('*').eq('user_id', user!.id).maybeSingle();
       return data;
     },
   });

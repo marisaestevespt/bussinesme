@@ -28,7 +28,7 @@ export default function SecretariaTarefas() {
     queryKey: ['edit-task-secretaria-tarefas', editTaskId],
     enabled: !!editTaskId,
     queryFn: async () => {
-      const { data } = await supabase.from('tasks').select('*').eq('id', editTaskId!).single();
+      const { data } = await supabase.from('tasks').select('*').eq('id', editTaskId!).maybeSingle();
       return data;
     },
   });

@@ -25,7 +25,7 @@ export default function MarketingChannelStrategy() {
   const { data: channel } = useQuery({
     queryKey: ['marketing-channel', channelId],
     queryFn: async () => {
-      const { data } = await supabase.from('marketing_channels').select('*').eq('id', channelId!).single() as { data: MarketingChannel | null };
+      const { data } = await supabase.from('marketing_channels').select('*').eq('id', channelId!).maybeSingle() as { data: MarketingChannel | null };
       return data;
     },
     enabled: !!channelId,

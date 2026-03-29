@@ -57,7 +57,7 @@ export function useDigestSettings(isOwnerDigest: boolean) {
         .from('profiles')
         .select('id')
         .eq('user_id', user!.id)
-        .single();
+        .maybeSingle();
       return data?.id || null;
     },
   });
