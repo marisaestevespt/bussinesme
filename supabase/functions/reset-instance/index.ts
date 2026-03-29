@@ -58,24 +58,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── TABLES TO DELETE (operational data) ──
-    // Order: deepest children first → parents last to respect FK constraints
-    // 
-    // PRESERVED (config/structure — NOT deleted):
-    //   automation_settings, business_settings, business_setup, brand_*,
-    //   business_plan_settings, business_plan_cards, business_plan_custom_columns,
-    //   custom_fields, custom_fonts, custom_roles, custom_views,
-    //   departments, department_whatsapp_links, digest_settings,
-    //   event_types, financial_categories, kpi_settings,
-    //   marketing_channels, channel_pages, marketing_automations, marketing_funnels,
-    //   marketing_pages, internal_documents, members, member_sensitive_access,
-    //   platform_accesses, profiles, role_permissions, routines,
-    //   sop_categories, sops, sop_onboarding_templates, sop_onboarding_items,
-    //   sop_offboarding_templates, sop_offboarding_items,
-    //   strategy_channel_details, strategy_channel_formats, strategy_channel_frames,
-    //   strategy_editorial_lines, strategy_distribution_cards, strategy_settings,
-    //   team_members, user_roles
+    const resetType: "data" | "full" = body.reset_type === "full" ? "full" : "data";
 
+    // ── TABLES TO DELETE — operational data (always deleted) ──
+    // Order: deepest children first → parents last to respect FK constraints
     const tablesToDelete = [
       // ── Portal children (deepest) ──
       "portal_comments",
@@ -124,7 +110,7 @@ Deno.serve(async (req) => {
       "task_dependencies",
       "task_time_entries",
 
-      // ── Product children (values, not config definitions) ──
+      // ── Product children ──
       "product_automations",
       "product_costs",
       "product_deliverable_templates",
@@ -219,7 +205,7 @@ Deno.serve(async (req) => {
       "marketing_resource_links",
       "marketing_monthly_analysis",
 
-      // ── Custom field values (not definitions) ──
+      // ── Custom field values ──
       "custom_field_values",
 
       // ── Misc operational ──
@@ -272,9 +258,102 @@ Deno.serve(async (req) => {
       "financial_contractors",
     ];
 
+    // ── FULL RESET: also delete config/structure/identity tables ──
+    // These are preserved in "data" reset but deleted in "full" reset
+    const configTables = [
+      // Brand / visual identity (children first)
+      "brand_visual_files",
+      "brand_visual_cards",
+      "brand_swot_items",
+      "brand_differentials",
+      "brand_competitors",
+      "brand_kanban_items",
+      "brand_links",
+
+      // Business plan
+      "business_plan_cards",
+      "business_plan_custom_columns",
+      "business_plan_settings",
+
+      // Strategy
+      "strategy_channel_formats",
+      "strategy_channel_frames",
+      "strategy_channel_details",
+      "strategy_editorial_lines",
+      "strategy_distribution_cards",
+      "strategy_settings",
+
+      // SOPs (children first)
+      "sop_onboarding_items",
+      "sop_onboarding_templates",
+      "sop_offboarding_items",
+      "sop_offboarding_templates",
+      "sop_categories",
+      "sops",
+
+      // Marketing config
+      "channel_pages",
+      "marketing_automations",
+      "marketing_funnels",
+      "marketing_pages",
+      "marketing_channels",
+
+      // Product KPI definitions
+      "product_kpis",
+
+      // Custom fields / fonts / views
+      "custom_field_values",
+      "custom_fields",
+      "custom_fonts",
+      "custom_views",
+
+      // Internal documents / library
+      "internal_documents",
+
+      // Event types
+      "event_types",
+
+      // Financial config
+      "financial_categories",
+
+      // Platform accesses
+      "platform_accesses",
+
+      // Departments
+      "department_whatsapp_links",
+      "departments",
+
+      // Digest / KPI settings
+      "digest_settings",
+      "kpi_settings",
+
+      // Automation settings
+      "automation_settings",
+
+      // Routines definitions
+      "routines",
+
+      // Permissions & roles (children first) — preserve user_roles (owner stays)
+      "role_permissions",
+      "member_sensitive_access",
+      "members",
+      "custom_roles",
+
+      // Team members (after member dependencies)
+      "team_members",
+
+      // Business settings & setup (last — these define the instance)
+      "business_setup",
+      "business_settings",
+    ];
+
+    const allTables = resetType === "full"
+      ? [...tablesToDelete, ...configTables]
+      : tablesToDelete;
+
     const errors: string[] = [];
 
-    for (const table of tablesToDelete) {
+    for (const table of allTables) {
       const { error } = await admin.from(table).delete().gte("created_at", "1970-01-01");
       if (error) {
         const { error: err2 } = await admin.from(table).delete().not("id", "is", null);
@@ -289,7 +368,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, errors_count: errors.length, errors }),
+      JSON.stringify({ success: true, reset_type: resetType, errors_count: errors.length, errors }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
