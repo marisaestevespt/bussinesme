@@ -321,10 +321,18 @@ export function TaskFormDialog({ open, onOpenChange, editingTask, defaultDeadlin
   });
 
   function handleSave() {
-    if (!name.trim() || !deadline) { toast.error('Preenche o nome e o prazo'); return; }
-    if (isSubtask && (!parentTaskId || parentTaskId === 'none')) { toast.error('Seleciona a tarefa principal'); return; }
+    const taskSchema = z.object({
+      name: z.string().min(1, 'Preenche o nome da tarefa'),
+      deadline: z.date({ required_error: 'Seleciona um prazo' }),
+      parentTaskId: isSubtask ? z.string().min(1, 'Seleciona a tarefa principal').refine(v => v !== 'none', 'Seleciona a tarefa principal') : z.string().optional(),
+    });
+    const validation = taskSchema.safeParse({ name: name.trim(), deadline, parentTaskId });
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
     const isChangingToDone = status === 'done' && editingTask?.status !== 'done';
-    const deadlineDate = startOfDay(deadline);
+    const deadlineDate = startOfDay(deadline!);
     if (isChangingToDone && isBefore(deadlineDate, startOfDay(new Date())) && !notes?.trim()) {
       toast.error('Esta tarefa está atrasada. Indica nas notas o motivo do atraso antes de concluir.'); return;
     }
