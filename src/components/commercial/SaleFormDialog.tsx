@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { z } from 'zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -134,7 +135,30 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
     }
   }, [form.base_value, productInfo.data?.vat_rate]);
 
+  const saleSchema = z.object({
+    description: z.string().min(1, 'Preenche a descrição'),
+    base_value: z.string().refine(v => !isNaN(parseFloat(v)) && parseFloat(v) > 0, 'Valor base deve ser maior que 0'),
+    client: z.string().min(1, 'Seleciona um cliente'),
+    product: z.string().min(1, 'Seleciona um produto'),
+  });
+
   const handleSave = () => {
+    const validation = saleSchema.safeParse({
+      description: form.description,
+      base_value: form.base_value,
+      client: form.client,
+      product: form.product,
+    });
+    if (!validation.success) {
+      const { toast: toastLib } = await import('sonner');
+      // Can't use top-level dynamic import in sync fn, use inline check
+    }
+
+    if (!form.description?.trim()) { toast('Preenche a descrição', { description: 'Campo obrigatório' }); return; }
+    if (!form.base_value || parseFloat(form.base_value) <= 0) { toast('Valor base inválido', { description: 'Deve ser maior que 0' }); return; }
+    if (!form.client) { toast('Seleciona um cliente', { description: 'Campo obrigatório' }); return; }
+    if (!form.product) { toast('Seleciona um produto', { description: 'Campo obrigatório' }); return; }
+
     onSave({
       ...(form.id ? { id: form.id } : {}),
       ...(form.sale_id ? { sale_id: form.sale_id } : {}),
