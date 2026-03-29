@@ -192,7 +192,7 @@ export function usePlanningRoutines() {
       if (error) throw error;
 
       if (active) {
-        const { data: routine } = await supabase.from('planning_routines').select('*').eq('id', id).single();
+        const { data: routine } = await supabase.from('planning_routines').select('*').eq('id', id).maybeSingle();
         if (routine) {
           await generateTasksForRoutine(routine as RoutineForTaskGen, new Date().getFullYear());
         }

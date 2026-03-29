@@ -45,7 +45,7 @@ export default function ConteudoDetailPage() {
   const { data: item, isLoading } = useQuery({
     queryKey: ['content-item', id],
     queryFn: async () => {
-      const { data } = await supabase.from('content_items').select('*').eq('id', id!).single() as { data: ContentItem | null };
+      const { data } = await supabase.from('content_items').select('*').eq('id', id!).maybeSingle() as { data: ContentItem | null };
       return data;
     },
     enabled: !!id,

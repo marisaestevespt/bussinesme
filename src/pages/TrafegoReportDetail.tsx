@@ -31,7 +31,7 @@ export default function TrafegoReportDetail() {
   const { data: card, isLoading } = useQuery({
     queryKey: ['traffic-report-card', id],
     queryFn: async () => {
-      const { data } = await supabase.from('traffic_report_cards').select('*').eq('id', id!).single() as any;
+      const { data } = await supabase.from('traffic_report_cards').select('*').eq('id', id!).maybeSingle() as any;
       return data as { id: string; title: string; content: string | null } | null;
     },
     enabled: !!id,

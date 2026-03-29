@@ -42,7 +42,7 @@ export default function MarketingAutomacaoDetail() {
   const { data: item, isLoading } = useQuery({
     queryKey: ['marketing-automation', id],
     queryFn: async () => {
-      const { data } = await supabase.from('marketing_automations').select('*').eq('id', id!).single() as any;
+      const { data } = await supabase.from('marketing_automations').select('*').eq('id', id!).maybeSingle() as any;
       return data as AutoFull | null;
     },
     enabled: !!id,

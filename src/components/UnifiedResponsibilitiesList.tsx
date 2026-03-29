@@ -144,7 +144,7 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
     queryKey: ['task-edit', editTaskId],
     enabled: !!editTaskId,
     queryFn: async () => {
-      const { data, error } = await supabase.from('tasks').select('*').eq('id', editTaskId!).single();
+      const { data, error } = await supabase.from('tasks').select('*').eq('id', editTaskId!).maybeSingle();
       if (error) throw error;
       return data;
     },

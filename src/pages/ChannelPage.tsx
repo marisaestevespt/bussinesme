@@ -44,7 +44,7 @@ export default function ChannelPage() {
   const { data: channel } = useQuery({
     queryKey: ['marketing-channel', channelId],
     queryFn: async () => {
-      const { data } = await supabase.from('marketing_channels').select('*').eq('id', channelId!).single();
+      const { data } = await supabase.from('marketing_channels').select('*').eq('id', channelId!).maybeSingle();
       return data as MarketingChannel | null;
     },
     enabled: !!channelId,

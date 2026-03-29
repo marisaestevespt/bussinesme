@@ -51,7 +51,7 @@ export default function TrafegoCriativoDetail() {
   const { data: item, isLoading } = useQuery({
     queryKey: ['traffic-creative', id],
     queryFn: async () => {
-      const { data } = await supabase.from('traffic_creatives').select('*').eq('id', id!).single() as any;
+      const { data } = await supabase.from('traffic_creatives').select('*').eq('id', id!).maybeSingle() as any;
       return data as CreativeFull | null;
     },
     enabled: !!id,

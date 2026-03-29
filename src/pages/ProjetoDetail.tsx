@@ -273,7 +273,7 @@ export default function ProjetoDetailPage() {
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', id],
     queryFn: async () => {
-      const { data, error } = await supabase.from('projects').select('*').eq('id', id!).single();
+      const { data, error } = await supabase.from('projects').select('*').eq('id', id!).maybeSingle();
       if (error) throw error;
       return data as ProjectFull;
     },

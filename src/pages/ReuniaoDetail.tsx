@@ -89,7 +89,7 @@ function useMeeting(id: string) {
   return useQuery({
     queryKey: ['meeting', id],
     queryFn: async () => {
-      const { data, error } = await supabase.from('meetings').select('*').eq('id', id).single();
+      const { data, error } = await supabase.from('meetings').select('*').eq('id', id).maybeSingle();
       if (error) throw error;
       const raw = data as any;
       return {
@@ -154,9 +154,9 @@ function useOwnerProfile() {
   return useQuery({
     queryKey: ['owner_profile'],
     queryFn: async () => {
-      const { data: ownerRole } = await supabase.from('user_roles').select('user_id').eq('role', 'owner').limit(1).single();
+      const { data: ownerRole } = await supabase.from('user_roles').select('user_id').eq('role', 'owner').limit(1).maybeSingle();
       if (!ownerRole) return null;
-      const { data: profile } = await supabase.from('profiles').select('full_name').eq('user_id', ownerRole.user_id).single();
+      const { data: profile } = await supabase.from('profiles').select('full_name').eq('user_id', ownerRole.user_id).maybeSingle();
       return profile?.full_name ?? null;
     },
   });
