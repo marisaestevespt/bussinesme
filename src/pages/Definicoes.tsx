@@ -102,6 +102,7 @@ export default function DefinicoesPage() {
 function ResetSection() {
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState('');
+  const [resetType, setResetType] = useState<'data' | 'full'>('data');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -120,17 +121,23 @@ function ResetSection() {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${session.access_token}`,
           },
-          body: JSON.stringify({ confirmation: 'CONFIRMO' }),
+          body: JSON.stringify({ confirmation: 'CONFIRMO', reset_type: resetType }),
         }
       );
 
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || 'Erro ao resetar');
 
-      toast.success('O sistema foi resetado com sucesso. Podes começar a introduzir os dados do teu negócio.');
+      if (resetType === 'full') {
+        toast.success('Reset completo efetuado. O sistema está limpo como template base.');
+        await supabase.auth.signOut();
+        navigate('/');
+      } else {
+        toast.success('O sistema foi resetado com sucesso. Podes começar a introduzir os dados do teu negócio.');
+        navigate('/secretaria');
+      }
       setOpen(false);
       setConfirmation('');
-      navigate('/hub/secretaria');
     } catch (err: any) {
       toast.error(err.message || 'Erro ao resetar o sistema.');
     } finally {
@@ -144,15 +151,35 @@ function ResetSection() {
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-5 space-y-3">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-destructive" />
-            <h2 className="text-sm font-semibold text-destructive">Resetar para instância limpa</h2>
+            <h2 className="text-sm font-semibold text-destructive">Resetar instância</h2>
           </div>
           <p className="text-sm text-muted-foreground">
-            Apaga todos os dados operacionais do sistema (clientes, vendas, tarefas, conteúdos, etc.) mantendo toda a configuração, processos, automações e identidade visual.
-            Esta acção é irreversível.
+            Escolhe o tipo de reset que pretendes fazer. Esta acção é irreversível.
           </p>
-          <Button variant="destructive" size="sm" onClick={() => setOpen(true)}>
-            Resetar sistema
-          </Button>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => { setResetType('data'); setOpen(true); }}
+              className="rounded-lg border border-destructive/20 bg-background p-4 text-left space-y-1 hover:border-destructive/50 hq-transition"
+            >
+              <p className="text-sm font-medium">Reset de dados</p>
+              <p className="text-xs text-muted-foreground">
+                Apaga dados operacionais (clientes, vendas, tarefas, etc.) mas mantém identidade visual, processos e configuração.
+              </p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { setResetType('full'); setOpen(true); }}
+              className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-left space-y-1 hover:border-destructive/70 hq-transition"
+            >
+              <p className="text-sm font-medium text-destructive">Reset completo (template)</p>
+              <p className="text-xs text-muted-foreground">
+                Apaga tudo — dados, identidade visual, marca, processos, SOPs, equipa e configuração. Ideal para preparar template base.
+              </p>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -161,12 +188,22 @@ function ResetSection() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              Tens a certeza?
+              {resetType === 'full' ? 'Reset completo — tens a certeza?' : 'Reset de dados — tens a certeza?'}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm leading-relaxed">
-              Esta acção vai apagar todos os dados operacionais do sistema de forma permanente.
-              Toda a configuração, processos, automações e identidade visual serão mantidos.
-              Esta acção não pode ser desfeita.
+              {resetType === 'full' ? (
+                <>
+                  Esta acção vai apagar <strong>absolutamente tudo</strong> — dados operacionais, identidade visual, marca, processos, SOPs, equipa e toda a configuração.
+                  O sistema ficará como um template limpo. Serás desautenticado após o reset.
+                  <br /><strong>Esta acção não pode ser desfeita.</strong>
+                </>
+              ) : (
+                <>
+                  Esta acção vai apagar todos os dados operacionais do sistema de forma permanente.
+                  Toda a configuração, processos, automações e identidade visual serão mantidos.
+                  Esta acção não pode ser desfeita.
+                </>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -190,7 +227,7 @@ function ResetSection() {
               disabled={confirmation !== 'CONFIRMO' || loading}
               onClick={handleReset}
             >
-              {loading ? 'A apagar...' : 'Apagar todos os dados'}
+              {loading ? 'A apagar...' : resetType === 'full' ? 'Apagar tudo (template limpo)' : 'Apagar dados operacionais'}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
