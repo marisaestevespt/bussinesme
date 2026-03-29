@@ -224,6 +224,8 @@ Deno.serve(async (req) => {
 
       // ── Misc operational ──
       "audit_logs",
+      "backups",
+      "fiscal_monthly_checks",
       "page_access_grants",
       "user_views",
       "weekly_align_notes",
