@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -135,6 +136,11 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
   }, [form.base_value, productInfo.data?.vat_rate]);
 
   const handleSave = () => {
+    if (!form.description?.trim()) { toast.error('Preenche a descrição'); return; }
+    if (!form.base_value || parseFloat(form.base_value) <= 0) { toast.error('Valor base deve ser maior que 0'); return; }
+    if (!form.client) { toast.error('Seleciona um cliente'); return; }
+    if (!form.product) { toast.error('Seleciona um produto'); return; }
+
     onSave({
       ...(form.id ? { id: form.id } : {}),
       ...(form.sale_id ? { sale_id: form.sale_id } : {}),
