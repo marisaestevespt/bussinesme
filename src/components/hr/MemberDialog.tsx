@@ -213,6 +213,9 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
     status: 'ativo',
     document_url: '',
     notes: '',
+    value_includes_vat: false,
+    payment_start_date: '', // if different from contract start
+    use_custom_payment_start: false,
   });
   const [contractLoaded, setContractLoaded] = useState(false);
 
