@@ -99,7 +99,7 @@ function countFutureOccurrences(startDate: string, endDate: string, periodicity:
   return getFutureBillingDates(startDate, endDate, periodicity, billingDay, includeCatchUp).length;
 }
 
-/** Generate individual expense rows for each occurrence */
+/** Generate individual expense rows for future billing dates */
 async function generateExpensesForPeriod(
   supplierId: string,
   name: string,
@@ -112,13 +112,14 @@ async function generateExpensesForPeriod(
   startDate: string,
   endDate: string,
   parentExpenseId: string,
+  includeCatchUp: boolean = false,
 ) {
-  const occurrences = getOccurrenceMonths(startDate, endDate, periodicity);
+  const billingDay = recurrenceDay || 1;
+  const dates = getFutureBillingDates(startDate, endDate, periodicity, billingDay, includeCatchUp);
   const valuePerOccurrence = periodicity === 'semanal' ? Math.round(baseValue * (52/12) * 100) / 100 : baseValue;
   const total = Math.round(valuePerOccurrence * (1 + vatRate / 100) * 100) / 100;
-  const day = recurrenceDay || 1;
 
-  const rows = occurrences.map(o => ({
+  const rows = dates.map(o => ({
     description: name,
     expense_name: name,
     supplier_id: supplierId,
@@ -126,12 +127,12 @@ async function generateExpensesForPeriod(
     vat_rate: vatRate,
     total_with_vat: total,
     category,
-    status: 'por_pagar' as const,
+    status: (o.isCatchUp ? 'pago' : 'por_pagar') as string,
     location: 'portugal',
     is_recurring: false,
     parent_expense_id: parentExpenseId,
     payment_method: paymentMethod,
-    expense_date: `${o.year}-${String(o.month).padStart(2, '0')}-${String(Math.min(day, 28)).padStart(2, '0')}`,
+    expense_date: `${o.year}-${String(o.month).padStart(2, '0')}-${String(o.day).padStart(2, '0')}`,
     expense_month: o.month,
     expense_quarter: Math.ceil(o.month / 3),
     expense_year: o.year,
