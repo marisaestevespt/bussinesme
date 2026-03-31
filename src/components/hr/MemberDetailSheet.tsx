@@ -45,9 +45,11 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
       if (data?.error) throw new Error(data.error);
       if (data?.invite_url) {
         await navigator.clipboard.writeText(data.invite_url);
-        toast.success('Link de convite copiado!');
+        toast.success(data.email_sent ? 'Email enviado e link de convite copiado!' : 'Link de convite copiado!');
+      } else if (data?.email_sent) {
+        toast.success('Email de convite enviado!');
       } else {
-        toast.error('Não foi possível gerar o link.');
+        toast.error(data?.invite_error || 'Não foi possível gerar o link.');
       }
     } catch (err: any) {
       toast.error('Erro: ' + (err.message || err));

@@ -11,6 +11,7 @@ import { FloatingTimer } from "@/components/FloatingTimer";
 import { AuthPage } from "@/components/AuthPage";
 import { SetupPage } from "@/components/SetupPage";
 import NotFound from "./pages/NotFound";
+import ResetPasswordPage from "./pages/ResetPassword";
 import SecretariaPage from "./pages/Secretaria";
 import ComecaAquiPage from "./pages/ComecaAqui";
 import HubPage from "./pages/Hub";
@@ -107,6 +108,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/portal/:token" element={<PortalAuthPage />} />
         <Route path="/portal/:token/view" element={<PortalViewPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="*" element={<AuthPage />} />
       </Routes>
     );
@@ -117,6 +119,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/portal/:token" element={<PortalAuthPage />} />
         <Route path="/portal/:token/view" element={<PortalViewPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="*" element={<SetupPage />} />
       </Routes>
     );
@@ -126,6 +129,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/portal/:token" element={<PortalAuthPage />} />
       <Route path="/portal/:token/view" element={<PortalViewPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/" element={<Navigate to="/secretaria" replace />} />
       <Route path="/secretaria" element={<SecretariaPage />} />
       <Route path="/hub-equipa" element={<HubEquipaPage />} />
