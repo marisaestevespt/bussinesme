@@ -244,13 +244,20 @@ export default function FornecedoresPage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      await supabase.from('suppliers').delete().eq('id', id);
+      // Delete child expenses (generated from recurring rules)
+      await supabase.from('financial_expenses').delete().eq('supplier_id', id);
+      // Delete legacy subscriptions referencing this supplier
+      await supabase.from('financial_subscriptions').delete().eq('supplier_id', id);
+      // Now delete the supplier itself
+      const { error } = await supabase.from('suppliers').delete().eq('id', id);
+      if (error) throw error;
     },
     onSuccess: () => {
       invalidateAll();
       toast.success('Fornecedor eliminado');
       setOpen(false);
     },
+    onError: (err: any) => toast.error(`Erro ao eliminar: ${err.message}`),
   });
 
   // Renewal mutation
