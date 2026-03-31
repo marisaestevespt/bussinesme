@@ -28,7 +28,33 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
   const [vacStart, setVacStart] = useState('');
   const [vacEnd, setVacEnd] = useState('');
   const [vacNotes, setVacNotes] = useState('');
+  const [generatingLink, setGeneratingLink] = useState(false);
   const qc = useQueryClient();
+
+  const handleCopyInviteLink = async () => {
+    if (!member?.email) {
+      toast.error('Este membro não tem email definido.');
+      return;
+    }
+    setGeneratingLink(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-invite-link', {
+        body: { email: member.email },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.invite_url) {
+        await navigator.clipboard.writeText(data.invite_url);
+        toast.success('Link de convite copiado!');
+      } else {
+        toast.error('Não foi possível gerar o link.');
+      }
+    } catch (err: any) {
+      toast.error('Erro: ' + (err.message || err));
+    } finally {
+      setGeneratingLink(false);
+    }
+  };
 
   const memberTasks = useQuery({
     queryKey: ['member-tasks', member?.profile_id],
