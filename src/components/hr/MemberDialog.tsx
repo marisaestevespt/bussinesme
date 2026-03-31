@@ -33,6 +33,9 @@ const DEFAULT_MEMBER_FORM = {
   whatsapp: '',
   work_schedule: '',
   identification: '',
+  iban: '',
+  fiscal_address: '',
+  payment_method: '',
   status: 'ativo',
   member_type: 'colaborador_fixo',
   department: '',
@@ -46,6 +49,16 @@ const DEFAULT_MEMBER_FORM = {
   custom_holidays: [] as string[],
   work_areas: [] as string[],
 };
+
+const PAYMENT_METHOD_OPTIONS = [
+  { value: 'transferencia', label: 'Transferência' },
+  { value: 'mbway', label: 'MB WAY' },
+  { value: 'paypal', label: 'PayPal' },
+  { value: 'stripe', label: 'Stripe' },
+  { value: 'numerario', label: 'Numerário' },
+  { value: 'debito_direto', label: 'Débito Direto' },
+  { value: 'outro', label: 'Outro' },
+];
 
 function ScheduleSelector({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const schedule = parseSchedule(value);
