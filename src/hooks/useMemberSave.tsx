@@ -92,50 +92,79 @@ export function useMemberSave() {
         await autoAssignPermissions(memberId, depts);
       }
 
-      // Create contract + payments for new members
-      if (isNew && contractData && memberId) {
+      // Handle contract: create for new, update for existing
+      if (contractData && memberId) {
         const monthlyVal = parseFloat(contractData.monthly_value) || 0;
         const paymentDay = parseInt(contractData.payment_day) || 1;
-        await supabase.from('member_contracts').insert({
-          member_id: memberId, contract_type: contractData.contract_type,
-          start_date: contractData.start_date || null, end_date: contractData.end_date || null,
-          status: contractData.status, monthly_value: monthlyVal,
-          contracted_hours: contractData.contracted_hours || null, payment_day: paymentDay,
-        });
-        let numPayments = 0;
-        if (contractData.duration === 'unica') numPayments = 1;
-        else if (contractData.duration === 'indefinido') numPayments = 12;
-        else numPayments = parseInt(contractData.duration) || 0;
-        if (numPayments > 0 && contractData.start_date) {
-          const startDate = new Date(contractData.start_date);
-          const payments = [];
-          for (let i = 0; i < numPayments; i++) {
-            const payMonth = ((startDate.getMonth() + i) % 12) + 1;
-            const payYear = startDate.getFullYear() + Math.floor((startDate.getMonth() + i) / 12);
-            payments.push({
-              member_id: memberId, month: payMonth, year: payYear,
-              gross_value: monthlyVal, net_value: monthlyVal,
-              payment_type: contractData.contract_type === 'contrato_prestacao' ? 'prestacao' : 'salario',
-              status: 'por_pagar',
-            });
-          }
-          await supabase.from('member_payments').insert(payments);
 
-          // Auto-generate financial_payroll entries
-          const payrollEntries = payments.map(p => ({
-            collaborator_name: member.full_name,
-            month: p.month,
-            year: p.year,
-            gross_salary: p.gross_value,
-            net_salary: p.net_value,
-            total_cost: p.gross_value,
-            status: 'por_pagar',
-            withholding_rate: 0,
-            withholding_value: 0,
-            ss_employee: 0,
-            ss_employer: 0,
-          }));
-          await supabase.from('financial_payroll').insert(payrollEntries);
+        if (isNew) {
+          // Create contract + payments for new members
+          await supabase.from('member_contracts').insert({
+            member_id: memberId, contract_type: contractData.contract_type,
+            start_date: contractData.start_date || null, end_date: contractData.end_date || null,
+            status: contractData.status, monthly_value: monthlyVal,
+            contracted_hours: contractData.contracted_hours || null, payment_day: paymentDay,
+            document_url: contractData.document_url || null,
+            notes: contractData.notes || null,
+          });
+          let numPayments = 0;
+          if (contractData.duration === 'unica') numPayments = 1;
+          else if (contractData.duration === 'indefinido') numPayments = 12;
+          else numPayments = parseInt(contractData.duration) || 0;
+          if (numPayments > 0 && contractData.start_date) {
+            const startDate = new Date(contractData.start_date);
+            const payments = [];
+            for (let i = 0; i < numPayments; i++) {
+              const payMonth = ((startDate.getMonth() + i) % 12) + 1;
+              const payYear = startDate.getFullYear() + Math.floor((startDate.getMonth() + i) / 12);
+              payments.push({
+                member_id: memberId, month: payMonth, year: payYear,
+                gross_value: monthlyVal, net_value: monthlyVal,
+                payment_type: contractData.contract_type === 'contrato_prestacao' ? 'prestacao' : 'salario',
+                status: 'por_pagar',
+              });
+            }
+            await supabase.from('member_payments').insert(payments);
+
+            // Auto-generate financial_payroll entries
+            const payrollEntries = payments.map(p => ({
+              collaborator_name: member.full_name,
+              month: p.month,
+              year: p.year,
+              gross_salary: p.gross_value,
+              net_salary: p.net_value,
+              total_cost: p.gross_value,
+              status: 'por_pagar',
+              withholding_rate: 0,
+              withholding_value: 0,
+              ss_employee: 0,
+              ss_employer: 0,
+            }));
+            await supabase.from('financial_payroll').insert(payrollEntries);
+          }
+        } else if (contractData.id) {
+          // Update existing contract
+          await supabase.from('member_contracts').update({
+            contract_type: contractData.contract_type,
+            start_date: contractData.start_date || null,
+            end_date: contractData.end_date || null,
+            status: contractData.status,
+            monthly_value: monthlyVal,
+            contracted_hours: contractData.contracted_hours || null,
+            payment_day: paymentDay,
+            document_url: contractData.document_url || null,
+            notes: contractData.notes || null,
+          }).eq('id', contractData.id);
+        } else if (!isNew) {
+          // No existing contract but editing — create one
+          await supabase.from('member_contracts').insert({
+            member_id: memberId, contract_type: contractData.contract_type,
+            start_date: contractData.start_date || null, end_date: contractData.end_date || null,
+            status: contractData.status, monthly_value: monthlyVal,
+            contracted_hours: contractData.contracted_hours || null, payment_day: paymentDay,
+            document_url: contractData.document_url || null,
+            notes: contractData.notes || null,
+          });
         }
       }
 
