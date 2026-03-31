@@ -271,6 +271,10 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
         status: 'ativo',
         document_url: '',
         notes: '',
+        value_includes_vat: false,
+        payment_start_date: '',
+        use_custom_payment_start: false,
+      });
       });
       setContractLoaded(true);
     }
