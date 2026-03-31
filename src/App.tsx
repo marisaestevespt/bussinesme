@@ -11,6 +11,7 @@ import { FloatingTimer } from "@/components/FloatingTimer";
 import { AuthPage } from "@/components/AuthPage";
 import { SetupPage } from "@/components/SetupPage";
 import NotFound from "./pages/NotFound";
+import ResetPasswordPage from "./pages/ResetPassword";
 import SecretariaPage from "./pages/Secretaria";
 import ComecaAquiPage from "./pages/ComecaAqui";
 import HubPage from "./pages/Hub";

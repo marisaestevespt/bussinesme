@@ -189,17 +189,25 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Generate invite link (recovery link so user can set password)
+      // Send real password setup email and also generate a direct recovery link
+      const appOrigin = req.headers.get("origin") || new URL(req.url).origin;
+      const resetRedirectTo = `${appOrigin}/reset-password`;
+      const publicClient = createClient(supabaseUrl, anonKey);
+
+      const { error: inviteEmailError } = await publicClient.auth.resetPasswordForEmail(email, {
+        redirectTo: resetRedirectTo,
+      });
+
       const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink({
         type: "recovery",
         email,
+        options: {
+          redirectTo: resetRedirectTo,
+        },
       });
 
-      let invite_url = null;
-      if (!resetError && resetData?.properties?.hashed_token) {
-        const siteUrl = req.headers.get("origin") || supabaseUrl;
-        invite_url = `${siteUrl}#access_token=${resetData.properties.hashed_token}&type=recovery`;
-      }
+      const invite_url = resetData?.properties?.action_link ?? null;
+      const email_sent = !inviteEmailError;
 
       // Fetch WhatsApp group links for the welcome email
       let whatsapp_team_url: string | null = null;
