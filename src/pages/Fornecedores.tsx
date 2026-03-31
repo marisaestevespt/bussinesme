@@ -714,8 +714,9 @@ export default function FornecedoresPage() {
                 )}
               </div>
             </div>
-          </SheetContent>
-        </Sheet>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Renewal dialog */}
         <Dialog open={renewDialog} onOpenChange={setRenewDialog}>
