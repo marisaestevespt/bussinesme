@@ -337,6 +337,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               </div>
             )}
             <div>
+              <span className="text-xs text-muted-foreground font-medium">Departamentos</span>
               <div className="space-y-1 mt-1.5">
                 {DEPARTMENTS.map(d => {
                   const depts: string[] = Array.isArray(f.departments) ? f.departments : (f.department ? [f.department] : []);
