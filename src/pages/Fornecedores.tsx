@@ -254,6 +254,7 @@ export default function FornecedoresPage() {
         contract_start_date: form.contract_start_date || null,
         contract_end_date: form.contract_end_date || null,
         documents: form.documents || [],
+        expense_description_template: form.expense_description_template || null,
       };
 
       let supplierId = form.id;
