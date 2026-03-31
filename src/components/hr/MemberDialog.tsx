@@ -141,8 +141,6 @@ function ScheduleSelector({ value, onChange }: { value: string; onChange: (v: st
 export function MemberDialog({ open, onClose, initial, onSave }: any) {
   const { settings } = useBusinessSettings();
   const isENI = settings?.business_type === 'eni';
-  const isOwnerRole = f.role_title === 'Owner';
-  const isENIOwner = isENI && isOwnerRole;
 
   const isEdit = !!initial?.id;
   const [f, setF] = useState({ ...DEFAULT_MEMBER_FORM, ...(initial || {}) });
@@ -157,6 +155,9 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
     end_date: '',
     status: 'ativo',
   });
+
+  const isOwnerRole = f.role_title === 'Owner';
+  const isENIOwner = isENI && isOwnerRole;
 
   useEffect(() => {
     const init = { ...DEFAULT_MEMBER_FORM, ...(initial || {}) };
