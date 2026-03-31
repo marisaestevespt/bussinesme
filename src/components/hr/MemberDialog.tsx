@@ -145,7 +145,9 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
   const isEdit = !!initial?.id;
   const [f, setF] = useState({ ...DEFAULT_MEMBER_FORM, ...(initial || {}) });
   const [uploading, setUploading] = useState(false);
+  const [uploadingContract, setUploadingContract] = useState(false);
   const [contract, setContract] = useState({
+    id: '',
     contract_type: 'contrato_trabalho',
     duration: '12',
     monthly_value: '',
@@ -154,7 +156,10 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
     start_date: '',
     end_date: '',
     status: 'ativo',
+    document_url: '',
+    notes: '',
   });
+  const [contractLoaded, setContractLoaded] = useState(false);
 
   const isOwnerRole = f.role_title === 'Owner';
   const isENIOwner = isENI && isOwnerRole;
@@ -162,7 +167,9 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
   useEffect(() => {
     const init = { ...DEFAULT_MEMBER_FORM, ...(initial || {}) };
     setF(init);
+    setContractLoaded(false);
     if (initial?.id) {
+      // Load sensitive access
       supabase.from('member_sensitive_access').select('category, granted').eq('member_id', initial.id).then(({ data }) => {
         if (data && data.length > 0) {
           const sa: Record<string, boolean> = {};
@@ -170,6 +177,41 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
           setF((prev: any) => ({ ...prev, sensitiveAccess: sa }));
         }
       });
+      // Load existing contract
+      supabase.from('member_contracts').select('*').eq('member_id', initial.id).order('created_at', { ascending: false }).limit(1).then(({ data }) => {
+        if (data && data.length > 0) {
+          const c = data[0];
+          setContract({
+            id: c.id,
+            contract_type: c.contract_type || 'contrato_trabalho',
+            duration: 'indefinido',
+            monthly_value: c.monthly_value?.toString() || '',
+            contracted_hours: c.contracted_hours || '',
+            payment_day: c.payment_day?.toString() || '1',
+            start_date: c.start_date || '',
+            end_date: c.end_date || '',
+            status: c.status || 'ativo',
+            document_url: c.document_url || '',
+            notes: c.notes || '',
+          });
+        }
+        setContractLoaded(true);
+      });
+    } else {
+      setContract({
+        id: '',
+        contract_type: 'contrato_trabalho',
+        duration: '12',
+        monthly_value: '',
+        contracted_hours: '',
+        payment_day: '1',
+        start_date: '',
+        end_date: '',
+        status: 'ativo',
+        document_url: '',
+        notes: '',
+      });
+      setContractLoaded(true);
     }
   }, [initial]);
 
