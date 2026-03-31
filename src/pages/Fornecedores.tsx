@@ -379,7 +379,7 @@ export default function FornecedoresPage() {
                 {suppliers.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Sem fornecedores</TableCell></TableRow>
                 ) : suppliers.map((s: any) => (
-                  <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setForm({ ...s, create_recurring: false }); setOpen(true); }}>
+                  <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setForm({ ...s, create_recurring: false }); setSelectedSupplierId(s.id); setOpen(true); }}>
                     <TableCell>
                       <div className="font-medium">{s.name}</div>
                       {s.nif && <div className="text-xs text-muted-foreground">{s.nif}</div>}
