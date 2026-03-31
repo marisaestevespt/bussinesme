@@ -44,29 +44,63 @@ export default function SecretariaProdutividade() {
   const [timerCategory, setTimerCategory] = useState('interno');
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const normalizedTimerTask = timerTask || null;
+  const normalizedTimerProject = timerProject && timerProject !== 'none' ? timerProject : null;
+  const canStartTimer = !!normalizedTimerTask && !timerRunning;
+
   useEffect(() => {
     if (timerRunning && timerStart) {
       intervalRef.current = setInterval(() => {
         setTimerElapsed(differenceInSeconds(new Date(), timerStart));
       }, 1000);
     }
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [timerRunning, timerStart]);
 
-  const startTimer = () => { setTimerStart(new Date()); setTimerRunning(true); setTimerElapsed(0); };
+  const startTimer = () => {
+    if (!normalizedTimerTask) {
+      toast.error('Seleciona uma tarefa para iniciar o timer');
+      return;
+    }
+
+    setTimerStart(new Date());
+    setTimerRunning(true);
+    setTimerElapsed(0);
+  };
 
   const stopTimer = async () => {
-    if (!timerStart || !teamMember.data?.id) return;
+    if (!timerStart || !normalizedTimerTask) return;
+
     const durationHours = Math.round((timerElapsed / 3600) * 100) / 100;
-    if (durationHours < 0.01) { toast.error('Duração mínima: 1 minuto'); return; }
+    if (durationHours < 0.01) {
+      toast.error('Duração mínima: 1 minuto');
+      return;
+    }
+
     const { error } = await supabase.from('time_entries').insert({
-      member_id: teamMember.data.id, entry_date: format(new Date(), 'yyyy-MM-dd'),
-      duration: durationHours, category: timerCategory,
-      description: timerDesc || null, project_id: timerProject || null, task_id: timerTask || null,
+      member_id: teamMember.data?.id ?? null,
+      entry_date: format(new Date(), 'yyyy-MM-dd'),
+      duration: durationHours,
+      category: timerCategory,
+      description: timerDesc || null,
+      project_id: normalizedTimerProject,
+      task_id: normalizedTimerTask,
     });
-    if (error) { toast.error('Erro ao guardar registo'); return; }
-    setTimerRunning(false); setTimerStart(null); setTimerElapsed(0);
-    setTimerDesc(''); setTimerProject(''); setTimerTask(''); setTimerCategory('interno');
+
+    if (error) {
+      toast.error('Erro ao guardar registo');
+      return;
+    }
+
+    setTimerRunning(false);
+    setTimerStart(null);
+    setTimerElapsed(0);
+    setTimerDesc('');
+    setTimerProject('');
+    setTimerTask('');
+    setTimerCategory('interno');
     qc.invalidateQueries({ queryKey: ['my-time-entries'] });
     toast.success('Tempo registado');
   };
@@ -76,7 +110,6 @@ export default function SecretariaProdutividade() {
 
   const myMeetings = useMyMeetings();
 
-  // Merge meetings into virtual time entries
   const allTimeEntries = useMemo(() => {
     const raw = timeEntries.data || [];
     const memberId = teamMember.data?.id;
@@ -86,8 +119,10 @@ export default function SecretariaProdutividade() {
     (myMeetings.data || []).forEach((meeting: any) => {
       if (!meeting.duration_minutes || meeting.duration_minutes <= 0) return;
       if (meeting.status === 'por_confirmar') return;
+
       const durationHours = Number((meeting.duration_minutes / 60).toFixed(2));
       const entryDate = format(new Date(meeting.date_time), 'yyyy-MM-dd');
+
       meetingEntries.push({
         id: `meeting-${meeting.id}`,
         entry_date: entryDate,
@@ -101,6 +136,7 @@ export default function SecretariaProdutividade() {
         _isMeeting: true,
       });
     });
+
     return [...raw, ...meetingEntries];
   }, [timeEntries.data, myMeetings.data, teamMember.data?.id]);
 
@@ -151,7 +187,10 @@ export default function SecretariaProdutividade() {
   const monthCompletedTasks = useMemo(() => allTasks.filter((t: any) => t.status === 'done' && t.updated_at && isWithinInterval(parseISO(t.updated_at), { start: monthStart, end: monthEnd })), [allTasks]);
 
   const deleteEntry = async (id: string) => {
-    if (id.startsWith('meeting-')) { toast.error('Reuniões não podem ser eliminadas aqui'); return; }
+    if (id.startsWith('meeting-')) {
+      toast.error('Reuniões não podem ser eliminadas aqui');
+      return;
+    }
     await supabase.from('time_entries').delete().eq('id', id);
     qc.invalidateQueries({ queryKey: ['my-time-entries'] });
     toast.success('Registo eliminado');
@@ -244,27 +283,26 @@ export default function SecretariaProdutividade() {
             <div className="flex items-center gap-3">
               <span className="font-mono text-2xl font-bold tabular-nums">{formatTimer(timerElapsed)}</span>
               {!timerRunning ? (
-                <Button size="sm" onClick={startTimer} disabled={!teamMember.data?.id}><Play className="h-4 w-4 mr-1" /> Iniciar</Button>
+                <Button size="sm" onClick={startTimer} disabled={!canStartTimer}><Play className="h-4 w-4 mr-1" /> Iniciar</Button>
               ) : (
                 <Button size="sm" variant="destructive" onClick={stopTimer}><Square className="h-4 w-4 mr-1" /> Parar</Button>
               )}
             </div>
-            <Input placeholder="Descrição..." value={timerDesc} onChange={e => setTimerDesc(e.target.value)} className="max-w-[200px]" />
-            <Select value={timerCategory} onValueChange={setTimerCategory}>
+            <Input placeholder="Descrição..." value={timerDesc} onChange={e => setTimerDesc(e.target.value)} className="max-w-[200px]" disabled={timerRunning} />
+            <Select value={timerCategory} onValueChange={setTimerCategory} disabled={timerRunning}>
               <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
               <SelectContent>{TIME_CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
             </Select>
-            <Select value={timerProject} onValueChange={setTimerProject}>
+            <Select value={timerProject} onValueChange={setTimerProject} disabled={timerRunning}>
               <SelectTrigger className="w-[160px]"><SelectValue placeholder="Projeto..." /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Nenhum</SelectItem>
                 {(allProjects.data || []).map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Select value={timerTask} onValueChange={setTimerTask}>
-              <SelectTrigger className="w-[160px]"><SelectValue placeholder="Tarefa..." /></SelectTrigger>
+            <Select value={timerTask} onValueChange={setTimerTask} disabled={timerRunning}>
+              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Tarefa obrigatória..." /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Nenhuma</SelectItem>
                 {openTasks.map((t: any) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
               </SelectContent>
             </Select>
