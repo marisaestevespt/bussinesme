@@ -434,6 +434,10 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               <Input placeholder="Telefone" value={f.whatsapp || ''} onChange={e => set('whatsapp', e.target.value)} />
               <Input placeholder="NIF / Identificação" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
             </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Input placeholder="IBAN" value={f.iban || ''} onChange={e => set('iban', e.target.value)} />
+              <Input placeholder="Morada fiscal" value={f.fiscal_address || ''} onChange={e => set('fiscal_address', e.target.value)} />
+            </div>
 
             {/* Nascimento */}
             <div>
