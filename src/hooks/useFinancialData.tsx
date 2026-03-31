@@ -311,6 +311,8 @@ export function useFinancialData() {
 
   const deleteRecurringExpense = useMutation({
     mutationFn: async (id: string) => {
+      // Delete children first, then the parent rule
+      await supabase.from('financial_expenses').delete().eq('parent_expense_id', id);
       const { error } = await supabase.from('financial_expenses').delete().eq('id', id);
       if (error) throw error;
     },
