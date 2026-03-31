@@ -7507,6 +7507,8 @@ export type Database = {
         Row: {
           address: string | null
           category: string | null
+          contract_end_date: string | null
+          contract_start_date: string | null
           created_at: string | null
           default_vat_rate: number | null
           documents: Json | null
@@ -7514,17 +7516,21 @@ export type Database = {
           iban: string | null
           id: string
           is_active: boolean | null
+          last_renewal_date: string | null
           name: string
           nif: string | null
           notes: string | null
           payment_method: string | null
           phone: string | null
+          renewal_history: Json | null
           updated_at: string | null
           website: string | null
         }
         Insert: {
           address?: string | null
           category?: string | null
+          contract_end_date?: string | null
+          contract_start_date?: string | null
           created_at?: string | null
           default_vat_rate?: number | null
           documents?: Json | null
@@ -7532,17 +7538,21 @@ export type Database = {
           iban?: string | null
           id?: string
           is_active?: boolean | null
+          last_renewal_date?: string | null
           name: string
           nif?: string | null
           notes?: string | null
           payment_method?: string | null
           phone?: string | null
+          renewal_history?: Json | null
           updated_at?: string | null
           website?: string | null
         }
         Update: {
           address?: string | null
           category?: string | null
+          contract_end_date?: string | null
+          contract_start_date?: string | null
           created_at?: string | null
           default_vat_rate?: number | null
           documents?: Json | null
@@ -7550,11 +7560,13 @@ export type Database = {
           iban?: string | null
           id?: string
           is_active?: boolean | null
+          last_renewal_date?: string | null
           name?: string
           nif?: string | null
           notes?: string | null
           payment_method?: string | null
           phone?: string | null
+          renewal_history?: Json | null
           updated_at?: string | null
           website?: string | null
         }
