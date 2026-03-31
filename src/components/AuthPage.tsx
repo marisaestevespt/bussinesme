@@ -95,7 +95,7 @@ export function AuthPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignUp && (
+            {isSignUp && !isForgot && (
               <div className="space-y-2">
                 <Label htmlFor="fullName">Nome completo</Label>
                 <Input
@@ -120,21 +120,34 @@ export function AuthPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Palavra-passe</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                minLength={6}
-              />
-            </div>
+            {!isForgot && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Palavra-passe</Label>
+                  {!isSignUp && (
+                    <button
+                      type="button"
+                      onClick={() => setIsForgot(true)}
+                      className="text-xs text-muted-foreground hover:text-foreground hq-transition"
+                    >
+                      Esqueci a palavra-passe
+                    </button>
+                  )}
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  minLength={6}
+                />
+              </div>
+            )}
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'A processar...' : isSignUp ? 'Criar conta' : 'Entrar'}
+              {loading ? 'A processar...' : isForgot ? 'Enviar link de recuperação' : isSignUp ? 'Criar conta' : 'Entrar'}
             </Button>
           </form>
 
