@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Upload } from 'lucide-react';
+import { Plus, Upload, FileText, ExternalLink, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -138,6 +138,48 @@ function ScheduleSelector({ value, onChange }: { value: string; onChange: (v: st
   );
 }
 
+function ContractDocUpload({ contract, setC, uploading, setUploading, memberId }: {
+  contract: any; setC: (k: string, v: any) => void; uploading: boolean; setUploading: (v: boolean) => void; memberId?: string;
+}) {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const ext = file.name.split('.').pop();
+    const path = `contracts/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('financial-files').upload(path, file);
+    if (error) { toast.error('Erro ao carregar documento'); setUploading(false); return; }
+    const { data: urlData } = supabase.storage.from('financial-files').getPublicUrl(path);
+    setC('document_url', urlData.publicUrl);
+    // If editing and contract exists, update DB immediately
+    if (contract.id) {
+      await supabase.from('member_contracts').update({ document_url: urlData.publicUrl }).eq('id', contract.id);
+    }
+    setUploading(false);
+    toast.success('Documento carregado!');
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs text-muted-foreground font-medium">Documento do contrato</label>
+      <div className="flex items-center gap-2">
+        <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors text-xs text-muted-foreground hover:text-foreground">
+          {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+          {uploading ? 'A carregar...' : 'Upload ficheiro'}
+          <input type="file" accept=".pdf,.doc,.docx,.jpg,.png" className="hidden" onChange={handleUpload} disabled={uploading} />
+        </label>
+        {contract.document_url && (
+          <a href={contract.document_url} target="_blank" rel="noopener" className="flex items-center gap-1 text-xs text-primary hover:underline">
+            <FileText className="h-3.5 w-3.5" />
+            Ver documento
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function MemberDialog({ open, onClose, initial, onSave }: any) {
   const { settings } = useBusinessSettings();
   const isENI = settings?.business_type === 'eni';
@@ -145,7 +187,9 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
   const isEdit = !!initial?.id;
   const [f, setF] = useState({ ...DEFAULT_MEMBER_FORM, ...(initial || {}) });
   const [uploading, setUploading] = useState(false);
+  const [uploadingContract, setUploadingContract] = useState(false);
   const [contract, setContract] = useState({
+    id: '',
     contract_type: 'contrato_trabalho',
     duration: '12',
     monthly_value: '',
@@ -154,7 +198,10 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
     start_date: '',
     end_date: '',
     status: 'ativo',
+    document_url: '',
+    notes: '',
   });
+  const [contractLoaded, setContractLoaded] = useState(false);
 
   const isOwnerRole = f.role_title === 'Owner';
   const isENIOwner = isENI && isOwnerRole;
@@ -162,7 +209,9 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
   useEffect(() => {
     const init = { ...DEFAULT_MEMBER_FORM, ...(initial || {}) };
     setF(init);
+    setContractLoaded(false);
     if (initial?.id) {
+      // Load sensitive access
       supabase.from('member_sensitive_access').select('category, granted').eq('member_id', initial.id).then(({ data }) => {
         if (data && data.length > 0) {
           const sa: Record<string, boolean> = {};
@@ -170,6 +219,41 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
           setF((prev: any) => ({ ...prev, sensitiveAccess: sa }));
         }
       });
+      // Load existing contract
+      supabase.from('member_contracts').select('*').eq('member_id', initial.id).order('created_at', { ascending: false }).limit(1).then(({ data }) => {
+        if (data && data.length > 0) {
+          const c = data[0];
+          setContract({
+            id: c.id,
+            contract_type: c.contract_type || 'contrato_trabalho',
+            duration: 'indefinido',
+            monthly_value: c.monthly_value?.toString() || '',
+            contracted_hours: c.contracted_hours || '',
+            payment_day: c.payment_day?.toString() || '1',
+            start_date: c.start_date || '',
+            end_date: c.end_date || '',
+            status: c.status || 'ativo',
+            document_url: c.document_url || '',
+            notes: c.notes || '',
+          });
+        }
+        setContractLoaded(true);
+      });
+    } else {
+      setContract({
+        id: '',
+        contract_type: 'contrato_trabalho',
+        duration: '12',
+        monthly_value: '',
+        contracted_hours: '',
+        payment_day: '1',
+        start_date: '',
+        end_date: '',
+        status: 'ativo',
+        document_url: '',
+        notes: '',
+      });
+      setContractLoaded(true);
     }
   }, [initial]);
 
@@ -441,7 +525,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
              <ScheduleSelector value={f.work_schedule || ''} onChange={v => set('work_schedule', v)} />
           </div>
 
-          {!isEdit && isENIOwner && (
+          {isENIOwner && (
             <>
               <Separator />
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">💰 Ordenado</h3>
@@ -459,10 +543,12 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                   <Input type="date" value={contract.start_date} onChange={e => handleStartDateChange(e.target.value)} />
                 </div>
               </div>
+              {/* Document upload for ENI Owner */}
+              <ContractDocUpload contract={contract} setC={setC} uploading={uploadingContract} setUploading={setUploadingContract} memberId={initial?.id} />
             </>
           )}
 
-          {!isEdit && !isENIOwner && (
+          {!isENIOwner && (
             <>
               <Separator />
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">📄 Contrato & Pagamento</h3>
@@ -474,13 +560,15 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                     <SelectContent>{CONTRACT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <label className="text-xs text-muted-foreground">Duração do contrato</label>
-                  <Select value={contract.duration} onValueChange={handleDurationChange}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{CONTRACT_DURATIONS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
+                {!isEdit && (
+                  <div>
+                    <label className="text-xs text-muted-foreground">Duração do contrato</label>
+                    <Select value={contract.duration} onValueChange={handleDurationChange}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{CONTRACT_DURATIONS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
@@ -513,11 +601,17 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                   <SelectContent>{CONTRACT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
+              {/* Document upload */}
+              <ContractDocUpload contract={contract} setC={setC} uploading={uploadingContract} setUploading={setUploadingContract} memberId={initial?.id} />
+              <div>
+                <label className="text-xs text-muted-foreground">Notas do contrato</label>
+                <Textarea className="text-xs" rows={2} placeholder="Notas adicionais..." value={contract.notes} onChange={e => setC('notes', e.target.value)} />
+              </div>
             </>
           )}
 
           <input type="hidden" value={f.presentation || ''} />
-          <Button className="w-full" onClick={() => { onSave({ member: { ...initial, ...f }, contract: isEdit ? null : contract }); onClose(false); }} disabled={!f.full_name.trim()}>Guardar</Button>
+          <Button className="w-full" onClick={() => { onSave({ member: { ...initial, ...f }, contract }); onClose(false); }} disabled={!f.full_name.trim()}>Guardar</Button>
         </div>
       </DialogContent>
     </Dialog>
