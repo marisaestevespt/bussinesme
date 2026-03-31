@@ -151,14 +151,24 @@ export function AuthPage() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm text-muted-foreground hq-transition hover:text-foreground"
-            >
-              {isSignUp ? 'Já tens conta? Entra aqui.' : 'Não tens conta? Cria uma.'}
-            </button>
+          <div className="mt-6 text-center space-y-2">
+            {isForgot ? (
+              <button
+                type="button"
+                onClick={() => setIsForgot(false)}
+                className="text-sm text-muted-foreground hq-transition hover:text-foreground"
+              >
+                Voltar ao login
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="text-sm text-muted-foreground hq-transition hover:text-foreground"
+              >
+                {isSignUp ? 'Já tens conta? Entra aqui.' : 'Não tens conta? Cria uma.'}
+              </button>
+            )}
           </div>
         </div>
       </div>
