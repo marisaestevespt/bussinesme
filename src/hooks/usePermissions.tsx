@@ -61,18 +61,55 @@ export function usePermissions() {
         }
       }
 
-      // Get user's custom role via members table
+      // Get user's custom role via members table (try user_id first, then profile lookup)
+      let customRoleId: string | null = null;
+
       const { data: member } = await supabase
         .from('members')
         .select('custom_role_id')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (member?.custom_role_id) {
+      customRoleId = member?.custom_role_id ?? null;
+
+      // Fallback: if no members record, look up via team_members profile chain
+      if (!customRoleId && profile) {
+        const { data: tmWithRole } = await supabase
+          .from('members')
+          .select('custom_role_id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        // If still nothing, try to find a custom_role that matches the member's departments
+        if (!tmWithRole?.custom_role_id) {
+          const depts = userDepartments.length > 0 ? userDepartments : [];
+          if (depts.length > 0) {
+            const deptRoleName = `dept_${depts.sort().join('_')}`;
+            const { data: roleByName } = await supabase
+              .from('custom_roles')
+              .select('id')
+              .eq('name', deptRoleName)
+              .maybeSingle();
+
+            if (roleByName?.id) {
+              customRoleId = roleByName.id;
+              // Auto-create the members record for next time
+              await supabase.from('members').insert({
+                user_id: user.id,
+                custom_role_id: roleByName.id,
+              });
+            }
+          }
+        } else {
+          customRoleId = tmWithRole.custom_role_id;
+        }
+      }
+
+      if (customRoleId) {
         const { data: permissions } = await supabase
           .from('role_permissions')
           .select('module_key')
-          .eq('custom_role_id', member.custom_role_id)
+          .eq('custom_role_id', customRoleId)
           .eq('can_view', true);
 
         setAllowedModules(new Set(permissions?.map(p => p.module_key) || []));
