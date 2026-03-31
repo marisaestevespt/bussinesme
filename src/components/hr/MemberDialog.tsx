@@ -431,6 +431,23 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
              <ScheduleSelector value={f.work_schedule || ''} onChange={v => set('work_schedule', v)} />
           </div>
 
+          {!isEdit && isENIOwner && (
+            <>
+              <Separator />
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">💰 Ordenado</h3>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-muted-foreground">Valor mensal (€)</label>
+                  <Input type="number" placeholder="0" value={contract.monthly_value} onChange={e => setC('monthly_value', e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Dia do mês de pagamento</label>
+                  <Input type="number" min={1} max={31} placeholder="1" value={contract.payment_day} onChange={e => setC('payment_day', e.target.value)} />
+                </div>
+              </div>
+            </>
+          )}
+
           {!isEdit && !isENIOwner && (
             <>
               <Separator />
