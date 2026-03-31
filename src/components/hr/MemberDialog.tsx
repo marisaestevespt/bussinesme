@@ -138,6 +138,48 @@ function ScheduleSelector({ value, onChange }: { value: string; onChange: (v: st
   );
 }
 
+function ContractDocUpload({ contract, setC, uploading, setUploading, memberId }: {
+  contract: any; setC: (k: string, v: any) => void; uploading: boolean; setUploading: (v: boolean) => void; memberId?: string;
+}) {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const ext = file.name.split('.').pop();
+    const path = `contracts/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('financial-files').upload(path, file);
+    if (error) { toast.error('Erro ao carregar documento'); setUploading(false); return; }
+    const { data: urlData } = supabase.storage.from('financial-files').getPublicUrl(path);
+    setC('document_url', urlData.publicUrl);
+    // If editing and contract exists, update DB immediately
+    if (contract.id) {
+      await supabase.from('member_contracts').update({ document_url: urlData.publicUrl }).eq('id', contract.id);
+    }
+    setUploading(false);
+    toast.success('Documento carregado!');
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs text-muted-foreground font-medium">Documento do contrato</label>
+      <div className="flex items-center gap-2">
+        <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors text-xs text-muted-foreground hover:text-foreground">
+          {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+          {uploading ? 'A carregar...' : 'Upload ficheiro'}
+          <input type="file" accept=".pdf,.doc,.docx,.jpg,.png" className="hidden" onChange={handleUpload} disabled={uploading} />
+        </label>
+        {contract.document_url && (
+          <a href={contract.document_url} target="_blank" rel="noopener" className="flex items-center gap-1 text-xs text-primary hover:underline">
+            <FileText className="h-3.5 w-3.5" />
+            Ver documento
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function MemberDialog({ open, onClose, initial, onSave }: any) {
   const { settings } = useBusinessSettings();
   const isENI = settings?.business_type === 'eni';
