@@ -7513,6 +7513,7 @@ export type Database = {
           default_vat_rate: number | null
           documents: Json | null
           email: string | null
+          expense_description_template: string | null
           iban: string | null
           id: string
           is_active: boolean | null
@@ -7536,6 +7537,7 @@ export type Database = {
           default_vat_rate?: number | null
           documents?: Json | null
           email?: string | null
+          expense_description_template?: string | null
           iban?: string | null
           id?: string
           is_active?: boolean | null
@@ -7559,6 +7561,7 @@ export type Database = {
           default_vat_rate?: number | null
           documents?: Json | null
           email?: string | null
+          expense_description_template?: string | null
           iban?: string | null
           id?: string
           is_active?: boolean | null
