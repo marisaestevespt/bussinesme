@@ -454,9 +454,9 @@ export default function FornecedoresPage() {
                 {form.create_recurring && (
                   <div className="space-y-3">
                     {!form.contract_start_date || !form.contract_end_date ? (
-                      <p className="text-xs text-amber-600">⚠️ Define as datas do contrato acima para gerar despesas</p>
+                      <p className="text-xs text-destructive/80">⚠️ Define as datas do contrato acima para gerar despesas</p>
                     ) : null}
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                       <div><Label className="text-xs">Valor base (€)</Label><Input type="number" step="0.01" value={form.recurring_value || ''} onChange={e => setForm((f: any) => ({ ...f, recurring_value: e.target.value }))} /></div>
                       <div><Label className="text-xs">Periodicidade</Label>
                         <Select value={form.recurring_periodicity || 'mensal'} onValueChange={v => setForm((f: any) => ({ ...f, recurring_periodicity: v }))}>
@@ -464,39 +464,20 @@ export default function FornecedoresPage() {
                           <SelectContent>{PERIODICITIES.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}</SelectContent>
                         </Select>
                       </div>
-                      <div><Label className="text-xs">Dia pagamento</Label>
-                        <Select value={String(form.recurring_day || '')} onValueChange={v => setForm((f: any) => ({ ...f, recurring_day: v ? parseInt(v) : null }))}>
-                          <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                          <SelectContent>
-                            {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
-                              <SelectItem key={d} value={String(d)}>Dia {d}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Data do 1º pagamento</Label>
+                      <Input type="date" value={form.first_payment_date || form.contract_start_date || ''} onChange={e => setForm((f: any) => ({ ...f, first_payment_date: e.target.value }))} />
+                      <p className="text-[11px] text-muted-foreground mt-0.5">As despesas serão geradas a partir desta data, com o intervalo da periodicidade, até ao fim do contrato.</p>
                     </div>
                     {form.recurring_value && parseFloat(form.recurring_value) > 0 && (
                       <p className="text-xs text-muted-foreground">
                         Equivalente mensal: {fmt(calcMonthlyEquivalent(parseFloat(form.recurring_value), form.recurring_periodicity || 'mensal'))}
                       </p>
                     )}
-                    {/* Catch-up toggle + date */}
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Switch checked={form.include_catchup || false} onCheckedChange={v => setForm((f: any) => ({ ...f, include_catchup: v, catchup_date: v ? new Date().toISOString().slice(0, 10) : '' }))} />
-                        <Label className="text-xs font-normal">Incluir entrada avulsa (marcada como paga)</Label>
-                      </div>
-                      {form.include_catchup && (
-                        <div className="pl-8">
-                          <Label className="text-xs">Data da entrada</Label>
-                          <Input type="date" value={form.catchup_date || new Date().toISOString().slice(0, 10)} onChange={e => setForm((f: any) => ({ ...f, catchup_date: e.target.value }))} />
-                        </div>
-                      )}
-                    </div>
-                    {form.contract_start_date && form.contract_end_date && form.recurring_value && (
+                    {form.contract_end_date && (form.first_payment_date || form.contract_start_date) && form.recurring_value && (
                       <p className="text-xs text-muted-foreground">
-                        Serão geradas {countFutureOccurrences(form.contract_start_date, form.contract_end_date, form.recurring_periodicity || 'mensal', form.recurring_day || 1, form.include_catchup || false, form.catchup_date)} despesas
-                        {form.include_catchup ? ` (1 entrada em ${form.catchup_date || 'hoje'} + futuras)` : ' (apenas futuras)'}
+                        Serão geradas {countOccurrences(form.first_payment_date || form.contract_start_date, form.contract_end_date, form.recurring_periodicity || 'mensal')} despesas
                       </p>
                     )}
                   </div>
