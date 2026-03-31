@@ -79,15 +79,17 @@ export function AuthPage() {
               </div>
             )}
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-                {isSignUp ? 'Criar conta' : 'Bem-vinda!'}
+             <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+                {isForgot ? 'Recuperar palavra-passe' : isSignUp ? 'Criar conta' : 'Bem-vinda!'}
               </h1>
               <p className="mt-1.5 text-sm text-muted-foreground">
-                {isSignUp
-                  ? 'Cria a tua conta para começar.'
-                  : businessName
-                    ? `Entra no teu espaço ${businessName}.`
-                    : 'Bem-vinda de volta ao teu HQ.'}
+                {isForgot
+                  ? 'Introduz o teu email para receberes o link de recuperação.'
+                  : isSignUp
+                    ? 'Cria a tua conta para começar.'
+                    : businessName
+                      ? `Entra no teu espaço ${businessName}.`
+                      : 'Bem-vinda de volta ao teu HQ.'}
               </p>
             </div>
           </div>
