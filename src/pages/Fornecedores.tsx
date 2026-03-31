@@ -149,23 +149,6 @@ export default function FornecedoresPage() {
     },
   });
 
-  // Auto-open supplier from query param (?open=supplierId)
-  useEffect(() => {
-    if (autoOpened || suppliers.length === 0) return;
-    const openId = searchParams.get('open');
-    if (openId) {
-      const supplier = suppliers.find((s: any) => s.id === openId);
-      if (supplier) {
-        setForm({ ...supplier, create_recurring: false });
-        setSelectedSupplierId(supplier.id);
-        setOpen(true);
-        setAutoOpened(true);
-        // Clean the URL param
-        searchParams.delete('open');
-        setSearchParams(searchParams, { replace: true });
-      }
-    }
-  }, [suppliers, autoOpened, searchParams]);
 
   const updateExpense = useMutation({
     mutationFn: async (exp: any) => {
