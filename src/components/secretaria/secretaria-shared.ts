@@ -77,12 +77,16 @@ export function useMyProfile() {
 }
 
 export function useMyTeamMember() {
-  const { user } = useAuth();
+  const profile = useMyProfile();
   return useQuery({
-    queryKey: ['my-team-member', user?.id],
-    enabled: !!user?.id,
+    queryKey: ['my-team-member', profile.data?.id],
+    enabled: !!profile.data?.id,
     queryFn: async () => {
-      const { data } = await supabase.from('team_members').select('*').eq('profile_id', user!.id).maybeSingle();
+      const { data } = await supabase
+        .from('team_members')
+        .select('*')
+        .eq('profile_id', profile.data!.id)
+        .maybeSingle();
       return data;
     },
   });

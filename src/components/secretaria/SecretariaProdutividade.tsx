@@ -43,6 +43,9 @@ export default function SecretariaProdutividade() {
   const [timerTask, setTimerTask] = useState('');
   const [timerCategory, setTimerCategory] = useState('interno');
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const normalizedTimerTask = timerTask && timerTask !== 'none' ? timerTask : null;
+  const normalizedTimerProject = timerProject && timerProject !== 'none' ? timerProject : null;
+  const canStartTimer = !!normalizedTimerTask && !timerRunning;
 
   useEffect(() => {
     if (timerRunning && timerStart) {
@@ -53,16 +56,28 @@ export default function SecretariaProdutividade() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [timerRunning, timerStart]);
 
-  const startTimer = () => { setTimerStart(new Date()); setTimerRunning(true); setTimerElapsed(0); };
+  const startTimer = () => {
+    if (!normalizedTimerTask) {
+      toast.error('Seleciona uma tarefa para iniciar o timer');
+      return;
+    }
+    setTimerStart(new Date());
+    setTimerRunning(true);
+    setTimerElapsed(0);
+  };
 
   const stopTimer = async () => {
-    if (!timerStart || !teamMember.data?.id) return;
+    if (!timerStart || !normalizedTimerTask) return;
     const durationHours = Math.round((timerElapsed / 3600) * 100) / 100;
     if (durationHours < 0.01) { toast.error('Duração mínima: 1 minuto'); return; }
     const { error } = await supabase.from('time_entries').insert({
-      member_id: teamMember.data.id, entry_date: format(new Date(), 'yyyy-MM-dd'),
-      duration: durationHours, category: timerCategory,
-      description: timerDesc || null, project_id: timerProject || null, task_id: timerTask || null,
+      member_id: teamMember.data?.id ?? null,
+      entry_date: format(new Date(), 'yyyy-MM-dd'),
+      duration: durationHours,
+      category: timerCategory,
+      description: timerDesc || null,
+      project_id: normalizedTimerProject,
+      task_id: normalizedTimerTask,
     });
     if (error) { toast.error('Erro ao guardar registo'); return; }
     setTimerRunning(false); setTimerStart(null); setTimerElapsed(0);
@@ -70,173 +85,7 @@ export default function SecretariaProdutividade() {
     qc.invalidateQueries({ queryKey: ['my-time-entries'] });
     toast.success('Tempo registado');
   };
-
-  const periodStart = period === 'week' ? weekStart : period === 'month' ? monthStart : (customFrom ? startOfDay(customFrom) : weekStart);
-  const periodEnd = period === 'week' ? weekEnd : period === 'month' ? monthEnd : (customTo ? startOfDay(customTo) : weekEnd);
-
-  const myMeetings = useMyMeetings();
-
-  // Merge meetings into virtual time entries
-  const allTimeEntries = useMemo(() => {
-    const raw = timeEntries.data || [];
-    const memberId = teamMember.data?.id;
-    if (!memberId) return raw;
-
-    const meetingEntries: any[] = [];
-    (myMeetings.data || []).forEach((meeting: any) => {
-      if (!meeting.duration_minutes || meeting.duration_minutes <= 0) return;
-      if (meeting.status === 'por_confirmar') return;
-      const durationHours = Number((meeting.duration_minutes / 60).toFixed(2));
-      const entryDate = format(new Date(meeting.date_time), 'yyyy-MM-dd');
-      meetingEntries.push({
-        id: `meeting-${meeting.id}`,
-        entry_date: entryDate,
-        member_id: memberId,
-        duration: durationHours,
-        category: 'reuniao',
-        client_id: meeting.client_id || null,
-        project_id: meeting.project_id || null,
-        task_id: null,
-        description: `Reunião: ${meeting.title}`,
-        _isMeeting: true,
-      });
-    });
-    return [...raw, ...meetingEntries];
-  }, [timeEntries.data, myMeetings.data, teamMember.data?.id]);
-
-  const allTasks = tasks.data || [];
-
-  const periodEntries = useMemo(() => allTimeEntries.filter((e: any) => {
-    const d = parseISO(e.entry_date);
-    return isWithinInterval(d, { start: periodStart, end: periodEnd });
-  }), [allTimeEntries, periodStart, periodEnd]);
-
-  const totalHours = periodEntries.reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
-  const completedTasks = useMemo(() => allTasks.filter((t: any) => t.status === 'done' && t.updated_at && isWithinInterval(parseISO(t.updated_at), { start: periodStart, end: periodEnd })), [allTasks, periodStart, periodEnd]);
-  const overdueTasks = allTasks.filter((t: any) => t.status !== 'done' && t.deadline && isBefore(parseISO(t.deadline), today));
-
-  const daysInPeriod = period === 'week' ? 5 : Math.max(1, Math.ceil((periodEnd.getTime() - periodStart.getTime()) / 86400000));
-  const avgPerDay = daysInPeriod > 0 ? Math.round((totalHours / daysInPeriod) * 10) / 10 : 0;
-
-  const top3Tasks = useMemo(() => {
-    const taskTimeMap: Record<string, { name: string; hours: number }> = {};
-    periodEntries.forEach((e: any) => {
-      if (!e.task_id) return;
-      const task = allTasks.find((t: any) => t.id === e.task_id);
-      if (!task) return;
-      if (!taskTimeMap[e.task_id]) taskTimeMap[e.task_id] = { name: task.name, hours: 0 };
-      taskTimeMap[e.task_id].hours += Number(e.duration || 0);
-    });
-    return Object.values(taskTimeMap).sort((a, b) => b.hours - a.hours).slice(0, 3);
-  }, [periodEntries, allTasks]);
-
-  const weekEntries = useMemo(() => allTimeEntries.filter((e: any) => {
-    const d = parseISO(e.entry_date);
-    return isWithinInterval(d, { start: weekStart, end: weekEnd });
-  }), [allTimeEntries]);
-  const weekTotalHours = weekEntries.reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
-
-  const chartData = useMemo(() => {
-    const days = eachDayOfInterval({ start: addDays(today, -6), end: today });
-    return days.map(d => {
-      const key = format(d, 'yyyy-MM-dd');
-      const hours = allTimeEntries.filter((e: any) => e.entry_date === key).reduce((s: number, e: any) => s + Number(e.duration || 0), 0);
-      return { day: format(d, 'EEE', { locale: pt }), hours: Math.round(hours * 10) / 10 };
-    });
-  }, [allTimeEntries]);
-
-  const expectedDaily = teamMember.data?.expected_weekly_hours ? Number(teamMember.data.expected_weekly_hours) / 5 : 8;
-
-  const weekCompletedTasks = useMemo(() => allTasks.filter((t: any) => t.status === 'done' && t.updated_at && isWithinInterval(parseISO(t.updated_at), { start: weekStart, end: weekEnd })), [allTasks]);
-  const monthCompletedTasks = useMemo(() => allTasks.filter((t: any) => t.status === 'done' && t.updated_at && isWithinInterval(parseISO(t.updated_at), { start: monthStart, end: monthEnd })), [allTasks]);
-
-  const deleteEntry = async (id: string) => {
-    if (id.startsWith('meeting-')) { toast.error('Reuniões não podem ser eliminadas aqui'); return; }
-    await supabase.from('time_entries').delete().eq('id', id);
-    qc.invalidateQueries({ queryKey: ['my-time-entries'] });
-    toast.success('Registo eliminado');
-  };
-
-  const openTasks = useMemo(() => allTasks.filter((t: any) => t.status !== 'done'), [allTasks]);
-
-  return (
-    <div className="space-y-6 mt-4">
-      <div className="flex flex-wrap items-end gap-2">
-        <Button variant="outline" size="sm" className="ml-auto" onClick={() => {
-          const periodLabel = period === 'week' ? 'Esta semana' : period === 'month' ? 'Este mês' : `${customFrom ? format(customFrom, 'dd/MM/yyyy') : '?'} — ${customTo ? format(customTo, 'dd/MM/yyyy') : '?'}`;
-          exportProductivityReport({
-            memberName: teamMember.data?.full_name || 'Membro',
-            periodLabel,
-            periodStart,
-            periodEnd,
-            entries: periodEntries,
-            tasks: allTasks,
-            completedTasks,
-            overdueTasks,
-            projects: allProjects.data || [],
-            expectedDailyHours: expectedDaily,
-          });
-        }}>
-          <FileDown className="h-4 w-4 mr-1" /> Exportar PDF
-        </Button>
-        <Button variant={period === 'week' ? 'default' : 'outline'} size="sm" onClick={() => setPeriod('week')}>Esta semana</Button>
-        <Button variant={period === 'month' ? 'default' : 'outline'} size="sm" onClick={() => setPeriod('month')}>Este mês</Button>
-        <Button variant={period === 'custom' ? 'default' : 'outline'} size="sm" onClick={() => setPeriod('custom')}>Personalizado</Button>
-        {period === 'custom' && (
-          <div className="flex items-center gap-2 ml-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className={cn('w-[130px] justify-start text-left font-normal', !customFrom && 'text-muted-foreground')}>
-                  <CalendarIcon className="mr-1 h-3.5 w-3.5" />
-                  {customFrom ? format(customFrom, 'dd/MM/yyyy') : 'De...'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={customFrom} onSelect={setCustomFrom} initialFocus className="p-3 pointer-events-auto" />
-              </PopoverContent>
-            </Popover>
-            <span className="text-xs text-muted-foreground">—</span>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className={cn('w-[130px] justify-start text-left font-normal', !customTo && 'text-muted-foreground')}>
-                  <CalendarIcon className="mr-1 h-3.5 w-3.5" />
-                  {customTo ? format(customTo, 'dd/MM/yyyy') : 'Até...'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={customTo} onSelect={setCustomTo} initialFocus className="p-3 pointer-events-auto" />
-              </PopoverContent>
-            </Popover>
-          </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Horas registadas</p><p className="text-2xl font-bold">{Math.round(totalHours * 10) / 10}h</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas concluídas</p><p className="text-2xl font-bold">{completedTasks.length}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Tarefas em atraso</p><p className="text-2xl font-bold text-destructive">{overdueTasks.length}</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Média horas/dia</p><p className="text-2xl font-bold">{avgPerDay}h</p></CardContent></Card>
-      </div>
-
-      <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">🏆 Top 3 — Tarefas mais demoradas no período</CardTitle></CardHeader>
-        <CardContent>
-          {top3Tasks.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Sem registos de tempo associados a tarefas neste período.</p>
-          ) : (
-            <div className="space-y-3">
-              {top3Tasks.map((t, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className={cn('h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0', i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-slate-100 text-slate-600' : 'bg-orange-100 text-orange-600')}>{i + 1}</div>
-                  <div className="flex-1 min-w-0"><p className="text-sm font-medium truncate">{t.name}</p></div>
-                  <span className="text-sm font-bold tabular-nums">{Math.round(t.hours * 10) / 10}h</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
+...
       <Card>
         <CardHeader className="pb-3"><CardTitle className="text-sm font-medium flex items-center gap-2"><Clock className="h-4 w-4" /> Time Tracker</CardTitle></CardHeader>
         <CardContent>
@@ -244,27 +93,32 @@ export default function SecretariaProdutividade() {
             <div className="flex items-center gap-3">
               <span className="font-mono text-2xl font-bold tabular-nums">{formatTimer(timerElapsed)}</span>
               {!timerRunning ? (
-                <Button size="sm" onClick={startTimer} disabled={!teamMember.data?.id}><Play className="h-4 w-4 mr-1" /> Iniciar</Button>
+                <Button size="sm" onClick={startTimer} disabled={!canStartTimer}><Play className="h-4 w-4 mr-1" /> Iniciar</Button>
               ) : (
                 <Button size="sm" variant="destructive" onClick={stopTimer}><Square className="h-4 w-4 mr-1" /> Parar</Button>
               )}
             </div>
-            <Input placeholder="Descrição..." value={timerDesc} onChange={e => setTimerDesc(e.target.value)} className="max-w-[200px]" />
-            <Select value={timerCategory} onValueChange={setTimerCategory}>
+            <Input
+              placeholder="Descrição..."
+              value={timerDesc}
+              onChange={e => setTimerDesc(e.target.value)}
+              className="max-w-[200px]"
+              disabled={timerRunning}
+            />
+            <Select value={timerCategory} onValueChange={setTimerCategory} disabled={timerRunning}>
               <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
               <SelectContent>{TIME_CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
             </Select>
-            <Select value={timerProject} onValueChange={setTimerProject}>
+            <Select value={timerProject} onValueChange={setTimerProject} disabled={timerRunning}>
               <SelectTrigger className="w-[160px]"><SelectValue placeholder="Projeto..." /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Nenhum</SelectItem>
                 {(allProjects.data || []).map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Select value={timerTask} onValueChange={setTimerTask}>
-              <SelectTrigger className="w-[160px]"><SelectValue placeholder="Tarefa..." /></SelectTrigger>
+            <Select value={timerTask} onValueChange={setTimerTask} disabled={timerRunning}>
+              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Tarefa obrigatória..." /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Nenhuma</SelectItem>
                 {openTasks.map((t: any) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
               </SelectContent>
             </Select>
