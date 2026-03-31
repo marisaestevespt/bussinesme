@@ -275,7 +275,6 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
         payment_start_date: '',
         use_custom_payment_start: false,
       });
-      });
       setContractLoaded(true);
     }
   }, [initial]);
