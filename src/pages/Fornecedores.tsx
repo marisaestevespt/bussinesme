@@ -45,61 +45,38 @@ const calcMonthlyEquivalent = (base: number, periodicity: string) => {
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
 /**
- * Returns future billing dates between contract start and end.
- * Only generates dates from today forward using the billing day.
- * If includeCatchUp is true, adds a single entry for today as a catch-up.
+ * Simple date generator: from firstPaymentDate, step by periodicity, until endDate.
+ * No guessing — uses exactly the dates the user provides.
  */
-function getFutureBillingDates(
-  startDate: string,
+function generateBillingDates(
+  firstPaymentDate: string,
   endDate: string,
   periodicity: string,
-  billingDay: number,
-  includeCatchUp: boolean = false,
-  catchUpDateStr?: string,
-): { month: number; year: number; day: number; isCatchUp?: boolean }[] {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const start = new Date(startDate + 'T00:00:00');
+): { year: number; month: number; day: number }[] {
+  const first = new Date(firstPaymentDate + 'T00:00:00');
   const end = new Date(endDate + 'T00:00:00');
-  const results: { month: number; year: number; day: number; isCatchUp?: boolean }[] = [];
-  const safeDay = Math.min(billingDay, 28);
+  const results: { year: number; month: number; day: number }[] = [];
 
   const periodMonths: Record<string, number> = {
     semanal: 1, mensal: 1, bimestral: 2, trimestral: 3, semestral: 6, anual: 12,
   };
   const step = periodMonths[periodicity] || 1;
+  const dayOfMonth = first.getDate();
 
-  // If catch-up requested, add a single entry with the chosen date
-  if (includeCatchUp) {
-    const cuDate = catchUpDateStr ? new Date(catchUpDateStr + 'T00:00:00') : today;
-    results.push({ month: cuDate.getMonth() + 1, year: cuDate.getFullYear(), day: cuDate.getDate(), isCatchUp: true });
-  }
-
-  // Start from the first billing cycle date
-  let cursor = new Date(start.getFullYear(), start.getMonth(), safeDay);
-  // If the contract starts after the billing day, push to next cycle
-  if (start.getDate() > safeDay) {
-    cursor.setMonth(cursor.getMonth() + step);
-  }
-
-  // Skip past cycles — advance cursor to today or later
-  while (cursor < today && cursor <= end) {
-    cursor.setMonth(cursor.getMonth() + step);
-  }
-
-  // Generate future entries
+  let cursor = new Date(first);
   while (cursor <= end) {
-    results.push({ month: cursor.getMonth() + 1, year: cursor.getFullYear(), day: safeDay });
-    cursor.setMonth(cursor.getMonth() + step);
+    results.push({ year: cursor.getFullYear(), month: cursor.getMonth() + 1, day: cursor.getDate() });
+    // Advance by step months, keeping the same day
+    const nextMonth = cursor.getMonth() + step;
+    cursor = new Date(cursor.getFullYear(), nextMonth, Math.min(dayOfMonth, 28));
   }
-
   return results;
 }
 
-/** Count for preview display */
-function countFutureOccurrences(startDate: string, endDate: string, periodicity: string, billingDay: number, includeCatchUp: boolean, catchUpDate?: string): number {
-  return getFutureBillingDates(startDate, endDate, periodicity, billingDay, includeCatchUp, catchUpDate).length;
-  return getFutureBillingDates(startDate, endDate, periodicity, billingDay, includeCatchUp).length;
+/** Count for preview */
+function countOccurrences(firstPaymentDate: string, endDate: string, periodicity: string): number {
+  if (!firstPaymentDate || !endDate) return 0;
+  return generateBillingDates(firstPaymentDate, endDate, periodicity).length;
 }
 
 /** Generate individual expense rows for future billing dates */
