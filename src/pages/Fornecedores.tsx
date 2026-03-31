@@ -142,7 +142,7 @@ export default function FornecedoresPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from('financial_expenses')
-        .select('id,description,expense_date,base_value,vat_rate,total_with_vat,status,source_type,is_recurring,category,payment_method,documents')
+        .select('id,description,expense_name,expense_date,expense_id,base_value,vat_rate,total_with_vat,status,source_type,is_recurring,category,payment_method,documents,location,expense_month,expense_quarter,expense_year')
         .eq('supplier_id', selectedSupplierId!)
         .order('expense_date', { ascending: true });
       return data || [];
@@ -463,13 +463,11 @@ export default function FornecedoresPage() {
         </Card>
 
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{form.id ? 'Editar Fornecedor' : 'Novo Fornecedor'}</DialogTitle>
             </DialogHeader>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
-            {/* LEFT COLUMN — Dados do fornecedor */}
-            <div className="space-y-4">
+            <div className="space-y-4 mt-2">
               <div><Label>Nome *</Label><Input value={form.name || ''} onChange={e => setForm((f: any) => ({ ...f, name: e.target.value }))} /></div>
               <div><Label>NIF</Label><Input value={form.nif || ''} onChange={e => setForm((f: any) => ({ ...f, nif: e.target.value }))} /></div>
               <div><Label>Email</Label><Input value={form.email || ''} onChange={e => setForm((f: any) => ({ ...f, email: e.target.value }))} /></div>
@@ -523,10 +521,7 @@ export default function FornecedoresPage() {
               <div><Label>Morada</Label><Input value={form.address || ''} onChange={e => setForm((f: any) => ({ ...f, address: e.target.value }))} /></div>
               <div><Label>Website</Label><Input value={form.website || ''} onChange={e => setForm((f: any) => ({ ...f, website: e.target.value }))} /></div>
               <div><Label>Notas</Label><Textarea value={form.notes || ''} onChange={e => setForm((f: any) => ({ ...f, notes: e.target.value }))} rows={3} /></div>
-            </div>
 
-            {/* RIGHT COLUMN — Recurring, Documents, Expenses */}
-            <div className="space-y-4">
               {/* Recurring expense link — only for new suppliers or ones without existing recurring */}
               <div className="rounded-lg border border-border p-3 space-y-3">
                 <div className="flex items-center justify-between">
@@ -629,17 +624,22 @@ export default function FornecedoresPage() {
                     {supplierExpenses.filter((e: any) => e.source_type !== 'rule').map((exp: any) => {
                       const isEditing = editingExpenseId === exp.id;
                       if (isEditing) {
+                        const totalPreview = Math.round((parseFloat(expenseEdit.base_value) || 0) * (1 + (expenseEdit.vat_rate ?? 23) / 100) * 100) / 100;
                         return (
-                          <div key={exp.id} className="border rounded-md p-2 space-y-2 bg-muted/30">
-                            <div className="grid grid-cols-2 gap-2">
+                          <div key={exp.id} className="border rounded-lg p-4 space-y-3 bg-muted/20">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">Editar Transação</span>
+                              <Badge variant="outline" className="text-[10px]">{exp.expense_id || exp.id.slice(0, 8)}</Badge>
+                            </div>
+                            <div className="grid grid-cols-3 gap-3">
                               <div>
                                 <Label className="text-[10px]">Data</Label>
-                                <Input type="date" className="h-7 text-xs" value={expenseEdit.expense_date || ''} onChange={e => setExpenseEdit((f: any) => ({ ...f, expense_date: e.target.value }))} />
+                                <Input type="date" className="h-8 text-xs" value={expenseEdit.expense_date || ''} onChange={e => setExpenseEdit((f: any) => ({ ...f, expense_date: e.target.value }))} />
                               </div>
                               <div>
                                 <Label className="text-[10px]">Status</Label>
                                 <Select value={expenseEdit.status || 'por_pagar'} onValueChange={v => setExpenseEdit((f: any) => ({ ...f, status: v }))}>
-                                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="por_pagar">Por Pagar</SelectItem>
                                     <SelectItem value="pago">Pago</SelectItem>
@@ -647,31 +647,59 @@ export default function FornecedoresPage() {
                                   </SelectContent>
                                 </Select>
                               </div>
+                              <div>
+                                <Label className="text-[10px]">Categoria</Label>
+                                <Select value={expenseEdit.category || 'outro'} onValueChange={v => setExpenseEdit((f: any) => ({ ...f, category: v }))}>
+                                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    {['ferramentas', 'marketing', 'pessoal', 'escritorio', 'freelancer', 'formacao', 'viagens', 'outro'].map(c => (
+                                      <SelectItem key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-3 gap-3">
                               <div>
                                 <Label className="text-[10px]">Valor base (€)</Label>
-                                <Input type="number" step="0.01" className="h-7 text-xs" value={expenseEdit.base_value || ''} onChange={e => setExpenseEdit((f: any) => ({ ...f, base_value: e.target.value }))} />
+                                <Input type="number" step="0.01" className="h-8 text-xs" value={expenseEdit.base_value || ''} onChange={e => setExpenseEdit((f: any) => ({ ...f, base_value: e.target.value }))} />
                               </div>
                               <div>
                                 <Label className="text-[10px]">IVA (%)</Label>
                                 <Select value={String(expenseEdit.vat_rate ?? 23)} onValueChange={v => setExpenseEdit((f: any) => ({ ...f, vat_rate: parseInt(v) }))}>
-                                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                                   <SelectContent>
                                     {[0, 6, 13, 23].map(v => <SelectItem key={v} value={String(v)}>{v}%</SelectItem>)}
                                   </SelectContent>
                                 </Select>
                               </div>
+                              <div>
+                                <Label className="text-[10px]">Total c/ IVA</Label>
+                                <div className="h-8 flex items-center text-xs font-medium">{fmt(totalPreview)}</div>
+                              </div>
                             </div>
                             <div>
                               <Label className="text-[10px]">Descrição</Label>
-                              <Input className="h-7 text-xs" value={expenseEdit.description || ''} onChange={e => setExpenseEdit((f: any) => ({ ...f, description: e.target.value }))} />
+                              <Input className="h-8 text-xs" value={expenseEdit.description || ''} onChange={e => setExpenseEdit((f: any) => ({ ...f, description: e.target.value }))} />
                             </div>
-                            <div className="flex gap-1 justify-end">
-                              <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => setEditingExpenseId(null)}>
+                            <div className="grid grid-cols-3 gap-3 text-[10px] text-muted-foreground">
+                              <span>Mês: {exp.expense_month || '—'}</span>
+                              <span>Trimestre: T{exp.expense_quarter || '—'}</span>
+                              <span>Ano: {exp.expense_year || '—'}</span>
+                            </div>
+                            {exp.payment_method && (
+                              <div className="text-[10px] text-muted-foreground">Método: {PAYMENT_LABELS[exp.payment_method as keyof typeof PAYMENT_LABELS] || exp.payment_method}</div>
+                            )}
+                            <div className="flex gap-2 justify-end pt-1">
+                              <Button size="sm" variant="outline" className="h-7 px-3 text-xs" onClick={() => setEditingExpenseId(null)}>
                                 <X className="h-3 w-3 mr-1" /> Cancelar
                               </Button>
-                              <Button size="sm" className="h-6 px-2 text-xs" onClick={() => updateExpense.mutate(expenseEdit)}>
+                              <Button size="sm" variant="destructive" className="h-7 px-3 text-xs" onClick={() => {
+                                if (window.confirm('Eliminar esta despesa?')) { deleteExpense.mutate(exp.id); setEditingExpenseId(null); }
+                              }}>
+                                <Trash2 className="h-3 w-3 mr-1" /> Eliminar
+                              </Button>
+                              <Button size="sm" className="h-7 px-3 text-xs" onClick={() => updateExpense.mutate(expenseEdit)}>
                                 <Check className="h-3 w-3 mr-1" /> Guardar
                               </Button>
                             </div>
@@ -679,12 +707,18 @@ export default function FornecedoresPage() {
                         );
                       }
                       return (
-                        <div key={exp.id} className="flex items-center justify-between text-xs py-1.5 border-b last:border-0 group hover:bg-muted/30 rounded px-1">
-                          <div className="flex-1 min-w-0">
-                            <span className="text-muted-foreground">{exp.expense_date}</span>
-                            <span className="ml-2 truncate">{exp.description}</span>
+                        <div key={exp.id} className="flex items-center justify-between text-xs py-1.5 border-b last:border-0 group hover:bg-muted/30 rounded px-1 cursor-pointer"
+                          onClick={() => {
+                            setEditingExpenseId(exp.id);
+                            setExpenseEdit({ ...exp, base_value: String(exp.base_value) });
+                          }}
+                        >
+                          <div className="flex-1 min-w-0 flex items-center gap-2">
+                            <span className="text-muted-foreground shrink-0">{exp.expense_date}</span>
+                            <span className="truncate">{exp.description}</span>
                           </div>
-                          <div className="flex items-center gap-1.5 shrink-0">
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-muted-foreground">{fmt(exp.base_value || 0)}</span>
                             <span className="font-medium">{fmt(exp.total_with_vat || 0)}</span>
                             <Badge
                               variant="outline"
@@ -697,23 +731,6 @@ export default function FornecedoresPage() {
                             >
                               {exp.status === 'pago' ? 'Pago' : exp.status === 'cancelado' ? 'Cancelado' : 'Por pagar'}
                             </Badge>
-                            <button
-                              className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
-                              onClick={() => {
-                                setEditingExpenseId(exp.id);
-                                setExpenseEdit({ ...exp, base_value: String(exp.base_value) });
-                              }}
-                            >
-                              <Pencil className="h-3 w-3" />
-                            </button>
-                            <button
-                              className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive/80"
-                              onClick={() => {
-                                if (window.confirm('Eliminar esta despesa?')) deleteExpense.mutate(exp.id);
-                              }}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </button>
                           </div>
                         </div>
                       );
@@ -734,7 +751,6 @@ export default function FornecedoresPage() {
                   </Button>
                 )}
               </div>
-            </div>
             </div>
           </DialogContent>
         </Dialog>
