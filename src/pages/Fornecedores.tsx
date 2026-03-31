@@ -246,6 +246,7 @@ export default function FornecedoresPage() {
           expense_quarter: Math.ceil((new Date(startDate + 'T00:00:00').getMonth() + 1) / 3),
           expense_year: new Date(startDate + 'T00:00:00').getFullYear(),
           recurrence_end_date: form.contract_end_date,
+          source_type: 'rule',
         } as any).select('id').single();
         if (parentErr) throw parentErr;
 
