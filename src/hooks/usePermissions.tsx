@@ -31,6 +31,8 @@ export function usePermissions() {
     }
 
     const fetchPermissions = async () => {
+      let depts: string[] = [];
+
       const { data: profile } = await supabase.from('profiles').select('id').eq('user_id', user.id).maybeSingle();
       if (profile) {
         const { data: teamMember } = await supabase
@@ -40,8 +42,7 @@ export function usePermissions() {
           .maybeSingle();
 
         if (teamMember) {
-          // Get departments from array or fallback to single
-          const depts: string[] = Array.isArray(teamMember.departments) && teamMember.departments.length > 0
+          depts = Array.isArray(teamMember.departments) && teamMember.departments.length > 0
             ? teamMember.departments as string[]
             : (teamMember.department ? [teamMember.department] : []);
           setUserDepartments(depts);
@@ -50,7 +51,6 @@ export function usePermissions() {
           if (depts.includes('admin')) {
             setAllowedModules(new Set(['*']));
             setLoading(false);
-            // Still fetch page grants
             const { data: grants } = await supabase
               .from('page_access_grants')
               .select('page_path')
@@ -61,7 +61,7 @@ export function usePermissions() {
         }
       }
 
-      // Get user's custom role via members table (try user_id first, then profile lookup)
+      // Get user's custom role via members table
       let customRoleId: string | null = null;
 
       const { data: member } = await supabase
@@ -72,36 +72,22 @@ export function usePermissions() {
 
       customRoleId = member?.custom_role_id ?? null;
 
-      // Fallback: if no members record, look up via team_members profile chain
-      if (!customRoleId && profile) {
-        const { data: tmWithRole } = await supabase
-          .from('members')
-          .select('custom_role_id')
-          .eq('user_id', user.id)
+      // Fallback: if no members record, auto-create one from department-based role
+      if (!customRoleId && depts.length > 0) {
+        const deptRoleName = `dept_${[...depts].sort().join('_')}`;
+        const { data: roleByName } = await supabase
+          .from('custom_roles')
+          .select('id')
+          .eq('name', deptRoleName)
           .maybeSingle();
 
-        // If still nothing, try to find a custom_role that matches the member's departments
-        if (!tmWithRole?.custom_role_id) {
-          const depts = userDepartments.length > 0 ? userDepartments : [];
-          if (depts.length > 0) {
-            const deptRoleName = `dept_${depts.sort().join('_')}`;
-            const { data: roleByName } = await supabase
-              .from('custom_roles')
-              .select('id')
-              .eq('name', deptRoleName)
-              .maybeSingle();
-
-            if (roleByName?.id) {
-              customRoleId = roleByName.id;
-              // Auto-create the members record for next time
-              await supabase.from('members').insert({
-                user_id: user.id,
-                custom_role_id: roleByName.id,
-              });
-            }
-          }
-        } else {
-          customRoleId = tmWithRole.custom_role_id;
+        if (roleByName?.id) {
+          customRoleId = roleByName.id;
+          // Auto-create the members record for next time
+          await supabase.from('members').insert({
+            user_id: user.id,
+            custom_role_id: roleByName.id,
+          });
         }
       }
 
