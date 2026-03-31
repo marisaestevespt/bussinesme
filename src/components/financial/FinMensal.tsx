@@ -449,6 +449,28 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
               {activeContracts.map((contract: any) => {
                 const linkedExp = contractExpenseMap.get(contract.id);
                 const isPaid = linkedExp?.status === 'pago';
+                const handleContractClick = async () => {
+                  if (linkedExp) {
+                    setSelectedExpense(linkedExp);
+                    setExpenseSheetOpen(true);
+                  } else {
+                    // Auto-create the expense for this contract month
+                    const memberName = contract.team_members?.full_name || '—';
+                    const value = contract.monthly_value || 0;
+                    const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-${String(contract.payment_day || 15).padStart(2, '0')}`;
+                    const { data: newExp } = await fin.upsertExpense.mutateAsync({
+                      description: `Pagamento — ${memberName} — ${String(m).padStart(2, '0')}/${currentYear}`,
+                      category: 'ordenados',
+                      base_value: value, vat_rate: 0, total_with_vat: value, location: 'portugal',
+                      expense_date: dateStr, expense_month: m, expense_quarter: Math.ceil(m / 3),
+                      expense_year: currentYear, status: 'por_pagar', source_type: 'contract', source_id: contract.id,
+                    } as any);
+                    if (newExp) {
+                      setSelectedExpense(newExp as any);
+                      setExpenseSheetOpen(true);
+                    }
+                  }
+                };
                 return (
                   <ContractRow
                     key={`contract-${contract.id}`}
@@ -459,7 +481,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                     currentYear={currentYear}
                     fin={fin}
                     qc={qc}
-                    onExpenseClick={linkedExp ? () => { setSelectedExpense(linkedExp); setExpenseSheetOpen(true); } : undefined}
+                    onExpenseClick={handleContractClick}
                   />
                 );
               })}
