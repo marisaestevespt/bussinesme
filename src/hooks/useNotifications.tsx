@@ -65,7 +65,8 @@ export function useNotifications() {
   return { notifications: notifications.data || [], unreadCount, markAsRead, markAllRead, deleteNotification };
 }
 
-/** Helper to send a notification to a specific user */
+/** Helper to send a notification to a specific user.
+ *  userId can be either an auth user_id or a profile.id — we resolve it. */
 export async function sendNotification(params: {
   userId: string;
   type: string;
@@ -73,8 +74,19 @@ export async function sendNotification(params: {
   message?: string;
   link?: string;
 }) {
+  // Resolve: if the id is a profile.id, get the actual auth user_id
+  let authUserId = params.userId;
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('user_id')
+    .eq('id', params.userId)
+    .maybeSingle();
+  if (profile?.user_id) {
+    authUserId = profile.user_id;
+  }
+
   await supabase.from('notifications').insert({
-    user_id: params.userId,
+    user_id: authUserId,
     type: params.type,
     title: params.title,
     message: params.message || null,
