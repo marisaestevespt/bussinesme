@@ -139,6 +139,11 @@ function ScheduleSelector({ value, onChange }: { value: string; onChange: (v: st
 }
 
 export function MemberDialog({ open, onClose, initial, onSave }: any) {
+  const { settings } = useBusinessSettings();
+  const isENI = settings?.business_type === 'eni';
+  const isOwnerRole = f.role_title === 'Owner';
+  const isENIOwner = isENI && isOwnerRole;
+
   const isEdit = !!initial?.id;
   const [f, setF] = useState({ ...DEFAULT_MEMBER_FORM, ...(initial || {}) });
   const [uploading, setUploading] = useState(false);
@@ -166,6 +171,22 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
       });
     }
   }, [initial]);
+
+  // Auto-fill everything when ENI + Owner is selected
+  const applyOwnerDefaults = useCallback(() => {
+    if (!isENI) return;
+    const allDepts = DEPARTMENTS.map(d => d.value);
+    const allAreas = WORK_AREAS.map(wa => wa.value);
+    const allSensitive: Record<string, boolean> = {};
+    SENSITIVE_CATEGORIES.forEach(cat => { allSensitive[cat.key] = true; });
+    setF((prev: any) => ({
+      ...prev,
+      departments: allDepts,
+      department: allDepts[0] || '',
+      work_areas: allAreas,
+      sensitiveAccess: allSensitive,
+    }));
+  }, [isENI]);
 
   const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
   const setC = (k: string, v: any) => setContract((p: any) => ({ ...p, [k]: v }));
