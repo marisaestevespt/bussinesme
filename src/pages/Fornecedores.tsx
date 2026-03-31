@@ -129,6 +129,21 @@ export default function FornecedoresPage() {
   const [form, setForm] = useState<any>({});
   const [renewDialog, setRenewDialog] = useState(false);
   const [renewForm, setRenewForm] = useState<any>({});
+  const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
+
+  // Expenses for the currently selected supplier
+  const { data: supplierExpenses = [] } = useQuery({
+    queryKey: ['supplier-expenses', selectedSupplierId],
+    enabled: !!selectedSupplierId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('financial_expenses')
+        .select('id,description,expense_date,base_value,total_with_vat,status,source_type,is_recurring')
+        .eq('supplier_id', selectedSupplierId!)
+        .order('expense_date', { ascending: true });
+      return data || [];
+    },
+  });
 
   const { data: suppliers = [] } = useQuery({
     queryKey: ['suppliers-all'],
