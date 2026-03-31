@@ -275,7 +275,26 @@ Deno.serve(async (req) => {
       results.sop_categories = "exists";
     }
 
-    // ─── 10. Default HR Offboarding SOP ───
+    // ─── 10. Access Encryption Key ───
+    const { data: existingKey } = await supabase
+      .from("system_config")
+      .select("key")
+      .eq("key", "access_encryption_key")
+      .maybeSingle();
+
+    if (!existingKey) {
+      // Generate a cryptographically secure random 32-byte key as hex
+      const randomBytes = crypto.getRandomValues(new Uint8Array(32));
+      const hexKey = Array.from(randomBytes).map(b => b.toString(16).padStart(2, "0")).join("");
+      const { error } = await supabase
+        .from("system_config")
+        .insert({ key: "access_encryption_key", value: hexKey });
+      results.access_encryption_key = error ? `error: ${error.message}` : "created";
+    } else {
+      results.access_encryption_key = "exists";
+    }
+
+    // ─── 11. Default HR Offboarding SOP ───
     const { data: existingOffboardingSop } = await supabase
       .from("sops")
       .select("id")
