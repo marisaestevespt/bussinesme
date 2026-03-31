@@ -241,6 +241,9 @@ export function useMemberSave() {
             payment_day: paymentDay,
             document_url: contractData.document_url || null,
             notes: contractData.notes || null,
+            value_includes_vat: !!contractData.value_includes_vat,
+            payment_start_date: contractData.use_custom_payment_start ? (contractData.payment_start_date || null) : null,
+            use_custom_payment_start: !!contractData.use_custom_payment_start,
           }).eq('id', contractData.id);
         } else if (!isNew) {
           // No existing contract but editing — create one
