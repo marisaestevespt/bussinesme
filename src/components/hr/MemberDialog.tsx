@@ -17,6 +17,7 @@ import {
   MEMBER_STATUSES, MEMBER_TYPES, CONTRACT_TYPES, CONTRACT_STATUSES, WORK_AREAS,
 } from '@/hooks/useTeamData';
 import { DEPARTMENTS } from '@/lib/departments';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { SENSITIVE_CATEGORIES } from '@/hooks/useSensitiveAccess';
 import {
   WEEK_DAYS, PERIODS, TIME_OPTIONS, CONTRACT_DURATIONS, PRESET_ROLES, ROLE_COLORS,
