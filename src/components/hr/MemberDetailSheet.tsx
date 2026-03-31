@@ -222,6 +222,8 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
                 {member.birthday && <div><span className="text-muted-foreground text-xs">Aniversário</span><p>{member.birthday}</p></div>}
                 {member.work_schedule && <div><span className="text-muted-foreground text-xs">Horário</span><div className="mt-0.5 space-y-0.5">{scheduleToLines(member.work_schedule).map((line, i) => <p key={i} className="text-sm">{line}</p>)}</div></div>}
                 {member.identification && <div><span className="text-muted-foreground text-xs">Identificação</span><p>{member.identification}</p></div>}
+                {member.iban && <div><span className="text-muted-foreground text-xs">IBAN</span><p>{member.iban}</p></div>}
+                {member.fiscal_address && <div><span className="text-muted-foreground text-xs">Morada fiscal</span><p>{member.fiscal_address}</p></div>}
                 {member.start_date && <div><span className="text-muted-foreground text-xs">Data de início</span><p>{member.start_date}</p></div>}
               </div>
               {member.presentation && <div><span className="text-xs text-muted-foreground">Apresentação</span><p className="text-sm mt-1">{member.presentation}</p></div>}

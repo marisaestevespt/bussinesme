@@ -33,6 +33,9 @@ const DEFAULT_MEMBER_FORM = {
   whatsapp: '',
   work_schedule: '',
   identification: '',
+  iban: '',
+  fiscal_address: '',
+  payment_method: '',
   status: 'ativo',
   member_type: 'colaborador_fixo',
   department: '',
@@ -46,6 +49,16 @@ const DEFAULT_MEMBER_FORM = {
   custom_holidays: [] as string[],
   work_areas: [] as string[],
 };
+
+const PAYMENT_METHOD_OPTIONS = [
+  { value: 'transferencia', label: 'Transferência' },
+  { value: 'mbway', label: 'MB WAY' },
+  { value: 'paypal', label: 'PayPal' },
+  { value: 'stripe', label: 'Stripe' },
+  { value: 'numerario', label: 'Numerário' },
+  { value: 'debito_direto', label: 'Débito Direto' },
+  { value: 'outro', label: 'Outro' },
+];
 
 function ScheduleSelector({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const schedule = parseSchedule(value);
@@ -200,6 +213,9 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
     status: 'ativo',
     document_url: '',
     notes: '',
+    value_includes_vat: false,
+    payment_start_date: '', // if different from contract start
+    use_custom_payment_start: false,
   });
   const [contractLoaded, setContractLoaded] = useState(false);
 
@@ -235,6 +251,9 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
             status: c.status || 'ativo',
             document_url: c.document_url || '',
             notes: c.notes || '',
+            value_includes_vat: false,
+            payment_start_date: '',
+            use_custom_payment_start: false,
           });
         }
         setContractLoaded(true);
@@ -252,6 +271,9 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
         status: 'ativo',
         document_url: '',
         notes: '',
+        value_includes_vat: false,
+        payment_start_date: '',
+        use_custom_payment_start: false,
       });
       setContractLoaded(true);
     }
@@ -411,6 +433,10 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
               <Input placeholder="Email" value={f.email || ''} onChange={e => set('email', e.target.value)} />
               <Input placeholder="Telefone" value={f.whatsapp || ''} onChange={e => set('whatsapp', e.target.value)} />
               <Input placeholder="NIF / Identificação" value={f.identification || ''} onChange={e => set('identification', e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Input placeholder="IBAN" value={f.iban || ''} onChange={e => set('iban', e.target.value)} />
+              <Input placeholder="Morada fiscal" value={f.fiscal_address || ''} onChange={e => set('fiscal_address', e.target.value)} />
             </div>
 
             {/* Nascimento */}
@@ -580,6 +606,23 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                   <Input placeholder="Ex: 40h" value={contract.contracted_hours} onChange={e => setC('contracted_hours', e.target.value)} />
                 </div>
               </div>
+              {contract.contract_type === 'contrato_prestacao' && (
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs cursor-pointer">
+                    <Checkbox checked={contract.value_includes_vat} onCheckedChange={(v) => setC('value_includes_vat', !!v)} />
+                    <span>O valor mensal já inclui IVA (23%)</span>
+                  </label>
+                  <div>
+                    <label className="text-xs text-muted-foreground">Método de pagamento</label>
+                    <Select value={f.payment_method || ''} onValueChange={v => set('payment_method', v)}>
+                      <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+                      <SelectContent>
+                        {PAYMENT_METHOD_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="text-xs text-muted-foreground">Data de início</label>
@@ -594,6 +637,20 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                   <Input type="number" min={1} max={31} placeholder="1" value={contract.payment_day} onChange={e => setC('payment_day', e.target.value)} />
                 </div>
               </div>
+              {contract.contract_type === 'contrato_prestacao' && !isEdit && (
+                <div className="rounded-md border border-primary/20 bg-primary/5 p-3 space-y-2">
+                  <label className="flex items-center gap-2 text-xs cursor-pointer">
+                    <Checkbox checked={contract.use_custom_payment_start} onCheckedChange={(v) => setC('use_custom_payment_start', !!v)} />
+                    <span>Os pagamentos começam numa data diferente da data de início do contrato</span>
+                  </label>
+                  {contract.use_custom_payment_start && (
+                    <div>
+                      <label className="text-xs text-muted-foreground">Data de início dos pagamentos</label>
+                      <Input type="date" value={contract.payment_start_date} onChange={e => setC('payment_start_date', e.target.value)} />
+                    </div>
+                  )}
+                </div>
+              )}
               <div>
                 <label className="text-xs text-muted-foreground">Status do contrato</label>
                 <Select value={contract.status} onValueChange={v => setC('status', v)}>
