@@ -8406,6 +8406,7 @@ export type Database = {
           timeline_phases: Json
         }[]
       }
+      get_system_config_value: { Args: { _key: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
