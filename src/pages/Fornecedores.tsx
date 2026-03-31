@@ -55,6 +55,7 @@ function getFutureBillingDates(
   periodicity: string,
   billingDay: number,
   includeCatchUp: boolean = false,
+  catchUpDateStr?: string,
 ): { month: number; year: number; day: number; isCatchUp?: boolean }[] {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -68,9 +69,10 @@ function getFutureBillingDates(
   };
   const step = periodMonths[periodicity] || 1;
 
-  // If catch-up requested, add a single entry dated today
+  // If catch-up requested, add a single entry with the chosen date
   if (includeCatchUp) {
-    results.push({ month: today.getMonth() + 1, year: today.getFullYear(), day: today.getDate(), isCatchUp: true });
+    const cuDate = catchUpDateStr ? new Date(catchUpDateStr + 'T00:00:00') : today;
+    results.push({ month: cuDate.getMonth() + 1, year: cuDate.getFullYear(), day: cuDate.getDate(), isCatchUp: true });
   }
 
   // Start from the first billing cycle date
