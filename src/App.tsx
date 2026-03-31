@@ -108,6 +108,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/portal/:token" element={<PortalAuthPage />} />
         <Route path="/portal/:token/view" element={<PortalViewPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="*" element={<AuthPage />} />
       </Routes>
     );
