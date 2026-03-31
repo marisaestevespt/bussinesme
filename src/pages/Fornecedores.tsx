@@ -97,7 +97,8 @@ function getFutureBillingDates(
 }
 
 /** Count for preview display */
-function countFutureOccurrences(startDate: string, endDate: string, periodicity: string, billingDay: number, includeCatchUp: boolean): number {
+function countFutureOccurrences(startDate: string, endDate: string, periodicity: string, billingDay: number, includeCatchUp: boolean, catchUpDate?: string): number {
+  return getFutureBillingDates(startDate, endDate, periodicity, billingDay, includeCatchUp, catchUpDate).length;
   return getFutureBillingDates(startDate, endDate, periodicity, billingDay, includeCatchUp).length;
 }
 
