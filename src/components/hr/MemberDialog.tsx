@@ -336,7 +336,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                 <p className="text-xs text-primary font-medium">👑 Como Owner de ENI, todos os departamentos, áreas de trabalho e permissões foram atribuídos automaticamente.</p>
               </div>
             )}
-              <span className="text-xs text-muted-foreground font-medium">Departamentos</span>
+            <div>
               <div className="space-y-1 mt-1.5">
                 {DEPARTMENTS.map(d => {
                   const depts: string[] = Array.isArray(f.departments) ? f.departments : (f.department ? [f.department] : []);
