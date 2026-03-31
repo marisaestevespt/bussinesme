@@ -107,18 +107,16 @@ export default function SecretariaTarefas() {
         </TableBody>
       </Table>
 
-      {editTask.data && (
-        <TaskFormDialog
-          open={!!editTaskId}
-          onOpenChange={(open) => { if (!open) setEditTaskId(null); }}
-          editingTask={editTask.data}
-          onSuccess={() => {
-            setEditTaskId(null);
-            qc.invalidateQueries({ queryKey: ['my-tasks'] });
-            qc.invalidateQueries({ queryKey: ['unified-tasks'] });
-          }}
-        />
-      )}
+      <TaskFormDialog
+        open={!!editTaskId}
+        onOpenChange={(open) => { if (!open) setEditTaskId(null); }}
+        editingTask={editTask.data ?? undefined}
+        onSuccess={() => {
+          setEditTaskId(null);
+          qc.invalidateQueries({ queryKey: ['my-tasks'] });
+          qc.invalidateQueries({ queryKey: ['unified-tasks'] });
+        }}
+      />
 
       <TaskFormDialog
         open={showNewTask}

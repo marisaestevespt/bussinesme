@@ -293,9 +293,9 @@ export function UnifiedResponsibilitiesList({ items, title, maxHeight = '500px',
     />
 
     <TaskFormDialog
-      open={!!editTaskId && !!editTask}
+      open={!!editTaskId}
       onOpenChange={(open) => { if (!open) setEditTaskId(null); }}
-      editingTask={editTask}
+      editingTask={editTask ?? undefined}
       onSuccess={() => {
         setEditTaskId(null);
         qc.invalidateQueries({ queryKey: ['unified-tasks'] });
