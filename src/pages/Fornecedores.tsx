@@ -91,30 +91,37 @@ async function generateExpensesForPeriod(
   firstPaymentDate: string,
   endDate: string,
   parentExpenseId: string,
+  descriptionTemplate?: string | null,
 ) {
   const dates = generateBillingDates(firstPaymentDate, endDate, periodicity);
   const valuePerOccurrence = periodicity === 'semanal' ? Math.round(baseValue * (52/12) * 100) / 100 : baseValue;
   const total = Math.round(valuePerOccurrence * (1 + vatRate / 100) * 100) / 100;
 
-  const rows = dates.map(o => ({
-    description: name,
-    expense_name: name,
-    supplier_id: supplierId,
-    base_value: valuePerOccurrence,
-    vat_rate: vatRate,
-    total_with_vat: total,
-    category,
-    status: 'por_pagar' as string,
-    location: 'portugal',
-    is_recurring: false,
-    parent_expense_id: parentExpenseId,
-    payment_method: paymentMethod,
-    expense_date: `${o.year}-${String(o.month).padStart(2, '0')}-${String(o.day).padStart(2, '0')}`,
-    expense_month: o.month,
-    expense_quarter: Math.ceil(o.month / 3),
-    expense_year: o.year,
-    source_type: 'recurring',
-  }));
+  const rows = dates.map(o => {
+    const month = String(o.month).padStart(2, '0');
+    const desc = descriptionTemplate
+      ? descriptionTemplate.replace('{nome}', name).replace('{mes}', month).replace('{ano}', String(o.year))
+      : name;
+    return {
+      description: desc,
+      expense_name: name,
+      supplier_id: supplierId,
+      base_value: valuePerOccurrence,
+      vat_rate: vatRate,
+      total_with_vat: total,
+      category,
+      status: 'por_pagar' as string,
+      location: 'portugal',
+      is_recurring: false,
+      parent_expense_id: parentExpenseId,
+      payment_method: paymentMethod,
+      expense_date: `${o.year}-${month}-${String(o.day).padStart(2, '0')}`,
+      expense_month: o.month,
+      expense_quarter: Math.ceil(o.month / 3),
+      expense_year: o.year,
+      source_type: 'recurring',
+    };
+  });
 
   if (rows.length > 0) {
     const { error } = await supabase.from('financial_expenses').insert(rows as any);
