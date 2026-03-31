@@ -426,8 +426,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
              <ScheduleSelector value={f.work_schedule || ''} onChange={v => set('work_schedule', v)} />
           </div>
 
-          {/* Contrato (só para novos membros) */}
-          {!isEdit && (
+          {!isEdit && !isENIOwner && (
             <>
               <Separator />
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">📄 Contrato & Pagamento</h3>
