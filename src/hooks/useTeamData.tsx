@@ -264,6 +264,57 @@ export function useTeamData() {
       if (rec.id) {
         const { error } = await supabase.from('member_contracts').update(rec as TablesUpdate<'member_contracts'>).eq('id', rec.id);
         if (error) throw error;
+
+        // Update unpaid future payments with the new monthly value
+        const newVal = Number(rec.monthly_value) || 0;
+        if (newVal > 0) {
+          const now = new Date();
+          const curMonth = now.getMonth() + 1;
+          const curYear = now.getFullYear();
+
+          // Update member_payments still unpaid from current month onwards
+          const { data: unpaid } = await supabase
+            .from('member_payments')
+            .select('id, month, year')
+            .eq('member_id', rec.member_id)
+            .eq('status', 'por_pagar');
+
+          if (unpaid && unpaid.length > 0) {
+            const futureIds = unpaid
+              .filter(p => p.year > curYear || (p.year === curYear && p.month >= curMonth))
+              .map(p => p.id);
+
+            if (futureIds.length > 0) {
+              await supabase
+                .from('member_payments')
+                .update({ gross_value: newVal, net_value: newVal })
+                .in('id', futureIds);
+            }
+          }
+
+          // Update financial_payroll still unpaid from current month onwards
+          const { data: memberData } = await supabase.from('team_members').select('full_name').eq('id', rec.member_id).maybeSingle();
+          if (memberData?.full_name) {
+            const { data: unpaidPayroll } = await supabase
+              .from('financial_payroll')
+              .select('id, month, year')
+              .eq('collaborator_name', memberData.full_name)
+              .eq('status', 'por_pagar');
+
+            if (unpaidPayroll && unpaidPayroll.length > 0) {
+              const futurePayrollIds = unpaidPayroll
+                .filter(p => p.year > curYear || (p.year === curYear && p.month >= curMonth))
+                .map(p => p.id);
+
+              if (futurePayrollIds.length > 0) {
+                await supabase
+                  .from('financial_payroll')
+                  .update({ gross_salary: newVal, net_salary: newVal, total_cost: newVal })
+                  .in('id', futurePayrollIds);
+              }
+            }
+          }
+        }
       } else {
         delete rec.id;
         const { error, data: newContract } = await supabase.from('member_contracts').insert(rec as TablesInsert<'member_contracts'>).select().single();
