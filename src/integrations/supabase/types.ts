@@ -4422,9 +4422,12 @@ export type Database = {
           monthly_value: number | null
           notes: string | null
           payment_day: number | null
+          payment_start_date: string | null
           start_date: string | null
           status: string
           updated_at: string
+          use_custom_payment_start: boolean
+          value_includes_vat: boolean
         }
         Insert: {
           contract_type?: string
@@ -4437,9 +4440,12 @@ export type Database = {
           monthly_value?: number | null
           notes?: string | null
           payment_day?: number | null
+          payment_start_date?: string | null
           start_date?: string | null
           status?: string
           updated_at?: string
+          use_custom_payment_start?: boolean
+          value_includes_vat?: boolean
         }
         Update: {
           contract_type?: string
@@ -4452,9 +4458,12 @@ export type Database = {
           monthly_value?: number | null
           notes?: string | null
           payment_day?: number | null
+          payment_start_date?: string | null
           start_date?: string | null
           status?: string
           updated_at?: string
+          use_custom_payment_start?: boolean
+          value_includes_vat?: boolean
         }
         Relationships: [
           {
