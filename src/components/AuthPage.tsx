@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 
 export function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgot, setIsForgot] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -33,7 +34,14 @@ export function AuthPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (isSignUp) {
+      if (isForgot) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        toast.success('Email enviado! Verifica a tua caixa de entrada.');
+        setIsForgot(false);
+      } else if (isSignUp) {
         await signUp(email, password, fullName);
         toast.success('Conta criada! Verifica o teu email.');
       } else {
