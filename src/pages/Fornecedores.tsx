@@ -520,7 +520,7 @@ export default function FornecedoresPage() {
                     </div>
                     {form.contract_start_date && form.contract_end_date && form.recurring_value && (
                       <p className="text-xs text-muted-foreground">
-                        Serão geradas {countFutureOccurrences(form.contract_start_date, form.contract_end_date, form.recurring_periodicity || 'mensal', form.recurring_day || 1, form.include_catchup || false)} despesas
+                        Serão geradas {countFutureOccurrences(form.contract_start_date, form.contract_end_date, form.recurring_periodicity || 'mensal', form.recurring_day || 1, form.include_catchup || false, form.catchup_date)} despesas
                         {form.include_catchup ? ` (1 entrada em ${form.catchup_date || 'hoje'} + futuras)` : ' (apenas futuras)'}
                       </p>
                     )}
