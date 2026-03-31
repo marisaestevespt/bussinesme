@@ -463,13 +463,11 @@ export default function FornecedoresPage() {
         </Card>
 
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{form.id ? 'Editar Fornecedor' : 'Novo Fornecedor'}</DialogTitle>
             </DialogHeader>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
-            {/* LEFT COLUMN — Dados do fornecedor */}
-            <div className="space-y-4">
+            <div className="space-y-4 mt-2">
               <div><Label>Nome *</Label><Input value={form.name || ''} onChange={e => setForm((f: any) => ({ ...f, name: e.target.value }))} /></div>
               <div><Label>NIF</Label><Input value={form.nif || ''} onChange={e => setForm((f: any) => ({ ...f, nif: e.target.value }))} /></div>
               <div><Label>Email</Label><Input value={form.email || ''} onChange={e => setForm((f: any) => ({ ...f, email: e.target.value }))} /></div>
