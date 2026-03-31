@@ -255,7 +255,14 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                   const isSelected = f.role_title === r.label;
                   return (
                     <button key={r.label} type="button"
-                      onClick={() => { set('role_title', isSelected ? '' : r.label); set('role_color', r.color); }}
+                      onClick={() => {
+                        const newRole = isSelected ? '' : r.label;
+                        set('role_title', newRole);
+                        set('role_color', r.color);
+                        if (newRole === 'Owner' && isENI) {
+                          setTimeout(applyOwnerDefaults, 0);
+                        }
+                      }}
                       className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${isSelected ? 'text-white border-transparent ring-2 ring-offset-1 ring-foreground/20' : 'text-foreground/70 border-border hover:border-foreground/30'}`}
                       style={isSelected ? { backgroundColor: r.color } : {}}
                     >{r.label}</button>
