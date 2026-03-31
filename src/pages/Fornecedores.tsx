@@ -501,9 +501,15 @@ export default function FornecedoresPage() {
                         Equivalente mensal: {fmt(calcMonthlyEquivalent(parseFloat(form.recurring_value), form.recurring_periodicity || 'mensal'))}
                       </p>
                     )}
+                    {/* Catch-up toggle */}
+                    <div className="flex items-center gap-2">
+                      <Switch checked={form.include_catchup || false} onCheckedChange={v => setForm((f: any) => ({ ...f, include_catchup: v }))} />
+                      <Label className="text-xs font-normal">Incluir entrada para o mês atual (marcada como paga)</Label>
+                    </div>
                     {form.contract_start_date && form.contract_end_date && form.recurring_value && (
                       <p className="text-xs text-muted-foreground">
-                        Serão geradas {getOccurrenceMonths(form.contract_start_date, form.contract_end_date, form.recurring_periodicity || 'mensal').length} despesas
+                        Serão geradas {countFutureOccurrences(form.contract_start_date, form.contract_end_date, form.recurring_periodicity || 'mensal', form.recurring_day || 1, form.include_catchup || false)} despesas
+                        {form.include_catchup ? ' (1 entrada hoje + futuras)' : ' (apenas futuras)'}
                       </p>
                     )}
                   </div>
