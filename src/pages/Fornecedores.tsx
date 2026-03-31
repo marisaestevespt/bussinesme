@@ -591,22 +591,108 @@ export default function FornecedoresPage() {
               {/* Existing expenses for this supplier */}
               {form.id && supplierExpenses.length > 0 && (
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Despesas associadas ({supplierExpenses.filter((e: any) => e.source_type !== 'rule').length})</Label>
-                  <div className="max-h-48 overflow-y-auto space-y-1 border rounded-md p-2">
-                    {supplierExpenses.filter((e: any) => e.source_type !== 'rule').map((exp: any) => (
-                      <div key={exp.id} className="flex items-center justify-between text-xs py-1 border-b last:border-0">
-                        <div className="flex-1 min-w-0">
-                          <span className="text-muted-foreground">{exp.expense_date}</span>
-                          <span className="ml-2 truncate">{exp.description}</span>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs text-muted-foreground">
+                      Despesas associadas ({supplierExpenses.filter((e: any) => e.source_type !== 'rule').length})
+                    </Label>
+                    <div className="flex gap-3 text-[11px] text-muted-foreground">
+                      <span>Pago: {fmt(supplierExpenses.filter((e: any) => e.source_type !== 'rule' && e.status === 'pago').reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0))}</span>
+                      <span>Pendente: {fmt(supplierExpenses.filter((e: any) => e.source_type !== 'rule' && e.status !== 'pago').reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0))}</span>
+                    </div>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto space-y-1 border rounded-md p-2">
+                    {supplierExpenses.filter((e: any) => e.source_type !== 'rule').map((exp: any) => {
+                      const isEditing = editingExpenseId === exp.id;
+                      if (isEditing) {
+                        return (
+                          <div key={exp.id} className="border rounded-md p-2 space-y-2 bg-muted/30">
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label className="text-[10px]">Data</Label>
+                                <Input type="date" className="h-7 text-xs" value={expenseEdit.expense_date || ''} onChange={e => setExpenseEdit((f: any) => ({ ...f, expense_date: e.target.value }))} />
+                              </div>
+                              <div>
+                                <Label className="text-[10px]">Status</Label>
+                                <Select value={expenseEdit.status || 'por_pagar'} onValueChange={v => setExpenseEdit((f: any) => ({ ...f, status: v }))}>
+                                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="por_pagar">Por Pagar</SelectItem>
+                                    <SelectItem value="pago">Pago</SelectItem>
+                                    <SelectItem value="cancelado">Cancelado</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label className="text-[10px]">Valor base (€)</Label>
+                                <Input type="number" step="0.01" className="h-7 text-xs" value={expenseEdit.base_value || ''} onChange={e => setExpenseEdit((f: any) => ({ ...f, base_value: e.target.value }))} />
+                              </div>
+                              <div>
+                                <Label className="text-[10px]">IVA (%)</Label>
+                                <Select value={String(expenseEdit.vat_rate ?? 23)} onValueChange={v => setExpenseEdit((f: any) => ({ ...f, vat_rate: parseInt(v) }))}>
+                                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    {[0, 6, 13, 23].map(v => <SelectItem key={v} value={String(v)}>{v}%</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                            <div>
+                              <Label className="text-[10px]">Descrição</Label>
+                              <Input className="h-7 text-xs" value={expenseEdit.description || ''} onChange={e => setExpenseEdit((f: any) => ({ ...f, description: e.target.value }))} />
+                            </div>
+                            <div className="flex gap-1 justify-end">
+                              <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => setEditingExpenseId(null)}>
+                                <X className="h-3 w-3 mr-1" /> Cancelar
+                              </Button>
+                              <Button size="sm" className="h-6 px-2 text-xs" onClick={() => updateExpense.mutate(expenseEdit)}>
+                                <Check className="h-3 w-3 mr-1" /> Guardar
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div key={exp.id} className="flex items-center justify-between text-xs py-1.5 border-b last:border-0 group hover:bg-muted/30 rounded px-1">
+                          <div className="flex-1 min-w-0">
+                            <span className="text-muted-foreground">{exp.expense_date}</span>
+                            <span className="ml-2 truncate">{exp.description}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className="font-medium">{fmt(exp.total_with_vat || 0)}</span>
+                            <Badge
+                              variant="outline"
+                              className={`cursor-pointer ${exp.status === 'pago' ? 'bg-success/10 text-success' : exp.status === 'cancelado' ? 'bg-muted text-muted-foreground' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const next = exp.status === 'por_pagar' ? 'pago' : exp.status === 'pago' ? 'por_pagar' : exp.status;
+                                updateExpense.mutate({ ...exp, status: next });
+                              }}
+                            >
+                              {exp.status === 'pago' ? 'Pago' : exp.status === 'cancelado' ? 'Cancelado' : 'Por pagar'}
+                            </Badge>
+                            <button
+                              className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
+                              onClick={() => {
+                                setEditingExpenseId(exp.id);
+                                setExpenseEdit({ ...exp, base_value: String(exp.base_value) });
+                              }}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </button>
+                            <button
+                              className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive/80"
+                              onClick={() => {
+                                if (window.confirm('Eliminar esta despesa?')) deleteExpense.mutate(exp.id);
+                              }}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="font-medium">{fmt(exp.total_with_vat || 0)}</span>
-                          <Badge variant="outline" className={exp.status === 'pago' ? 'bg-success/10 text-success' : ''}>
-                            {exp.status === 'pago' ? 'Pago' : 'Por pagar'}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
