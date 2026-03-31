@@ -550,10 +550,37 @@ export default function FornecedoresPage() {
                 </div>
               )}
 
+              {/* Existing expenses for this supplier */}
+              {form.id && supplierExpenses.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Despesas associadas ({supplierExpenses.filter((e: any) => e.source_type !== 'rule').length})</Label>
+                  <div className="max-h-48 overflow-y-auto space-y-1 border rounded-md p-2">
+                    {supplierExpenses.filter((e: any) => e.source_type !== 'rule').map((exp: any) => (
+                      <div key={exp.id} className="flex items-center justify-between text-xs py-1 border-b last:border-0">
+                        <div className="flex-1 min-w-0">
+                          <span className="text-muted-foreground">{exp.expense_date}</span>
+                          <span className="ml-2 truncate">{exp.description}</span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="font-medium">{fmt(exp.total_with_vat || 0)}</span>
+                          <Badge variant="outline" className={exp.status === 'pago' ? 'bg-success/10 text-success' : ''}>
+                            {exp.status === 'pago' ? 'Pago' : 'Por pagar'}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="flex gap-2">
                 <Button className="flex-1" onClick={() => upsert.mutate()} disabled={!form.name?.trim()}>Guardar</Button>
                 {form.id && (
-                  <Button variant="destructive" size="icon" onClick={() => remove.mutate(form.id)}>
+                  <Button variant="destructive" size="icon" onClick={() => {
+                    if (window.confirm(`Eliminar fornecedor "${form.name}" e todas as despesas associadas?`)) {
+                      remove.mutate(form.id);
+                    }
+                  }}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 )}
