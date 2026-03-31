@@ -91,30 +91,37 @@ async function generateExpensesForPeriod(
   firstPaymentDate: string,
   endDate: string,
   parentExpenseId: string,
+  descriptionTemplate?: string | null,
 ) {
   const dates = generateBillingDates(firstPaymentDate, endDate, periodicity);
   const valuePerOccurrence = periodicity === 'semanal' ? Math.round(baseValue * (52/12) * 100) / 100 : baseValue;
   const total = Math.round(valuePerOccurrence * (1 + vatRate / 100) * 100) / 100;
 
-  const rows = dates.map(o => ({
-    description: name,
-    expense_name: name,
-    supplier_id: supplierId,
-    base_value: valuePerOccurrence,
-    vat_rate: vatRate,
-    total_with_vat: total,
-    category,
-    status: 'por_pagar' as string,
-    location: 'portugal',
-    is_recurring: false,
-    parent_expense_id: parentExpenseId,
-    payment_method: paymentMethod,
-    expense_date: `${o.year}-${String(o.month).padStart(2, '0')}-${String(o.day).padStart(2, '0')}`,
-    expense_month: o.month,
-    expense_quarter: Math.ceil(o.month / 3),
-    expense_year: o.year,
-    source_type: 'recurring',
-  }));
+  const rows = dates.map(o => {
+    const month = String(o.month).padStart(2, '0');
+    const desc = descriptionTemplate
+      ? descriptionTemplate.replace('{nome}', name).replace('{mes}', month).replace('{ano}', String(o.year))
+      : name;
+    return {
+      description: desc,
+      expense_name: name,
+      supplier_id: supplierId,
+      base_value: valuePerOccurrence,
+      vat_rate: vatRate,
+      total_with_vat: total,
+      category,
+      status: 'por_pagar' as string,
+      location: 'portugal',
+      is_recurring: false,
+      parent_expense_id: parentExpenseId,
+      payment_method: paymentMethod,
+      expense_date: `${o.year}-${month}-${String(o.day).padStart(2, '0')}`,
+      expense_month: o.month,
+      expense_quarter: Math.ceil(o.month / 3),
+      expense_year: o.year,
+      source_type: 'recurring',
+    };
+  });
 
   if (rows.length > 0) {
     const { error } = await supabase.from('financial_expenses').insert(rows as any);
@@ -254,11 +261,29 @@ export default function FornecedoresPage() {
         contract_start_date: form.contract_start_date || null,
         contract_end_date: form.contract_end_date || null,
         documents: form.documents || [],
+        expense_description_template: form.expense_description_template || null,
       };
 
       let supplierId = form.id;
       if (form.id) {
         await supabase.from('suppliers').update(record as any).eq('id', form.id);
+        // If description template changed, update all existing expenses for this supplier
+        if (form.expense_description_template?.trim()) {
+          const { data: expenses } = await supabase
+            .from('financial_expenses')
+            .select('id, expense_month, expense_year')
+            .eq('supplier_id', form.id);
+          if (expenses && expenses.length > 0) {
+            for (const exp of expenses) {
+              const month = String(exp.expense_month).padStart(2, '0');
+              const desc = form.expense_description_template
+                .replace('{mes}', month)
+                .replace('{ano}', String(exp.expense_year))
+                .replace('{nome}', form.name);
+              await supabase.from('financial_expenses').update({ description: desc } as any).eq('id', exp.id);
+            }
+          }
+        }
       } else {
         const { data } = await supabase.from('suppliers').insert(record as any).select('id').single();
         supplierId = data?.id;
@@ -303,7 +328,7 @@ export default function FornecedoresPage() {
           supplierId, form.name, base, vat, periodicity,
           form.payment_method || null, form.category || 'outro',
           firstPayment, form.contract_end_date,
-          parentData.id
+          parentData.id, form.expense_description_template
         );
         toast.success(`${count} despesas geradas`);
       }
@@ -521,6 +546,17 @@ export default function FornecedoresPage() {
               <div><Label>Morada</Label><Input value={form.address || ''} onChange={e => setForm((f: any) => ({ ...f, address: e.target.value }))} /></div>
               <div><Label>Website</Label><Input value={form.website || ''} onChange={e => setForm((f: any) => ({ ...f, website: e.target.value }))} /></div>
               <div><Label>Notas</Label><Textarea value={form.notes || ''} onChange={e => setForm((f: any) => ({ ...f, notes: e.target.value }))} rows={3} /></div>
+              <div>
+                <Label>Descrição das transações</Label>
+                <Input
+                  value={form.expense_description_template || ''}
+                  onChange={e => setForm((f: any) => ({ ...f, expense_description_template: e.target.value }))}
+                  placeholder={`Ex: Pagamento — ${form.name || 'Fornecedor'} — {mes}/{ano}`}
+                />
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Usa <code className="bg-muted px-1 rounded">{'{nome}'}</code>, <code className="bg-muted px-1 rounded">{'{mes}'}</code> e <code className="bg-muted px-1 rounded">{'{ano}'}</code> como variáveis. Ao guardar, atualiza todas as despesas existentes.
+                </p>
+              </div>
 
               {/* Recurring expense link — only for new suppliers or ones without existing recurring */}
               <div className="rounded-lg border border-border p-3 space-y-3">
