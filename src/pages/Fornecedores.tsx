@@ -116,9 +116,10 @@ async function generateExpensesForPeriod(
   endDate: string,
   parentExpenseId: string,
   includeCatchUp: boolean = false,
+  catchUpDate?: string,
 ) {
   const billingDay = recurrenceDay || 1;
-  const dates = getFutureBillingDates(startDate, endDate, periodicity, billingDay, includeCatchUp);
+  const dates = getFutureBillingDates(startDate, endDate, periodicity, billingDay, includeCatchUp, catchUpDate);
   const valuePerOccurrence = periodicity === 'semanal' ? Math.round(baseValue * (52/12) * 100) / 100 : baseValue;
   const total = Math.round(valuePerOccurrence * (1 + vatRate / 100) * 100) / 100;
 
