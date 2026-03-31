@@ -207,6 +207,7 @@ export default function FornecedoresPage() {
         default_vat_rate: form.default_vat_rate ?? 23,
         contract_start_date: form.contract_start_date || null,
         contract_end_date: form.contract_end_date || null,
+        documents: form.documents || [],
       };
 
       let supplierId = form.id;
