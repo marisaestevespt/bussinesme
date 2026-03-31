@@ -357,7 +357,7 @@ export default function FornecedoresPage() {
         <BackNavigation />
         <PageHeader title="Fornecedores" />
         <div className="flex justify-end">
-          <Button size="sm" onClick={() => { setForm({ is_active: true, payment_method: 'transferencia', default_vat_rate: 23 }); setOpen(true); }}>
+          <Button size="sm" onClick={() => { setForm({ is_active: true, payment_method: 'transferencia', default_vat_rate: 23 }); setSelectedSupplierId(null); setOpen(true); }}>
             <Plus className="h-4 w-4 mr-1" /> Novo Fornecedor
           </Button>
         </div>
