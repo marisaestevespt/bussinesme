@@ -538,7 +538,17 @@ export default function FornecedoresPage() {
 
               <div><Label>Morada</Label><Input value={form.address || ''} onChange={e => setForm((f: any) => ({ ...f, address: e.target.value }))} /></div>
               <div><Label>Website</Label><Input value={form.website || ''} onChange={e => setForm((f: any) => ({ ...f, website: e.target.value }))} /></div>
-              <div><Label>Notas</Label><Textarea value={form.notes || ''} onChange={e => setForm((f: any) => ({ ...f, notes: e.target.value }))} rows={3} /></div>
+              <div>
+                <Label>Descrição das transações</Label>
+                <Input
+                  value={form.expense_description_template || ''}
+                  onChange={e => setForm((f: any) => ({ ...f, expense_description_template: e.target.value }))}
+                  placeholder={`Ex: Pagamento — ${form.name || 'Fornecedor'} — {mes}/{ano}`}
+                />
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Usa <code className="bg-muted px-1 rounded">{'{nome}'}</code>, <code className="bg-muted px-1 rounded">{'{mes}'}</code> e <code className="bg-muted px-1 rounded">{'{ano}'}</code> como variáveis. Ao guardar, atualiza todas as despesas existentes.
+                </p>
+              </div>
 
               {/* Recurring expense link — only for new suppliers or ones without existing recurring */}
               <div className="rounded-lg border border-border p-3 space-y-3">
