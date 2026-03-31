@@ -331,7 +331,11 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
           {/* ═══ BLOCO 2: POSIÇÃO ═══ */}
           <div className="space-y-3">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🏢 Posição</h3>
-            <div>
+            {isENIOwner && (
+              <div className="rounded-md bg-primary/10 border border-primary/20 px-3 py-2">
+                <p className="text-xs text-primary font-medium">👑 Como Owner de ENI, todos os departamentos, áreas de trabalho e permissões foram atribuídos automaticamente.</p>
+              </div>
+            )}
               <span className="text-xs text-muted-foreground font-medium">Departamentos</span>
               <div className="space-y-1 mt-1.5">
                 {DEPARTMENTS.map(d => {
