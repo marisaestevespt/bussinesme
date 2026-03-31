@@ -29,6 +29,18 @@ interface Props {
 export function FinSetupFinanceiro({ fin }: Props) {
   const navigate = useNavigate();
 
+  // Suppliers
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ['suppliers-setup-fin'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('suppliers')
+        .select('id, name, nif, category, payment_method, default_vat_rate, is_active, contract_start_date, contract_end_date')
+        .order('name');
+      return (data || []) as any[];
+    },
+  });
+
   // Products with payment methods
   const { data: products = [] } = useQuery({
     queryKey: ['products-setup-fin'],
@@ -60,6 +72,12 @@ export function FinSetupFinanceiro({ fin }: Props) {
     return t * (1 + v / 100);
   };
 
+  const CATEGORY_LABELS: Record<string, string> = {
+    ferramentas: 'Ferramentas', marketing: 'Marketing', pessoal: 'Pessoal',
+    escritorio: 'Escritório', freelancer: 'Freelancer', formacao: 'Formação',
+    viagens: 'Viagens', outro: 'Outro',
+  };
+
   return (
     <div className="space-y-8">
       {/* FORNECEDORES */}
@@ -69,6 +87,46 @@ export function FinSetupFinanceiro({ fin }: Props) {
           <Truck className="h-4 w-4 mr-1" /> Gerir Fornecedores
         </Button>
       </div>
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>NIF</TableHead>
+                <TableHead>Categoria</TableHead>
+                <TableHead>Pagamento</TableHead>
+                <TableHead>IVA</TableHead>
+                <TableHead>Contrato</TableHead>
+                <TableHead>Estado</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {suppliers.length === 0 ? (
+                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Sem fornecedores</TableCell></TableRow>
+              ) : suppliers.map((s: any) => (
+                <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate('/hub/financeiro/fornecedores')}>
+                  <TableCell className="font-medium">{s.name}</TableCell>
+                  <TableCell className="text-muted-foreground">{s.nif || '—'}</TableCell>
+                  <TableCell><Badge variant="secondary" className="text-xs">{CATEGORY_LABELS[s.category] || s.category || '—'}</Badge></TableCell>
+                  <TableCell><Badge variant="outline">{PAYMENT_LABELS[s.payment_method] || s.payment_method || '—'}</Badge></TableCell>
+                  <TableCell>{s.default_vat_rate != null ? `${s.default_vat_rate}%` : '—'}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {s.contract_start_date && s.contract_end_date
+                      ? `${s.contract_start_date} → ${s.contract_end_date}`
+                      : '—'}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={s.is_active ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}>
+                      {s.is_active ? 'Ativo' : 'Inativo'}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       {/* PRODUTOS */}
       <div>
