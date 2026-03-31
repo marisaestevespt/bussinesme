@@ -7517,6 +7517,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           last_renewal_date: string | null
+          member_id: string | null
           name: string
           nif: string | null
           notes: string | null
@@ -7539,6 +7540,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           last_renewal_date?: string | null
+          member_id?: string | null
           name: string
           nif?: string | null
           notes?: string | null
@@ -7561,6 +7563,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           last_renewal_date?: string | null
+          member_id?: string | null
           name?: string
           nif?: string | null
           notes?: string | null
@@ -7570,7 +7573,15 @@ export type Database = {
           updated_at?: string | null
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_config: {
         Row: {
@@ -7849,12 +7860,15 @@ export type Database = {
           departments: Json | null
           email: string | null
           expected_weekly_hours: number
+          fiscal_address: string | null
           full_name: string
           hourly_cost: number | null
+          iban: string | null
           id: string
           identification: string | null
           inactivated_at: string | null
           member_type: string
+          payment_method: string | null
           photo_url: string | null
           presentation: string | null
           profile_id: string | null
@@ -7881,12 +7895,15 @@ export type Database = {
           departments?: Json | null
           email?: string | null
           expected_weekly_hours?: number
+          fiscal_address?: string | null
           full_name: string
           hourly_cost?: number | null
+          iban?: string | null
           id?: string
           identification?: string | null
           inactivated_at?: string | null
           member_type?: string
+          payment_method?: string | null
           photo_url?: string | null
           presentation?: string | null
           profile_id?: string | null
@@ -7913,12 +7930,15 @@ export type Database = {
           departments?: Json | null
           email?: string | null
           expected_weekly_hours?: number
+          fiscal_address?: string | null
           full_name?: string
           hourly_cost?: number | null
+          iban?: string | null
           id?: string
           identification?: string | null
           inactivated_at?: string | null
           member_type?: string
+          payment_method?: string | null
           photo_url?: string | null
           presentation?: string | null
           profile_id?: string | null
