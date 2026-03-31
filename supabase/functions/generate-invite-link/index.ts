@@ -48,32 +48,31 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { user_id } = await req.json();
-    if (!user_id) {
-      return new Response(JSON.stringify({ error: "user_id obrigatório" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const { user_id, email } = await req.json();
+    
+    let targetEmail = email;
+    
+    if (user_id) {
+      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(user_id);
+      if (userError || !userData.user) {
+        return new Response(JSON.stringify({ error: "Utilizador não encontrado" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      targetEmail = userData.user.email;
     }
 
-    // Generate a password reset link so the member can set their own password
-    const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-      type: "magiclink",
-      email: "", // we'll get email from user
-    });
-
-    // Get the user's email first
-    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(user_id);
-    if (userError || !userData.user) {
-      return new Response(JSON.stringify({ error: "Utilizador não encontrado" }), {
-        status: 404,
+    if (!targetEmail) {
+      return new Response(JSON.stringify({ error: "email ou user_id obrigatório" }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink({
       type: "recovery",
-      email: userData.user.email!,
+      email: targetEmail,
     });
 
     if (resetError) {
@@ -83,12 +82,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Build the redirect URL - the hashed_token needs to go through the site URL
     const siteUrl = req.headers.get("origin") || Deno.env.get("SUPABASE_URL")!;
     const inviteUrl = `${siteUrl}#access_token=${resetData.properties?.hashed_token}&type=recovery`;
 
     return new Response(
-      JSON.stringify({ success: true, invite_url: inviteUrl, email: userData.user.email }),
+      JSON.stringify({ success: true, invite_url: inviteUrl, email: targetEmail }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

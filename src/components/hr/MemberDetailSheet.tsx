@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, CheckSquare, CalendarIcon, CalendarDays, ExternalLink, FileText } from 'lucide-react';
+import { Plus, Trash2, CheckSquare, CalendarIcon, CalendarDays, ExternalLink, FileText, Link2, Loader2 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -28,7 +28,33 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
   const [vacStart, setVacStart] = useState('');
   const [vacEnd, setVacEnd] = useState('');
   const [vacNotes, setVacNotes] = useState('');
+  const [generatingLink, setGeneratingLink] = useState(false);
   const qc = useQueryClient();
+
+  const handleCopyInviteLink = async () => {
+    if (!member?.email) {
+      toast.error('Este membro não tem email definido.');
+      return;
+    }
+    setGeneratingLink(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-invite-link', {
+        body: { email: member.email },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.invite_url) {
+        await navigator.clipboard.writeText(data.invite_url);
+        toast.success('Link de convite copiado!');
+      } else {
+        toast.error('Não foi possível gerar o link.');
+      }
+    } catch (err: any) {
+      toast.error('Erro: ' + (err.message || err));
+    } finally {
+      setGeneratingLink(false);
+    }
+  };
 
   const memberTasks = useQuery({
     queryKey: ['member-tasks', member?.profile_id],
@@ -138,10 +164,22 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
               <AvatarImage src={member?.photo_url || undefined} />
               <AvatarFallback className="text-lg">{member.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
-            <div>
+            <div className="flex items-center gap-2">
               <DialogTitle className="text-xl">{member.full_name}</DialogTitle>
-              {member.role_title && <p className="text-sm text-muted-foreground mt-0.5">{member.role_title}</p>}
+              {member.email && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs gap-1.5"
+                  onClick={handleCopyInviteLink}
+                  disabled={generatingLink}
+                >
+                  {generatingLink ? <Loader2 className="h-3 w-3 animate-spin" /> : <Link2 className="h-3 w-3" />}
+                  Copiar link de convite
+                </Button>
+              )}
             </div>
+            {member.role_title && <p className="text-sm text-muted-foreground mt-0.5">{member.role_title}</p>}
           </div>
         </DialogHeader>
         <div className="space-y-4 mt-4">
