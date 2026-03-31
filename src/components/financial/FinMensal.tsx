@@ -68,7 +68,8 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
       const { data } = await supabase
         .from('member_contracts')
         .select('*, team_members(id, full_name, role_title)')
-        .in('status', ['ativo']);
+        .in('status', ['ativo'])
+        .neq('contract_type', 'contrato_prestacao');
       return data || [];
     },
   });
