@@ -175,6 +175,7 @@ export default function FornecedoresPage() {
     qc.invalidateQueries({ queryKey: ['financial-expenses'] });
     qc.invalidateQueries({ queryKey: ['recurring-expenses'] });
     qc.invalidateQueries({ queryKey: ['supplier-expense-counts'] });
+    qc.invalidateQueries({ queryKey: ['supplier-expenses'] });
   };
 
   const upsert = useMutation({
