@@ -225,11 +225,12 @@ export default function FornecedoresPage() {
         if (parentErr) throw parentErr;
 
         // Generate individual expenses for each month
+        const firstPayment = form.first_payment_date || startDate;
         const count = await generateExpensesForPeriod(
           supplierId, form.name, base, vat, periodicity,
           form.payment_method || null, form.category || 'outro',
-          form.recurring_day || null, startDate, form.contract_end_date,
-          parentData.id, form.include_catchup || false, form.catchup_date
+          firstPayment, form.contract_end_date,
+          parentData.id
         );
         toast.success(`${count} despesas geradas`);
       }
