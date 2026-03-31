@@ -44,28 +44,59 @@ const calcMonthlyEquivalent = (base: number, periodicity: string) => {
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-/** Returns array of {month, year} between two dates based on periodicity */
-function getOccurrenceMonths(startDate: string, endDate: string, periodicity: string): { month: number; year: number }[] {
+/**
+ * Returns future billing dates between contract start and end.
+ * Only generates dates from today forward using the billing day.
+ * If includeCatchUp is true, adds a single entry for today as a catch-up.
+ */
+function getFutureBillingDates(
+  startDate: string,
+  endDate: string,
+  periodicity: string,
+  billingDay: number,
+  includeCatchUp: boolean = false,
+): { month: number; year: number; day: number; isCatchUp?: boolean }[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const start = new Date(startDate + 'T00:00:00');
   const end = new Date(endDate + 'T00:00:00');
-  const results: { month: number; year: number }[] = [];
-  
+  const results: { month: number; year: number; day: number; isCatchUp?: boolean }[] = [];
+  const safeDay = Math.min(billingDay, 28);
+
   const periodMonths: Record<string, number> = {
-    semanal: 1, // we generate monthly entries for weekly (value * ~4.33)
-    mensal: 1,
-    bimestral: 2,
-    trimestral: 3,
-    semestral: 6,
-    anual: 12,
+    semanal: 1, mensal: 1, bimestral: 2, trimestral: 3, semestral: 6, anual: 12,
   };
   const step = periodMonths[periodicity] || 1;
-  
-  let current = new Date(start);
-  while (current <= end) {
-    results.push({ month: current.getMonth() + 1, year: current.getFullYear() });
-    current.setMonth(current.getMonth() + step);
+
+  // If catch-up requested, add a single entry dated today
+  if (includeCatchUp) {
+    results.push({ month: today.getMonth() + 1, year: today.getFullYear(), day: today.getDate(), isCatchUp: true });
   }
+
+  // Start from the first billing cycle date
+  let cursor = new Date(start.getFullYear(), start.getMonth(), safeDay);
+  // If the contract starts after the billing day, push to next cycle
+  if (start.getDate() > safeDay) {
+    cursor.setMonth(cursor.getMonth() + step);
+  }
+
+  // Skip past cycles — advance cursor to today or later
+  while (cursor < today && cursor <= end) {
+    cursor.setMonth(cursor.getMonth() + step);
+  }
+
+  // Generate future entries
+  while (cursor <= end) {
+    results.push({ month: cursor.getMonth() + 1, year: cursor.getFullYear(), day: safeDay });
+    cursor.setMonth(cursor.getMonth() + step);
+  }
+
   return results;
+}
+
+/** Count for preview display */
+function countFutureOccurrences(startDate: string, endDate: string, periodicity: string, billingDay: number, includeCatchUp: boolean): number {
+  return getFutureBillingDates(startDate, endDate, periodicity, billingDay, includeCatchUp).length;
 }
 
 /** Generate individual expense rows for each occurrence */
