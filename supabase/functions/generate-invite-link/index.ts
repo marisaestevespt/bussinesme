@@ -70,23 +70,39 @@ Deno.serve(async (req) => {
       });
     }
 
+    const appOrigin = req.headers.get("origin") || new URL(req.url).origin;
+    const resetRedirectTo = `${appOrigin}/reset-password`;
+    const publicClient = createClient(supabaseUrl, anonKey);
+
+    const { error: inviteEmailError } = await publicClient.auth.resetPasswordForEmail(targetEmail, {
+      redirectTo: resetRedirectTo,
+    });
+
     const { data: resetData, error: resetError } = await supabase.auth.admin.generateLink({
       type: "recovery",
       email: targetEmail,
+      options: {
+        redirectTo: resetRedirectTo,
+      },
     });
 
-    if (resetError) {
-      return new Response(JSON.stringify({ error: resetError.message }), {
+    if (resetError && !resetData?.properties?.action_link && inviteEmailError) {
+      return new Response(JSON.stringify({ error: resetError.message || inviteEmailError.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const siteUrl = req.headers.get("origin") || Deno.env.get("SUPABASE_URL")!;
-    const inviteUrl = `${siteUrl}#access_token=${resetData.properties?.hashed_token}&type=recovery`;
+    const inviteUrl = resetData?.properties?.action_link ?? null;
 
     return new Response(
-      JSON.stringify({ success: true, invite_url: inviteUrl, email: targetEmail }),
+      JSON.stringify({
+        success: true,
+        invite_url: inviteUrl,
+        email: targetEmail,
+        email_sent: !inviteEmailError,
+        invite_error: inviteEmailError?.message ?? resetError?.message ?? null,
+      }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

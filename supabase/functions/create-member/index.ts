@@ -250,6 +250,8 @@ Deno.serve(async (req) => {
           user_id: newUser.user.id,
           profile_id: profile?.id || null,
           invite_url,
+          email_sent,
+          invite_error: inviteEmailError?.message ?? resetError?.message ?? null,
           onboarding_created,
           onboarding_warning,
           whatsapp_team_url,

@@ -170,7 +170,14 @@ export function useMemberSave() {
             }
             if (authData.invite_url) {
               await navigator.clipboard.writeText(authData.invite_url);
-              toast.success('Conta criada! Link de convite copiado para a área de transferência.', { duration: 8000 });
+              toast.success(
+                authData.email_sent
+                  ? 'Conta criada! Email de convite enviado e link copiado para a área de transferência.'
+                  : 'Conta criada! Link de convite copiado para a área de transferência.',
+                { duration: 8000 }
+              );
+            } else if (authData.email_sent) {
+              toast.success('Conta criada! Email de convite enviado com sucesso.');
             } else {
               toast.success('Conta de acesso criada com sucesso!');
             }
