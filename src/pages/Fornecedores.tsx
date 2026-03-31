@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { BackNavigation } from '@/components/BackNavigation';
@@ -9,9 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
 import { Plus, Trash2, RefreshCw, CalendarClock, Pencil, Check, X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -125,6 +125,7 @@ async function generateExpensesForPeriod(
 
 export default function FornecedoresPage() {
   const qc = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<any>({});
   const [renewDialog, setRenewDialog] = useState(false);
@@ -132,6 +133,7 @@ export default function FornecedoresPage() {
   const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [expenseEdit, setExpenseEdit] = useState<any>({});
+  const [autoOpened, setAutoOpened] = useState(false);
 
   // Expenses for the currently selected supplier
   const { data: supplierExpenses = [] } = useQuery({
@@ -146,6 +148,7 @@ export default function FornecedoresPage() {
       return data || [];
     },
   });
+
 
   const updateExpense = useMutation({
     mutationFn: async (exp: any) => {
@@ -189,6 +192,23 @@ export default function FornecedoresPage() {
       return data || [];
     },
   });
+
+  // Auto-open supplier from query param (?open=supplierId)
+  useEffect(() => {
+    if (autoOpened || suppliers.length === 0) return;
+    const openId = searchParams.get('open');
+    if (openId) {
+      const supplier = suppliers.find((s: any) => s.id === openId);
+      if (supplier) {
+        setForm({ ...supplier, create_recurring: false });
+        setSelectedSupplierId(supplier.id);
+        setOpen(true);
+        setAutoOpened(true);
+        searchParams.delete('open');
+        setSearchParams(searchParams, { replace: true });
+      }
+    }
+  }, [suppliers, autoOpened, searchParams]);
 
   const { data: expenseCounts = {} } = useQuery({
     queryKey: ['supplier-expense-counts'],
@@ -442,12 +462,14 @@ export default function FornecedoresPage() {
           </CardContent>
         </Card>
 
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetContent className="sm:max-w-md overflow-y-auto">
-            <SheetHeader>
-              <SheetTitle>{form.id ? 'Editar Fornecedor' : 'Novo Fornecedor'}</SheetTitle>
-            </SheetHeader>
-            <div className="space-y-4 mt-6">
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{form.id ? 'Editar Fornecedor' : 'Novo Fornecedor'}</DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+            {/* LEFT COLUMN — Dados do fornecedor */}
+            <div className="space-y-4">
               <div><Label>Nome *</Label><Input value={form.name || ''} onChange={e => setForm((f: any) => ({ ...f, name: e.target.value }))} /></div>
               <div><Label>NIF</Label><Input value={form.nif || ''} onChange={e => setForm((f: any) => ({ ...f, nif: e.target.value }))} /></div>
               <div><Label>Email</Label><Input value={form.email || ''} onChange={e => setForm((f: any) => ({ ...f, email: e.target.value }))} /></div>
@@ -501,7 +523,10 @@ export default function FornecedoresPage() {
               <div><Label>Morada</Label><Input value={form.address || ''} onChange={e => setForm((f: any) => ({ ...f, address: e.target.value }))} /></div>
               <div><Label>Website</Label><Input value={form.website || ''} onChange={e => setForm((f: any) => ({ ...f, website: e.target.value }))} /></div>
               <div><Label>Notas</Label><Textarea value={form.notes || ''} onChange={e => setForm((f: any) => ({ ...f, notes: e.target.value }))} rows={3} /></div>
+            </div>
 
+            {/* RIGHT COLUMN — Recurring, Documents, Expenses */}
+            <div className="space-y-4">
               {/* Recurring expense link — only for new suppliers or ones without existing recurring */}
               <div className="rounded-lg border border-border p-3 space-y-3">
                 <div className="flex items-center justify-between">
@@ -710,8 +735,9 @@ export default function FornecedoresPage() {
                 )}
               </div>
             </div>
-          </SheetContent>
-        </Sheet>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Renewal dialog */}
         <Dialog open={renewDialog} onOpenChange={setRenewDialog}>

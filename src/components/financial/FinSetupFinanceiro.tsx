@@ -105,7 +105,7 @@ export function FinSetupFinanceiro({ fin }: Props) {
               {suppliers.length === 0 ? (
                 <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Sem fornecedores</TableCell></TableRow>
               ) : suppliers.map((s: any) => (
-                <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate('/hub/financeiro/fornecedores')}>
+                <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/hub/financeiro/fornecedores?open=${s.id}`)}>
                   <TableCell className="font-medium">{s.name}</TableCell>
                   <TableCell className="text-muted-foreground">{s.nif || '—'}</TableCell>
                   <TableCell><Badge variant="secondary" className="text-xs">{CATEGORY_LABELS[s.category] || s.category || '—'}</Badge></TableCell>
