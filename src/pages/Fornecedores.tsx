@@ -125,6 +125,7 @@ async function generateExpensesForPeriod(
 
 export default function FornecedoresPage() {
   const qc = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<any>({});
   const [renewDialog, setRenewDialog] = useState(false);
@@ -132,6 +133,7 @@ export default function FornecedoresPage() {
   const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [expenseEdit, setExpenseEdit] = useState<any>({});
+  const [autoOpened, setAutoOpened] = useState(false);
 
   // Expenses for the currently selected supplier
   const { data: supplierExpenses = [] } = useQuery({
