@@ -328,7 +328,7 @@ export default function FornecedoresPage() {
           supplierId, form.name, base, vat, periodicity,
           form.payment_method || null, form.category || 'outro',
           firstPayment, form.contract_end_date,
-          parentData.id
+          parentData.id, form.expense_description_template
         );
         toast.success(`${count} despesas geradas`);
       }
