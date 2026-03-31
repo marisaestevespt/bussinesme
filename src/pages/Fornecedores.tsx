@@ -260,6 +260,23 @@ export default function FornecedoresPage() {
       let supplierId = form.id;
       if (form.id) {
         await supabase.from('suppliers').update(record as any).eq('id', form.id);
+        // If description template changed, update all existing expenses for this supplier
+        if (form.expense_description_template?.trim()) {
+          const { data: expenses } = await supabase
+            .from('financial_expenses')
+            .select('id, expense_month, expense_year')
+            .eq('supplier_id', form.id);
+          if (expenses && expenses.length > 0) {
+            for (const exp of expenses) {
+              const month = String(exp.expense_month).padStart(2, '0');
+              const desc = form.expense_description_template
+                .replace('{mes}', month)
+                .replace('{ano}', String(exp.expense_year))
+                .replace('{nome}', form.name);
+              await supabase.from('financial_expenses').update({ description: desc } as any).eq('id', exp.id);
+            }
+          }
+        }
       } else {
         const { data } = await supabase.from('suppliers').insert(record as any).select('id').single();
         supplierId = data?.id;
