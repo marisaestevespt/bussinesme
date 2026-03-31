@@ -1,14 +1,17 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FileText } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { FileText, Download, ExternalLink } from 'lucide-react';
 import { useMyTeamMember } from './secretaria-shared';
 
 export default function SecretariaContrato() {
   const teamMember = useMyTeamMember();
+  const [selectedPayment, setSelectedPayment] = useState<any>(null);
 
   const contracts = useQuery({
     queryKey: ['my-contracts', teamMember.data?.id],
@@ -31,6 +34,8 @@ export default function SecretariaContrato() {
   const currentYear = new Date().getFullYear();
   const yearTotal = (payments.data || []).filter(p => p.year === currentYear && p.status === 'pago').reduce((s, p) => s + Number(p.net_value || 0), 0);
   const activeContract = (contracts.data || []).find(c => c.status === 'ativo');
+
+  const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
   return (
     <div className="space-y-6 mt-4">
@@ -74,8 +79,8 @@ export default function SecretariaContrato() {
             <TableBody>
               {(payments.data || []).length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Sem pagamentos registados.</TableCell></TableRow>}
               {(payments.data || []).map((p: any) => (
-                <TableRow key={p.id}>
-                  <TableCell className="text-sm">{p.month}/{p.year}</TableCell>
+                <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedPayment(p)}>
+                  <TableCell className="text-sm">{monthNames[p.month - 1] || p.month}/{p.year}</TableCell>
                   <TableCell className="text-sm capitalize">{p.payment_type?.replace('_', ' ')}</TableCell>
                   <TableCell className="text-sm">{Number(p.gross_value).toFixed(2)} €</TableCell>
                   <TableCell className="text-sm font-medium">{Number(p.net_value).toFixed(2)} €</TableCell>
@@ -86,6 +91,45 @@ export default function SecretariaContrato() {
           </Table>
         </CardContent>
       </Card>
+
+      <Sheet open={!!selectedPayment} onOpenChange={(open) => { if (!open) setSelectedPayment(null); }}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>Detalhe do Pagamento</SheetTitle>
+          </SheetHeader>
+          {selectedPayment && (
+            <div className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div><p className="text-xs text-muted-foreground">Mês / Ano</p><p className="font-medium">{monthNames[(selectedPayment.month || 1) - 1]}/{selectedPayment.year}</p></div>
+                <div><p className="text-xs text-muted-foreground">Tipo</p><p className="font-medium capitalize">{selectedPayment.payment_type?.replace('_', ' ')}</p></div>
+                <div><p className="text-xs text-muted-foreground">Valor Bruto</p><p className="font-medium">{Number(selectedPayment.gross_value).toFixed(2)} €</p></div>
+                <div><p className="text-xs text-muted-foreground">Valor Líquido</p><p className="font-medium">{Number(selectedPayment.net_value).toFixed(2)} €</p></div>
+                <div><p className="text-xs text-muted-foreground">Status</p><Badge variant={selectedPayment.status === 'pago' ? 'default' : 'outline'}>{selectedPayment.status === 'pago' ? 'Pago' : 'Por Pagar'}</Badge></div>
+              </div>
+
+              {selectedPayment.document_url ? (
+                <div className="pt-2 space-y-2">
+                  <p className="text-xs text-muted-foreground font-medium">Documento / Fatura</p>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={selectedPayment.document_url} target="_blank" rel="noreferrer">
+                        <ExternalLink className="h-4 w-4 mr-1" /> Abrir
+                      </a>
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={selectedPayment.document_url} download>
+                        <Download className="h-4 w-4 mr-1" /> Download
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground pt-2">Nenhum documento associado a este pagamento.</p>
+              )}
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
