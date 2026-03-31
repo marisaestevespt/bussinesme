@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,7 @@ import {
   MEMBER_STATUSES, MEMBER_TYPES, CONTRACT_TYPES, CONTRACT_STATUSES, WORK_AREAS,
 } from '@/hooks/useTeamData';
 import { DEPARTMENTS } from '@/lib/departments';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { SENSITIVE_CATEGORIES } from '@/hooks/useSensitiveAccess';
 import {
   WEEK_DAYS, PERIODS, TIME_OPTIONS, CONTRACT_DURATIONS, PRESET_ROLES, ROLE_COLORS,
@@ -138,6 +139,9 @@ function ScheduleSelector({ value, onChange }: { value: string; onChange: (v: st
 }
 
 export function MemberDialog({ open, onClose, initial, onSave }: any) {
+  const { settings } = useBusinessSettings();
+  const isENI = settings?.business_type === 'eni';
+
   const isEdit = !!initial?.id;
   const [f, setF] = useState({ ...DEFAULT_MEMBER_FORM, ...(initial || {}) });
   const [uploading, setUploading] = useState(false);
@@ -152,6 +156,9 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
     status: 'ativo',
   });
 
+  const isOwnerRole = f.role_title === 'Owner';
+  const isENIOwner = isENI && isOwnerRole;
+
   useEffect(() => {
     const init = { ...DEFAULT_MEMBER_FORM, ...(initial || {}) };
     setF(init);
@@ -165,6 +172,22 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
       });
     }
   }, [initial]);
+
+  // Auto-fill everything when ENI + Owner is selected
+  const applyOwnerDefaults = useCallback(() => {
+    if (!isENI) return;
+    const allDepts = DEPARTMENTS.map(d => d.value);
+    const allAreas = WORK_AREAS.map(wa => wa.value);
+    const allSensitive: Record<string, boolean> = {};
+    SENSITIVE_CATEGORIES.forEach(cat => { allSensitive[cat.key] = true; });
+    setF((prev: any) => ({
+      ...prev,
+      departments: allDepts,
+      department: allDepts[0] || '',
+      work_areas: allAreas,
+      sensitiveAccess: allSensitive,
+    }));
+  }, [isENI]);
 
   const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
   const setC = (k: string, v: any) => setContract((p: any) => ({ ...p, [k]: v }));
@@ -232,7 +255,14 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                   const isSelected = f.role_title === r.label;
                   return (
                     <button key={r.label} type="button"
-                      onClick={() => { set('role_title', isSelected ? '' : r.label); set('role_color', r.color); }}
+                      onClick={() => {
+                        const newRole = isSelected ? '' : r.label;
+                        set('role_title', newRole);
+                        set('role_color', r.color);
+                        if (newRole === 'Owner' && isENI) {
+                          setTimeout(applyOwnerDefaults, 0);
+                        }
+                      }}
                       className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${isSelected ? 'text-white border-transparent ring-2 ring-offset-1 ring-foreground/20' : 'text-foreground/70 border-border hover:border-foreground/30'}`}
                       style={isSelected ? { backgroundColor: r.color } : {}}
                     >{r.label}</button>
@@ -301,6 +331,11 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
           {/* ═══ BLOCO 2: POSIÇÃO ═══ */}
           <div className="space-y-3">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">🏢 Posição</h3>
+            {isENIOwner && (
+              <div className="rounded-md bg-primary/10 border border-primary/20 px-3 py-2">
+                <p className="text-xs text-primary font-medium">👑 Como Owner de ENI, todos os departamentos, áreas de trabalho e permissões foram atribuídos automaticamente.</p>
+              </div>
+            )}
             <div>
               <span className="text-xs text-muted-foreground font-medium">Departamentos</span>
               <div className="space-y-1 mt-1.5">
@@ -396,8 +431,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
              <ScheduleSelector value={f.work_schedule || ''} onChange={v => set('work_schedule', v)} />
           </div>
 
-          {/* Contrato (só para novos membros) */}
-          {!isEdit && (
+          {!isEdit && !isENIOwner && (
             <>
               <Separator />
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">📄 Contrato & Pagamento</h3>
