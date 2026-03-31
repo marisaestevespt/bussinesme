@@ -730,7 +730,6 @@ export default function FornecedoresPage() {
                 )}
               </div>
             </div>
-            </div>
           </DialogContent>
         </Dialog>
 
