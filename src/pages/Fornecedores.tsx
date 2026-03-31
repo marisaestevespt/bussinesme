@@ -44,31 +44,62 @@ const calcMonthlyEquivalent = (base: number, periodicity: string) => {
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-/** Returns array of {month, year} between two dates based on periodicity */
-function getOccurrenceMonths(startDate: string, endDate: string, periodicity: string): { month: number; year: number }[] {
+/**
+ * Returns future billing dates between contract start and end.
+ * Only generates dates from today forward using the billing day.
+ * If includeCatchUp is true, adds a single entry for today as a catch-up.
+ */
+function getFutureBillingDates(
+  startDate: string,
+  endDate: string,
+  periodicity: string,
+  billingDay: number,
+  includeCatchUp: boolean = false,
+): { month: number; year: number; day: number; isCatchUp?: boolean }[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const start = new Date(startDate + 'T00:00:00');
   const end = new Date(endDate + 'T00:00:00');
-  const results: { month: number; year: number }[] = [];
-  
+  const results: { month: number; year: number; day: number; isCatchUp?: boolean }[] = [];
+  const safeDay = Math.min(billingDay, 28);
+
   const periodMonths: Record<string, number> = {
-    semanal: 1, // we generate monthly entries for weekly (value * ~4.33)
-    mensal: 1,
-    bimestral: 2,
-    trimestral: 3,
-    semestral: 6,
-    anual: 12,
+    semanal: 1, mensal: 1, bimestral: 2, trimestral: 3, semestral: 6, anual: 12,
   };
   const step = periodMonths[periodicity] || 1;
-  
-  let current = new Date(start);
-  while (current <= end) {
-    results.push({ month: current.getMonth() + 1, year: current.getFullYear() });
-    current.setMonth(current.getMonth() + step);
+
+  // If catch-up requested, add a single entry dated today
+  if (includeCatchUp) {
+    results.push({ month: today.getMonth() + 1, year: today.getFullYear(), day: today.getDate(), isCatchUp: true });
   }
+
+  // Start from the first billing cycle date
+  let cursor = new Date(start.getFullYear(), start.getMonth(), safeDay);
+  // If the contract starts after the billing day, push to next cycle
+  if (start.getDate() > safeDay) {
+    cursor.setMonth(cursor.getMonth() + step);
+  }
+
+  // Skip past cycles — advance cursor to today or later
+  while (cursor < today && cursor <= end) {
+    cursor.setMonth(cursor.getMonth() + step);
+  }
+
+  // Generate future entries
+  while (cursor <= end) {
+    results.push({ month: cursor.getMonth() + 1, year: cursor.getFullYear(), day: safeDay });
+    cursor.setMonth(cursor.getMonth() + step);
+  }
+
   return results;
 }
 
-/** Generate individual expense rows for each occurrence */
+/** Count for preview display */
+function countFutureOccurrences(startDate: string, endDate: string, periodicity: string, billingDay: number, includeCatchUp: boolean): number {
+  return getFutureBillingDates(startDate, endDate, periodicity, billingDay, includeCatchUp).length;
+}
+
+/** Generate individual expense rows for future billing dates */
 async function generateExpensesForPeriod(
   supplierId: string,
   name: string,
@@ -81,13 +112,14 @@ async function generateExpensesForPeriod(
   startDate: string,
   endDate: string,
   parentExpenseId: string,
+  includeCatchUp: boolean = false,
 ) {
-  const occurrences = getOccurrenceMonths(startDate, endDate, periodicity);
+  const billingDay = recurrenceDay || 1;
+  const dates = getFutureBillingDates(startDate, endDate, periodicity, billingDay, includeCatchUp);
   const valuePerOccurrence = periodicity === 'semanal' ? Math.round(baseValue * (52/12) * 100) / 100 : baseValue;
   const total = Math.round(valuePerOccurrence * (1 + vatRate / 100) * 100) / 100;
-  const day = recurrenceDay || 1;
 
-  const rows = occurrences.map(o => ({
+  const rows = dates.map(o => ({
     description: name,
     expense_name: name,
     supplier_id: supplierId,
@@ -95,12 +127,12 @@ async function generateExpensesForPeriod(
     vat_rate: vatRate,
     total_with_vat: total,
     category,
-    status: 'por_pagar' as const,
+    status: (o.isCatchUp ? 'pago' : 'por_pagar') as string,
     location: 'portugal',
     is_recurring: false,
     parent_expense_id: parentExpenseId,
     payment_method: paymentMethod,
-    expense_date: `${o.year}-${String(o.month).padStart(2, '0')}-${String(Math.min(day, 28)).padStart(2, '0')}`,
+    expense_date: `${o.year}-${String(o.month).padStart(2, '0')}-${String(o.day).padStart(2, '0')}`,
     expense_month: o.month,
     expense_quarter: Math.ceil(o.month / 3),
     expense_year: o.year,
@@ -218,7 +250,7 @@ export default function FornecedoresPage() {
           supplierId, form.name, base, vat, periodicity,
           form.payment_method || null, form.category || 'outro',
           form.recurring_day || null, startDate, form.contract_end_date,
-          parentData.id
+          parentData.id, form.include_catchup || false
         );
         toast.success(`${count} despesas geradas`);
       }
@@ -469,9 +501,15 @@ export default function FornecedoresPage() {
                         Equivalente mensal: {fmt(calcMonthlyEquivalent(parseFloat(form.recurring_value), form.recurring_periodicity || 'mensal'))}
                       </p>
                     )}
+                    {/* Catch-up toggle */}
+                    <div className="flex items-center gap-2">
+                      <Switch checked={form.include_catchup || false} onCheckedChange={v => setForm((f: any) => ({ ...f, include_catchup: v }))} />
+                      <Label className="text-xs font-normal">Incluir entrada para o mês atual (marcada como paga)</Label>
+                    </div>
                     {form.contract_start_date && form.contract_end_date && form.recurring_value && (
                       <p className="text-xs text-muted-foreground">
-                        Serão geradas {getOccurrenceMonths(form.contract_start_date, form.contract_end_date, form.recurring_periodicity || 'mensal').length} despesas
+                        Serão geradas {countFutureOccurrences(form.contract_start_date, form.contract_end_date, form.recurring_periodicity || 'mensal', form.recurring_day || 1, form.include_catchup || false)} despesas
+                        {form.include_catchup ? ' (1 entrada hoje + futuras)' : ' (apenas futuras)'}
                       </p>
                     )}
                   </div>
