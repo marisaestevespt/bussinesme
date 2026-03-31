@@ -79,7 +79,7 @@ function countOccurrences(firstPaymentDate: string, endDate: string, periodicity
   return generateBillingDates(firstPaymentDate, endDate, periodicity).length;
 }
 
-/** Generate individual expense rows for future billing dates */
+/** Generate individual expense rows from firstPaymentDate to endDate */
 async function generateExpensesForPeriod(
   supplierId: string,
   name: string,
@@ -88,15 +88,11 @@ async function generateExpensesForPeriod(
   periodicity: string,
   paymentMethod: string | null,
   category: string,
-  recurrenceDay: number | null,
-  startDate: string,
+  firstPaymentDate: string,
   endDate: string,
   parentExpenseId: string,
-  includeCatchUp: boolean = false,
-  catchUpDate?: string,
 ) {
-  const billingDay = recurrenceDay || 1;
-  const dates = getFutureBillingDates(startDate, endDate, periodicity, billingDay, includeCatchUp, catchUpDate);
+  const dates = generateBillingDates(firstPaymentDate, endDate, periodicity);
   const valuePerOccurrence = periodicity === 'semanal' ? Math.round(baseValue * (52/12) * 100) / 100 : baseValue;
   const total = Math.round(valuePerOccurrence * (1 + vatRate / 100) * 100) / 100;
 
@@ -108,7 +104,7 @@ async function generateExpensesForPeriod(
     vat_rate: vatRate,
     total_with_vat: total,
     category,
-    status: (o.isCatchUp ? 'pago' : 'por_pagar') as string,
+    status: 'por_pagar' as string,
     location: 'portugal',
     is_recurring: false,
     parent_expense_id: parentExpenseId,
