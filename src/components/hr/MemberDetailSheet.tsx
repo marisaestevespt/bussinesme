@@ -164,10 +164,22 @@ export function MemberDetailSheet({ open, onClose, member, team }: any) {
               <AvatarImage src={member?.photo_url || undefined} />
               <AvatarFallback className="text-lg">{member.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
-            <div>
+            <div className="flex items-center gap-2">
               <DialogTitle className="text-xl">{member.full_name}</DialogTitle>
-              {member.role_title && <p className="text-sm text-muted-foreground mt-0.5">{member.role_title}</p>}
+              {member.email && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs gap-1.5"
+                  onClick={handleCopyInviteLink}
+                  disabled={generatingLink}
+                >
+                  {generatingLink ? <Loader2 className="h-3 w-3 animate-spin" /> : <Link2 className="h-3 w-3" />}
+                  Copiar link de convite
+                </Button>
+              )}
             </div>
+            {member.role_title && <p className="text-sm text-muted-foreground mt-0.5">{member.role_title}</p>}
           </div>
         </DialogHeader>
         <div className="space-y-4 mt-4">
