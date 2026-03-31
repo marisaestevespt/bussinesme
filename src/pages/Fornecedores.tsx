@@ -305,7 +305,6 @@ export default function FornecedoresPage() {
         parent.periodicity || 'mensal',
         parent.payment_method,
         parent.category,
-        parent.recurrence_day,
         genStartStr,
         newEnd,
         parent.id
