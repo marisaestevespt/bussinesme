@@ -96,6 +96,7 @@ export function useMemberSave() {
       if (contractData && memberId) {
         const monthlyVal = parseFloat(contractData.monthly_value) || 0;
         const paymentDay = parseInt(contractData.payment_day) || 1;
+        const isPrestacao = contractData.contract_type === 'contrato_prestacao';
 
         if (isNew) {
           // Create contract + payments for new members
@@ -107,12 +108,60 @@ export function useMemberSave() {
             document_url: contractData.document_url || null,
             notes: contractData.notes || null,
           });
+
+          // === AUTO-CREATE SUPPLIER for prestadores ===
+          let supplierId: string | null = null;
+          if (isPrestacao) {
+            const { data: supplierData, error: supplierErr } = await supabase.from('suppliers').insert({
+              name: member.full_name,
+              nif: member.identification || null,
+              email: member.email || null,
+              phone: member.whatsapp || null,
+              iban: member.iban || null,
+              address: member.fiscal_address || null,
+              category: 'freelancer',
+              payment_method: member.payment_method || null,
+              default_vat_rate: contractData.value_includes_vat ? 23 : 23,
+              contract_start_date: contractData.start_date || null,
+              contract_end_date: contractData.end_date || null,
+              is_active: true,
+              member_id: memberId,
+            } as any).select('id').single();
+            if (!supplierErr && supplierData) {
+              supplierId = supplierData.id;
+            }
+          }
+
+          // Generate payments
           let numPayments = 0;
           if (contractData.duration === 'unica') numPayments = 1;
           else if (contractData.duration === 'indefinido') numPayments = 12;
           else numPayments = parseInt(contractData.duration) || 0;
+
           if (numPayments > 0 && contractData.start_date) {
-            const startDate = new Date(contractData.start_date);
+            // Determine payment start date
+            const paymentStartStr = (isPrestacao && contractData.use_custom_payment_start && contractData.payment_start_date)
+              ? contractData.payment_start_date
+              : contractData.start_date;
+            const startDate = new Date(paymentStartStr);
+
+            // Calculate IVA values for prestadores
+            let baseValue = monthlyVal;
+            let vatRate = 0;
+            let totalWithVat = monthlyVal;
+            if (isPrestacao) {
+              vatRate = 23;
+              if (contractData.value_includes_vat) {
+                // Value includes VAT — extract base
+                baseValue = Math.round((monthlyVal / 1.23) * 100) / 100;
+                totalWithVat = monthlyVal;
+              } else {
+                // Value is base — add VAT
+                baseValue = monthlyVal;
+                totalWithVat = Math.round(monthlyVal * 1.23 * 100) / 100;
+              }
+            }
+
             const payments = [];
             for (let i = 0; i < numPayments; i++) {
               const payMonth = ((startDate.getMonth() + i) % 12) + 1;
@@ -120,27 +169,62 @@ export function useMemberSave() {
               payments.push({
                 member_id: memberId, month: payMonth, year: payYear,
                 gross_value: monthlyVal, net_value: monthlyVal,
-                payment_type: contractData.contract_type === 'contrato_prestacao' ? 'prestacao' : 'salario',
+                payment_type: isPrestacao ? 'prestacao' : 'salario',
                 status: 'por_pagar',
               });
             }
             await supabase.from('member_payments').insert(payments);
 
-            // Auto-generate financial_payroll entries
-            const payrollEntries = payments.map(p => ({
-              collaborator_name: member.full_name,
-              month: p.month,
-              year: p.year,
-              gross_salary: p.gross_value,
-              net_salary: p.net_value,
-              total_cost: p.gross_value,
-              status: 'por_pagar',
-              withholding_rate: 0,
-              withholding_value: 0,
-              ss_employee: 0,
-              ss_employer: 0,
-            }));
-            await supabase.from('financial_payroll').insert(payrollEntries);
+            // === AUTO-CREATE FINANCIAL_EXPENSES ===
+            for (const p of payments) {
+              const expMonth = p.month;
+              const expQuarter = Math.ceil(expMonth / 3);
+              const expDate = `${p.year}-${String(p.month).padStart(2, '0')}-${String(paymentDay).padStart(2, '0')}`;
+
+              const expensePayload: any = {
+                description: `Pagamento — ${member.full_name} — ${String(p.month).padStart(2, '0')}/${p.year}`,
+                category: isPrestacao ? 'prestadores' : 'ordenados',
+                base_value: isPrestacao ? baseValue : p.gross_value,
+                vat_rate: isPrestacao ? vatRate : 0,
+                total_with_vat: isPrestacao ? totalWithVat : p.gross_value,
+                expense_date: expDate,
+                status: 'por_pagar',
+                source_type: isPrestacao ? 'contractor' : 'payroll',
+                expense_month: expMonth,
+                expense_quarter: expQuarter,
+                expense_year: p.year,
+                ...(supplierId ? { supplier_id: supplierId } : {}),
+              };
+
+              const { data: expData, error: expError } = await supabase
+                .from('financial_expenses')
+                .insert(expensePayload)
+                .select('id')
+                .single();
+
+              // Create payroll/contractor entry linked to expense
+              if (!expError && expData) {
+                if (isPrestacao) {
+                  await supabase.from('financial_contractors' as any).insert({
+                    collaborator_name: member.full_name,
+                    month: p.month, year: p.year,
+                    invoice_value: baseValue, vat_value: Math.round((totalWithVat - baseValue) * 100) / 100,
+                    total_cost: totalWithVat, status: 'por_pagar',
+                    expense_id: expData.id,
+                  });
+                } else {
+                  await supabase.from('financial_payroll').insert({
+                    collaborator_name: member.full_name,
+                    month: p.month, year: p.year,
+                    gross_salary: p.gross_value, net_salary: p.net_value,
+                    total_cost: p.gross_value, status: 'por_pagar',
+                    withholding_rate: 0, withholding_value: 0,
+                    ss_employee: 0, ss_employer: 0,
+                    expense_id: expData.id,
+                  });
+                }
+              }
+            }
           }
         } else if (contractData.id) {
           // Update existing contract
