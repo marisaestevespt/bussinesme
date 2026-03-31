@@ -207,6 +207,7 @@ export default function FornecedoresPage() {
         default_vat_rate: form.default_vat_rate ?? 23,
         contract_start_date: form.contract_start_date || null,
         contract_end_date: form.contract_end_date || null,
+        documents: form.documents || [],
       };
 
       let supplierId = form.id;
@@ -246,6 +247,7 @@ export default function FornecedoresPage() {
           expense_quarter: Math.ceil((new Date(startDate + 'T00:00:00').getMonth() + 1) / 3),
           expense_year: new Date(startDate + 'T00:00:00').getFullYear(),
           recurrence_end_date: form.contract_end_date,
+          source_type: 'rule',
         } as any).select('id').single();
         if (parentErr) throw parentErr;
 
