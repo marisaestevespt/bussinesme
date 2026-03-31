@@ -685,9 +685,10 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
 
 const CONTRACT_TYPE_LABELS: Record<string, string> = {
   contrato_trabalho: 'Colaborador',
+  contrato_prestacao: 'Prestador',
   prestacao_servicos: 'Prestador',
   acordo: 'Acordo',
-  outro: 'Outro',
+  outro: 'Ordenado',
 };
 
 function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin, qc, onExpenseClick }: {
@@ -721,7 +722,7 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
     } else {
       await fin.upsertExpense.mutateAsync({
         description: `${memberName} — ${MONTHS_LABEL[month - 1]} ${currentYear}`,
-        category: contractType === 'contrato_trabalho' ? 'ordenados' : 'prestadores',
+        category: (contractType === 'contrato_trabalho' || contractType === 'outro') ? 'ordenados' : 'prestadores',
         base_value: value, vat_rate: 0, total_with_vat: value, location: 'portugal',
         expense_date: dateStr, expense_month: month, expense_quarter: Math.ceil(month / 3),
         expense_year: currentYear, status: newStatus, source_type: 'contract', source_id: contract.id,
