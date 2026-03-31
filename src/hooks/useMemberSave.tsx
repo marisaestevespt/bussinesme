@@ -69,14 +69,17 @@ export function useMemberSave() {
       const isNew = !member.id;
       let memberId = member.id;
 
+      // Strip transient UI-only fields before DB operations
+      const { deptExtraPages: _dep, sensitiveAccess: _sa, ...dbFields } = member;
+
       if (isNew) {
-        const payload = cleanPayload({ ...member });
+        const payload = cleanPayload({ ...dbFields });
         delete payload.id;
         const { data, error } = await supabase.from('team_members').insert(payload as any).select('id').single();
         if (error) throw error;
         memberId = data.id;
       } else {
-        const payload = cleanPayload(member);
+        const payload = cleanPayload(dbFields);
         const { error } = await supabase.from('team_members').update(payload as any).eq('id', member.id);
         if (error) throw error;
       }
