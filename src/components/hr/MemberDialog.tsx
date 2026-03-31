@@ -483,7 +483,7 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
              <ScheduleSelector value={f.work_schedule || ''} onChange={v => set('work_schedule', v)} />
           </div>
 
-          {!isEdit && isENIOwner && (
+          {isENIOwner && (
             <>
               <Separator />
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">💰 Ordenado</h3>
@@ -501,10 +501,12 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                   <Input type="date" value={contract.start_date} onChange={e => handleStartDateChange(e.target.value)} />
                 </div>
               </div>
+              {/* Document upload for ENI Owner */}
+              <ContractDocUpload contract={contract} setC={setC} uploading={uploadingContract} setUploading={setUploadingContract} memberId={initial?.id} />
             </>
           )}
 
-          {!isEdit && !isENIOwner && (
+          {!isENIOwner && (
             <>
               <Separator />
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">📄 Contrato & Pagamento</h3>
@@ -516,13 +518,15 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                     <SelectContent>{CONTRACT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <label className="text-xs text-muted-foreground">Duração do contrato</label>
-                  <Select value={contract.duration} onValueChange={handleDurationChange}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{CONTRACT_DURATIONS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
+                {!isEdit && (
+                  <div>
+                    <label className="text-xs text-muted-foreground">Duração do contrato</label>
+                    <Select value={contract.duration} onValueChange={handleDurationChange}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{CONTRACT_DURATIONS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
@@ -555,11 +559,17 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
                   <SelectContent>{CONTRACT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
+              {/* Document upload */}
+              <ContractDocUpload contract={contract} setC={setC} uploading={uploadingContract} setUploading={setUploadingContract} memberId={initial?.id} />
+              <div>
+                <label className="text-xs text-muted-foreground">Notas do contrato</label>
+                <Textarea className="text-xs" rows={2} placeholder="Notas adicionais..." value={contract.notes} onChange={e => setC('notes', e.target.value)} />
+              </div>
             </>
           )}
 
           <input type="hidden" value={f.presentation || ''} />
-          <Button className="w-full" onClick={() => { onSave({ member: { ...initial, ...f }, contract: isEdit ? null : contract }); onClose(false); }} disabled={!f.full_name.trim()}>Guardar</Button>
+          <Button className="w-full" onClick={() => { onSave({ member: { ...initial, ...f }, contract }); onClose(false); }} disabled={!f.full_name.trim()}>Guardar</Button>
         </div>
       </DialogContent>
     </Dialog>
