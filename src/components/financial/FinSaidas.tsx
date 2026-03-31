@@ -108,6 +108,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
       if (s) {
         if (s.default_vat_rate != null) updates.vat_rate = s.default_vat_rate;
         if (s.payment_method) updates.payment_method = s.payment_method;
+        if (s.category) updates.category = s.category;
       }
       return updates;
     });
