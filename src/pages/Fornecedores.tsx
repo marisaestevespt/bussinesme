@@ -254,7 +254,7 @@ export default function FornecedoresPage() {
           supplierId, form.name, base, vat, periodicity,
           form.payment_method || null, form.category || 'outro',
           form.recurring_day || null, startDate, form.contract_end_date,
-          parentData.id, form.include_catchup || false
+          parentData.id, form.include_catchup || false, form.catchup_date
         );
         toast.success(`${count} despesas geradas`);
       }
