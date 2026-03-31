@@ -130,6 +130,8 @@ export default function FornecedoresPage() {
   const [renewDialog, setRenewDialog] = useState(false);
   const [renewForm, setRenewForm] = useState<any>({});
   const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
+  const [expenseEdit, setExpenseEdit] = useState<any>({});
 
   // Expenses for the currently selected supplier
   const { data: supplierExpenses = [] } = useQuery({
@@ -138,11 +140,46 @@ export default function FornecedoresPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from('financial_expenses')
-        .select('id,description,expense_date,base_value,total_with_vat,status,source_type,is_recurring')
+        .select('id,description,expense_date,base_value,vat_rate,total_with_vat,status,source_type,is_recurring,category,payment_method,documents')
         .eq('supplier_id', selectedSupplierId!)
         .order('expense_date', { ascending: true });
       return data || [];
     },
+  });
+
+  const updateExpense = useMutation({
+    mutationFn: async (exp: any) => {
+      const base = parseFloat(exp.base_value) || 0;
+      const vat = exp.vat_rate ?? 23;
+      const total = Math.round(base * (1 + vat / 100) * 100) / 100;
+      const { error } = await supabase.from('financial_expenses').update({
+        status: exp.status,
+        expense_date: exp.expense_date,
+        base_value: base,
+        vat_rate: vat,
+        total_with_vat: total,
+        description: exp.description,
+      }).eq('id', exp.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setEditingExpenseId(null);
+      toast.success('Despesa atualizada');
+    },
+    onError: () => toast.error('Erro ao atualizar despesa'),
+  });
+
+  const deleteExpense = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('financial_expenses').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateAll();
+      toast.success('Despesa eliminada');
+    },
+    onError: () => toast.error('Erro ao eliminar despesa'),
   });
 
   const { data: suppliers = [] } = useQuery({
