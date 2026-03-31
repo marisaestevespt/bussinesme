@@ -129,6 +129,21 @@ export default function FornecedoresPage() {
   const [form, setForm] = useState<any>({});
   const [renewDialog, setRenewDialog] = useState(false);
   const [renewForm, setRenewForm] = useState<any>({});
+  const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
+
+  // Expenses for the currently selected supplier
+  const { data: supplierExpenses = [] } = useQuery({
+    queryKey: ['supplier-expenses', selectedSupplierId],
+    enabled: !!selectedSupplierId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('financial_expenses')
+        .select('id,description,expense_date,base_value,total_with_vat,status,source_type,is_recurring')
+        .eq('supplier_id', selectedSupplierId!)
+        .order('expense_date', { ascending: true });
+      return data || [];
+    },
+  });
 
   const { data: suppliers = [] } = useQuery({
     queryKey: ['suppliers-all'],
@@ -160,6 +175,7 @@ export default function FornecedoresPage() {
     qc.invalidateQueries({ queryKey: ['financial-expenses'] });
     qc.invalidateQueries({ queryKey: ['recurring-expenses'] });
     qc.invalidateQueries({ queryKey: ['supplier-expense-counts'] });
+    qc.invalidateQueries({ queryKey: ['supplier-expenses'] });
   };
 
   const upsert = useMutation({
@@ -244,13 +260,20 @@ export default function FornecedoresPage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      await supabase.from('suppliers').delete().eq('id', id);
+      // Delete child expenses (generated from recurring rules)
+      await supabase.from('financial_expenses').delete().eq('supplier_id', id);
+      // Delete legacy subscriptions referencing this supplier
+      await supabase.from('financial_subscriptions').delete().eq('supplier_id', id);
+      // Now delete the supplier itself
+      const { error } = await supabase.from('suppliers').delete().eq('id', id);
+      if (error) throw error;
     },
     onSuccess: () => {
       invalidateAll();
       toast.success('Fornecedor eliminado');
       setOpen(false);
     },
+    onError: (err: any) => toast.error(`Erro ao eliminar: ${err.message}`),
   });
 
   // Renewal mutation
@@ -335,7 +358,7 @@ export default function FornecedoresPage() {
         <BackNavigation />
         <PageHeader title="Fornecedores" />
         <div className="flex justify-end">
-          <Button size="sm" onClick={() => { setForm({ is_active: true, payment_method: 'transferencia', default_vat_rate: 23 }); setOpen(true); }}>
+          <Button size="sm" onClick={() => { setForm({ is_active: true, payment_method: 'transferencia', default_vat_rate: 23 }); setSelectedSupplierId(null); setOpen(true); }}>
             <Plus className="h-4 w-4 mr-1" /> Novo Fornecedor
           </Button>
         </div>
@@ -357,7 +380,7 @@ export default function FornecedoresPage() {
                 {suppliers.length === 0 ? (
                   <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Sem fornecedores</TableCell></TableRow>
                 ) : suppliers.map((s: any) => (
-                  <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setForm({ ...s, create_recurring: false }); setOpen(true); }}>
+                  <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setForm({ ...s, create_recurring: false }); setSelectedSupplierId(s.id); setOpen(true); }}>
                     <TableCell>
                       <div className="font-medium">{s.name}</div>
                       {s.nif && <div className="text-xs text-muted-foreground">{s.nif}</div>}
@@ -528,10 +551,37 @@ export default function FornecedoresPage() {
                 </div>
               )}
 
+              {/* Existing expenses for this supplier */}
+              {form.id && supplierExpenses.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Despesas associadas ({supplierExpenses.filter((e: any) => e.source_type !== 'rule').length})</Label>
+                  <div className="max-h-48 overflow-y-auto space-y-1 border rounded-md p-2">
+                    {supplierExpenses.filter((e: any) => e.source_type !== 'rule').map((exp: any) => (
+                      <div key={exp.id} className="flex items-center justify-between text-xs py-1 border-b last:border-0">
+                        <div className="flex-1 min-w-0">
+                          <span className="text-muted-foreground">{exp.expense_date}</span>
+                          <span className="ml-2 truncate">{exp.description}</span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="font-medium">{fmt(exp.total_with_vat || 0)}</span>
+                          <Badge variant="outline" className={exp.status === 'pago' ? 'bg-success/10 text-success' : ''}>
+                            {exp.status === 'pago' ? 'Pago' : 'Por pagar'}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="flex gap-2">
                 <Button className="flex-1" onClick={() => upsert.mutate()} disabled={!form.name?.trim()}>Guardar</Button>
                 {form.id && (
-                  <Button variant="destructive" size="icon" onClick={() => remove.mutate(form.id)}>
+                  <Button variant="destructive" size="icon" onClick={() => {
+                    if (window.confirm(`Eliminar fornecedor "${form.name}" e todas as despesas associadas?`)) {
+                      remove.mutate(form.id);
+                    }
+                  }}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 )}
