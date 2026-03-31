@@ -685,9 +685,10 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
 
 const CONTRACT_TYPE_LABELS: Record<string, string> = {
   contrato_trabalho: 'Colaborador',
+  contrato_prestacao: 'Prestador',
   prestacao_servicos: 'Prestador',
   acordo: 'Acordo',
-  outro: 'Outro',
+  outro: 'Ordenado',
 };
 
 function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin, qc, onExpenseClick }: {
