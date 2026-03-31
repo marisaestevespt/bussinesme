@@ -251,9 +251,9 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
             status: c.status || 'ativo',
             document_url: c.document_url || '',
             notes: c.notes || '',
-            value_includes_vat: false,
-            payment_start_date: '',
-            use_custom_payment_start: false,
+            value_includes_vat: !!c.value_includes_vat,
+            payment_start_date: c.payment_start_date || '',
+            use_custom_payment_start: !!c.use_custom_payment_start,
           });
         }
         setContractLoaded(true);
