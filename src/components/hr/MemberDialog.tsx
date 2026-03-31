@@ -187,6 +187,16 @@ export function MemberDialog({ open, onClose, initial, onSave }: any) {
       work_areas: allAreas,
       sensitiveAccess: allSensitive,
     }));
+    // Set ENI Owner contract defaults
+    const today = new Date().toISOString().split('T')[0];
+    setContract(prev => ({
+      ...prev,
+      contract_type: 'outro',
+      duration: 'indefinido',
+      start_date: today,
+      end_date: '',
+      status: 'ativo',
+    }));
   }, [isENI]);
 
   const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
