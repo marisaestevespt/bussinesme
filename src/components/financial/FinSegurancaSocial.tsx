@@ -192,7 +192,7 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
         id: existing.id,
         total_with_vat: value,
         base_value: value,
-        status: 'pago',
+        status: 'pago_falta_fatura',
         description: `${prefix} — ${MONTHS[month - 1]} ${currentYear}`,
       } as any);
     } else if (value > 0) {
