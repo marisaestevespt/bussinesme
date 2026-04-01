@@ -431,7 +431,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
               {/* Subscription rows due this month */}
               {dueSubscriptions.map(sub => {
                 const linkedExp = subExpenseMap.get(sub.id);
-                const isPaid = linkedExp?.status === 'pago';
+                const isPaid = ['pago_falta_fatura', 'tudo_ok'].includes(linkedExp?.status || '');
                 return (
                   <SubRow
                     key={`sub-${sub.id}`}
