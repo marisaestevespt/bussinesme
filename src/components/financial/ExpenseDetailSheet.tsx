@@ -12,6 +12,7 @@ import { CalendarIcon, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { InvoiceUpload, type DocEntry } from './InvoiceUpload';
 import { CategorySelect } from './CategorySelect';
 import { SupplierSelect } from './SupplierSelect';
