@@ -91,7 +91,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
   const [lastId, setLastId] = useState<string | null>(null);
   if (sale && sale.id !== lastId) {
     setLastId(sale.id);
-    setStatus(sale.status || 'aguarda_pagamento');
+    setStatus(sale.status || 'por_pagar');
     const rawDocs = sale.documents;
     setDocs(Array.isArray(rawDocs) ? rawDocs : []);
   }
