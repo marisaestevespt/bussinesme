@@ -113,6 +113,29 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
       department: form.department || null,
       supplier_id: form.supplier_id || null,
     } as any);
+
+    // Sync document to member_payments when expense is linked to a contract
+    if (form.source_type === 'contract' && form.source_id) {
+      try {
+        const docUrl = regularDocs.length > 0 ? regularDocs[0].url : null;
+        const { data: contract } = await supabase
+          .from('member_contracts')
+          .select('member_id')
+          .eq('id', form.source_id)
+          .maybeSingle();
+        if (contract?.member_id && month && year) {
+          await supabase
+            .from('member_payments')
+            .update({ document_url: docUrl })
+            .eq('member_id', contract.member_id)
+            .eq('month', month)
+            .eq('year', year);
+        }
+      } catch {
+        // Non-critical — don't block save
+      }
+    }
+
     toast.success('Despesa atualizada');
     setSaving(false);
     onOpenChange(false);
