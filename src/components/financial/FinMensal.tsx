@@ -442,6 +442,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                     currentYear={currentYear}
                     fin={fin}
                     onExpenseClick={linkedExp ? () => { setSelectedExpense(linkedExp); setExpenseSheetOpen(true); } : undefined}
+                    getCategoryLabel={getCategoryLabel}
                   />
                 );
               })}
@@ -646,7 +647,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   );
 }
 
-function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpenseClick }: {
+function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpenseClick, getCategoryLabel }: {
   sub: RecurringExpense;
   linkedExpense: Expense | undefined;
   isPaid: boolean;
@@ -654,11 +655,11 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
   currentYear: number;
   fin: ReturnType<typeof useFinancialData>;
   onExpenseClick?: () => void;
+  getCategoryLabel: (type: string, value: string) => string;
 }) {
   const MONTHS_LABEL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
   const LOC_LABELS: Record<string, string> = { portugal: 'Portugal', ue: 'União Europeia', fora_ue: 'Fora da UE' };
   const [confirming, setConfirming] = useState(false);
-
 
   const vatRate = sub.vat_rate || 0;
   const displayBase = linkedExpense ? linkedExpense.base_value : sub.base_value;
@@ -666,8 +667,11 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
 
   const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-  const currentStatus = linkedExpense?.status || 'pendente';
+  const currentStatus = linkedExpense?.status || 'por_pagar';
   const subName = sub.expense_name || sub.description || '';
+  const expenseId = linkedExpense ? (linkedExpense as any).expense_id || '—' : '—';
+  const category = linkedExpense?.category || sub.category || 'outro';
+  const expenseDate = linkedExpense ? (linkedExpense as any).expense_date || '—' : '—';
 
   const handleStatusChange = async (_id: string, newStatus: string) => {
     setConfirming(true);
@@ -692,14 +696,14 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
       <TableCell onClick={e => e.stopPropagation()}>
         <ExpenseStatusSelect expenseId={linkedExpense?.id || `sub-${sub.id}`} currentStatus={currentStatus} onUpdate={handleStatusChange} />
       </TableCell>
-      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">REC</TableCell>
-      <TableCell className="font-medium">{subName}</TableCell>
-      <TableCell className="text-xs text-muted-foreground">Recorrente</TableCell>
-      <TableCell>{LOC_LABELS[sub.location] || sub.location}</TableCell>
+      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{expenseId}</TableCell>
+      <TableCell>{linkedExpense?.description || subName}</TableCell>
+      <TableCell>{getCategoryLabel('expense', category)}</TableCell>
+      <TableCell>{LOC_LABELS[linkedExpense ? ((linkedExpense as any).location || sub.location) : sub.location] || sub.location || '—'}</TableCell>
       <TableCell className="text-right">{fmt(displayBase)}</TableCell>
       <TableCell className="text-right">{vatRate}%</TableCell>
       <TableCell className="text-right">{fmt(displayTotal)}</TableCell>
-      <TableCell>—</TableCell>
+      <TableCell className="whitespace-nowrap">{expenseDate}</TableCell>
     </TableRow>
   );
 }
