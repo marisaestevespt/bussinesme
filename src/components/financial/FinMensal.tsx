@@ -738,7 +738,9 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
 
   const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-  const currentStatus = linkedExpense?.status || 'por_pagar';
+  const isCurrentMonth = month === new Date().getMonth() + 1 && currentYear === new Date().getFullYear();
+  const defaultStatus = isCurrentMonth ? 'pendente' : 'por_pagar';
+  const currentStatus = linkedExpense?.status || defaultStatus;
 
   const handleStatusChange = async (_id: string, newStatus: string) => {
     setConfirming(true);
