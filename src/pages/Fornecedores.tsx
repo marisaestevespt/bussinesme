@@ -119,7 +119,8 @@ async function generateExpensesForPeriod(
       expense_month: o.month,
       expense_quarter: Math.ceil(o.month / 3),
       expense_year: o.year,
-      source_type: 'recurring',
+      source_type: 'subscription',
+      source_id: parentExpenseId,
     };
   });
 
