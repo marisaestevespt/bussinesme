@@ -8,8 +8,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ENTRY_STATUSES, getEntryStatusBadge, getEffectiveEntryStatus } from './EntryDetailSheet';
 
 const EXPENSE_STATUSES = [
+  { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
   { value: 'pendente', label: 'Pendente', cls: 'bg-warning/10 text-warning' },
-  { value: 'pago', label: 'Pago', cls: 'bg-success/10 text-success' },
+  { value: 'em_atraso', label: 'Em Atraso', cls: 'bg-destructive/10 text-destructive' },
+  { value: 'pago_falta_fatura', label: 'Pago, Falta Fatura', cls: 'bg-info/10 text-info' },
+  { value: 'tudo_ok', label: 'Tudo OK', cls: 'bg-success/10 text-success' },
 ] as const;
 
 function getExpenseStatusBadge(status: string) {
