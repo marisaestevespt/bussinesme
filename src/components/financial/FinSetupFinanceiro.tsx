@@ -114,8 +114,8 @@ export function FinSetupFinanceiro({ fin }: Props) {
   };
 
   const visibleExpenses = supplierExpenses.filter((e: any) => e.source_type !== 'rule');
-  const totalPago = visibleExpenses.filter((e: any) => e.status === 'pago').reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0);
-  const totalPendente = visibleExpenses.filter((e: any) => e.status !== 'pago').reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0);
+  const totalPago = visibleExpenses.filter((e: any) => ['pago_falta_fatura', 'tudo_ok'].includes(e.status)).reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0);
+  const totalPendente = visibleExpenses.filter((e: any) => !['pago_falta_fatura', 'tudo_ok', 'cancelado'].includes(e.status)).reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0);
 
   return (
     <div className="space-y-8">
