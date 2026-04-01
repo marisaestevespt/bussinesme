@@ -449,7 +449,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
               {/* Contract rows (ordenados) due this month */}
               {activeContracts.map((contract: any) => {
                 const linkedExp = contractExpenseMap.get(contract.id);
-                const isPaid = linkedExp?.status === 'pago';
+                const isPaid = ['pago_falta_fatura', 'tudo_ok'].includes(linkedExp?.status || '');
                 const handleContractClick = async () => {
                   if (linkedExp) {
                     setSelectedExpense(linkedExp);
