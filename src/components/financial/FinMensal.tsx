@@ -407,7 +407,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
             <TableBody>
               {/* Regular expenses (excluding subscription/contract-linked ones to avoid duplicates) */}
               {monthExpenses.filter(e => e.source_type !== 'subscription' && e.source_type !== 'contract').map(e => (
-                <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedExpense(e); setExpenseSheetOpen(true); }}>
+                <TableRow key={e.id} className={cn(e.status !== 'pago' ? 'bg-muted/30' : '', 'cursor-pointer hover:bg-muted/50')} onClick={() => { setSelectedExpense(e); setExpenseSheetOpen(true); }}>
                   <TableCell onClick={e => e.stopPropagation()}>
                     <ExpenseStatusSelect
                       expenseId={e.id}
