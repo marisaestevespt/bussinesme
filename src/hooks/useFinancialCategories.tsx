@@ -80,19 +80,19 @@ export function useFinancialCategories() {
   });
 
   function getExpenseCategories() {
-    const custom = customCategories
+    const dbCats = customCategories
       .filter(c => c.category_type === 'expense')
       .map(c => ({ value: c.value, label: c.label, isCustom: true, id: c.id }));
-    const defaults = DEFAULT_EXP_CATEGORIES.map(c => ({ ...c, isCustom: false, id: '' }));
-    return [...defaults, ...custom];
+    if (dbCats.length > 0) return dbCats;
+    return DEFAULT_EXP_CATEGORIES.map(c => ({ ...c, isCustom: false, id: '' }));
   }
 
   function getSubscriptionCategories() {
-    const custom = customCategories
+    const dbCats = customCategories
       .filter(c => c.category_type === 'subscription')
       .map(c => ({ value: c.value, label: c.label, isCustom: true, id: c.id }));
-    const defaults = DEFAULT_SUB_CATEGORIES.map(c => ({ ...c, isCustom: false, id: '' }));
-    return [...defaults, ...custom];
+    if (dbCats.length > 0) return dbCats;
+    return DEFAULT_SUB_CATEGORIES.map(c => ({ ...c, isCustom: false, id: '' }));
   }
 
   function getCategoryLabel(type: CategoryType, value: string) {
