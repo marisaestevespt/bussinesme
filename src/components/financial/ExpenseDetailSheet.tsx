@@ -27,7 +27,6 @@ const EXP_STATUS = [
   { value: 'tudo_ok', label: 'Tudo OK', cls: 'bg-success/10 text-success' },
   { value: 'cancelado', label: 'Cancelado', cls: 'bg-muted text-muted-foreground' },
 ];
-];
 
 const VAT_OPTIONS = [0, 6, 13, 23];
 const LOCATIONS = [
