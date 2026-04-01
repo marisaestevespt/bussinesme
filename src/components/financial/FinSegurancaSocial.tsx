@@ -207,7 +207,7 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
         expense_month: month,
         expense_quarter: Math.ceil(month / 3),
         expense_year: currentYear,
-        status: 'pago',
+        status: 'pago_falta_fatura',
       } as any);
     }
     toast.success(`${prefix} de ${MONTHS[month - 1]} guardada`);

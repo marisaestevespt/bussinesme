@@ -388,7 +388,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                       expense_month: m,
                       expense_quarter: Math.ceil(m / 3),
                       expense_year: currentYear,
-                      status: 'pago',
+                      status: 'pago_falta_fatura',
                     } as any);
                   }
                   setSsEditing(false);
