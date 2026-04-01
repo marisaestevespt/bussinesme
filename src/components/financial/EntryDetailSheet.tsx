@@ -82,7 +82,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
     enabled: !!sale?.client,
   });
 
-  const [status, setStatus] = useState(sale?.status || 'aguarda_pagamento');
+  const [status, setStatus] = useState(sale?.status || 'por_pagar');
   const [docs, setDocs] = useState<DocEntry[]>([]);
   const [saving, setSaving] = useState(false);
   const [confirmNoDocsOpen, setConfirmNoDocsOpen] = useState(false);
