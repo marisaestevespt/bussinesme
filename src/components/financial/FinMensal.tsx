@@ -442,6 +442,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                     currentYear={currentYear}
                     fin={fin}
                     onExpenseClick={linkedExp ? () => { setSelectedExpense(linkedExp); setExpenseSheetOpen(true); } : undefined}
+                    getCategoryLabel={getCategoryLabel}
                   />
                 );
               })}
