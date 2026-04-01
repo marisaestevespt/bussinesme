@@ -771,7 +771,7 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
   const expenseDate = linkedExpense ? (linkedExpense as any).expense_date || '—' : `${currentYear}-${String(month).padStart(2, '0')}-${String(contract.payment_day || 15).padStart(2, '0')}`;
 
   return (
-    <TableRow className={cn(currentStatus !== 'pago' ? 'bg-muted/30' : '', 'cursor-pointer hover:bg-muted/50')} onClick={onExpenseClick}>
+    <TableRow className={cn(!['pago_falta_fatura', 'tudo_ok'].includes(currentStatus) ? 'bg-muted/30' : '', 'cursor-pointer hover:bg-muted/50')} onClick={onExpenseClick}>
       <TableCell onClick={e => e.stopPropagation()}>
         <ExpenseStatusSelect expenseId={linkedExpense?.id || `contract-${contract.id}`} currentStatus={currentStatus} onUpdate={handleStatusChange} />
       </TableCell>
