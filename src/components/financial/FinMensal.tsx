@@ -667,7 +667,9 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
 
   const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-  const currentStatus = linkedExpense?.status || 'por_pagar';
+  const isCurrentMonth = month === new Date().getMonth() + 1 && currentYear === new Date().getFullYear();
+  const defaultStatus = isCurrentMonth ? 'pendente' : 'por_pagar';
+  const currentStatus = linkedExpense?.status || defaultStatus;
   const subName = sub.expense_name || sub.description || '';
   const expenseId = linkedExpense ? (linkedExpense as any).expense_id || '—' : '—';
   const category = linkedExpense?.category || sub.category || 'outro';
