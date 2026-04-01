@@ -219,12 +219,12 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
       (type === 'independente' ? e.description?.toLowerCase().includes('independente') : !e.description?.toLowerCase().includes('independente'))
     );
     if (existing) {
-      const newStatus = existing.status === 'pago' ? 'por_pagar' : 'pago';
+      const newStatus = ['pago_falta_fatura', 'tudo_ok'].includes(existing.status) ? 'por_pagar' : 'pago_falta_fatura';
       await fin.upsertExpense.mutateAsync({
         id: existing.id,
         status: newStatus,
       } as any);
-      toast.success(newStatus === 'pago' ? `Marcada como paga` : `Marcada como pendente`);
+      toast.success(newStatus === 'pago_falta_fatura' ? `Marcada como paga` : `Marcada como pendente`);
     }
   };
 
