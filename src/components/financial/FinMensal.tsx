@@ -757,19 +757,28 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
     setConfirming(false);
   };
 
+  const expenseId = linkedExpense ? (linkedExpense as any).expense_id || '—' : '—';
+  const description = linkedExpense?.description || `Pagamento — ${memberName} — ${String(month).padStart(2, '0')}/${currentYear}`;
+  const categoryLabel = contractType === 'contrato_prestacao' || contractType === 'prestacao_servicos' ? 'Prestadores' : 'Ordenados';
+  const location = linkedExpense ? (LOC_LABELS[(linkedExpense as any).location] || (linkedExpense as any).location || 'Portugal') : 'Portugal';
+  const baseValue = linkedExpense?.base_value ?? value;
+  const vatRate = (linkedExpense as any)?.vat_rate ?? 0;
+  const totalWithVat = linkedExpense?.total_with_vat ?? value;
+  const expenseDate = linkedExpense ? (linkedExpense as any).expense_date || '—' : `${currentYear}-${String(month).padStart(2, '0')}-${String(contract.payment_day || 15).padStart(2, '0')}`;
+
   return (
     <TableRow className={cn(currentStatus !== 'pago' ? 'bg-muted/30' : '', 'cursor-pointer hover:bg-muted/50')} onClick={onExpenseClick}>
       <TableCell onClick={e => e.stopPropagation()}>
         <ExpenseStatusSelect expenseId={linkedExpense?.id || `contract-${contract.id}`} currentStatus={currentStatus} onUpdate={handleStatusChange} />
       </TableCell>
-      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{typeLabel}</TableCell>
-      <TableCell className="font-medium">{memberName}</TableCell>
-      <TableCell className="text-xs text-muted-foreground">{contract.team_members?.role_title || '—'}</TableCell>
-      <TableCell>Dia {contract.payment_day || '—'}</TableCell>
-      <TableCell className="text-right">{fmt(value)}</TableCell>
-      <TableCell className="text-right">0%</TableCell>
-      <TableCell className="text-right">{fmt(value)}</TableCell>
-      <TableCell>—</TableCell>
+      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{expenseId}</TableCell>
+      <TableCell>{description}</TableCell>
+      <TableCell>{categoryLabel}</TableCell>
+      <TableCell>{location}</TableCell>
+      <TableCell className="text-right">{fmt(baseValue)}</TableCell>
+      <TableCell className="text-right">{vatRate}%</TableCell>
+      <TableCell className="text-right">{fmt(totalWithVat)}</TableCell>
+      <TableCell className="whitespace-nowrap">{expenseDate}</TableCell>
     </TableRow>
   );
 }
