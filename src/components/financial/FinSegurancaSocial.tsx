@@ -192,7 +192,7 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
         id: existing.id,
         total_with_vat: value,
         base_value: value,
-        status: 'pago',
+        status: 'pago_falta_fatura',
         description: `${prefix} — ${MONTHS[month - 1]} ${currentYear}`,
       } as any);
     } else if (value > 0) {
@@ -207,7 +207,7 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
         expense_month: month,
         expense_quarter: Math.ceil(month / 3),
         expense_year: currentYear,
-        status: 'pago',
+        status: 'pago_falta_fatura',
       } as any);
     }
     toast.success(`${prefix} de ${MONTHS[month - 1]} guardada`);
@@ -219,12 +219,12 @@ export function FinSegurancaSocial({ fin, expenses, currentYear, sales }: Props)
       (type === 'independente' ? e.description?.toLowerCase().includes('independente') : !e.description?.toLowerCase().includes('independente'))
     );
     if (existing) {
-      const newStatus = existing.status === 'pago' ? 'por_pagar' : 'pago';
+      const newStatus = ['pago_falta_fatura', 'tudo_ok'].includes(existing.status) ? 'por_pagar' : 'pago_falta_fatura';
       await fin.upsertExpense.mutateAsync({
         id: existing.id,
         status: newStatus,
       } as any);
-      toast.success(newStatus === 'pago' ? `Marcada como paga` : `Marcada como pendente`);
+      toast.success(newStatus === 'pago_falta_fatura' ? `Marcada como paga` : `Marcada como pendente`);
     }
   };
 

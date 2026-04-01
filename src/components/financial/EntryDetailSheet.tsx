@@ -13,10 +13,10 @@ import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { FileText, Copy } from 'lucide-react';
 
 const ENTRY_STATUSES = [
-  { value: 'aguarda_pagamento', label: 'Aguarda Pagamento', cls: 'bg-warning/10 text-warning' },
-  { value: 'pagamento_em_atraso', label: 'Pagamento em Atraso', cls: 'bg-destructive/10 text-destructive' },
-  { value: 'pago', label: 'Pago', cls: 'bg-success/10 text-success' },
-  { value: 'fatura_recibo_enviado', label: 'Fatura-Recibo Enviado', cls: 'bg-info/10 text-info' },
+  { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
+  { value: 'pendente', label: 'Pendente', cls: 'bg-warning/10 text-warning' },
+  { value: 'em_atraso', label: 'Em Atraso', cls: 'bg-destructive/10 text-destructive' },
+  { value: 'pago_falta_fatura', label: 'Pago, Falta Fatura', cls: 'bg-info/10 text-info' },
   { value: 'tudo_ok', label: 'Tudo OK', cls: 'bg-success/10 text-success' },
 ] as const;
 
@@ -25,14 +25,14 @@ export function getEntryStatusBadge(status: string) {
   return found || { value: status, label: status, cls: 'bg-muted text-muted-foreground' };
 }
 
-/** Returns the effective status, auto-upgrading to 'pagamento_em_atraso' when overdue */
+/** Returns the effective status, auto-upgrading to 'em_atraso' when overdue */
 export function getEffectiveEntryStatus(status: string, paymentDate: string | null): string {
-  if (status === 'aguarda_pagamento' && paymentDate) {
+  if ((status === 'por_pagar' || status === 'pendente') && paymentDate) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const due = new Date(paymentDate);
     due.setHours(0, 0, 0, 0);
-    if (due < today) return 'pagamento_em_atraso';
+    if (due < today) return 'em_atraso';
   }
   return status;
 }
@@ -82,7 +82,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
     enabled: !!sale?.client,
   });
 
-  const [status, setStatus] = useState(sale?.status || 'aguarda_pagamento');
+  const [status, setStatus] = useState(sale?.status || 'por_pagar');
   const [docs, setDocs] = useState<DocEntry[]>([]);
   const [saving, setSaving] = useState(false);
   const [confirmNoDocsOpen, setConfirmNoDocsOpen] = useState(false);
@@ -91,7 +91,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
   const [lastId, setLastId] = useState<string | null>(null);
   if (sale && sale.id !== lastId) {
     setLastId(sale.id);
-    setStatus(sale.status || 'aguarda_pagamento');
+    setStatus(sale.status || 'por_pagar');
     const rawDocs = sale.documents;
     setDocs(Array.isArray(rawDocs) ? rawDocs : []);
   }

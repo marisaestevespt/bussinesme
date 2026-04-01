@@ -388,7 +388,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                       expense_month: m,
                       expense_quarter: Math.ceil(m / 3),
                       expense_year: currentYear,
-                      status: 'pago',
+                      status: 'pago_falta_fatura',
                     } as any);
                   }
                   setSsEditing(false);
@@ -407,7 +407,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
             <TableBody>
               {/* Regular expenses (excluding subscription/contract-linked ones to avoid duplicates) */}
               {monthExpenses.filter(e => e.source_type !== 'subscription' && e.source_type !== 'contract').map(e => (
-                <TableRow key={e.id} className={cn(e.status !== 'pago' ? 'bg-muted/30' : '', 'cursor-pointer hover:bg-muted/50')} onClick={() => { setSelectedExpense(e); setExpenseSheetOpen(true); }}>
+                <TableRow key={e.id} className={cn(!['pago_falta_fatura', 'tudo_ok'].includes(e.status) ? 'bg-muted/30' : '', 'cursor-pointer hover:bg-muted/50')} onClick={() => { setSelectedExpense(e); setExpenseSheetOpen(true); }}>
                   <TableCell onClick={e => e.stopPropagation()}>
                     <ExpenseStatusSelect
                       expenseId={e.id}
@@ -431,7 +431,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
               {/* Subscription rows due this month */}
               {dueSubscriptions.map(sub => {
                 const linkedExp = subExpenseMap.get(sub.id);
-                const isPaid = linkedExp?.status === 'pago';
+                const isPaid = ['pago_falta_fatura', 'tudo_ok'].includes(linkedExp?.status || '');
                 return (
                   <SubRow
                     key={`sub-${sub.id}`}
@@ -449,7 +449,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
               {/* Contract rows (ordenados) due this month */}
               {activeContracts.map((contract: any) => {
                 const linkedExp = contractExpenseMap.get(contract.id);
-                const isPaid = linkedExp?.status === 'pago';
+                const isPaid = ['pago_falta_fatura', 'tudo_ok'].includes(linkedExp?.status || '');
                 const handleContractClick = async () => {
                   if (linkedExp) {
                     setSelectedExpense(linkedExp);
@@ -667,7 +667,9 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
 
   const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-  const currentStatus = linkedExpense?.status || 'por_pagar';
+  const isCurrentMonth = month === new Date().getMonth() + 1 && currentYear === new Date().getFullYear();
+  const defaultStatus = isCurrentMonth ? 'pendente' : 'por_pagar';
+  const currentStatus = linkedExpense?.status || defaultStatus;
   const subName = sub.expense_name || sub.description || '';
   const expenseId = linkedExpense ? (linkedExpense as any).expense_id || '—' : '—';
   const category = linkedExpense?.category || sub.category || 'outro';
@@ -692,7 +694,7 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
   };
 
   return (
-    <TableRow className={cn(currentStatus !== 'pago' ? 'bg-muted/30' : '', onExpenseClick && 'cursor-pointer hover:bg-muted/50')} onClick={onExpenseClick}>
+    <TableRow className={cn(!['pago_falta_fatura', 'tudo_ok'].includes(currentStatus) ? 'bg-muted/30' : '', onExpenseClick && 'cursor-pointer hover:bg-muted/50')} onClick={onExpenseClick}>
       <TableCell onClick={e => e.stopPropagation()}>
         <ExpenseStatusSelect expenseId={linkedExpense?.id || `sub-${sub.id}`} currentStatus={currentStatus} onUpdate={handleStatusChange} />
       </TableCell>
@@ -736,7 +738,9 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
 
   const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
-  const currentStatus = linkedExpense?.status || 'por_pagar';
+  const isCurrentMonth = month === new Date().getMonth() + 1 && currentYear === new Date().getFullYear();
+  const defaultStatus = isCurrentMonth ? 'pendente' : 'por_pagar';
+  const currentStatus = linkedExpense?.status || defaultStatus;
 
   const handleStatusChange = async (_id: string, newStatus: string) => {
     setConfirming(true);
@@ -771,7 +775,7 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
   const expenseDate = linkedExpense ? (linkedExpense as any).expense_date || '—' : `${currentYear}-${String(month).padStart(2, '0')}-${String(contract.payment_day || 15).padStart(2, '0')}`;
 
   return (
-    <TableRow className={cn(currentStatus !== 'pago' ? 'bg-muted/30' : '', 'cursor-pointer hover:bg-muted/50')} onClick={onExpenseClick}>
+    <TableRow className={cn(!['pago_falta_fatura', 'tudo_ok'].includes(currentStatus) ? 'bg-muted/30' : '', 'cursor-pointer hover:bg-muted/50')} onClick={onExpenseClick}>
       <TableCell onClick={e => e.stopPropagation()}>
         <ExpenseStatusSelect expenseId={linkedExpense?.id || `contract-${contract.id}`} currentStatus={currentStatus} onUpdate={handleStatusChange} />
       </TableCell>

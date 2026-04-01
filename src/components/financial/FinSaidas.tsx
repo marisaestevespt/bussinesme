@@ -26,9 +26,12 @@ import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
 
 const EXP_STATUS = [
-  { value: 'por_pagar', label: 'Por Pagar' },
-  { value: 'pago', label: 'Pago' },
-  { value: 'cancelado', label: 'Cancelado' },
+  { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
+  { value: 'pendente', label: 'Pendente', cls: 'bg-warning/10 text-warning' },
+  { value: 'em_atraso', label: 'Em Atraso', cls: 'bg-destructive/10 text-destructive' },
+  { value: 'pago_falta_fatura', label: 'Pago, Falta Fatura', cls: 'bg-info/10 text-info' },
+  { value: 'tudo_ok', label: 'Tudo OK', cls: 'bg-success/10 text-success' },
+  { value: 'cancelado', label: 'Cancelado', cls: 'bg-muted text-muted-foreground' },
 ];
 
 const PAYMENT_METHODS = [
@@ -221,7 +224,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
                     setExpForm({ ...e, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.base_value.toString(), periodicity: (e as any).periodicity || 'mensal' });
                     setExpOpen(true);
                   }}>
-                    <TableCell><Badge variant="outline" className={e.status === 'pago' ? 'bg-success/10 text-success' : e.status === 'cancelado' ? 'bg-muted text-muted-foreground' : 'bg-warning/10 text-warning'}>{EXP_STATUS.find(s => s.value === e.status)?.label || e.status}</Badge></TableCell>
+                    <TableCell><Badge variant="outline" className={EXP_STATUS.find(s => s.value === e.status)?.cls || 'bg-muted text-muted-foreground'}>{EXP_STATUS.find(s => s.value === e.status)?.label || e.status}</Badge></TableCell>
                     <TableCell className="font-mono text-xs">{e.expense_id}</TableCell>
                     <TableCell>{e.expense_date || '—'}</TableCell>
                     <TableCell className="truncate max-w-[200px]">

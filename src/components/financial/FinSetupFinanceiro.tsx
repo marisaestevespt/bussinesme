@@ -114,8 +114,8 @@ export function FinSetupFinanceiro({ fin }: Props) {
   };
 
   const visibleExpenses = supplierExpenses.filter((e: any) => e.source_type !== 'rule');
-  const totalPago = visibleExpenses.filter((e: any) => e.status === 'pago').reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0);
-  const totalPendente = visibleExpenses.filter((e: any) => e.status !== 'pago').reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0);
+  const totalPago = visibleExpenses.filter((e: any) => ['pago_falta_fatura', 'tudo_ok'].includes(e.status)).reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0);
+  const totalPendente = visibleExpenses.filter((e: any) => !['pago_falta_fatura', 'tudo_ok', 'cancelado'].includes(e.status)).reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0);
 
   return (
     <div className="space-y-8">
@@ -324,14 +324,14 @@ export function FinSetupFinanceiro({ fin }: Props) {
                             <span className="font-medium">{fmt(exp.total_with_vat || 0)}</span>
                             <Badge
                               variant="outline"
-                              className={`cursor-pointer ${exp.status === 'pago' ? 'bg-success/10 text-success' : exp.status === 'cancelado' ? 'bg-muted text-muted-foreground' : ''}`}
+                              className={`cursor-pointer ${['pago_falta_fatura', 'tudo_ok'].includes(exp.status) ? 'bg-success/10 text-success' : exp.status === 'cancelado' ? 'bg-muted text-muted-foreground' : exp.status === 'em_atraso' ? 'bg-destructive/10 text-destructive' : 'bg-warning/10 text-warning'}`}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                const next = exp.status === 'por_pagar' ? 'pago' : exp.status === 'pago' ? 'por_pagar' : exp.status;
+                                const next = ['por_pagar', 'pendente', 'em_atraso'].includes(exp.status) ? 'pago_falta_fatura' : ['pago_falta_fatura', 'tudo_ok'].includes(exp.status) ? 'por_pagar' : exp.status;
                                 updateExpense.mutate({ ...exp, status: next });
                               }}
                             >
-                              {exp.status === 'pago' ? 'Pago' : exp.status === 'cancelado' ? 'Cancelado' : 'Por pagar'}
+                              {exp.status === 'tudo_ok' ? 'Tudo OK' : exp.status === 'pago_falta_fatura' ? 'Pago' : exp.status === 'cancelado' ? 'Cancelado' : exp.status === 'em_atraso' ? 'Em Atraso' : exp.status === 'pendente' ? 'Pendente' : 'Por pagar'}
                             </Badge>
                           </div>
                         </div>
