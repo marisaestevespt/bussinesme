@@ -692,7 +692,7 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
   };
 
   return (
-    <TableRow className={cn(currentStatus !== 'pago' ? 'bg-muted/30' : '', onExpenseClick && 'cursor-pointer hover:bg-muted/50')} onClick={onExpenseClick}>
+    <TableRow className={cn(!['pago_falta_fatura', 'tudo_ok'].includes(currentStatus) ? 'bg-muted/30' : '', onExpenseClick && 'cursor-pointer hover:bg-muted/50')} onClick={onExpenseClick}>
       <TableCell onClick={e => e.stopPropagation()}>
         <ExpenseStatusSelect expenseId={linkedExpense?.id || `sub-${sub.id}`} currentStatus={currentStatus} onUpdate={handleStatusChange} />
       </TableCell>
