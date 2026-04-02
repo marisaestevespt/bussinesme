@@ -38,6 +38,7 @@ export function useExecutiveData(year = currentYear) {
       const { data } = await supabase.from('executive_brain_dump').select('*').order('created_at', { ascending: false });
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const addBrainDump = useMutation({
