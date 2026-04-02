@@ -38,7 +38,15 @@ export function FinEntradas({ sales, currentYear }: Props) {
   const currentQuarter = Math.ceil(currentMonth / 3);
 
   const com = useCommercialData(currentYear);
-  const { products } = useProducts();
+  const { data: productRows } = useQuery({
+    queryKey: ['product-names-fin'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('name');
+      return (data || []).map(p => p.name);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+  const productNames = productRows || [];
 
   const filtered = useMemo(() => {
     return sales.filter(s => {
