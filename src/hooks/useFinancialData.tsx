@@ -66,7 +66,12 @@ export function useFinancialData() {
     queryFn: async ({ pageParam = 0 }) => {
       const from = (pageParam as number) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const { data, error, count } = await supabase.from('financial_expenses').select('*', { count: 'exact' }).neq('source_type', 'rule').order('expense_date', { ascending: false }).range(from, to);
+      const { data, error, count } = await supabase
+        .from('financial_expenses')
+        .select('*', { count: 'exact' })
+        .or('source_type.is.null,source_type.neq.rule')
+        .order('expense_date', { ascending: false })
+        .range(from, to);
       if (error) throw error;
       return { data: (data || []) as Expense[], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },
