@@ -12,7 +12,8 @@ import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
 import { toast } from 'sonner';
 import { useCommercialData } from '@/hooks/useCommercialData';
-import { useProducts } from '@/hooks/useProducts';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 type Sale = {
   id: string; sale_id: string; status: string; payment_date: string | null;
