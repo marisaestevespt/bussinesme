@@ -3,12 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, Copy } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { EntryDetailSheet } from './EntryDetailSheet';
 import { EntryStatusSelect } from './InlineStatusSelect';
+import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
 import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
 import { toast } from 'sonner';
+import { useCommercialData } from '@/hooks/useCommercialData';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 type Sale = {
   id: string; sale_id: string; status: string; payment_date: string | null;
@@ -26,9 +31,22 @@ export function FinEntradas({ sales, currentYear }: Props) {
   const [filter, setFilter] = useState<Filter>('year');
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [dupOpen, setDupOpen] = useState(false);
+  const [dupData, setDupData] = useState<any>(null);
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentQuarter = Math.ceil(currentMonth / 3);
+
+  const com = useCommercialData(currentYear);
+  const { data: productRows } = useQuery({
+    queryKey: ['product-names-fin'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('name');
+      return (data || []).map(p => p.name);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+  const productNames = productRows || [];
 
   const filtered = useMemo(() => {
     return sales.filter(s => {
@@ -47,6 +65,12 @@ export function FinEntradas({ sales, currentYear }: Props) {
   const openDetail = (sale: Sale) => {
     setSelectedSale(sale);
     setSheetOpen(true);
+  };
+
+  const duplicateSale = (s: Sale) => {
+    const { id, sale_id, created_at, updated_at, ...rest } = s as any;
+    setDupData({ ...rest, status: 'pendente' });
+    setDupOpen(true);
   };
 
   const handleExportCsv = () => {
@@ -91,11 +115,12 @@ export function FinEntradas({ sales, currentYear }: Props) {
                 <TableHead>Mês</TableHead>
                 <TableHead>Trim.</TableHead>
                 <TableHead>Ano</TableHead>
+                <TableHead className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground py-8">Sem entradas</TableCell></TableRow>
+                <TableRow><TableCell colSpan={13} className="text-center text-muted-foreground py-8">Sem entradas</TableCell></TableRow>
               ) : filtered.map(s => (
                   <TableRow key={s.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openDetail(s)}>
                     <TableCell onClick={e => e.stopPropagation()}><EntryStatusSelect saleId={s.id} currentStatus={s.status || 'aguarda_pagamento'} paymentDate={s.payment_date} hasDocuments={Array.isArray(s.documents) && s.documents.length > 0} /></TableCell>
@@ -110,6 +135,16 @@ export function FinEntradas({ sales, currentYear }: Props) {
                     <TableCell>{s.sale_month || '—'}</TableCell>
                     <TableCell>T{s.sale_quarter || '—'}</TableCell>
                     <TableCell>{s.sale_year || '—'}</TableCell>
+                    <TableCell onClick={e => e.stopPropagation()}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => duplicateSale(s)}>
+                            <Copy className="h-3.5 w-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Duplicar</TooltipContent>
+                      </Tooltip>
+                    </TableCell>
                   </TableRow>
               ))}
             </TableBody>
@@ -118,6 +153,13 @@ export function FinEntradas({ sales, currentYear }: Props) {
       </Card>
 
       <EntryDetailSheet sale={selectedSale} open={sheetOpen} onOpenChange={setSheetOpen} />
+      <SaleFormDialog
+        open={dupOpen}
+        onOpenChange={setDupOpen}
+        products={productNames}
+        initialData={dupData}
+        onSave={(sale) => { com.upsertSale.mutate(sale); setDupOpen(false); }}
+      />
     </div>
   );
 }
