@@ -85,6 +85,22 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
 
   const locLabel = (l: string) => l === 'portugal' ? 'Portugal' : l === 'ue' ? 'União Europeia' : 'Fora da UE';
 
+  // Auto-liquidação: EU purchases where reverse charge applies
+  const autoLiquidacao = useMemo(() => {
+    const euExpenses = expenses.filter(e => e.expense_year === currentYear && e.location === 'ue');
+    const byMonth = Array.from({ length: 12 }, (_, i) => {
+      const m = i + 1;
+      const me = euExpenses.filter(e => e.expense_month === m);
+      const totalBase = me.reduce((s, e) => s + e.base_value, 0);
+      // Standard PT VAT rate (23%) applied for reverse charge declaration
+      const ivaAutoLiq = Math.round(totalBase * 0.23 * 100) / 100;
+      return { mes: FULL[i], items: me, totalBase, ivaAutoLiq };
+    });
+    const totalBase = byMonth.reduce((s, m) => s + m.totalBase, 0);
+    const totalIva = byMonth.reduce((s, m) => s + m.ivaAutoLiq, 0);
+    return { byMonth, totalBase, totalIva, hasAny: euExpenses.length > 0 };
+  }, [expenses, currentYear]);
+
   const totalCobrado = balanco.reduce((s, d) => s + d.cobrado, 0);
   const totalPago = balanco.reduce((s, d) => s + d.pago, 0);
   const totalBalanco = balanco.reduce((s, d) => s + d.balanco, 0);
