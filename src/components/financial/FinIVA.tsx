@@ -2,9 +2,10 @@ import { useMemo, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Download } from 'lucide-react';
+import { Download, AlertTriangle } from 'lucide-react';
 import type { Expense } from '@/hooks/useFinancialData';
 import type { useFinancialData } from '@/hooks/useFinancialData';
 import { FinDocumentsUpload, type FinDocItem } from './FinDocumentsUpload';
@@ -84,6 +85,22 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
 
   const locLabel = (l: string) => l === 'portugal' ? 'Portugal' : l === 'ue' ? 'União Europeia' : 'Fora da UE';
 
+  // Auto-liquidação: EU purchases where reverse charge applies
+  const autoLiquidacao = useMemo(() => {
+    const euExpenses = expenses.filter(e => e.expense_year === currentYear && e.location === 'ue');
+    const byMonth = Array.from({ length: 12 }, (_, i) => {
+      const m = i + 1;
+      const me = euExpenses.filter(e => e.expense_month === m);
+      const totalBase = me.reduce((s, e) => s + e.base_value, 0);
+      // Standard PT VAT rate (23%) applied for reverse charge declaration
+      const ivaAutoLiq = Math.round(totalBase * 0.23 * 100) / 100;
+      return { mes: FULL[i], items: me, totalBase, ivaAutoLiq };
+    });
+    const totalBase = byMonth.reduce((s, m) => s + m.totalBase, 0);
+    const totalIva = byMonth.reduce((s, m) => s + m.ivaAutoLiq, 0);
+    return { byMonth, totalBase, totalIva, hasAny: euExpenses.length > 0 };
+  }, [expenses, currentYear]);
+
   const totalCobrado = balanco.reduce((s, d) => s + d.cobrado, 0);
   const totalPago = balanco.reduce((s, d) => s + d.pago, 0);
   const totalBalanco = balanco.reduce((s, d) => s + d.balanco, 0);
@@ -162,6 +179,52 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
         documents={ivaDocuments}
         onUpdate={handleDocsUpdate}
       />
+
+      {/* Auto-liquidação UE */}
+      {autoLiquidacao.hasAny && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-warning" />
+              Auto-liquidação — Compras UE ({currentYear})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Alert className="mb-4">
+              <AlertDescription className="text-xs">
+                Compras a fornecedores da UE com <strong>reverse charge</strong> devem ser declaradas nos campos 16 e 17 da declaração periódica de IVA.
+                O IVA é simultaneamente liquidado e deduzido (efeito neutro), mas tem de ser declarado.
+              </AlertDescription>
+            </Alert>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Mês</TableHead>
+                  <TableHead className="text-right">Base (€)</TableHead>
+                  <TableHead className="text-right">IVA a declarar (23%)</TableHead>
+                  <TableHead className="text-right">Nº compras</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {autoLiquidacao.byMonth.filter(m => m.items.length > 0).map((m, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="font-medium">{m.mes}</TableCell>
+                    <TableCell className="text-right">{fmt(m.totalBase)}</TableCell>
+                    <TableCell className="text-right font-medium">{fmt(m.ivaAutoLiq)}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{m.items.length}</TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="border-t-2 font-semibold">
+                  <TableCell>Total</TableCell>
+                  <TableCell className="text-right">{fmt(autoLiquidacao.totalBase)}</TableCell>
+                  <TableCell className="text-right">{fmt(autoLiquidacao.totalIva)}</TableCell>
+                  <TableCell />
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       {/* IVA Cobrado Detail Dialog */}
       <Dialog open={cobradoMonth !== null} onOpenChange={(open) => !open && setCobradoMonth(null)}>
