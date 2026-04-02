@@ -246,7 +246,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
               <TableBody>
                 {expenses.map(e => (
                   <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
-                    setExpForm({ ...e, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.base_value.toString(), periodicity: (e as any).periodicity || 'mensal' });
+                    setExpForm({ ...e, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.total_with_vat.toString(), includes_vat: true, periodicity: (e as any).periodicity || 'mensal' });
                     setExpOpen(true);
                   }}>
                     <TableCell><Badge variant="outline" className={EXP_STATUS.find(s => s.value === e.status)?.cls || 'bg-muted text-muted-foreground'}>{EXP_STATUS.find(s => s.value === e.status)?.label || e.status}</Badge></TableCell>
@@ -270,7 +270,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
                         <TooltipTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
                             const { id, expense_id, created_at, updated_at, ...rest } = e as any;
-                            setExpForm({ ...rest, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.base_value.toString(), status: 'pendente', periodicity: (e as any).periodicity || 'mensal' });
+                            setExpForm({ ...rest, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.total_with_vat.toString(), includes_vat: true, status: 'pendente', periodicity: (e as any).periodicity || 'mensal' });
                             setExpOpen(true);
                           }}>
                             <Copy className="h-3.5 w-3.5" />
