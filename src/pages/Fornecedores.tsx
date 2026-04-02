@@ -590,7 +590,7 @@ export default function FornecedoresPage() {
                     <div>
                       <Label className="text-xs">Data do 1º pagamento</Label>
                       <Input type="date" value={form.first_payment_date || form.contract_start_date || ''} onChange={e => setForm((f: any) => ({ ...f, first_payment_date: e.target.value }))} />
-                      <p className="text-[11px] text-muted-foreground mt-0.5">As despesas serão geradas a partir desta data, com o intervalo da periodicidade, até ao fim do contrato.</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{form.contract_end_date ? 'As despesas serão geradas a partir desta data, com o intervalo da periodicidade, até ao fim do contrato.' : 'Opcional — sem data de fim, será criada apenas a regra recorrente.'}</p>
                     </div>
                     {form.recurring_value && parseFloat(form.recurring_value) > 0 && (
                       <p className="text-xs text-muted-foreground">
