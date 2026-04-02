@@ -7527,6 +7527,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           last_renewal_date: string | null
+          location: string
           member_id: string | null
           name: string
           nif: string | null
@@ -7551,6 +7552,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           last_renewal_date?: string | null
+          location?: string
           member_id?: string | null
           name: string
           nif?: string | null
@@ -7575,6 +7577,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           last_renewal_date?: string | null
+          location?: string
           member_id?: string | null
           name?: string
           nif?: string | null
