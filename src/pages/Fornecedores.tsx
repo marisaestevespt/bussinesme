@@ -292,9 +292,16 @@ export default function FornecedoresPage() {
 
       // Create recurring expense rule + optionally generate individual monthly expenses
       if (form.create_recurring && supplierId && form.recurring_value) {
-        const base = parseFloat(form.recurring_value) || 0;
-        const vat = form.default_vat_rate ?? 23;
-        const total = Math.round(base * (1 + vat / 100) * 100) / 100;
+        const inputValue = parseFloat(form.recurring_value) || 0;
+        const vat = form.recurring_vat_rate ?? form.default_vat_rate ?? 23;
+        let base: number, total: number;
+        if (form.recurring_includes_vat) {
+          total = inputValue;
+          base = Math.round(inputValue / (1 + vat / 100) * 100) / 100;
+        } else {
+          base = inputValue;
+          total = Math.round(base * (1 + vat / 100) * 100) / 100;
+        }
         const periodicity = form.recurring_periodicity || 'mensal';
         const startDate = form.first_payment_date || form.contract_start_date || new Date().toISOString().slice(0, 10);
 
