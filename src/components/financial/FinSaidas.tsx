@@ -283,8 +283,10 @@ export function FinSaidas({ fin, currentYear }: Props) {
                 ))}
               </TableBody>
             </Table>
+            )}
           </CardContent>
         </Card>
+        )}
       </div>
 
 
