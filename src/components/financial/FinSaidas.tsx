@@ -227,11 +227,12 @@ export function FinSaidas({ fin, currentYear }: Props) {
                   <TableHead className="text-right">Total c/ IVA</TableHead>
                   <TableHead>Localização</TableHead>
                   {filter === 'recurring' ? <TableHead>Periodicidade</TableHead> : <TableHead>Mês</TableHead>}
+                  <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {expenses.length === 0 ? (
-                  <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Sem despesas</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground py-8">Sem despesas</TableCell></TableRow>
                 ) : expenses.map(e => (
                   <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
                     setExpForm({ ...e, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.base_value.toString(), periodicity: (e as any).periodicity || 'mensal' });
@@ -253,6 +254,20 @@ export function FinSaidas({ fin, currentYear }: Props) {
                       ? <TableCell>{PERIODICITIES.find(p => p.value === (e as any).periodicity)?.label || '—'}</TableCell>
                       : <TableCell>{e.expense_month || '—'}</TableCell>
                     }
+                    <TableCell onClick={ev => ev.stopPropagation()}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => {
+                            const { id, expense_id, created_at, updated_at, ...rest } = e as any;
+                            setExpForm({ ...rest, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.base_value.toString(), status: 'pendente', periodicity: (e as any).periodicity || 'mensal' });
+                            setExpOpen(true);
+                          }}>
+                            <Copy className="h-3.5 w-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Duplicar</TooltipContent>
+                      </Tooltip>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
