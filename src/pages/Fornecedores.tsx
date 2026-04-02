@@ -278,6 +278,7 @@ export default function FornecedoresPage() {
         notes: form.notes || null,
         is_active: form.is_active ?? true,
         default_vat_rate: form.default_vat_rate ?? 23,
+        location: form.location || 'portugal',
         contract_start_date: form.contract_start_date || null,
         contract_end_date: form.contract_end_date || null,
         documents: form.documents || [],
