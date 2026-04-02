@@ -10,20 +10,18 @@ import { OnboardingTour } from '@/components/OnboardingTour';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { settings } = useBusinessSettings();
-  // Contract expiry, client renewal, and birthday notifications moved to edge function crons
-  // Lead follow-up notifications consolidated into useSystemNotifications with proper caching
   useSystemNotifications();
 
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <div className="min-h-screen flex w-full">
+        <div className="min-h-screen flex w-full bg-muted/30">
           <AppSidebar />
           <div className="flex-1 flex flex-col min-w-0">
-            <header className="h-12 flex items-center border-b px-4 shrink-0">
+            <header className="h-14 flex items-center border-b bg-background/80 backdrop-blur-sm px-5 shrink-0 sticky top-0 z-30">
               <SidebarTrigger className="mr-3" />
-              <span className="text-sm text-muted-foreground truncate flex-1">
-                Lirah | {settings?.business_name || ''}
+              <span className="text-sm font-medium text-muted-foreground truncate flex-1">
+                {settings?.business_name || 'Lirah'}
               </span>
               <div className="flex items-center gap-1">
                 <FavoriteButton />
