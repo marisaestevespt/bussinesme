@@ -156,7 +156,7 @@ export function FinEntradas({ sales, currentYear }: Props) {
       <SaleFormDialog
         open={dupOpen}
         onOpenChange={setDupOpen}
-        products={products}
+        products={productNames}
         initialData={dupData}
         onSave={(sale) => { com.upsertSale.mutate(sale); setDupOpen(false); }}
       />
