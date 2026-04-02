@@ -96,11 +96,11 @@ function NavSection({
     <Collapsible defaultOpen className="group/collapsible">
       <SidebarGroup>
         <CollapsibleTrigger asChild>
-          <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/70 font-medium cursor-pointer hover:text-muted-foreground transition-colors select-none">
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold cursor-pointer hover:text-muted-foreground transition-colors select-none mb-1">
             {label}
             {!collapsed && (
               <svg
-                className="ml-auto h-3 w-3 shrink-0 text-muted-foreground/50 transition-transform group-data-[state=open]/collapsible:rotate-90"
+                className="ml-auto h-3 w-3 shrink-0 text-muted-foreground/40 transition-transform group-data-[state=open]/collapsible:rotate-90"
                 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
               >
                 <path d="m9 18 6-6-6-6" />
@@ -119,11 +119,15 @@ function NavSection({
                       <NavLink
                         to={item.url}
                         end
-                        className="hq-transition hover:bg-accent/50"
-                        activeClassName="bg-primary text-primary-foreground font-medium"
+                        className="group/nav rounded-lg px-3 py-2 transition-all duration-200 hover:bg-primary/8 hover:translate-x-0.5"
+                        activeClassName="bg-primary text-primary-foreground font-medium shadow-sm hover:bg-primary/90 hover:translate-x-0"
                       >
-                        <Icon className="mr-2 h-4 w-4" strokeWidth={1.5} />
-                        {!collapsed && <span className="text-sm">{item.title}</span>}
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/8 group-[.bg-primary]/nav:bg-primary-foreground/15 transition-colors">
+                            <Icon className="h-3.5 w-3.5" strokeWidth={1.8} />
+                          </div>
+                          {!collapsed && <span className="text-[13px]">{item.title}</span>}
+                        </div>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -147,24 +151,33 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4">
+      <SidebarHeader className="p-4 pb-2">
         <div className="flex items-center gap-3">
-          {settings?.logo_url && (
-            <img src={settings.logo_url} alt="Logo" className="h-8 w-8 rounded-md object-contain" />
+          {settings?.logo_url ? (
+            <img src={settings.logo_url} alt="Logo" className="h-9 w-9 rounded-xl object-contain shadow-sm" />
+          ) : (
+            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <span className="text-sm font-bold text-primary">
+                {(settings?.business_name || 'L').charAt(0)}
+              </span>
+            </div>
           )}
           {!collapsed && (
-            <span className="text-sm font-semibold tracking-tight truncate">
-              Lirah | {settings?.business_name || 'Negócio'}
-            </span>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-bold tracking-tight truncate">
+                {settings?.business_name || 'Lirah'}
+              </span>
+              <span className="text-[10px] text-muted-foreground/60 font-medium">Sistema de Gestão</span>
+            </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="px-2">
         <NavSection label="Pessoal" items={pessoalItems} collapsed={collapsed} canAccess={() => true} />
         {favorites.length > 0 && (
           <SidebarGroup>
-            <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/70 font-medium">
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold mb-1">
               Favoritos
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -177,11 +190,15 @@ export function AppSidebar() {
                         <NavLink
                           to={fav.page_path}
                           end
-                          className="hq-transition hover:bg-accent/50"
-                          activeClassName="bg-primary text-primary-foreground font-medium"
+                          className="group/nav rounded-lg px-3 py-2 transition-all duration-200 hover:bg-primary/8 hover:translate-x-0.5"
+                          activeClassName="bg-primary text-primary-foreground font-medium shadow-sm hover:bg-primary/90 hover:translate-x-0"
                         >
-                          <Icon className="mr-2 h-4 w-4" strokeWidth={1.5} />
-                          {!collapsed && <span className="text-sm">{fav.page_title}</span>}
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/8 group-[.bg-primary]/nav:bg-primary-foreground/15 transition-colors">
+                              <Icon className="h-3.5 w-3.5" strokeWidth={1.8} />
+                            </div>
+                            {!collapsed && <span className="text-[13px]">{fav.page_title}</span>}
+                          </div>
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -199,22 +216,38 @@ export function AppSidebar() {
         )}
       </SidebarContent>
 
-      <SidebarFooter className="p-3 space-y-1">
+      <SidebarFooter className="p-3 space-y-0.5 border-t">
         <SidebarMenu>
           {isOwner && (
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <NavLink to="/definicoes" end className="hq-transition hover:bg-accent/50" activeClassName="bg-primary text-primary-foreground font-medium">
-                  <Settings className="mr-2 h-4 w-4" strokeWidth={1.5} />
-                  {!collapsed && <span className="text-sm">Definições</span>}
+                <NavLink
+                  to="/definicoes"
+                  end
+                  className="group/nav rounded-lg px-3 py-2 transition-all duration-200 hover:bg-primary/8"
+                  activeClassName="bg-primary text-primary-foreground font-medium shadow-sm"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/8 transition-colors">
+                      <Settings className="h-3.5 w-3.5" strokeWidth={1.8} />
+                    </div>
+                    {!collapsed && <span className="text-[13px]">Definições</span>}
+                  </div>
                 </NavLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={signOut} className="hq-transition hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
-              <LogOut className="mr-2 h-4 w-4" strokeWidth={1.5} />
-              {!collapsed && <span className="text-sm">Sair</span>}
+            <SidebarMenuButton
+              onClick={signOut}
+              className="rounded-lg px-3 py-2 transition-all duration-200 hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-destructive/8 transition-colors">
+                  <LogOut className="h-3.5 w-3.5" strokeWidth={1.8} />
+                </div>
+                {!collapsed && <span className="text-[13px]">Sair</span>}
+              </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
