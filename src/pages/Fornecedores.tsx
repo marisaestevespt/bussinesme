@@ -111,6 +111,7 @@ async function generateExpensesForPeriod(
   endDate: string,
   parentExpenseId: string,
   descriptionTemplate?: string | null,
+  location?: string,
 ) {
   const dates = generateBillingDates(firstPaymentDate, endDate, periodicity);
   const valuePerOccurrence = periodicity === 'semanal' ? Math.round(baseValue * (52/12) * 100) / 100 : baseValue;
@@ -130,7 +131,7 @@ async function generateExpensesForPeriod(
       total_with_vat: total,
       category,
       status: 'por_pagar' as string,
-      location: 'portugal',
+      location: location || 'portugal',
       is_recurring: false,
       parent_expense_id: parentExpenseId,
       payment_method: paymentMethod,
