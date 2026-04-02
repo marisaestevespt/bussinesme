@@ -290,13 +290,13 @@ export default function FornecedoresPage() {
         supplierId = data?.id;
       }
 
-      // Create recurring expense rule + generate individual monthly expenses
-      if (form.create_recurring && supplierId && form.recurring_value && form.contract_start_date && form.contract_end_date) {
+      // Create recurring expense rule + optionally generate individual monthly expenses
+      if (form.create_recurring && supplierId && form.recurring_value) {
         const base = parseFloat(form.recurring_value) || 0;
         const vat = form.default_vat_rate ?? 23;
         const total = Math.round(base * (1 + vat / 100) * 100) / 100;
         const periodicity = form.recurring_periodicity || 'mensal';
-        const startDate = form.contract_start_date;
+        const startDate = form.first_payment_date || form.contract_start_date || new Date().toISOString().slice(0, 10);
 
         // Create parent recurring expense (the rule)
         const { data: parentData, error: parentErr } = await supabase.from('financial_expenses').insert({
@@ -318,20 +318,25 @@ export default function FornecedoresPage() {
           expense_month: new Date(startDate + 'T00:00:00').getMonth() + 1,
           expense_quarter: Math.ceil((new Date(startDate + 'T00:00:00').getMonth() + 1) / 3),
           expense_year: new Date(startDate + 'T00:00:00').getFullYear(),
-          recurrence_end_date: form.contract_end_date,
+          recurrence_end_date: form.contract_end_date || null,
           source_type: 'rule',
         } as any).select('id').single();
         if (parentErr) throw parentErr;
 
-        // Generate individual expenses for each month
-        const firstPayment = form.first_payment_date || startDate;
-        const count = await generateExpensesForPeriod(
-          supplierId, form.name, base, vat, periodicity,
-          form.payment_method || null, form.category || 'outro',
-          firstPayment, form.contract_end_date,
-          parentData.id, form.expense_description_template
-        );
-        toast.success(`${count} despesas geradas`);
+        // Generate individual expenses only if we have a date range
+        const firstPayment = form.first_payment_date || form.contract_start_date;
+        const endDate = form.contract_end_date;
+        if (firstPayment && endDate) {
+          const count = await generateExpensesForPeriod(
+            supplierId, form.name, base, vat, periodicity,
+            form.payment_method || null, form.category || 'outro',
+            firstPayment, endDate,
+            parentData.id, form.expense_description_template
+          );
+          toast.success(`${count} despesas geradas`);
+        } else {
+          toast.success('Regra recorrente criada');
+        }
       }
     },
     onSuccess: () => {
