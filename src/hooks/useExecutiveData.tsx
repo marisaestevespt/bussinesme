@@ -106,6 +106,7 @@ export function useExecutiveData(year = currentYear) {
       const { data } = await supabase.from('executive_quarterly_analysis').select('*').eq('year', year).order('quarter');
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const upsertQuarterlyAnalysis = useMutation({
