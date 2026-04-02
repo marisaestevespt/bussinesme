@@ -550,13 +550,21 @@ export default function FornecedoresPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Taxa IVA padrão (%)</Label>
-                <Select value={String(form.default_vat_rate ?? 23)} onValueChange={v => setForm((f: any) => ({ ...f, default_vat_rate: parseInt(v) }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {[0, 6, 13, 23].map(v => <SelectItem key={v} value={String(v)}>{v}%</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-3">
+                <div><Label>Localização</Label>
+                  <Select value={form.location || 'portugal'} onValueChange={v => setForm((f: any) => ({ ...f, location: v, default_vat_rate: v !== 'portugal' ? 0 : (f.default_vat_rate || 23) }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div><Label>Taxa IVA padrão (%)</Label>
+                  <Select value={String(form.default_vat_rate ?? 23)} onValueChange={v => setForm((f: any) => ({ ...f, default_vat_rate: parseInt(v) }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {[0, 6, 13, 23].map(v => <SelectItem key={v} value={String(v)}>{v}%</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Contract dates */}
