@@ -134,13 +134,23 @@ export function FinSaidas({ fin, currentYear }: Props) {
     const quarter = month ? Math.ceil(month / 3) : null;
     const year = date ? parseInt(date.slice(0, 4)) : null;
 
+    // Auto-set status based on date: current month → pendente, future → por_pagar
+    // Only for new expenses (no id) or if user hasn't manually changed from defaults
+    let effectiveStatus = expForm.status;
+    if (!expForm.id && month && year) {
+      const isCurrentOrPast = year < now.getFullYear() || (year === now.getFullYear() && month <= currentMonth);
+      const isFuture = year > now.getFullYear() || (year === now.getFullYear() && month > currentMonth);
+      if (effectiveStatus === 'pendente' && isFuture) effectiveStatus = 'por_pagar';
+      if (effectiveStatus === 'por_pagar' && isCurrentOrPast) effectiveStatus = 'pendente';
+    }
+
     const isRecurring = expForm.is_recurring || false;
     const periodicity = isRecurring ? (expForm.periodicity || 'mensal') : null;
     const monthlyEquivalent = isRecurring ? calcMonthlyEquivalent(base, periodicity || 'mensal') : 0;
 
     await fin.upsertExpense.mutateAsync({
       ...(expForm.id ? { id: expForm.id } : {}),
-      status: expForm.status,
+      status: effectiveStatus,
       expense_date: date,
       description: expForm.description || null,
       expense_name: isRecurring ? (expForm.description || null) : null,
