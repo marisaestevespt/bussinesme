@@ -570,8 +570,8 @@ export default function FornecedoresPage() {
                 </div>
                 {form.create_recurring && (
                   <div className="space-y-3">
-                    {!form.contract_start_date || !form.contract_end_date ? (
-                      <p className="text-xs text-destructive/80">⚠️ Define as datas do contrato acima para gerar despesas</p>
+                    {!form.contract_start_date && !form.first_payment_date ? (
+                      <p className="text-xs text-muted-foreground">💡 Sem datas de contrato — será criada apenas a regra recorrente. Adiciona uma data de 1º pagamento para gerar despesas individuais.</p>
                     ) : null}
                     <div className="grid grid-cols-2 gap-3">
                       <div><Label className="text-xs">Valor base (€)</Label><Input type="number" step="0.01" value={form.recurring_value || ''} onChange={e => setForm((f: any) => ({ ...f, recurring_value: e.target.value }))} /></div>
