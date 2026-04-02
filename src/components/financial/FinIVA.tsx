@@ -180,6 +180,52 @@ export function FinIVA({ sales, expenses, currentYear, fin }: Props) {
         onUpdate={handleDocsUpdate}
       />
 
+      {/* Auto-liquidação UE */}
+      {autoLiquidacao.hasAny && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-warning" />
+              Auto-liquidação — Compras UE ({currentYear})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Alert className="mb-4">
+              <AlertDescription className="text-xs">
+                Compras a fornecedores da UE com <strong>reverse charge</strong> devem ser declaradas nos campos 16 e 17 da declaração periódica de IVA.
+                O IVA é simultaneamente liquidado e deduzido (efeito neutro), mas tem de ser declarado.
+              </AlertDescription>
+            </Alert>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Mês</TableHead>
+                  <TableHead className="text-right">Base (€)</TableHead>
+                  <TableHead className="text-right">IVA a declarar (23%)</TableHead>
+                  <TableHead className="text-right">Nº compras</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {autoLiquidacao.byMonth.filter(m => m.items.length > 0).map((m, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="font-medium">{m.mes}</TableCell>
+                    <TableCell className="text-right">{fmt(m.totalBase)}</TableCell>
+                    <TableCell className="text-right font-medium">{fmt(m.ivaAutoLiq)}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{m.items.length}</TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="border-t-2 font-semibold">
+                  <TableCell>Total</TableCell>
+                  <TableCell className="text-right">{fmt(autoLiquidacao.totalBase)}</TableCell>
+                  <TableCell className="text-right">{fmt(autoLiquidacao.totalIva)}</TableCell>
+                  <TableCell />
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
       {/* IVA Cobrado Detail Dialog */}
       <Dialog open={cobradoMonth !== null} onOpenChange={(open) => !open && setCobradoMonth(null)}>
         <DialogContent className="max-w-lg">
