@@ -18,6 +18,25 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+const EU_NIF_PREFIXES = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI', 'FR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'RO', 'SE', 'SI', 'SK'];
+
+/** Detect supplier location from NIF prefix */
+function detectLocationFromNif(nif: string): { location: string; vat: number } {
+  const clean = (nif || '').replace(/\s/g, '').toUpperCase();
+  if (!clean) return { location: 'portugal', vat: 23 };
+  // Portuguese NIF: starts with PT or is purely numeric (9 digits)
+  if (clean.startsWith('PT') || /^\d{9}$/.test(clean)) return { location: 'portugal', vat: 23 };
+  const prefix = clean.slice(0, 2);
+  if (EU_NIF_PREFIXES.includes(prefix)) return { location: 'ue', vat: 0 };
+  return { location: 'fora_ue', vat: 0 };
+}
+
+const LOCATIONS = [
+  { value: 'portugal', label: 'Portugal' },
+  { value: 'ue', label: 'União Europeia' },
+  { value: 'fora_ue', label: 'Fora da UE' },
+];
+
 const PAYMENT_METHODS = [
   { value: 'transferencia', label: 'Transferência' },
   { value: 'debito_direto', label: 'Débito Direto' },
