@@ -447,7 +447,9 @@ export default function FornecedoresPage() {
         parent.category,
         genStartStr,
         newEnd,
-        parent.id
+        parent.id,
+        undefined,
+        parent.location || 'portugal'
       );
       toast.success(`Contrato renovado — ${count} novas despesas geradas`);
     },
