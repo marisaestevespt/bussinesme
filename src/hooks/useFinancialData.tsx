@@ -76,6 +76,7 @@ export function useFinancialData() {
       return { data: (data || []) as Expense[], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },
     getNextPageParam: (last) => last.nextPage,
+    staleTime: 2 * 60 * 1000,
   });
 
   const expenses = {

@@ -24,6 +24,7 @@ import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useMyProfile, useMyTeamMember, useMyTasks, useMyProjects, useMyMeetings, useMyOnboarding, greetingText } from '@/components/secretaria/secretaria-shared';
 import { DashboardPersonalWidgets } from '@/components/secretaria/SecretariaWidgets';
+import { KpiSkeleton, CardListSkeleton } from '@/components/ui/loading-skeletons';
 
 // ─── Lazy-loaded tab components ─────────────────────────────
 const SecretariaDia = lazy(() => import('@/components/secretaria/SecretariaDia'));
@@ -40,8 +41,9 @@ const today = startOfDay(new Date());
 
 function TabLoader() {
   return (
-    <div className="flex items-center justify-center py-12">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+    <div className="space-y-4 animate-in fade-in duration-300">
+      <KpiSkeleton count={3} />
+      <CardListSkeleton count={4} />
     </div>
   );
 }

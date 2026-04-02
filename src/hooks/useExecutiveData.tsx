@@ -38,6 +38,7 @@ export function useExecutiveData(year = currentYear) {
       const { data } = await supabase.from('executive_brain_dump').select('*').order('created_at', { ascending: false });
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const addBrainDump = useMutation({
@@ -71,6 +72,7 @@ export function useExecutiveData(year = currentYear) {
       const { data } = await supabase.from('executive_monthly_checklists').select('*').eq('year', year).order('created_at');
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const addMonthlyCheckItem = useMutation({
@@ -104,6 +106,7 @@ export function useExecutiveData(year = currentYear) {
       const { data } = await supabase.from('executive_quarterly_analysis').select('*').eq('year', year).order('quarter');
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const upsertQuarterlyAnalysis = useMutation({
@@ -132,6 +135,7 @@ export function useExecutiveData(year = currentYear) {
       const { data } = await supabase.from('executive_weekly_routines').select('*').eq('week_start', currentWeekStart);
       return data || [];
     },
+    staleTime: 60 * 1000,
   });
 
   const toggleRoutine = useMutation({
