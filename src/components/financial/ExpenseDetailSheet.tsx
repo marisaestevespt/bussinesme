@@ -278,7 +278,7 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
           {/* Location */}
           <div>
             <Label>Localização</Label>
-            <Select value={form.location || 'portugal'} onValueChange={v => setForm((f: any) => ({ ...f, location: v }))}>
+            <Select value={form.location || 'portugal'} onValueChange={v => setForm((f: any) => ({ ...f, location: v, ...(v !== 'portugal' ? { vat_rate: 0 } : {}) }))}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
             </Select>
