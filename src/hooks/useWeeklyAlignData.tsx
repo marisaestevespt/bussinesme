@@ -120,7 +120,7 @@ export function useWeeklyAlignData(weekOffset: number) {
         supabase.from('projects').select('id,name,status,deadline,client_name').in('status', ['em_curso', 'em_ideia', 'em_pausa']).order('deadline'),
         supabase.from('client_nps_records').select('*, clients!client_nps_records_client_id_fkey(full_name, current_product)').lt('expected_date', weekStartStr).neq('status', 'feito').order('expected_date'),
         supabase.from('member_contracts').select('*, team_members(id, full_name, role_title, department)').eq('status', 'ativo').not('end_date', 'is', null).lte('end_date', sixtyDaysAhead).order('end_date'),
-        supabase.from('time_entries').select('member_id,duration_hours').gte('entry_date', monthStartDate).lte('entry_date', monthEndDate),
+        supabase.from('time_entries').select('member_id,duration').gte('entry_date', monthStartDate).lte('entry_date', monthEndDate),
       ]);
       return {
         salesActions: salesActionsRes.data || [],
