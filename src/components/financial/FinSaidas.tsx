@@ -246,7 +246,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
               <TableBody>
                 {expenses.map(e => (
                   <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
-                    setExpForm({ ...e, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.base_value.toString(), periodicity: (e as any).periodicity || 'mensal' });
+                    setExpForm({ ...e, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.total_with_vat.toString(), includes_vat: true, periodicity: (e as any).periodicity || 'mensal' });
                     setExpOpen(true);
                   }}>
                     <TableCell><Badge variant="outline" className={EXP_STATUS.find(s => s.value === e.status)?.cls || 'bg-muted text-muted-foreground'}>{EXP_STATUS.find(s => s.value === e.status)?.label || e.status}</Badge></TableCell>
