@@ -25,6 +25,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
+import { TableSkeleton, EmptyState } from '@/components/ui/loading-skeletons';
+import { Receipt } from 'lucide-react';
 
 const EXP_STATUS = [
   { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
