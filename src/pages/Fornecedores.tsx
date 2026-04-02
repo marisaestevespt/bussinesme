@@ -335,7 +335,7 @@ export default function FornecedoresPage() {
           total_with_vat: total,
           category: form.category || 'outro',
           status: 'por_pagar',
-          location: 'portugal',
+          location: form.location || 'portugal',
           is_recurring: true,
           periodicity,
           monthly_equivalent: calcMonthlyEquivalent(base, periodicity),
