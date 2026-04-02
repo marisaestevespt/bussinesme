@@ -359,7 +359,8 @@ export default function FornecedoresPage() {
             supplierId, form.name, base, vat, periodicity,
             form.payment_method || null, form.category || 'outro',
             firstPayment, endDate,
-            parentData.id, form.expense_description_template
+            parentData.id, form.expense_description_template,
+            form.location || 'portugal'
           );
           toast.success(`${count} despesas geradas`);
         } else {
