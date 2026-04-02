@@ -28,7 +28,7 @@ export function ExecutiveKpiAlerts() {
   const timeEntriesMonth = useQuery({
     queryKey: ['exec-kpi-time-entries', monthStart],
     queryFn: async () => {
-      const { data } = await supabase.from('time_entries').select('member_id,duration_hours').gte('entry_date', monthStart).lte('entry_date', monthEnd);
+      const { data } = await supabase.from('time_entries').select('member_id,duration').gte('entry_date', monthStart).lte('entry_date', monthEnd);
       return data || [];
     },
   });
