@@ -133,6 +133,7 @@ export function useExecutiveData(year = currentYear) {
       const { data } = await supabase.from('executive_weekly_routines').select('*').eq('week_start', currentWeekStart);
       return data || [];
     },
+    staleTime: 60 * 1000,
   });
 
   const toggleRoutine = useMutation({
