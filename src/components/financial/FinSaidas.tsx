@@ -214,8 +214,19 @@ export function FinSaidas({ fin, currentYear }: Props) {
           </Card>
         )}
 
+        {fin.expenses.isLoading ? (
+          <TableSkeleton columns={10} rows={6} />
+        ) : (
         <Card id="fin-saidas-export">
           <CardContent className="p-0">
+            {expenses.length === 0 ? (
+              <EmptyState
+                icon={Receipt}
+                title="Sem despesas"
+                description={filter === 'recurring' ? 'Não existem despesas recorrentes registadas.' : 'Ainda não foram registadas despesas para este período.'}
+                action={<Button size="sm" onClick={openNewExpense}><Plus className="h-4 w-4 mr-1" /> Nova Despesa</Button>}
+              />
+            ) : (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -233,9 +244,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {expenses.length === 0 ? (
-                  <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground py-8">Sem despesas</TableCell></TableRow>
-                ) : expenses.map(e => (
+                {expenses.map(e => (
                   <TableRow key={e.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
                     setExpForm({ ...e, expense_date: e.expense_date ? new Date(e.expense_date + 'T00:00:00') : undefined, base_value: e.base_value.toString(), periodicity: (e as any).periodicity || 'mensal' });
                     setExpOpen(true);
