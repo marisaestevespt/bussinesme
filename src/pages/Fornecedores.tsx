@@ -290,13 +290,13 @@ export default function FornecedoresPage() {
         supplierId = data?.id;
       }
 
-      // Create recurring expense rule + generate individual monthly expenses
-      if (form.create_recurring && supplierId && form.recurring_value && form.contract_start_date && form.contract_end_date) {
+      // Create recurring expense rule + optionally generate individual monthly expenses
+      if (form.create_recurring && supplierId && form.recurring_value) {
         const base = parseFloat(form.recurring_value) || 0;
         const vat = form.default_vat_rate ?? 23;
         const total = Math.round(base * (1 + vat / 100) * 100) / 100;
         const periodicity = form.recurring_periodicity || 'mensal';
-        const startDate = form.contract_start_date;
+        const startDate = form.first_payment_date || form.contract_start_date || new Date().toISOString().slice(0, 10);
 
         // Create parent recurring expense (the rule)
         const { data: parentData, error: parentErr } = await supabase.from('financial_expenses').insert({
@@ -318,20 +318,25 @@ export default function FornecedoresPage() {
           expense_month: new Date(startDate + 'T00:00:00').getMonth() + 1,
           expense_quarter: Math.ceil((new Date(startDate + 'T00:00:00').getMonth() + 1) / 3),
           expense_year: new Date(startDate + 'T00:00:00').getFullYear(),
-          recurrence_end_date: form.contract_end_date,
+          recurrence_end_date: form.contract_end_date || null,
           source_type: 'rule',
         } as any).select('id').single();
         if (parentErr) throw parentErr;
 
-        // Generate individual expenses for each month
-        const firstPayment = form.first_payment_date || startDate;
-        const count = await generateExpensesForPeriod(
-          supplierId, form.name, base, vat, periodicity,
-          form.payment_method || null, form.category || 'outro',
-          firstPayment, form.contract_end_date,
-          parentData.id, form.expense_description_template
-        );
-        toast.success(`${count} despesas geradas`);
+        // Generate individual expenses only if we have a date range
+        const firstPayment = form.first_payment_date || form.contract_start_date;
+        const endDate = form.contract_end_date;
+        if (firstPayment && endDate) {
+          const count = await generateExpensesForPeriod(
+            supplierId, form.name, base, vat, periodicity,
+            form.payment_method || null, form.category || 'outro',
+            firstPayment, endDate,
+            parentData.id, form.expense_description_template
+          );
+          toast.success(`${count} despesas geradas`);
+        } else {
+          toast.success('Regra recorrente criada');
+        }
       }
     },
     onSuccess: () => {
@@ -570,8 +575,8 @@ export default function FornecedoresPage() {
                 </div>
                 {form.create_recurring && (
                   <div className="space-y-3">
-                    {!form.contract_start_date || !form.contract_end_date ? (
-                      <p className="text-xs text-destructive/80">⚠️ Define as datas do contrato acima para gerar despesas</p>
+                    {!form.contract_start_date && !form.first_payment_date ? (
+                      <p className="text-xs text-muted-foreground">💡 Sem datas de contrato — será criada apenas a regra recorrente. Adiciona uma data de 1º pagamento para gerar despesas individuais.</p>
                     ) : null}
                     <div className="grid grid-cols-2 gap-3">
                       <div><Label className="text-xs">Valor base (€)</Label><Input type="number" step="0.01" value={form.recurring_value || ''} onChange={e => setForm((f: any) => ({ ...f, recurring_value: e.target.value }))} /></div>
@@ -585,7 +590,7 @@ export default function FornecedoresPage() {
                     <div>
                       <Label className="text-xs">Data do 1º pagamento</Label>
                       <Input type="date" value={form.first_payment_date || form.contract_start_date || ''} onChange={e => setForm((f: any) => ({ ...f, first_payment_date: e.target.value }))} />
-                      <p className="text-[11px] text-muted-foreground mt-0.5">As despesas serão geradas a partir desta data, com o intervalo da periodicidade, até ao fim do contrato.</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{form.contract_end_date ? 'As despesas serão geradas a partir desta data, com o intervalo da periodicidade, até ao fim do contrato.' : 'Opcional — sem data de fim, será criada apenas a regra recorrente.'}</p>
                     </div>
                     {form.recurring_value && parseFloat(form.recurring_value) > 0 && (
                       <p className="text-xs text-muted-foreground">
