@@ -526,7 +526,11 @@ export default function FornecedoresPage() {
             </DialogHeader>
             <div className="space-y-4 mt-2">
               <div><Label>Nome *</Label><Input value={form.name || ''} onChange={e => setForm((f: any) => ({ ...f, name: e.target.value }))} /></div>
-              <div><Label>NIF</Label><Input value={form.nif || ''} onChange={e => setForm((f: any) => ({ ...f, nif: e.target.value }))} /></div>
+              <div><Label>NIF</Label><Input value={form.nif || ''} onChange={e => {
+                const nif = e.target.value;
+                const detected = detectLocationFromNif(nif);
+                setForm((f: any) => ({ ...f, nif, location: detected.location, default_vat_rate: detected.vat }));
+              }} /></div>
               <div><Label>Email</Label><Input value={form.email || ''} onChange={e => setForm((f: any) => ({ ...f, email: e.target.value }))} /></div>
               <div><Label>Telefone</Label><Input value={form.phone || ''} onChange={e => setForm((f: any) => ({ ...f, phone: e.target.value }))} /></div>
               <div><Label>IBAN</Label><Input value={form.iban || ''} onChange={e => setForm((f: any) => ({ ...f, iban: e.target.value }))} placeholder="PT50..." /></div>
