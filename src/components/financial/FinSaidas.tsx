@@ -99,7 +99,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
   const [expForm, setExpForm] = useState<any>({});
 
   const openNewExpense = () => {
-    setExpForm({ status: 'por_pagar', category: 'outro', vat_rate: 23, location: 'portugal', base_value: '', description: '', includes_vat: false, supplier_id: null, is_recurring: false, periodicity: 'mensal', payment_method: '' });
+    setExpForm({ status: 'pendente', category: 'outro', vat_rate: 23, location: 'portugal', base_value: '', description: '', includes_vat: false, supplier_id: null, is_recurring: false, periodicity: 'mensal', payment_method: '' });
     setExpOpen(true);
   };
 
