@@ -18,6 +18,25 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+const EU_NIF_PREFIXES = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI', 'FR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'RO', 'SE', 'SI', 'SK'];
+
+/** Detect supplier location from NIF prefix */
+function detectLocationFromNif(nif: string): { location: string; vat: number } {
+  const clean = (nif || '').replace(/\s/g, '').toUpperCase();
+  if (!clean) return { location: 'portugal', vat: 23 };
+  // Portuguese NIF: starts with PT or is purely numeric (9 digits)
+  if (clean.startsWith('PT') || /^\d{9}$/.test(clean)) return { location: 'portugal', vat: 23 };
+  const prefix = clean.slice(0, 2);
+  if (EU_NIF_PREFIXES.includes(prefix)) return { location: 'ue', vat: 0 };
+  return { location: 'fora_ue', vat: 0 };
+}
+
+const LOCATIONS = [
+  { value: 'portugal', label: 'Portugal' },
+  { value: 'ue', label: 'União Europeia' },
+  { value: 'fora_ue', label: 'Fora da UE' },
+];
+
 const PAYMENT_METHODS = [
   { value: 'transferencia', label: 'Transferência' },
   { value: 'debito_direto', label: 'Débito Direto' },
@@ -92,6 +111,7 @@ async function generateExpensesForPeriod(
   endDate: string,
   parentExpenseId: string,
   descriptionTemplate?: string | null,
+  location?: string,
 ) {
   const dates = generateBillingDates(firstPaymentDate, endDate, periodicity);
   const valuePerOccurrence = periodicity === 'semanal' ? Math.round(baseValue * (52/12) * 100) / 100 : baseValue;
@@ -111,7 +131,7 @@ async function generateExpensesForPeriod(
       total_with_vat: total,
       category,
       status: 'por_pagar' as string,
-      location: 'portugal',
+      location: location || 'portugal',
       is_recurring: false,
       parent_expense_id: parentExpenseId,
       payment_method: paymentMethod,
@@ -259,6 +279,7 @@ export default function FornecedoresPage() {
         notes: form.notes || null,
         is_active: form.is_active ?? true,
         default_vat_rate: form.default_vat_rate ?? 23,
+        location: form.location || 'portugal',
         contract_start_date: form.contract_start_date || null,
         contract_end_date: form.contract_end_date || null,
         documents: form.documents || [],
@@ -315,7 +336,7 @@ export default function FornecedoresPage() {
           total_with_vat: total,
           category: form.category || 'outro',
           status: 'por_pagar',
-          location: 'portugal',
+          location: form.location || 'portugal',
           is_recurring: true,
           periodicity,
           monthly_equivalent: calcMonthlyEquivalent(base, periodicity),
@@ -338,7 +359,8 @@ export default function FornecedoresPage() {
             supplierId, form.name, base, vat, periodicity,
             form.payment_method || null, form.category || 'outro',
             firstPayment, endDate,
-            parentData.id, form.expense_description_template
+            parentData.id, form.expense_description_template,
+            form.location || 'portugal'
           );
           toast.success(`${count} despesas geradas`);
         } else {
@@ -425,7 +447,9 @@ export default function FornecedoresPage() {
         parent.category,
         genStartStr,
         newEnd,
-        parent.id
+        parent.id,
+        undefined,
+        parent.location || 'portugal'
       );
       toast.success(`Contrato renovado — ${count} novas despesas geradas`);
     },
@@ -507,7 +531,11 @@ export default function FornecedoresPage() {
             </DialogHeader>
             <div className="space-y-4 mt-2">
               <div><Label>Nome *</Label><Input value={form.name || ''} onChange={e => setForm((f: any) => ({ ...f, name: e.target.value }))} /></div>
-              <div><Label>NIF</Label><Input value={form.nif || ''} onChange={e => setForm((f: any) => ({ ...f, nif: e.target.value }))} /></div>
+              <div><Label>NIF</Label><Input value={form.nif || ''} onChange={e => {
+                const nif = e.target.value;
+                const detected = detectLocationFromNif(nif);
+                setForm((f: any) => ({ ...f, nif, location: detected.location, default_vat_rate: detected.vat }));
+              }} /></div>
               <div><Label>Email</Label><Input value={form.email || ''} onChange={e => setForm((f: any) => ({ ...f, email: e.target.value }))} /></div>
               <div><Label>Telefone</Label><Input value={form.phone || ''} onChange={e => setForm((f: any) => ({ ...f, phone: e.target.value }))} /></div>
               <div><Label>IBAN</Label><Input value={form.iban || ''} onChange={e => setForm((f: any) => ({ ...f, iban: e.target.value }))} placeholder="PT50..." /></div>
@@ -527,13 +555,21 @@ export default function FornecedoresPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Taxa IVA padrão (%)</Label>
-                <Select value={String(form.default_vat_rate ?? 23)} onValueChange={v => setForm((f: any) => ({ ...f, default_vat_rate: parseInt(v) }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {[0, 6, 13, 23].map(v => <SelectItem key={v} value={String(v)}>{v}%</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-3">
+                <div><Label>Localização</Label>
+                  <Select value={form.location || 'portugal'} onValueChange={v => setForm((f: any) => ({ ...f, location: v, default_vat_rate: v !== 'portugal' ? 0 : (f.default_vat_rate || 23) }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{LOCATIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div><Label>Taxa IVA padrão (%)</Label>
+                  <Select value={String(form.default_vat_rate ?? 23)} onValueChange={v => setForm((f: any) => ({ ...f, default_vat_rate: parseInt(v) }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {[0, 6, 13, 23].map(v => <SelectItem key={v} value={String(v)}>{v}%</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Contract dates */}
