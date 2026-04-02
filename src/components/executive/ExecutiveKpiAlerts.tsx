@@ -28,7 +28,7 @@ export function ExecutiveKpiAlerts() {
   const timeEntriesMonth = useQuery({
     queryKey: ['exec-kpi-time-entries', monthStart],
     queryFn: async () => {
-      const { data } = await supabase.from('time_entries').select('member_id,duration_hours').gte('entry_date', monthStart).lte('entry_date', monthEnd);
+      const { data } = await supabase.from('time_entries').select('member_id,duration').gte('entry_date', monthStart).lte('entry_date', monthEnd);
       return data || [];
     },
   });
@@ -37,10 +37,10 @@ export function ExecutiveKpiAlerts() {
     const active = teamMembers.filter((m: any) => m.status === 'ativo' || m.status === 'prestador');
     if (active.length === 0) return null;
     const totalCap = active.reduce((s: number, m: any) => s + (Number(m.weekly_hours) || 40) * 4.33, 0);
-    const totalUsed = (timeEntriesMonth.data || []).reduce((s: number, e: any) => s + (Number(e.duration_hours) || 0), 0);
+    const totalUsed = (timeEntriesMonth.data || []).reduce((s: number, e: any) => s + (Number(e.duration) || 0), 0);
     const pct = totalCap > 0 ? Math.round((totalUsed / totalCap) * 100) : 0;
     const overloaded = active.filter((m: any) => {
-      const mh = (timeEntriesMonth.data || []).filter((e: any) => e.member_id === m.id).reduce((s: number, e: any) => s + (Number(e.duration_hours) || 0), 0);
+      const mh = (timeEntriesMonth.data || []).filter((e: any) => e.member_id === m.id).reduce((s: number, e: any) => s + (Number(e.duration) || 0), 0);
       const cap = (Number(m.weekly_hours) || 40) * 4.33;
       return cap > 0 && (mh / cap) > 0.85;
     });
