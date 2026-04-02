@@ -72,6 +72,7 @@ export function useExecutiveData(year = currentYear) {
       const { data } = await supabase.from('executive_monthly_checklists').select('*').eq('year', year).order('created_at');
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const addMonthlyCheckItem = useMutation({
