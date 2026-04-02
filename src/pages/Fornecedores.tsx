@@ -292,9 +292,16 @@ export default function FornecedoresPage() {
 
       // Create recurring expense rule + optionally generate individual monthly expenses
       if (form.create_recurring && supplierId && form.recurring_value) {
-        const base = parseFloat(form.recurring_value) || 0;
-        const vat = form.default_vat_rate ?? 23;
-        const total = Math.round(base * (1 + vat / 100) * 100) / 100;
+        const inputValue = parseFloat(form.recurring_value) || 0;
+        const vat = form.recurring_vat_rate ?? form.default_vat_rate ?? 23;
+        let base: number, total: number;
+        if (form.recurring_includes_vat) {
+          total = inputValue;
+          base = Math.round(inputValue / (1 + vat / 100) * 100) / 100;
+        } else {
+          base = inputValue;
+          total = Math.round(base * (1 + vat / 100) * 100) / 100;
+        }
         const periodicity = form.recurring_periodicity || 'mensal';
         const startDate = form.first_payment_date || form.contract_start_date || new Date().toISOString().slice(0, 10);
 
@@ -579,7 +586,7 @@ export default function FornecedoresPage() {
                       <p className="text-xs text-muted-foreground">💡 Sem datas de contrato — será criada apenas a regra recorrente. Adiciona uma data de 1º pagamento para gerar despesas individuais.</p>
                     ) : null}
                     <div className="grid grid-cols-2 gap-3">
-                      <div><Label className="text-xs">Valor base (€)</Label><Input type="number" step="0.01" value={form.recurring_value || ''} onChange={e => setForm((f: any) => ({ ...f, recurring_value: e.target.value }))} /></div>
+                      <div><Label className="text-xs">{form.recurring_includes_vat ? 'Valor c/ IVA (€)' : 'Valor base (€)'}</Label><Input type="number" step="0.01" value={form.recurring_value || ''} onChange={e => setForm((f: any) => ({ ...f, recurring_value: e.target.value }))} /></div>
                       <div><Label className="text-xs">Periodicidade</Label>
                         <Select value={form.recurring_periodicity || 'mensal'} onValueChange={v => setForm((f: any) => ({ ...f, recurring_periodicity: v }))}>
                           <SelectTrigger><SelectValue /></SelectTrigger>
@@ -587,14 +594,39 @@ export default function FornecedoresPage() {
                         </Select>
                       </div>
                     </div>
-                    <div>
-                      <Label className="text-xs">Data do 1º pagamento</Label>
-                      <Input type="date" value={form.first_payment_date || form.contract_start_date || ''} onChange={e => setForm((f: any) => ({ ...f, first_payment_date: e.target.value }))} />
-                      <p className="text-[11px] text-muted-foreground mt-0.5">{form.contract_end_date ? 'As despesas serão geradas a partir desta data, com o intervalo da periodicidade, até ao fim do contrato.' : 'Opcional — sem data de fim, será criada apenas a regra recorrente.'}</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div><Label className="text-xs">IVA (%)</Label>
+                        <Select value={String(form.recurring_vat_rate ?? form.default_vat_rate ?? 23)} onValueChange={v => setForm((f: any) => ({ ...f, recurring_vat_rate: parseInt(v) }))}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>{[0, 6, 13, 23].map(v => <SelectItem key={v} value={String(v)}>{v}%</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center gap-2 pt-5">
+                        <Switch checked={form.recurring_includes_vat || false} onCheckedChange={v => setForm((f: any) => ({ ...f, recurring_includes_vat: v }))} />
+                        <Label className="text-xs font-normal">Valor inclui IVA</Label>
+                      </div>
                     </div>
+                    {form.recurring_value && parseFloat(form.recurring_value) > 0 && (() => {
+                      const val = parseFloat(form.recurring_value);
+                      const vatRate = form.recurring_vat_rate ?? form.default_vat_rate ?? 23;
+                      if (form.recurring_includes_vat) {
+                        const baseCalc = Math.round(val / (1 + vatRate / 100) * 100) / 100;
+                        const ivaCalc = Math.round((val - baseCalc) * 100) / 100;
+                        return <p className="text-xs text-muted-foreground">Base: {fmt(baseCalc)} · IVA: {fmt(ivaCalc)}</p>;
+                      } else {
+                        const totalCalc = Math.round(val * (1 + vatRate / 100) * 100) / 100;
+                        const ivaCalc = Math.round(val * vatRate / 100 * 100) / 100;
+                        return <p className="text-xs text-muted-foreground">Total c/ IVA: {fmt(totalCalc)} · IVA: {fmt(ivaCalc)}</p>;
+                      }
+                    })()}
                     {form.recurring_value && parseFloat(form.recurring_value) > 0 && (
                       <p className="text-xs text-muted-foreground">
-                        Equivalente mensal: {fmt(calcMonthlyEquivalent(parseFloat(form.recurring_value), form.recurring_periodicity || 'mensal'))}
+                        Equivalente mensal: {fmt(calcMonthlyEquivalent(
+                          form.recurring_includes_vat
+                            ? Math.round(parseFloat(form.recurring_value) / (1 + (form.recurring_vat_rate ?? form.default_vat_rate ?? 23) / 100) * 100) / 100
+                            : parseFloat(form.recurring_value),
+                          form.recurring_periodicity || 'mensal'
+                        ))}
                       </p>
                     )}
                     {form.contract_end_date && (form.first_payment_date || form.contract_start_date) && form.recurring_value && (
