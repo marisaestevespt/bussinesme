@@ -159,6 +159,7 @@ export function AppSidebar() {
   const { settings } = useBusinessSettings();
   const { canAccess } = usePermissions();
   const { favorites } = useFavorites();
+  const sectorConfig = useSectorConfig();
 
   return (
     <Sidebar collapsible="icon">
@@ -185,7 +186,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-2">
-        <NavSection label="Pessoal" items={pessoalItems} collapsed={collapsed} canAccess={() => true} />
+        <NavSection label="Pessoal" items={pessoalItems} collapsed={collapsed} canAccess={() => true} sectorConfig={sectorConfig} />
         {favorites.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold mb-1">
@@ -219,11 +220,11 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-        <NavSection label="Hall" items={hallItems} collapsed={collapsed} canAccess={canAccess} />
-        <NavSection label="Transversais" items={transversaisItems} collapsed={collapsed} canAccess={canAccess} />
-        <NavSection label="Departamentos" items={departamentosItems} collapsed={collapsed} canAccess={canAccess} />
+        <NavSection label="Hall" items={hallItems} collapsed={collapsed} canAccess={canAccess} sectorConfig={sectorConfig} />
+        <NavSection label="Transversais" items={transversaisItems} collapsed={collapsed} canAccess={canAccess} sectorConfig={sectorConfig} />
+        <NavSection label="Departamentos" items={departamentosItems} collapsed={collapsed} canAccess={canAccess} sectorConfig={sectorConfig} />
         {isOwner && (
-          <NavSection label="Administração" items={executiveItems} collapsed={collapsed} canAccess={() => true} />
+          <NavSection label="Administração" items={executiveItems} collapsed={collapsed} canAccess={() => true} sectorConfig={sectorConfig} />
         )}
       </SidebarContent>
 
