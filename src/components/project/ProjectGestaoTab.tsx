@@ -314,6 +314,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             sale_year: prestDate.getFullYear(),
             sale_quarter: Math.ceil((prestDate.getMonth() + 1) / 3),
             created_by: user?.id || null,
+            payment_method: getMethodForEntry(false),
           });
         }
       } else if (payMethod === 'prestacoes') {
