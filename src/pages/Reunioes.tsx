@@ -264,16 +264,27 @@ function ProjectPickerDialog({
 
 // ─── Recurrence helpers ─────────────────────────────────────────
 
+function getAdvanceFn(frequency: string): (d: Date) => Date {
+  switch (frequency) {
+    case 'diaria': return (d: Date) => { const n = new Date(d); n.setDate(n.getDate() + 1); return n; };
+    case 'semanal': return (d: Date) => addWeeks(d, 1);
+    case 'quinzenal': return (d: Date) => addWeeks(d, 2);
+    case 'cada_3_semanas': return (d: Date) => addWeeks(d, 3);
+    case 'mensal': return (d: Date) => addMonths(d, 1);
+    case 'bimestral': return (d: Date) => addMonths(d, 2);
+    case 'trimestral': return (d: Date) => addMonths(d, 3);
+    case 'semestral': return (d: Date) => addMonths(d, 6);
+    default: return (d: Date) => addWeeks(d, 1);
+  }
+}
+
 function generateRecurrenceDates(startDate: Date, frequency: string, endDate?: Date): Date[] {
   const dates: Date[] = [];
   const limit = endDate || addMonths(startDate, 12);
   let current = new Date(startDate);
+  const advanceFn = getAdvanceFn(frequency);
 
-  const advanceFn = frequency === 'semanal' ? (d: Date) => addWeeks(d, 1)
-    : frequency === 'quinzenal' ? (d: Date) => addWeeks(d, 2)
-    : (d: Date) => addMonths(d, 1);
-
-  // Skip the first one (it's the original)
+  // Skip the first one (it's the original / the 1ª data)
   current = advanceFn(current);
   while (isBefore(current, limit) || current.getTime() === limit.getTime()) {
     dates.push(new Date(current));
