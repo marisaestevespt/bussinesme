@@ -99,9 +99,9 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
         }
       }
 
-      // 4. If no template tasks, still return success for onb/offb copy
+      // 4. If no template tasks, return 0 (onb/offb may have been copied)
       if (!templateTasks?.length) {
-        throw new Error('Este produto não tem template de projeto definido.');
+        return 0;
       }
 
       // 6. Fetch project members with their team_member info (for role matching)
