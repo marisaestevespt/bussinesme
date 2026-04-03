@@ -299,6 +299,22 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
             />
           </div>
 
+          {/* Payment Method */}
+          <div>
+            <Label>Método de Pagamento <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+            <Select value={form.payment_method || '__none__'} onValueChange={v => setForm((f: any) => ({ ...f, payment_method: v === '__none__' ? '' : v }))}>
+              <SelectTrigger><SelectValue placeholder="Sem método" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sem método</SelectItem>
+                <SelectItem value="transferencia">Transferência Bancária</SelectItem>
+                <SelectItem value="cartao:Cartão Bancário">Cartão Bancário</SelectItem>
+                <SelectItem value="debito_direto">Débito Direto</SelectItem>
+                <SelectItem value="mbway">MB WAY</SelectItem>
+                <SelectItem value="multibanco">Multibanco</SelectItem>
+                <SelectItem value="numerario">Numerário</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           {/* Recurring */}
           <div className="flex items-center gap-2 py-1">
             <Switch checked={form.is_recurring || false} onCheckedChange={v => setForm((f: any) => ({ ...f, is_recurring: v }))} />
