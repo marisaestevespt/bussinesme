@@ -19,6 +19,7 @@ import {
 import type { Portal } from '@/hooks/usePortalData';
 
 const sb = (table: string) => supabase.from(table as any) as any;
+const isClientStep = (o: any) => o.responsible?.toLowerCase().trim() === 'cliente';
 
 const SectionCard = ({ children, className = '', onClick, style }: { children: React.ReactNode; className?: string; onClick?: () => void; style?: React.CSSProperties }) => (
   <div className={`bg-white rounded-2xl border border-border/40 shadow-sm hover:shadow-md transition-shadow ${className}`} onClick={onClick} style={style}>
@@ -376,12 +377,12 @@ export default function PortalViewPage() {
                             <Badge
                               variant="outline"
                               className={`mt-2 text-[9px] font-semibold px-2 py-0.5 ${
-                                o.responsible_type === 'cliente'
+                                isClientStep(o)
                                   ? 'border-amber-300 bg-amber-50 text-amber-700'
                                   : 'border-blue-200 bg-blue-50 text-blue-700'
                               }`}
                             >
-                              {o.responsible_type === 'cliente' ? '📋 A teu cargo' : '👥 Nossa equipa'}
+                              {isClientStep(o) ? '📋 A teu cargo' : '👥 Nossa equipa'}
                             </Badge>
                             <div className="mt-2 flex items-center gap-1.5">
                               {o.completed ? (
@@ -398,8 +399,8 @@ export default function PortalViewPage() {
                             <div className="px-4 pb-4 border-t border-border/20 pt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
                               <p className="text-xs font-medium">{o.activity || 'Sem descrição'}</p>
                               {o.phase && <p className="text-[10px] text-muted-foreground">Fase: {o.phase}</p>}
-                              {o.responsible_type !== 'cliente' && o.responsible && <p className="text-[10px] text-muted-foreground">Responsável: {o.responsible}</p>}
-                              {o.responsible_type === 'cliente' && (
+                              {!isClientStep(o) && o.responsible && <p className="text-[10px] text-muted-foreground">Responsável: {o.responsible}</p>}
+                              {isClientStep(o) && (
                                 <div className="flex items-center gap-2 mt-1">
                                   <Checkbox
                                     checked={!!o.completed}
@@ -976,12 +977,12 @@ export default function PortalViewPage() {
                         <Badge
                           variant="outline"
                           className={`mt-2 text-[9px] font-semibold px-2 py-0.5 ${
-                            o.responsible_type === 'cliente'
+                            isClientStep(o)
                               ? 'border-amber-300 bg-amber-50 text-amber-700'
                               : 'border-blue-200 bg-blue-50 text-blue-700'
                           }`}
                         >
-                          {o.responsible_type === 'cliente' ? '📋 A teu cargo' : '👥 Nossa equipa'}
+                          {isClientStep(o) ? '📋 A teu cargo' : '👥 Nossa equipa'}
                         </Badge>
                         <div className="mt-2 flex items-center gap-1.5">
                           {o.completed ? (
@@ -998,8 +999,8 @@ export default function PortalViewPage() {
                         <div className="px-4 pb-4 border-t border-border/20 pt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
                           <p className="text-sm font-medium">{o.activity || 'Sem descrição'}</p>
                           {o.phase && <p className="text-xs text-muted-foreground">Fase: {o.phase}</p>}
-                          {o.responsible_type !== 'cliente' && o.responsible && <p className="text-xs text-muted-foreground">Responsável: {o.responsible}</p>}
-                          {o.responsible_type === 'cliente' && (
+                          {!isClientStep(o) && o.responsible && <p className="text-xs text-muted-foreground">Responsável: {o.responsible}</p>}
+                          {isClientStep(o) && (
                             <div className="flex items-center gap-2 mt-1">
                               <Checkbox
                                 checked={!!o.completed}
