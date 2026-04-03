@@ -17,6 +17,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 import {
   Rocket, Calendar, Users, GitBranch, FolderKanban, CheckSquare,
   Key, MessageSquare, Building2, Megaphone, DollarSign, ShoppingCart,
@@ -38,6 +39,7 @@ interface NavItem {
   url: string;
   icon: string;
   moduleKey: string;
+  termKey?: string; // optional key for sector terminology
 }
 
 const pessoalItems: NavItem[] = [
@@ -52,9 +54,9 @@ const hallItems: NavItem[] = [
 
 const transversaisItems: NavItem[] = [
   { title: 'Agenda de Negócio', url: '/hub/agenda', icon: 'Calendar', moduleKey: 'agenda' },
-  { title: 'Reuniões', url: '/hub/reunioes', icon: 'Users', moduleKey: 'reunioes' },
+  { title: 'Reuniões', url: '/hub/reunioes', icon: 'Users', moduleKey: 'reunioes', termKey: 'reunioes' },
   { title: 'Acessos', url: '/hub/acessos', icon: 'Key', moduleKey: 'acessos' },
-  { title: 'Projetos', url: '/hub/projetos', icon: 'FolderKanban', moduleKey: 'projetos' },
+  { title: 'Projetos', url: '/hub/projetos', icon: 'FolderKanban', moduleKey: 'projetos', termKey: 'projetos' },
   { title: 'Processos', url: '/hub/processos', icon: 'GitBranch', moduleKey: 'processos' },
   { title: 'Tarefas', url: '/hub/tarefas', icon: 'CheckSquare', moduleKey: 'tarefas' },
   { title: 'Biblioteca', url: '/hub/biblioteca', icon: 'BookOpen', moduleKey: 'biblioteca' },
@@ -63,10 +65,10 @@ const transversaisItems: NavItem[] = [
 const departamentosItems: NavItem[] = [
   { title: 'Marketing', url: '/hub/marketing', icon: 'Megaphone', moduleKey: 'marketing' },
   { title: 'Comercial', url: '/hub/comercial', icon: 'ShoppingCart', moduleKey: 'comercial' },
-  { title: 'Clientes', url: '/hub/clientes', icon: 'UserCheck', moduleKey: 'clientes' },
+  { title: 'Clientes', url: '/hub/clientes', icon: 'UserCheck', moduleKey: 'clientes', termKey: 'clientes' },
   { title: 'Contabilidade', url: '/hub/financeiro', icon: 'DollarSign', moduleKey: 'financeiro' },
   { title: 'Operação', url: '/hub/operacao', icon: 'Headphones', moduleKey: 'operacao' },
-  { title: 'Produtos', url: '/hub/produtos', icon: 'Package', moduleKey: 'produtos' },
+  { title: 'Produtos', url: '/hub/produtos', icon: 'Package', moduleKey: 'produtos', termKey: 'produtos' },
   { title: 'Recursos Humanos', url: '/hub/recursos-humanos', icon: 'UsersRound', moduleKey: 'recursos-humanos' },
 ];
 
