@@ -20,6 +20,12 @@ interface InvoiceAvailableProps {
   fontDisplay?: string
   fontBody?: string
   logoUrl?: string
+  // Custom text overrides from email_template_settings
+  customTitle?: string
+  customSubtitle?: string
+  customCta?: string
+  customFooter?: string
+  customEmoji?: string
 }
 
 function hslToCss(hsl: string | undefined, fallback: string): string {
@@ -40,11 +46,17 @@ const InvoiceAvailableEmail = ({
   fontDisplay,
   fontBody,
   logoUrl,
+  customTitle,
+  customSubtitle,
+  customCta,
+  customFooter,
+  customEmoji,
 }: InvoiceAvailableProps) => {
   const name = clientName || 'Cliente'
   const biz = businessName || SITE_NAME
   const product = productName || 'o seu serviço'
   const value = amount || ''
+  const emoji = customEmoji || '📄'
 
   const brandPrimary = hslToCss(primaryColor, '#e04a2f')
   const brandPrimaryFg = hslToCss(primaryForeground, '#ffffff')
@@ -63,7 +75,7 @@ const InvoiceAvailableEmail = ({
   const logoStyle = { width: '48px', height: '48px', borderRadius: '10px', margin: '0 auto 16px' }
   const headerEmoji = { fontSize: '48px', margin: '0 0 8px', lineHeight: '1' }
   const h1 = { fontSize: '22px', fontWeight: '700' as const, color: brandText, margin: '0 0 12px', lineHeight: '1.3', fontFamily: displayFont }
-  const subtitle = { fontSize: '15px', color: brandMuted, lineHeight: '1.6', margin: '0' }
+  const subtitleStyle = { fontSize: '15px', color: brandMuted, lineHeight: '1.6', margin: '0' }
   const divider = { borderColor: '#e8e8ed', margin: '28px 0' }
   const detailCard = { backgroundColor: '#f7f7fa', borderRadius: '10px', padding: '20px 24px', marginBottom: '12px' }
   const detailRow = { fontSize: '14px', color: brandMuted, lineHeight: '2', margin: '0' }
@@ -79,7 +91,7 @@ const InvoiceAvailableEmail = ({
     display: 'inline-block',
     textAlign: 'center' as const,
   }
-  const footer = { fontSize: '13px', color: '#999', textAlign: 'center' as const, margin: '28px 0 0', lineHeight: '1.6' }
+  const footerStyle = { fontSize: '13px', color: '#999', textAlign: 'center' as const, margin: '28px 0 0', lineHeight: '1.6' }
 
   return (
     <Html lang="pt" dir="ltr">
@@ -91,15 +103,19 @@ const InvoiceAvailableEmail = ({
             {logoUrl ? (
               <Img src={logoUrl} alt={biz} style={logoStyle} />
             ) : (
-              <Text style={headerEmoji}>📄</Text>
+              <Text style={headerEmoji}>{emoji}</Text>
             )}
             <Heading style={h1}>
-              {name}, a sua fatura já está disponível
+              {customTitle
+                ? customTitle.replace('{name}', name).replace('{amount}', value).replace('{product}', product)
+                : `${name}, a sua fatura já está disponível`}
             </Heading>
-            <Text style={subtitle}>
-              {value
-                ? `A fatura no valor de ${value}€ referente a ${product} já se encontra disponível para consulta no seu portal de cliente.`
-                : `A fatura referente a ${product} já se encontra disponível para consulta no seu portal de cliente.`}
+            <Text style={subtitleStyle}>
+              {customSubtitle
+                ? customSubtitle.replace('{name}', name).replace('{amount}', value).replace('{product}', product)
+                : (value
+                  ? `A fatura no valor de ${value}€ referente a ${product} já se encontra disponível para consulta no seu portal de cliente.`
+                  : `A fatura referente a ${product} já se encontra disponível para consulta no seu portal de cliente.`)}
             </Text>
           </Section>
 
@@ -119,7 +135,7 @@ const InvoiceAvailableEmail = ({
           {portalUrl && (
             <Section style={{ textAlign: 'center' as const, margin: '24px 0' }}>
               <Button href={portalUrl} style={ctaButton}>
-                Consultar no Portal
+                {customCta || 'Consultar no Portal'}
               </Button>
             </Section>
           )}
@@ -127,10 +143,10 @@ const InvoiceAvailableEmail = ({
           <Hr style={divider} />
 
           <Text style={{ fontSize: '14px', color: brandMuted, lineHeight: '1.6', margin: '0', textAlign: 'center' as const }}>
-            Pode aceder ao seu portal de cliente a qualquer momento para consultar as suas faturas e documentos.
+            {customFooter || 'Pode aceder ao seu portal de cliente a qualquer momento para consultar as suas faturas e documentos.'}
           </Text>
 
-          <Text style={footer}>
+          <Text style={footerStyle}>
             Com os melhores cumprimentos,
             <br />
             A equipa {biz}

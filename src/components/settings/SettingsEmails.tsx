@@ -1,105 +1,175 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Eye } from 'lucide-react';
+import { Mail, Eye, Save, RotateCcw } from 'lucide-react';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-const TEMPLATES = [
-  {
-    key: 'invoice-available',
-    label: 'Fatura disponível',
-    description: 'Enviado quando uma fatura é adicionada a uma venda',
-    previewData: {
-      clientName: 'Ana Silva',
-      productName: 'Consultoria Digital',
-      amount: '350.00',
-      portalUrl: '#',
-    },
-  },
-  {
-    key: 'payment-reminder',
-    label: 'Lembrete de pagamento',
-    description: 'Enviado automaticamente antes do vencimento',
-    previewData: {
-      clientName: 'Ana Silva',
-      productName: 'Consultoria Digital',
-      amount: '350',
-      dueDate: '15/04/2026',
-      daysUntil: 3,
-    },
-  },
-  {
-    key: 'welcome-member',
-    label: 'Boas-vindas membro',
-    description: 'Enviado quando um novo membro é adicionado à equipa',
-    previewData: {
-      memberName: 'João Santos',
-      inviteUrl: '#',
-      ownerName: 'Maria',
-    },
-  },
-  {
-    key: 'client-offboarding',
-    label: 'Offboarding cliente',
-    description: 'Enviado ao cliente quando inicia o processo de saída',
-    previewData: {
-      clientName: 'Ana Silva',
-      portalUrl: '#',
-      portalDays: 30,
-    },
-  },
-] as const;
+interface TemplateDefaults {
+  key: string;
+  label: string;
+  description: string;
+  emoji: string;
+  title: string;
+  subtitle: string;
+  ctaText: string;
+  footer: string;
+  bodyBuilder: (data: TemplateCustom, style: StyleCtx) => string;
+}
+
+interface TemplateCustom {
+  emoji: string;
+  title_text: string;
+  subtitle_text: string;
+  cta_text: string;
+  footer_text: string;
+  primary_color: string;
+  primary_foreground: string;
+  text_color: string;
+  muted_color: string;
+  font_display: string;
+  font_body: string;
+}
+
+interface StyleCtx {
+  brandPrimary: string;
+  brandPrimaryFg: string;
+  brandText: string;
+  brandMuted: string;
+  bodyFont: string;
+  displayFont: string;
+}
 
 function hslToCss(hsl: string | undefined, fallback: string): string {
   if (!hsl) return fallback;
   return `hsl(${hsl.replace(/ /g, ', ')})`;
 }
 
-function renderEmailPreview(
-  templateKey: string,
-  previewData: Record<string, any>,
-  settings: {
-    business_name?: string;
-    primary_color?: string;
-    text_color?: string;
-    accent_color?: string;
-    font_display?: string;
-    font_body?: string;
-    logo_url?: string | null;
-  }
-) {
-  const biz = settings.business_name || 'O teu Negócio';
-  const brandPrimary = hslToCss(settings.primary_color, '#e04a2f');
-  const brandText = hslToCss(settings.text_color, '#1a1f36');
-  const brandMuted = hslToCss(settings.accent_color, '#555770');
-  const bodyFont = settings.font_body ? `'${settings.font_body}', Arial, sans-serif` : "'DM Sans', Arial, sans-serif";
-  const displayFont = settings.font_display ? `'${settings.font_display}', Georgia, serif` : bodyFont;
-  const logoUrl = settings.logo_url || null;
+const FONT_OPTIONS = [
+  'Plus Jakarta Sans', 'Inter', 'DM Sans', 'Nunito', 'Raleway',
+  'Cormorant Garamond', 'Playfair Display', 'Merriweather', 'Lora', 'DM Serif Display',
+];
 
-  const name = previewData.clientName || previewData.memberName || 'Cliente';
+const TEMPLATES: TemplateDefaults[] = [
+  {
+    key: 'invoice-available',
+    label: 'Fatura disponível',
+    description: 'Enviado quando uma fatura é adicionada a uma venda',
+    emoji: '📄',
+    title: '{name}, a sua fatura já está disponível',
+    subtitle: 'A fatura no valor de {amount}€ referente a {product} já se encontra disponível para consulta no seu portal de cliente.',
+    ctaText: 'Consultar no Portal',
+    footer: 'Pode aceder ao seu portal de cliente a qualquer momento para consultar as suas faturas e documentos.',
+    bodyBuilder: (data, style) => {
+      const cardStyle = `background-color:#f7f7fa;border-radius:10px;padding:16px 20px;margin-bottom:12px`;
+      const rowStyle = `font-size:13px;color:${style.brandMuted};line-height:2;margin:0`;
+      const labelStyle = `font-weight:600;color:${style.brandText}`;
+      return `
+        <div style="${cardStyle}">
+          <p style="${rowStyle}"><span style="${labelStyle}">Serviço: </span>Consultoria Digital</p>
+          <p style="${rowStyle}"><span style="${labelStyle}">Valor: </span>350.00€</p>
+        </div>
+      `;
+    },
+  },
+  {
+    key: 'payment-reminder',
+    label: 'Lembrete de pagamento',
+    description: 'Enviado automaticamente antes do vencimento',
+    emoji: '🔔',
+    title: '{name}, lembrete de pagamento',
+    subtitle: 'Enviamos este lembrete para que possa organizar o pagamento referente a {product}, que vence em breve.',
+    ctaText: '',
+    footer: 'Se já efetuou o pagamento, por favor ignore este email.',
+    bodyBuilder: (data, style) => {
+      const cardStyle = `background-color:#f7f7fa;border-radius:10px;padding:16px 20px;margin-bottom:12px`;
+      const rowStyle = `font-size:13px;color:${style.brandMuted};line-height:2;margin:0`;
+      const labelStyle = `font-weight:600;color:${style.brandText}`;
+      return `
+        <div style="${cardStyle}">
+          <p style="font-size:24px;font-weight:700;color:${style.brandPrimary};text-align:center;margin:12px 0 4px;font-family:${style.displayFont}">350€</p>
+          <p style="font-size:11px;color:${style.brandMuted};text-align:center;margin:0 0 12px;text-transform:uppercase;letter-spacing:0.5px">Valor a pagar</p>
+          <p style="${rowStyle}"><span style="${labelStyle}">Serviço: </span>Consultoria Digital</p>
+          <p style="${rowStyle}"><span style="${labelStyle}">Data de vencimento: </span>15/04/2026</p>
+        </div>
+      `;
+    },
+  },
+  {
+    key: 'welcome-member',
+    label: 'Boas-vindas membro',
+    description: 'Enviado quando um novo membro é adicionado à equipa',
+    emoji: '👋',
+    title: 'Bem-vindo/a, {name}!',
+    subtitle: 'Foste adicionado/a à equipa. Clica no botão abaixo para aceder à plataforma.',
+    ctaText: 'Aceder à Plataforma',
+    footer: 'Se tiveres dúvidas, não hesites em contactar a equipa.',
+    bodyBuilder: () => '',
+  },
+  {
+    key: 'client-offboarding',
+    label: 'Offboarding cliente',
+    description: 'Enviado ao cliente quando inicia o processo de saída',
+    emoji: '📋',
+    title: '{name}, informações sobre a sua transição',
+    subtitle: 'Estamos a preparar a sua transição. O acesso ao portal permanecerá ativo durante 30 dias.',
+    ctaText: 'Aceder ao Portal',
+    footer: 'Obrigado pela confiança durante o período que trabalhámos juntos.',
+    bodyBuilder: (data, style) => {
+      const cardStyle = `background-color:#f7f7fa;border-radius:10px;padding:16px 20px;margin-bottom:12px`;
+      const rowStyle = `font-size:13px;color:${style.brandMuted};line-height:2;margin:0`;
+      const labelStyle = `font-weight:600;color:${style.brandText}`;
+      return `
+        <div style="${cardStyle}">
+          <p style="${rowStyle}"><span style="${labelStyle}">Acesso ao portal: </span>30 dias restantes</p>
+        </div>
+      `;
+    },
+  },
+];
 
-  const logoHtml = logoUrl
-    ? `<img src="${logoUrl}" alt="${biz}" style="width:48px;height:48px;border-radius:10px;margin:0 auto 16px;display:block" />`
-    : `<p style="font-size:48px;margin:0 0 8px;line-height:1;text-align:center">${getEmoji(templateKey)}</p>`;
+function buildPreview(tmpl: TemplateDefaults, custom: TemplateCustom, biz: string): string {
+  const brandPrimary = hslToCss(custom.primary_color || undefined, '#e04a2f');
+  const brandPrimaryFg = hslToCss(custom.primary_foreground || undefined, '#ffffff');
+  const brandText = hslToCss(custom.text_color || undefined, '#1a1f36');
+  const brandMuted = hslToCss(custom.muted_color || undefined, '#555770');
+  const bodyFont = custom.font_body ? `'${custom.font_body}', Arial, sans-serif` : "'DM Sans', Arial, sans-serif";
+  const displayFont = custom.font_display ? `'${custom.font_display}', Georgia, serif` : bodyFont;
 
-  const bodyContent = getTemplateBody(templateKey, previewData, { biz, brandPrimary, brandText, brandMuted, bodyFont, displayFont, name });
+  const styleCtx: StyleCtx = { brandPrimary, brandPrimaryFg, brandText, brandMuted, bodyFont, displayFont };
+
+  const title = (custom.title_text || tmpl.title).replace('{name}', 'Ana Silva').replace('{amount}', '350.00').replace('{product}', 'Consultoria Digital');
+  const subtitle = (custom.subtitle_text || tmpl.subtitle).replace('{name}', 'Ana Silva').replace('{amount}', '350.00').replace('{product}', 'Consultoria Digital');
+  const ctaText = custom.cta_text || tmpl.ctaText;
+  const footerText = custom.footer_text || tmpl.footer;
+  const emoji = custom.emoji || tmpl.emoji;
+  const btnStyle = `background-color:${brandPrimary};color:${brandPrimaryFg};padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block`;
+
+  const bodyContent = tmpl.bodyBuilder(custom, styleCtx);
 
   return `
     <div style="background:#ffffff;font-family:${bodyFont};max-width:540px;margin:0 auto;padding:32px 20px">
       <div style="text-align:center;padding:0 0 8px">
-        ${logoHtml}
+        <p style="font-size:48px;margin:0 0 8px;line-height:1">${emoji}</p>
         <h1 style="font-size:20px;font-weight:700;color:${brandText};margin:0 0 10px;line-height:1.3;font-family:${displayFont}">
-          ${getTitle(templateKey, name)}
+          ${title}
         </h1>
         <p style="font-size:14px;color:${brandMuted};line-height:1.6;margin:0">
-          ${getSubtitle(templateKey, previewData)}
+          ${subtitle}
         </p>
       </div>
       <hr style="border:none;border-top:1px solid #e8e8ed;margin:24px 0">
       ${bodyContent}
+      ${ctaText ? `<div style="text-align:center;margin:20px 0"><a href="#" style="${btnStyle}">${ctaText}</a></div>` : ''}
       <hr style="border:none;border-top:1px solid #e8e8ed;margin:24px 0">
+      <p style="font-size:13px;color:${brandMuted};line-height:1.6;margin:0;text-align:center">${footerText}</p>
       <p style="font-size:12px;color:#999;text-align:center;margin:20px 0 0;line-height:1.6">
         Com os melhores cumprimentos,<br>A equipa ${biz}
       </p>
@@ -107,105 +177,9 @@ function renderEmailPreview(
   `;
 }
 
-function getEmoji(key: string) {
-  switch (key) {
-    case 'invoice-available': return '📄';
-    case 'payment-reminder': return '🔔';
-    case 'welcome-member': return '👋';
-    case 'client-offboarding': return '📋';
-    default: return '📧';
-  }
-}
-
-function getTitle(key: string, name: string) {
-  switch (key) {
-    case 'invoice-available': return `${name}, a sua fatura já está disponível`;
-    case 'payment-reminder': return `${name}, lembrete de pagamento`;
-    case 'welcome-member': return `Bem-vindo/a, ${name}!`;
-    case 'client-offboarding': return `${name}, informações sobre a sua transição`;
-    default: return '';
-  }
-}
-
-function getSubtitle(key: string, data: Record<string, any>) {
-  switch (key) {
-    case 'invoice-available':
-      return `A fatura no valor de ${data.amount || '—'}€ referente a ${data.productName || 'o seu serviço'} já se encontra disponível para consulta no seu portal de cliente.`;
-    case 'payment-reminder':
-      return `Enviamos este lembrete para que possa organizar o pagamento referente a ${data.productName || 'o seu serviço'}, que vence em breve.`;
-    case 'welcome-member':
-      return 'Foste adicionado/a à equipa. Clica no botão abaixo para aceder à plataforma.';
-    case 'client-offboarding':
-      return `Estamos a preparar a sua transição. O acesso ao portal permanecerá ativo durante ${data.portalDays || 30} dias.`;
-    default: return '';
-  }
-}
-
-function getTemplateBody(
-  key: string,
-  data: Record<string, any>,
-  style: { biz: string; brandPrimary: string; brandText: string; brandMuted: string; bodyFont: string; displayFont: string; name: string }
-) {
-  const cardStyle = 'background-color:#f7f7fa;border-radius:10px;padding:16px 20px;margin-bottom:12px';
-  const rowStyle = `font-size:13px;color:${style.brandMuted};line-height:2;margin:0`;
-  const labelStyle = `font-weight:600;color:${style.brandText}`;
-  const btnStyle = `background-color:${style.brandPrimary};color:#ffffff;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block`;
-
-  switch (key) {
-    case 'invoice-available':
-      return `
-        <div style="${cardStyle}">
-          <p style="${rowStyle}"><span style="${labelStyle}">Serviço: </span>${data.productName || '—'}</p>
-          <p style="${rowStyle}"><span style="${labelStyle}">Valor: </span>${data.amount || '—'}€</p>
-        </div>
-        <div style="text-align:center;margin:20px 0">
-          <a href="#" style="${btnStyle}">Consultar no Portal</a>
-        </div>
-        <p style="font-size:13px;color:${style.brandMuted};line-height:1.6;margin:0;text-align:center">
-          Pode aceder ao seu portal de cliente a qualquer momento para consultar as suas faturas e documentos.
-        </p>
-      `;
-    case 'payment-reminder':
-      return `
-        <div style="${cardStyle}">
-          <p style="font-size:24px;font-weight:700;color:${style.brandPrimary};text-align:center;margin:12px 0 4px;font-family:${style.displayFont}">${data.amount || '—'}€</p>
-          <p style="font-size:11px;color:${style.brandMuted};text-align:center;margin:0 0 12px;text-transform:uppercase;letter-spacing:0.5px">Valor a pagar</p>
-          <p style="${rowStyle}"><span style="${labelStyle}">Serviço: </span>${data.productName || '—'}</p>
-          <p style="${rowStyle}"><span style="${labelStyle}">Data de vencimento: </span>${data.dueDate || '—'}</p>
-        </div>
-        <p style="font-size:13px;color:${style.brandMuted};line-height:1.6;margin:0;text-align:center">
-          Se já efetuou o pagamento, por favor ignore este email.
-        </p>
-      `;
-    case 'welcome-member':
-      return `
-        <div style="text-align:center;margin:20px 0">
-          <a href="#" style="${btnStyle}">Aceder à Plataforma</a>
-        </div>
-        <p style="font-size:13px;color:${style.brandMuted};line-height:1.6;margin:0;text-align:center">
-          Se tiveres dúvidas, não hesites em contactar a equipa.
-        </p>
-      `;
-    case 'client-offboarding':
-      return `
-        <div style="${cardStyle}">
-          <p style="${rowStyle}"><span style="${labelStyle}">Acesso ao portal: </span>${data.portalDays || 30} dias restantes</p>
-        </div>
-        <div style="text-align:center;margin:20px 0">
-          <a href="#" style="${btnStyle}">Aceder ao Portal</a>
-        </div>
-        <p style="font-size:13px;color:${style.brandMuted};line-height:1.6;margin:0;text-align:center">
-          Obrigado pela confiança durante o período que trabalhámos juntos.
-        </p>
-      `;
-    default:
-      return '';
-  }
-}
-
 function EmailPreviewFrame({ html }: { html: string }) {
   const srcDoc = useMemo(() => {
-    return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet"></head><body style="margin:0;padding:0;background:#ffffff">${html}</body></html>`;
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=DM+Serif+Display&family=Nunito:wght@400;600;700&family=Raleway:wght@400;600;700&family=Cormorant+Garamond:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Merriweather:wght@400;700&family=Lora:wght@400;600;700&display=swap" rel="stylesheet"></head><body style="margin:0;padding:0;background:#ffffff">${html}</body></html>`;
   }, [html]);
 
   return (
@@ -220,23 +194,98 @@ function EmailPreviewFrame({ html }: { html: string }) {
   );
 }
 
+function getDefaults(tmpl: TemplateDefaults, settings: any): TemplateCustom {
+  return {
+    emoji: tmpl.emoji,
+    title_text: tmpl.title,
+    subtitle_text: tmpl.subtitle,
+    cta_text: tmpl.ctaText,
+    footer_text: tmpl.footer,
+    primary_color: settings?.primary_color || '12 76% 52%',
+    primary_foreground: '0 0% 100%',
+    text_color: settings?.text_color || '20 25% 10%',
+    muted_color: settings?.accent_color || '20 10% 46%',
+    font_display: settings?.font_display || 'Plus Jakarta Sans',
+    font_body: settings?.font_body || 'DM Sans',
+  };
+}
+
 export function SettingsEmails() {
   const { settings } = useBusinessSettings();
-  const [selectedTemplate, setSelectedTemplate] = useState<string>(TEMPLATES[0].key);
+  const qc = useQueryClient();
+  const [selectedKey, setSelectedKey] = useState(TEMPLATES[0].key);
+  const [form, setForm] = useState<TemplateCustom | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  const template = TEMPLATES.find(t => t.key === selectedTemplate) || TEMPLATES[0];
-  const previewHtml = renderEmailPreview(selectedTemplate, template.previewData as Record<string, any>, {
-    business_name: settings?.business_name,
-    primary_color: settings?.primary_color,
-    text_color: settings?.text_color,
-    accent_color: settings?.accent_color,
-    font_display: settings?.font_display,
-    font_body: settings?.font_body,
-    logo_url: settings?.logo_url,
+  const tmpl = TEMPLATES.find(t => t.key === selectedKey) || TEMPLATES[0];
+
+  const { data: savedSettings } = useQuery({
+    queryKey: ['email-template-settings'],
+    queryFn: async () => {
+      const { data } = await supabase.from('email_template_settings').select('*');
+      return data || [];
+    },
   });
+
+  const savedForTemplate = savedSettings?.find((s: any) => s.template_key === selectedKey);
+
+  // Reset form when template changes
+  useEffect(() => {
+    const defaults = getDefaults(tmpl, settings);
+    if (savedForTemplate) {
+      setForm({
+        emoji: savedForTemplate.emoji || defaults.emoji,
+        title_text: savedForTemplate.title_text || defaults.title_text,
+        subtitle_text: savedForTemplate.subtitle_text || defaults.subtitle_text,
+        cta_text: savedForTemplate.cta_text || defaults.cta_text,
+        footer_text: savedForTemplate.footer_text || defaults.footer_text,
+        primary_color: savedForTemplate.primary_color || defaults.primary_color,
+        primary_foreground: savedForTemplate.primary_foreground || defaults.primary_foreground,
+        text_color: savedForTemplate.text_color || defaults.text_color,
+        muted_color: savedForTemplate.muted_color || defaults.muted_color,
+        font_display: savedForTemplate.font_display || defaults.font_display,
+        font_body: savedForTemplate.font_body || defaults.font_body,
+      });
+    } else {
+      setForm(defaults);
+    }
+  }, [selectedKey, savedForTemplate?.id, settings?.primary_color]);
+
+  const update = useCallback((field: keyof TemplateCustom, value: string) => {
+    setForm(f => f ? { ...f, [field]: value } : f);
+  }, []);
+
+  const save = async () => {
+    if (!form) return;
+    setSaving(true);
+    try {
+      const payload = { template_key: selectedKey, ...form, updated_at: new Date().toISOString() };
+      if (savedForTemplate) {
+        await supabase.from('email_template_settings').update(payload).eq('id', savedForTemplate.id);
+      } else {
+        await supabase.from('email_template_settings').insert(payload);
+      }
+      qc.invalidateQueries({ queryKey: ['email-template-settings'] });
+      toast.success('Template guardado');
+    } catch {
+      toast.error('Erro ao guardar');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const resetToDefaults = () => {
+    setForm(getDefaults(tmpl, settings));
+  };
+
+  const biz = settings?.business_name || 'O teu Negócio';
+  const previewHtml = form ? buildPreview(tmpl, form, biz) : '';
+
+  if (!form) return null;
 
   return (
     <div className="space-y-6">
+      {/* Template selector */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -245,14 +294,9 @@ export function SettingsEmails() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Os emails utilizam automaticamente a identidade visual configurada em <strong>Identidade</strong> (logo, cores e fontes).
-            Para alterar o design, ajusta as definições na tab Identidade.
-          </p>
-
           <div className="space-y-2">
             <Label>Selecionar template</Label>
-            <Select value={selectedTemplate} onValueChange={(v) => setSelectedTemplate(v)}>
+            <Select value={selectedKey} onValueChange={setSelectedKey}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -263,25 +307,132 @@ export function SettingsEmails() {
               </SelectContent>
             </Select>
           </div>
-
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs">{template.label}</Badge>
-            <span className="text-xs text-muted-foreground">{template.description}</span>
+            <Badge variant="outline" className="text-xs">{tmpl.label}</Badge>
+            <span className="text-xs text-muted-foreground">{tmpl.description}</span>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Eye className="h-4 w-4" />
-            Pré-visualização
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <EmailPreviewFrame html={previewHtml} />
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Editor */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Personalizar</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Emoji */}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Emoji / Ícone</Label>
+              <Input value={form.emoji} onChange={e => update('emoji', e.target.value)} className="w-24 text-2xl text-center" />
+            </div>
+
+            {/* Title */}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Título</Label>
+              <Input value={form.title_text} onChange={e => update('title_text', e.target.value)} />
+              <p className="text-[10px] text-muted-foreground">Usa {'{name}'}, {'{amount}'}, {'{product}'} como variáveis</p>
+            </div>
+
+            {/* Subtitle */}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Subtítulo</Label>
+              <Textarea value={form.subtitle_text} onChange={e => update('subtitle_text', e.target.value)} rows={3} />
+            </div>
+
+            {/* CTA */}
+            {tmpl.ctaText && (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Texto do botão</Label>
+                <Input value={form.cta_text} onChange={e => update('cta_text', e.target.value)} />
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Texto de rodapé</Label>
+              <Textarea value={form.footer_text} onChange={e => update('footer_text', e.target.value)} rows={2} />
+            </div>
+
+            {/* Colors */}
+            <div className="border-t pt-4 mt-4">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Cores e Fontes</Label>
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Cor primária (HSL)</Label>
+                  <div className="flex gap-2 items-center">
+                    <Input value={form.primary_color} onChange={e => update('primary_color', e.target.value)} className="text-xs" />
+                    <div className="w-6 h-6 rounded-md border flex-shrink-0" style={{ backgroundColor: hslToCss(form.primary_color, '#e04a2f') }} />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Cor do texto (HSL)</Label>
+                  <div className="flex gap-2 items-center">
+                    <Input value={form.text_color} onChange={e => update('text_color', e.target.value)} className="text-xs" />
+                    <div className="w-6 h-6 rounded-md border flex-shrink-0" style={{ backgroundColor: hslToCss(form.text_color, '#1a1f36') }} />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Cor secundária (HSL)</Label>
+                  <div className="flex gap-2 items-center">
+                    <Input value={form.muted_color} onChange={e => update('muted_color', e.target.value)} className="text-xs" />
+                    <div className="w-6 h-6 rounded-md border flex-shrink-0" style={{ backgroundColor: hslToCss(form.muted_color, '#555770') }} />
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Fonte títulos</Label>
+                  <Select value={form.font_display} onValueChange={v => update('font_display', v)}>
+                    <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {FONT_OPTIONS.map(f => (
+                        <SelectItem key={f} value={f} className="text-xs">{f}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Fonte corpo</Label>
+                  <Select value={form.font_body} onValueChange={v => update('font_body', v)}>
+                    <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {FONT_OPTIONS.map(f => (
+                        <SelectItem key={f} value={f} className="text-xs">{f}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2 pt-4 border-t">
+              <Button onClick={save} disabled={saving} size="sm" className="gap-1.5">
+                <Save className="h-3.5 w-3.5" />
+                {saving ? 'A guardar...' : 'Guardar'}
+              </Button>
+              <Button onClick={resetToDefaults} variant="outline" size="sm" className="gap-1.5">
+                <RotateCcw className="h-3.5 w-3.5" />
+                Repor original
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Preview */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Eye className="h-4 w-4" />
+              Pré-visualização
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EmailPreviewFrame html={previewHtml} />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

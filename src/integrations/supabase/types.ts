@@ -2719,6 +2719,60 @@ export type Database = {
           },
         ]
       }
+      email_template_settings: {
+        Row: {
+          created_at: string
+          cta_text: string | null
+          emoji: string | null
+          font_body: string | null
+          font_display: string | null
+          footer_text: string | null
+          id: string
+          muted_color: string | null
+          primary_color: string | null
+          primary_foreground: string | null
+          subtitle_text: string | null
+          template_key: string
+          text_color: string | null
+          title_text: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          cta_text?: string | null
+          emoji?: string | null
+          font_body?: string | null
+          font_display?: string | null
+          footer_text?: string | null
+          id?: string
+          muted_color?: string | null
+          primary_color?: string | null
+          primary_foreground?: string | null
+          subtitle_text?: string | null
+          template_key: string
+          text_color?: string | null
+          title_text?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          cta_text?: string | null
+          emoji?: string | null
+          font_body?: string | null
+          font_display?: string | null
+          footer_text?: string | null
+          id?: string
+          muted_color?: string | null
+          primary_color?: string | null
+          primary_foreground?: string | null
+          subtitle_text?: string | null
+          template_key?: string
+          text_color?: string | null
+          title_text?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       event_attachments: {
         Row: {
           created_at: string
