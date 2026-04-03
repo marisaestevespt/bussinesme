@@ -856,29 +856,50 @@ export default function FornecedoresPage() {
 
               {/* Existing recurring expense summary */}
               {form._existingRecurring && (
-                <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-1">
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-3">
                   <div className="flex items-center gap-2">
                     <RefreshCw className="h-4 w-4 text-primary" />
                     <Label className="text-sm font-medium">Despesa recorrente ativa</Label>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
-                    <span>Valor base: <strong className="text-foreground">{fmt(form._existingRecurring.value)}</strong></span>
-                    <span>IVA: <strong className="text-foreground">{form._existingRecurring.vat_rate}%</strong></span>
-                    <span>Total: <strong className="text-foreground">{fmt(form._existingRecurring.total)}</strong></span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label className="text-xs">{form.edit_recurring_includes_vat ? 'Valor c/ IVA (€)' : 'Valor base (€)'}</Label>
+                      <Input type="number" step="0.01" value={form.edit_recurring_value || ''} onChange={e => setForm((f: any) => ({ ...f, edit_recurring_value: e.target.value }))} />
+                    </div>
+                    <div><Label className="text-xs">Periodicidade</Label>
+                      <Select value={form.edit_recurring_periodicity || 'mensal'} onValueChange={v => setForm((f: any) => ({ ...f, edit_recurring_periodicity: v }))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>{PERIODICITIES.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    Periodicidade: <strong className="text-foreground">{PERIODICITIES.find(p => p.value === form._existingRecurring.periodicity)?.label || form._existingRecurring.periodicity}</strong>
-                    {' · '}Equiv. mensal: <strong className="text-foreground">{fmt(calcMonthlyEquivalent(form._existingRecurring.value, form._existingRecurring.periodicity))}</strong>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label className="text-xs">IVA (%)</Label>
+                      <Select value={String(form.edit_recurring_vat ?? form.default_vat_rate ?? 23)} onValueChange={v => setForm((f: any) => ({ ...f, edit_recurring_vat: parseInt(v) }))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>{[0, 6, 13, 23].map(v => <SelectItem key={v} value={String(v)}>{v}%</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center gap-2 pt-5">
+                      <Switch checked={form.edit_recurring_includes_vat || false} onCheckedChange={v => setForm((f: any) => ({ ...f, edit_recurring_includes_vat: v }))} />
+                      <Label className="text-xs font-normal">Valor inclui IVA</Label>
+                    </div>
                   </div>
+                  {form.edit_recurring_value && parseFloat(form.edit_recurring_value) > 0 && (() => {
+                    const val = parseFloat(form.edit_recurring_value);
+                    const vatRate = form.edit_recurring_vat ?? form.default_vat_rate ?? 23;
+                    if (form.edit_recurring_includes_vat) {
+                      const baseCalc = vatRate > 0 ? Math.round(val / (1 + vatRate / 100) * 100) / 100 : val;
+                      const ivaCalc = Math.round((val - baseCalc) * 100) / 100;
+                      return <p className="text-xs text-muted-foreground">Base: {fmt(baseCalc)} · IVA: {fmt(ivaCalc)} · Equiv. mensal: {fmt(calcMonthlyEquivalent(baseCalc, form.edit_recurring_periodicity || 'mensal'))}</p>;
+                    } else {
+                      const totalCalc = Math.round(val * (1 + vatRate / 100) * 100) / 100;
+                      const ivaCalc = Math.round(val * vatRate / 100 * 100) / 100;
+                      return <p className="text-xs text-muted-foreground">Total c/ IVA: {fmt(totalCalc)} · IVA: {fmt(ivaCalc)} · Equiv. mensal: {fmt(calcMonthlyEquivalent(val, form.edit_recurring_periodicity || 'mensal'))}</p>;
+                    }
+                  })()}
+                  <p className="text-[10px] text-muted-foreground">Ao guardar, as despesas por pagar deste fornecedor serão atualizadas com os novos valores.</p>
                 </div>
               )}
-
-              {/* Recurring expense link — only for new suppliers or ones without existing recurring */}
-              <div className="rounded-lg border border-border p-3 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <RefreshCw className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-normal">{form._existingRecurring ? 'Criar nova despesa recorrente' : 'Criar despesa recorrente'}</Label>
                   </div>
                   <Switch checked={form.create_recurring || false} onCheckedChange={v => setForm((f: any) => ({ ...f, create_recurring: v }))} />
                 </div>
