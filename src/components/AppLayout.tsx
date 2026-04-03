@@ -29,7 +29,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 <NotificationBell />
               </div>
             </header>
-            <main className="flex-1 p-6 overflow-auto">
+            <main className="flex-1 p-3 sm:p-6 overflow-auto">
               {children}
             </main>
             <OnboardingTour />

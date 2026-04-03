@@ -234,11 +234,11 @@ export default function FinanceiroPage() {
                 className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
                 onClick={() => navigate(s.path)}
               >
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
-                    <s.icon className="h-4.5 w-4.5" />
+                <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+                  <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
+                    <s.icon className="h-4 w-4" />
                   </div>
-                  <span className="font-medium text-sm text-foreground">{s.label}</span>
+                  <span className="font-medium text-xs sm:text-sm text-foreground leading-tight">{s.label}</span>
                 </CardContent>
               </Card>
             ))}
@@ -250,11 +250,11 @@ export default function FinanceiroPage() {
                 className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
                 onClick={() => navigate(s.path)}
               >
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className={`h-9 w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
-                    <s.icon className="h-4.5 w-4.5" />
+                <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+                  <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
+                    <s.icon className="h-4 w-4" />
                   </div>
-                  <span className="font-medium text-sm text-foreground">{s.label}</span>
+                  <span className="font-medium text-xs sm:text-sm text-foreground leading-tight">{s.label}</span>
                 </CardContent>
               </Card>
             ))}
@@ -270,13 +270,13 @@ export default function FinanceiroPage() {
 
         {/* Summary Cards */}
         <div id="fin-annual-report" className="space-y-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Entradas</p><p className="text-xl font-bold text-emerald-600">{fmt(totalEntradas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Saídas</p><p className="text-xl font-bold text-red-600">{fmt(totalSaidas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Resultado</p><p className={`text-xl font-bold ${resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(resultado)}</p></CardContent></Card>
-          <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Margem</p><p className={`text-xl font-bold ${margem >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{margem}%</p></CardContent></Card>
-          <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Média Mensal Ent.</p><p className="text-xl font-bold">{fmt(avgEntradas)}</p></CardContent></Card>
-          <Card><CardContent className="pt-4 pb-3"><p className="text-xs text-muted-foreground">Média Mensal Saí.</p><p className="text-xl font-bold">{fmt(avgSaidas)}</p></CardContent></Card>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Entradas</p><p className="text-lg sm:text-xl font-bold text-emerald-600">{fmt(totalEntradas)}</p></CardContent></Card>
+          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Saídas</p><p className="text-lg sm:text-xl font-bold text-red-600">{fmt(totalSaidas)}</p></CardContent></Card>
+          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Resultado</p><p className={`text-lg sm:text-xl font-bold ${resultado >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(resultado)}</p></CardContent></Card>
+          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Margem</p><p className={`text-lg sm:text-xl font-bold ${margem >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{margem}%</p></CardContent></Card>
+          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Média Mensal Ent.</p><p className="text-lg sm:text-xl font-bold">{fmt(avgEntradas)}</p></CardContent></Card>
+          <Card><CardContent className="pt-3 pb-2 sm:pt-4 sm:pb-3"><p className="text-[10px] sm:text-xs text-muted-foreground">Média Mensal Saí.</p><p className="text-lg sm:text-xl font-bold">{fmt(avgSaidas)}</p></CardContent></Card>
         </div>
 
         {/* Best/Worst month */}
