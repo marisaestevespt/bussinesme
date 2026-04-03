@@ -184,7 +184,7 @@ export default function ClientesPage() {
               isFetchingNextPage={clients.isFetchingNextPage}
               fetchNextPage={clients.fetchNextPage}
             >
-              <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-6 gap-2">
+              <div className="hidden md:grid bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid-cols-6 gap-2">
                 <span>ID</span>
                 <span>Status</span>
                 <span>Nome</span>
