@@ -177,10 +177,10 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
       // 5. Auto-create project if product is associated
       let createdProjectId: string | null = null;
       if (productName) {
-        // Find product to get product_type and cycle_duration
+        // Find product to get product_type, sales_type and cycle_duration
         const { data: matchedProduct } = await supabase
           .from('products')
-          .select('id, product_type, cycle_duration')
+          .select('id, product_type, sales_type, cycle_duration')
           .eq('name', productName)
           .maybeSingle();
 
@@ -192,9 +192,10 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
           deadline = format(end, 'yyyy-MM-dd');
         }
 
+        const isRecurringLead = matchedProduct?.sales_type === 'avenca_mensal' || matchedProduct?.sales_type === 'subscricao';
         const { data: newProject } = await supabase.from('projects').insert({
           name: `${productName} — ${form.name || 'Cliente'}`,
-          type: 'cliente_projeto_unico',
+          type: isRecurringLead ? 'cliente_servico_mensal' : 'cliente_projeto_unico',
           status: 'em_onboarding',
           department: 'clientes',
           departments: ['clientes', 'operacao'],
