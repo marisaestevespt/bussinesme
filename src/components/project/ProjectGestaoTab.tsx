@@ -367,8 +367,8 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             sale_year: avDate.getFullYear(),
             sale_quarter: Math.ceil((avDate.getMonth() + 1) / 3),
             created_by: user?.id || null,
+            payment_method: getMethodForEntry(false),
           });
-        }
 
         // Pro-rata: if deadline exists and ends after the last full payment period
         if (deadline) {
