@@ -37,7 +37,7 @@ const LOCATIONS = [
   { value: 'fora_ue', label: 'Fora da UE' },
 ];
 
-const PAYMENT_METHODS = [
+const FALLBACK_PAYMENT_METHODS = [
   { value: 'transferencia', label: 'Transferência' },
   { value: 'debito_direto', label: 'Débito Direto' },
   { value: 'mbway', label: 'MB Way' },
@@ -45,7 +45,6 @@ const PAYMENT_METHODS = [
   { value: 'cartao', label: 'Cartão' },
   { value: 'outro', label: 'Outro' },
 ];
-const PAYMENT_LABELS = Object.fromEntries(PAYMENT_METHODS.map(m => [m.value, m.label]));
 
 const PERIODICITIES = [
   { value: 'semanal', label: 'Semanal' },
