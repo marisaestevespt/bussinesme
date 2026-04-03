@@ -91,10 +91,10 @@ export function useDigestSettings(isOwnerDigest: boolean, digestType: 'morning' 
         .from('digest_settings')
         .select('*')
         .eq('user_id', profileId!)
-        .eq('is_owner_digest', isOwnerDigest)
-        .eq('digest_type' as any, digestType)
-        .maybeSingle();
-      return data as DigestSettings | null;
+        .eq('is_owner_digest', isOwnerDigest);
+      // Filter by digest_type in JS since it's a new column
+      const match = (data || []).find((d: any) => (d.digest_type || 'morning') === digestType);
+      return (match as DigestSettings | undefined) || null;
     },
   });
 
