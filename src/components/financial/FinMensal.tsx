@@ -432,6 +432,36 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
               {dueSubscriptions.map(sub => {
                 const linkedExp = subExpenseMap.get(sub.id);
                 const isPaid = ['pago_falta_fatura', 'tudo_ok'].includes(linkedExp?.status || '');
+                const handleSubClick = async () => {
+                  if (linkedExp) {
+                    setSelectedExpense(linkedExp);
+                    setExpenseSheetOpen(true);
+                  } else {
+                    // Auto-create the individual expense for this month, then open it
+                    const MONTHS_LABEL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                    const subName = sub.expense_name || sub.description || '';
+                    const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-${String(sub.recurrence_day || 15).padStart(2, '0')}`;
+                    await fin.upsertExpense.mutateAsync({
+                      description: `${subName} — ${MONTHS_LABEL[m - 1]} ${currentYear}`,
+                      category: sub.category || 'outro',
+                      base_value: sub.base_value,
+                      vat_rate: sub.vat_rate || 0,
+                      total_with_vat: sub.total_with_vat,
+                      location: sub.location,
+                      expense_date: dateStr,
+                      expense_month: m,
+                      expense_quarter: Math.ceil(m / 3),
+                      expense_year: currentYear,
+                      status: 'por_pagar',
+                      source_type: 'subscription',
+                      source_id: sub.id,
+                      supplier_id: sub.supplier_id,
+                      payment_method: sub.payment_method,
+                    } as any);
+                    // Refetch to get the new expense with its generated ID
+                    await qc.invalidateQueries({ queryKey: ['financial-expenses'] });
+                  }
+                };
                 return (
                   <SubRow
                     key={`sub-${sub.id}`}
@@ -441,7 +471,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                     month={m}
                     currentYear={currentYear}
                     fin={fin}
-                    onExpenseClick={linkedExp ? () => { setSelectedExpense(linkedExp); setExpenseSheetOpen(true); } : undefined}
+                    onExpenseClick={handleSubClick}
                     getCategoryLabel={getCategoryLabel}
                   />
                 );
@@ -694,7 +724,7 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
   };
 
   return (
-    <TableRow className={cn(!['pago_falta_fatura', 'tudo_ok'].includes(currentStatus) ? 'bg-muted/30' : '', onExpenseClick && 'cursor-pointer hover:bg-muted/50')} onClick={onExpenseClick}>
+    <TableRow className={cn(!['pago_falta_fatura', 'tudo_ok'].includes(currentStatus) ? 'bg-muted/30' : '', 'cursor-pointer hover:bg-muted/50')} onClick={onExpenseClick}>
       <TableCell onClick={e => e.stopPropagation()}>
         <ExpenseStatusSelect expenseId={linkedExpense?.id || `sub-${sub.id}`} currentStatus={currentStatus} onUpdate={handleStatusChange} />
       </TableCell>
