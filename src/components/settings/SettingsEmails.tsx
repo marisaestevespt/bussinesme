@@ -133,6 +133,28 @@ const TEMPLATES: TemplateDefaults[] = [
       `;
     },
   },
+  {
+    key: 'owner-digest',
+    label: 'Resumo diário (Owner)',
+    description: 'Briefing diário enviado ao dono do negócio',
+    emoji: '📊',
+    title: 'Briefing do dia',
+    subtitle: 'Bom dia, {name}! Aqui está o teu briefing para hoje.',
+    ctaText: '',
+    footer: 'Este resumo é gerado automaticamente com base na atividade do dia.',
+    bodyBuilder: () => '',
+  },
+  {
+    key: 'member-digest',
+    label: 'Resumo diário (Membro)',
+    description: 'Briefing diário enviado a cada membro da equipa',
+    emoji: '📋',
+    title: 'Briefing do dia',
+    subtitle: 'Bom dia, {name}! Aqui está o teu briefing para hoje.',
+    ctaText: '',
+    footer: 'Este resumo é gerado automaticamente com base na atividade do dia.',
+    bodyBuilder: () => '',
+  },
 ];
 
 function buildPreview(tmpl: TemplateDefaults, custom: TemplateCustom, biz: string): string {
