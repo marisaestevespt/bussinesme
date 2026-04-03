@@ -20,8 +20,8 @@ import type { Portal } from '@/hooks/usePortalData';
 const sb = (table: string) => supabase.from(table as any) as any;
 
 /* ─── Reusable styled section card ─── */
-const SectionCard = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <div className={`bg-white rounded-2xl border border-border/40 shadow-sm hover:shadow-md transition-shadow ${className}`}>
+const SectionCard = ({ children, className = '', onClick, style }: { children: React.ReactNode; className?: string; onClick?: () => void; style?: React.CSSProperties }) => (
+  <div className={`bg-white rounded-2xl border border-border/40 shadow-sm hover:shadow-md transition-shadow ${className}`} onClick={onClick} style={style}>
     {children}
   </div>
 );
