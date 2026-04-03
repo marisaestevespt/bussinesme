@@ -360,22 +360,31 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
           });
         }
 
-        // Pro-rata: if deadline exists and ends mid-month (not on day 1)
+        // Pro-rata: if deadline exists and ends after the last full payment period
         if (deadline) {
           const endDate = parseISO(deadline);
-          const lastFullPayDate = setDate(addMonths(start, meses - 1), day);
-          const nextFullPayDate = setDate(addMonths(start, meses), day);
-          // If the contract ends between the last full payment and the next one
-          if (endDate > lastFullPayDate && endDate < nextFullPayDate) {
-            const daysInMonth = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0).getDate();
-            const proRataDays = endDate.getDate() - (day > endDate.getDate() ? 0 : day) + 1;
-            if (proRataDays > 0 && proRataDays < daysInMonth) {
-              const proRataValue = Math.round((valor / daysInMonth) * proRataDays * 100) / 100;
-              const proRataDate = setDate(addMonths(start, meses), day);
+          // The last full payment covers a month starting on `day` of that month
+          // Calculate the end of the last full payment's covered period
+          const lastPayDate = setDate(addMonths(start, meses - 1), day);
+          // The last payment covers from `day` of that month to `day-1` of next month
+          // If deadline is after lastPayDate, there may be extra days to bill
+          if (endDate > lastPayDate) {
+            // Pro-rata period: from `day` of the next month to endDate
+            const proRataStart = day; // day of month when billing cycle starts
+            const endDay = endDate.getDate();
+            const daysInEndMonth = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0).getDate();
+            // Calculate days: from cycle start day to end date within that month
+            const proRataDays = endDay >= proRataStart
+              ? endDay - proRataStart + 1
+              : endDay; // if end is before the pay day, count from start of month
+            if (proRataDays > 0 && proRataDays < daysInEndMonth) {
+              const proRataValue = Math.round((valor / daysInEndMonth) * proRataDays * 100) / 100;
+              // Payment date = pay day of the pro-rata month (or the 1st if endDate is before pay day)
+              const proRataPayDate = new Date(endDate.getFullYear(), endDate.getMonth(), proRataStart);
               entries.push({
                 sale_id: genSaleId(),
                 status: 'aguarda_pagamento',
-                payment_date: format(proRataDate, 'yyyy-MM-dd'),
+                payment_date: format(proRataPayDate, 'yyyy-MM-dd'),
                 description: `Avença Mensal (pro-rata ${proRataDays}d) — ${product}`,
                 base_value: proRataValue,
                 invoice_total: proRataValue,
@@ -383,9 +392,9 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
                 client,
                 source: 'projeto',
                 project_id: projectId,
-                sale_month: proRataDate.getMonth() + 1,
-                sale_year: proRataDate.getFullYear(),
-                sale_quarter: Math.ceil((proRataDate.getMonth() + 1) / 3),
+                sale_month: proRataPayDate.getMonth() + 1,
+                sale_year: proRataPayDate.getFullYear(),
+                sale_quarter: Math.ceil((proRataPayDate.getMonth() + 1) / 3),
                 created_by: user?.id || null,
               });
             }
