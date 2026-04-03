@@ -38,6 +38,7 @@ const BASE_TABS = [
   { key: 'utilizadores', label: 'Utilizadores' },
   { key: 'kpis', label: 'KPIs e Análise' },
   { key: 'resumo', label: 'Resumo Diário' },
+  { key: 'emails', label: 'Emails' },
 ] as const;
 
 const OWNER_TABS = [
