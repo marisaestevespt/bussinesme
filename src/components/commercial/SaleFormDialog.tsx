@@ -221,13 +221,30 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
             <Label>Descrição</Label>
             <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div><Label>Valor Base (€)</Label><Input type="number" step="0.01" value={form.base_value} onChange={e => setForm(f => ({ ...f, base_value: e.target.value }))} /></div>
             <div>
-              <Label>Fatura Total (€) {productInfo.data?.vat_rate && productInfo.data.vat_rate !== 'isento' ? <span className="text-muted-foreground font-normal">({productInfo.data.vat_rate}% IVA)</span> : productInfo.data?.vat_rate === 'isento' ? <span className="text-muted-foreground font-normal">(Isento)</span> : null}</Label>
+              <Label>IVA (%)</Label>
+              <Select value={form.vat_rate || '23'} onValueChange={v => setForm(f => ({ ...f, vat_rate: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">0% (Isento)</SelectItem>
+                  <SelectItem value="6">6%</SelectItem>
+                  <SelectItem value="13">13%</SelectItem>
+                  <SelectItem value="23">23%</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Fatura Total (€)</Label>
               <Input type="number" step="0.01" value={form.invoice_total} onChange={e => setForm(f => ({ ...f, invoice_total: e.target.value }))} />
             </div>
           </div>
+          {form.base_value && parseFloat(form.base_value) > 0 && parseFloat(form.vat_rate || '0') > 0 && (
+            <p className="text-xs text-muted-foreground -mt-2">
+              IVA: {((parseFloat(form.invoice_total) || 0) - (parseFloat(form.base_value) || 0)).toFixed(2)} €
+            </p>
+          )}
           <div>
             <Label>Produto</Label>
             <Select value={form.product} onValueChange={v => setForm(f => ({ ...f, product: v }))}>
