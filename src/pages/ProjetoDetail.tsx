@@ -1270,6 +1270,10 @@ export default function ProjetoDetailPage() {
         profiles={profiles as MeetingProfile[]}
         projects={allProjectsForMeeting}
         clients={clientsList}
+        defaultClientId={local.client_id || undefined}
+        defaultClientName={local.client_name || undefined}
+        defaultProjectId={id}
+        defaultProjectName={local.name}
       />
     </AppLayout>
   );
