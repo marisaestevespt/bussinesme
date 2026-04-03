@@ -82,7 +82,7 @@ export function FinContabilidade({ currentYear }: Props) {
     queryKey: ['fiscal-deadline-completions', currentYear],
     queryFn: async () => {
       const { data } = await supabase.from('fiscal_deadline_completions' as any).select('*').eq('year', currentYear);
-      return (data || []) as { id: string; deadline_key: string; year: number; completed_by: string }[];
+      return (data || []) as unknown as { id: string; deadline_key: string; year: number; completed_by: string }[];
     },
   });
   const completedKeys = useMemo(() => new Set(completions.map(c => c.deadline_key)), [completions]);
