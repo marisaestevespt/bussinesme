@@ -8,7 +8,7 @@ Design system: white-label Lirah business management app. Matte ceramic surfaces
 - Inspired by the lyre — harmony, orchestration of business areas
 
 ## Schema
-- business_settings: stores theme (colors HSL, fonts, logo_url, business_name)
+- business_settings: stores theme (colors HSL, fonts, logo_url, business_name, business_sector)
 - user_roles: links users to app_role enum (owner/admin/member)
 - custom_roles: Owner-defined named roles
 - role_permissions: maps custom_role to module_key + can_view
@@ -34,6 +34,7 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 - Executive Room only visible to Owner
 - Owner role cannot be edited/deleted (is_owner=true in custom_roles)
 - has_role() is SECURITY DEFINER function for RLS
+- business_sector adapts UI terminology, module visibility, and fields per industry
 
 ## Memories
 - [AI assistant](mem://features/ai-assistant.md) — Lirah AI floating chat with DB tools for queries and actions
@@ -53,6 +54,7 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 - [Products](mem://features/produtos.md) — Product detail page structure and tab organization
 - [Routines system](mem://features/routines-system.md) — Routines auto-generate tasks via daily cron; managed in Tarefas > Rotinas tab
 - [Secretaria refactor](mem://features/secretaria-refactor.md) — Secretaria.tsx refactored to lazy-loaded tabs
+- [Sector config](mem://features/sector-config.md) — business_sector adapts terminology, modules, fields per industry
 - [Security audit](mem://features/security-audit.md) — RLS hardening for 23 tables
 - [SS Independente](mem://features/ss-independente.md) — Correct quarterly declaration mapping: Q1→Abr-Jun, Q2→Jul-Set, Q3→Out-Dez, Q4→Jan-Mar(+1)
 - [System efficiency](mem://features/system-efficiency.md) — Observability, tests, onboarding tour
