@@ -55,16 +55,21 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
             .limit(1);
 
           if (!existing?.length) {
-            const rows = onbTemplates.map((t: any, i: number) => ({
-              client_id: clientId,
-              activity: t.activity || '',
-              phase: t.phase || null,
-              responsible: t.responsible || null,
-              rule: t.rule || null,
-              documents_links: t.documents_links || null,
-              sort_order: i,
-              completed: false,
-            }));
+            const baseDate = projectStartDate ? parseISO(projectStartDate) : new Date();
+            const rows = onbTemplates.map((t: any, i: number) => {
+              const ruleDays = parseRuleDays(t.rule);
+              return {
+                client_id: clientId,
+                activity: t.activity || '',
+                phase: t.phase || null,
+                responsible: t.responsible || null,
+                rule: t.rule || null,
+                documents_links: t.documents_links || null,
+                sort_order: i,
+                completed: false,
+                due_date: ruleDays != null ? addDays(baseDate, ruleDays).toISOString().split('T')[0] : null,
+              };
+            });
             await supabase.from('client_onboarding').insert(rows);
           }
         }
@@ -84,16 +89,20 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
             .limit(1);
 
           if (!existing?.length) {
-            const rows = offTemplates.map((t: any, i: number) => ({
-              client_id: clientId,
-              activity: t.activity || '',
-              phase: t.phase || null,
-              responsible: t.responsible || null,
-              rule: t.rule || null,
-              documents_links: t.documents_links || null,
-              sort_order: i,
-              completed: false,
-            }));
+            const rows = offTemplates.map((t: any, i: number) => {
+              const ruleDays = parseRuleDays(t.rule);
+              return {
+                client_id: clientId,
+                activity: t.activity || '',
+                phase: t.phase || null,
+                responsible: t.responsible || null,
+                rule: t.rule || null,
+                documents_links: t.documents_links || null,
+                sort_order: i,
+                completed: false,
+                due_date: ruleDays != null ? addDays(new Date(), ruleDays).toISOString().split('T')[0] : null,
+              };
+            });
             await supabase.from('client_offboarding').insert(rows);
           }
         }

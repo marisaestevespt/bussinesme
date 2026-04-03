@@ -1192,6 +1192,7 @@ export type Database = {
           completed: boolean | null
           created_at: string | null
           documents_links: string | null
+          due_date: string | null
           id: string
           phase: string | null
           responsible: string | null
@@ -1204,6 +1205,7 @@ export type Database = {
           completed?: boolean | null
           created_at?: string | null
           documents_links?: string | null
+          due_date?: string | null
           id?: string
           phase?: string | null
           responsible?: string | null
@@ -1216,6 +1218,7 @@ export type Database = {
           completed?: boolean | null
           created_at?: string | null
           documents_links?: string | null
+          due_date?: string | null
           id?: string
           phase?: string | null
           responsible?: string | null
@@ -1239,6 +1242,7 @@ export type Database = {
           completed: boolean
           created_at: string
           documents_links: string | null
+          due_date: string | null
           id: string
           phase: string | null
           responsible: string | null
@@ -1251,6 +1255,7 @@ export type Database = {
           completed?: boolean
           created_at?: string
           documents_links?: string | null
+          due_date?: string | null
           id?: string
           phase?: string | null
           responsible?: string | null
@@ -1263,6 +1268,7 @@ export type Database = {
           completed?: boolean
           created_at?: string
           documents_links?: string | null
+          due_date?: string | null
           id?: string
           phase?: string | null
           responsible?: string | null
