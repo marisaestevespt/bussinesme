@@ -144,6 +144,16 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
     onOpenChange(false);
   };
 
+  const handleDelete = async () => {
+    if (!saleId) return;
+    const { error } = await supabase.from('commercial_sales').delete().eq('id', saleId);
+    if (error) { toast.error('Erro ao eliminar'); return; }
+    toast.success('Entrada eliminada');
+    qc.invalidateQueries({ queryKey: ['commercial'] });
+    qc.invalidateQueries({ queryKey: ['project-sales'] });
+    onOpenChange(false);
+  };
+
   const effectiveStatus = getEffectiveEntryStatus(form.status || 'aguarda_pagamento', form.payment_date || null);
   const statusInfo = getEntryStatusBadge(effectiveStatus);
 
