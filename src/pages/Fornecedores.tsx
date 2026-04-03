@@ -407,7 +407,14 @@ export default function FornecedoresPage() {
 
       let supplierId = form.id;
       if (form.id) {
-        await supabase.from('suppliers').update(record as any).eq('id', form.id);
+        const { error: supplierError } = await supabase.from('suppliers').update(record as any).eq('id', form.id);
+        if (supplierError) throw supplierError;
+
+        const { error: paymentMethodSyncError } = await supabase
+          .from('financial_expenses')
+          .update({ payment_method: record.payment_method || null } as any)
+          .eq('supplier_id', form.id);
+        if (paymentMethodSyncError) throw paymentMethodSyncError;
 
         // Cascade location/VAT changes to all existing expenses for this supplier
         const newLocation = form.location || 'portugal';
