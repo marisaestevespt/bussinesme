@@ -227,14 +227,34 @@ export function FinSetupNegocio() {
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">Nome / Etiqueta</Label>
-                    <Input value={pm.label} onChange={e => updatePaymentMethod(i, 'label', e.target.value)} placeholder="Ex: Banco principal" />
+                    <Input value={pm.label} onChange={e => updatePaymentMethod(i, 'label', e.target.value)} placeholder={pm.type === 'cartao' ? 'Ex: Visa Millennium' : 'Ex: Banco principal'} />
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">
-                      {pm.type === 'iban' ? 'IBAN' : pm.type === 'mbway' ? 'Nº MBWay' : pm.type === 'paypal' ? 'Email PayPal' : 'Dados'}
-                    </Label>
-                    <Input value={pm.value} onChange={e => updatePaymentMethod(i, 'value', e.target.value)} placeholder={pm.type === 'iban' ? 'PT50...' : pm.type === 'mbway' ? '9XX XXX XXX' : ''} />
-                  </div>
+                  {pm.type === 'cartao' ? (
+                    <>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Últimos 4 dígitos</Label>
+                        <Input value={(pm as any).card_last4 || ''} onChange={e => {
+                          const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                          updatePaymentMethod(i, 'card_last4' as any, val);
+                        }} placeholder="1234" maxLength={4} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Validade</Label>
+                        <Input value={(pm as any).card_expiry || ''} onChange={e => {
+                          let val = e.target.value.replace(/[^\d/]/g, '');
+                          if (val.length === 2 && !(pm as any).card_expiry?.includes('/')) val += '/';
+                          updatePaymentMethod(i, 'card_expiry' as any, val.slice(0, 5));
+                        }} placeholder="MM/AA" maxLength={5} />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">
+                        {pm.type === 'iban' ? 'IBAN' : pm.type === 'mbway' ? 'Nº MBWay' : pm.type === 'paypal' ? 'Email PayPal' : 'Dados'}
+                      </Label>
+                      <Input value={pm.value} onChange={e => updatePaymentMethod(i, 'value', e.target.value)} placeholder={pm.type === 'iban' ? 'PT50...' : pm.type === 'mbway' ? '9XX XXX XXX' : ''} />
+                    </div>
+                  )}
                 </div>
               </div>
             ))
