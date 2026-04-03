@@ -39,21 +39,15 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
 
       if (tErr) throw tErr;
 
-      // 2. Fetch onboarding/offboarding SOPs from the product
-      const { data: productSops } = await supabase
-        .from('sops')
-        .select('id, name, sop_type, passos')
-        .eq('product_id', productId)
-        .eq('linked_entity_type', 'produto');
+      // 2. Fetch onboarding template rows from product
+      if (clientId) {
+        const { data: onbTemplates } = await supabase
+          .from('product_onboarding_templates')
+          .select('*')
+          .eq('product_id', productId)
+          .order('sort_order');
 
-      const onboardingSop = (productSops || []).find((s: any) => s.sop_type === 'onboarding' || s.name?.toLowerCase().includes('onboarding'));
-      const offboardingSop = (productSops || []).find((s: any) => s.name?.toLowerCase().includes('offboarding'));
-
-      // 3. Copy onboarding steps to client_onboarding
-      if (onboardingSop && clientId) {
-        const steps = (onboardingSop.passos as string[] || []).filter((s: string) => s?.trim());
-        if (steps.length > 0) {
-          // Check if client already has onboarding items to avoid duplicates
+        if (onbTemplates?.length) {
           const { data: existing } = await supabase
             .from('client_onboarding')
             .select('id')
@@ -61,21 +55,28 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
             .limit(1);
 
           if (!existing?.length) {
-            const rows = steps.map((step: string, i: number) => ({
+            const rows = onbTemplates.map((t: any, i: number) => ({
               client_id: clientId,
-              activity: step,
+              activity: t.activity || '',
+              phase: t.phase || null,
+              responsible: t.responsible || null,
+              rule: t.rule || null,
+              documents_links: t.documents_links || null,
               sort_order: i,
               completed: false,
             }));
             await supabase.from('client_onboarding').insert(rows);
           }
         }
-      }
 
-      // 4. Copy offboarding steps to client_offboarding
-      if (offboardingSop && clientId) {
-        const steps = (offboardingSop.passos as string[] || []).filter((s: string) => s?.trim());
-        if (steps.length > 0) {
+        // 3. Fetch offboarding template rows from product
+        const { data: offTemplates } = await supabase
+          .from('product_offboarding_templates')
+          .select('*')
+          .eq('product_id', productId)
+          .order('sort_order');
+
+        if (offTemplates?.length) {
           const { data: existing } = await supabase
             .from('client_offboarding')
             .select('id')
@@ -83,9 +84,13 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
             .limit(1);
 
           if (!existing?.length) {
-            const rows = steps.map((step: string, i: number) => ({
+            const rows = offTemplates.map((t: any, i: number) => ({
               client_id: clientId,
-              activity: step,
+              activity: t.activity || '',
+              phase: t.phase || null,
+              responsible: t.responsible || null,
+              rule: t.rule || null,
+              documents_links: t.documents_links || null,
               sort_order: i,
               completed: false,
             }));
@@ -94,11 +99,9 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
         }
       }
 
-      // 5. If no template tasks, still return success for SOP copy
+      // 4. If no template tasks, still return success for onb/offb copy
       if (!templateTasks?.length) {
-        const copiedSops = [onboardingSop, offboardingSop].filter(Boolean).length;
-        if (copiedSops > 0) return 0; // signal that SOPs were copied but no tasks
-        throw new Error('Este produto não tem template de projeto nem SOPs de onboarding/offboarding definidos.');
+        throw new Error('Este produto não tem template de projeto definido.');
       }
 
       // 6. Fetch project members with their team_member info (for role matching)
