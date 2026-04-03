@@ -262,7 +262,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
 
 
       {/* Timeline phases (projeto_unico) */}
-      {portalData.portal_type === 'projeto_unico' && portalData.show_timeline && (
+      {portalData.show_timeline && (
         <Card>
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
             <CardTitle className="text-sm">Timeline do Projeto</CardTitle>
