@@ -438,14 +438,19 @@ export function SettingsEmails() {
 
             {/* Title */}
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Título</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-muted-foreground">Título</Label>
+                <VariablesPopover variables={tmpl.variables} onInsert={(token) => update('title_text', (form.title_text || '') + token)} />
+              </div>
               <Input value={form.title_text} onChange={e => update('title_text', e.target.value)} />
-              <p className="text-[10px] text-muted-foreground">Usa {'{name}'}, {'{amount}'}, {'{product}'} como variáveis</p>
             </div>
 
             {/* Subtitle */}
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Subtítulo</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-muted-foreground">Subtítulo</Label>
+                <VariablesPopover variables={tmpl.variables} onInsert={(token) => update('subtitle_text', (form.subtitle_text || '') + token)} />
+              </div>
               <Textarea value={form.subtitle_text} onChange={e => update('subtitle_text', e.target.value)} rows={3} />
             </div>
 
@@ -459,9 +464,20 @@ export function SettingsEmails() {
 
             {/* Footer */}
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Texto de rodapé</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-muted-foreground">Texto de rodapé</Label>
+                <VariablesPopover variables={tmpl.variables} onInsert={(token) => update('footer_text', (form.footer_text || '') + token)} />
+              </div>
               <Textarea value={form.footer_text} onChange={e => update('footer_text', e.target.value)} rows={2} />
             </div>
+
+            {/* Payment method note */}
+            {tmpl.paymentMethodNote && (
+              <div className="flex gap-2 p-3 rounded-lg bg-muted/50 border">
+                <Info className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-muted-foreground leading-relaxed">{tmpl.paymentMethodNote}</p>
+              </div>
+            )}
 
             {/* Colors */}
             <div className="border-t pt-4 mt-4">
