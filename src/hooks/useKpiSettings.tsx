@@ -1,4 +1,4 @@
-import { createContext, useContext, useCallback, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useCallback, useMemo, ReactNode } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusinessSettings } from './useBusinessSettings';
@@ -81,13 +81,12 @@ export function KpiSettingsProvider({ children }: { children: ReactNode }) {
   });
 
   // Build a map: "area:key" → enabled. Missing = true (default)
-  const [map, setMap] = useState<KpiMap>({});
-  useEffect(() => {
+  const map = useMemo(() => {
     const m: KpiMap = {};
     for (const row of kpiRows) {
       m[`${row.area}:${row.kpi_key}`] = row.enabled;
     }
-    setMap(m);
+    return m;
   }, [kpiRows]);
 
   const isKpiEnabled = useCallback((area: string, kpiKey: string): boolean => {
