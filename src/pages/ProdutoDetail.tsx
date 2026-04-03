@@ -67,7 +67,10 @@ export default function ProdutoDetailPage() {
       const newId = await upsertProduct.mutateAsync(form as Product);
       toast.success('Produto guardado');
       if (isNew && newId) navigate(`/hub/produtos/${newId}`, { replace: true });
-    } catch { /* handled */ }
+    } catch (err: any) {
+      console.error('Product save error:', err);
+      toast.error(err?.message || 'Erro ao guardar produto');
+    }
   };
 
   const handleDuplicate = async () => {
