@@ -63,7 +63,7 @@ function ChecklistTable({
           <p className="text-center text-muted-foreground py-6 text-sm">{emptyText}</p>
         ) : (
           items.map((item: any) => (
-            <div key={item.id} className="px-4 py-2 text-xs grid grid-cols-[32px_1fr_120px_120px_120px_32px] gap-2 border-b items-center">
+            <div key={item.id} className="px-4 py-2 text-xs grid grid-cols-[32px_1fr_100px_100px_100px_100px_32px] gap-2 border-b items-center">
               <Checkbox
                 checked={!!item.completed}
                 onCheckedChange={(v) => onUpdate(item.id, { completed: !!v })}
@@ -85,6 +85,12 @@ function ChecklistTable({
                 defaultValue={item.responsible || ''}
                 placeholder="Quem"
                 onBlur={(e) => onUpdate(item.id, { responsible: e.target.value })}
+              />
+              <Input
+                type="date"
+                className="h-7 text-xs"
+                defaultValue={item.due_date || ''}
+                onBlur={(e) => onUpdate(item.id, { due_date: e.target.value || null })}
               />
               <Input
                 className="h-7 text-xs"
