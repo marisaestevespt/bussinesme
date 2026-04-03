@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,10 +10,28 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare, MessageSquare, Star, Send, ClipboardList, BarChart3, Clock, History, FolderOpen, Download } from 'lucide-react';
+import {
+  FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare,
+  MessageSquare, Star, Send, ClipboardList, Clock, History,
+  FolderOpen, Download, ArrowRight, ChevronRight, Sparkles
+} from 'lucide-react';
 import type { Portal } from '@/hooks/usePortalData';
 
 const sb = (table: string) => supabase.from(table as any) as any;
+
+/* ─── Reusable styled section card ─── */
+const SectionCard = ({ children, className = '', onClick, style }: { children: React.ReactNode; className?: string; onClick?: () => void; style?: React.CSSProperties }) => (
+  <div className={`bg-white rounded-2xl border border-border/40 shadow-sm hover:shadow-md transition-shadow ${className}`} onClick={onClick} style={style}>
+    {children}
+  </div>
+);
+
+const SectionTitle = ({ children, icon: Icon }: { children: React.ReactNode; icon?: any }) => (
+  <div className="flex items-center gap-2.5 mb-4">
+    {Icon && <div className="p-2 rounded-xl bg-primary/10"><Icon className="h-4 w-4 text-primary" /></div>}
+    <h2 className="text-lg font-bold tracking-tight" style={{ fontFamily: 'var(--font-display, "Plus Jakarta Sans", sans-serif)' }}>{children}</h2>
+  </div>
+);
 
 export default function PortalViewPage() {
   const { token } = useParams<{ token: string }>();
@@ -25,7 +42,6 @@ export default function PortalViewPage() {
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('home');
 
-  // Data states
   const [faqs, setFaqs] = useState<any[]>([]);
   const [questions, setQuestions] = useState<any[]>([]);
   const [comments, setComments] = useState<any[]>([]);
@@ -44,60 +60,32 @@ export default function PortalViewPage() {
   const [commentText, setCommentText] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
 
-  useEffect(() => {
-    init();
-  }, [token]);
+  useEffect(() => { init(); }, [token]);
 
   const init = async () => {
     if (!token) return;
-
     const { data: portalData } = await sb('client_portals').select('*').eq('token', token).maybeSingle();
-    if (!portalData || !portalData.is_active) {
-      navigate(`/portal/${token}`, { replace: true });
-      return;
-    }
-
-    // Check session
+    if (!portalData || !portalData.is_active) { navigate(`/portal/${token}`, { replace: true }); return; }
     const session = localStorage.getItem(`portal_session_${portalData.id}`);
-    if (!session) {
-      navigate(`/portal/${token}`, { replace: true });
-      return;
-    }
-
+    if (!session) { navigate(`/portal/${token}`, { replace: true }); return; }
     try {
       const parsed = JSON.parse(session);
       if (Date.now() - parsed.timestamp > 24 * 60 * 60 * 1000) {
         localStorage.removeItem(`portal_session_${portalData.id}`);
-        navigate(`/portal/${token}`, { replace: true });
-        return;
+        navigate(`/portal/${token}`, { replace: true }); return;
       }
-    } catch {
-      navigate(`/portal/${token}`, { replace: true });
-      return;
-    }
-
+    } catch { navigate(`/portal/${token}`, { replace: true }); return; }
     setPortal(portalData);
-
     const [clientCtxRes, settingsRes] = await Promise.all([
       (supabase as any).rpc('get_portal_client_context', { _token: token }),
       supabase.from('business_settings').select('*').limit(1).maybeSingle(),
     ]);
-
     const clientData = Array.isArray(clientCtxRes.data) ? clientCtxRes.data[0] : null;
-
-    if (clientCtxRes.error || !clientData) {
-      toast.error('Não foi possível carregar o portal.');
-      navigate(`/portal/${token}`, { replace: true });
-      return;
-    }
-
+    if (clientCtxRes.error || !clientData) { toast.error('Não foi possível carregar o portal.'); navigate(`/portal/${token}`, { replace: true }); return; }
     setClient(clientData);
     setSettings(settingsRes.data);
-
-    // Load all portal data in parallel
     const pid = portalData.id;
     const cid = portalData.client_id;
-
     const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, summR, historyR, materialsR, pmR, contractR] = await Promise.all([
       sb('portal_faqs').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_initial_questions').select('*').eq('portal_id', pid).order('sort_order'),
@@ -114,7 +102,6 @@ export default function PortalViewPage() {
       (supabase as any).rpc('get_portal_payment_methods', { _token: token }),
       (supabase as any).rpc('get_portal_contract_documents', { _token: token }),
     ]);
-
     setFaqs(faqsR.data || []);
     setQuestions(questionsR.data || []);
     setComments(commentsR.data || []);
@@ -135,12 +122,7 @@ export default function PortalViewPage() {
 
   const sendComment = async () => {
     if (!commentText.trim() || !portal) return;
-    await sb('portal_comments').insert({
-      portal_id: portal.id,
-      content: commentText.trim(),
-      author: 'client',
-      author_name: client?.full_name || 'Cliente',
-    });
+    await sb('portal_comments').insert({ portal_id: portal.id, content: commentText.trim(), author: 'client', author_name: client?.full_name || 'Cliente' });
     setComments(prev => [...prev, { id: crypto.randomUUID(), portal_id: portal.id, content: commentText.trim(), author: 'client', author_name: client?.full_name || 'Cliente', created_at: new Date().toISOString() }]);
     setCommentText('');
   };
@@ -148,91 +130,116 @@ export default function PortalViewPage() {
   const sendFeedback = async () => {
     if (!feedbackText.trim() || !portal) return;
     await sb('portal_feedback').insert({ portal_id: portal.id, content: feedbackText.trim() });
-    toast.success('Feedback enviado! Obrigado.');
+    toast.success('Feedback enviado! Obrigado. 💛');
     setFeedbackText('');
   };
 
   const answerQuestion = async (qId: string, answer: string) => {
     await sb('portal_initial_questions').update({ answer, answered_at: new Date().toISOString() }).eq('id', qId);
     setQuestions(prev => prev.map(q => q.id === qId ? { ...q, answer, answered_at: new Date().toISOString() } : q));
-    toast.success('Resposta guardada');
+    toast.success('Resposta guardada ✨');
   };
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="flex min-h-screen items-center justify-center bg-[#fefcfa]">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+    </div>
+  );
 
-  if (!portal || !client) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center space-y-4">
-            <p className="text-sm text-muted-foreground">Não foi possível carregar os dados do portal.</p>
-            <Button onClick={() => navigate(`/portal/${token}`, { replace: true })}>Voltar ao acesso</Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  if (!portal || !client) return (
+    <div className="flex min-h-screen items-center justify-center bg-[#fefcfa] p-4">
+      <SectionCard className="w-full max-w-md p-8 text-center space-y-4">
+        <p className="text-sm text-muted-foreground">Não foi possível carregar os dados do portal.</p>
+        <Button onClick={() => navigate(`/portal/${token}`, { replace: true })}>Voltar ao acesso</Button>
+      </SectionCard>
+    </div>
+  );
 
-  const primaryColor = settings?.primary_color || 'hsl(var(--primary))';
+  const primaryColor = settings?.primary_color || '#C2662D';
   const logoUrl = settings?.logo_url;
+  const firstName = client.full_name?.split(' ')[0] || '';
 
   const navItems = [
     { key: 'home', label: 'Início', icon: Star, always: true },
-    ...(portal.show_workspace ? [{ key: 'workspace', label: 'Espaço de Trabalho', icon: FileText, always: false }] : []),
-    ...(portal.show_meetings ? [{ key: 'meetings', label: 'Reuniões', icon: CalendarDays, always: false }] : []),
-    ...(portal.show_payments ? [{ key: 'payments', label: 'Pagamentos', icon: CreditCard, always: false }] : []),
-    ...(portal.show_faqs ? [{ key: 'faqs', label: "FAQ's", icon: HelpCircle, always: false }] : []),
-    ...((portal as any).show_materials && portalMaterials.length > 0 ? [{ key: 'materials', label: 'Materiais', icon: FolderOpen, always: false }] : []),
-    ...(projectHistory.length > 0 ? [{ key: 'history', label: 'Histórico', icon: History, always: false }] : []),
+    ...(portal.show_workspace ? [{ key: 'workspace', label: 'Espaço de Trabalho', icon: FileText }] : []),
+    ...(portal.show_meetings ? [{ key: 'meetings', label: 'Reuniões', icon: CalendarDays }] : []),
+    ...(portal.show_payments ? [{ key: 'payments', label: 'Pagamentos', icon: CreditCard }] : []),
+    ...(portal.show_faqs ? [{ key: 'faqs', label: "FAQ's", icon: HelpCircle }] : []),
+    ...((portal as any).show_materials && portalMaterials.length > 0 ? [{ key: 'materials', label: 'Materiais', icon: FolderOpen }] : []),
+    ...(projectHistory.length > 0 ? [{ key: 'history', label: 'Histórico', icon: History }] : []),
   ];
 
   const completedOnb = onboarding.filter((o: any) => o.completed).length;
   const totalOnb = onboarding.length;
   const onbPercent = totalOnb > 0 ? Math.round((completedOnb / totalOnb) * 100) : 0;
 
-  const upcomingMeetings = meetings.filter((m: any) => ['marcada', 'agendada', 'confirmada', 'por_confirmar'].includes(m.status));
-  const pastMeetings = meetings.filter((m: any) => !['marcada', 'agendada', 'confirmada', 'por_confirmar'].includes(m.status));
+  const statusLabel = (s: string) => {
+    const map: Record<string, { text: string; cls: string }> = {
+      pago: { text: 'Pago', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+      em_falta: { text: 'Em falta', cls: 'bg-red-50 text-red-600 border-red-200' },
+      pendente: { text: 'Pendente', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+      aguarda_pagamento: { text: 'Aguarda', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+      em_atraso: { text: 'Em atraso', cls: 'bg-red-50 text-red-600 border-red-200' },
+    };
+    return map[s] || { text: s, cls: '' };
+  };
+
+  const meetingStatus = (s: string) => {
+    const map: Record<string, { text: string; cls: string }> = {
+      confirmada: { text: 'Confirmada', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+      realizada: { text: 'Realizada', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
+      cancelada: { text: 'Cancelada', cls: 'bg-red-50 text-red-600 border-red-200' },
+    };
+    return map[s] || { text: s, cls: '' };
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b" style={{ backgroundColor: primaryColor }}>
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+    <div className="min-h-screen" style={{ background: `linear-gradient(180deg, #fefcfa 0%, ${primaryColor}06 100%)` }}>
+      {/* ─── Header ─── */}
+      <header className="sticky top-0 z-30 backdrop-blur-md bg-white/80 border-b border-border/30">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {logoUrl && <img src={logoUrl} alt="Logo" className="h-8 object-contain brightness-0 invert" />}
+            {logoUrl && <img src={logoUrl} alt="Logo" className="h-7 object-contain" />}
           </div>
-          <p className="text-sm font-medium text-primary-foreground">{client.full_name}</p>
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: primaryColor }}>
+              {firstName.charAt(0).toUpperCase()}
+            </div>
+            <span className="text-sm font-medium text-foreground hidden sm:inline">{firstName}</span>
+          </div>
         </div>
       </header>
 
       <div className="max-w-6xl mx-auto flex">
-        {/* Sidebar nav */}
-        <nav className="w-56 shrink-0 border-r min-h-[calc(100vh-65px)] p-4 hidden md:flex md:flex-col md:justify-between">
+        {/* ─── Sidebar ─── */}
+        <nav className="w-56 shrink-0 min-h-[calc(100vh-53px)] p-4 hidden md:flex md:flex-col md:justify-between bg-white/50">
           <div className="space-y-1">
-            {navItems.map(item => (
-              <button
-                key={item.key}
-                onClick={() => setActiveSection(item.key)}
-                className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${activeSection === item.key ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-muted'}`}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </button>
-            ))}
+            {navItems.map(item => {
+              const active = activeSection === item.key;
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => setActiveSection(item.key)}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all ${
+                    active
+                      ? 'font-semibold shadow-sm text-white'
+                      : 'text-muted-foreground hover:bg-white hover:shadow-sm'
+                  }`}
+                  style={active ? { backgroundColor: primaryColor } : undefined}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </button>
+              );
+            })}
           </div>
 
           {(settings as any)?.support_hours && (
-            <div className="border-t pt-4 mt-4">
-              <div className="flex items-center gap-2 px-3 text-muted-foreground">
+            <div className="border-t border-border/30 pt-4 mt-4">
+              <div className="flex items-center gap-2.5 px-3 text-muted-foreground">
                 <Clock className="h-4 w-4 shrink-0" />
                 <div>
-                  <p className="text-[10px] font-medium uppercase tracking-wide">Horário de atendimento</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider opacity-60">Atendimento</p>
                   <p className="text-xs font-medium text-foreground">{(settings as any).support_hours}</p>
                 </div>
               </div>
@@ -240,494 +247,575 @@ export default function PortalViewPage() {
           )}
         </nav>
 
-        {/* Main content */}
-        <main className="flex-1 p-6 space-y-6">
+        {/* ─── Main ─── */}
+        <main className="flex-1 p-5 sm:p-8 space-y-6 max-w-4xl">
           {/* Mobile nav */}
           <div className="flex gap-2 flex-wrap md:hidden">
             {navItems.map(item => (
-              <Button key={item.key} variant={activeSection === item.key ? 'default' : 'outline'} size="sm" onClick={() => setActiveSection(item.key)}>
+              <button
+                key={item.key}
+                onClick={() => setActiveSection(item.key)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium transition-all ${
+                  activeSection === item.key
+                    ? 'text-white shadow-sm'
+                    : 'bg-white text-muted-foreground border border-border/40'
+                }`}
+                style={activeSection === item.key ? { backgroundColor: primaryColor } : undefined}
+              >
+                <item.icon className="h-3.5 w-3.5" />
                 {item.label}
-              </Button>
+              </button>
             ))}
           </div>
 
+          {/* ═══ HOME ═══ */}
           {activeSection === 'home' && (
             <>
-              <div className="space-y-2">
-                <h1 className="text-2xl font-bold">Bem-vinda, {client.full_name?.split(' ')[0]}!</h1>
-                <p className="text-muted-foreground">Este é o teu espaço de acompanhamento.</p>
+              {/* Welcome hero */}
+              <div
+                className="rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden"
+                style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}cc 100%)` }}
+              >
+                <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10 bg-white -translate-y-1/2 translate-x-1/2" />
+                <div className="relative z-10">
+                  <p className="text-white/70 text-sm mb-1">Olá 👋</p>
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ fontFamily: 'var(--font-display, "Plus Jakarta Sans", sans-serif)' }}>
+                    Bem-vinda, {firstName}!
+                  </h1>
+                  <p className="text-white/80 text-sm mt-2 max-w-md">
+                    Este é o teu espaço de acompanhamento. Aqui encontras tudo o que precisas.
+                  </p>
+                </div>
               </div>
 
-              {/* Action cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Quick action cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {portal.show_onboarding && onboarding.length > 0 && (
-                  <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveSection('onboarding')}>
-                    <CardContent className="p-4 flex items-center gap-3">
-                      <CheckSquare className="h-8 w-8 text-primary" />
-                      <div>
-                        <p className="font-medium text-sm">Onboarding</p>
-                        <p className="text-xs text-muted-foreground">{onbPercent}% concluído</p>
+                  <SectionCard className="p-5 cursor-pointer group" onClick={() => setActiveSection('onboarding')}>
+                    <div className="flex items-start justify-between">
+                      <div className="p-2.5 rounded-xl" style={{ backgroundColor: `${primaryColor}15` }}>
+                        <CheckSquare className="h-5 w-5" style={{ color: primaryColor }} />
                       </div>
-                    </CardContent>
-                  </Card>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                    <p className="font-semibold text-sm mt-3">Onboarding</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all" style={{ width: `${onbPercent}%`, backgroundColor: primaryColor }} />
+                      </div>
+                      <span className="text-xs font-medium text-muted-foreground">{onbPercent}%</span>
+                    </div>
+                  </SectionCard>
                 )}
-                <Card className="cursor-pointer hover:shadow-md transition-shadow bg-primary/5 border-primary/20" onClick={() => setActiveSection('questions')}>
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <ClipboardList className="h-8 w-8 text-primary" />
-                    <div>
-                      <p className="font-medium text-sm">Perguntas Iniciais</p>
-                      <p className="text-xs text-muted-foreground">{questions.filter(q => q.answer).length}/{questions.length} respondidas</p>
+                <SectionCard className="p-5 cursor-pointer group" onClick={() => setActiveSection('questions')}>
+                  <div className="flex items-start justify-between">
+                    <div className="p-2.5 rounded-xl" style={{ backgroundColor: `${primaryColor}15` }}>
+                      <ClipboardList className="h-5 w-5" style={{ color: primaryColor }} />
                     </div>
-                  </CardContent>
-                </Card>
-                <Card className="cursor-pointer hover:shadow-md transition-shadow bg-primary/5 border-primary/20" onClick={() => setActiveSection('feedback')}>
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <MessageSquare className="h-8 w-8 text-primary" />
-                    <div>
-                      <p className="font-medium text-sm">Feedback</p>
-                      <p className="text-xs text-muted-foreground">Partilha a tua opinião</p>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                  <p className="font-semibold text-sm mt-3">Perguntas Iniciais</p>
+                  <p className="text-xs text-muted-foreground mt-1">{questions.filter(q => q.answer).length}/{questions.length} respondidas</p>
+                </SectionCard>
+                <SectionCard className="p-5 cursor-pointer group" onClick={() => setActiveSection('feedback')}>
+                  <div className="flex items-start justify-between">
+                    <div className="p-2.5 rounded-xl" style={{ backgroundColor: `${primaryColor}15` }}>
+                      <MessageSquare className="h-5 w-5" style={{ color: primaryColor }} />
                     </div>
-                  </CardContent>
-                </Card>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                  <p className="font-semibold text-sm mt-3">Feedback</p>
+                  <p className="text-xs text-muted-foreground mt-1">Partilha a tua opinião</p>
+                </SectionCard>
               </div>
 
+              {/* Timeline */}
               {portal.portal_type === 'projeto_unico' && portal.show_timeline && phases.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-2"><CardTitle className="text-sm">Timeline do Projeto</CardTitle></CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {phases.map((p: any, i: number) => (
-                        <div key={p.id} className="flex items-center gap-3">
-                          <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold ${p.status === 'concluido' ? 'bg-green-500 text-white' : p.status === 'em_curso' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                            {i + 1}
+                <SectionCard className="p-6">
+                  <SectionTitle icon={Sparkles}>Timeline do Projeto</SectionTitle>
+                  <div className="space-y-0">
+                    {phases.map((p: any, i: number) => {
+                      const done = p.status === 'concluido';
+                      const active = p.status === 'em_curso';
+                      return (
+                        <div key={p.id} className="flex items-center gap-4 relative">
+                          {i < phases.length - 1 && (
+                            <div className="absolute left-4 top-10 w-0.5 h-6" style={{ backgroundColor: done ? `${primaryColor}40` : '#e5e5e5' }} />
+                          )}
+                          <div
+                            className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all ${
+                              done ? 'text-white' : active ? 'text-white ring-4 ring-opacity-20' : 'bg-muted text-muted-foreground'
+                            }`}
+                            style={done || active ? { backgroundColor: primaryColor, ...(active ? { ringColor: primaryColor } : {}) } : undefined}
+                          >
+                            {done ? '✓' : i + 1}
                           </div>
-                          <div className="flex-1">
-                            <p className={`text-sm font-medium ${p.status === 'concluido' ? 'line-through text-muted-foreground' : ''}`}>{p.title}</p>
+                          <div className="flex-1 py-3">
+                            <p className={`text-sm font-medium ${done ? 'text-muted-foreground line-through' : ''}`}>{p.title}</p>
                           </div>
-                          <Badge variant="outline" className="text-[10px]">
-                            {p.status === 'concluido' ? 'Concluído' : p.status === 'em_curso' ? 'Em curso' : 'Por começar'}
+                          <Badge variant="outline" className={`text-[10px] ${
+                            done ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                            active ? 'text-white border-0' : ''
+                          }`} style={active ? { backgroundColor: primaryColor } : undefined}>
+                            {done ? 'Concluído' : active ? 'Em curso' : 'Por começar'}
                           </Badge>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                      );
+                    })}
+                  </div>
+                </SectionCard>
               )}
 
+              {/* Monthly summaries */}
               {portal.portal_type === 'servico_mensal' && portal.show_monthly_summary && summaries.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-2"><CardTitle className="text-sm">Resumos Mensais</CardTitle></CardHeader>
-                  <CardContent className="space-y-3">
+                <SectionCard className="p-6">
+                  <SectionTitle icon={ClipboardList}>Resumos Mensais</SectionTitle>
+                  <div className="space-y-3">
                     {summaries.map((s: any) => (
-                      <div key={s.id} className="border rounded-md p-3">
-                        <p className="font-medium text-sm mb-1">{s.month}/{s.year}</p>
-                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{s.content}</p>
+                      <div key={s.id} className="rounded-xl border border-border/40 bg-muted/20 p-4">
+                        <p className="font-semibold text-sm mb-1" style={{ color: primaryColor }}>{s.month}/{s.year}</p>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{s.content}</p>
                       </div>
                     ))}
-                  </CardContent>
-                </Card>
+                  </div>
+                </SectionCard>
               )}
 
-              {/* Next meeting & next payment */}
-              <div className="space-y-4">
+              {/* Quick info cards: next meeting & next payment */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {portal.show_meetings && (() => {
-                  const nextMeeting = meetings
+                  const next = meetings
                     .filter((m: any) => ['marcada', 'agendada', 'confirmada', 'por_confirmar'].includes(m.status) && m.date_time)
                     .sort((a: any, b: any) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
                   return (
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-primary" onClick={() => setActiveSection('meetings')}>
-                      <CardContent className="p-4 flex items-center gap-3">
-                        <CalendarDays className="h-8 w-8 text-primary shrink-0" />
-                        <div>
-                          <p className="font-medium text-sm">Próxima Reunião</p>
-                          <p className="text-xs text-muted-foreground">
-                            {nextMeeting
-                              ? format(parseISO(nextMeeting.date_time), "d 'de' MMMM, HH:mm", { locale: pt })
-                              : 'Sem reuniões agendadas'}
+                    <SectionCard className="p-5 cursor-pointer group" onClick={() => setActiveSection('meetings')}>
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-xl" style={{ backgroundColor: `${primaryColor}12` }}>
+                          <CalendarDays className="h-5 w-5" style={{ color: primaryColor }} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs text-muted-foreground font-medium">Próxima Reunião</p>
+                          <p className="text-sm font-semibold mt-0.5">
+                            {next ? format(parseISO(next.date_time), "d 'de' MMMM, HH:mm", { locale: pt }) : 'Sem reuniões agendadas'}
                           </p>
                         </div>
-                      </CardContent>
-                    </Card>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:translate-x-0.5 transition-transform" />
+                      </div>
+                    </SectionCard>
                   );
                 })()}
 
                 {portal.show_payments && (() => {
-                  const nextPayment = payments
-                    .filter((p: any) => p.status === 'pendente' && p.payment_date)
+                  const next = payments
+                    .filter((p: any) => !['pago'].includes(p.status) && p.payment_date)
                     .sort((a: any, b: any) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime())[0];
                   return (
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-primary" onClick={() => setActiveSection('payments')}>
-                      <CardContent className="p-4 flex items-center gap-3">
-                        <CreditCard className="h-8 w-8 text-primary shrink-0" />
-                        <div>
-                          <p className="font-medium text-sm">Próximo Pagamento</p>
-                          <p className="text-xs text-muted-foreground">
-                            {nextPayment
-                              ? format(parseISO(nextPayment.payment_date), "d 'de' MMMM, yyyy", { locale: pt })
-                              : 'Sem pagamentos pendentes'}
+                    <SectionCard className="p-5 cursor-pointer group" onClick={() => setActiveSection('payments')}>
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-xl" style={{ backgroundColor: `${primaryColor}12` }}>
+                          <CreditCard className="h-5 w-5" style={{ color: primaryColor }} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs text-muted-foreground font-medium">Próximo Pagamento</p>
+                          <p className="text-sm font-semibold mt-0.5">
+                            {next ? format(parseISO(next.payment_date), "d 'de' MMMM, yyyy", { locale: pt }) : 'Sem pagamentos pendentes'}
                           </p>
                         </div>
-                      </CardContent>
-                    </Card>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:translate-x-0.5 transition-transform" />
+                      </div>
+                    </SectionCard>
                   );
                 })()}
               </div>
             </>
           )}
 
+          {/* ═══ WORKSPACE ═══ */}
           {activeSection === 'workspace' && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold">Espaço de Trabalho</h2>
+            <div className="space-y-5">
+              <SectionTitle icon={FileText}>Espaço de Trabalho</SectionTitle>
+
               {contractDocs.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-2"><CardTitle className="text-sm">Contrato</CardTitle></CardHeader>
-                  <CardContent className="space-y-2">
+                <SectionCard className="p-5">
+                  <p className="text-sm font-semibold mb-3">📄 Contrato</p>
+                  <div className="space-y-2">
                     {contractDocs.map((proj: any, pi: number) => {
                       const docs = Array.isArray(proj.contract_documents) ? proj.contract_documents : [];
                       return docs.map((doc: any, di: number) => (
-                        <a key={`${pi}-${di}`} href={doc.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
+                        <a key={`${pi}-${di}`} href={doc.url} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-2.5 text-sm hover:underline rounded-lg p-2 -mx-2 hover:bg-muted/30 transition-colors"
+                          style={{ color: primaryColor }}>
                           <Download className="h-3.5 w-3.5 shrink-0" />
                           {doc.name || 'Contrato'}
                         </a>
                       ));
                     })}
-                  </CardContent>
-                </Card>
+                  </div>
+                </SectionCard>
               )}
-              {client.documents && (
-                <Card>
-                  <CardHeader className="pb-2"><CardTitle className="text-sm">Documentos</CardTitle></CardHeader>
-                  <CardContent>
-                    <a href={client.documents} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">{client.documents}</a>
-                  </CardContent>
-                </Card>
+
+              {(client.documents || client.drive_folder_url) && (
+                <SectionCard className="p-5">
+                  <p className="text-sm font-semibold mb-3">📂 Documentos e Pastas</p>
+                  <div className="space-y-2">
+                    {client.documents && (
+                      <a href={client.documents} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-2.5 text-sm hover:underline rounded-lg p-2 -mx-2 hover:bg-muted/30 transition-colors"
+                        style={{ color: primaryColor }}>
+                        <FileText className="h-3.5 w-3.5 shrink-0" />
+                        Documentos
+                      </a>
+                    )}
+                    {client.drive_folder_url && (
+                      <a href={client.drive_folder_url} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-2.5 text-sm hover:underline rounded-lg p-2 -mx-2 hover:bg-muted/30 transition-colors"
+                        style={{ color: primaryColor }}>
+                        <FolderOpen className="h-3.5 w-3.5 shrink-0" />
+                        Pasta Drive
+                      </a>
+                    )}
+                  </div>
+                </SectionCard>
               )}
-              {client.drive_folder_url && (
-                <Card>
-                  <CardHeader className="pb-2"><CardTitle className="text-sm">Pasta Drive</CardTitle></CardHeader>
-                  <CardContent>
-                    <a href={client.drive_folder_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">Abrir pasta</a>
-                  </CardContent>
-                </Card>
-              )}
+
               {tasks.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-2"><CardTitle className="text-sm">Tarefas</CardTitle></CardHeader>
-                  <CardContent className="space-y-2">
+                <SectionCard className="p-5">
+                  <p className="text-sm font-semibold mb-3">✅ Tarefas</p>
+                  <div className="space-y-1">
                     {tasks.map((t: any) => (
-                      <div key={t.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                      <div key={t.id} className="flex items-center justify-between py-2.5 px-2 -mx-2 rounded-lg hover:bg-muted/20 transition-colors">
                         <span className="text-sm">{t.name}</span>
                         <Badge variant="outline" className="text-[10px]">{t.status}</Badge>
                       </div>
                     ))}
-                  </CardContent>
-                </Card>
+                  </div>
+                </SectionCard>
               )}
             </div>
           )}
 
+          {/* ═══ MEETINGS ═══ */}
           {activeSection === 'meetings' && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold">Reuniões</h2>
-              <Card>
-                <CardContent className="p-0">
-                  <div className="bg-muted px-4 py-2 font-medium text-xs grid grid-cols-4 gap-2">
-                    <span>Título</span><span>Data / Hora</span><span>Link</span><span>Status</span>
-                  </div>
-                  {meetings.length === 0 ? (
-                    <p className="text-sm text-muted-foreground p-4">Sem reuniões registadas.</p>
-                  ) : (
-                    meetings.map((m: any) => (
-                      <div key={m.id} className="grid grid-cols-4 gap-2 items-center px-4 py-3 border-b last:border-0 text-sm">
-                        <span className="font-medium truncate">{m.title}</span>
-                        <span className="text-muted-foreground text-xs">
-                          {m.date_time ? format(parseISO(m.date_time), "dd MMM yyyy, HH:mm", { locale: pt }) : '—'}
-                        </span>
-                        <span>
-                          {m.meeting_url ? (
-                            <Button size="sm" variant="outline" className="h-7 text-xs" asChild>
-                              <a href={m.meeting_url} target="_blank" rel="noopener noreferrer">Entrar</a>
-                            </Button>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
-                          )}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          {(m.status === 'marcada' || m.status === 'por_confirmar') ? (
-                            <Button size="sm" className="h-7 text-xs" onClick={async () => {
-                              const { data } = await (supabase as any).rpc('portal_confirm_meeting', { _token: token, _meeting_id: m.id });
-                              if (data) {
-                                setMeetings(prev => prev.map(x => x.id === m.id ? { ...x, status: 'confirmada' } : x));
-                                toast.success('Presença confirmada');
-                              } else {
-                                toast.error('Não foi possível confirmar');
-                              }
-                            }}>Confirmar</Button>
-                          ) : (
-                            <Badge variant="outline" className={
-                              m.status === 'confirmada' ? 'bg-green-100 text-green-800 border-green-200' :
-                              m.status === 'realizada' ? 'bg-blue-100 text-blue-800 border-blue-200' :
-                              ''
-                            }>{m.status}</Badge>
-                          )}
+            <div className="space-y-5">
+              <SectionTitle icon={CalendarDays}>Reuniões</SectionTitle>
+              {meetings.length === 0 ? (
+                <SectionCard className="p-8 text-center">
+                  <CalendarDays className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
+                  <p className="text-sm text-muted-foreground">Sem reuniões registadas.</p>
+                </SectionCard>
+              ) : (
+                <div className="space-y-3">
+                  {meetings.map((m: any) => {
+                    const isPending = m.status === 'marcada' || m.status === 'por_confirmar';
+                    const ms = meetingStatus(m.status);
+                    return (
+                      <SectionCard key={m.id} className="p-5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex items-start gap-3">
+                            <div className="p-2 rounded-xl bg-muted/40 mt-0.5">
+                              <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-sm">{m.title}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {m.date_time ? format(parseISO(m.date_time), "EEEE, d 'de' MMMM · HH:mm", { locale: pt }) : '—'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 sm:shrink-0">
+                            {m.meeting_url && (
+                              <Button size="sm" variant="outline" className="h-8 text-xs rounded-lg" asChild>
+                                <a href={m.meeting_url} target="_blank" rel="noopener noreferrer">Entrar</a>
+                              </Button>
+                            )}
+                            {isPending ? (
+                              <Button size="sm" className="h-8 text-xs rounded-lg text-white" style={{ backgroundColor: primaryColor }}
+                                onClick={async () => {
+                                  const { data } = await (supabase as any).rpc('portal_confirm_meeting', { _token: token, _meeting_id: m.id });
+                                  if (data) { setMeetings(prev => prev.map(x => x.id === m.id ? { ...x, status: 'confirmada' } : x)); toast.success('Presença confirmada ✨'); }
+                                  else toast.error('Não foi possível confirmar');
+                                }}>
+                                Confirmar
+                              </Button>
+                            ) : (
+                              <Badge variant="outline" className={`text-[10px] ${ms.cls}`}>{ms.text}</Badge>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))
-                  )}
-                </CardContent>
-              </Card>
+                      </SectionCard>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
+          {/* ═══ PAYMENTS ═══ */}
           {activeSection === 'payments' && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold">Pagamentos</h2>
+            <div className="space-y-5">
+              <SectionTitle icon={CreditCard}>Pagamentos</SectionTitle>
 
-              {/* Payment methods info */}
               {paymentMethods.length > 0 && (
-                <Card className="border-l-4 border-l-primary">
-                  <CardContent className="p-4 space-y-3">
-                    <p className="text-sm font-medium">Dados para pagamento</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {paymentMethods.map((pm: any, i: number) => (
-                        <div key={i} className="rounded-md border bg-muted/30 p-3 space-y-1">
-                          <p className="text-xs font-medium text-muted-foreground">{pm.label || pm.type}</p>
-                          <p className="text-sm font-mono select-all">{pm.value}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                <SectionCard className="p-5 border-l-4" style={{ borderLeftColor: primaryColor }}>
+                  <p className="text-sm font-semibold mb-3">💳 Dados para pagamento</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {paymentMethods.map((pm: any, i: number) => (
+                      <div key={i} className="rounded-xl border border-border/40 bg-muted/20 p-3.5 space-y-1">
+                        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{pm.label || pm.type}</p>
+                        <p className="text-sm font-mono select-all">{pm.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </SectionCard>
               )}
 
-              <Card>
-                <CardContent className="p-0">
-                  <div className="bg-muted px-4 py-2 font-medium text-xs grid grid-cols-4 gap-2">
-                    <span>Mês</span><span>Data</span><span>Documento</span><span>Status</span>
+              {payments.length === 0 ? (
+                <SectionCard className="p-8 text-center">
+                  <CreditCard className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
+                  <p className="text-sm text-muted-foreground">Sem pagamentos registados.</p>
+                </SectionCard>
+              ) : (
+                <SectionCard className="overflow-hidden">
+                  <div className="px-5 py-3 border-b border-border/30 grid grid-cols-4 gap-2">
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Mês</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Data</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Documento</span>
+                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Status</span>
                   </div>
-                  {payments.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8 text-sm">Sem pagamentos registados.</p>
-                  ) : payments.map((p: any) => {
-                    const docs = p.documents;
-                    const docList = Array.isArray(docs) ? docs : [];
-                    const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+                  {payments.map((p: any) => {
+                    const docs = Array.isArray(p.documents) ? p.documents : [];
+                    const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                    const st = statusLabel(p.status);
                     return (
-                      <div key={p.id} className="px-4 py-2 text-sm grid grid-cols-4 gap-2 border-b items-center">
-                        <span className="text-xs">{p.sale_month ? monthNames[p.sale_month - 1] : '—'}</span>
-                        <span className="text-xs">{p.payment_date || '—'}</span>
-                        <span className="text-xs">
-                          {docList.length > 0 ? docList.map((d: any, i: number) => (
-                            <a key={i} href={d.url || d} target="_blank" rel="noopener noreferrer" className="text-primary underline block truncate max-w-[160px]">
+                      <div key={p.id} className="px-5 py-3 grid grid-cols-4 gap-2 items-center border-b border-border/20 last:border-0 hover:bg-muted/10 transition-colors">
+                        <span className="text-sm font-medium">{p.sale_month ? monthNames[p.sale_month - 1] : '—'}</span>
+                        <span className="text-sm text-muted-foreground">{p.payment_date || '—'}</span>
+                        <span className="text-sm">
+                          {docs.length > 0 ? docs.map((d: any, i: number) => (
+                            <a key={i} href={d.url || d} target="_blank" rel="noopener noreferrer"
+                              className="block truncate max-w-[160px] hover:underline" style={{ color: primaryColor }}>
                               {d.name || d.file_name || `Documento ${i + 1}`}
                             </a>
-                          )) : '—'}
+                          )) : <span className="text-muted-foreground/40">—</span>}
                         </span>
-                        <span>
-                          <Badge variant="outline" className={`text-[10px] ${p.status === 'pago' ? 'bg-green-100 text-green-800' : p.status === 'em_falta' ? 'bg-red-100 text-red-800' : ''}`}>
-                            {p.status === 'pago' ? 'Pago' : p.status === 'em_falta' ? 'Em falta' : p.status === 'pendente' ? 'Pendente' : p.status}
-                          </Badge>
-                        </span>
+                        <Badge variant="outline" className={`text-[10px] w-fit ${st.cls}`}>{st.text}</Badge>
                       </div>
                     );
                   })}
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {activeSection === 'faqs' && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold">Perguntas Frequentes</h2>
-              {faqs.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Sem FAQ's disponíveis.</p>
-              ) : (
-                <Accordion type="single" collapsible className="w-full">
-                  {faqs.map((f: any) => (
-                    <AccordionItem key={f.id} value={f.id}>
-                      <AccordionTrigger className="text-sm">{f.question}</AccordionTrigger>
-                      <AccordionContent className="text-sm text-muted-foreground">
-                        {f.answer || 'Resposta em breve.'}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
+                </SectionCard>
               )}
-
             </div>
           )}
 
+          {/* ═══ FAQS ═══ */}
+          {activeSection === 'faqs' && (
+            <div className="space-y-5">
+              <SectionTitle icon={HelpCircle}>Perguntas Frequentes</SectionTitle>
+              {faqs.length === 0 ? (
+                <SectionCard className="p-8 text-center">
+                  <HelpCircle className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
+                  <p className="text-sm text-muted-foreground">Sem FAQ's disponíveis.</p>
+                </SectionCard>
+              ) : (
+                <SectionCard className="p-5">
+                  <Accordion type="single" collapsible className="w-full">
+                    {faqs.map((f: any) => (
+                      <AccordionItem key={f.id} value={f.id} className="border-border/30">
+                        <AccordionTrigger className="text-sm font-medium hover:no-underline py-4">{f.question}</AccordionTrigger>
+                        <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-4">
+                          {f.answer || 'Resposta em breve.'}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </SectionCard>
+              )}
+            </div>
+          )}
+
+          {/* ═══ ONBOARDING ═══ */}
           {activeSection === 'onboarding' && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold">Onboarding</h2>
-              <div className="flex items-center gap-3 mb-2">
+            <div className="space-y-5">
+              <SectionTitle icon={CheckSquare}>Onboarding</SectionTitle>
+              <div className="flex items-center gap-3">
                 <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${onbPercent}%` }} />
+                  <div className="h-full rounded-full transition-all" style={{ width: `${onbPercent}%`, backgroundColor: primaryColor }} />
                 </div>
-                <span className="text-sm font-medium">{onbPercent}%</span>
+                <span className="text-sm font-semibold" style={{ color: primaryColor }}>{onbPercent}%</span>
               </div>
-              <Card>
-                <CardContent className="p-0">
-                  {onboarding.map((o: any) => (
-                    <div key={o.id} className={`flex items-center gap-3 px-4 py-3 border-b last:border-0 ${o.completed ? 'opacity-60' : ''}`}>
-                      <Checkbox checked={o.completed} onCheckedChange={async (v) => {
-                        await sb('client_onboarding').update({ completed: !!v }).eq('id', o.id);
-                        setOnboarding(prev => prev.map(x => x.id === o.id ? { ...x, completed: !!v } : x));
-                      }} />
-                      <span className={`text-sm ${o.completed ? 'line-through' : ''}`}>{o.activity}</span>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+              <SectionCard className="overflow-hidden">
+                {onboarding.map((o: any) => (
+                  <div key={o.id} className={`flex items-center gap-3 px-5 py-4 border-b border-border/20 last:border-0 transition-colors hover:bg-muted/10 ${o.completed ? 'opacity-50' : ''}`}>
+                    <Checkbox checked={o.completed} onCheckedChange={async (v) => {
+                      await sb('client_onboarding').update({ completed: !!v }).eq('id', o.id);
+                      setOnboarding(prev => prev.map(x => x.id === o.id ? { ...x, completed: !!v } : x));
+                    }} />
+                    <span className={`text-sm ${o.completed ? 'line-through' : ''}`}>{o.activity}</span>
+                  </div>
+                ))}
+              </SectionCard>
             </div>
           )}
 
+          {/* ═══ QUESTIONS ═══ */}
           {activeSection === 'questions' && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold">Perguntas Iniciais</h2>
-              {questions.map((q: any) => (
-                <Card key={q.id}>
-                  <CardContent className="p-4 space-y-2">
-                    <p className="text-sm font-medium">{q.question}</p>
-                    <Textarea
-                      className="text-sm"
-                      placeholder="A tua resposta..."
-                      defaultValue={q.answer || ''}
-                      onBlur={e => {
-                        if (e.target.value !== (q.answer || '')) {
-                          answerQuestion(q.id, e.target.value);
-                        }
-                      }}
-                      rows={3}
-                    />
-                    {q.answered_at && <p className="text-xs text-muted-foreground">Respondida em {format(parseISO(q.answered_at), 'dd/MM/yyyy HH:mm')}</p>}
-                  </CardContent>
-                </Card>
+            <div className="space-y-5">
+              <SectionTitle icon={ClipboardList}>Perguntas Iniciais</SectionTitle>
+              {questions.length === 0 ? (
+                <SectionCard className="p-8 text-center">
+                  <p className="text-sm text-muted-foreground">Sem perguntas definidas.</p>
+                </SectionCard>
+              ) : questions.map((q: any) => (
+                <SectionCard key={q.id} className="p-5 space-y-3">
+                  <p className="text-sm font-semibold">{q.question}</p>
+                  <Textarea
+                    className="text-sm rounded-xl border-border/40 bg-muted/10 focus-visible:ring-1"
+                    placeholder="A tua resposta..."
+                    defaultValue={q.answer || ''}
+                    onBlur={e => {
+                      if (e.target.value !== (q.answer || '')) answerQuestion(q.id, e.target.value);
+                    }}
+                    rows={3}
+                    style={{ '--tw-ring-color': `${primaryColor}40` } as any}
+                  />
+                  {q.answered_at && <p className="text-xs text-muted-foreground">Respondida em {format(parseISO(q.answered_at), 'dd/MM/yyyy HH:mm')}</p>}
+                </SectionCard>
               ))}
-              {questions.length === 0 && <p className="text-sm text-muted-foreground">Sem perguntas definidas.</p>}
             </div>
           )}
 
+          {/* ═══ FEEDBACK ═══ */}
           {activeSection === 'feedback' && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold">Feedback</h2>
-              <Card>
-                <CardContent className="p-4 space-y-3">
-                  <Textarea
-                    placeholder="Partilha o teu feedback connosco..."
-                    value={feedbackText}
-                    onChange={e => setFeedbackText(e.target.value)}
-                    rows={4}
-                  />
-                  <Button disabled={!feedbackText.trim()} onClick={sendFeedback}>
-                    <Send className="h-4 w-4 mr-2" />Enviar Feedback
-                  </Button>
-                </CardContent>
-              </Card>
+            <div className="space-y-5">
+              <SectionTitle icon={MessageSquare}>Feedback</SectionTitle>
+              <SectionCard className="p-5 space-y-4">
+                <Textarea
+                  className="rounded-xl border-border/40 bg-muted/10 focus-visible:ring-1"
+                  placeholder="Partilha o teu feedback connosco... 💬"
+                  value={feedbackText}
+                  onChange={e => setFeedbackText(e.target.value)}
+                  rows={4}
+                  style={{ '--tw-ring-color': `${primaryColor}40` } as any}
+                />
+                <Button
+                  className="rounded-xl text-white"
+                  style={{ backgroundColor: primaryColor }}
+                  disabled={!feedbackText.trim()}
+                  onClick={sendFeedback}
+                >
+                  <Send className="h-4 w-4 mr-2" />Enviar Feedback
+                </Button>
+              </SectionCard>
               {feedback.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-2"><CardTitle className="text-sm">Feedback Anterior</CardTitle></CardHeader>
-                  <CardContent className="space-y-2">
+                <SectionCard className="p-5">
+                  <p className="text-sm font-semibold mb-3">Feedback Anterior</p>
+                  <div className="space-y-3">
                     {feedback.map((f: any) => (
-                      <div key={f.id} className="border rounded p-2 text-sm">
-                        <p>{f.content}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{format(parseISO(f.submitted_at), 'dd/MM/yyyy HH:mm')}</p>
+                      <div key={f.id} className="rounded-xl border border-border/30 bg-muted/10 p-4">
+                        <p className="text-sm leading-relaxed">{f.content}</p>
+                        <p className="text-xs text-muted-foreground mt-2">{format(parseISO(f.submitted_at), 'dd/MM/yyyy HH:mm')}</p>
                       </div>
                     ))}
-                  </CardContent>
-                </Card>
+                  </div>
+                </SectionCard>
               )}
             </div>
           )}
 
+          {/* ═══ MATERIALS ═══ */}
           {activeSection === 'materials' && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold">Materiais</h2>
-              <p className="text-sm text-muted-foreground">Ficheiros partilhados pela equipa.</p>
+            <div className="space-y-5">
+              <SectionTitle icon={FolderOpen}>Materiais</SectionTitle>
+              <p className="text-sm text-muted-foreground -mt-2">Ficheiros partilhados pela equipa.</p>
               {portalMaterials.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Sem materiais disponíveis.</p>
+                <SectionCard className="p-8 text-center">
+                  <p className="text-sm text-muted-foreground">Sem materiais disponíveis.</p>
+                </SectionCard>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {portalMaterials.map((m: any) => (
-                    <Card key={m.id}>
-                      <CardContent className="p-4 flex items-center justify-between gap-3">
+                    <SectionCard key={m.id} className="p-5">
+                      <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3 min-w-0">
-                          <FileText className="h-5 w-5 shrink-0 text-primary" />
+                          <div className="p-2 rounded-xl" style={{ backgroundColor: `${primaryColor}12` }}>
+                            <FileText className="h-4 w-4" style={{ color: primaryColor }} />
+                          </div>
                           <div className="min-w-0">
                             <p className="text-sm font-medium truncate">{m.file_name}</p>
-                            {m.description && <p className="text-xs text-muted-foreground">{m.description}</p>}
+                            {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
                           </div>
                         </div>
-                        <Button size="sm" variant="outline" asChild>
+                        <Button size="sm" variant="outline" className="rounded-lg shrink-0" asChild>
                           <a href={m.file_url} target="_blank" rel="noopener noreferrer">
                             <Download className="h-3.5 w-3.5 mr-1" />Abrir
                           </a>
                         </Button>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </SectionCard>
                   ))}
                 </div>
               )}
             </div>
           )}
 
+          {/* ═══ HISTORY ═══ */}
           {activeSection === 'history' && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold">Histórico de Projetos</h2>
-              <p className="text-sm text-muted-foreground">Projetos anteriores concluídos com este negócio.</p>
+            <div className="space-y-5">
+              <SectionTitle icon={History}>Histórico de Projetos</SectionTitle>
+              <p className="text-sm text-muted-foreground -mt-2">Projetos anteriores concluídos.</p>
               {projectHistory.map((h: any) => (
-                <Card key={h.id}>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm">{h.project_name}</CardTitle>
-                      <Badge variant="outline" className="text-[10px] bg-green-100 text-green-800 border-green-200">Concluído</Badge>
+                <SectionCard key={h.id} className="p-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-semibold text-sm">{h.project_name}</p>
+                    <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">Concluído</Badge>
+                  </div>
+                  <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-3">
+                    {h.product_name && <span>🏷️ {h.product_name}</span>}
+                    {h.start_date && <span>📅 Início: {h.start_date}</span>}
+                    {h.end_date && <span>🏁 Fim: {h.end_date}</span>}
+                  </div>
+
+                  {Array.isArray(h.timeline_phases) && h.timeline_phases.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-xs font-semibold mb-2">Timeline</p>
+                      <div className="space-y-1.5">
+                        {h.timeline_phases.map((p: any, i: number) => (
+                          <div key={i} className="flex items-center gap-2 text-xs">
+                            <div className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                              p.status === 'concluido' ? 'text-white' : p.status === 'em_curso' ? 'text-white' : 'bg-muted text-muted-foreground'
+                            }`} style={p.status === 'concluido' || p.status === 'em_curso' ? { backgroundColor: primaryColor } : undefined}>
+                              {p.status === 'concluido' ? '✓' : i + 1}
+                            </div>
+                            <span className={p.status === 'concluido' ? 'text-muted-foreground line-through' : ''}>{p.title}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex gap-3 text-xs text-muted-foreground">
-                      {h.product_name && <span>Produto: {h.product_name}</span>}
-                      {h.start_date && <span>Início: {h.start_date}</span>}
-                      {h.end_date && <span>Fim: {h.end_date}</span>}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {/* Timeline phases snapshot */}
-                    {Array.isArray(h.timeline_phases) && h.timeline_phases.length > 0 && (
-                      <div>
-                        <p className="text-xs font-medium mb-2">Timeline</p>
-                        <div className="space-y-1">
-                          {h.timeline_phases.map((p: any, i: number) => (
-                            <div key={i} className="flex items-center gap-2 text-xs">
-                              <div className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold ${p.status === 'concluido' ? 'bg-green-500 text-white' : p.status === 'em_curso' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                                {i + 1}
-                              </div>
-                              <span className={p.status === 'concluido' ? 'line-through text-muted-foreground' : ''}>{p.title}</span>
+                  )}
+
+                  {Array.isArray(h.monthly_summaries) && h.monthly_summaries.length > 0 && (
+                    <Accordion type="single" collapsible>
+                      <AccordionItem value="summaries" className="border-border/30">
+                        <AccordionTrigger className="text-xs hover:no-underline">Resumos Mensais ({h.monthly_summaries.length})</AccordionTrigger>
+                        <AccordionContent className="space-y-2">
+                          {h.monthly_summaries.map((s: any, i: number) => (
+                            <div key={i} className="rounded-xl border border-border/30 bg-muted/10 p-3 text-xs">
+                              <p className="font-semibold" style={{ color: primaryColor }}>{s.month}/{s.year}</p>
+                              <p className="text-muted-foreground whitespace-pre-wrap mt-1">{s.content}</p>
                             </div>
                           ))}
-                        </div>
-                      </div>
-                    )}
-                    {/* Monthly summaries snapshot */}
-                    {Array.isArray(h.monthly_summaries) && h.monthly_summaries.length > 0 && (
-                      <Accordion type="single" collapsible>
-                        <AccordionItem value="summaries">
-                          <AccordionTrigger className="text-xs">Resumos Mensais ({h.monthly_summaries.length})</AccordionTrigger>
-                          <AccordionContent className="space-y-2">
-                            {h.monthly_summaries.map((s: any, i: number) => (
-                              <div key={i} className="border rounded p-2 text-xs">
-                                <p className="font-medium">{s.month}/{s.year}</p>
-                                <p className="text-muted-foreground whitespace-pre-wrap">{s.content}</p>
-                              </div>
-                            ))}
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    )}
-                    {h.notes && (
-                      <div>
-                        <p className="text-xs font-medium mb-1">Notas</p>
-                        <p className="text-xs text-muted-foreground">{h.notes}</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  )}
+
+                  {h.notes && (
+                    <div className="mt-3 rounded-xl bg-muted/20 p-3">
+                      <p className="text-xs font-semibold mb-1">Notas</p>
+                      <p className="text-xs text-muted-foreground">{h.notes}</p>
+                    </div>
+                  )}
+                </SectionCard>
               ))}
             </div>
           )}
