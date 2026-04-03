@@ -1,0 +1,1 @@
+ALTER TABLE public.commercial_sales ADD COLUMN payment_method text DEFAULT NULL;
