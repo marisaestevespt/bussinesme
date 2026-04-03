@@ -789,14 +789,24 @@ export default function ProjetoDetailPage() {
                 </a>
               )}
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label className="text-xs">Data de Início</Label>
+                <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !local.start_date && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{local.start_date ? format(new Date(local.start_date), 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.start_date ? new Date(local.start_date) : undefined} onSelect={d => updateField('start_date', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+              </div>
+              <div><Label className="text-xs">Data de Fim / Prazo</Label>
+                <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{local.deadline ? format(new Date(local.deadline), 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+              </div>
+            </div>
             {!isRecorrente && (
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label className="text-xs">Prazo</Label>
-                  <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{local.deadline ? format(new Date(local.deadline), 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
-                </div>
-                <div><Label className="text-xs">Progresso ({getProjectProgress()}%)</Label><Progress value={getProjectProgress()} className="h-2 mt-3" /><p className="text-[10px] text-muted-foreground mt-1">{tasks.filter(t => t.status === 'concluida').length}/{tasks.length} tarefas{clientOnboardingItems.length + clientOffboardingItems.length > 0 ? ` + ${clientOnboardingItems.filter(i => i.completed).length + clientOffboardingItems.filter(i => i.completed).length}/${clientOnboardingItems.length + clientOffboardingItems.length} boarding` : ''}{projectCost > 0 ? ` • Custo: ${formatCost(projectCost)}` : ''}</p></div>
+              <div>
+                <Label className="text-xs">Progresso ({getProjectProgress()}%)</Label><Progress value={getProjectProgress()} className="h-2 mt-3" /><p className="text-[10px] text-muted-foreground mt-1">{tasks.filter(t => t.status === 'concluida').length}/{tasks.length} tarefas{clientOnboardingItems.length + clientOffboardingItems.length > 0 ? ` + ${clientOnboardingItems.filter(i => i.completed).length + clientOffboardingItems.filter(i => i.completed).length}/${clientOnboardingItems.length + clientOffboardingItems.length} boarding` : ''}{projectCost > 0 ? ` • Custo: ${formatCost(projectCost)}` : ''}</p>
               </div>
             )}
+            <InvoiceUpload
+              label="Contrato"
+              documents={(local.contract_documents as DocEntry[]) || []}
+              onChange={docs => updateField('contract_documents', docs)}
+            />
             <div><Label className="text-xs">Equipa</Label><div className="flex gap-1 mt-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div></div>
           </div>
 
