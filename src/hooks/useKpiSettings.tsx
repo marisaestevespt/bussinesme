@@ -81,13 +81,12 @@ export function KpiSettingsProvider({ children }: { children: ReactNode }) {
   });
 
   // Build a map: "area:key" → enabled. Missing = true (default)
-  const [map, setMap] = useState<KpiMap>({});
-  useEffect(() => {
+  const map = useMemo(() => {
     const m: KpiMap = {};
     for (const row of kpiRows) {
       m[`${row.area}:${row.kpi_key}`] = row.enabled;
     }
-    setMap(m);
+    return m;
   }, [kpiRows]);
 
   const isKpiEnabled = useCallback((area: string, kpiKey: string): boolean => {
