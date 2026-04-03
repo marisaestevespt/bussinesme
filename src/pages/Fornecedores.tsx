@@ -517,7 +517,7 @@ export default function FornecedoresPage() {
                       {s.nif && <div className="text-xs text-muted-foreground">{s.nif}</div>}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{s.nif || '—'}</TableCell>
-                    <TableCell><Badge variant="outline">{PAYMENT_LABELS[s.payment_method as keyof typeof PAYMENT_LABELS] || s.payment_method || '—'}</Badge></TableCell>
+                    <TableCell><Badge variant="outline">{getPaymentLabel(s.payment_method)}</Badge></TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {s.contract_start_date && s.contract_end_date 
                         ? `${s.contract_start_date} → ${s.contract_end_date}`
