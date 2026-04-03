@@ -423,10 +423,6 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
       const { error } = await supabase.from('commercial_sales').insert(upcomingEntries);
       if (error) throw error;
 
-      // Update client payment_method
-      if (resolvedClientId) {
-        await supabase.from('clients').update({ payment_method: payMethod }).eq('id', resolvedClientId);
-      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: salesKey });
