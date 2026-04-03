@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getAutoExpenseStatus, isPaidExpenseStatus, normalizeUnpaidExpenseStatus } from '@/lib/expenseStatus';
 
 const EU_NIF_PREFIXES = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI', 'FR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'RO', 'SE', 'SI', 'SK'];
 
@@ -129,7 +130,7 @@ async function generateExpensesForPeriod(
       vat_rate: vatRate,
       total_with_vat: total,
       category,
-      status: 'por_pagar' as string,
+      status: getAutoExpenseStatus(`${o.year}-${month}-${String(o.day).padStart(2, '0')}`),
       location: location || 'portugal',
       is_recurring: false,
       parent_expense_id: parentExpenseId,
@@ -200,13 +201,23 @@ export default function FornecedoresPage() {
       const base = parseFloat(exp.base_value) || 0;
       const vat = exp.vat_rate ?? 23;
       const total = Math.round(base * (1 + vat / 100) * 100) / 100;
+      const expenseDate = exp.expense_date || new Date().toISOString().slice(0, 10);
+      const expenseMonth = parseInt(expenseDate.slice(5, 7));
+      const expenseYear = parseInt(expenseDate.slice(0, 4));
+      const expenseQuarter = Math.ceil(expenseMonth / 3);
+      const status = normalizeUnpaidExpenseStatus(exp.status, expenseDate);
+
       const { error } = await supabase.from('financial_expenses').update({
-        status: exp.status,
-        expense_date: exp.expense_date,
+        status,
+        expense_date: expenseDate,
         base_value: base,
         vat_rate: vat,
         total_with_vat: total,
         description: exp.description,
+        category: exp.category,
+        expense_month: expenseMonth,
+        expense_quarter: expenseQuarter,
+        expense_year: expenseYear,
       }).eq('id', exp.id);
       if (error) throw error;
     },
@@ -396,7 +407,7 @@ export default function FornecedoresPage() {
             vat_rate: vat,
             total_with_vat: total,
             category: form.category || 'outro',
-            status: 'por_pagar',
+            status: getAutoExpenseStatus(firstPayment),
             location: form.location || 'portugal',
             is_recurring: false,
             parent_expense_id: parentData.id,
@@ -772,8 +783,8 @@ export default function FornecedoresPage() {
                       Despesas associadas ({supplierExpenses.filter((e: any) => e.source_type !== 'rule').length})
                     </Label>
                     <div className="flex gap-3 text-[11px] text-muted-foreground">
-                      <span>Pago: {fmt(supplierExpenses.filter((e: any) => e.source_type !== 'rule' && e.status === 'pago').reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0))}</span>
-                      <span>Pendente: {fmt(supplierExpenses.filter((e: any) => e.source_type !== 'rule' && e.status !== 'pago').reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0))}</span>
+                      <span>Pago: {fmt(supplierExpenses.filter((e: any) => e.source_type !== 'rule' && isPaidExpenseStatus(e.status)).reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0))}</span>
+                      <span>Pendente: {fmt(supplierExpenses.filter((e: any) => e.source_type !== 'rule' && !isPaidExpenseStatus(e.status) && e.status !== 'cancelado').reduce((s: number, e: any) => s + (e.total_with_vat || 0), 0))}</span>
                     </div>
                   </div>
                   <div className="max-h-64 overflow-y-auto space-y-1 border rounded-md p-2">
@@ -798,7 +809,10 @@ export default function FornecedoresPage() {
                                   <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="por_pagar">Por Pagar</SelectItem>
-                                    <SelectItem value="pago">Pago</SelectItem>
+                                    <SelectItem value="pendente">Pendente</SelectItem>
+                                    <SelectItem value="em_atraso">Em Atraso</SelectItem>
+                                    <SelectItem value="pago_falta_fatura">Pago, Falta Fatura</SelectItem>
+                                    <SelectItem value="tudo_ok">Tudo OK</SelectItem>
                                     <SelectItem value="cancelado">Cancelado</SelectItem>
                                   </SelectContent>
                                 </Select>
@@ -878,14 +892,14 @@ export default function FornecedoresPage() {
                             <span className="font-medium">{fmt(exp.total_with_vat || 0)}</span>
                             <Badge
                               variant="outline"
-                              className={`cursor-pointer ${exp.status === 'pago' ? 'bg-success/10 text-success' : exp.status === 'cancelado' ? 'bg-muted text-muted-foreground' : ''}`}
+                              className={`cursor-pointer ${isPaidExpenseStatus(exp.status) ? 'bg-success/10 text-success' : exp.status === 'cancelado' ? 'bg-muted text-muted-foreground' : exp.status === 'em_atraso' ? 'bg-destructive/10 text-destructive' : 'bg-warning/10 text-warning'}`}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                const next = exp.status === 'por_pagar' ? 'pago' : exp.status === 'pago' ? 'por_pagar' : exp.status;
+                                const next = isPaidExpenseStatus(exp.status) ? getAutoExpenseStatus(exp.expense_date) : 'pago_falta_fatura';
                                 updateExpense.mutate({ ...exp, status: next });
                               }}
                             >
-                              {exp.status === 'pago' ? 'Pago' : exp.status === 'cancelado' ? 'Cancelado' : 'Por pagar'}
+                              {exp.status === 'tudo_ok' ? 'Tudo OK' : exp.status === 'pago_falta_fatura' ? 'Pago' : exp.status === 'cancelado' ? 'Cancelado' : exp.status === 'em_atraso' ? 'Em Atraso' : exp.status === 'pendente' ? 'Pendente' : 'Por pagar'}
                             </Badge>
                           </div>
                         </div>

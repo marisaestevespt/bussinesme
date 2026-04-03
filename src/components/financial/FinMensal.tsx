@@ -28,6 +28,7 @@ import { ExpenseDetailSheet } from './ExpenseDetailSheet';
 import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { computeFiscalDeadlines, type FiscalConfig } from '@/lib/fiscalDeadlines';
+import { getAutoExpenseStatus } from '@/lib/expenseStatus';
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 const VAT_RATES = [0, 6, 13, 23];
@@ -441,6 +442,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                     const MONTHS_LABEL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
                     const subName = sub.expense_name || sub.description || '';
                     const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-${String(sub.recurrence_day || 15).padStart(2, '0')}`;
+                    const status = getAutoExpenseStatus(dateStr);
                     await fin.upsertExpense.mutateAsync({
                       description: `${subName} — ${MONTHS_LABEL[m - 1]} ${currentYear}`,
                       category: sub.category || 'outro',
@@ -452,14 +454,29 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                       expense_month: m,
                       expense_quarter: Math.ceil(m / 3),
                       expense_year: currentYear,
-                      status: 'por_pagar',
+                      status,
                       source_type: 'subscription',
                       source_id: sub.id,
+                      parent_expense_id: sub.id,
                       supplier_id: sub.supplier_id,
                       payment_method: sub.payment_method,
                     } as any);
-                    // Refetch to get the new expense with its generated ID
                     await qc.invalidateQueries({ queryKey: ['financial-expenses'] });
+                    const { data: createdExpense } = await supabase
+                      .from('financial_expenses')
+                      .select('*')
+                      .eq('source_type', 'subscription')
+                      .eq('source_id', sub.id)
+                      .eq('expense_month', m)
+                      .eq('expense_year', currentYear)
+                      .order('created_at', { ascending: false })
+                      .limit(1)
+                      .maybeSingle();
+
+                    if (createdExpense) {
+                      setSelectedExpense(createdExpense as Expense);
+                      setExpenseSheetOpen(true);
+                    }
                   }
                 };
                 return (
@@ -489,14 +506,30 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                     const memberName = contract.team_members?.full_name || '—';
                     const value = contract.monthly_value || 0;
                     const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-${String(contract.payment_day || 15).padStart(2, '0')}`;
+                    const status = getAutoExpenseStatus(dateStr);
                     await fin.upsertExpense.mutateAsync({
                       description: `Pagamento — ${memberName} — ${String(m).padStart(2, '0')}/${currentYear}`,
                       category: 'ordenados',
                       base_value: value, vat_rate: 0, total_with_vat: value, location: 'portugal',
                       expense_date: dateStr, expense_month: m, expense_quarter: Math.ceil(m / 3),
-                      expense_year: currentYear, status: 'por_pagar', source_type: 'contract', source_id: contract.id,
+                      expense_year: currentYear, status, source_type: 'contract', source_id: contract.id,
                     } as any);
-                    // Refetch and open
+                    await qc.invalidateQueries({ queryKey: ['financial-expenses'] });
+                    const { data: createdExpense } = await supabase
+                      .from('financial_expenses')
+                      .select('*')
+                      .eq('source_type', 'contract')
+                      .eq('source_id', contract.id)
+                      .eq('expense_month', m)
+                      .eq('expense_year', currentYear)
+                      .order('created_at', { ascending: false })
+                      .limit(1)
+                      .maybeSingle();
+
+                    if (createdExpense) {
+                      setSelectedExpense(createdExpense as Expense);
+                      setExpenseSheetOpen(true);
+                    }
                     qc.invalidateQueries({ queryKey: ['my-payments'] });
                   }
                 };
@@ -717,7 +750,9 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
         location: sub.location, expense_date: dateStr, expense_month: month,
         expense_quarter: Math.ceil(month / 3), expense_year: currentYear,
         status: newStatus, source_type: 'subscription', source_id: sub.id,
+        parent_expense_id: sub.id,
         supplier_id: sub.supplier_id,
+        payment_method: sub.payment_method,
       } as any);
     }
     setConfirming(false);
