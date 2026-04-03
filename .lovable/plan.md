@@ -1,44 +1,25 @@
-## Redesign UI — Lirah Design System
+## Plano: Reuniões recorrentes na ficha de cliente
 
-### Contexto
-O UI atual tem "cara de IA" — genérico, cores seguras, componentes shadcn sem personalidade. Queremos um visual **colorido, quente e com personalidade** (inspiração Notion/Todoist) mas **mantendo o sistema existente** onde cada negócio aplica as suas cores/logo via `business_settings`.
+### O que já funciona
+- A página de Reuniões já tem lógica completa de recorrência (gerar ocorrências, `generateRecurrenceDates`)
+- O portal do cliente já mostra reuniões + atas
+- A tabela `meetings` já tem os campos necessários
 
-### Fases (por ordem de impacto)
+### Alterações
 
-#### Fase 1 — Fundação do Design System (`index.css` + `tailwind.config.ts`)
-- Nova paleta base com tons quentes e vibrantes (âmbar, coral, violeta suave)
-- Tokens semânticos mais ricos: surfaces, subtle backgrounds, accent gradients
-- As cores do `business_settings` (primary, secondary, accent) continuam a sobrepor os tokens base
-- Sombras mais suaves e orgânicas (não as box-shadows genéricas)
-- Border-radius mais generoso (12-16px nos cards)
+**1. Substituir o dialog simples na ficha de cliente pelo `MeetingFormDialog` existente**
+- Em vez de duplicar lógica, reutilizar o `MeetingFormDialog` de `Reunioes.tsx` que já tem:
+  - Toggle de recorrência (semanal, quinzenal, mensal)
+  - Data de fim da recorrência
+  - Geração automática de todas as ocorrências + eventos de calendário
+- Pré-preencher `client_id` e `client_name` automaticamente
+- Se o cliente tiver `end_of_cycle`, sugerir essa data como `recurrence_end_date`
 
-#### Fase 2 — Tipografia e Hierarquia
-- Font pairing mais expressivo (ex: display font para títulos, Inter para corpo)
-- Escala tipográfica com mais contraste (títulos maiores e mais bold, labels mais discretos)
-- Pesos variados: headings bold, subheadings medium, body regular, captions light
+**2. Nenhuma alteração no portal necessária**
+- O portal já mostra reuniões via `get_portal_meetings` que filtra por `client_id`
+- As atas (discussion_points, final_notes, etc.) já são visíveis no portal
 
-#### Fase 3 — Componentes Core
-- **Cards**: backgrounds com cor subtle, hover com elevação suave, borders mais leves
-- **Tabelas**: rows com alternância de cor, hover mais visível, headers mais distintos
-- **Badges/Status**: cores mais vibrantes e distintas, com ícones quando apropriado
-- **Buttons**: primary com gradiente subtil, hovers com transição suave
-- **Sidebar**: mais personalidade, ícones com cor, active state mais marcado
-
-#### Fase 4 — Micro-interações e Polish
-- Transições suaves em hovers, opens, closes (150-300ms)
-- Skeleton loaders com shimmer
-- Empty states com ilustrações simples ou ícones grandes
-- Feedback visual mais rico nos formulários
-
-### Princípios
-1. **Identidade dinâmica preservada** — as cores do negócio (`business_settings`) continuam a funcionar como override
-2. **Acessibilidade** — contraste WCAG AA mínimo
-3. **Progressivo** — cada fase é funcional independentemente
-4. **Sem breaking changes** — refinar, não reescrever componentes
-
-### O que NÃO muda
-- Estrutura de páginas e routing
-- Lógica de negócio
-- Funcionalidades existentes
-
-Queres que avance fase a fase, ou preferes que faça tudo de uma vez começando pela Fase 1?
+### Resultado
+- Criar reunião recorrente na ficha de cliente → gera todas as ocorrências até fim do ciclo
+- Cada reunião aparece automaticamente no portal
+- Após atualizar a ata, fica visível no portal
