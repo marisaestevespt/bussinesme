@@ -44,6 +44,7 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
     payment_date: undefined as Date | undefined,
     description: '',
     base_value: '',
+    vat_rate: '' as string,
     invoice_total: '',
     product: '',
     client: '',
