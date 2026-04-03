@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -6,11 +6,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Eye, Save, RotateCcw } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Mail, Eye, Save, RotateCcw, Braces, Info } from 'lucide-react';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+interface TemplateVariable {
+  token: string;
+  label: string;
+  example: string;
+}
 
 interface TemplateDefaults {
   key: string;
@@ -21,6 +28,8 @@ interface TemplateDefaults {
   subtitle: string;
   ctaText: string;
   footer: string;
+  variables: TemplateVariable[];
+  paymentMethodNote?: string;
   bodyBuilder: (data: TemplateCustom, style: StyleCtx) => string;
 }
 
@@ -57,6 +66,15 @@ const FONT_OPTIONS = [
   'Cormorant Garamond', 'Playfair Display', 'Merriweather', 'Lora', 'DM Serif Display',
 ];
 
+const COMMON_VARS: TemplateVariable[] = [
+  { token: '{name}', label: 'Nome do destinatário', example: 'Ana Silva' },
+];
+const PAYMENT_VARS: TemplateVariable[] = [
+  ...COMMON_VARS,
+  { token: '{amount}', label: 'Valor do pagamento', example: '350.00' },
+  { token: '{product}', label: 'Nome do produto/serviço', example: 'Consultoria Digital' },
+];
+
 const TEMPLATES: TemplateDefaults[] = [
   {
     key: 'invoice-available',
@@ -67,6 +85,7 @@ const TEMPLATES: TemplateDefaults[] = [
     subtitle: 'A fatura no valor de {amount}€ referente a {product} já se encontra disponível para consulta no seu portal de cliente.',
     ctaText: 'Consultar no Portal',
     footer: 'Pode aceder ao seu portal de cliente a qualquer momento para consultar as suas faturas e documentos.',
+    variables: PAYMENT_VARS,
     bodyBuilder: (data, style) => {
       const cardStyle = `background-color:#f7f7fa;border-radius:10px;padding:16px 20px;margin-bottom:12px`;
       const rowStyle = `font-size:13px;color:${style.brandMuted};line-height:2;margin:0`;
@@ -88,6 +107,7 @@ const TEMPLATES: TemplateDefaults[] = [
     subtitle: 'Enviamos este lembrete para que possa organizar o pagamento referente a {product}, que vence em breve.',
     ctaText: '',
     footer: 'Se já efetuou o pagamento, por favor ignore este email.',
+    variables: PAYMENT_VARS,
     bodyBuilder: (data, style) => {
       const cardStyle = `background-color:#f7f7fa;border-radius:10px;padding:16px 20px;margin-bottom:12px`;
       const rowStyle = `font-size:13px;color:${style.brandMuted};line-height:2;margin:0`;
@@ -105,12 +125,14 @@ const TEMPLATES: TemplateDefaults[] = [
   {
     key: 'payment-due-today',
     label: 'Pagamento no dia do vencimento',
-    description: 'Enviado no dia do vencimento com método de pagamento e IBAN (se transferência)',
+    description: 'Enviado no dia do vencimento com método de pagamento e IBAN/MBWay conforme o cliente',
     emoji: '📩',
     title: '{name}, o pagamento vence hoje',
     subtitle: 'Passa por aqui um lembrete gentil — o pagamento referente a {product} vence hoje.',
     ctaText: '',
     footer: 'Se já efetuou o pagamento, por favor ignore este email.',
+    variables: PAYMENT_VARS,
+    paymentMethodNote: 'O bloco de pagamento adapta-se automaticamente ao método de pagamento do cliente (transferência → IBAN, MB WAY → nº telefone, cartão/débito direto → cobrança automática). Os dados são lidos do Setup do Negócio → Métodos de Pagamento.',
     bodyBuilder: (data, style) => {
       const cardStyle = `background-color:#f7f7fa;border-radius:10px;padding:16px 20px;margin-bottom:12px`;
       const rowStyle = `font-size:13px;color:${style.brandMuted};line-height:2;margin:0`;
@@ -143,6 +165,7 @@ const TEMPLATES: TemplateDefaults[] = [
     subtitle: 'Foste adicionado/a à equipa. Clica no botão abaixo para aceder à plataforma.',
     ctaText: 'Aceder à Plataforma',
     footer: 'Se tiveres dúvidas, não hesites em contactar a equipa.',
+    variables: COMMON_VARS,
     bodyBuilder: () => '',
   },
   {
@@ -154,6 +177,7 @@ const TEMPLATES: TemplateDefaults[] = [
     subtitle: 'Estamos a preparar a sua transição. O acesso ao portal permanecerá ativo durante 30 dias.',
     ctaText: 'Aceder ao Portal',
     footer: 'Obrigado pela confiança durante o período que trabalhámos juntos.',
+    variables: COMMON_VARS,
     bodyBuilder: (data, style) => {
       const cardStyle = `background-color:#f7f7fa;border-radius:10px;padding:16px 20px;margin-bottom:12px`;
       const rowStyle = `font-size:13px;color:${style.brandMuted};line-height:2;margin:0`;
@@ -174,6 +198,7 @@ const TEMPLATES: TemplateDefaults[] = [
     subtitle: 'Bom dia, {name}! Aqui está o teu briefing para hoje.',
     ctaText: '',
     footer: 'Este resumo é gerado automaticamente com base na atividade do dia.',
+    variables: COMMON_VARS,
     bodyBuilder: () => '',
   },
   {
@@ -185,6 +210,7 @@ const TEMPLATES: TemplateDefaults[] = [
     subtitle: 'Bom dia, {name}! Aqui está o teu briefing para hoje.',
     ctaText: '',
     footer: 'Este resumo é gerado automaticamente com base na atividade do dia.',
+    variables: COMMON_VARS,
     bodyBuilder: () => '',
   },
   {
@@ -196,6 +222,7 @@ const TEMPLATES: TemplateDefaults[] = [
     subtitle: 'Boa noite, {name}! Aqui está o resumo do que aconteceu hoje.',
     ctaText: '',
     footer: 'Este wrap-up é gerado automaticamente com base na atividade do dia.',
+    variables: COMMON_VARS,
     bodyBuilder: () => '',
   },
   {
@@ -207,6 +234,7 @@ const TEMPLATES: TemplateDefaults[] = [
     subtitle: 'Boa noite, {name}! Aqui está o resumo do que aconteceu hoje.',
     ctaText: '',
     footer: 'Este wrap-up é gerado automaticamente com base na atividade do dia.',
+    variables: COMMON_VARS,
     bodyBuilder: () => '',
   },
 ];
@@ -251,6 +279,38 @@ function buildPreview(tmpl: TemplateDefaults, custom: TemplateCustom, biz: strin
       </p>
     </div>
   `;
+}
+
+function VariablesPopover({ variables, onInsert }: { variables: TemplateVariable[]; onInsert: (token: string) => void }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="sm" className="h-6 px-2 text-[11px] gap-1 text-muted-foreground">
+          <Braces className="h-3 w-3" />
+          Variáveis
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-2" align="end">
+        <p className="text-xs font-medium text-muted-foreground mb-2 px-1">Clica para inserir</p>
+        <div className="space-y-1">
+          {variables.map(v => (
+            <button
+              key={v.token}
+              type="button"
+              onClick={() => onInsert(v.token)}
+              className="w-full flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left hover:bg-muted transition-colors"
+            >
+              <div>
+                <span className="text-xs font-mono font-medium text-foreground">{v.token}</span>
+                <span className="text-[11px] text-muted-foreground ml-2">{v.label}</span>
+              </div>
+              <span className="text-[10px] text-muted-foreground italic">{v.example}</span>
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 function EmailPreviewFrame({ html }: { html: string }) {
@@ -410,14 +470,19 @@ export function SettingsEmails() {
 
             {/* Title */}
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Título</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-muted-foreground">Título</Label>
+                <VariablesPopover variables={tmpl.variables} onInsert={(token) => update('title_text', (form.title_text || '') + token)} />
+              </div>
               <Input value={form.title_text} onChange={e => update('title_text', e.target.value)} />
-              <p className="text-[10px] text-muted-foreground">Usa {'{name}'}, {'{amount}'}, {'{product}'} como variáveis</p>
             </div>
 
             {/* Subtitle */}
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Subtítulo</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-muted-foreground">Subtítulo</Label>
+                <VariablesPopover variables={tmpl.variables} onInsert={(token) => update('subtitle_text', (form.subtitle_text || '') + token)} />
+              </div>
               <Textarea value={form.subtitle_text} onChange={e => update('subtitle_text', e.target.value)} rows={3} />
             </div>
 
@@ -431,9 +496,20 @@ export function SettingsEmails() {
 
             {/* Footer */}
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Texto de rodapé</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-muted-foreground">Texto de rodapé</Label>
+                <VariablesPopover variables={tmpl.variables} onInsert={(token) => update('footer_text', (form.footer_text || '') + token)} />
+              </div>
               <Textarea value={form.footer_text} onChange={e => update('footer_text', e.target.value)} rows={2} />
             </div>
+
+            {/* Payment method note */}
+            {tmpl.paymentMethodNote && (
+              <div className="flex gap-2 p-3 rounded-lg bg-muted/50 border">
+                <Info className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-muted-foreground leading-relaxed">{tmpl.paymentMethodNote}</p>
+              </div>
+            )}
 
             {/* Colors */}
             <div className="border-t pt-4 mt-4">
