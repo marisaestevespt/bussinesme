@@ -276,7 +276,7 @@ export default function PortalViewPage() {
               {/* Welcome hero */}
               <div
                 className="rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden"
-                style={{ background: `linear-gradient(135deg, ${pc} 0%, ${pc}cc 100%)` }}
+                style={{ background: `linear-gradient(135deg, ${pc} 0%, ${pcAlpha(0.8)} 100%)` }}
               >
                 <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10 bg-white -translate-y-1/2 translate-x-1/2" />
                 <div className="relative z-10">
