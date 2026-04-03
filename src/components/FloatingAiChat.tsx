@@ -1,12 +1,29 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageCircle, X, Send, Loader2, Sparkles, Bot, RotateCcw } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, Sparkles, Bot, RotateCcw, Check, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-type Msg = { role: "user" | "assistant"; content: string };
+type ActionProposal = {
+  action_type: "create" | "update" | "delete" | "send_email";
+  description: string;
+  details: Record<string, unknown>;
+};
+
+type Msg = {
+  role: "user" | "assistant";
+  content: string;
+  action_proposal?: ActionProposal | null;
+  confirmed?: boolean;
+};
+
+const ACTION_LABELS: Record<string, { label: string; icon: string; color: string }> = {
+  create: { label: "Criar", icon: "➕", color: "text-green-600" },
+  update: { label: "Editar", icon: "✏️", color: "text-blue-600" },
+  delete: { label: "Eliminar", icon: "🗑️", color: "text-red-600" },
+  send_email: { label: "Enviar email", icon: "📧", color: "text-purple-600" },
+};
 
 export function FloatingAiChat() {
   const [open, setOpen] = useState(false);
@@ -18,23 +35,14 @@ export function FloatingAiChat() {
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-      }
+      if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }, 50);
   }, []);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
+  useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
+  useEffect(() => { if (open && textareaRef.current) textareaRef.current.focus(); }, [open]);
 
-  useEffect(() => {
-    if (open && textareaRef.current) {
-      textareaRef.current.focus();
-    }
-  }, [open]);
-
-  const sendMessage = async (text: string) => {
+  const sendMessage = async (text: string, isConfirmation = false) => {
     if (!text.trim() || loading) return;
 
     const userMsg: Msg = { role: "user", content: text.trim() };
@@ -53,65 +61,91 @@ export function FloatingAiChat() {
       if (data?.error) {
         setMessages((prev) => [...prev, { role: "assistant", content: `⚠️ ${data.error}` }]);
       } else {
-        setMessages((prev) => [...prev, { role: "assistant", content: data.content || "Sem resposta." }]);
+        const assistantMsg: Msg = {
+          role: "assistant",
+          content: data.content || "Sem resposta.",
+          action_proposal: data.action_proposal || null,
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
       }
     } catch (err) {
       console.error("AI chat error:", err);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "❌ Erro ao comunicar com o assistente. Tenta novamente." },
-      ]);
+      setMessages((prev) => [...prev, { role: "assistant", content: "❌ Erro ao comunicar com o assistente." }]);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleConfirm = (msgIndex: number) => {
+    // Mark proposal as confirmed
+    setMessages((prev) => prev.map((m, i) => i === msgIndex ? { ...m, confirmed: true } : m));
+    // Send confirmation message
+    sendMessage("[AÇÃO CONFIRMADA] Sim, pode executar.", true);
+  };
+
+  const handleReject = (msgIndex: number) => {
+    setMessages((prev) => prev.map((m, i) => i === msgIndex ? { ...m, confirmed: false, action_proposal: null } : m));
+    sendMessage("[AÇÃO REJEITADA] Não, cancela esta ação.");
+  };
+
   const send = () => sendMessage(input);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      send();
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
   };
 
-  // Simple markdown-like rendering
   const renderContent = (text: string) => {
     const lines = text.split("\n");
     return lines.map((line, i) => {
-      // Bold
       let processed = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      // Inline code
       processed = processed.replace(/`(.+?)`/g, '<code class="bg-muted px-1 rounded text-xs">$1</code>');
-      // Bullet points
       if (processed.match(/^[-•]\s/)) {
         processed = `<span class="flex gap-1.5"><span class="text-primary">•</span><span>${processed.replace(/^[-•]\s/, "")}</span></span>`;
       }
-      // Numbered list
       const numMatch = processed.match(/^(\d+)\.\s/);
       if (numMatch) {
         processed = `<span class="flex gap-1.5"><span class="text-primary font-medium">${numMatch[1]}.</span><span>${processed.replace(/^\d+\.\s/, "")}</span></span>`;
       }
-      // Headers
-      if (processed.startsWith("### ")) {
-        processed = `<span class="font-semibold text-sm block mt-2 mb-1">${processed.slice(4)}</span>`;
-      } else if (processed.startsWith("## ")) {
-        processed = `<span class="font-bold text-sm block mt-2 mb-1">${processed.slice(3)}</span>`;
-      }
-
-      return (
-        <span
-          key={i}
-          className={cn("block", line === "" && "h-2")}
-          dangerouslySetInnerHTML={{ __html: processed || "&nbsp;" }}
-        />
-      );
+      if (processed.startsWith("### ")) processed = `<span class="font-semibold text-sm block mt-2 mb-1">${processed.slice(4)}</span>`;
+      else if (processed.startsWith("## ")) processed = `<span class="font-bold text-sm block mt-2 mb-1">${processed.slice(3)}</span>`;
+      return <span key={i} className={cn("block", line === "" && "h-2")} dangerouslySetInnerHTML={{ __html: processed || "&nbsp;" }} />;
     });
+  };
+
+  const renderActionProposal = (proposal: ActionProposal, msgIndex: number, confirmed?: boolean) => {
+    const actionInfo = ACTION_LABELS[proposal.action_type] || { label: proposal.action_type, icon: "⚡", color: "text-foreground" };
+    const isDecided = confirmed !== undefined;
+
+    return (
+      <div className="mt-2 border rounded-xl p-3 bg-background/80 space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="text-base">{actionInfo.icon}</span>
+          <span className={cn("text-xs font-semibold uppercase tracking-wider", actionInfo.color)}>{actionInfo.label}</span>
+        </div>
+        <p className="text-xs text-foreground leading-relaxed">{proposal.description}</p>
+        
+        {!isDecided && (
+          <div className="flex gap-2 pt-1">
+            <Button size="sm" variant="default" className="h-7 text-xs gap-1.5 rounded-lg" onClick={() => handleConfirm(msgIndex)}>
+              <Check className="h-3 w-3" /> Confirmar
+            </Button>
+            <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5 rounded-lg" onClick={() => handleReject(msgIndex)}>
+              <XCircle className="h-3 w-3" /> Cancelar
+            </Button>
+          </div>
+        )}
+        {confirmed === true && (
+          <p className="text-[11px] text-green-600 font-medium flex items-center gap-1"><Check className="h-3 w-3" /> Confirmado</p>
+        )}
+        {confirmed === false && (
+          <p className="text-[11px] text-muted-foreground flex items-center gap-1"><XCircle className="h-3 w-3" /> Cancelado</p>
+        )}
+      </div>
+    );
   };
 
   return (
     <>
-      {/* Chat panel */}
       {open && (
         <div className="fixed bottom-20 right-5 z-50 w-[380px] max-w-[calc(100vw-2.5rem)] h-[520px] max-h-[calc(100vh-7rem)] bg-background border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-300">
           {/* Header */}
@@ -145,19 +179,18 @@ export function FloatingAiChat() {
                 <div>
                   <p className="text-sm font-medium">Olá! Sou a Lirah AI 👋</p>
                   <p className="text-xs text-muted-foreground mt-1 max-w-[260px]">
-                    Posso ajudar-te a consultar dados, analisar o teu negócio e executar ações.
+                    Posso consultar dados, criar, editar, eliminar registos e enviar emails.
                   </p>
                 </div>
-
                 <div className="w-full space-y-2 mt-2 text-left px-1">
                   <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-1">Experimenta perguntar</p>
                   {[
                     { icon: "👥", text: "Quantos clientes ativos tenho?" },
-                    { icon: "✅", text: "Mostra as minhas tarefas em atraso" },
+                    { icon: "✅", text: "Cria uma tarefa para amanhã" },
                     { icon: "💰", text: "Resumo financeiro deste mês" },
-                    { icon: "📅", text: "Quais são as próximas reuniões?" },
+                    { icon: "📅", text: "Marca a reunião de hoje como concluída" },
                     { icon: "📊", text: "Como estão as vendas este trimestre?" },
-                    { icon: "👥", text: "Quem está na minha equipa?" },
+                    { icon: "📧", text: "Envia um email ao João" },
                   ].map((q) => (
                     <button
                       key={q.text}
@@ -174,15 +207,14 @@ export function FloatingAiChat() {
 
             {messages.map((msg, i) => (
               <div key={i} className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}>
-                <div
-                  className={cn(
-                    "max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed",
-                    msg.role === "user"
-                      ? "bg-primary text-primary-foreground rounded-br-md"
-                      : "bg-muted/70 text-foreground rounded-bl-md"
-                  )}
-                >
+                <div className={cn(
+                  "max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed",
+                  msg.role === "user"
+                    ? "bg-primary text-primary-foreground rounded-br-md"
+                    : "bg-muted/70 text-foreground rounded-bl-md"
+                )}>
                   {msg.role === "assistant" ? renderContent(msg.content) : msg.content}
+                  {msg.action_proposal && renderActionProposal(msg.action_proposal, i, msg.confirmed)}
                 </div>
               </div>
             ))}
@@ -209,12 +241,7 @@ export function FloatingAiChat() {
                 className="min-h-[38px] max-h-[100px] resize-none text-sm rounded-xl border-muted-foreground/20"
                 rows={1}
               />
-              <Button
-                size="icon"
-                onClick={send}
-                disabled={!input.trim() || loading}
-                className="h-[38px] w-[38px] rounded-xl shrink-0"
-              >
+              <Button size="icon" onClick={send} disabled={!input.trim() || loading} className="h-[38px] w-[38px] rounded-xl shrink-0">
                 <Send className="h-4 w-4" />
               </Button>
             </div>
@@ -222,14 +249,11 @@ export function FloatingAiChat() {
         </div>
       )}
 
-      {/* Floating button */}
       <button
         onClick={() => setOpen(!open)}
         className={cn(
           "fixed bottom-5 right-5 z-50 h-12 w-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-105",
-          open
-            ? "bg-muted text-muted-foreground hover:bg-muted/80"
-            : "bg-primary text-primary-foreground hover:shadow-xl"
+          open ? "bg-muted text-muted-foreground hover:bg-muted/80" : "bg-primary text-primary-foreground hover:shadow-xl"
         )}
       >
         {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
