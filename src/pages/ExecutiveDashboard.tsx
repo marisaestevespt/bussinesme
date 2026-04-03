@@ -49,6 +49,13 @@ export default function ExecutiveDashboard() {
         {/* Strategic Business Health Metrics */}
         <StrategicMetricsSection />
 
+        {/* AI Executive Briefing */}
+        <AiInsightsPanel
+          type="executive"
+          title="Briefing Executivo AI"
+          buttonLabel="Gerar briefing AI"
+        />
+
         {/* Navigation Cards — 2 columns */}
         <div className="grid gap-6 md:grid-cols-2">
           <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent shadow-md">
