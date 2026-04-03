@@ -458,7 +458,6 @@ export default function PortalViewPage() {
               )}
             </div>
           </>
-          </>
         )}
 
         {/* ═══ WORKSPACE ═══ */}
