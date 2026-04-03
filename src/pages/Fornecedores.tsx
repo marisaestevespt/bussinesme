@@ -421,7 +421,7 @@ export default function FornecedoresPage() {
         const newVat = form.default_vat_rate ?? 23;
         const { data: existingExps } = await supabase
           .from('financial_expenses')
-          .select('id, expense_month, expense_year, base_value, vat_rate, location')
+          .select('id, expense_month, expense_year, base_value, vat_rate, total_with_vat, location')
           .eq('supplier_id', form.id);
 
         if (existingExps && existingExps.length > 0) {
