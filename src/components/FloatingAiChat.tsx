@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageCircle, X, Send, Loader2, Sparkles, Bot } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, Sparkles, Bot, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -123,9 +123,16 @@ export function FloatingAiChat() {
               <p className="text-sm font-semibold">Lirah AI</p>
               <p className="text-[11px] text-muted-foreground">Assistente inteligente</p>
             </div>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setOpen(false)}>
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-0.5">
+              {messages.length > 0 && (
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setMessages([])} title="Nova conversa">
+                  <RotateCcw className="h-3.5 w-3.5" />
+                </Button>
+              )}
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           {/* Messages */}
