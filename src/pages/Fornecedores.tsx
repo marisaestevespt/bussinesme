@@ -695,6 +695,15 @@ export default function FornecedoresPage() {
                     <RefreshCw className="h-3.5 w-3.5 mr-1" /> Renovar Contrato
                   </Button>
                 )}
+                {form.id && supplierExpenses.some((e: any) => e.is_recurring && e.source_type === 'rule' && e.status !== 'cancelado') && (
+                  <Button type="button" variant="outline" size="sm" className="w-full text-destructive hover:text-destructive" onClick={() => {
+                    if (window.confirm('Cancelar todas as recorrências deste fornecedor? As despesas futuras não pagas serão eliminadas.')) {
+                      cancelRecurrence.mutate(form.id);
+                    }
+                  }}>
+                    <Ban className="h-3.5 w-3.5 mr-1" /> Cancelar Recorrência
+                  </Button>
+                )}
                 {form.last_renewal_date && (
                   <p className="text-xs text-muted-foreground">Última renovação: {form.last_renewal_date}</p>
                 )}
