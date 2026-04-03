@@ -253,8 +253,14 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
       return templateTasks.length;
     },
     onSuccess: (count) => {
-      toast.success(`${count} tarefas criadas a partir do template do produto.`);
+      if (count > 0) {
+        toast.success(`${count} tarefas criadas a partir do template do produto.`);
+      } else {
+        toast.success('Checklists de onboarding/offboarding copiadas do produto.');
+      }
       qc.invalidateQueries({ queryKey: ['project-tasks'] });
+      qc.invalidateQueries({ queryKey: ['client_onboarding'] });
+      qc.invalidateQueries({ queryKey: ['client_offboarding'] });
       setOpen(false);
     },
     onError: (err: any) => {
