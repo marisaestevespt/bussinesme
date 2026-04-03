@@ -85,13 +85,19 @@ function NavSection({
   items,
   collapsed,
   canAccess,
+  sectorConfig,
 }: {
   label: string;
   items: NavItem[];
   collapsed: boolean;
   canAccess: (key: string) => boolean;
+  sectorConfig?: ReturnType<typeof useSectorConfig>;
 }) {
-  const filtered = items.filter(item => canAccess(item.moduleKey));
+  const filtered = items.filter(item => {
+    if (!canAccess(item.moduleKey)) return false;
+    if (sectorConfig?.isModuleHidden(item.moduleKey)) return false;
+    return true;
+  });
   if (filtered.length === 0) return null;
 
   return (
@@ -115,6 +121,9 @@ function NavSection({
             <SidebarMenu>
               {filtered.map((item) => {
                 const Icon = getIcon(item.icon);
+                const displayTitle = item.termKey && sectorConfig
+                  ? sectorConfig.t(item.termKey as any)
+                  : item.title;
                 return (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton asChild>
@@ -128,7 +137,7 @@ function NavSection({
                           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/8 group-[.bg-primary]/nav:bg-primary-foreground/15 transition-colors">
                             <Icon className="h-3.5 w-3.5" strokeWidth={1.8} />
                           </div>
-                          {!collapsed && <span className="text-[13px]">{item.title}</span>}
+                          {!collapsed && <span className="text-[13px]">{displayTitle}</span>}
                         </div>
                       </NavLink>
                     </SidebarMenuButton>
