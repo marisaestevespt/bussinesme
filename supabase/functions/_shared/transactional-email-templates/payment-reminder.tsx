@@ -13,6 +13,8 @@ interface PaymentReminderProps {
   amount?: string
   dueDate?: string
   daysUntil?: number
+  paymentMethod?: string
+  iban?: string
   businessName?: string
   primaryColor?: string
   primaryForeground?: string
@@ -28,12 +30,25 @@ function hslToCss(hsl: string | undefined, fallback: string): string {
   return `hsl(${hsl.replace(/ /g, ', ')})`
 }
 
+function getPaymentMethodLabel(method?: string): string {
+  switch (method) {
+    case 'cartao': return 'Cartão de crédito/débito'
+    case 'debito_direto': return 'Débito direto'
+    case 'transferencia': return 'Transferência bancária'
+    case 'mbway': return 'MB WAY'
+    case 'multibanco': return 'Multibanco'
+    default: return method || 'Não definido'
+  }
+}
+
 const PaymentReminderEmail = ({
   clientName,
   productName,
   amount,
   dueDate,
   daysUntil,
+  paymentMethod,
+  iban,
   businessName,
   primaryColor,
   primaryForeground,
@@ -61,6 +76,9 @@ const PaymentReminderEmail = ({
     ? `O pagamento de ${value}€ vence hoje`
     : `O pagamento de ${value}€ vence em ${daysUntil} dias`
 
+  const isAutomatic = paymentMethod === 'cartao' || paymentMethod === 'debito_direto'
+  const isTransfer = paymentMethod === 'transferencia'
+
   const main = { backgroundColor: '#ffffff', fontFamily: bodyFont }
   const container = { maxWidth: '540px', margin: '0 auto', padding: '40px 24px' }
   const headerSection = { textAlign: 'center' as const, padding: '0 0 8px' }
@@ -74,6 +92,9 @@ const PaymentReminderEmail = ({
   const detailLabel = { fontWeight: '600' as const, color: brandText }
   const amountHighlight = { fontSize: '28px', fontWeight: '700' as const, color: brandPrimary, textAlign: 'center' as const, margin: '16px 0 4px', fontFamily: displayFont }
   const amountLabel = { fontSize: '12px', color: brandMuted, textAlign: 'center' as const, margin: '0 0 16px', textTransform: 'uppercase' as const, letterSpacing: '0.5px' }
+  const paymentCard = { backgroundColor: '#f0f4ff', borderRadius: '10px', padding: '20px 24px', marginTop: '12px', border: `1px solid ${brandPrimary}22` }
+  const paymentTitle = { fontSize: '13px', fontWeight: '700' as const, color: brandText, margin: '0 0 8px', textTransform: 'uppercase' as const, letterSpacing: '0.5px' }
+  const ibanStyle = { fontSize: '18px', fontWeight: '700' as const, color: brandPrimary, margin: '8px 0 4px', letterSpacing: '1px', fontFamily: "'Courier New', monospace" }
   const footer = { fontSize: '13px', color: '#999', textAlign: 'center' as const, margin: '28px 0 0', lineHeight: '1.6' }
 
   return (
@@ -95,7 +116,9 @@ const PaymentReminderEmail = ({
             </Heading>
             <Text style={subtitle}>
               {isToday
-                ? `Passa por aqui um lembrete gentil — o pagamento referente a ${product} vence hoje.`
+                ? isAutomatic
+                  ? `O pagamento referente a ${product} será processado automaticamente hoje.`
+                  : `Passa por aqui um lembrete gentil — o pagamento referente a ${product} vence hoje.`
                 : `Enviamos este lembrete para que possa organizar o pagamento referente a ${product}, que vence em breve.`}
             </Text>
           </Section>
@@ -112,12 +135,41 @@ const PaymentReminderEmail = ({
             <Text style={detailRow}>
               <span style={detailLabel}>Data de vencimento: </span>{date}
             </Text>
+            {isToday && paymentMethod && (
+              <Text style={detailRow}>
+                <span style={detailLabel}>Método de pagamento: </span>{getPaymentMethodLabel(paymentMethod)}
+              </Text>
+            )}
           </Section>
+
+          {isToday && isAutomatic && (
+            <Section style={paymentCard}>
+              <Text style={paymentTitle}>💳 Cobrança automática</Text>
+              <Text style={{ ...detailRow, lineHeight: '1.6' }}>
+                O valor de {value}€ será debitado automaticamente via {getPaymentMethodLabel(paymentMethod).toLowerCase()}. Não é necessária nenhuma ação da sua parte.
+              </Text>
+            </Section>
+          )}
+
+          {isToday && isTransfer && iban && (
+            <Section style={paymentCard}>
+              <Text style={paymentTitle}>🏦 Dados para transferência</Text>
+              <Text style={{ ...detailRow, lineHeight: '1.6', margin: '0 0 8px' }}>
+                Para efetuar o pagamento, transfira o valor para o IBAN abaixo:
+              </Text>
+              <Text style={ibanStyle}>{iban}</Text>
+              <Text style={{ fontSize: '12px', color: brandMuted, margin: '4px 0 0' }}>
+                Valor: {value}€
+              </Text>
+            </Section>
+          )}
 
           <Hr style={divider} />
 
           <Text style={{ fontSize: '14px', color: brandMuted, lineHeight: '1.6', margin: '0', textAlign: 'center' as const }}>
-            Se já efetuou o pagamento, por favor ignore este email.
+            {isToday && isAutomatic
+              ? 'Caso tenha alguma questão sobre a cobrança, não hesite em contactar-nos.'
+              : 'Se já efetuou o pagamento, por favor ignore este email.'}
             <br />
             Em caso de dúvida, não hesite em contactar-nos.
           </Text>
@@ -145,7 +197,9 @@ export const template = {
     productName: 'Consultoria Digital',
     amount: '350',
     dueDate: '15/04/2026',
-    daysUntil: 3,
+    daysUntil: 0,
+    paymentMethod: 'transferencia',
+    iban: 'PT50 0000 0000 0000 0000 0001 2',
     businessName: 'HQ Studio',
     primaryColor: '222 47% 11%',
     primaryForeground: '210 40% 98%',

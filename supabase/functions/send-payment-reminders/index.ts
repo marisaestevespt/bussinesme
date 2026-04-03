@@ -112,6 +112,8 @@ Deno.serve(async (req) => {
               amount: String(sale.invoice_total || 0),
               dueDate: formattedDate,
               daysUntil,
+              paymentMethod: client.payment_method || '',
+              iban: bizSetup?.iban || '',
               businessName: settings?.business_name || '',
               primaryColor: settings?.primary_color || '',
               primaryForeground: settings?.secondary_color || '',
