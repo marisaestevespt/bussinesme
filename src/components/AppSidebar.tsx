@@ -17,6 +17,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useSectorConfig } from '@/hooks/useSectorConfig';
 import {
   Rocket, Calendar, Users, GitBranch, FolderKanban, CheckSquare,
   Key, MessageSquare, Building2, Megaphone, DollarSign, ShoppingCart,
@@ -38,6 +39,7 @@ interface NavItem {
   url: string;
   icon: string;
   moduleKey: string;
+  termKey?: string; // optional key for sector terminology
 }
 
 const pessoalItems: NavItem[] = [
@@ -52,9 +54,9 @@ const hallItems: NavItem[] = [
 
 const transversaisItems: NavItem[] = [
   { title: 'Agenda de Negócio', url: '/hub/agenda', icon: 'Calendar', moduleKey: 'agenda' },
-  { title: 'Reuniões', url: '/hub/reunioes', icon: 'Users', moduleKey: 'reunioes' },
+  { title: 'Reuniões', url: '/hub/reunioes', icon: 'Users', moduleKey: 'reunioes', termKey: 'reunioes' },
   { title: 'Acessos', url: '/hub/acessos', icon: 'Key', moduleKey: 'acessos' },
-  { title: 'Projetos', url: '/hub/projetos', icon: 'FolderKanban', moduleKey: 'projetos' },
+  { title: 'Projetos', url: '/hub/projetos', icon: 'FolderKanban', moduleKey: 'projetos', termKey: 'projetos' },
   { title: 'Processos', url: '/hub/processos', icon: 'GitBranch', moduleKey: 'processos' },
   { title: 'Tarefas', url: '/hub/tarefas', icon: 'CheckSquare', moduleKey: 'tarefas' },
   { title: 'Biblioteca', url: '/hub/biblioteca', icon: 'BookOpen', moduleKey: 'biblioteca' },
@@ -63,10 +65,10 @@ const transversaisItems: NavItem[] = [
 const departamentosItems: NavItem[] = [
   { title: 'Marketing', url: '/hub/marketing', icon: 'Megaphone', moduleKey: 'marketing' },
   { title: 'Comercial', url: '/hub/comercial', icon: 'ShoppingCart', moduleKey: 'comercial' },
-  { title: 'Clientes', url: '/hub/clientes', icon: 'UserCheck', moduleKey: 'clientes' },
+  { title: 'Clientes', url: '/hub/clientes', icon: 'UserCheck', moduleKey: 'clientes', termKey: 'clientes' },
   { title: 'Contabilidade', url: '/hub/financeiro', icon: 'DollarSign', moduleKey: 'financeiro' },
   { title: 'Operação', url: '/hub/operacao', icon: 'Headphones', moduleKey: 'operacao' },
-  { title: 'Produtos', url: '/hub/produtos', icon: 'Package', moduleKey: 'produtos' },
+  { title: 'Produtos', url: '/hub/produtos', icon: 'Package', moduleKey: 'produtos', termKey: 'produtos' },
   { title: 'Recursos Humanos', url: '/hub/recursos-humanos', icon: 'UsersRound', moduleKey: 'recursos-humanos' },
 ];
 
@@ -83,13 +85,19 @@ function NavSection({
   items,
   collapsed,
   canAccess,
+  sectorConfig,
 }: {
   label: string;
   items: NavItem[];
   collapsed: boolean;
   canAccess: (key: string) => boolean;
+  sectorConfig?: ReturnType<typeof useSectorConfig>;
 }) {
-  const filtered = items.filter(item => canAccess(item.moduleKey));
+  const filtered = items.filter(item => {
+    if (!canAccess(item.moduleKey)) return false;
+    if (sectorConfig?.isModuleHidden(item.moduleKey)) return false;
+    return true;
+  });
   if (filtered.length === 0) return null;
 
   return (
@@ -113,6 +121,9 @@ function NavSection({
             <SidebarMenu>
               {filtered.map((item) => {
                 const Icon = getIcon(item.icon);
+                const displayTitle = item.termKey && sectorConfig
+                  ? sectorConfig.t(item.termKey as any)
+                  : item.title;
                 return (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton asChild>
@@ -126,7 +137,7 @@ function NavSection({
                           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/8 group-[.bg-primary]/nav:bg-primary-foreground/15 transition-colors">
                             <Icon className="h-3.5 w-3.5" strokeWidth={1.8} />
                           </div>
-                          {!collapsed && <span className="text-[13px]">{item.title}</span>}
+                          {!collapsed && <span className="text-[13px]">{displayTitle}</span>}
                         </div>
                       </NavLink>
                     </SidebarMenuButton>
@@ -148,6 +159,7 @@ export function AppSidebar() {
   const { settings } = useBusinessSettings();
   const { canAccess } = usePermissions();
   const { favorites } = useFavorites();
+  const sectorConfig = useSectorConfig();
 
   return (
     <Sidebar collapsible="icon">
@@ -174,7 +186,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-2">
-        <NavSection label="Pessoal" items={pessoalItems} collapsed={collapsed} canAccess={() => true} />
+        <NavSection label="Pessoal" items={pessoalItems} collapsed={collapsed} canAccess={() => true} sectorConfig={sectorConfig} />
         {favorites.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold mb-1">
@@ -208,11 +220,11 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-        <NavSection label="Hall" items={hallItems} collapsed={collapsed} canAccess={canAccess} />
-        <NavSection label="Transversais" items={transversaisItems} collapsed={collapsed} canAccess={canAccess} />
-        <NavSection label="Departamentos" items={departamentosItems} collapsed={collapsed} canAccess={canAccess} />
+        <NavSection label="Hall" items={hallItems} collapsed={collapsed} canAccess={canAccess} sectorConfig={sectorConfig} />
+        <NavSection label="Transversais" items={transversaisItems} collapsed={collapsed} canAccess={canAccess} sectorConfig={sectorConfig} />
+        <NavSection label="Departamentos" items={departamentosItems} collapsed={collapsed} canAccess={canAccess} sectorConfig={sectorConfig} />
         {isOwner && (
-          <NavSection label="Administração" items={executiveItems} collapsed={collapsed} canAccess={() => true} />
+          <NavSection label="Administração" items={executiveItems} collapsed={collapsed} canAccess={() => true} sectorConfig={sectorConfig} />
         )}
       </SidebarContent>
 
