@@ -143,7 +143,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
       onUpdateProject('payment_config', config);
     }, 800);
     return () => clearTimeout(timer);
-  }, [totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity]);
+  }, [totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity, paymentMethodType, entradaPaymentMethod, prestacoesPaymentMethod]);
 
   // ─── Project sales ────────────────────────────────────────────
   const qc = useQueryClient();
