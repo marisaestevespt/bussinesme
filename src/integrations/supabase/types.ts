@@ -1195,6 +1195,7 @@ export type Database = {
           id: string
           phase: string | null
           responsible: string | null
+          responsible_type: string
           rule: string | null
           sort_order: number | null
         }
@@ -1207,6 +1208,7 @@ export type Database = {
           id?: string
           phase?: string | null
           responsible?: string | null
+          responsible_type?: string
           rule?: string | null
           sort_order?: number | null
         }
@@ -1219,6 +1221,7 @@ export type Database = {
           id?: string
           phase?: string | null
           responsible?: string | null
+          responsible_type?: string
           rule?: string | null
           sort_order?: number | null
         }
@@ -1242,6 +1245,7 @@ export type Database = {
           id: string
           phase: string | null
           responsible: string | null
+          responsible_type: string
           rule: string | null
           sort_order: number
         }
@@ -1254,6 +1258,7 @@ export type Database = {
           id?: string
           phase?: string | null
           responsible?: string | null
+          responsible_type?: string
           rule?: string | null
           sort_order?: number
         }
@@ -1266,6 +1271,7 @@ export type Database = {
           id?: string
           phase?: string | null
           responsible?: string | null
+          responsible_type?: string
           rule?: string | null
           sort_order?: number
         }
@@ -6341,6 +6347,7 @@ export type Database = {
           phase: string | null
           product_id: string
           responsible: string | null
+          responsible_type: string
           rule: string | null
           sort_order: number | null
         }
@@ -6352,6 +6359,7 @@ export type Database = {
           phase?: string | null
           product_id: string
           responsible?: string | null
+          responsible_type?: string
           rule?: string | null
           sort_order?: number | null
         }
@@ -6363,6 +6371,7 @@ export type Database = {
           phase?: string | null
           product_id?: string
           responsible?: string | null
+          responsible_type?: string
           rule?: string | null
           sort_order?: number | null
         }
@@ -6385,6 +6394,7 @@ export type Database = {
           phase: string | null
           product_id: string
           responsible: string | null
+          responsible_type: string
           rule: string | null
           sort_order: number
         }
@@ -6396,6 +6406,7 @@ export type Database = {
           phase?: string | null
           product_id: string
           responsible?: string | null
+          responsible_type?: string
           rule?: string | null
           sort_order?: number
         }
@@ -6407,6 +6418,7 @@ export type Database = {
           phase?: string | null
           product_id?: string
           responsible?: string | null
+          responsible_type?: string
           rule?: string | null
           sort_order?: number
         }
