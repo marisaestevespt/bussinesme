@@ -469,6 +469,7 @@ export type Database = {
           activity_start_date: string | null
           background_color: string
           business_name: string
+          business_sector: string
           business_type: string
           created_at: string
           font_body: string
@@ -502,6 +503,7 @@ export type Database = {
           activity_start_date?: string | null
           background_color?: string
           business_name: string
+          business_sector?: string
           business_type?: string
           created_at?: string
           font_body?: string
@@ -535,6 +537,7 @@ export type Database = {
           activity_start_date?: string | null
           background_color?: string
           business_name?: string
+          business_sector?: string
           business_type?: string
           created_at?: string
           font_body?: string
