@@ -418,6 +418,19 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     },
   });
 
+  const regenerateSales = useMutation({
+    mutationFn: async () => {
+      // Delete all existing project sales first
+      const { error: delErr } = await supabase.from('commercial_sales').delete().eq('project_id', projectId);
+      if (delErr) throw delErr;
+      // Then generate new ones
+      await generateSales.mutateAsync();
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Erro ao regenerar pagamentos');
+    },
+  });
+
   const hasExistingProjectSales = projectSales.length > 0;
 
   // Manual-only payment generation — no auto-generate
@@ -545,8 +558,11 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             </div>
           )}
 
-          {hasExistingProjectSales && (
-            <p className="text-xs text-muted-foreground">⚠️ Já existem pagamentos gerados para este projeto. Elimine-os primeiro para gerar novos.</p>
+          {hasExistingProjectSales && payMethod && (
+            <Button variant="outline" onClick={() => regenerateSales.mutate()} disabled={regenerateSales.isPending || generateSales.isPending} className="gap-1.5">
+              {regenerateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+              Regenerar Pagamentos
+            </Button>
           )}
 
           {!billingStartDate && payMethod && (
