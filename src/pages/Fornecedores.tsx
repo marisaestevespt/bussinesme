@@ -766,12 +766,31 @@ export default function FornecedoresPage() {
                 </p>
               </div>
 
+              {/* Existing recurring expense summary */}
+              {form._existingRecurring && (
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <RefreshCw className="h-4 w-4 text-primary" />
+                    <Label className="text-sm font-medium">Despesa recorrente ativa</Label>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                    <span>Valor base: <strong className="text-foreground">{fmt(form._existingRecurring.value)}</strong></span>
+                    <span>IVA: <strong className="text-foreground">{form._existingRecurring.vat_rate}%</strong></span>
+                    <span>Total: <strong className="text-foreground">{fmt(Math.round(form._existingRecurring.value * (1 + form._existingRecurring.vat_rate / 100) * 100) / 100)}</strong></span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Periodicidade: <strong className="text-foreground">{PERIODICITIES.find(p => p.value === form._existingRecurring.periodicity)?.label || form._existingRecurring.periodicity}</strong>
+                    {' · '}Equiv. mensal: <strong className="text-foreground">{fmt(calcMonthlyEquivalent(form._existingRecurring.value, form._existingRecurring.periodicity))}</strong>
+                  </div>
+                </div>
+              )}
+
               {/* Recurring expense link — only for new suppliers or ones without existing recurring */}
               <div className="rounded-lg border border-border p-3 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <RefreshCw className="h-4 w-4 text-muted-foreground" />
-                    <Label className="text-sm font-normal">Criar despesa recorrente</Label>
+                    <Label className="text-sm font-normal">{form._existingRecurring ? 'Criar nova despesa recorrente' : 'Criar despesa recorrente'}</Label>
                   </div>
                   <Switch checked={form.create_recurring || false} onCheckedChange={v => setForm((f: any) => ({ ...f, create_recurring: v }))} />
                 </div>
