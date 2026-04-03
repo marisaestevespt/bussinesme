@@ -122,20 +122,30 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
   });
   const sourceOptions = [...new Set([...DEFAULT_SOURCE_OPTIONS, ...(customSources.data || [])])];
 
-  const getVatMultiplier = () => {
+  const getEffectiveVatRate = () => {
+    if (form.vat_rate !== '') return parseFloat(form.vat_rate) || 0;
     const rate = productInfo.data?.vat_rate;
-    if (!rate || rate === 'isento') return 1;
-    return 1 + parseFloat(rate) / 100;
+    if (!rate || rate === 'isento') return 0;
+    return parseFloat(rate) || 0;
   };
 
-  // Auto-calculate invoice_total when base_value or product VAT changes
+  // Auto-fill vat_rate from product when product changes
+  useEffect(() => {
+    if (productInfo.data?.vat_rate && !form.vat_rate) {
+      const rate = productInfo.data.vat_rate === 'isento' ? '0' : productInfo.data.vat_rate;
+      setForm(f => ({ ...f, vat_rate: rate }));
+    }
+  }, [productInfo.data?.vat_rate]);
+
+  // Auto-calculate invoice_total when base_value or vat_rate changes
   useEffect(() => {
     if (form.base_value) {
       const base = parseFloat(form.base_value) || 0;
-      const total = Math.round(base * getVatMultiplier() * 100) / 100;
+      const vat = getEffectiveVatRate();
+      const total = Math.round(base * (1 + vat / 100) * 100) / 100;
       setForm(f => ({ ...f, invoice_total: total.toString() }));
     }
-  }, [form.base_value, productInfo.data?.vat_rate]);
+  }, [form.base_value, form.vat_rate]);
 
   const handleSave = () => {
     if (!form.description?.trim()) { toast.error('Preenche a descrição'); return; }
