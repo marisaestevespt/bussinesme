@@ -269,6 +269,29 @@ export default function FornecedoresPage() {
     onError: () => toast.error('Erro ao cancelar recorrência'),
   });
 
+  // When supplier expenses load, auto-populate recurring expense fields if a rule exists
+  useEffect(() => {
+    if (!selectedSupplierId || !open) return;
+    const recurringRule = supplierExpenses.find((e: any) => e.is_recurring && e.source_type === 'rule' && e.status !== 'cancelado');
+    if (recurringRule) {
+      setForm((f: any) => {
+        // Only populate if not already set (avoid overwriting user edits)
+        if (f._recurringLoaded === selectedSupplierId) return f;
+        return {
+          ...f,
+          create_recurring: false, // keep toggle off — it's for creating NEW, not editing
+          _recurringLoaded: selectedSupplierId,
+          _existingRecurring: {
+            value: recurringRule.base_value,
+            periodicity: recurringRule.periodicity || 'mensal',
+            vat_rate: recurringRule.vat_rate,
+            category: recurringRule.category,
+          },
+        };
+      });
+    }
+  }, [supplierExpenses, selectedSupplierId, open]);
+
 
   const updateExpense = useMutation({
     mutationFn: async (exp: any) => {
