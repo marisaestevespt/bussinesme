@@ -110,6 +110,39 @@ function useEvents(userId: string | undefined, isOwner: boolean) {
   });
 }
 
+const MEETING_PSEUDO_COLOR = '#8B5CF6'; // violet for meetings on calendar
+
+function useMeetingsAsEvents() {
+  return useQuery({
+    queryKey: ['meetings-as-events'],
+    staleTime: 2 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('meetings')
+        .select('id,title,date_time,status,meeting_url,client_name,department,project_name,is_recurring,recurrence_frequency,recurrence_end_date')
+        .order('date_time');
+      if (error) throw error;
+      return (data || []).map((m: any): EventRow & { _isMeeting: true; _meetingId: string } => ({
+        id: `meeting_${m.id}`,
+        _isMeeting: true as const,
+        _meetingId: m.id,
+        title: `📹 ${m.title}`,
+        event_type_id: null,
+        start_date: m.date_time,
+        end_date: null,
+        product_name: null,
+        department: m.department || null,
+        client_name: m.client_name || null,
+        notes: m.project_name ? `Projeto: ${m.project_name}` : null,
+        created_by: null,
+        recurrence_type: null, // instances are already separate rows
+        recurrence_end: null,
+        meeting_url: m.meeting_url || null,
+      }));
+    },
+  });
+}
+
 function useProfiles() {
   return useQuery({
     queryKey: ['profiles'],
