@@ -451,10 +451,11 @@ export default function ClienteDetailPage() {
       }).select('id').single();
       if (projError) throw projError;
 
-      // 4. Update client current_product and start_date
+      // 4. Update client current_product, start_date and end_of_cycle
       await supabase.from('clients').update({
         current_product: renewProduct,
         start_date: renewStartDate,
+        end_of_cycle: deadline,
         status: 'ativo',
       }).eq('id', id);
 
@@ -572,7 +573,7 @@ export default function ClienteDetailPage() {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <DateField label="Aniversário" value={form.birthday || null} onChange={v => update('birthday', v)} />
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">E-mail</Label>
@@ -583,6 +584,10 @@ export default function ClienteDetailPage() {
                 <Input value={form.whatsapp || ''} onChange={e => update('whatsapp', e.target.value)} />
               </div>
               <DateField label="Data de Início" value={form.start_date || null} onChange={v => update('start_date', v)} />
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Fim de Ciclo</Label>
+                <Input value={form.end_of_cycle || ''} readOnly className="bg-muted/50 cursor-default text-muted-foreground" placeholder="Auto (do projeto)" />
+              </div>
             </div>
           </CardContent>
         </Card>
