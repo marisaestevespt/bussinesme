@@ -64,6 +64,7 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
         payment_date: initialData.payment_date ? new Date(initialData.payment_date) : undefined,
         description: initialData.description || '',
         base_value: initialData.base_value?.toString() || '',
+        vat_rate: initialData.vat_rate?.toString() || '',
         invoice_total: initialData.invoice_total?.toString() || '',
         product: initialData.product || '',
         client: initialData.client || '',
@@ -73,7 +74,7 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
         special_offer_reason: initialData.special_offer_reason || '',
       });
     } else {
-      setForm({ id: '', sale_id: '', status: 'aguarda_pagamento', payment_date: undefined, description: '', base_value: '', invoice_total: '', product: '', client: '', source: '', documents: [], is_special_offer: false, special_offer_reason: '' });
+      setForm({ id: '', sale_id: '', status: 'aguarda_pagamento', payment_date: undefined, description: '', base_value: '', vat_rate: '', invoice_total: '', product: '', client: '', source: '', documents: [], is_special_offer: false, special_offer_reason: '' });
     }
   }, [initialData, open]);
 
