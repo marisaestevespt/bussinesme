@@ -272,9 +272,12 @@ export default function ProjetoDetailPage() {
 
   // Meeting dialog
   const [meetingDialogOpen, setMeetingDialogOpen] = useState(false);
-  const [meetingTitle, setMeetingTitle] = useState('');
-  const [meetingDate, setMeetingDate] = useState<Date | undefined>();
-  const [meetingTime, setMeetingTime] = useState('10:00');
+
+  // Projects list for MeetingFormDialog
+  const { data: allProjectsForMeeting = [] } = useQuery({
+    queryKey: ['projects-for-meetings'],
+    queryFn: async () => { const { data } = await supabase.from('projects').select('id, name').order('name'); return (data || []) as ProjectOption[]; },
+  });
 
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', id],
