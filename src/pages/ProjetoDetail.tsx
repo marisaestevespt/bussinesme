@@ -973,23 +973,16 @@ export default function ProjetoDetailPage() {
           </AlertDialog>
         </div>
 
-        {/* Meeting dialog */}
-        <Dialog open={meetingDialogOpen} onOpenChange={setMeetingDialogOpen}>
-          <DialogContent className="sm:max-w-2xl">
-            <DialogHeader><DialogTitle>Marcar Reunião</DialogTitle></DialogHeader>
-            <div className="grid gap-3 py-2">
-              <div className="space-y-1.5"><Label>Nome da reunião *</Label><Input value={meetingTitle} onChange={e => setMeetingTitle(e.target.value)} /></div>
-              <div className="space-y-1.5"><Label>Data e hora</Label>
-                <div className="flex gap-2">
-                  <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("flex-1 justify-start text-left font-normal", !meetingDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{meetingDate ? format(meetingDate, 'd MMM yyyy', { locale: pt }) : 'Data'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={meetingDate} onSelect={setMeetingDate} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
-                  <Input type="time" value={meetingTime} onChange={e => setMeetingTime(e.target.value)} className="w-24" />
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground">Projeto: {local.name} • {projectMembers.length} participante(s) adicionado(s) automaticamente</p>
-              <Button onClick={() => { if (!meetingTitle.trim() || !meetingDate) { toast.error('Nome e data obrigatórios'); return; } createMeetingMutation.mutate(); }} disabled={createMeetingMutation.isPending}>{createMeetingMutation.isPending ? 'A marcar...' : 'Marcar Reunião'}</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Meeting dialog — full form */}
+        <MeetingFormDialog
+          open={meetingDialogOpen}
+          onOpenChange={setMeetingDialogOpen}
+          profiles={profiles as MeetingProfile[]}
+          projects={allProjectsForMeeting}
+          clients={clientsList}
+          defaultClientId={local.client_id || undefined}
+          defaultClientName={local.client_name || undefined}
+        />
 
         {/* Task dialog */}
         <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
