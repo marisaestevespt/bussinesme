@@ -88,7 +88,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "query_team",
-      description: "List team members with their roles and work areas.",
+      description: "List team members with their roles, work areas, and work schedules.",
       parameters: {
         type: "object",
         properties: {
@@ -203,9 +203,9 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
       return { meetings: data };
     }
     case "query_team": {
-      let query = supabaseAdmin.from("team_members").select("id, name, email, role, work_areas, status, phone");
-      if (args.search) query = query.ilike("name", `%${args.search}%`);
-      query = query.eq("status", "active").order("name");
+      let query = supabaseAdmin.from("team_members").select("id, full_name, email, role_title, work_areas, status, whatsapp, work_schedule, expected_weekly_hours");
+      if (args.search) query = query.ilike("full_name", `%${args.search}%`);
+      query = query.eq("status", "active").order("full_name");
       const { data, error } = await query;
       if (error) return { error: error.message };
       return { members: data, count: data?.length };
