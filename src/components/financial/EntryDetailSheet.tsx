@@ -10,7 +10,7 @@ import { InvoiceUpload, DocEntry } from './InvoiceUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
-import { FileText, Copy } from 'lucide-react';
+import { FileText, Copy, Trash2 } from 'lucide-react';
 
 const ENTRY_STATUSES = [
   { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
