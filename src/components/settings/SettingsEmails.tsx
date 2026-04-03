@@ -281,6 +281,38 @@ function buildPreview(tmpl: TemplateDefaults, custom: TemplateCustom, biz: strin
   `;
 }
 
+function VariablesPopover({ variables, onInsert }: { variables: TemplateVariable[]; onInsert: (token: string) => void }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="sm" className="h-6 px-2 text-[11px] gap-1 text-muted-foreground">
+          <Braces className="h-3 w-3" />
+          Variáveis
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-2" align="end">
+        <p className="text-xs font-medium text-muted-foreground mb-2 px-1">Clica para inserir</p>
+        <div className="space-y-1">
+          {variables.map(v => (
+            <button
+              key={v.token}
+              type="button"
+              onClick={() => onInsert(v.token)}
+              className="w-full flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left hover:bg-muted transition-colors"
+            >
+              <div>
+                <span className="text-xs font-mono font-medium text-foreground">{v.token}</span>
+                <span className="text-[11px] text-muted-foreground ml-2">{v.label}</span>
+              </div>
+              <span className="text-[10px] text-muted-foreground italic">{v.example}</span>
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function EmailPreviewFrame({ html }: { html: string }) {
   const srcDoc = useMemo(() => {
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=DM+Serif+Display&family=Nunito:wght@400;600;700&family=Raleway:wght@400;600;700&family=Cormorant+Garamond:wght@400;600;700&family=Playfair+Display:wght@400;600;700&family=Merriweather:wght@400;700&family=Lora:wght@400;600;700&display=swap" rel="stylesheet"></head><body style="margin:0;padding:0;background:#ffffff">${html}</body></html>`;
