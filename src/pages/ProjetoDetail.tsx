@@ -35,6 +35,7 @@ import { ProjectDeliverables } from '@/components/project/ProjectDeliverables';
 import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
+import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -53,6 +54,7 @@ interface ProjectFull {
   total_time_minutes: number | null;
   project_mode: string | null;
   whatsapp_group_url: string | null;
+  contract_documents: Array<{ name: string; url: string }> | null;
 }
 
 interface Profile { id: string; user_id: string; full_name: string | null; avatar_url: string | null; }
@@ -275,7 +277,7 @@ export default function ProjetoDetailPage() {
     queryFn: async () => {
       const { data, error } = await supabase.from('projects').select('*').eq('id', id!).maybeSingle();
       if (error) throw error;
-      return data as ProjectFull;
+      return data as unknown as ProjectFull;
     },
     enabled: !!id,
   });
@@ -437,11 +439,11 @@ export default function ProjetoDetailPage() {
         departments: local.departments,
         client_name: local.client_name, client_id: local.client_id,
         product_id: local.product_id, product_name: local.product_name,
-        deadline: local.deadline, progress: local.progress, notes: local.notes,
+        start_date: local.start_date, deadline: local.deadline, progress: local.progress, notes: local.notes,
         objetivo: local.objetivo, diretrizes: local.diretrizes, cronograma: local.cronograma, dependencias: local.dependencias,
         entregaveis: local.entregaveis, recursos: local.recursos, project_notes: local.project_notes,
         closure_good: local.closure_good, closure_bad: local.closure_bad, closure_lessons: local.closure_lessons,
-        cover_url: local.cover_url,
+        cover_url: local.cover_url, contract_documents: local.contract_documents || [],
       };
       // Auto-calculate total time when marking as concluded
       if (local.status === 'concluido' && project?.status !== 'concluido') {
@@ -787,14 +789,24 @@ export default function ProjetoDetailPage() {
                 </a>
               )}
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label className="text-xs">Data de Início</Label>
+                <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !local.start_date && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{local.start_date ? format(new Date(local.start_date), 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.start_date ? new Date(local.start_date) : undefined} onSelect={d => updateField('start_date', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+              </div>
+              <div><Label className="text-xs">Data de Fim / Prazo</Label>
+                <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{local.deadline ? format(new Date(local.deadline), 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+              </div>
+            </div>
             {!isRecorrente && (
-              <div className="grid grid-cols-2 gap-4">
-                <div><Label className="text-xs">Prazo</Label>
-                  <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{local.deadline ? format(new Date(local.deadline), 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
-                </div>
-                <div><Label className="text-xs">Progresso ({getProjectProgress()}%)</Label><Progress value={getProjectProgress()} className="h-2 mt-3" /><p className="text-[10px] text-muted-foreground mt-1">{tasks.filter(t => t.status === 'concluida').length}/{tasks.length} tarefas{clientOnboardingItems.length + clientOffboardingItems.length > 0 ? ` + ${clientOnboardingItems.filter(i => i.completed).length + clientOffboardingItems.filter(i => i.completed).length}/${clientOnboardingItems.length + clientOffboardingItems.length} boarding` : ''}{projectCost > 0 ? ` • Custo: ${formatCost(projectCost)}` : ''}</p></div>
+              <div>
+                <Label className="text-xs">Progresso ({getProjectProgress()}%)</Label><Progress value={getProjectProgress()} className="h-2 mt-3" /><p className="text-[10px] text-muted-foreground mt-1">{tasks.filter(t => t.status === 'concluida').length}/{tasks.length} tarefas{clientOnboardingItems.length + clientOffboardingItems.length > 0 ? ` + ${clientOnboardingItems.filter(i => i.completed).length + clientOffboardingItems.filter(i => i.completed).length}/${clientOnboardingItems.length + clientOffboardingItems.length} boarding` : ''}{projectCost > 0 ? ` • Custo: ${formatCost(projectCost)}` : ''}</p>
               </div>
             )}
+            <InvoiceUpload
+              label="Contrato"
+              documents={(local.contract_documents as DocEntry[]) || []}
+              onChange={docs => updateField('contract_documents', docs)}
+            />
             <div><Label className="text-xs">Equipa</Label><div className="flex gap-1 mt-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div></div>
           </div>
 

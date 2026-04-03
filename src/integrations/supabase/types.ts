@@ -6793,6 +6793,7 @@ export type Database = {
           closure_bad: string | null
           closure_good: string | null
           closure_lessons: string | null
+          contract_documents: Json | null
           cover_url: string | null
           created_at: string
           created_by: string | null
@@ -6826,6 +6827,7 @@ export type Database = {
           closure_bad?: string | null
           closure_good?: string | null
           closure_lessons?: string | null
+          contract_documents?: Json | null
           cover_url?: string | null
           created_at?: string
           created_by?: string | null
@@ -6859,6 +6861,7 @@ export type Database = {
           closure_bad?: string | null
           closure_good?: string | null
           closure_lessons?: string | null
+          contract_documents?: Json | null
           cover_url?: string | null
           created_at?: string
           created_by?: string | null
