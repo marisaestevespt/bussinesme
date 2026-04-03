@@ -13,6 +13,7 @@ import { SettingsDigest } from '@/components/settings/SettingsDigest';
 import { SettingsAuditLog } from '@/components/settings/SettingsAuditLog';
 import { SettingsAutomations } from '@/components/settings/SettingsAutomations';
 import { SettingsBackups } from '@/components/settings/SettingsBackups';
+import { SettingsEmails } from '@/components/settings/SettingsEmails';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ const BASE_TABS = [
   { key: 'utilizadores', label: 'Utilizadores' },
   { key: 'kpis', label: 'KPIs e Análise' },
   { key: 'resumo', label: 'Resumo Diário' },
+  { key: 'emails', label: 'Emails' },
 ] as const;
 
 const OWNER_TABS = [
@@ -78,7 +80,7 @@ export default function DefinicoesPage() {
 
         {/* Tab content */}
         <div className={cn(
-          tab === 'utilizadores' || tab === 'auditoria' || tab === 'backups' ? 'max-w-4xl' : 'max-w-2xl'
+          tab === 'utilizadores' || tab === 'auditoria' || tab === 'backups' || tab === 'emails' ? 'max-w-4xl' : 'max-w-2xl'
         )}>
           {tab === 'identidade' && <SettingsIdentity />}
           {tab === 'fiscal' && <SettingsFiscal />}
@@ -87,8 +89,10 @@ export default function DefinicoesPage() {
           {tab === 'utilizadores' && <SettingsUsers />}
           {tab === 'kpis' && <SettingsKpis />}
           {tab === 'resumo' && <SettingsDigest />}
+          {tab === 'emails' && <SettingsEmails />}
           {tab === 'automacoes' && <SettingsAutomations />}
           {tab === 'backups' && <SettingsBackups />}
+          {tab === 'auditoria' && <SettingsAuditLog />}
           {tab === 'auditoria' && <SettingsAuditLog />}
         </div>
 
