@@ -22,6 +22,7 @@ import { CategorySelect } from './CategorySelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 import { SupplierSelect } from './SupplierSelect';
 import { useQuery } from '@tanstack/react-query';
+import { buildPaymentMethodOptions } from '@/lib/paymentMethods';
 import { supabase } from '@/integrations/supabase/client';
 import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
@@ -37,14 +38,6 @@ const EXP_STATUS = [
   { value: 'cancelado', label: 'Cancelado', cls: 'bg-muted text-muted-foreground' },
 ];
 
-const PAYMENT_METHODS = [
-  { value: 'transferencia', label: 'Transferência' },
-  { value: 'debito_direto', label: 'Débito Direto' },
-  { value: 'mbway', label: 'MB Way' },
-  { value: 'plataforma', label: 'Plataforma' },
-  { value: 'cartao', label: 'Cartão' },
-  { value: 'outro', label: 'Outro' },
-];
 
 const VAT_OPTIONS = [0, 6, 13, 23];
 const LOCATIONS = [
@@ -83,6 +76,14 @@ export function FinSaidas({ fin, currentYear }: Props) {
       return data || [];
     },
   });
+  const { data: setupPM } = useQuery({
+    queryKey: ['business-setup-payment-methods'],
+    queryFn: async () => {
+      const { data } = await supabase.from('business_setup').select('payment_methods').limit(1).single();
+      return (data?.payment_methods as any[] || []).filter((m: any) => m.label?.trim());
+    },
+  });
+  const paymentMethods = buildPaymentMethodOptions(setupPM);
 
   const expenses = allExpenses.filter(e => {
     if (filter === 'all') return true;
@@ -358,7 +359,7 @@ export function FinSaidas({ fin, currentYear }: Props) {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__">—</SelectItem>
-                    {PAYMENT_METHODS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                    {paymentMethods.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>

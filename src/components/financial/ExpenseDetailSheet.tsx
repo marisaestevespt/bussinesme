@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { buildPaymentMethodOptions } from '@/lib/paymentMethods';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,7 +48,6 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
   const [form, setForm] = useState<any>({});
   const [lastId, setLastId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const FALLBACK_PM = [{ value: 'transferencia', label: 'Transferência' }, { value: 'debito_direto', label: 'Débito Direto' }];
   const { data: setupPM } = useQuery({
     queryKey: ['business-setup-payment-methods'],
     queryFn: async () => {
@@ -55,9 +55,7 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
       return (data?.payment_methods as any[] || []).filter((m: any) => m.label?.trim());
     },
   });
-  const paymentMethods = setupPM && setupPM.length > 0
-    ? setupPM.map((m: any) => ({ value: `${m.type}:${m.label}`, label: m.type === 'iban' ? `IBAN — ${m.label}` : m.label }))
-    : FALLBACK_PM;
+  const paymentMethods = buildPaymentMethodOptions(setupPM);
 
   // Sync form when expense changes
   if (expense && expense.id !== lastId) {

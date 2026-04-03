@@ -18,6 +18,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getAutoExpenseStatus, isPaidExpenseStatus, normalizeUnpaidExpenseStatus } from '@/lib/expenseStatus';
+import { buildPaymentMethodOptions } from '@/lib/paymentMethods';
 
 const EU_NIF_PREFIXES = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI', 'FR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'RO', 'SE', 'SI', 'SK'];
 
@@ -38,14 +39,6 @@ const LOCATIONS = [
   { value: 'fora_ue', label: 'Fora da UE' },
 ];
 
-const FALLBACK_PAYMENT_METHODS = [
-  { value: 'transferencia', label: 'Transferência' },
-  { value: 'debito_direto', label: 'Débito Direto' },
-  { value: 'mbway', label: 'MB Way' },
-  { value: 'plataforma', label: 'Plataforma' },
-  { value: 'cartao', label: 'Cartão' },
-  { value: 'outro', label: 'Outro' },
-];
 
 const PERIODICITIES = [
   { value: 'semanal', label: 'Semanal' },
@@ -172,14 +165,7 @@ export default function FornecedoresPage() {
       return (data?.payment_methods as any[] || []).filter((m: any) => m.label?.trim());
     },
   });
-  const paymentMethods = setupPaymentMethods && setupPaymentMethods.length > 0
-    ? setupPaymentMethods.map((m: any) => {
-        const last4 = m.card_last4 ? ` ****${m.card_last4}` : '';
-        const expiry = m.card_expiry ? ` (${m.card_expiry})` : '';
-        const displayLabel = m.type === 'cartao' ? `${m.label}${last4}${expiry}` : m.label;
-        return { value: `${m.type}:${m.label}`, label: displayLabel };
-      })
-    : FALLBACK_PAYMENT_METHODS;
+  const paymentMethods = buildPaymentMethodOptions(setupPaymentMethods);
   const getPaymentLabel = (val: string) => paymentMethods.find(m => m.value === val)?.label || val || '—';
 
   // Expenses for the currently selected supplier
