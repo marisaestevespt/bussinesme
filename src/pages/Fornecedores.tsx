@@ -1041,11 +1041,31 @@ export default function FornecedoresPage() {
                 A recorrência será cancelada e todas as despesas futuras não pagas serão eliminadas.
               </p>
               <p className="text-sm font-medium">A despesa deste mês deve ser mantida ou eliminada?</p>
+              
+              {cancelDialog?.showAdjust && (
+                <div className="space-y-2 rounded-md border border-border p-3">
+                  <Label className="text-xs">Ajustar valor base deste mês (€)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="Deixar vazio para manter o valor atual"
+                    value={cancelDialog.adjustValue}
+                    onChange={e => setCancelDialog(prev => prev ? { ...prev, adjustValue: e.target.value } : null)}
+                  />
+                  <p className="text-[10px] text-muted-foreground">Útil para acertos ou última parcela parcial</p>
+                </div>
+              )}
+
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" onClick={() => {
-                  if (cancelDialog) cancelRecurrence.mutate({ supplierId: cancelDialog.supplierId, includeCurrentMonth: false });
+                  if (cancelDialog && !cancelDialog.showAdjust) {
+                    setCancelDialog(prev => prev ? { ...prev, showAdjust: true } : null);
+                  } else if (cancelDialog) {
+                    const adj = cancelDialog.adjustValue ? parseFloat(cancelDialog.adjustValue) : undefined;
+                    cancelRecurrence.mutate({ supplierId: cancelDialog.supplierId, includeCurrentMonth: false, adjustedValue: adj });
+                  }
                 }}>
-                  Manter este mês
+                  {cancelDialog?.showAdjust ? 'Confirmar e manter' : 'Manter este mês'}
                 </Button>
                 <Button variant="destructive" className="flex-1" onClick={() => {
                   if (cancelDialog) cancelRecurrence.mutate({ supplierId: cancelDialog.supplierId, includeCurrentMonth: true });
