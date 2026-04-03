@@ -310,6 +310,7 @@ export default function ReuniaoDetailPage() {
   const { data: projectsList = [] } = useProjectsList();
   const { data: productsList = [] } = useProductsList();
   const fileRef = useRef<HTMLInputElement>(null);
+  const docsRef = useRef<HTMLInputElement>(null);
 
   const [localMeeting, setLocalMeeting] = useState<MeetingFull | null>(null);
   const [dirty, setDirty] = useState(false);
