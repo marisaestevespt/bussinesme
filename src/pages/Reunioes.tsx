@@ -646,18 +646,28 @@ export function MeetingFormDialog({
                   </Label>
                   <Switch checked={isRecurring} onCheckedChange={setIsRecurring} />
                 </div>
-                {isRecurring && (
+              {isRecurring && (
                   <div className="space-y-3 pt-2">
                     <div>
                       <Label className="text-xs">Frequência</Label>
                       <Select value={recurrenceFrequency} onValueChange={setRecurrenceFrequency}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="diaria">Diária</SelectItem>
                           <SelectItem value="semanal">Semanal</SelectItem>
                           <SelectItem value="quinzenal">Quinzenal</SelectItem>
+                          <SelectItem value="cada_3_semanas">Cada 3 semanas</SelectItem>
                           <SelectItem value="mensal">Mensal</SelectItem>
+                          <SelectItem value="bimestral">Bimestral</SelectItem>
+                          <SelectItem value="trimestral">Trimestral</SelectItem>
+                          <SelectItem value="semestral">Semestral</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs">1ª data da recorrência (opcional)</Label>
+                      <p className="text-[10px] text-muted-foreground mb-1">Se diferente da data da reunião, as próximas ocorrências baseiam-se nesta data.</p>
+                      <DateTimePickerField date={recurrenceStartDate} onSelect={setRecurrenceStartDate} placeholder="Usar data da reunião" />
                     </div>
                     <div>
                       <Label className="text-xs">Data de fim (opcional)</Label>
