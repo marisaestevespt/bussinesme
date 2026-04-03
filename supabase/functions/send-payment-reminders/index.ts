@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     // that are not yet paid
     const { data: sales, error: salesError } = await supabase
       .from('commercial_sales')
-      .select('id, client, product, invoice_total, payment_date, status')
+      .select('id, client, product, invoice_total, payment_date, status, payment_method')
       .in('payment_date', [todayStr, threeDaysStr])
       .not('status', 'eq', 'pago')
 
