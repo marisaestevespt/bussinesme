@@ -123,14 +123,12 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     }
   }, [billingStartDate, deadline, payMethod]);
 
-  // Sync payMethod from project first, then client fallback
+  // Sync payMethod from project
   useEffect(() => {
     if (projectPaymentMethod && !payMethod) {
       setPayMethod(projectPaymentMethod);
-    } else if (clientData?.payment_method && !payMethod && !projectPaymentMethod) {
-      setPayMethod(clientData.payment_method);
     }
-  }, [clientData?.payment_method, projectPaymentMethod]);
+  }, [projectPaymentMethod]);
 
   // Persist payment config to project whenever it changes (skip initial mount)
   const hasMountedRef = useRef(false);
