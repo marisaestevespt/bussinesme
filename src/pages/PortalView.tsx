@@ -999,6 +999,12 @@ export default function PortalViewPage() {
                         <div className="px-4 pb-4 border-t border-border/20 pt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
                           <p className="text-sm font-medium">{o.activity || 'Sem descrição'}</p>
                           {o.phase && <p className="text-xs text-muted-foreground">Fase: {o.phase}</p>}
+                          {o.due_date && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              Prazo: {format(parseISO(o.due_date), "d 'de' MMMM", { locale: pt })}
+                            </p>
+                          )}
                           {!isClientStep(o) && o.responsible && <p className="text-xs text-muted-foreground">Responsável: {o.responsible}</p>}
                           {isClientStep(o) && (
                             <div className="flex items-center gap-2 mt-1">
