@@ -33,6 +33,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               {children}
             </main>
             <OnboardingTour />
+            <FloatingAiChat />
           </div>
         </div>
       </SidebarProvider>
