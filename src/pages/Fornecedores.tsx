@@ -569,6 +569,7 @@ export default function FornecedoresPage() {
           monthly_equivalent: editMonthly,
           location: form.location || 'portugal',
           category: form.category || 'outro',
+          payment_method: form.payment_method || null,
         } as any).eq('id', ruleId);
 
         // Cascade to unpaid child expenses
