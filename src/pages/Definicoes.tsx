@@ -89,8 +89,10 @@ export default function DefinicoesPage() {
           {tab === 'utilizadores' && <SettingsUsers />}
           {tab === 'kpis' && <SettingsKpis />}
           {tab === 'resumo' && <SettingsDigest />}
+          {tab === 'emails' && <SettingsEmails />}
           {tab === 'automacoes' && <SettingsAutomations />}
           {tab === 'backups' && <SettingsBackups />}
+          {tab === 'auditoria' && <SettingsAuditLog />}
           {tab === 'auditoria' && <SettingsAuditLog />}
         </div>
 
