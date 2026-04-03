@@ -83,6 +83,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
 
   const resolvedClientId = clientData?.id || clientId;
   const billingStartDate = startDate || clientData?.start_date;
+  const lastAutoGenerateKeyRef = useRef<string | null>(null);
 
   // Sync payMethod from DB
   useEffect(() => {
