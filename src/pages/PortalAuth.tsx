@@ -3,10 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import type { Portal } from '@/hooks/usePortalData';
+import { Mail, ArrowRight } from 'lucide-react';
 
 const sb = (table: string) => supabase.from(table as any) as any;
 
@@ -24,7 +23,6 @@ export default function PortalAuthPage() {
     loadSettings();
   }, [token]);
 
-  // Check existing session
   useEffect(() => {
     if (portal) {
       const session = localStorage.getItem(`portal_session_${portal.id}`);
@@ -78,11 +76,7 @@ export default function PortalAuthPage() {
     }
 
     setSubmitting(true);
-
-    // Update last visit
     await sb('client_portals').update({ last_visit_at: new Date().toISOString() }).eq('id', portal.id);
-
-    // Create session
     localStorage.setItem(
       `portal_session_${portal.id}`,
       JSON.stringify({
@@ -91,68 +85,127 @@ export default function PortalAuthPage() {
         timestamp: Date.now(),
       }),
     );
-
     navigate(`/portal/${token}/view`, { replace: true });
   };
 
+  const primaryColor = settings?.primary_color || '#C2662D';
+  const logoUrl = settings?.logo_url;
+  const businessName = settings?.business_name || '';
+  const welcomeText = settings?.welcome_text || `Bem-vinda ao teu espaço pessoal${businessName ? ` com a ${businessName}` : ''}.`;
+  const loginBgUrl = settings?.login_bg_url;
+
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      <div className="flex min-h-screen items-center justify-center" style={{ background: `linear-gradient(135deg, ${primaryColor}15 0%, ${primaryColor}05 50%, #fef7f0 100%)` }}>
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: `${primaryColor}40`, borderTopColor: 'transparent' }} />
       </div>
     );
   }
 
   if (!portal) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground">Portal não encontrado.</p>
-          </CardContent>
-        </Card>
+      <div className="flex min-h-screen items-center justify-center" style={{ background: `linear-gradient(135deg, ${primaryColor}15 0%, ${primaryColor}05 50%, #fef7f0 100%)` }}>
+        <div className="w-full max-w-md mx-4 bg-white rounded-2xl shadow-lg p-8 text-center">
+          <p className="text-sm text-muted-foreground">Portal não encontrado.</p>
+        </div>
       </div>
     );
   }
 
   if (!portal.is_active) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground">Este portal não está disponível.</p>
-          </CardContent>
-        </Card>
+      <div className="flex min-h-screen items-center justify-center" style={{ background: `linear-gradient(135deg, ${primaryColor}15 0%, ${primaryColor}05 50%, #fef7f0 100%)` }}>
+        <div className="w-full max-w-md mx-4 bg-white rounded-2xl shadow-lg p-8 text-center">
+          <p className="text-sm text-muted-foreground">Este portal não está disponível de momento.</p>
+        </div>
       </div>
     );
   }
 
-  const logoUrl = settings?.logo_url;
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center space-y-3">
-          {logoUrl && <img src={logoUrl} alt="Logo" className="h-12 mx-auto object-contain" />}
-          <CardTitle className="text-lg">Acesso ao Portal</CardTitle>
-          <p className="text-sm text-muted-foreground">Introduz o teu email para acederes ao teu espaço.</p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Email</Label>
-            <Input
-              type="email"
-              placeholder="o.teu@email.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-            />
+    <div className="flex min-h-screen">
+      {/* Left decorative panel — hidden on mobile */}
+      <div
+        className="hidden lg:flex lg:w-1/2 relative items-end p-12"
+        style={{
+          background: loginBgUrl
+            ? `url(${loginBgUrl}) center/cover no-repeat`
+            : `linear-gradient(160deg, ${primaryColor} 0%, ${primaryColor}cc 40%, ${primaryColor}99 100%)`,
+        }}
+      >
+        {loginBgUrl && (
+          <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${primaryColor}ee 0%, ${primaryColor}66 40%, transparent 100%)` }} />
+        )}
+        <div className="relative z-10 space-y-4 max-w-md">
+          {logoUrl && <img src={logoUrl} alt="Logo" className="h-10 object-contain brightness-0 invert" />}
+          <h2 className="text-3xl font-bold text-white leading-tight" style={{ fontFamily: 'var(--font-display, "Plus Jakarta Sans", sans-serif)' }}>
+            O teu espaço. <br />A tua jornada.
+          </h2>
+          <p className="text-white/80 text-sm leading-relaxed">
+            Acompanha tudo o que está a acontecer, consulta materiais e mantém-te sempre a par.
+          </p>
+        </div>
+      </div>
+
+      {/* Right login panel */}
+      <div
+        className="flex-1 flex items-center justify-center p-6 sm:p-12"
+        style={{ background: `linear-gradient(180deg, #fefcfa 0%, ${primaryColor}08 100%)` }}
+      >
+        <div className="w-full max-w-sm space-y-8">
+          {/* Mobile logo */}
+          <div className="lg:hidden text-center">
+            {logoUrl && <img src={logoUrl} alt="Logo" className="h-10 mx-auto object-contain mb-4" />}
           </div>
-          <Button className="w-full" disabled={submitting} onClick={handleSubmit}>
-            {submitting ? 'A aceder...' : 'Aceder'}
-          </Button>
-        </CardContent>
-      </Card>
+
+          <div className="space-y-2 text-center lg:text-left">
+            <h1
+              className="text-2xl font-bold tracking-tight"
+              style={{ color: primaryColor, fontFamily: 'var(--font-display, "Plus Jakarta Sans", sans-serif)' }}
+            >
+              Olá! 👋
+            </h1>
+            <p className="text-muted-foreground text-sm leading-relaxed">{welcomeText}</p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="email"
+                placeholder="O teu email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                className="pl-10 h-12 rounded-xl border-border/60 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-offset-0"
+                style={{ '--tw-ring-color': `${primaryColor}40` } as any}
+              />
+            </div>
+            <Button
+              className="w-full h-12 rounded-xl text-sm font-semibold shadow-md transition-all hover:shadow-lg active:scale-[0.98] text-white"
+              style={{ backgroundColor: primaryColor }}
+              disabled={submitting || !email.trim()}
+              onClick={handleSubmit}
+            >
+              {submitting ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  A aceder...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  Aceder ao meu espaço
+                  <ArrowRight className="h-4 w-4" />
+                </span>
+              )}
+            </Button>
+          </div>
+
+          <p className="text-center text-[11px] text-muted-foreground/60">
+            Acesso exclusivo para clientes{businessName ? ` da ${businessName}` : ''}.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
