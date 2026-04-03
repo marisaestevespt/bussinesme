@@ -105,6 +105,11 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
     const metaDocs = (form.meta_ads_docs || []).map((d: any) => ({ ...d, type: 'meta_ads' }));
     const allDocs = [...regularDocs, ...metaDocs];
 
+    const isRecurring = form.is_recurring || false;
+    const periodicity = isRecurring ? (form.periodicity || 'mensal') : null;
+    const periodicityMultipliers: Record<string, number> = { mensal: 1, trimestral: 3, semestral: 6, anual: 12 };
+    const monthlyEquivalent = isRecurring ? Math.round(total / (periodicityMultipliers[periodicity || 'mensal'] || 1) * 100) / 100 : 0;
+
     await fin.upsertExpense.mutateAsync({
       id: form.id,
       status: form.status,
@@ -121,6 +126,12 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
       expense_year: year,
       department: form.department || null,
       supplier_id: form.supplier_id || null,
+      is_recurring: isRecurring,
+      periodicity,
+      monthly_equivalent: monthlyEquivalent,
+      payment_method: form.payment_method || null,
+      expense_name: form.expense_name || null,
+      source_type: isRecurring ? 'rule' : (form.source_type || 'manual'),
     } as any);
 
     // Sync document to member_payments when expense is linked to a contract
