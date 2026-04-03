@@ -11,88 +11,42 @@ const TOOLS = [
   {
     type: "function",
     function: {
-      name: "query_clients",
-      description: "Search or count clients. Can filter by status (ativo/inativo/lead/ex-cliente/pausa).",
+      name: "query_table",
+      description: "Query any database table. Use this to fetch data from any table in the system. You can select specific columns, filter, order, and limit results. Use list_tables first if you don't know which table or columns to query.",
       parameters: {
         type: "object",
         properties: {
-          status: { type: "string", description: "Filter by status. Leave empty for all." },
-          search: { type: "string", description: "Search by name or email" },
-          count_only: { type: "boolean", description: "If true, only return the count" },
+          table: { type: "string", description: "Table name (e.g. clients, tasks, team_members, financial_entries, financial_expenses, meetings, projects, commercial_sales, products, sops, content_items, marketing_channels, crm_leads, planning_goals, etc.)" },
+          select: { type: "string", description: "Columns to select, comma-separated. Use * for all columns. Default: *" },
+          filters: {
+            type: "array",
+            description: "Array of filter objects to apply. Each filter has column, operator, and value.",
+            items: {
+              type: "object",
+              properties: {
+                column: { type: "string", description: "Column name" },
+                operator: { type: "string", description: "One of: eq, neq, gt, gte, lt, lte, like, ilike, is, in, not.eq, not.is" },
+                value: { type: "string", description: "Value to filter by. For 'is' use 'null' or 'true'/'false'. For 'in' use comma-separated values." },
+              },
+            },
+          },
+          order_by: { type: "string", description: "Column to order by. Prefix with - for descending (e.g. '-created_at' for newest first)" },
+          limit: { type: "number", description: "Max results to return (default 20, max 100)" },
+          count_only: { type: "boolean", description: "If true, only return the total count matching the filters" },
         },
+        required: ["table"],
       },
     },
   },
   {
     type: "function",
     function: {
-      name: "query_tasks",
-      description: "List tasks. Can filter by status (pendente/em_progresso/concluida/cancelada) or by assignee.",
+      name: "list_tables",
+      description: "List available database tables, or show columns for a specific table. Use this to discover what data exists before querying.",
       parameters: {
         type: "object",
         properties: {
-          status: { type: "string", description: "Filter by status" },
-          assigned_to_name: { type: "string", description: "Filter by assignee name" },
-          limit: { type: "number", description: "Max results (default 10)" },
-          overdue_only: { type: "boolean", description: "Only show overdue tasks" },
-        },
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "query_financials",
-      description: "Get financial summary: income, expenses, balance for a given month/year.",
-      parameters: {
-        type: "object",
-        properties: {
-          month: { type: "number", description: "Month (1-12)" },
-          year: { type: "number", description: "Year (e.g. 2026)" },
-        },
-        required: ["month", "year"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "query_sales",
-      description: "Get sales data for a period. Returns total revenue, count, and recent sales.",
-      parameters: {
-        type: "object",
-        properties: {
-          month: { type: "number" },
-          year: { type: "number" },
-          quarter: { type: "number", description: "Quarter (1-4), alternative to month" },
-        },
-        required: ["year"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "query_meetings",
-      description: "List upcoming or recent meetings.",
-      parameters: {
-        type: "object",
-        properties: {
-          upcoming: { type: "boolean", description: "If true, show future meetings. If false, show past." },
-          limit: { type: "number", description: "Max results (default 5)" },
-        },
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "query_team",
-      description: "List team members with their roles, work areas, and work schedules.",
-      parameters: {
-        type: "object",
-        properties: {
-          search: { type: "string", description: "Search by name" },
+          table: { type: "string", description: "If provided, returns column names and types for this table. Otherwise lists all table names." },
         },
       },
     },
@@ -115,105 +69,117 @@ const TOOLS = [
       },
     },
   },
-  {
-    type: "function",
-    function: {
-      name: "query_projects",
-      description: "List active projects with their status and client.",
-      parameters: {
-        type: "object",
-        properties: {
-          status: { type: "string", description: "Filter by status" },
-          client_name: { type: "string", description: "Filter by client name" },
-          limit: { type: "number" },
-        },
-      },
-    },
-  },
 ];
+
+// Tables that should not be queryable for security
+const BLOCKED_TABLES = new Set(["audit_logs", "member_sensitive_access", "backups"]);
 
 async function executeTool(toolName: string, args: Record<string, unknown>, supabaseAdmin: ReturnType<typeof createClient>) {
   switch (toolName) {
-    case "query_clients": {
-      let query = supabaseAdmin.from("clients").select(args.count_only ? "id" : "id, full_name, email, status, current_product, start_date, whatsapp", { count: "exact" });
-      if (args.status) query = query.eq("status", args.status);
-      if (args.search) query = query.or(`full_name.ilike.%${args.search}%,email.ilike.%${args.search}%`);
-      query = query.order("created_at", { ascending: false }).limit(args.count_only ? 0 : 20);
-      const { data, count, error } = await query;
-      if (error) return { error: error.message };
-      if (args.count_only) return { total: count };
-      return { clients: data, total: count };
+    case "list_tables": {
+      if (args.table) {
+        const { data, error } = await supabaseAdmin.rpc("", {}).maybeSingle();
+        // Use information_schema to get columns
+        const { data: cols, error: colErr } = await supabaseAdmin
+          .from("information_schema.columns" as any)
+          .select("column_name, data_type, is_nullable")
+          .eq("table_schema", "public")
+          .eq("table_name", args.table as string)
+          .order("ordinal_position");
+        
+        if (colErr) {
+          // Fallback: try selecting one row to see the shape
+          const { data: sample, error: sampleErr } = await supabaseAdmin
+            .from(args.table as string)
+            .select("*")
+            .limit(1);
+          if (sampleErr) return { error: sampleErr.message };
+          if (sample && sample.length > 0) {
+            return { table: args.table, columns: Object.keys(sample[0]) };
+          }
+          return { table: args.table, columns: [] };
+        }
+        return { table: args.table, columns: cols };
+      }
+      // List all tables - hardcoded list of the most useful ones grouped by area
+      return {
+        tables: {
+          clientes: ["clients", "client_contacts", "client_feedback", "client_history", "client_milestones", "client_nps_records", "client_onboarding", "client_offboarding", "client_portals"],
+          equipa: ["team_members", "profiles", "members", "member_contracts", "member_payments", "member_onboarding", "absence_coverage", "hiring_simulations"],
+          tarefas: ["tasks", "task_time_entries", "time_entries"],
+          projetos: ["projects", "project_deliverables", "project_payments", "project_members"],
+          financeiro: ["financial_entries", "financial_expenses", "financial_categories", "financial_goals", "financial_payroll", "financial_subscriptions", "financial_contractors", "financial_documents"],
+          comercial: ["commercial_sales", "commercial_monthly_goals", "commercial_annual_goals", "commercial_product_goals", "commercial_library_entries", "commercial_strategy"],
+          crm: ["crm_leads", "crm_pipelines", "crm_pipeline_stages", "crm_pipeline_leads", "crm_interactions", "crm_lead_actions"],
+          marketing: ["marketing_channels", "channel_monthly_metrics", "content_items", "content_channels", "marketing_funnels", "marketing_automations", "marketing_ideas"],
+          reunioes: ["meetings", "meeting_participants", "meeting_projects"],
+          planeamento: ["planning_goals", "planning_routines", "executive_objectives", "executive_goals", "executive_weekly_routines"],
+          produtos: ["products", "product_deliverable_templates", "product_kpis", "product_costs", "product_milestones"],
+          marca: ["brand_competitors", "brand_differentials", "brand_swot_items", "brand_visual_cards"],
+          configuracoes: ["business_settings", "business_setup", "automation_settings", "kpi_settings", "departments"],
+          conteudo: ["content_items", "content_attachments", "sops", "internal_documents", "mural_posts"],
+        },
+      };
     }
-    case "query_tasks": {
-      let query = supabaseAdmin.from("tasks").select("id, title, status, priority, due_date, assigned_to, created_at");
-      if (args.status) query = query.eq("status", args.status);
-      if (args.overdue_only) query = query.lt("due_date", new Date().toISOString().split("T")[0]).neq("status", "concluida").neq("status", "cancelada");
-      if (args.assigned_to_name) {
-        const { data: members } = await supabaseAdmin.from("team_members").select("id, name").ilike("name", `%${args.assigned_to_name}%`);
-        if (members && members.length > 0) {
-          query = query.in("assigned_to", members.map((m: { id: string }) => m.id));
+
+    case "query_table": {
+      const tableName = args.table as string;
+      if (BLOCKED_TABLES.has(tableName)) {
+        return { error: "Acesso a esta tabela não é permitido." };
+      }
+
+      const selectCols = (args.select as string) || "*";
+      const limit = Math.min(Number(args.limit) || 20, 100);
+      const countOnly = args.count_only as boolean;
+
+      let query = supabaseAdmin.from(tableName).select(
+        countOnly ? "id" : selectCols,
+        countOnly ? { count: "exact", head: true } : { count: "exact" }
+      );
+
+      // Apply filters
+      const filters = (args.filters as Array<{ column: string; operator: string; value: string }>) || [];
+      for (const f of filters) {
+        const col = f.column;
+        const val = f.value;
+        switch (f.operator) {
+          case "eq": query = query.eq(col, val); break;
+          case "neq": query = query.neq(col, val); break;
+          case "gt": query = query.gt(col, val); break;
+          case "gte": query = query.gte(col, val); break;
+          case "lt": query = query.lt(col, val); break;
+          case "lte": query = query.lte(col, val); break;
+          case "like": query = query.like(col, val); break;
+          case "ilike": query = query.ilike(col, val); break;
+          case "is": query = query.is(col, val === "null" ? null : val === "true"); break;
+          case "in": query = query.in(col, val.split(",")); break;
+          case "not.eq": query = query.neq(col, val); break;
+          case "not.is": query = query.not(col, "is", val === "null" ? null : val); break;
         }
       }
-      query = query.order("due_date", { ascending: true }).limit(Number(args.limit) || 10);
-      const { data, error } = await query;
-      if (error) return { error: error.message };
-      return { tasks: data, count: data?.length };
-    }
-    case "query_financials": {
-      const month = Number(args.month);
-      const year = Number(args.year);
-      const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
-      const endMonth = month === 12 ? 1 : month + 1;
-      const endYear = month === 12 ? year + 1 : year;
-      const endDate = `${endYear}-${String(endMonth).padStart(2, "0")}-01`;
 
-      const { data: income } = await supabaseAdmin.from("financial_entries").select("amount").eq("type", "entrada").gte("date", startDate).lt("date", endDate);
-      const { data: expenses } = await supabaseAdmin.from("financial_entries").select("amount").eq("type", "saida").gte("date", startDate).lt("date", endDate);
+      // Apply ordering
+      if (args.order_by) {
+        const orderStr = args.order_by as string;
+        const desc = orderStr.startsWith("-");
+        const col = desc ? orderStr.slice(1) : orderStr;
+        query = query.order(col, { ascending: !desc });
+      }
 
-      const totalIncome = (income || []).reduce((s: number, e: { amount: number }) => s + (e.amount || 0), 0);
-      const totalExpenses = (expenses || []).reduce((s: number, e: { amount: number }) => s + (e.amount || 0), 0);
-      return { month, year, income: totalIncome, expenses: totalExpenses, balance: totalIncome - totalExpenses };
-    }
-    case "query_sales": {
-      let query = supabaseAdmin.from("commercial_sales").select("id, sale_id, client, product, base_value, invoice_total, status, payment_date, created_at");
-      if (args.month) {
-        query = query.eq("sale_month", args.month).eq("sale_year", args.year);
-      } else if (args.quarter) {
-        query = query.eq("sale_quarter", args.quarter).eq("sale_year", args.year);
-      } else {
-        query = query.eq("sale_year", args.year);
+      if (!countOnly) {
+        query = query.limit(limit);
       }
-      query = query.order("created_at", { ascending: false }).limit(20);
-      const { data, error } = await query;
+
+      const { data, count, error } = await query;
       if (error) return { error: error.message };
-      const total = (data || []).reduce((s: number, sale: { invoice_total: number }) => s + (sale.invoice_total || 0), 0);
-      return { sales: data, count: data?.length, total_revenue: total };
+      if (countOnly) return { total: count };
+      return { data, total: count };
     }
-    case "query_meetings": {
-      const now = new Date().toISOString();
-      let query = supabaseAdmin.from("meetings").select("id, title, meeting_type, date, time, duration, location, status");
-      if (args.upcoming) {
-        query = query.gte("date", now.split("T")[0]).order("date", { ascending: true });
-      } else {
-        query = query.lte("date", now.split("T")[0]).order("date", { ascending: false });
-      }
-      query = query.limit(Number(args.limit) || 5);
-      const { data, error } = await query;
-      if (error) return { error: error.message };
-      return { meetings: data };
-    }
-    case "query_team": {
-      let query = supabaseAdmin.from("team_members").select("id, full_name, email, role_title, work_areas, status, whatsapp, work_schedule, expected_weekly_hours");
-      if (args.search) query = query.ilike("full_name", `%${args.search}%`);
-      query = query.eq("status", "active").order("full_name");
-      const { data, error } = await query;
-      if (error) return { error: error.message };
-      return { members: data, count: data?.length };
-    }
+
     case "create_task": {
       let assignedTo = null;
       if (args.assigned_to_name) {
-        const { data: members } = await supabaseAdmin.from("team_members").select("id, name").ilike("name", `%${args.assigned_to_name}%`).limit(1);
+        const { data: members } = await supabaseAdmin.from("team_members").select("id, full_name").ilike("full_name", `%${args.assigned_to_name}%`).limit(1);
         if (members && members.length > 0) assignedTo = members[0].id;
       }
       const { data, error } = await supabaseAdmin.from("tasks").insert({
@@ -227,20 +193,7 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
       if (error) return { error: error.message };
       return { success: true, task: data };
     }
-    case "query_projects": {
-      let query = supabaseAdmin.from("projects").select("id, name, status, client_id, start_date, end_date, progress");
-      if (args.status) query = query.eq("status", args.status);
-      if (args.client_name) {
-        const { data: clients } = await supabaseAdmin.from("clients").select("id").ilike("full_name", `%${args.client_name}%`);
-        if (clients && clients.length > 0) {
-          query = query.in("client_id", clients.map((c: { id: string }) => c.id));
-        }
-      }
-      query = query.order("created_at", { ascending: false }).limit(Number(args.limit) || 10);
-      const { data, error } = await query;
-      if (error) return { error: error.message };
-      return { projects: data, count: data?.length };
-    }
+
     default:
       return { error: `Unknown tool: ${toolName}` };
   }
@@ -280,13 +233,37 @@ serve(async (req) => {
     const systemPrompt = `Tu és a Lirah AI, a assistente inteligente de ${businessName}. Falas em português de Portugal.
 ${userName ? `O utilizador com quem estás a falar chama-se **${userName}**. Trata-o pelo primeiro nome de forma natural e simpática.` : ""}
 
-Tens acesso a ferramentas para consultar dados do sistema: clientes, tarefas, finanças, vendas, reuniões, equipa e projetos.
+Tens acesso total à base de dados do sistema. Podes consultar QUALQUER tabela — clientes, equipa, tarefas, finanças, vendas, reuniões, projetos, produtos, conteúdos, marketing, CRM, planeamento, marca, e muito mais.
+
+Ferramentas disponíveis:
+- **list_tables**: Descobre que tabelas existem e que colunas têm. Usa SEMPRE antes de consultar uma tabela que não conheces.
+- **query_table**: Consulta qualquer tabela com filtros, ordenação e limite.
+- **create_task**: Cria tarefas (pede sempre confirmação primeiro).
+
+Estratégia de consulta:
+1. Se não tens a certeza da estrutura de uma tabela, usa list_tables(table="nome") primeiro para ver as colunas.
+2. Depois usa query_table com os filtros adequados.
+3. Para perguntas que envolvem relações entre tabelas (ex: "clientes do projeto X"), faz múltiplas consultas e cruza os dados.
+
+Tabelas principais que deves conhecer:
+- team_members: equipa (full_name, email, role_title, work_areas, work_schedule, expected_weekly_hours, status)
+- clients: clientes (full_name, email, status, current_product, start_date)
+- tasks: tarefas (title, status, priority, due_date/deadline, assigned_to)
+- projects: projetos (name, status, client_id, start_date, end_date, progress)
+- financial_entries: entradas financeiras (amount, type, date)
+- financial_expenses: despesas (description, amount, expense_date, status)
+- commercial_sales: vendas (client, product, base_value, invoice_total, status, payment_date)
+- meetings: reuniões (title, date/date_time, status, meeting_type)
+- products: produtos/serviços (name, price, status)
+- content_items: conteúdos de marketing (title, status, scheduled_at)
+- crm_leads: leads do CRM (name, status, potential_product)
+- planning_goals: objetivos de planeamento
 
 Regras:
 - Sê conciso mas simpático. Usa emojis com moderação.
-- Quando o utilizador pede dados, usa as ferramentas disponíveis para ir buscar informação real.
-- NUNCA inventes dados. Se não conseguires encontrar, diz que não encontraste.
-- Para ações como criar tarefas, confirma sempre os detalhes com o utilizador antes de executar.
+- Quando o utilizador pede dados, usa as ferramentas para ir buscar informação REAL.
+- NUNCA inventes dados. Se não encontrares, diz que não encontraste.
+- Para criar tarefas, confirma sempre os detalhes com o utilizador antes.
 - Formata respostas com markdown quando apropriado (listas, negrito, tabelas simples).
 - Se o utilizador perguntar algo fora do âmbito do sistema, responde de forma útil mas menciona que a tua especialidade é ajudar com a gestão do negócio.
 - Data de hoje: ${new Date().toISOString().split("T")[0]}`;
@@ -298,7 +275,7 @@ Regras:
 
     // Loop for tool calling
     let currentMessages = [...allMessages];
-    let maxIterations = 5;
+    let maxIterations = 8;
 
     while (maxIterations-- > 0) {
       const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
