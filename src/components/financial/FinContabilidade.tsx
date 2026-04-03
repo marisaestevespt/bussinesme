@@ -36,6 +36,7 @@ export function FinContabilidade({ currentYear }: Props) {
   const fin = useFinancialData();
   const com = useCommercialData(currentYear);
   const [creatingTask, setCreatingTask] = useState<string | null>(null);
+  const qc = useQueryClient();
 
   // Export state
   const [exportPeriod, setExportPeriod] = useState<'month' | 'quarter' | 'year' | 'custom'>('month');
