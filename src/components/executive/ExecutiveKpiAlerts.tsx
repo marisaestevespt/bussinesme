@@ -52,7 +52,7 @@ export function ExecutiveKpiAlerts() {
     const pct = totalCap > 0 ? Math.round((totalUsed / totalCap) * 100) : 0;
     const overloaded = active.filter(m => {
       const mh = d.timeEntries.filter(e => e.member_id === m.id).reduce((s, e) => s + (Number(e.duration) || 0), 0);
-      const cap = (Number(m.weekly_hours) || 40) * 4.33;
+      const cap = (Number(m.expected_weekly_hours) || 40) * 4.33;
       return cap > 0 && (mh / cap) > 0.85;
     });
     return { pct, totalUsed: Math.round(totalUsed), totalCap: Math.round(totalCap), overloaded: overloaded.length, total: active.length };
