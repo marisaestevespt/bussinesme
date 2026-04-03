@@ -3,6 +3,7 @@ import { PAGE_SIZE, flattenInfiniteData, getInfiniteCount, type InfinitePageResu
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { normalizeUnpaidExpenseStatus } from '@/lib/expenseStatus';
 
 export type Expense = Tables<'financial_expenses'>;
 export type FinancialDocument = Tables<'financial_documents'>;
@@ -17,7 +18,12 @@ export type RecurringExpense = Expense & {
   renewal_date: string | null;
 };
 
-const MONTH_LABELS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+const MONTH_LABELS = ['Janeiro', 'Março', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+const normalizeExpenseRecord = <T extends Expense>(expense: T): T => ({
+  ...expense,
+  status: normalizeUnpaidExpenseStatus(expense.status, expense.expense_date),
+});
 
 export function calcMonthlyEquivalent(value: number, periodicity: string): number {
   switch (periodicity) {
@@ -73,7 +79,8 @@ export function useFinancialData() {
         .order('expense_date', { ascending: false })
         .range(from, to);
       if (error) throw error;
-      return { data: (data || []) as Expense[], count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
+      const normalizedData = ((data || []) as Expense[]).map(normalizeExpenseRecord);
+      return { data: normalizedData, count, nextPage: (data?.length ?? 0) === PAGE_SIZE ? (pageParam as number) + 1 : undefined };
     },
     getNextPageParam: (last) => last.nextPage,
     staleTime: 2 * 60 * 1000,
@@ -93,7 +100,7 @@ export function useFinancialData() {
         .eq('is_recurring', true)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return (data || []) as RecurringExpense[];
+      return ((data || []) as RecurringExpense[]).map(normalizeExpenseRecord);
     },
     staleTime: 2 * 60 * 1000,
   });
@@ -138,11 +145,34 @@ export function useFinancialData() {
 
   const upsertExpense = useMutation({
     mutationFn: async (exp: Partial<Expense> & { description?: string }) => {
-      if (exp.id) {
-        const { error } = await supabase.from('financial_expenses').update(exp as TablesUpdate<'financial_expenses'>).eq('id', exp.id);
+      const shouldNormalizeStatus = (!exp.id && !exp.status) || exp.status === 'por_pagar' || exp.status === 'pendente';
+      let payload: Partial<Expense> & { description?: string } = { ...exp };
+
+      if (shouldNormalizeStatus) {
+        let expenseDate = exp.expense_date;
+
+        if (!expenseDate && exp.id) {
+          const { data, error } = await supabase
+            .from('financial_expenses')
+            .select('expense_date')
+            .eq('id', exp.id)
+            .maybeSingle();
+
+          if (error) throw error;
+          expenseDate = data?.expense_date ?? null;
+        }
+
+        payload = {
+          ...exp,
+          status: normalizeUnpaidExpenseStatus(exp.status, expenseDate),
+        };
+      }
+
+      if (payload.id) {
+        const { error } = await supabase.from('financial_expenses').update(payload as TablesUpdate<'financial_expenses'>).eq('id', payload.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('financial_expenses').insert(exp as TablesInsert<'financial_expenses'>);
+        const { error } = await supabase.from('financial_expenses').insert(payload as TablesInsert<'financial_expenses'>);
         if (error) throw error;
       }
     },
