@@ -49,7 +49,7 @@ const SALE_STATUSES: Record<string, { label: string; color: string }> = {
   cancelado: { label: 'Cancelado', color: 'bg-muted text-muted-foreground' },
 };
 
-export function ProjectGestaoTab({ projectId, projectName, clientName, clientId, productName, startDate, onNewMeeting }: Props) {
+export function ProjectGestaoTab({ projectId, projectName, clientName, clientId, productName, startDate, deadline, onNewMeeting }: Props) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
