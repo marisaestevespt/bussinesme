@@ -199,10 +199,9 @@ export default function FornecedoresPage() {
     },
   });
 
-  // Cancel recurrence: mark rule as cancelled + delete all future unpaid expenses
+  // Cancel recurrence: mark rule as cancelled + delete future (and optionally current month) unpaid expenses
   const cancelRecurrence = useMutation({
-    mutationFn: async (supplierId: string) => {
-      // Find all recurring rules for this supplier
+    mutationFn: async ({ supplierId, includeCurrentMonth }: { supplierId: string; includeCurrentMonth: boolean }) => {
       const { data: rules } = await supabase.from('financial_expenses')
         .select('id')
         .eq('supplier_id', supplierId)
@@ -215,22 +214,28 @@ export default function FornecedoresPage() {
 
       const ruleIds = rules.map(r => r.id);
 
-      // Mark all rules as cancelled
       await supabase.from('financial_expenses')
         .update({ status: 'cancelado' } as any)
         .in('id', ruleIds);
 
-      // Delete all future unpaid child expenses (keep past/paid ones)
-      const today = new Date().toISOString().slice(0, 10);
-      const { data: futureExpenses } = await supabase.from('financial_expenses')
-        .select('id, status, expense_date')
+      const now = new Date();
+      const currentYr = now.getFullYear();
+      const currentMo = now.getMonth() + 1;
+
+      const { data: childExpenses } = await supabase.from('financial_expenses')
+        .select('id, status, expense_date, expense_month, expense_year')
         .eq('supplier_id', supplierId)
         .eq('is_recurring', false)
         .in('parent_expense_id', ruleIds);
 
-      const toDelete = (futureExpenses || []).filter((e: any) =>
-        !isPaidExpenseStatus(e.status) && e.expense_date > today
-      );
+      const toDelete = (childExpenses || []).filter((e: any) => {
+        if (isPaidExpenseStatus(e.status)) return false;
+        const eYear = e.expense_year || parseInt((e.expense_date || '').slice(0, 4));
+        const eMonth = e.expense_month || parseInt((e.expense_date || '').slice(5, 7));
+        if (eYear > currentYr || (eYear === currentYr && eMonth > currentMo)) return true;
+        if (includeCurrentMonth && eYear === currentYr && eMonth === currentMo) return true;
+        return false;
+      });
 
       if (toDelete.length > 0) {
         await supabase.from('financial_expenses')
@@ -242,7 +247,8 @@ export default function FornecedoresPage() {
     },
     onSuccess: (count) => {
       invalidateAll();
-      toast.success(`Recorrência cancelada${count ? ` — ${count} despesas futuras eliminadas` : ''}`);
+      setCancelDialog(null);
+      toast.success(`Recorrência cancelada${count ? ` — ${count} despesas eliminadas` : ''}`);
     },
     onError: () => toast.error('Erro ao cancelar recorrência'),
   });
