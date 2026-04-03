@@ -175,7 +175,12 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
             <span className="font-mono text-sm text-muted-foreground">{(expense as any).expense_id}</span>
             {form.source_type && (
               <Badge variant="secondary" className="text-[10px]">
-                {form.source_type === 'subscription' ? 'Subscrição' : form.source_type === 'contract' ? 'Contrato' : form.source_type}
+                {form.source_type === 'subscription' ? 'Subscrição' : form.source_type === 'contract' ? 'Contrato' : form.source_type === 'rule' ? 'Recorrente' : form.source_type}
+              </Badge>
+            )}
+            {form.is_recurring && (
+              <Badge variant="outline" className="text-[10px] gap-1">
+                <RefreshCw className="h-2.5 w-2.5" /> Recorrente
               </Badge>
             )}
           </SheetTitle>
