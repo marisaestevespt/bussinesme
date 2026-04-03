@@ -101,12 +101,27 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     }
   }, [billingStartDate, deadline, payMethod]);
 
-  // Sync payMethod from DB
+  // Sync payMethod from project first, then client fallback
   useEffect(() => {
-    if (clientData?.payment_method && !payMethod) {
+    if (projectPaymentMethod && !payMethod) {
+      setPayMethod(projectPaymentMethod);
+    } else if (clientData?.payment_method && !payMethod && !projectPaymentMethod) {
       setPayMethod(clientData.payment_method);
     }
-  }, [clientData?.payment_method]);
+  }, [clientData?.payment_method, projectPaymentMethod]);
+
+  // Persist payment config to project whenever it changes
+  const savePaymentConfigToProject = useCallback(() => {
+    if (!onUpdateProject) return;
+    const config = { totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity };
+    onUpdateProject('payment_config', config);
+  }, [totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity, onUpdateProject]);
+
+  useEffect(() => {
+    if (!onUpdateProject) return;
+    const timer = setTimeout(savePaymentConfigToProject, 800);
+    return () => clearTimeout(timer);
+  }, [totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity]);
 
   // ─── Project sales ────────────────────────────────────────────
   const qc = useQueryClient();
