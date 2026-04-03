@@ -537,7 +537,7 @@ export default function PortalViewPage() {
               <Button className="rounded-xl text-white text-sm" style={{ backgroundColor: pc }} disabled={!feedbackText.trim()} onClick={sendFeedback}>
                 <Send className="h-3.5 w-3.5 mr-1.5" />Enviar Feedback
               </Button>
-              )}
+            </div>
             </div>
           </>
         )}
