@@ -296,6 +296,26 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
             />
           </div>
 
+          {/* Recurring */}
+          <div className="flex items-center gap-2 py-1">
+            <Switch checked={form.is_recurring || false} onCheckedChange={v => setForm((f: any) => ({ ...f, is_recurring: v }))} />
+            <Label className="text-sm font-normal">Despesa recorrente</Label>
+          </div>
+          {form.is_recurring && (
+            <div>
+              <Label>Periodicidade</Label>
+              <Select value={form.periodicity || 'mensal'} onValueChange={v => setForm((f: any) => ({ ...f, periodicity: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mensal">Mensal</SelectItem>
+                  <SelectItem value="trimestral">Trimestral</SelectItem>
+                  <SelectItem value="semestral">Semestral</SelectItem>
+                  <SelectItem value="anual">Anual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {/* Location */}
           <div>
             <Label>Localização</Label>
