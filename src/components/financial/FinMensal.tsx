@@ -497,7 +497,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
           <Table>
-            <TableHeader><TableRow><TableHead>Status</TableHead><TableHead className="whitespace-nowrap">ID</TableHead><TableHead>Descrição</TableHead><TableHead>Categoria</TableHead><TableHead>Localização</TableHead><TableHead className="text-right whitespace-nowrap">Base (€)</TableHead><TableHead className="text-right whitespace-nowrap">IVA %</TableHead><TableHead className="text-right whitespace-nowrap">Total c/ IVA</TableHead><TableHead>Ação</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Status</TableHead><TableHead className="whitespace-nowrap">ID</TableHead><TableHead>Data Pgto.</TableHead><TableHead>Descrição</TableHead><TableHead>Categoria</TableHead><TableHead>Localização</TableHead><TableHead className="text-right whitespace-nowrap">Base (€)</TableHead><TableHead className="text-right whitespace-nowrap">IVA %</TableHead><TableHead className="text-right whitespace-nowrap">Total c/ IVA</TableHead></TableRow></TableHeader>
             <TableBody>
               {/* Regular expenses (excluding subscription/contract-linked ones to avoid duplicates) */}
               {monthExpenses.filter(e => e.source_type !== 'subscription' && e.source_type !== 'contract').map(e => (
