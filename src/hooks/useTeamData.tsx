@@ -157,9 +157,10 @@ export function useTeamData() {
   const perfWeekly = useQuery({
     queryKey: [...KEY, 'perf_weekly'],
     queryFn: async () => {
-      const { data } = await supabase.from('performance_weekly').select('*').order('week_start', { ascending: false });
+      const { data } = await supabase.from('performance_weekly').select('*').order('week_start', { ascending: false }).limit(200);
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const upsertPerfWeekly = useMutation({
