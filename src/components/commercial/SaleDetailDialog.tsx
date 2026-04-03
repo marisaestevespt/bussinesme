@@ -36,6 +36,7 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
   const qc = useQueryClient();
   const { isOwner } = useAuth();
   const commercialData = useCommercialData();
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const { data: sale } = useQuery({
     queryKey: ['sale-detail-dialog', saleId],
