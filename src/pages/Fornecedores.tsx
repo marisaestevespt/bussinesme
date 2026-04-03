@@ -1015,6 +1015,31 @@ export default function FornecedoresPage() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Cancel recurrence dialog */}
+        <Dialog open={!!cancelDialog} onOpenChange={(v) => !v && setCancelDialog(null)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader><DialogTitle>Cancelar Recorrência</DialogTitle></DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                A recorrência será cancelada e todas as despesas futuras não pagas serão eliminadas.
+              </p>
+              <p className="text-sm font-medium">A despesa deste mês deve ser mantida ou eliminada?</p>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={() => {
+                  if (cancelDialog) cancelRecurrence.mutate({ supplierId: cancelDialog.supplierId, includeCurrentMonth: false });
+                }}>
+                  Manter este mês
+                </Button>
+                <Button variant="destructive" className="flex-1" onClick={() => {
+                  if (cancelDialog) cancelRecurrence.mutate({ supplierId: cancelDialog.supplierId, includeCurrentMonth: true });
+                }}>
+                  Eliminar também
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
