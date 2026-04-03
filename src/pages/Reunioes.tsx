@@ -484,7 +484,8 @@ export function MeetingFormDialog({
 
       // Generate recurring occurrences
       if (isRecurring && dateTime) {
-        const futureDates = generateRecurrenceDates(dateTime, recurrenceFrequency, recurrenceEndDate);
+        const recurrenceBase = recurrenceStartDate || dateTime;
+        const futureDates = generateRecurrenceDates(recurrenceBase, recurrenceFrequency, recurrenceEndDate);
         if (futureDates.length > 0) {
           const occurrences = futureDates.map(d => ({
             ...meetingData,
