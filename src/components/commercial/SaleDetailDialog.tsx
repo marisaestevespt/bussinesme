@@ -299,10 +299,33 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
           />
 
           {isOwner && (
-            <Button className="w-full" onClick={save}>Guardar</Button>
+            <div className="flex gap-2">
+              <Button className="flex-1" onClick={save}>Guardar</Button>
+              <Button variant="destructive" size="icon" onClick={() => setConfirmDeleteOpen(true)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           )}
         </div>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Eliminar entrada</AlertDialogTitle>
+          <AlertDialogDescription>
+            Tens a certeza que queres eliminar esta entrada ({form.sale_id})? Esta ação não pode ser revertida.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Eliminar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
