@@ -282,12 +282,19 @@ export default function FornecedoresPage() {
           create_recurring: false, // keep toggle off — it's for creating NEW, not editing
           _recurringLoaded: selectedSupplierId,
           _existingRecurring: {
-            value: recurringRule.base_value,
-            total: recurringRule.total_with_vat,
-            periodicity: recurringRule.periodicity || 'mensal',
-            vat_rate: recurringRule.vat_rate,
-            category: recurringRule.category,
-          },
+              id: recurringRule.id,
+              value: recurringRule.base_value,
+              total: recurringRule.total_with_vat,
+              periodicity: recurringRule.periodicity || 'mensal',
+              vat_rate: recurringRule.vat_rate,
+              category: recurringRule.category,
+              includes_vat: false,
+            },
+            // Pre-fill editable fields from rule
+            edit_recurring_value: String(recurringRule.base_value),
+            edit_recurring_vat: recurringRule.vat_rate,
+            edit_recurring_periodicity: recurringRule.periodicity || 'mensal',
+            edit_recurring_includes_vat: false,
         };
       });
     }
