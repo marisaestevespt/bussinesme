@@ -125,6 +125,7 @@ Deno.serve(async (req) => {
         if (isToday) {
           templateData.paymentMethod = client.payment_method || ''
           templateData.iban = bizSetup?.iban || ''
+          templateData.mbwayNumber = mbwayNumber
         } else {
           templateData.daysUntil = daysUntil
         }
