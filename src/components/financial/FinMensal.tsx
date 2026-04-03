@@ -35,6 +35,32 @@ const VAT_RATES = [0, 6, 13, 23];
 const LOCATIONS = ['portugal', 'ue', 'fora_ue'];
 const LOC_LABELS: Record<string, string> = { portugal: 'Portugal', ue: 'União Europeia', fora_ue: 'Fora da UE' };
 
+function parseDateString(value: string | null | undefined) {
+  if (!value) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+}
+
+function getSubscriptionDueDate(subscription: RecurringExpense, month: number, year: number) {
+  const startDate = parseDateString(subscription.expense_date);
+  const fallbackDay = startDate?.getDate() ?? 15;
+  const targetDay = subscription.recurrence_day || fallbackDay;
+  const lastDayOfMonth = new Date(year, month, 0).getDate();
+  const safeDay = Math.min(targetDay, lastDayOfMonth);
+
+  return `${year}-${String(month).padStart(2, '0')}-${String(safeDay).padStart(2, '0')}`;
+}
+
+function canRenderSubscriptionForMonth(subscription: RecurringExpense, month: number, year: number) {
+  if (subscription.status === 'cancelado' || !subscription.periodicity) return false;
+  if (getSubscriptionOccurrences(subscription.expense_date, subscription.periodicity, month, year) <= 0) return false;
+
+  if (!subscription.recurrence_end_date) return true;
+
+  return getSubscriptionDueDate(subscription, month, year) <= subscription.recurrence_end_date;
+}
+
 type Sale = { invoice_total: number; base_value: number; sale_month: number | null; sale_year: number | null; product?: string | null; client?: string | null; description?: string | null; status?: string };
 
 interface Props {
@@ -98,9 +124,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
   // Recurring expenses due this month (based on expense_date + periodicity)
   const recurringExps = fin.recurringExpenses.data || [];
   const dueSubscriptions = useMemo(() => {
-    return recurringExps.filter(s => 
-      s.status !== 'cancelado' && s.periodicity && getSubscriptionOccurrences(s.expense_date, s.periodicity, m, currentYear) > 0
-    );
+    return recurringExps.filter(sub => canRenderSubscriptionForMonth(sub, m, currentYear));
   }, [recurringExps, m, currentYear]);
 
   // Check which subs already have a confirmed expense for this month
@@ -438,10 +462,15 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                     setSelectedExpense(linkedExp);
                     setExpenseSheetOpen(true);
                   } else {
+                    if (!canRenderSubscriptionForMonth(sub, m, currentYear)) {
+                      toast.error('Esse pagamento já está fora do período do contrato.');
+                      return;
+                    }
+
                     // Auto-create the individual expense for this month, then open it
                     const MONTHS_LABEL = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
                     const subName = sub.expense_name || sub.description || '';
-                    const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-${String(sub.recurrence_day || 15).padStart(2, '0')}`;
+                    const dateStr = getSubscriptionDueDate(sub, m, currentYear);
                     const status = getAutoExpenseStatus(dateStr);
                     await fin.upsertExpense.mutateAsync({
                       description: `${subName} — ${MONTHS_LABEL[m - 1]} ${currentYear}`,
@@ -727,6 +756,7 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
   const vatRate = sub.vat_rate || 0;
   const displayBase = linkedExpense ? linkedExpense.base_value : sub.base_value;
   const displayTotal = linkedExpense ? linkedExpense.total_with_vat : sub.total_with_vat;
+  const projectedExpenseDate = getSubscriptionDueDate(sub, month, currentYear);
 
   const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
@@ -736,14 +766,20 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
   const subName = sub.expense_name || sub.description || '';
   const expenseId = linkedExpense ? (linkedExpense as any).expense_id || '—' : '—';
   const category = linkedExpense?.category || sub.category || 'outro';
-  const expenseDate = linkedExpense ? (linkedExpense as any).expense_date || '—' : '—';
+  const expenseDate = linkedExpense ? (linkedExpense as any).expense_date || '—' : projectedExpenseDate;
 
   const handleStatusChange = async (_id: string, newStatus: string) => {
     setConfirming(true);
-    const dateStr = `${currentYear}-${String(month).padStart(2, '0')}-15`;
+    const dateStr = projectedExpenseDate;
     if (linkedExpense) {
       await fin.upsertExpense.mutateAsync({ id: linkedExpense.id, status: newStatus } as any);
     } else {
+      if (!canRenderSubscriptionForMonth(sub, month, currentYear)) {
+        setConfirming(false);
+        toast.error('Esse pagamento já está fora do período do contrato.');
+        return;
+      }
+
       await fin.upsertExpense.mutateAsync({
         description: `${subName} — ${MONTHS_LABEL[month - 1]} ${currentYear}`,
         category: sub.category || 'plataformas', base_value: sub.base_value, vat_rate: vatRate, total_with_vat: sub.total_with_vat,
