@@ -151,7 +151,9 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 
   // Auto-materialize recurring subscription & contract expenses for current/past months
   const autoMaterializeRef = useRef(new Set<string>());
+  const isMaterializingRef = useRef(false);
   const autoMaterialize = useCallback(async () => {
+    if (isMaterializingRef.current) return;
     const now = new Date();
     const nowYear = now.getFullYear();
     const nowMonth = now.getMonth() + 1;
@@ -160,11 +162,21 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
 
     const toCreate: Array<() => Promise<void>> = [];
 
-    // Subscriptions without linked expense
+    // Subscriptions without linked expense — check DB before creating
     for (const sub of dueSubscriptions) {
       const key = `sub-${sub.id}-${m}-${currentYear}`;
       if (subExpenseMap.has(sub.id) || autoMaterializeRef.current.has(key)) continue;
       autoMaterializeRef.current.add(key);
+
+      // Double-check in DB to prevent duplicates
+      const { count } = await supabase.from('financial_expenses')
+        .select('id', { count: 'exact', head: true })
+        .eq('source_type', 'subscription')
+        .eq('source_id', sub.id)
+        .eq('expense_month', m)
+        .eq('expense_year', currentYear);
+      if ((count || 0) > 0) continue;
+
       const subName = sub.expense_name || sub.description || '';
       const dateStr = getSubscriptionDueDate(sub, m, currentYear);
       const status = getAutoExpenseStatus(dateStr);
@@ -190,11 +202,21 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
       });
     }
 
-    // Contracts without linked expense
+    // Contracts without linked expense — check DB before creating
     for (const contract of activeContracts as any[]) {
       const key = `contract-${contract.id}-${m}-${currentYear}`;
       if (contractExpenseMap.has(contract.id) || autoMaterializeRef.current.has(key)) continue;
       autoMaterializeRef.current.add(key);
+
+      // Double-check in DB to prevent duplicates
+      const { count } = await supabase.from('financial_expenses')
+        .select('id', { count: 'exact', head: true })
+        .eq('source_type', 'contract')
+        .eq('source_id', contract.id)
+        .eq('expense_month', m)
+        .eq('expense_year', currentYear);
+      if ((count || 0) > 0) continue;
+
       const memberName = contract.team_members?.full_name || '—';
       const value = contract.monthly_value || 0;
       const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-${String(contract.payment_day || 15).padStart(2, '0')}`;
@@ -211,8 +233,10 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
     }
 
     if (toCreate.length > 0) {
+      isMaterializingRef.current = true;
       for (const fn of toCreate) await fn();
       qc.invalidateQueries({ queryKey: ['financial-expenses'] });
+      isMaterializingRef.current = false;
     }
   }, [dueSubscriptions, activeContracts, subExpenseMap, contractExpenseMap, m, currentYear, fin, qc]);
 
