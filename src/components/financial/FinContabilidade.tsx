@@ -77,6 +77,30 @@ export function FinContabilidade({ currentYear }: Props) {
     return allDeadlines;
   }, [currentYear, fiscalConfig, hasAccountant, accountantType]);
 
+  // Fiscal deadline completions
+  const { data: completions = [] } = useQuery({
+    queryKey: ['fiscal-deadline-completions', currentYear],
+    queryFn: async () => {
+      const { data } = await supabase.from('fiscal_deadline_completions' as any).select('*').eq('year', currentYear);
+      return (data || []) as { id: string; deadline_key: string; year: number; completed_by: string }[];
+    },
+  });
+  const completedKeys = useMemo(() => new Set(completions.map(c => c.deadline_key)), [completions]);
+
+  const toggleDeadlineCompletion = useMutation({
+    mutationFn: async (dl: FiscalDeadline) => {
+      if (!user) throw new Error('Not authenticated');
+      const existing = completions.find(c => c.deadline_key === dl.key);
+      if (existing) {
+        await supabase.from('fiscal_deadline_completions' as any).delete().eq('id', existing.id);
+      } else {
+        await supabase.from('fiscal_deadline_completions' as any).insert({ deadline_key: dl.key, year: currentYear, completed_by: user.id });
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['fiscal-deadline-completions', currentYear] }),
+    onError: () => toast.error('Erro ao atualizar estado'),
+  });
+
   const todayStr = useMemo(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
