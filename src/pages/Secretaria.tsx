@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { RecommendationWidget } from '@/components/RecommendationWidget';
 import { MemberDigestSettings } from '@/components/settings/MemberDigestSettings';
+import { AiInsightsPanel } from '@/components/AiInsightsPanel';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
