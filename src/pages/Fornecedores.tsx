@@ -283,6 +283,7 @@ export default function FornecedoresPage() {
           _recurringLoaded: selectedSupplierId,
           _existingRecurring: {
             value: recurringRule.base_value,
+            total: recurringRule.total_with_vat,
             periodicity: recurringRule.periodicity || 'mensal',
             vat_rate: recurringRule.vat_rate,
             category: recurringRule.category,
@@ -780,7 +781,7 @@ export default function FornecedoresPage() {
                   <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
                     <span>Valor base: <strong className="text-foreground">{fmt(form._existingRecurring.value)}</strong></span>
                     <span>IVA: <strong className="text-foreground">{form._existingRecurring.vat_rate}%</strong></span>
-                    <span>Total: <strong className="text-foreground">{fmt(Math.round(form._existingRecurring.value * (1 + form._existingRecurring.vat_rate / 100) * 100) / 100)}</strong></span>
+                    <span>Total: <strong className="text-foreground">{fmt(form._existingRecurring.total)}</strong></span>
                   </div>
                   <div className="text-xs text-muted-foreground">
                     Periodicidade: <strong className="text-foreground">{PERIODICITIES.find(p => p.value === form._existingRecurring.periodicity)?.label || form._existingRecurring.periodicity}</strong>
