@@ -525,8 +525,11 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
 
       {/* Pagamentos */}
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-2 flex flex-row items-center justify-between">
           <CardTitle className="text-sm">Pagamentos</CardTitle>
+          <Button size="sm" variant="outline" onClick={() => setManualEntryOpen(true)}>
+            <Plus className="h-3 w-3 mr-1" />Nova Entrada
+          </Button>
         </CardHeader>
         <CardContent className="p-0">
           <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-6 gap-2">
