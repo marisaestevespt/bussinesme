@@ -307,6 +307,7 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
               <SelectContent>
                 <SelectItem value="__none__">Sem método</SelectItem>
                 <SelectItem value="transferencia">Transferência Bancária</SelectItem>
+                <SelectItem value="iban:IBAN">IBAN / Transferência</SelectItem>
                 <SelectItem value="cartao:Cartão Bancário">Cartão Bancário</SelectItem>
                 <SelectItem value="debito_direto">Débito Direto</SelectItem>
                 <SelectItem value="mbway">MB WAY</SelectItem>
