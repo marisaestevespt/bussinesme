@@ -271,8 +271,8 @@ export default function ClienteDetailPage() {
   const { data: meetingProfiles = [] } = useQuery({
     queryKey: ['profiles-for-meetings'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id, user_id, full_name, avatar_url');
-      return (data || []) as { id: string; user_id: string; full_name: string | null; avatar_url: string | null }[];
+      const { data } = await supabase.from('profiles').select('id, user_id, full_name, avatar_url, role_title');
+      return (data || []) as { id: string; user_id: string; full_name: string | null; avatar_url: string | null; role_title: string | null }[];
     },
   });
   const { data: meetingProjectOptions = [] } = useQuery({
