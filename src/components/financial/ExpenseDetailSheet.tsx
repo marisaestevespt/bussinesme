@@ -318,13 +318,7 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
               <SelectTrigger><SelectValue placeholder="Sem método" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="__none__">Sem método</SelectItem>
-                <SelectItem value="transferencia">Transferência Bancária</SelectItem>
-                <SelectItem value="iban:IBAN">IBAN / Transferência</SelectItem>
-                <SelectItem value="cartao:Cartão Bancário">Cartão Bancário</SelectItem>
-                <SelectItem value="debito_direto">Débito Direto</SelectItem>
-                <SelectItem value="mbway">MB WAY</SelectItem>
-                <SelectItem value="multibanco">Multibanco</SelectItem>
-                <SelectItem value="numerario">Numerário</SelectItem>
+                {paymentMethods.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
