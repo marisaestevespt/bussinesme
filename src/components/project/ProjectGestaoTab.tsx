@@ -359,6 +359,38 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             created_by: user?.id || null,
           });
         }
+
+        // Pro-rata: if deadline exists and ends mid-month (not on day 1)
+        if (deadline) {
+          const endDate = parseISO(deadline);
+          const lastFullPayDate = setDate(addMonths(start, meses - 1), day);
+          const nextFullPayDate = setDate(addMonths(start, meses), day);
+          // If the contract ends between the last full payment and the next one
+          if (endDate > lastFullPayDate && endDate < nextFullPayDate) {
+            const daysInMonth = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0).getDate();
+            const proRataDays = endDate.getDate() - (day > endDate.getDate() ? 0 : day) + 1;
+            if (proRataDays > 0 && proRataDays < daysInMonth) {
+              const proRataValue = Math.round((valor / daysInMonth) * proRataDays * 100) / 100;
+              const proRataDate = setDate(addMonths(start, meses), day);
+              entries.push({
+                sale_id: genSaleId(),
+                status: 'aguarda_pagamento',
+                payment_date: format(proRataDate, 'yyyy-MM-dd'),
+                description: `Avença Mensal (pro-rata ${proRataDays}d) — ${product}`,
+                base_value: proRataValue,
+                invoice_total: proRataValue,
+                product,
+                client,
+                source: 'projeto',
+                project_id: projectId,
+                sale_month: proRataDate.getMonth() + 1,
+                sale_year: proRataDate.getFullYear(),
+                sale_quarter: Math.ceil((proRataDate.getMonth() + 1) / 3),
+                created_by: user?.id || null,
+              });
+            }
+          }
+        }
       }
 
       if (entries.length === 0) throw new Error('Nenhuma entrada gerada');
