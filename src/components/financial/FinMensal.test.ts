@@ -68,7 +68,9 @@ describe('canRenderSubscriptionForMonth', () => {
   it('respects contract end date', () => {
     const withEnd = { ...activeSub, recurrence_end_date: '2026-11-13' };
     expect(canRenderSubscriptionForMonth(withEnd, 4, 2026)).toBe(true);
-    expect(canRenderSubscriptionForMonth(withEnd, 11, 2026)).toBe(true); // Nov 13 end, Nov 18 due → false
+    expect(canRenderSubscriptionForMonth(withEnd, 10, 2026)).toBe(true);
+    // Nov due date is 18th but contract ends 13th → hidden
+    expect(canRenderSubscriptionForMonth(withEnd, 11, 2026)).toBe(false);
     expect(canRenderSubscriptionForMonth(withEnd, 12, 2026)).toBe(false);
   });
 
