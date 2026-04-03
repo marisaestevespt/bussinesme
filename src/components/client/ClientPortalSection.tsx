@@ -287,45 +287,6 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
         </Card>
       )}
 
-      {/* Monthly Summaries (servico_mensal) */}
-      {portalData.portal_type === 'servico_mensal' && portalData.show_monthly_summary && (
-        <Card>
-          <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm">Resumos Mensais</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex gap-2 items-end">
-              <div className="space-y-1">
-                <Label className="text-xs">Mês</Label>
-                <Input type="number" min={1} max={12} className="h-7 text-xs w-16" value={newSummaryMonth} onChange={e => setNewSummaryMonth(Number(e.target.value))} />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Ano</Label>
-                <Input type="number" className="h-7 text-xs w-20" value={newSummaryYear} onChange={e => setNewSummaryYear(Number(e.target.value))} />
-              </div>
-              <Button size="sm" variant="outline" onClick={() => {
-                if (!newSummaryContent.trim()) return;
-                addSummary.mutate({ portal_id: portalId!, month: newSummaryMonth, year: newSummaryYear, content: newSummaryContent });
-                setNewSummaryContent('');
-              }}>
-                <Plus className="h-3 w-3 mr-1" />Adicionar
-              </Button>
-            </div>
-            <Textarea className="text-xs" placeholder="Conteúdo do resumo mensal..." value={newSummaryContent} onChange={e => setNewSummaryContent(e.target.value)} rows={3} />
-            <div className="space-y-2">
-              {(summaries.data || []).map(s => (
-                <div key={s.id} className="border rounded-md p-2 text-xs">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="font-medium">{s.month}/{s.year}</span>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteSummary.mutate(s.id)}><X className="h-3 w-3" /></Button>
-                  </div>
-                  <Textarea className="text-xs min-h-[40px]" defaultValue={s.content} onBlur={e => updateSummary.mutate({ id: s.id, content: e.target.value })} rows={2} />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Materials */}
       {(portalData as any).show_materials && (
