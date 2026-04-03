@@ -88,7 +88,9 @@ export default function PortalAuthPage() {
     navigate(`/portal/${token}/view`, { replace: true });
   };
 
-  const primaryColor = settings?.primary_color || '#C2662D';
+  const rawColor = settings?.primary_color || '12 76% 52%';
+  const pc = `hsl(${rawColor})`;          // solid color
+  const pcAlpha = (a: number) => `hsl(${rawColor} / ${a})`; // with alpha
   const logoUrl = settings?.logo_url;
   const businessName = settings?.business_name || '';
   const welcomeText = settings?.welcome_text || `Bem-vinda ao teu espaço pessoal${businessName ? ` com a ${businessName}` : ''}.`;
@@ -96,15 +98,15 @@ export default function PortalAuthPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center" style={{ background: `linear-gradient(135deg, ${primaryColor}15 0%, ${primaryColor}05 50%, #fef7f0 100%)` }}>
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: `${primaryColor}40`, borderTopColor: 'transparent' }} />
+      <div className="flex min-h-screen items-center justify-center" style={{ background: `linear-gradient(135deg, ${pcAlpha(0.1)} 0%, ${pcAlpha(0.03)} 50%, #fef7f0 100%)` }}>
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: `${pcAlpha(0.25)}`, borderTopColor: 'transparent' }} />
       </div>
     );
   }
 
   if (!portal) {
     return (
-      <div className="flex min-h-screen items-center justify-center" style={{ background: `linear-gradient(135deg, ${primaryColor}15 0%, ${primaryColor}05 50%, #fef7f0 100%)` }}>
+      <div className="flex min-h-screen items-center justify-center" style={{ background: `linear-gradient(135deg, ${pcAlpha(0.1)} 0%, ${pcAlpha(0.03)} 50%, #fef7f0 100%)` }}>
         <div className="w-full max-w-md mx-4 bg-white rounded-2xl shadow-lg p-8 text-center">
           <p className="text-sm text-muted-foreground">Portal não encontrado.</p>
         </div>
@@ -114,7 +116,7 @@ export default function PortalAuthPage() {
 
   if (!portal.is_active) {
     return (
-      <div className="flex min-h-screen items-center justify-center" style={{ background: `linear-gradient(135deg, ${primaryColor}15 0%, ${primaryColor}05 50%, #fef7f0 100%)` }}>
+      <div className="flex min-h-screen items-center justify-center" style={{ background: `linear-gradient(135deg, ${pcAlpha(0.1)} 0%, ${pcAlpha(0.03)} 50%, #fef7f0 100%)` }}>
         <div className="w-full max-w-md mx-4 bg-white rounded-2xl shadow-lg p-8 text-center">
           <p className="text-sm text-muted-foreground">Este portal não está disponível de momento.</p>
         </div>
@@ -130,11 +132,11 @@ export default function PortalAuthPage() {
         style={{
           background: loginBgUrl
             ? `url(${loginBgUrl}) center/cover no-repeat`
-            : `linear-gradient(160deg, ${primaryColor} 0%, ${primaryColor}cc 40%, ${primaryColor}99 100%)`,
+            : `linear-gradient(160deg, ${pc} 0%, ${pcAlpha(0.8)} 40%, ${pcAlpha(0.6)} 100%)`,
         }}
       >
         {loginBgUrl && (
-          <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${primaryColor}ee 0%, ${primaryColor}66 40%, transparent 100%)` }} />
+          <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${pc} 0%, ${pcAlpha(0.75)} 40%, ${pcAlpha(0.45)} 100%)` }} />
         )}
         <div className="relative z-10 space-y-4 max-w-md">
           {logoUrl && <img src={logoUrl} alt="Logo" className="h-10 object-contain brightness-0 invert" />}
@@ -150,7 +152,7 @@ export default function PortalAuthPage() {
       {/* Right login panel */}
       <div
         className="flex-1 flex items-center justify-center p-6 sm:p-12"
-        style={{ background: `linear-gradient(180deg, #fefcfa 0%, ${primaryColor}08 100%)` }}
+        style={{ background: `linear-gradient(180deg, #fefcfa 0%, ${pcAlpha(0.05)} 100%)` }}
       >
         <div className="w-full max-w-sm space-y-8">
           {/* Mobile logo */}
@@ -161,7 +163,7 @@ export default function PortalAuthPage() {
           <div className="space-y-2 text-center lg:text-left">
             <h1
               className="text-2xl font-bold tracking-tight"
-              style={{ color: primaryColor, fontFamily: 'var(--font-display, "Plus Jakarta Sans", sans-serif)' }}
+              style={{ color: pc, fontFamily: 'var(--font-display, "Plus Jakarta Sans", sans-serif)' }}
             >
               Olá! 👋
             </h1>
@@ -178,12 +180,12 @@ export default function PortalAuthPage() {
                 onChange={e => setEmail(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSubmit()}
                 className="pl-10 h-12 rounded-xl border-border/60 bg-white shadow-sm focus-visible:ring-2 focus-visible:ring-offset-0"
-                style={{ '--tw-ring-color': `${primaryColor}40` } as any}
+                style={{ '--tw-ring-color': `${pcAlpha(0.25)}` } as any}
               />
             </div>
             <Button
               className="w-full h-12 rounded-xl text-sm font-semibold shadow-md transition-all hover:shadow-lg active:scale-[0.98] text-white"
-              style={{ backgroundColor: primaryColor }}
+              style={{ backgroundColor: pc }}
               disabled={submitting || !email.trim()}
               onClick={handleSubmit}
             >
