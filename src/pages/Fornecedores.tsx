@@ -703,11 +703,7 @@ export default function FornecedoresPage() {
                   </Button>
                 )}
                 {form.id && supplierExpenses.some((e: any) => e.is_recurring && e.source_type === 'rule' && e.status !== 'cancelado') && (
-                  <Button type="button" variant="outline" size="sm" className="w-full text-destructive hover:text-destructive" onClick={() => {
-                    if (window.confirm('Cancelar todas as recorrências deste fornecedor? As despesas futuras não pagas serão eliminadas.')) {
-                      cancelRecurrence.mutate(form.id);
-                    }
-                  }}>
+                  <Button type="button" variant="outline" size="sm" className="w-full text-destructive hover:text-destructive" onClick={() => setCancelDialog({ supplierId: form.id })}>
                     <Ban className="h-3.5 w-3.5 mr-1" /> Cancelar Recorrência
                   </Button>
                 )}
