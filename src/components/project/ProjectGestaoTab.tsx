@@ -199,6 +199,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
         const val = parseFloat(totalValue);
         if (!val || val <= 0) throw new Error('Valor inválido');
         entries.push({
+          sale_id: genSaleId(),
           status: 'aguarda_pagamento',
           payment_date: format(start, 'yyyy-MM-dd'),
           description: `Pagamento Total — ${product}`,
