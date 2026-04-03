@@ -14,6 +14,7 @@ interface PaymentDueTodayProps {
   dueDate?: string
   paymentMethod?: string
   iban?: string
+  mbwayNumber?: string
   businessName?: string
   primaryColor?: string
   primaryForeground?: string
@@ -41,7 +42,7 @@ function getPaymentMethodLabel(method?: string): string {
 }
 
 const PaymentDueTodayEmail = ({
-  clientName, productName, amount, dueDate, paymentMethod, iban,
+  clientName, productName, amount, dueDate, paymentMethod, iban, mbwayNumber,
   businessName, primaryColor, primaryForeground, textColor, accentColor,
   fontDisplay, fontBody, logoUrl,
 }: PaymentDueTodayProps) => {
@@ -60,6 +61,8 @@ const PaymentDueTodayEmail = ({
 
   const isAutomatic = paymentMethod === 'cartao' || paymentMethod === 'debito_direto'
   const isTransfer = paymentMethod === 'transferencia'
+  const isMbway = paymentMethod === 'mbway'
+  const isMultibanco = paymentMethod === 'multibanco'
 
   const main = { backgroundColor: '#ffffff', fontFamily: bodyFont }
   const container = { maxWidth: '540px', margin: '0 auto', padding: '40px 24px' }
@@ -135,6 +138,28 @@ const PaymentDueTodayEmail = ({
               <Text style={ibanStyle}>{iban}</Text>
               <Text style={{ fontSize: '12px', color: brandMuted, margin: '4px 0 0' }}>
                 Valor: {value}€
+              </Text>
+            </Section>
+          )}
+
+          {isMbway && mbwayNumber && (
+            <Section style={paymentCard}>
+              <Text style={paymentTitle}>📱 Pagamento por MB WAY</Text>
+              <Text style={{ ...detailRow, lineHeight: '1.6', margin: '0 0 8px' }}>
+                Será enviado um pedido de pagamento para o seu telemóvel. Confirme no número:
+              </Text>
+              <Text style={ibanStyle}>{mbwayNumber}</Text>
+              <Text style={{ fontSize: '12px', color: brandMuted, margin: '4px 0 0' }}>
+                Valor: {value}€
+              </Text>
+            </Section>
+          )}
+
+          {isMultibanco && (
+            <Section style={paymentCard}>
+              <Text style={paymentTitle}>🏧 Pagamento por Multibanco</Text>
+              <Text style={{ ...detailRow, lineHeight: '1.6' }}>
+                Os dados para pagamento Multibanco serão enviados em separado ou disponibilizados no portal de cliente.
               </Text>
             </Section>
           )}

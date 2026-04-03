@@ -42,12 +42,17 @@ Deno.serve(async (req) => {
       .limit(1)
       .single()
 
-    // Get business setup for IBAN
+    // Get business setup for payment details (IBAN, MBWay, etc.)
     const { data: bizSetup } = await supabase
       .from('business_setup')
-      .select('iban')
+      .select('iban, payment_methods')
       .limit(1)
       .single()
+
+    // Extract payment details from payment_methods JSON
+    const paymentMethods = (bizSetup?.payment_methods as any[]) || []
+    const mbwayEntry = paymentMethods.find((pm: any) => pm.type === 'mbway')
+    const mbwayNumber = mbwayEntry?.value || ''
 
     // Find sales with payment_date matching today or 3 days from now
     // that are not yet paid
@@ -120,6 +125,7 @@ Deno.serve(async (req) => {
         if (isToday) {
           templateData.paymentMethod = client.payment_method || ''
           templateData.iban = bizSetup?.iban || ''
+          templateData.mbwayNumber = mbwayNumber
         } else {
           templateData.daysUntil = daysUntil
         }
