@@ -191,11 +191,15 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
       const entries: any[] = [];
       const product = productName || clientData?.current_product || '';
       const client = clientName || '';
+      const year = new Date().getFullYear();
+      let saleCounter = 0;
+      const genSaleId = () => { saleCounter++; return `V${year}-${Date.now()}-${saleCounter}`; };
 
       if (payMethod === 'pagamento_total') {
         const val = parseFloat(totalValue);
         if (!val || val <= 0) throw new Error('Valor inválido');
         entries.push({
+          sale_id: genSaleId(),
           status: 'aguarda_pagamento',
           payment_date: format(start, 'yyyy-MM-dd'),
           description: `Pagamento Total — ${product}`,
@@ -220,6 +224,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
 
         // Entrada
         entries.push({
+          sale_id: genSaleId(),
           status: 'aguarda_pagamento',
           payment_date: format(start, 'yyyy-MM-dd'),
           description: `Entrada — ${product}`,
@@ -241,6 +246,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
         for (let i = 0; i < nPrest; i++) {
           const prestDate = setDate(addMonths(start, i + 1), day);
           entries.push({
+            sale_id: genSaleId(),
             status: 'aguarda_pagamento',
             payment_date: format(prestDate, 'yyyy-MM-dd'),
             description: `Prestação ${i + 1}/${nPrest} — ${product}`,
@@ -266,6 +272,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
         for (let i = 0; i < nPrest; i++) {
           const prestDate = i === 0 ? start : setDate(addMonths(start, i), day);
           entries.push({
+            sale_id: genSaleId(),
             status: 'aguarda_pagamento',
             payment_date: format(prestDate, 'yyyy-MM-dd'),
             description: `Prestação ${i + 1}/${nPrest} — ${product}`,
@@ -290,6 +297,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
         for (let i = 0; i < meses; i++) {
           const avDate = i === 0 ? start : setDate(addMonths(start, i), day);
           entries.push({
+            sale_id: genSaleId(),
             status: 'aguarda_pagamento',
             payment_date: format(avDate, 'yyyy-MM-dd'),
             description: `Avença Mensal ${i + 1}/${meses} — ${product}`,
