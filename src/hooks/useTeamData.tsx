@@ -190,9 +190,10 @@ export function useTeamData() {
   const perfMonthly = useQuery({
     queryKey: [...KEY, 'perf_monthly'],
     queryFn: async () => {
-      const { data } = await supabase.from('performance_monthly').select('*').order('year', { ascending: false });
+      const { data } = await supabase.from('performance_monthly').select('*').order('year', { ascending: false }).limit(200);
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const upsertPerfMonthly = useMutation({
