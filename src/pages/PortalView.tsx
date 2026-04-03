@@ -61,6 +61,7 @@ export default function PortalViewPage() {
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
   const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>({});
+  const [expandedOnbStep, setExpandedOnbStep] = useState<string | null>(null);
 
   useEffect(() => { init(); }, [token]);
 
@@ -336,26 +337,77 @@ export default function PortalViewPage() {
               })()}
             </div>
 
-            {/* Quick action cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {portal.show_onboarding && onboarding.length > 0 && (
-                <SectionCard className="p-5 cursor-pointer group" onClick={() => setActiveSection('onboarding')}>
-                  <div className="flex items-start justify-between">
-                    <div className="p-2.5 rounded-xl" style={{ backgroundColor: pcAlpha(0.1) }}>
-                      <CheckSquare className="h-5 w-5" style={{ color: pc }} />
+            {/* ── Onboarding Step Cards ── */}
+            {portal.show_onboarding && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl" style={{ backgroundColor: pcAlpha(0.1) }}>
+                      <CheckSquare className="h-4 w-4" style={{ color: pc }} />
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:translate-x-0.5 transition-transform" />
+                    <h3 className="text-sm font-bold">Onboarding</h3>
                   </div>
-                  <p className="font-semibold text-sm mt-3">Onboarding</p>
-                  <div className="mt-2 flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div className="flex items-center gap-2">
+                    <div className="w-24 h-1.5 bg-muted rounded-full overflow-hidden">
                       <div className="h-full rounded-full transition-all" style={{ width: `${onbPercent}%`, backgroundColor: pc }} />
                     </div>
-                    <span className="text-xs font-medium text-muted-foreground">{onbPercent}%</span>
+                    <span className="text-xs font-semibold" style={{ color: pc }}>{onbPercent}%</span>
                   </div>
-                </SectionCard>
-              )}
-            </div>
+                </div>
+                {onboarding.length === 0 ? (
+                  <SectionCard className="p-6 text-center">
+                    <p className="text-sm text-muted-foreground">Ainda sem passos de onboarding definidos.</p>
+                  </SectionCard>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {onboarding.map((o: any, i: number) => {
+                      const isExpanded = expandedOnbStep === o.id;
+                      return (
+                        <div
+                          key={o.id}
+                          className="rounded-2xl border border-border/40 bg-white shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden"
+                          onClick={() => setExpandedOnbStep(isExpanded ? null : o.id)}
+                        >
+                          <div className="p-4 flex flex-col items-center text-center">
+                            <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Passo</span>
+                            <span className="text-3xl font-black mt-0.5" style={{ color: o.completed ? 'hsl(var(--muted-foreground))' : pc }}>
+                              {i + 1}
+                            </span>
+                            <div className="mt-2 flex items-center gap-1.5">
+                              {o.completed ? (
+                                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                              ) : (
+                                <Circle className="h-4 w-4 text-muted-foreground/40" />
+                              )}
+                              <span className={`text-xs font-medium ${o.completed ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+                                {o.completed ? 'Concluído' : 'Pendente'}
+                              </span>
+                            </div>
+                          </div>
+                          {isExpanded && (
+                            <div className="px-4 pb-4 border-t border-border/20 pt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
+                              <p className="text-xs font-medium">{o.activity || 'Sem descrição'}</p>
+                              {o.phase && <p className="text-[10px] text-muted-foreground">Fase: {o.phase}</p>}
+                              {o.responsible && <p className="text-[10px] text-muted-foreground">Responsável: {o.responsible}</p>}
+                              <div className="flex items-center gap-2 mt-1">
+                                <Checkbox
+                                  checked={!!o.completed}
+                                  onCheckedChange={async (v) => {
+                                    await sb('client_onboarding').update({ completed: !!v }).eq('id', o.id);
+                                    setOnboarding(prev => prev.map(x => x.id === o.id ? { ...x, completed: !!v } : x));
+                                  }}
+                                />
+                                <span className="text-[10px] text-muted-foreground">Marcar como {o.completed ? 'pendente' : 'concluído'}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Inline initial questions — step-by-step */}
             {questions.length > 0 && (() => {
@@ -890,17 +942,58 @@ export default function PortalViewPage() {
               </div>
               <span className="text-sm font-semibold" style={{ color: pc }}>{onbPercent}%</span>
             </div>
-            <SectionCard className="overflow-hidden">
-              {onboarding.map((o: any) => (
-                <div key={o.id} className={`flex items-center gap-3 px-5 py-4 border-b border-border/20 last:border-0 transition-colors hover:bg-muted/10 ${o.completed ? 'opacity-50' : ''}`}>
-                  <Checkbox checked={o.completed} onCheckedChange={async (v) => {
-                    await sb('client_onboarding').update({ completed: !!v }).eq('id', o.id);
-                    setOnboarding(prev => prev.map(x => x.id === o.id ? { ...x, completed: !!v } : x));
-                  }} />
-                  <span className={`text-sm ${o.completed ? 'line-through' : ''}`}>{o.activity}</span>
-                </div>
-              ))}
-            </SectionCard>
+            {onboarding.length === 0 ? (
+              <SectionCard className="p-8 text-center">
+                <p className="text-sm text-muted-foreground">Ainda sem passos de onboarding definidos.</p>
+              </SectionCard>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {onboarding.map((o: any, i: number) => {
+                  const isExpanded = expandedOnbStep === o.id;
+                  return (
+                    <div
+                      key={o.id}
+                      className="rounded-2xl border border-border/40 bg-white shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden"
+                      onClick={() => setExpandedOnbStep(isExpanded ? null : o.id)}
+                    >
+                      <div className="p-5 flex flex-col items-center text-center">
+                        <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Passo</span>
+                        <span className="text-4xl font-black mt-0.5" style={{ color: o.completed ? 'hsl(var(--muted-foreground))' : pc }}>
+                          {i + 1}
+                        </span>
+                        <div className="mt-3 flex items-center gap-1.5">
+                          {o.completed ? (
+                            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                          ) : (
+                            <Circle className="h-4 w-4 text-muted-foreground/40" />
+                          )}
+                          <span className={`text-xs font-medium ${o.completed ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+                            {o.completed ? 'Concluído' : 'Pendente'}
+                          </span>
+                        </div>
+                      </div>
+                      {isExpanded && (
+                        <div className="px-4 pb-4 border-t border-border/20 pt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
+                          <p className="text-sm font-medium">{o.activity || 'Sem descrição'}</p>
+                          {o.phase && <p className="text-xs text-muted-foreground">Fase: {o.phase}</p>}
+                          {o.responsible && <p className="text-xs text-muted-foreground">Responsável: {o.responsible}</p>}
+                          <div className="flex items-center gap-2 mt-1">
+                            <Checkbox
+                              checked={!!o.completed}
+                              onCheckedChange={async (v) => {
+                                await sb('client_onboarding').update({ completed: !!v }).eq('id', o.id);
+                                setOnboarding(prev => prev.map(x => x.id === o.id ? { ...x, completed: !!v } : x));
+                              }}
+                            />
+                            <span className="text-xs text-muted-foreground">Marcar como {o.completed ? 'pendente' : 'concluído'}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
