@@ -36,6 +36,8 @@ import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
+import { MeetingFormDialog } from '@/pages/Reunioes';
+import type { Profile as MeetingProfile, ProjectOption } from '@/pages/Reunioes';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
