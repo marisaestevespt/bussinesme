@@ -88,7 +88,6 @@ export default function ClienteDetailPage() {
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
   const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
   const [meetingOpen, setMeetingOpen] = useState(false);
-  const [meetingForm, setMeetingForm] = useState({ title: '', date_time: '', meeting_url: '', meeting_type: 'cliente' as 'recorrente' | 'projeto' | 'cliente', department: '' });
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [offboardingDialogOpen, setOffboardingDialogOpen] = useState(false);
