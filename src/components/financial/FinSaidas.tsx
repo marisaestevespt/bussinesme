@@ -76,6 +76,14 @@ export function FinSaidas({ fin, currentYear }: Props) {
       return data || [];
     },
   });
+  const { data: setupPM } = useQuery({
+    queryKey: ['business-setup-payment-methods'],
+    queryFn: async () => {
+      const { data } = await supabase.from('business_setup').select('payment_methods').limit(1).single();
+      return (data?.payment_methods as any[] || []).filter((m: any) => m.label?.trim());
+    },
+  });
+  const paymentMethods = buildPaymentMethodOptions(setupPM);
 
   const expenses = allExpenses.filter(e => {
     if (filter === 'all') return true;
