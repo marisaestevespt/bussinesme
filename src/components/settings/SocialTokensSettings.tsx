@@ -5,28 +5,56 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Link2, RefreshCw, CheckCircle2, AlertCircle, Loader2, HelpCircle, Eye, EyeOff, Unplug } from 'lucide-react';
+import { Link2, RefreshCw, CheckCircle2, AlertCircle, Loader2, HelpCircle, Eye, EyeOff, Unplug, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
+
+const PLATFORM_SETUP_GUIDE: Record<string, string[]> = {
+  instagram: [
+    '1. Vai a developers.facebook.com e faz login',
+    '2. Clica "My Apps" > "Create App" > tipo "Business"',
+    '3. Adiciona o produto "Instagram Graph API"',
+    '4. Em "Tools" > "Graph API Explorer", seleciona a tua app e página',
+    '5. Adiciona permissões: pages_show_list, instagram_basic, instagram_manage_insights',
+    '6. Clica "Generate Access Token" (token curto ~1h)',
+    '7. Para token longo (~60 dias): usa o endpoint /oauth/access_token com grant_type=fb_exchange_token',
+    '8. Para o User ID: no Explorer faz GET /me/accounts?fields=instagram_business_account',
+  ],
+  youtube: [
+    '1. Vai a console.cloud.google.com',
+    '2. Cria um projeto ou usa um existente',
+    '3. Em "APIs & Services" > "Library", ativa "YouTube Data API v3"',
+    '4. Em "Credentials" > "Create Credentials" > "API Key"',
+    '5. O Channel ID encontras em youtube.com > Settings > Advanced Settings',
+  ],
+  facebook: [
+    '1. Vai a developers.facebook.com e cria uma app (tipo "Business")',
+    '2. Adiciona o produto "Facebook Login"',
+    '3. Em "Tools" > "Graph API Explorer", seleciona a tua página',
+    '4. Adiciona permissão pages_read_engagement e gera o token',
+    '5. O Page ID encontras na secção "About" da tua página Facebook',
+  ],
+};
 
 const PLATFORM_INFO: Record<string, { label: string; emoji: string; fields: { key: string; label: string; placeholder: string; help?: string }[] }> = {
   instagram: {
     label: 'Instagram',
     emoji: '📸',
     fields: [
-      { key: 'access_token', label: 'Access Token', placeholder: 'EAAxxxxxxx...', help: 'Token de longa duração da Meta Graph API. Cria uma Facebook App e gera um Page Token.' },
-      { key: 'ig_user_id', label: 'Instagram User ID', placeholder: '17841400000000', help: 'ID numérico da conta Instagram Business. Encontras em developers.facebook.com > Tools > Graph API Explorer.' },
+      { key: 'access_token', label: 'Access Token', placeholder: 'EAAxxxxxxx...', help: 'Token de longa duração da Meta Graph API.' },
+      { key: 'ig_user_id', label: 'Instagram User ID', placeholder: '17841400000000', help: 'ID numérico da conta Instagram Business.' },
     ],
   },
   youtube: {
     label: 'YouTube',
     emoji: '🎬',
     fields: [
-      { key: 'access_token', label: 'API Key', placeholder: 'AIzaSyxxxxxxx...', help: 'Chave de API do Google Cloud. Cria em console.cloud.google.com > APIs & Services > Credentials.' },
-      { key: 'channel_id', label: 'Channel ID', placeholder: 'UCxxxxxxx...', help: 'ID do canal YouTube. Encontras em youtube.com/account_advanced.' },
+      { key: 'access_token', label: 'API Key', placeholder: 'AIzaSyxxxxxxx...', help: 'Chave de API do Google Cloud.' },
+      { key: 'channel_id', label: 'Channel ID', placeholder: 'UCxxxxxxx...', help: 'ID do canal YouTube.' },
     ],
   },
   facebook: {
@@ -38,7 +66,6 @@ const PLATFORM_INFO: Record<string, { label: string; emoji: string; fields: { ke
     ],
   },
 };
-
 const CHANNEL_PLATFORM_MAP: Record<string, string> = {
   instagram: 'instagram',
   youtube: 'youtube',
@@ -326,6 +353,23 @@ export function SocialTokensSettings() {
                 )}
               </div>
             ))}
+
+            {/* Setup guide */}
+            {editChannel && PLATFORM_SETUP_GUIDE[editChannel.platform] && (
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full">
+                  <ChevronDown className="h-3 w-3 transition-transform [[data-state=open]_&]:rotate-180" />
+                  Como obter estas credenciais?
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="mt-2 rounded-md bg-muted/50 p-3 space-y-1">
+                    {PLATFORM_SETUP_GUIDE[editChannel.platform].map((step, i) => (
+                      <p key={i} className="text-[11px] text-muted-foreground leading-relaxed">{step}</p>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
 
             <Button className="w-full" onClick={saveToken} disabled={!formData.access_token?.trim()}>
               Guardar
