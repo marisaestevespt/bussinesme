@@ -67,7 +67,7 @@ interface Meeting { id: string; title: string; date_time: string; status: string
 
 // ─── Sub-page sections for Internal project ─────────────────────
 
-type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'dependencias' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas';
+type SubPage = null | 'objetivo' | 'diretrizes' | 'cronograma' | 'dependencias' | 'entregaveis' | 'reunioes' | 'recursos' | 'notas' | 'outras_info';
 
 const TASK_STATUSES = [
   { value: 'pendente', label: 'Pendente', color: 'bg-gray-100 text-gray-700' },
