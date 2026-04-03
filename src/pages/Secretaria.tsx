@@ -195,6 +195,13 @@ export default function SecretariaPage() {
         {/* Dashboard view (no tab active) */}
         {!activeTab && (
           <>
+            {/* AI Proactive Alerts */}
+            <AiInsightsPanel
+              type="alerts"
+              title="Alertas Inteligentes"
+              buttonLabel="Ver alertas AI"
+              compact
+            />
             {/* Onboarding checklist */}
             {(onboarding.data || []).length > 0 && (() => {
               const items = onboarding.data || [];

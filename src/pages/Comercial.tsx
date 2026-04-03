@@ -50,6 +50,15 @@ export default function ComercialPage() {
 
         {/* Visão Geral inline */}
         <CommercialOverview />
+
+        <Separator />
+
+        {/* AI Analysis */}
+        <AiInsightsPanel
+          type="commercial"
+          title="Análise Comercial AI"
+          buttonLabel="Analisar com AI"
+        />
       </div>
     </AppLayout>
   );
