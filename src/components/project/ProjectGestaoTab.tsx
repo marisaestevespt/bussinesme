@@ -224,6 +224,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
 
         // Entrada
         entries.push({
+          sale_id: genSaleId(),
           status: 'aguarda_pagamento',
           payment_date: format(start, 'yyyy-MM-dd'),
           description: `Entrada — ${product}`,
