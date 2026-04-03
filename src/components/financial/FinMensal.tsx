@@ -869,13 +869,13 @@ function SubRow({ sub, linkedExpense, isPaid, month, currentYear, fin, onExpense
         <ExpenseStatusSelect expenseId={linkedExpense?.id || `sub-${sub.id}`} currentStatus={currentStatus} onUpdate={handleStatusChange} />
       </TableCell>
       <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{expenseId}</TableCell>
+      <TableCell className="whitespace-nowrap">{expenseDate}</TableCell>
       <TableCell>{linkedExpense?.description || subName}</TableCell>
       <TableCell>{getCategoryLabel('expense', category)}</TableCell>
       <TableCell>{LOC_LABELS[linkedExpense ? ((linkedExpense as any).location || sub.location) : sub.location] || sub.location || '—'}</TableCell>
       <TableCell className="text-right">{fmt(displayBase)}</TableCell>
       <TableCell className="text-right">{vatRate}%</TableCell>
       <TableCell className="text-right">{fmt(displayTotal)}</TableCell>
-      <TableCell className="whitespace-nowrap">{expenseDate}</TableCell>
     </TableRow>
   );
 }
