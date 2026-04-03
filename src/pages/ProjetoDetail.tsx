@@ -414,6 +414,17 @@ export default function ProjetoDetailPage() {
     setDirty(true);
   };
 
+  // Auto-save with debounce when dirty
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!dirty || !local) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      saveMutation.mutate();
+    }, 1500);
+    return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
+  }, [dirty, local]);
+
   const calcTotalTime = async (projectId: string) => {
     // Sum time from time_entries directly linked to project
     const { data: directTime } = await supabase.from('time_entries').select('duration').eq('project_id', projectId);

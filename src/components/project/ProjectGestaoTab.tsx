@@ -23,7 +23,10 @@ interface Props {
   productName?: string | null;
   startDate?: string | null;
   deadline?: string | null;
+  projectPaymentMethod?: string | null;
+  projectPaymentConfig?: Record<string, any> | null;
   onNewMeeting: () => void;
+  onUpdateProject?: (field: string, value: any) => void;
 }
 
 const PAYMENT_METHODS = [
