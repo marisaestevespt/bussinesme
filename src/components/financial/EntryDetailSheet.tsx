@@ -86,6 +86,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
   const [docs, setDocs] = useState<DocEntry[]>([]);
   const [saving, setSaving] = useState(false);
   const [confirmNoDocsOpen, setConfirmNoDocsOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   // Sync state when sale changes
   const [lastId, setLastId] = useState<string | null>(null);
