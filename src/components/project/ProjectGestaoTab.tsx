@@ -187,8 +187,11 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   // ─── Generate sales entries ───────────────────────────────────
   const generateSales = useMutation({
     mutationFn: async () => {
-      if (!clientStartDate) throw new Error('Cliente sem data de início definida');
-      const start = parseISO(clientStartDate);
+      if (!billingStartDate) throw new Error('Projeto sem data de início definida');
+      const start = parseISO(billingStartDate);
+      const currentMonthStart = new Date();
+      currentMonthStart.setDate(1);
+      currentMonthStart.setHours(0, 0, 0, 0);
       const entries: any[] = [];
       const product = productName || clientData?.current_product || '';
       const client = clientName || '';
