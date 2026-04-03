@@ -99,29 +99,27 @@ async function gatherData(supabase: any, type: string) {
 
   switch (type) {
     case "executive": {
-      const [clients, sales, tasks, expenses, entries] = await Promise.all([
+      const [clients, sales, tasks, expenses] = await Promise.all([
         supabase.from("clients").select("id, status, full_name, start_date, end_of_cycle").limit(500),
-        supabase.from("commercial_sales").select("id, amount, status, sale_month, sale_year, client, product").eq("sale_year", year).limit(500),
+        supabase.from("commercial_sales").select("id, amount, invoice_total, status, sale_month, sale_year, client, product").eq("sale_year", year).limit(500),
         supabase.from("tasks").select("id, status, due_date, title").limit(500),
-        supabase.from("financial_expenses").select("id, amount, expense_date, category, status").gte("expense_date", monthStart).lt("expense_date", monthEnd).limit(500),
-        supabase.from("financial_entries").select("id, amount, entry_date, category, status").gte("entry_date", monthStart).lt("entry_date", monthEnd).limit(500),
+        supabase.from("financial_expenses").select("id, amount, total_with_vat, expense_date, category, status").gte("expense_date", monthStart).lt("expense_date", monthEnd).limit(500),
       ]);
 
       const activeClients = (clients.data || []).filter((c: any) => c.status === "ativo").length;
       const totalClients = (clients.data || []).length;
       const monthSales = (sales.data || []).filter((s: any) => s.sale_month === month);
-      const totalRevenue = monthSales.reduce((sum: number, s: any) => sum + (Number(s.amount) || 0), 0);
+      const totalRevenue = monthSales.reduce((sum: number, s: any) => sum + (Number(s.invoice_total) || Number(s.amount) || 0), 0);
       const pendingTasks = (tasks.data || []).filter((t: any) => t.status !== "concluida" && t.status !== "cancelada");
       const overdueTasks = pendingTasks.filter((t: any) => t.due_date && new Date(t.due_date) < now);
-      const totalExpenses = (expenses.data || []).reduce((sum: number, e: any) => sum + (Number(e.amount) || 0), 0);
-      const totalEntries = (entries.data || []).reduce((sum: number, e: any) => sum + (Number(e.amount) || 0), 0);
+      const totalExpenses = (expenses.data || []).reduce((sum: number, e: any) => sum + (Number(e.total_with_vat) || Number(e.amount) || 0), 0);
 
       return {
         periodo: `${String(month).padStart(2, "0")}/${year}`,
         clientes: { ativos: activeClients, total: totalClients },
         vendas_mes: { total: monthSales.length, receita: totalRevenue },
         tarefas: { pendentes: pendingTasks.length, atrasadas: overdueTasks.length },
-        financeiro: { entradas: totalEntries, saidas: totalExpenses, margem: totalEntries - totalExpenses },
+        financeiro: { receita: totalRevenue, despesas: totalExpenses, margem: totalRevenue - totalExpenses },
       };
     }
 
