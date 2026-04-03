@@ -297,12 +297,13 @@ export function FinContabilidade({ currentYear }: Props) {
                 </TableHeader>
                 <TableBody>
                   {deadlines.map(dl => {
-                    const status = getDeadlineStatus(dl.date, todayStr);
+                    const isCompleted = completedKeys.has(dl.key);
+                    const status = isCompleted ? 'done' : getDeadlineStatus(dl.date, todayStr);
                     const assigneeName = dl.deadline_type === 'declaracao' && hasAccountant && accountantType === 'interno' && accountantMember?.full_name
                       ? accountantMember.full_name
                       : 'Owner';
                     return (
-                      <TableRow key={dl.key}>
+                      <TableRow key={dl.key} className={isCompleted ? 'opacity-60' : ''}>
                         <TableCell className="font-medium">{dl.name}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-[10px]">
@@ -311,22 +312,31 @@ export function FinContabilidade({ currentYear }: Props) {
                         </TableCell>
                         <TableCell>{new Date(dl.date + 'T00:00:00').toLocaleDateString('pt-PT')}</TableCell>
                         <TableCell>
-                          {status === 'overdue' && <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> Em atraso</Badge>}
-                          {status === 'soon' && <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 gap-1"><Clock className="h-3 w-3" /> Próximo</Badge>}
-                          {status === 'upcoming' && <Badge variant="secondary" className="gap-1">Por vir</Badge>}
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              checked={isCompleted}
+                              onCheckedChange={() => toggleDeadlineCompletion.mutate(dl)}
+                            />
+                            {status === 'done' && <Badge className="bg-success/10 text-success gap-1"><CheckSquare className="h-3 w-3" /> Concluído</Badge>}
+                            {status === 'overdue' && <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> Em atraso</Badge>}
+                            {status === 'soon' && <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 gap-1"><Clock className="h-3 w-3" /> Próximo</Badge>}
+                            {status === 'upcoming' && <Badge variant="secondary" className="gap-1">Por vir</Badge>}
+                          </div>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{assigneeName}</TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={creatingTask === dl.key}
-                            onClick={() => handleCreateTask(dl)}
-                            className="gap-1"
-                          >
-                            <CheckSquare className="h-3 w-3" />
-                            Criar tarefa
-                          </Button>
+                          {!isCompleted && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={creatingTask === dl.key}
+                              onClick={() => handleCreateTask(dl)}
+                              className="gap-1"
+                            >
+                              <CheckSquare className="h-3 w-3" />
+                              Criar tarefa
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     );
