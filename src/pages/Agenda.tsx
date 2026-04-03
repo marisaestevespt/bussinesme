@@ -110,6 +110,39 @@ function useEvents(userId: string | undefined, isOwner: boolean) {
   });
 }
 
+const MEETING_PSEUDO_COLOR = '#8B5CF6'; // violet for meetings on calendar
+
+function useMeetingsAsEvents() {
+  return useQuery({
+    queryKey: ['meetings-as-events'],
+    staleTime: 2 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('meetings')
+        .select('id,title,date_time,status,meeting_url,client_name,department,project_name,is_recurring,recurrence_frequency,recurrence_end_date')
+        .order('date_time');
+      if (error) throw error;
+      return (data || []).map((m: any): EventRow & { _isMeeting: true; _meetingId: string } => ({
+        id: `meeting_${m.id}`,
+        _isMeeting: true as const,
+        _meetingId: m.id,
+        title: `📹 ${m.title}`,
+        event_type_id: null,
+        start_date: m.date_time,
+        end_date: null,
+        product_name: null,
+        department: m.department || null,
+        client_name: m.client_name || null,
+        notes: m.project_name ? `Projeto: ${m.project_name}` : null,
+        created_by: null,
+        recurrence_type: null, // instances are already separate rows
+        recurrence_end: null,
+        meeting_url: m.meeting_url || null,
+      }));
+    },
+  });
+}
+
 function useProfiles() {
   return useQuery({
     queryKey: ['profiles'],
@@ -153,7 +186,14 @@ function getType(types: EventType[], id: string | null): EventType | undefined {
   return types.find(t => t.id === id);
 }
 
-function TypeBadge({ types, typeId }: { types: EventType[]; typeId: string | null }) {
+function TypeBadge({ types, typeId, isMeeting }: { types: EventType[]; typeId: string | null; isMeeting?: boolean }) {
+  if (isMeeting) {
+    return (
+      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: `${MEETING_PSEUDO_COLOR}20`, color: MEETING_PSEUDO_COLOR }}>
+        Reunião
+      </span>
+    );
+  }
   const t = getType(types, typeId);
   if (!t) return <span className="text-xs text-muted-foreground">—</span>;
   return (
@@ -714,8 +754,9 @@ function CalendarView({ events, types, onEventClick }: { events: EventRow[]; typ
       });
 
       if (firstCol !== -1) {
+        const isMeeting = (ev as any)._isMeeting;
         const t = getType(types, ev.event_type_id);
-        const color = t?.color ?? '#888';
+        const color = isMeeting ? MEETING_PSEUDO_COLOR : (t?.color ?? '#888');
         bars.push({ ev, startCol: firstCol, span: lastCol - firstCol + 1, color });
       }
     });
@@ -819,7 +860,7 @@ function ListView({ events, types, onEventClick }: { events: EventRow[]; types: 
       {events.map(ev => (
         <button key={ev.id} onClick={() => onEventClick(ev)} className="grid grid-cols-12 gap-2 px-4 py-3 w-full text-left hover:bg-muted/50 transition-colors text-sm">
           <div className="col-span-3 font-medium text-foreground truncate">{ev.title}</div>
-          <div className="col-span-2"><TypeBadge types={types} typeId={ev.event_type_id} /></div>
+          <div className="col-span-2"><TypeBadge types={types} typeId={ev.event_type_id} isMeeting={(ev as any)._isMeeting} /></div>
           <div className="col-span-2 text-muted-foreground text-xs">
             {format(parseISO(ev.start_date), "dd MMM yyyy", { locale: pt })}
           </div>
@@ -963,10 +1004,22 @@ export default function AgendaPage() {
 
   const { isOwner, user } = useAuth();
   const { data: events = [], isLoading } = useEvents(user?.id, isOwner);
+  const { data: meetingEvents = [] } = useMeetingsAsEvents();
   const { data: types = [] } = useEventTypes();
   const { data: profiles = [] } = useProfiles();
 
-  const handleEventClick = (ev: EventRow) => { setDetailEvent(ev); setDetailOpen(true); };
+  // Merge events + meetings into a single sorted list
+  const allEvents = [...events, ...meetingEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
+
+  const handleEventClick = (ev: EventRow) => {
+    // If it's a meeting, navigate to meeting detail page
+    if ((ev as any)._isMeeting) {
+      window.open(`/hub/reunioes/${(ev as any)._meetingId}`, '_self');
+      return;
+    }
+    setDetailEvent(ev);
+    setDetailOpen(true);
+  };
   const handleEdit = () => { setDetailOpen(false); if (detailEvent) { setEditEvent(detailEvent); setFormOpen(true); } };
   const handleNewEvent = () => { setEditEvent(null); setFormOpen(true); };
 
@@ -1000,9 +1053,9 @@ export default function AgendaPage() {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         ) : view === 'calendar' ? (
-          <CalendarView events={events} types={types} onEventClick={handleEventClick} />
+          <CalendarView events={allEvents} types={types} onEventClick={handleEventClick} />
         ) : (
-          <ListView events={events} types={types} onEventClick={handleEventClick} />
+          <ListView events={allEvents} types={types} onEventClick={handleEventClick} />
         )}
       </div>
 
