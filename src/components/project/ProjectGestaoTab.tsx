@@ -102,14 +102,15 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   const billingStartDate = startDate || clientData?.start_date;
   const comData = useCommercialData();
 
-  const { data: productNamesList } = useQuery({
-    queryKey: ['product-names-gestao'],
+  const { data: productsList } = useQuery({
+    queryKey: ['products-gestao'],
     queryFn: async () => {
-      const { data } = await supabase.from('products').select('name');
-      return (data || []).map(p => p.name);
+      const { data } = await supabase.from('products').select('name, vat_rate');
+      return data || [];
     },
     staleTime: 5 * 60 * 1000,
   });
+  const productNamesList = useMemo(() => (productsList || []).map(p => p.name), [productsList]);
 
   // Auto-calculate numMeses from start_date + deadline for avença_mensal
   useEffect(() => {
@@ -245,6 +246,8 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
       const entries: any[] = [];
       const product = productName || clientData?.current_product || '';
       const client = clientName || '';
+      const vatRate = Number((productsList || []).find(p => p.name === product)?.vat_rate) || 0;
+      const applyVat = (base: number) => Math.round(base * (1 + vatRate / 100) * 100) / 100;
       const year = new Date().getFullYear();
       let saleCounter = 0;
       const genSaleId = () => { saleCounter++; return `V${year}-${Date.now()}-${saleCounter}`; };
@@ -258,7 +261,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
           payment_date: format(start, 'yyyy-MM-dd'),
           description: `Pagamento Total — ${product}`,
           base_value: val,
-          invoice_total: val,
+          invoice_total: applyVat(val),
           product,
           client,
           source: 'projeto',
@@ -284,7 +287,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
           payment_date: format(start, 'yyyy-MM-dd'),
           description: `Entrada — ${product}`,
           base_value: entrada,
-          invoice_total: entrada,
+          invoice_total: applyVat(entrada),
           product,
           client,
           source: 'projeto',
@@ -307,7 +310,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             payment_date: format(prestDate, 'yyyy-MM-dd'),
             description: `Prestação ${i + 1}/${nPrest} — ${product}`,
             base_value: i === nPrest - 1 ? Math.round((restante - valorPrestacao * (nPrest - 1)) * 100) / 100 : valorPrestacao,
-            invoice_total: i === nPrest - 1 ? Math.round((restante - valorPrestacao * (nPrest - 1)) * 100) / 100 : valorPrestacao,
+            invoice_total: applyVat(i === nPrest - 1 ? Math.round((restante - valorPrestacao * (nPrest - 1)) * 100) / 100 : valorPrestacao),
             product,
             client,
             source: 'projeto',
@@ -334,7 +337,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             payment_date: format(prestDate, 'yyyy-MM-dd'),
             description: `Prestação ${i + 1}/${nPrest} — ${product}`,
             base_value: i === nPrest - 1 ? Math.round((total - valorPrestacao * (nPrest - 1)) * 100) / 100 : valorPrestacao,
-            invoice_total: i === nPrest - 1 ? Math.round((total - valorPrestacao * (nPrest - 1)) * 100) / 100 : valorPrestacao,
+            invoice_total: applyVat(i === nPrest - 1 ? Math.round((total - valorPrestacao * (nPrest - 1)) * 100) / 100 : valorPrestacao),
             product,
             client,
             source: 'projeto',
@@ -360,7 +363,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             payment_date: format(avDate, 'yyyy-MM-dd'),
             description: `Avença Mensal ${i + 1}/${meses} — ${product}`,
             base_value: valor,
-            invoice_total: valor,
+            invoice_total: applyVat(valor),
             product,
             client,
             source: 'projeto',
@@ -400,7 +403,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
                 payment_date: format(proRataPayDate, 'yyyy-MM-dd'),
                 description: `Avença Mensal (pro-rata ${proRataDays}d) — ${product}`,
                 base_value: proRataValue,
-                invoice_total: proRataValue,
+                invoice_total: applyVat(proRataValue),
                 product,
                 client,
                 source: 'projeto',
