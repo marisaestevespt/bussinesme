@@ -141,7 +141,11 @@ export default function ClienteDetailPage() {
         toast.success('Cliente guardado');
         return id || null;
       }
-    } catch { return null; }
+    } catch (err: any) {
+      console.error('Client save error:', err);
+      toast.error(err?.message || 'Erro ao guardar cliente');
+      return null;
+    }
   };
 
   const confirmOffboarding = async () => {
