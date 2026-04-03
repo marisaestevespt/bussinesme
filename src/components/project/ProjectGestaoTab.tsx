@@ -571,6 +571,13 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
       </Card>
 
       <SaleDetailDialog saleId={selectedSaleId} open={!!selectedSaleId} onOpenChange={o => { if (!o) setSelectedSaleId(null); }} />
+      <SaleFormDialog
+        open={manualEntryOpen}
+        onOpenChange={setManualEntryOpen}
+        products={productNamesList || []}
+        initialData={{ client: clientName, product: productName, source: 'projeto', project_id: projectId, status: 'aguarda_pagamento' }}
+        onSave={(sale) => { comData.upsertSale.mutate(sale); setManualEntryOpen(false); }}
+      />
 
       {/* Reuniões */}
       <Card>
