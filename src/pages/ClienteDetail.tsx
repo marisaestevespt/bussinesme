@@ -832,53 +832,17 @@ export default function ClienteDetailPage() {
         </Tabs>
       </div>
 
-      {/* Meeting dialog */}
-      <Dialog open={meetingOpen} onOpenChange={setMeetingOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Nova Reunião</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <Label>Tipo de reunião</Label>
-              <Select value={meetingForm.meeting_type} onValueChange={v => setMeetingForm(p => ({ ...p, meeting_type: v as any }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cliente">Reunião com Cliente</SelectItem>
-                  <SelectItem value="recorrente">Reunião Recorrente</SelectItem>
-                  <SelectItem value="projeto">Reunião de Projeto</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Título</Label>
-              <Input value={meetingForm.title} onChange={e => setMeetingForm(p => ({ ...p, title: e.target.value }))} />
-            </div>
-            <div>
-              <Label>Data & Hora</Label>
-              <Input type="datetime-local" value={meetingForm.date_time} onChange={e => setMeetingForm(p => ({ ...p, date_time: e.target.value }))} />
-            </div>
-            <div>
-              <Label>Departamento</Label>
-              <Select value={meetingForm.department} onValueChange={v => setMeetingForm(p => ({ ...p, department: v }))}>
-                <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
-                <SelectContent>
-                  {DEPARTMENTS.map(d => (
-                    <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Link de Acesso</Label>
-              <Input value={meetingForm.meeting_url} onChange={e => setMeetingForm(p => ({ ...p, meeting_url: e.target.value }))} placeholder="https://..." />
-            </div>
-            <p className="text-xs text-muted-foreground">Cliente: <span className="font-medium text-foreground">{form.full_name || '—'}</span> (pré-associado)</p>
-            <Button className="w-full" onClick={() => {
-              if (!meetingForm.title || !meetingForm.date_time) { toast.error('Título e data são obrigatórios'); return; }
-              createMeeting.mutate(meetingForm);
-            }}>Criar Reunião</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Meeting dialog — full form with recurrence support */}
+      <MeetingFormDialog
+        open={meetingOpen}
+        onOpenChange={setMeetingOpen}
+        profiles={meetingProfiles}
+        projects={meetingProjectOptions}
+        clients={meetingClientsList}
+        defaultClientId={isNew ? undefined : id}
+        defaultClientName={form.full_name || undefined}
+        defaultRecurrenceEndDate={defaultRecurrenceEnd}
+      />
 
       {/* New Project dialog */}
       <Dialog open={projectDialogOpen} onOpenChange={setProjectDialogOpen}>
