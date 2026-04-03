@@ -110,9 +110,12 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
     const periodicityMultipliers: Record<string, number> = { mensal: 1, trimestral: 3, semestral: 6, anual: 12 };
     const monthlyEquivalent = isRecurring ? Math.round(total / (periodicityMultipliers[periodicity || 'mensal'] || 1) * 100) / 100 : 0;
 
+    // Auto-upgrade status: if has documents and status is "pago_falta_fatura", set to "tudo_ok"
+    const autoStatus = (form.status === 'pago_falta_fatura' && regularDocs.length > 0) ? 'tudo_ok' : form.status;
+
     await fin.upsertExpense.mutateAsync({
       id: form.id,
-      status: form.status,
+      status: autoStatus,
       expense_date: date,
       description: form.description || null,
       category: form.category,
