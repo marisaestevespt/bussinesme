@@ -297,6 +297,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
         for (let i = 0; i < meses; i++) {
           const avDate = i === 0 ? start : setDate(addMonths(start, i), day);
           entries.push({
+            sale_id: genSaleId(),
             status: 'aguarda_pagamento',
             payment_date: format(avDate, 'yyyy-MM-dd'),
             description: `Avença Mensal ${i + 1}/${meses} — ${product}`,
