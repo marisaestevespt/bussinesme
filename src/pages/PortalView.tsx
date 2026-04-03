@@ -14,7 +14,7 @@ import { pt } from 'date-fns/locale';
 import {
   FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare,
   MessageSquare, Star, Send, ClipboardList, Clock, History,
-  FolderOpen, Download, ChevronRight, Sparkles, Upload, Briefcase
+  FolderOpen, Download, ChevronRight, Sparkles, Upload, Briefcase, CheckCircle2, Circle, Image as ImageIcon
 } from 'lucide-react';
 import type { Portal } from '@/hooks/usePortalData';
 
@@ -530,93 +530,126 @@ export default function PortalViewPage() {
           <div className="space-y-5">
             <SectionTitle icon={Briefcase}>Espaço de Trabalho</SectionTitle>
 
-            {/* Project phases / timeline */}
-            <SectionCard className="p-6">
-              <p className="text-sm font-semibold mb-4">📋 Fases do Projeto</p>
-              {phases.length > 0 ? (
-                <div className="space-y-0">
-                  {phases.map((p: any, i: number) => {
-                    const done = p.status === 'concluido';
-                    const active = p.status === 'em_curso';
-                    return (
-                      <div key={p.id} className="flex items-center gap-4 relative">
-                        {i < phases.length - 1 && (
-                          <div className="absolute left-4 top-10 w-0.5 h-6" style={{ backgroundColor: done ? pcAlpha(0.25) : '#e5e5e5' }} />
-                        )}
-                        <div
-                          className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all ${
-                            done ? 'text-white' : active ? 'text-white ring-4 ring-opacity-20' : 'bg-muted text-muted-foreground'
-                          }`}
-                          style={done || active ? { backgroundColor: pc } : undefined}
-                        >
-                          {done ? '✓' : i + 1}
-                        </div>
-                        <div className="flex-1 py-3">
-                          <p className={`text-sm font-medium ${done ? 'text-muted-foreground line-through' : ''}`}>{p.title}</p>
-                        </div>
-                        <Badge variant="outline" className={`text-[10px] ${
-                          done ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                          active ? 'text-white border-0' : ''
-                        }`} style={active ? { backgroundColor: pc } : undefined}>
-                          {done ? 'Concluído' : active ? 'Em curso' : 'Por começar'}
-                        </Badge>
+            {/* Project phases - Cards with progress bar */}
+            {(() => {
+              const total = phases.length;
+              const done = phases.filter((p: any) => p.status === 'concluido').length;
+              const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+              return (
+                <SectionCard className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-sm font-semibold">📋 Fases do Projeto</p>
+                    {total > 0 && <span className="text-xs text-muted-foreground">{done}/{total} concluídas</span>}
+                  </div>
+                  {total > 0 ? (
+                    <>
+                      {/* Progress bar */}
+                      <div className="h-2.5 rounded-full bg-muted/40 mb-5 overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: pc }} />
                       </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Ainda sem fases definidas. Em breve terás aqui o progresso do teu projeto.</p>
-              )}
-            </SectionCard>
+                      {/* Phase cards grid */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {phases.map((p: any, i: number) => {
+                          const isDone = p.status === 'concluido';
+                          const isActive = p.status === 'em_curso';
+                          return (
+                            <div
+                              key={p.id}
+                              className={`rounded-xl border p-4 text-center transition-all ${
+                                isDone ? 'border-emerald-200 bg-emerald-50/50' :
+                                isActive ? 'border-2 shadow-sm' : 'border-border/30 bg-muted/10'
+                              }`}
+                              style={isActive ? { borderColor: pc, backgroundColor: pcAlpha(0.04) } : undefined}
+                            >
+                              <div className="flex items-center justify-center mb-2">
+                                {isDone ? (
+                                  <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+                                ) : isActive ? (
+                                  <div className="h-6 w-6 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: pc }}>
+                                    {i + 1}
+                                  </div>
+                                ) : (
+                                  <Circle className="h-6 w-6 text-muted-foreground/40" />
+                                )}
+                              </div>
+                              <p className={`text-xs font-medium leading-tight ${isDone ? 'text-muted-foreground line-through' : ''}`}>{p.title}</p>
+                              <p className={`text-[10px] mt-1 ${
+                                isDone ? 'text-emerald-600' : isActive ? 'font-medium' : 'text-muted-foreground'
+                              }`} style={isActive ? { color: pc } : undefined}>
+                                {isDone ? 'Concluído' : isActive ? 'Em curso' : 'Por começar'}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Ainda sem fases definidas. Em breve terás aqui o progresso do teu projeto.</p>
+                  )}
+                </SectionCard>
+              );
+            })()}
 
-            {/* Deliverables (documents & drive) */}
+            {/* Deliverables - Gallery */}
             <SectionCard className="p-6">
-              <p className="text-sm font-semibold mb-3">📦 Entregáveis</p>
-              {(client.documents || client.drive_folder_url) ? (
-                <div className="space-y-2">
-                  {client.documents && (
-                    <a href={client.documents} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 text-sm hover:underline rounded-lg p-2 -mx-2 hover:bg-muted/30 transition-colors"
-                      style={{ color: pc }}>
-                      <FileText className="h-3.5 w-3.5 shrink-0" />
-                      Documentos
-                    </a>
-                  )}
-                  {client.drive_folder_url && (
-                    <a href={client.drive_folder_url} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 text-sm hover:underline rounded-lg p-2 -mx-2 hover:bg-muted/30 transition-colors"
-                      style={{ color: pc }}>
-                      <FolderOpen className="h-3.5 w-3.5 shrink-0" />
-                      Pasta Drive
-                    </a>
-                  )}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Sem entregáveis disponíveis de momento.</p>
-              )}
-              {portalMaterials.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  {portalMaterials.map((m: any) => (
-                    <a key={m.id} href={m.file_url} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 text-sm hover:underline rounded-lg p-2 -mx-2 hover:bg-muted/30 transition-colors"
-                      style={{ color: pc }}>
-                      <Download className="h-3.5 w-3.5 shrink-0" />
-                      {m.file_name}
-                    </a>
-                  ))}
-                </div>
-              )}
+              <p className="text-sm font-semibold mb-4">📦 Entregáveis</p>
+              {(() => {
+                const allItems: { id: string; label: string; url: string; type: 'link' | 'file' }[] = [];
+                if (client.documents) allItems.push({ id: 'docs', label: 'Documentos', url: client.documents, type: 'link' });
+                if (client.drive_folder_url) allItems.push({ id: 'drive', label: 'Pasta Drive', url: client.drive_folder_url, type: 'link' });
+                portalMaterials.forEach((m: any) => allItems.push({ id: m.id, label: m.file_name, url: m.file_url, type: 'file' }));
+
+                return allItems.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {allItems.map(item => (
+                      <a
+                        key={item.id}
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group rounded-xl border border-border/30 p-4 hover:shadow-md hover:border-border/60 transition-all flex flex-col items-center gap-3 text-center"
+                      >
+                        <div className="p-3 rounded-xl transition-colors" style={{ backgroundColor: pcAlpha(0.08) }}>
+                          {item.type === 'link' ? (
+                            <FolderOpen className="h-6 w-6" style={{ color: pc }} />
+                          ) : (
+                            <FileText className="h-6 w-6" style={{ color: pc }} />
+                          )}
+                        </div>
+                        <span className="text-xs font-medium truncate w-full">{item.label}</span>
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                          <Download className="h-3 w-3" />
+                          {item.type === 'link' ? 'Abrir' : 'Descarregar'}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Ainda sem entregáveis disponíveis.</p>
+                );
+              })()}
             </SectionCard>
 
-            {/* Tasks */}
+            {/* Tasks - Table */}
             <SectionCard className="p-5">
               <p className="text-sm font-semibold mb-3">✅ Tarefas</p>
               {tasks.length > 0 ? (
-                <div className="space-y-1">
-                  {tasks.map((t: any) => (
-                    <div key={t.id} className="flex items-center justify-between py-2.5 px-2 -mx-2 rounded-lg hover:bg-muted/20 transition-colors">
-                      <span className="text-sm">{t.name}</span>
-                      <Badge variant="outline" className="text-[10px]">{t.status}</Badge>
+                <div className="rounded-lg border border-border/30 overflow-hidden">
+                  <div className="grid grid-cols-[1fr_120px] bg-muted/30 px-4 py-2.5 text-xs font-medium text-muted-foreground">
+                    <span>Tarefa</span>
+                    <span className="text-center">Estado</span>
+                  </div>
+                  {tasks.map((t: any, i: number) => (
+                    <div key={t.id} className={`grid grid-cols-[1fr_120px] px-4 py-3 text-sm items-center ${i < tasks.length - 1 ? 'border-b border-border/20' : ''}`}>
+                      <span className="truncate">{t.name}</span>
+                      <div className="flex justify-center">
+                        <Badge variant="outline" className={`text-[10px] ${
+                          t.status === 'concluida' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                          t.status === 'em_progresso' ? 'border-0 text-white' : ''
+                        }`} style={t.status === 'em_progresso' ? { backgroundColor: pc } : undefined}>
+                          {t.status === 'concluida' ? 'Concluída' : t.status === 'em_progresso' ? 'Em progresso' : t.status === 'pendente' ? 'Pendente' : t.status}
+                        </Badge>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -625,7 +658,7 @@ export default function PortalViewPage() {
               )}
             </SectionCard>
 
-            {/* FAQs inside workspace */}
+            {/* FAQs - Accordion */}
             <SectionCard className="p-5">
               <p className="text-sm font-semibold mb-3">❓ Perguntas Frequentes</p>
               {faqs.length > 0 ? (
