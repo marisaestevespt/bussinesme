@@ -10,7 +10,7 @@ import { InvoiceUpload, DocEntry } from './InvoiceUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
-import { FileText, Copy } from 'lucide-react';
+import { FileText, Copy, Trash2 } from 'lucide-react';
 
 const ENTRY_STATUSES = [
   { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
@@ -86,6 +86,7 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
   const [docs, setDocs] = useState<DocEntry[]>([]);
   const [saving, setSaving] = useState(false);
   const [confirmNoDocsOpen, setConfirmNoDocsOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   // Sync state when sale changes
   const [lastId, setLastId] = useState<string | null>(null);
@@ -115,6 +116,17 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
       qc.invalidateQueries({ queryKey: ['commercial'] });
     }
     setSaving(false);
+  };
+
+  const handleDelete = async () => {
+    const { error } = await supabase.from('commercial_sales').delete().eq('id', sale.id);
+    if (error) {
+      toast.error('Erro ao eliminar');
+    } else {
+      toast.success('Entrada eliminada');
+      qc.invalidateQueries({ queryKey: ['commercial'] });
+      onOpenChange(false);
+    }
   };
 
   return (
@@ -247,9 +259,14 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
             label="Ficheiros (faturas, comprovativos, recibos)"
           />
 
-          <Button className="w-full" onClick={handleSave} disabled={saving}>
-            {saving ? 'A guardar...' : 'Guardar alterações'}
-          </Button>
+          <div className="flex gap-2">
+            <Button className="flex-1" onClick={handleSave} disabled={saving}>
+              {saving ? 'A guardar...' : 'Guardar alterações'}
+            </Button>
+            <Button variant="destructive" size="icon" onClick={() => setConfirmDeleteOpen(true)}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
@@ -270,6 +287,22 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
             setConfirmNoDocsOpen(false);
           }}>
             Sim, finalizar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Eliminar entrada</AlertDialogTitle>
+          <AlertDialogDescription>
+            Tens a certeza que queres eliminar esta entrada ({sale.sale_id})? Esta ação não pode ser revertida.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Eliminar
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
