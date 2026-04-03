@@ -838,6 +838,297 @@ async function buildMemberDigest(
   return html;
 }
 
+// ─── Owner EOD Digest Builder ─────────────────────────────
+async function buildOwnerEodDigest(
+  supabase: any,
+  sections: Record<string, boolean>,
+  todayStr: string,
+  now: Date
+): Promise<string> {
+  let html = "";
+  let hasContent = false;
+
+  // ── Tarefas concluídas hoje (equipa) ──
+  if (sections.tarefas_concluidas_equipa !== false) {
+    const { data: tasks } = await supabase
+      .from("tasks")
+      .select("name, assigned_to, profiles!tasks_assigned_to_fkey(full_name)")
+      .in("status", ["done", "concluida"])
+      .gte("updated_at", todayStr + "T00:00:00")
+      .lte("updated_at", todayStr + "T23:59:59");
+
+    if (tasks?.length) {
+      hasContent = true;
+      html += sectionHeader("✅ Tarefas concluídas hoje");
+      html += `<p><strong>${tasks.length}</strong> tarefa(s) concluída(s)</p><ul>`;
+      for (const t of tasks) {
+        const assignee = t.profiles?.full_name || "—";
+        html += `<li>${esc(t.name)} <span style="color:#888">(${esc(assignee)})</span></li>`;
+      }
+      html += "</ul>";
+    }
+  }
+
+  // ── Rotinas: progresso do dia ──
+  if (sections.rotinas_progresso !== false) {
+    const { data: routines } = await supabase
+      .from("tasks")
+      .select("name, status, assigned_to, profiles!tasks_assigned_to_fkey(full_name)")
+      .eq("tag", "Rotina")
+      .gte("deadline", todayStr)
+      .lte("deadline", todayStr);
+
+    if (routines?.length) {
+      hasContent = true;
+      const done = routines.filter((r: any) => r.status === "done" || r.status === "concluida");
+      const todo = routines.filter((r: any) => r.status !== "done" && r.status !== "concluida");
+      const pct = Math.round((done.length / routines.length) * 100);
+      html += sectionHeader("🔄 Rotinas do dia");
+      html += `<p><strong>${done.length}/${routines.length}</strong> concluídas (${pct}%)</p>`;
+      if (todo.length) {
+        html += "<p><em>Ficaram por fazer:</em></p><ul>";
+        for (const t of todo) {
+          const assignee = t.profiles?.full_name || "—";
+          html += `<li>${esc(t.name)} (${esc(assignee)})</li>`;
+        }
+        html += "</ul>";
+      }
+    }
+  }
+
+  // ── Tempo trabalhado hoje ──
+  if (sections.tempo_trabalhado !== false) {
+    const { data: entries } = await supabase
+      .from("time_entries")
+      .select("duration, member_id, team_members(full_name)")
+      .gte("entry_date", todayStr)
+      .lte("entry_date", todayStr);
+
+    if (entries?.length) {
+      hasContent = true;
+      const totalMin = entries.reduce((s: number, e: any) => s + (e.duration || 0), 0);
+      html += sectionHeader("⏱️ Tempo trabalhado hoje");
+      html += `<p>Total equipa: <strong>${(totalMin / 60).toFixed(1)}h</strong></p>`;
+      const byMember: Record<string, number> = {};
+      for (const e of entries) {
+        const name = e.team_members?.full_name || "—";
+        byMember[name] = (byMember[name] || 0) + (e.duration || 0);
+      }
+      html += "<ul>";
+      for (const [name, mins] of Object.entries(byMember)) {
+        html += `<li>${esc(name)}: ${((mins as number) / 60).toFixed(1)}h</li>`;
+      }
+      html += "</ul>";
+    }
+  }
+
+  // ── Vendas do dia ──
+  if (sections.vendas_hoje !== false) {
+    const { data: sales } = await supabase
+      .from("commercial_sales")
+      .select("invoice_total, client, product")
+      .gte("created_at", todayStr + "T00:00:00")
+      .lte("created_at", todayStr + "T23:59:59");
+
+    if (sales?.length) {
+      hasContent = true;
+      const total = sales.reduce((s: number, v: any) => s + (v.invoice_total || 0), 0);
+      html += sectionHeader("💰 Vendas do dia");
+      html += `<p><strong>${sales.length}</strong> venda(s) · Total: <strong>${formatCurrency(total)}</strong></p>`;
+    }
+  }
+
+  // ── Pagamentos recebidos ──
+  if (sections.pagamentos_recebidos !== false) {
+    const { data: payments } = await supabase
+      .from("commercial_sales")
+      .select("invoice_total, client")
+      .eq("status", "pago")
+      .eq("payment_date", todayStr);
+
+    if (payments?.length) {
+      hasContent = true;
+      const total = payments.reduce((s: number, p: any) => s + (p.invoice_total || 0), 0);
+      html += sectionHeader("💳 Pagamentos recebidos");
+      html += `<p>Total: <strong>${formatCurrency(total)}</strong> (${payments.length} pagamento(s))</p>`;
+    }
+  }
+
+  // ── Projetos fechados ──
+  if (sections.projetos_fechados !== false) {
+    const { data: closed } = await supabase
+      .from("projects")
+      .select("name, client_name")
+      .eq("status", "concluido")
+      .gte("updated_at", todayStr + "T00:00:00")
+      .lte("updated_at", todayStr + "T23:59:59");
+
+    if (closed?.length) {
+      hasContent = true;
+      html += sectionHeader("🏁 Projetos fechados hoje");
+      html += "<ul>";
+      for (const p of closed) html += `<li>${esc(p.name)}${p.client_name ? ` (${esc(p.client_name)})` : ""}</li>`;
+      html += "</ul>";
+    }
+  }
+
+  // ── Tarefas que ficaram em atraso ──
+  if (sections.tarefas_atraso !== false) {
+    const { data: tasks } = await supabase
+      .from("tasks")
+      .select("name, assigned_to, deadline, profiles!tasks_assigned_to_fkey(full_name)")
+      .neq("status", "done")
+      .neq("status", "concluida")
+      .lte("deadline", todayStr)
+      .not("deadline", "is", null);
+
+    if (tasks?.length) {
+      hasContent = true;
+      html += sectionHeader("⚠️ Tarefas em atraso");
+      html += `<p><strong>${tasks.length}</strong> tarefa(s) por resolver</p><ul>`;
+      for (const t of tasks.slice(0, 10)) {
+        const assignee = t.profiles?.full_name || "—";
+        html += `<li>${esc(t.name)} <span style="color:#888">(${esc(assignee)})</span></li>`;
+      }
+      if (tasks.length > 10) html += `<li style="color:#888">… e mais ${tasks.length - 10}</li>`;
+      html += "</ul>";
+    }
+  }
+
+  if (!hasContent) {
+    html = `<p style="color:#888;font-style:italic">Dia tranquilo — sem actividade registada. 🌙</p>`;
+  }
+
+  return html;
+}
+
+// ─── Member EOD Digest Builder ────────────────────────────
+async function buildMemberEodDigest(
+  supabase: any,
+  sections: Record<string, boolean>,
+  digest: any,
+  profile: any,
+  todayStr: string,
+  now: Date
+): Promise<string> {
+  let html = "";
+  let hasContent = false;
+
+  const { data: tm } = await supabase
+    .from("team_members")
+    .select("id")
+    .eq("profile_id", profile.id)
+    .maybeSingle();
+
+  // ── Tarefas concluídas hoje ──
+  if (sections.tarefas_concluidas !== false) {
+    const { data: tasks } = await supabase
+      .from("tasks")
+      .select("name")
+      .eq("assigned_to", profile.id)
+      .in("status", ["done", "concluida"])
+      .gte("updated_at", todayStr + "T00:00:00")
+      .lte("updated_at", todayStr + "T23:59:59");
+
+    if (tasks?.length) {
+      hasContent = true;
+      html += sectionHeader("✅ Tarefas concluídas hoje");
+      html += `<p><strong>${tasks.length}</strong> tarefa(s)</p><ul>`;
+      for (const t of tasks) html += `<li>${esc(t.name)}</li>`;
+      html += "</ul>";
+    }
+  }
+
+  // ── Rotinas: progresso ──
+  if (sections.rotinas_progresso !== false) {
+    const { data: routines } = await supabase
+      .from("tasks")
+      .select("name, status")
+      .eq("assigned_to", profile.id)
+      .eq("tag", "Rotina")
+      .gte("deadline", todayStr)
+      .lte("deadline", todayStr);
+
+    if (routines?.length) {
+      hasContent = true;
+      const done = routines.filter((r: any) => r.status === "done" || r.status === "concluida");
+      const pct = Math.round((done.length / routines.length) * 100);
+      html += sectionHeader("🔄 Rotinas do dia");
+      html += `<p><strong>${done.length}/${routines.length}</strong> concluídas (${pct}%)</p>`;
+    }
+  }
+
+  // ── Tempo registado hoje ──
+  if (sections.tempo_registado !== false && tm) {
+    const { data: entries } = await supabase
+      .from("time_entries")
+      .select("duration")
+      .eq("member_id", tm.id)
+      .gte("entry_date", todayStr)
+      .lte("entry_date", todayStr);
+
+    if (entries?.length) {
+      hasContent = true;
+      const totalMin = entries.reduce((s: number, e: any) => s + (e.duration || 0), 0);
+      html += sectionHeader("⏱️ Tempo registado hoje");
+      html += `<p>Total: <strong>${(totalMin / 60).toFixed(1)}h</strong></p>`;
+    }
+  }
+
+  // ── Tarefas que ficaram em atraso ──
+  if (sections.tarefas_atraso !== false) {
+    const { data: tasks } = await supabase
+      .from("tasks")
+      .select("name, deadline")
+      .eq("assigned_to", profile.id)
+      .neq("status", "done")
+      .neq("status", "concluida")
+      .lte("deadline", todayStr)
+      .not("deadline", "is", null);
+
+    if (tasks?.length) {
+      hasContent = true;
+      html += sectionHeader("⚠️ Tarefas em atraso");
+      html += "<ul>";
+      for (const t of tasks) html += `<li>${esc(t.name)}</li>`;
+      html += "</ul>";
+    }
+  }
+
+  // ── Preview de amanhã ──
+  if (sections.preview_amanha !== false) {
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = formatDate(tomorrow);
+
+    const { data: tasks } = await supabase
+      .from("tasks")
+      .select("name, priority")
+      .eq("assigned_to", profile.id)
+      .neq("status", "done")
+      .neq("status", "concluida")
+      .gte("deadline", tomorrowStr)
+      .lte("deadline", tomorrowStr);
+
+    if (tasks?.length) {
+      hasContent = true;
+      html += sectionHeader("📅 Preview de amanhã");
+      html += "<ul>";
+      for (const t of tasks) {
+        const prio = t.priority === "alta" ? " 🔴" : t.priority === "media" ? " 🟡" : "";
+        html += `<li>${esc(t.name)}${prio}</li>`;
+      }
+      html += "</ul>";
+    }
+  }
+
+  if (!hasContent) {
+    html = `<p style="color:#888;font-style:italic">Dia tranquilo — sem actividade registada. 🌙</p>`;
+  }
+
+  return html;
+}
+
 // ─── Email HTML Builder ───────────────────────────────────
 function buildEmailHtml(opts: {
   subject: string;
