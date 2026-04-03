@@ -37,7 +37,7 @@ const LOCATIONS = [
   { value: 'fora_ue', label: 'Fora da UE' },
 ];
 
-const PAYMENT_METHODS = [
+const FALLBACK_PAYMENT_METHODS = [
   { value: 'transferencia', label: 'Transferência' },
   { value: 'debito_direto', label: 'Débito Direto' },
   { value: 'mbway', label: 'MB Way' },
@@ -45,7 +45,6 @@ const PAYMENT_METHODS = [
   { value: 'cartao', label: 'Cartão' },
   { value: 'outro', label: 'Outro' },
 ];
-const PAYMENT_LABELS = Object.fromEntries(PAYMENT_METHODS.map(m => [m.value, m.label]));
 
 const PERIODICITIES = [
   { value: 'semanal', label: 'Semanal' },
@@ -162,6 +161,19 @@ export default function FornecedoresPage() {
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [expenseEdit, setExpenseEdit] = useState<any>({});
   const [autoOpened, setAutoOpened] = useState(false);
+
+  // Dynamic payment methods from business setup
+  const { data: setupPaymentMethods } = useQuery({
+    queryKey: ['business-setup-payment-methods'],
+    queryFn: async () => {
+      const { data } = await supabase.from('business_setup').select('payment_methods').limit(1).single();
+      return (data?.payment_methods as any[] || []).filter((m: any) => m.label?.trim());
+    },
+  });
+  const paymentMethods = setupPaymentMethods && setupPaymentMethods.length > 0
+    ? setupPaymentMethods.map((m: any) => ({ value: `${m.type}:${m.label}`, label: m.label }))
+    : FALLBACK_PAYMENT_METHODS;
+  const getPaymentLabel = (val: string) => paymentMethods.find(m => m.value === val)?.label || val || '—';
 
   // Expenses for the currently selected supplier
   const { data: supplierExpenses = [] } = useQuery({
@@ -505,7 +517,7 @@ export default function FornecedoresPage() {
                       {s.nif && <div className="text-xs text-muted-foreground">{s.nif}</div>}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{s.nif || '—'}</TableCell>
-                    <TableCell><Badge variant="outline">{PAYMENT_LABELS[s.payment_method as keyof typeof PAYMENT_LABELS] || s.payment_method || '—'}</Badge></TableCell>
+                    <TableCell><Badge variant="outline">{getPaymentLabel(s.payment_method)}</Badge></TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {s.contract_start_date && s.contract_end_date 
                         ? `${s.contract_start_date} → ${s.contract_end_date}`
@@ -542,7 +554,7 @@ export default function FornecedoresPage() {
               <div><Label>Método de Pagamento</Label>
                 <Select value={form.payment_method || 'transferencia'} onValueChange={v => setForm((f: any) => ({ ...f, payment_method: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{PAYMENT_METHODS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent>
+                  <SelectContent>{paymentMethods.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div><Label>Categoria</Label>
@@ -798,7 +810,7 @@ export default function FornecedoresPage() {
                               <span>Ano: {exp.expense_year || '—'}</span>
                             </div>
                             {exp.payment_method && (
-                              <div className="text-[10px] text-muted-foreground">Método: {PAYMENT_LABELS[exp.payment_method as keyof typeof PAYMENT_LABELS] || exp.payment_method}</div>
+                              <div className="text-[10px] text-muted-foreground">Método: {getPaymentLabel(exp.payment_method)}</div>
                             )}
                             <div className="flex gap-2 justify-end pt-1">
                               <Button size="sm" variant="outline" className="h-7 px-3 text-xs" onClick={() => setEditingExpenseId(null)}>
