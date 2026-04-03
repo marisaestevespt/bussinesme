@@ -46,11 +46,17 @@ const InvoiceAvailableEmail = ({
   fontDisplay,
   fontBody,
   logoUrl,
+  customTitle,
+  customSubtitle,
+  customCta,
+  customFooter,
+  customEmoji,
 }: InvoiceAvailableProps) => {
   const name = clientName || 'Cliente'
   const biz = businessName || SITE_NAME
   const product = productName || 'o seu serviço'
   const value = amount || ''
+  const emoji = customEmoji || '📄'
 
   const brandPrimary = hslToCss(primaryColor, '#e04a2f')
   const brandPrimaryFg = hslToCss(primaryForeground, '#ffffff')
