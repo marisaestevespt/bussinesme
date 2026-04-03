@@ -95,7 +95,15 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
     },
   });
 
-  const products = (commercialData.productGoals.data || []).map(p => p.product_name);
+  const { data: productNames } = useQuery({
+    queryKey: ['product-names-sale-dialog'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('name');
+      return (data || []).map(p => p.name);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+  const products = productNames || [];
 
   const getVatMultiplier = () => {
     const rate = productInfo.data?.vat_rate;
