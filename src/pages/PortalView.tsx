@@ -534,11 +534,9 @@ export default function PortalViewPage() {
                 rows={3}
                 style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
               />
-              {feedbackText.trim() && (
-                <Button className="rounded-xl text-white text-sm" style={{ backgroundColor: pc }} onClick={sendFeedback}>
-                  <Send className="h-3.5 w-3.5 mr-1.5" />Enviar Feedback
-                </Button>
-              )}
+              <Button className="rounded-xl text-white text-sm" style={{ backgroundColor: pc }} disabled={!feedbackText.trim()} onClick={sendFeedback}>
+                <Send className="h-3.5 w-3.5 mr-1.5" />Enviar Feedback
+              </Button>
             </div>
           </>
         )}
