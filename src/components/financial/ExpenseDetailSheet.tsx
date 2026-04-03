@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Trash2 } from 'lucide-react';
+import { CalendarIcon, Trash2, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -70,6 +70,11 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
       source_id: expense.source_id,
       department: expense.department || '',
       supplier_id: expense.supplier_id || null,
+      is_recurring: (expense as any).is_recurring || false,
+      periodicity: (expense as any).periodicity || 'mensal',
+      monthly_equivalent: (expense as any).monthly_equivalent || 0,
+      payment_method: (expense as any).payment_method || '',
+      expense_name: (expense as any).expense_name || '',
     });
   }
 
@@ -100,6 +105,11 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
     const metaDocs = (form.meta_ads_docs || []).map((d: any) => ({ ...d, type: 'meta_ads' }));
     const allDocs = [...regularDocs, ...metaDocs];
 
+    const isRecurring = form.is_recurring || false;
+    const periodicity = isRecurring ? (form.periodicity || 'mensal') : null;
+    const periodicityMultipliers: Record<string, number> = { mensal: 1, trimestral: 3, semestral: 6, anual: 12 };
+    const monthlyEquivalent = isRecurring ? Math.round(total / (periodicityMultipliers[periodicity || 'mensal'] || 1) * 100) / 100 : 0;
+
     await fin.upsertExpense.mutateAsync({
       id: form.id,
       status: form.status,
@@ -116,6 +126,12 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
       expense_year: year,
       department: form.department || null,
       supplier_id: form.supplier_id || null,
+      is_recurring: isRecurring,
+      periodicity,
+      monthly_equivalent: monthlyEquivalent,
+      payment_method: form.payment_method || null,
+      expense_name: form.expense_name || null,
+      source_type: isRecurring ? 'rule' : (form.source_type || 'manual'),
     } as any);
 
     // Sync document to member_payments when expense is linked to a contract
@@ -159,7 +175,12 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
             <span className="font-mono text-sm text-muted-foreground">{(expense as any).expense_id}</span>
             {form.source_type && (
               <Badge variant="secondary" className="text-[10px]">
-                {form.source_type === 'subscription' ? 'Subscrição' : form.source_type === 'contract' ? 'Contrato' : form.source_type}
+                {form.source_type === 'subscription' ? 'Subscrição' : form.source_type === 'contract' ? 'Contrato' : form.source_type === 'rule' ? 'Recorrente' : form.source_type}
+              </Badge>
+            )}
+            {form.is_recurring && (
+              <Badge variant="outline" className="text-[10px] gap-1">
+                <RefreshCw className="h-2.5 w-2.5" /> Recorrente
               </Badge>
             )}
           </SheetTitle>
@@ -274,6 +295,26 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
               }}
             />
           </div>
+
+          {/* Recurring */}
+          <div className="flex items-center gap-2 py-1">
+            <Switch checked={form.is_recurring || false} onCheckedChange={v => setForm((f: any) => ({ ...f, is_recurring: v }))} />
+            <Label className="text-sm font-normal">Despesa recorrente</Label>
+          </div>
+          {form.is_recurring && (
+            <div>
+              <Label>Periodicidade</Label>
+              <Select value={form.periodicity || 'mensal'} onValueChange={v => setForm((f: any) => ({ ...f, periodicity: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mensal">Mensal</SelectItem>
+                  <SelectItem value="trimestral">Trimestral</SelectItem>
+                  <SelectItem value="semestral">Semestral</SelectItem>
+                  <SelectItem value="anual">Anual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Location */}
           <div>
