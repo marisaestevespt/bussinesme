@@ -478,7 +478,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
               <SelectValue placeholder={resolvedClientId ? 'Selecionar forma...' : 'Associe um cliente ao projeto'} />
             </SelectTrigger>
             <SelectContent>
-              {PAYMENT_METHODS.map(m => (
+              {PAYMENT_FORMS.map(m => (
                 <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
               ))}
             </SelectContent>
