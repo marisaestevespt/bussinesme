@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import {
   usePortal, usePortalFaqs, usePortalQuestions, usePortalFeedback,
-  usePortalComments, usePortalTimeline, usePortalSummaries,
+  usePortalComments, usePortalTimeline,
   getPortalTypeFromProduct, Portal
 } from '@/hooks/usePortalData';
 import { useProducts, Product } from '@/hooks/useProducts';
