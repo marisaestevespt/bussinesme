@@ -550,6 +550,61 @@ export default function FornecedoresPage() {
           toast.success('Regra recorrente criada');
         }
       }
+
+      // Update existing recurring rule + cascade to unpaid child expenses
+      if (form._existingRecurring?.id && form.edit_recurring_value) {
+        const ruleId = form._existingRecurring.id;
+        const inputVal = parseFloat(form.edit_recurring_value) || 0;
+        const editVat = form.edit_recurring_vat ?? form.default_vat_rate ?? 23;
+        let ruleBase: number, ruleTotal: number;
+        if (form.edit_recurring_includes_vat) {
+          ruleTotal = inputVal;
+          ruleBase = editVat > 0 ? Math.round(inputVal / (1 + editVat / 100) * 100) / 100 : inputVal;
+        } else {
+          ruleBase = inputVal;
+          ruleTotal = Math.round(ruleBase * (1 + editVat / 100) * 100) / 100;
+        }
+        const editPeriodicity = form.edit_recurring_periodicity || 'mensal';
+        const editMonthly = calcMonthlyEquivalent(ruleBase, editPeriodicity);
+
+        // Update the parent rule
+        await supabase.from('financial_expenses').update({
+          base_value: ruleBase,
+          vat_rate: editVat,
+          total_with_vat: ruleTotal,
+          periodicity: editPeriodicity,
+          monthly_equivalent: editMonthly,
+          location: form.location || 'portugal',
+          category: form.category || 'outro',
+        } as any).eq('id', ruleId);
+
+        // Cascade to unpaid child expenses
+        const { data: children } = await supabase
+          .from('financial_expenses')
+          .select('id, status, expense_month, expense_year')
+          .eq('parent_expense_id', ruleId);
+        if (children) {
+          for (const child of children) {
+            if (isPaidExpenseStatus(child.status)) continue; // don't touch already paid
+            const updates: Record<string, any> = {
+              base_value: ruleBase,
+              vat_rate: editVat,
+              total_with_vat: ruleTotal,
+              location: form.location || 'portugal',
+              category: form.category || 'outro',
+            };
+            if (form.expense_description_template?.trim()) {
+              updates.description = form.expense_description_template
+                .replace('{mes}', String(child.expense_month).padStart(2, '0'))
+                .replace('{ano}', String(child.expense_year))
+                .replace('{nome}', form.name);
+            }
+            await supabase.from('financial_expenses').update(updates as any).eq('id', child.id);
+          }
+          const updated = children.filter(c => !isPaidExpenseStatus(c.status)).length;
+          if (updated > 0) toast.success(`${updated} despesas atualizadas`);
+        }
+      }
     },
     onSuccess: () => {
       invalidateAll();
