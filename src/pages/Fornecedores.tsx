@@ -172,14 +172,7 @@ export default function FornecedoresPage() {
       return (data?.payment_methods as any[] || []).filter((m: any) => m.label?.trim());
     },
   });
-  const paymentMethods = setupPaymentMethods && setupPaymentMethods.length > 0
-    ? setupPaymentMethods.map((m: any) => {
-        const last4 = m.card_last4 ? ` ****${m.card_last4}` : '';
-        const expiry = m.card_expiry ? ` (${m.card_expiry})` : '';
-        const displayLabel = m.type === 'cartao' ? `${m.label}${last4}${expiry}` : m.label;
-        return { value: `${m.type}:${m.label}`, label: displayLabel };
-      })
-    : FALLBACK_PAYMENT_METHODS;
+  const paymentMethods = buildPaymentMethodOptions(setupPaymentMethods);
   const getPaymentLabel = (val: string) => paymentMethods.find(m => m.value === val)?.label || val || '—';
 
   // Expenses for the currently selected supplier
