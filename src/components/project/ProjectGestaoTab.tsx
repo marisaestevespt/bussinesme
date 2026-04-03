@@ -52,21 +52,21 @@ const SALE_STATUSES: Record<string, { label: string; color: string }> = {
   cancelado: { label: 'Cancelado', color: 'bg-muted text-muted-foreground' },
 };
 
-export function ProjectGestaoTab({ projectId, projectName, clientName, clientId, productName, startDate, deadline, onNewMeeting }: Props) {
+export function ProjectGestaoTab({ projectId, projectName, clientName, clientId, productName, startDate, deadline, projectPaymentMethod, projectPaymentConfig, onNewMeeting, onUpdateProject }: Props) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
 
   // ─── Payment config form state ─────────────────────────────────
-  const [payMethod, setPayMethod] = useState<string>('');
-  const [totalValue, setTotalValue] = useState('');
-  const [entradaValue, setEntradaValue] = useState('');
-  const [numPrestacoes, setNumPrestacoes] = useState('');
-  const [payDay, setPayDay] = useState('');
-  const [numMeses, setNumMeses] = useState('');
-  const [avencaValue, setAvencaValue] = useState('');
-  const [subscricaoValue, setSubscricaoValue] = useState('');
-  const [subscricaoPeriodicity, setSubscricaoPeriodicity] = useState('mensal');
+  const [payMethod, setPayMethod] = useState<string>(projectPaymentMethod || '');
+  const [totalValue, setTotalValue] = useState(projectPaymentConfig?.totalValue || '');
+  const [entradaValue, setEntradaValue] = useState(projectPaymentConfig?.entradaValue || '');
+  const [numPrestacoes, setNumPrestacoes] = useState(projectPaymentConfig?.numPrestacoes || '');
+  const [payDay, setPayDay] = useState(projectPaymentConfig?.payDay || '');
+  const [numMeses, setNumMeses] = useState(projectPaymentConfig?.numMeses || '');
+  const [avencaValue, setAvencaValue] = useState(projectPaymentConfig?.avencaValue || '');
+  const [subscricaoValue, setSubscricaoValue] = useState(projectPaymentConfig?.subscricaoValue || '');
+  const [subscricaoPeriodicity, setSubscricaoPeriodicity] = useState(projectPaymentConfig?.subscricaoPeriodicity || 'mensal');
 
   // ─── Client data (payment_method + start_date) ─────────────────
   const { data: clientData } = useQuery({
