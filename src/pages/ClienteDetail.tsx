@@ -451,10 +451,11 @@ export default function ClienteDetailPage() {
       }).select('id').single();
       if (projError) throw projError;
 
-      // 4. Update client current_product and start_date
+      // 4. Update client current_product, start_date and end_of_cycle
       await supabase.from('clients').update({
         current_product: renewProduct,
         start_date: renewStartDate,
+        end_of_cycle: deadline,
         status: 'ativo',
       }).eq('id', id);
 
