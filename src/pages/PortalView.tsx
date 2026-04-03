@@ -197,78 +197,54 @@ export default function PortalViewPage() {
 
   return (
     <div className="min-h-screen" style={{ background: `linear-gradient(180deg, #fefcfa 0%, ${pcAlpha(0.04)} 100%)` }}>
-      {/* ─── Header ─── */}
+      {/* ─── Header with integrated nav ─── */}
       <header className="sticky top-0 z-30 backdrop-blur-md bg-white/80 border-b border-border/30">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {logoUrl && <img src={logoUrl} alt="Logo" className="h-7 object-contain" />}
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: pc }}>
-              {firstName.charAt(0).toUpperCase()}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          {/* Top row: logo + user */}
+          <div className="py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {logoUrl && <img src={logoUrl} alt="Logo" className="h-7 object-contain" />}
             </div>
-            <span className="text-sm font-medium text-foreground hidden sm:inline">{firstName}</span>
+            <div className="flex items-center gap-3">
+              {(settings as any)?.support_hours && (
+                <div className="hidden sm:flex items-center gap-1.5 text-muted-foreground">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span className="text-[11px]">{(settings as any).support_hours}</span>
+                </div>
+              )}
+              <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: pc }}>
+                {firstName.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-sm font-medium text-foreground hidden sm:inline">{firstName}</span>
+            </div>
           </div>
-        </div>
-      </header>
 
-      <div className="max-w-6xl mx-auto flex">
-        {/* ─── Sidebar ─── */}
-        <nav className="w-56 shrink-0 min-h-[calc(100vh-53px)] p-4 hidden md:flex md:flex-col md:justify-between bg-white/50">
-          <div className="space-y-1">
+          {/* Nav tabs */}
+          <div className="-mb-px flex gap-1 overflow-x-auto scrollbar-none pb-0">
             {navItems.map(item => {
               const active = activeSection === item.key;
               return (
                 <button
                   key={item.key}
                   onClick={() => setActiveSection(item.key)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all ${
+                  className={`flex items-center gap-1.5 px-3.5 py-2.5 text-sm whitespace-nowrap border-b-2 transition-all ${
                     active
-                      ? 'font-semibold shadow-sm text-white'
-                      : 'text-muted-foreground hover:bg-white hover:shadow-sm'
+                      ? 'font-semibold border-current'
+                      : 'text-muted-foreground border-transparent hover:text-foreground hover:border-border'
                   }`}
-                  style={active ? { backgroundColor: pc } : undefined}
+                  style={active ? { color: pc } : undefined}
                 >
                   <item.icon className="h-4 w-4" />
-                  {item.label}
+                  <span className="hidden sm:inline">{item.label}</span>
                 </button>
               );
             })}
           </div>
+        </div>
+      </header>
 
-          {(settings as any)?.support_hours && (
-            <div className="border-t border-border/30 pt-4 mt-4">
-              <div className="flex items-center gap-2.5 px-3 text-muted-foreground">
-                <Clock className="h-4 w-4 shrink-0" />
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider opacity-60">Atendimento</p>
-                  <p className="text-xs font-medium text-foreground">{(settings as any).support_hours}</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </nav>
-
-        {/* ─── Main ─── */}
-        <main className="flex-1 p-5 sm:p-8 space-y-6 max-w-4xl">
-          {/* Mobile nav */}
-          <div className="flex gap-2 flex-wrap md:hidden">
-            {navItems.map(item => (
-              <button
-                key={item.key}
-                onClick={() => setActiveSection(item.key)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium transition-all ${
-                  activeSection === item.key
-                    ? 'text-white shadow-sm'
-                    : 'bg-white text-muted-foreground border border-border/40'
-                }`}
-                style={activeSection === item.key ? { backgroundColor: pc } : undefined}
-              >
-                <item.icon className="h-3.5 w-3.5" />
-                {item.label}
-              </button>
-            ))}
-          </div>
+      {/* ─── Main ─── */}
+      <main className="max-w-5xl mx-auto p-5 sm:p-8 space-y-6">
 
           {/* ═══ HOME ═══ */}
           {activeSection === 'home' && (
