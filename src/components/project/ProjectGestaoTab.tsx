@@ -459,24 +459,74 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
           <CardTitle className="text-sm flex items-center gap-2"><CreditCard className="h-4 w-4" /> Forma de Pagamento</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Select
-            value={payMethod}
-            onValueChange={v => {
-              setPayMethod(v);
-              updatePaymentMethod.mutate(v);
-              if (onUpdateProject) onUpdateProject('payment_method', v);
-            }}
-            disabled={!resolvedClientId}
-          >
-            <SelectTrigger className="w-72">
-              <SelectValue placeholder={resolvedClientId ? 'Selecionar forma...' : 'Associe um cliente ao projeto'} />
-            </SelectTrigger>
-            <SelectContent>
-              {PAYMENT_FORMS.map(m => (
-                <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Forma de Pagamento</Label>
+              <Select
+                value={payMethod}
+                onValueChange={v => {
+                  setPayMethod(v);
+                  if (onUpdateProject) onUpdateProject('payment_method', v);
+                }}
+                disabled={!resolvedClientId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={resolvedClientId ? 'Selecionar forma...' : 'Associe um cliente ao projeto'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAYMENT_FORMS.map(m => (
+                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {payMethod && payMethod !== 'entrada_prestacoes' && (
+              <div>
+                <Label className="text-xs">Método de Pagamento</Label>
+                <Select value={paymentMethodType} onValueChange={setPaymentMethodType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecionar método..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAYMENT_METHOD_OPTIONS.map(m => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          {payMethod === 'entrada_prestacoes' && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Método — Entrada</Label>
+                <Select value={entradaPaymentMethod} onValueChange={setEntradaPaymentMethod}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecionar método..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAYMENT_METHOD_OPTIONS.map(m => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Método — Prestações</Label>
+                <Select value={prestacoesPaymentMethod} onValueChange={setPrestacoesPaymentMethod}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecionar método..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAYMENT_METHOD_OPTIONS.map(m => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
 
           {/* Dynamic fields per method */}
           {payMethod === 'pagamento_total' && (
