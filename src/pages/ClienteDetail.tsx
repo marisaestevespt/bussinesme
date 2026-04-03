@@ -33,6 +33,7 @@ import { ClientCustomerSuccess } from '@/components/client/ClientCustomerSuccess
 import { BackNavigation } from '@/components/BackNavigation';
 import { ClientFeedbackSection } from '@/components/client/ClientFeedbackSection';
 import { CustomFieldsSection } from '@/components/CustomFieldsSection';
+import { MeetingFormDialog } from '@/pages/Reunioes';
 
 // ─── Meetings query ─────────────────────────────────────────────
 function useFilteredMeetings(clientId: string | undefined) {
