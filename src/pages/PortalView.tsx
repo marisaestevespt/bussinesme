@@ -505,20 +505,6 @@ export default function PortalViewPage() {
               );
             })()}
 
-            {/* Monthly summaries on home for servico_mensal */}
-            {portal.portal_type === 'servico_mensal' && portal.show_monthly_summary && summaries.length > 0 && (
-              <SectionCard className="p-6">
-                <SectionTitle icon={ClipboardList}>Resumos Mensais</SectionTitle>
-                <div className="space-y-3">
-                  {summaries.map((s: any) => (
-                    <div key={s.id} className="rounded-xl border border-border/40 bg-muted/20 p-4">
-                      <p className="font-semibold text-sm mb-1" style={{ color: pc }}>{s.month}/{s.year}</p>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{s.content}</p>
-                    </div>
-                  ))}
-                </div>
-              </SectionCard>
-            )}
 
             {/* Feedback inline at bottom */}
             <div className="rounded-2xl border border-border/30 bg-muted/5 p-5 space-y-3">

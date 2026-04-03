@@ -183,9 +183,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
             <ToggleRow label="FAQ's" checked={portalData.show_faqs} onChange={() => toggleField('show_faqs')} />
             <ToggleRow label="Onboarding" checked={portalData.show_onboarding} onChange={() => toggleField('show_onboarding')} />
             <ToggleRow label="Materiais" checked={(portalData as any).show_materials ?? true} onChange={() => toggleField('show_materials' as keyof Portal)} />
-            {portalData.portal_type === 'projeto_unico' && (
-              <ToggleRow label="Timeline" checked={portalData.show_timeline} onChange={() => toggleField('show_timeline')} />
-            )}
+            <ToggleRow label="Fases / Timeline" checked={portalData.show_timeline} onChange={() => toggleField('show_timeline')} />
           </div>
         </CardContent>
       </Card>
