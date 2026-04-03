@@ -186,7 +186,14 @@ function getType(types: EventType[], id: string | null): EventType | undefined {
   return types.find(t => t.id === id);
 }
 
-function TypeBadge({ types, typeId }: { types: EventType[]; typeId: string | null }) {
+function TypeBadge({ types, typeId, isMeeting }: { types: EventType[]; typeId: string | null; isMeeting?: boolean }) {
+  if (isMeeting) {
+    return (
+      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: `${MEETING_PSEUDO_COLOR}20`, color: MEETING_PSEUDO_COLOR }}>
+        Reunião
+      </span>
+    );
+  }
   const t = getType(types, typeId);
   if (!t) return <span className="text-xs text-muted-foreground">—</span>;
   return (
