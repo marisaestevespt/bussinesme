@@ -338,6 +338,7 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
                 <SelectItem value="__custom__">+ Adicionar outro</SelectItem>
               </SelectContent>
             </Select>
+            </div>
           </div>
 
           {/* Special Offer */}
