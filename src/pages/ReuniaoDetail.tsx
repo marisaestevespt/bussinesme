@@ -358,6 +358,7 @@ export default function ReuniaoDetailPage() {
         client_actions: m.client_actions as any,
         final_notes: m.final_notes as any,
         duration_minutes: m.duration_minutes,
+        documents: m.documents as any,
       }).eq('id', m.id);
       if (error) throw error;
     },
