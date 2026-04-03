@@ -51,7 +51,7 @@ export default function PortalViewPage() {
   const [onboarding, setOnboarding] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [phases, setPhases] = useState<any[]>([]);
-  const [summaries, setSummaries] = useState<any[]>([]);
+  
   const [projectHistory, setProjectHistory] = useState<any[]>([]);
   const [portalMaterials, setPortalMaterials] = useState<any[]>([]);
   const [contractDocs, setContractDocs] = useState<any[]>([]);
