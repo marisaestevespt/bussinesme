@@ -381,9 +381,10 @@ export function useTeamData() {
   const payments = useQuery({
     queryKey: [...KEY, 'payments'],
     queryFn: async () => {
-      const { data } = await supabase.from('member_payments').select('*').order('year', { ascending: false });
+      const { data } = await supabase.from('member_payments').select('*').order('year', { ascending: false }).limit(500);
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const upsertPayment = useMutation({
