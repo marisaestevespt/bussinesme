@@ -267,6 +267,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
           sale_year: start.getFullYear(),
           sale_quarter: Math.ceil((start.getMonth() + 1) / 3),
           created_by: user?.id || null,
+          payment_method: getMethodForEntry(false),
         });
       } else if (payMethod === 'entrada_prestacoes') {
         const total = parseFloat(totalValue);
