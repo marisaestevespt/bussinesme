@@ -42,7 +42,7 @@ function getPaymentMethodLabel(method?: string): string {
 }
 
 const PaymentDueTodayEmail = ({
-  clientName, productName, amount, dueDate, paymentMethod, iban,
+  clientName, productName, amount, dueDate, paymentMethod, iban, mbwayNumber,
   businessName, primaryColor, primaryForeground, textColor, accentColor,
   fontDisplay, fontBody, logoUrl,
 }: PaymentDueTodayProps) => {
@@ -61,6 +61,8 @@ const PaymentDueTodayEmail = ({
 
   const isAutomatic = paymentMethod === 'cartao' || paymentMethod === 'debito_direto'
   const isTransfer = paymentMethod === 'transferencia'
+  const isMbway = paymentMethod === 'mbway'
+  const isMultibanco = paymentMethod === 'multibanco'
 
   const main = { backgroundColor: '#ffffff', fontFamily: bodyFont }
   const container = { maxWidth: '540px', margin: '0 auto', padding: '40px 24px' }
