@@ -714,6 +714,32 @@ export default function ReuniaoDetailPage() {
             )}
             <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={e => { if (e.target.files?.[0]) uploadTranscript.mutate(e.target.files[0]); e.target.value = ''; }} />
           </div>
+
+          {/* Documents */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <Label className="text-xs text-muted-foreground">Documentos</Label>
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => docsRef.current?.click()} disabled={uploadDocument.isPending}>
+                <Upload className="h-3 w-3 mr-1" /> {uploadDocument.isPending ? 'A carregar...' : 'Adicionar ficheiro'}
+              </Button>
+              <input ref={docsRef} type="file" className="hidden" onChange={e => { if (e.target.files?.[0]) uploadDocument.mutate(e.target.files[0]); e.target.value = ''; }} />
+            </div>
+            {m.documents.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {m.documents.map((doc, idx) => (
+                  <div key={idx} className="flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs bg-muted/30">
+                    <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate max-w-[200px]">
+                      {doc.name}
+                    </a>
+                    <button onClick={() => removeDocument(idx)} className="text-muted-foreground hover:text-destructive ml-1">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <Separator />
