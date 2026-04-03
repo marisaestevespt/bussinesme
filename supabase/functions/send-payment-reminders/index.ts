@@ -42,6 +42,13 @@ Deno.serve(async (req) => {
       .limit(1)
       .single()
 
+    // Get business setup for IBAN
+    const { data: bizSetup } = await supabase
+      .from('business_setup')
+      .select('iban')
+      .limit(1)
+      .single()
+
     // Find sales with payment_date matching today or 3 days from now
     // that are not yet paid
     const { data: sales, error: salesError } = await supabase
