@@ -258,11 +258,27 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Get user name from auth token
+    let userName = "";
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader) {
+      const token = authHeader.replace("Bearer ", "");
+      const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      });
+      const { data: { user } } = await userClient.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabaseAdmin.from("profiles").select("full_name").eq("id", user.id).single();
+        userName = profile?.full_name || user.email?.split("@")[0] || "";
+      }
+    }
+
     // Get business context
     const { data: settings } = await supabaseAdmin.from("business_settings").select("business_name, business_type, team_type").limit(1).single();
     const businessName = settings?.business_name || "o negócio";
 
     const systemPrompt = `Tu és a Lirah AI, a assistente inteligente de ${businessName}. Falas em português de Portugal.
+${userName ? `O utilizador com quem estás a falar chama-se **${userName}**. Trata-o pelo primeiro nome de forma natural e simpática.` : ""}
 
 Tens acesso a ferramentas para consultar dados do sistema: clientes, tarefas, finanças, vendas, reuniões, equipa e projetos.
 
