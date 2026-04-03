@@ -157,7 +157,7 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
         const { data: clientData } = await supabase.from('clients').select('email, id').eq('full_name', form.client).maybeSingle();
         if (clientData?.email) {
           const { data: portal } = await supabase.from('client_portals').select('token').eq('client_id', clientData.id).eq('is_active', true).maybeSingle();
-          const { data: settings } = await supabase.from('business_settings').select('business_name, primary_color, primary_foreground, text_color, accent_color, font_display, font_body, logo_url').limit(1).maybeSingle();
+          const { data: settings } = await supabase.from('business_settings').select('business_name, primary_color, text_color, accent_color, font_display, font_body, logo_url').limit(1).maybeSingle();
           
           const portalUrl = portal?.token ? `${window.location.origin}/portal/${portal.token}` : undefined;
           
