@@ -412,6 +412,38 @@ export default function ReuniaoDetailPage() {
     onError: () => toast.error('Erro no upload'),
   });
 
+  // Upload document
+  const uploadDocument = useMutation({
+    mutationFn: async (file: File) => {
+      const path = `${id}/docs/${Date.now()}_${file.name}`;
+      const { error: upErr } = await supabase.storage.from('meeting-files').upload(path, file);
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage.from('meeting-files').getPublicUrl(path);
+      const newDoc: MeetingDocument = { name: file.name, url: urlData.publicUrl, type: file.type || 'application/octet-stream' };
+      const currentDocs = m?.documents || [];
+      const updatedDocs = [...currentDocs, newDoc];
+      const { error } = await supabase.from('meetings').update({ documents: updatedDocs as any }).eq('id', id!);
+      if (error) throw error;
+      return updatedDocs;
+    },
+    onSuccess: (docs) => {
+      if (m) setLocalMeeting({ ...m, documents: docs });
+      qc.invalidateQueries({ queryKey: ['meeting', id] });
+      toast.success('Documento carregado');
+    },
+    onError: () => toast.error('Erro no upload do documento'),
+  });
+
+  const removeDocument = async (idx: number) => {
+    if (!m) return;
+    const updated = m.documents.filter((_, i) => i !== idx);
+    const { error } = await supabase.from('meetings').update({ documents: updated as any }).eq('id', m.id);
+    if (error) { toast.error('Erro ao remover'); return; }
+    setLocalMeeting({ ...m, documents: updated });
+    qc.invalidateQueries({ queryKey: ['meeting', id] });
+    toast.success('Documento removido');
+  };
+
   const participantProfiles = profiles.filter(p => participants.some(pp => pp.profile_id === p.id));
 
   if (isLoading || !m) {
