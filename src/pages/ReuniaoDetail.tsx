@@ -108,6 +108,7 @@ function useMeeting(id: string) {
         client_actions: Array.isArray(raw.client_actions) ? raw.client_actions as CheckItem[] : [],
         final_notes: Array.isArray(raw.final_notes) ? raw.final_notes as string[] : [],
         duration_minutes: raw.duration_minutes || 0,
+        documents: Array.isArray(raw.documents) ? raw.documents as MeetingDocument[] : [],
       } as MeetingFull;
     },
   });
