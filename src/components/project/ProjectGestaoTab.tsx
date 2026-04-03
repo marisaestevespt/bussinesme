@@ -558,8 +558,11 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             </div>
           )}
 
-          {hasExistingProjectSales && (
-            <p className="text-xs text-muted-foreground">⚠️ Já existem pagamentos gerados para este projeto. Elimine-os primeiro para gerar novos.</p>
+          {hasExistingProjectSales && payMethod && (
+            <Button variant="outline" onClick={() => regenerateSales.mutate()} disabled={regenerateSales.isPending || generateSales.isPending} className="gap-1.5">
+              {regenerateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+              Regenerar Pagamentos
+            </Button>
           )}
 
           {!billingStartDate && payMethod && (
