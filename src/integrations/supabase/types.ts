@@ -1685,6 +1685,7 @@ export type Database = {
           invoice_total: number
           is_special_offer: boolean
           payment_date: string | null
+          payment_method: string | null
           product: string | null
           project_id: string | null
           sale_id: string
@@ -1707,6 +1708,7 @@ export type Database = {
           invoice_total?: number
           is_special_offer?: boolean
           payment_date?: string | null
+          payment_method?: string | null
           product?: string | null
           project_id?: string | null
           sale_id: string
@@ -1729,6 +1731,7 @@ export type Database = {
           invoice_total?: number
           is_special_offer?: boolean
           payment_date?: string | null
+          payment_method?: string | null
           product?: string | null
           project_id?: string | null
           sale_id?: string

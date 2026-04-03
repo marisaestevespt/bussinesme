@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     // that are not yet paid
     const { data: sales, error: salesError } = await supabase
       .from('commercial_sales')
-      .select('id, client, product, invoice_total, payment_date, status')
+      .select('id, client, product, invoice_total, payment_date, status, payment_method')
       .in('payment_date', [todayStr, threeDaysStr])
       .not('status', 'eq', 'pago')
 
@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
 
       const { data: client } = await supabase
         .from('clients')
-        .select('email, full_name, payment_method')
+        .select('email, full_name')
         .eq('full_name', clientName)
         .limit(1)
         .single()
@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
         }
 
         if (isToday) {
-          templateData.paymentMethod = client.payment_method || ''
+          templateData.paymentMethod = sale.payment_method || ''
           templateData.iban = bizSetup?.iban || ''
           templateData.mbwayNumber = mbwayNumber
         } else {

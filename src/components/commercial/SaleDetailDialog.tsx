@@ -24,6 +24,13 @@ import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUplo
 const STATUS_OPTIONS = ENTRY_STATUSES;
 const DEFAULT_SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
 const SPECIAL_OFFER_REASONS = ['Campanha especial', 'Cliente antigo', 'Parceria', 'Desconto de lançamento', 'Upgrade de produto'];
+const SALE_PAYMENT_METHODS = [
+  { value: 'transferencia', label: 'Transferência Bancária' },
+  { value: 'cartao', label: 'Cartão de Crédito/Débito' },
+  { value: 'debito_direto', label: 'Débito Direto' },
+  { value: 'mbway', label: 'MB WAY' },
+  { value: 'multibanco', label: 'Multibanco' },
+];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 interface Props {
@@ -147,6 +154,7 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
       sale_year: saleYear,
       is_special_offer: form.is_special_offer || false,
       special_offer_reason: form.is_special_offer ? (form.special_offer_reason || null) : null,
+      payment_method: form.payment_method || null,
     } as any).eq('id', saleId);
 
     if (error) { toast.error('Erro ao guardar'); return; }
@@ -304,8 +312,18 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Fonte</Label>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Método de Pagamento</Label>
+              <Select value={form.payment_method || ''} onValueChange={v => setForm((f: any) => ({ ...f, payment_method: v }))} disabled={!isOwner}>
+                <SelectTrigger><SelectValue placeholder="Não definido" /></SelectTrigger>
+                <SelectContent>
+                  {SALE_PAYMENT_METHODS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Fonte</Label>
             <Select value={form.source || ''} onValueChange={v => {
               if (v === '__custom__') {
                 const custom = prompt('Introduz a nova fonte:');
@@ -320,6 +338,7 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
                 <SelectItem value="__custom__">+ Adicionar outro</SelectItem>
               </SelectContent>
             </Select>
+            </div>
           </div>
 
           {/* Special Offer */}

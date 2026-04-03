@@ -31,12 +31,20 @@ interface Props {
   onUpdateProject?: (field: string, value: any) => void;
 }
 
-const PAYMENT_METHODS = [
+const PAYMENT_FORMS = [
   { value: 'pagamento_total', label: 'Pagamento Total' },
   { value: 'entrada_prestacoes', label: 'Entrada + Prestações' },
   { value: 'prestacoes', label: 'Prestações' },
   { value: 'avenca_mensal', label: 'Avença Mensal' },
   { value: 'subscricao', label: 'Subscrição' },
+];
+
+const PAYMENT_METHOD_OPTIONS = [
+  { value: 'transferencia', label: 'Transferência Bancária' },
+  { value: 'cartao', label: 'Cartão de Crédito/Débito' },
+  { value: 'debito_direto', label: 'Débito Direto' },
+  { value: 'mbway', label: 'MB WAY' },
+  { value: 'multibanco', label: 'Multibanco' },
 ];
 
 const SUBSCRIPTION_PERIODICITIES = [
@@ -69,17 +77,20 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   const [avencaValue, setAvencaValue] = useState(projectPaymentConfig?.avencaValue || '');
   const [subscricaoValue, setSubscricaoValue] = useState(projectPaymentConfig?.subscricaoValue || '');
   const [subscricaoPeriodicity, setSubscricaoPeriodicity] = useState(projectPaymentConfig?.subscricaoPeriodicity || 'mensal');
+  const [paymentMethodType, setPaymentMethodType] = useState(projectPaymentConfig?.paymentMethodType || '');
+  const [entradaPaymentMethod, setEntradaPaymentMethod] = useState(projectPaymentConfig?.entradaPaymentMethod || '');
+  const [prestacoesPaymentMethod, setPrestacoesPaymentMethod] = useState(projectPaymentConfig?.prestacoesPaymentMethod || '');
 
-  // ─── Client data (payment_method + start_date) ─────────────────
+  // ─── Client data (start_date) ─────────────────────────────────
   const { data: clientData } = useQuery({
     queryKey: ['client-gestao', clientId, clientName],
     queryFn: async () => {
       if (clientId) {
-        const { data } = await supabase.from('clients').select('id, payment_method, start_date, current_product').eq('id', clientId).maybeSingle();
+        const { data } = await supabase.from('clients').select('id, start_date, current_product').eq('id', clientId).maybeSingle();
         return data;
       }
       if (clientName) {
-        const { data } = await supabase.from('clients').select('id, payment_method, start_date, current_product').eq('full_name', clientName).maybeSingle();
+        const { data } = await supabase.from('clients').select('id, start_date, current_product').eq('full_name', clientName).maybeSingle();
         return data;
       }
       return null;
@@ -112,14 +123,12 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     }
   }, [billingStartDate, deadline, payMethod]);
 
-  // Sync payMethod from project first, then client fallback
+  // Sync payMethod from project
   useEffect(() => {
     if (projectPaymentMethod && !payMethod) {
       setPayMethod(projectPaymentMethod);
-    } else if (clientData?.payment_method && !payMethod && !projectPaymentMethod) {
-      setPayMethod(clientData.payment_method);
     }
-  }, [clientData?.payment_method, projectPaymentMethod]);
+  }, [projectPaymentMethod]);
 
   // Persist payment config to project whenever it changes (skip initial mount)
   const hasMountedRef = useRef(false);
@@ -129,12 +138,12 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
       return;
     }
     if (!onUpdateProject) return;
-    const config = { totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity };
+    const config = { totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity, paymentMethodType, entradaPaymentMethod, prestacoesPaymentMethod };
     const timer = setTimeout(() => {
       onUpdateProject('payment_config', config);
     }, 800);
     return () => clearTimeout(timer);
-  }, [totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity]);
+  }, [totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity, paymentMethodType, entradaPaymentMethod, prestacoesPaymentMethod]);
 
   // ─── Project sales ────────────────────────────────────────────
   const qc = useQueryClient();
@@ -217,16 +226,13 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     cancelada: { label: 'Cancelada', color: 'hsl(var(--destructive))' },
   };
 
-  // ─── Update payment method on client ──────────────────────────
-  const updatePaymentMethod = useMutation({
-    mutationFn: async (method: string) => {
-      if (!resolvedClientId) throw new Error('no client');
-      await supabase.from('clients').update({ payment_method: method }).eq('id', resolvedClientId);
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['client-gestao', clientId, clientName] });
-    },
-  });
+  // ─── Helper: resolve payment method for a generated entry ─────
+  const getMethodForEntry = (isEntrada: boolean) => {
+    if (payMethod === 'entrada_prestacoes') {
+      return isEntrada ? (entradaPaymentMethod || paymentMethodType || null) : (prestacoesPaymentMethod || paymentMethodType || null);
+    }
+    return paymentMethodType || null;
+  };
 
   // ─── Generate sales entries ───────────────────────────────────
   const generateSales = useMutation({
@@ -261,6 +267,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
           sale_year: start.getFullYear(),
           sale_quarter: Math.ceil((start.getMonth() + 1) / 3),
           created_by: user?.id || null,
+          payment_method: getMethodForEntry(false),
         });
       } else if (payMethod === 'entrada_prestacoes') {
         const total = parseFloat(totalValue);
@@ -286,6 +293,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
           sale_year: start.getFullYear(),
           sale_quarter: Math.ceil((start.getMonth() + 1) / 3),
           created_by: user?.id || null,
+          payment_method: getMethodForEntry(true),
         });
 
         // Prestações
@@ -308,6 +316,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             sale_year: prestDate.getFullYear(),
             sale_quarter: Math.ceil((prestDate.getMonth() + 1) / 3),
             created_by: user?.id || null,
+            payment_method: getMethodForEntry(false),
           });
         }
       } else if (payMethod === 'prestacoes') {
@@ -334,6 +343,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             sale_year: prestDate.getFullYear(),
             sale_quarter: Math.ceil((prestDate.getMonth() + 1) / 3),
             created_by: user?.id || null,
+            payment_method: getMethodForEntry(false),
           });
         }
       } else if (payMethod === 'avenca_mensal') {
@@ -359,6 +369,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             sale_year: avDate.getFullYear(),
             sale_quarter: Math.ceil((avDate.getMonth() + 1) / 3),
             created_by: user?.id || null,
+            payment_method: getMethodForEntry(false),
           });
         }
 
@@ -398,6 +409,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
                 sale_year: proRataPayDate.getFullYear(),
                 sale_quarter: Math.ceil((proRataPayDate.getMonth() + 1) / 3),
                 created_by: user?.id || null,
+                payment_method: getMethodForEntry(false),
               });
             }
           }
@@ -414,10 +426,6 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
       const { error } = await supabase.from('commercial_sales').insert(upcomingEntries);
       if (error) throw error;
 
-      // Update client payment_method
-      if (resolvedClientId) {
-        await supabase.from('clients').update({ payment_method: payMethod }).eq('id', resolvedClientId);
-      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: salesKey });
@@ -454,24 +462,74 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
           <CardTitle className="text-sm flex items-center gap-2"><CreditCard className="h-4 w-4" /> Forma de Pagamento</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Select
-            value={payMethod}
-            onValueChange={v => {
-              setPayMethod(v);
-              updatePaymentMethod.mutate(v);
-              if (onUpdateProject) onUpdateProject('payment_method', v);
-            }}
-            disabled={!resolvedClientId}
-          >
-            <SelectTrigger className="w-72">
-              <SelectValue placeholder={resolvedClientId ? 'Selecionar forma...' : 'Associe um cliente ao projeto'} />
-            </SelectTrigger>
-            <SelectContent>
-              {PAYMENT_METHODS.map(m => (
-                <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Forma de Pagamento</Label>
+              <Select
+                value={payMethod}
+                onValueChange={v => {
+                  setPayMethod(v);
+                  if (onUpdateProject) onUpdateProject('payment_method', v);
+                }}
+                disabled={!resolvedClientId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={resolvedClientId ? 'Selecionar forma...' : 'Associe um cliente ao projeto'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAYMENT_FORMS.map(m => (
+                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {payMethod && payMethod !== 'entrada_prestacoes' && (
+              <div>
+                <Label className="text-xs">Método de Pagamento</Label>
+                <Select value={paymentMethodType} onValueChange={setPaymentMethodType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecionar método..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAYMENT_METHOD_OPTIONS.map(m => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          {payMethod === 'entrada_prestacoes' && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Método — Entrada</Label>
+                <Select value={entradaPaymentMethod} onValueChange={setEntradaPaymentMethod}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecionar método..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAYMENT_METHOD_OPTIONS.map(m => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Método — Prestações</Label>
+                <Select value={prestacoesPaymentMethod} onValueChange={setPrestacoesPaymentMethod}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecionar método..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAYMENT_METHOD_OPTIONS.map(m => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
 
           {/* Dynamic fields per method */}
           {payMethod === 'pagamento_total' && (
@@ -591,12 +649,13 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
           </Button>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-6 gap-2">
+          <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-7 gap-2">
             <span>Status</span>
             <span>Data</span>
             <span>Descrição</span>
             <span>Valor Base</span>
             <span>Fatura</span>
+            <span>Método</span>
             <span>Produto</span>
           </div>
           {allSales.length === 0 ? (
@@ -604,10 +663,11 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
           ) : (
             allSales.map((s: any) => {
               const si = SALE_STATUSES[s.status] || { label: s.status, color: '' };
+              const methodLabel = PAYMENT_METHOD_OPTIONS.find(m => m.value === s.payment_method)?.label;
               return (
                 <div
                   key={s.id}
-                  className="px-4 py-2 text-xs grid grid-cols-6 gap-2 border-b items-center cursor-pointer hover:bg-muted/50"
+                  className="px-4 py-2 text-xs grid grid-cols-7 gap-2 border-b items-center cursor-pointer hover:bg-muted/50"
                   onClick={() => setSelectedSaleId(s.id)}
                 >
                   <span><Badge variant="outline" className={`text-[10px] ${si.color}`}>{si.label}</Badge></span>
@@ -615,6 +675,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
                   <span className="truncate">{s.description || '—'}{s.is_special_offer && <Gift className="inline h-3 w-3 ml-1 text-amber-500" />}</span>
                   <span>{Number(s.base_value).toFixed(2)}€</span>
                   <span>{Number(s.invoice_total).toFixed(2)}€</span>
+                  <span className="truncate text-muted-foreground">{methodLabel || '—'}</span>
                   <span className="truncate">{s.product || '—'}</span>
                 </div>
               );
