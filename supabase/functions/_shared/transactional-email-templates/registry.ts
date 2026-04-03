@@ -15,6 +15,8 @@ import { template as paymentReminder } from './payment-reminder.tsx'
 import { template as invoiceAvailable } from './invoice-available.tsx'
 import { template as ownerDigest } from './owner-digest.tsx'
 import { template as memberDigest } from './member-digest.tsx'
+import { template as ownerEodDigest } from './owner-eod-digest.tsx'
+import { template as memberEodDigest } from './member-eod-digest.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'welcome-member': welcomeMember,
@@ -23,4 +25,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'invoice-available': invoiceAvailable,
   'owner-digest': ownerDigest,
   'member-digest': memberDigest,
+  'owner-eod-digest': ownerEodDigest,
+  'member-eod-digest': memberEodDigest,
 }

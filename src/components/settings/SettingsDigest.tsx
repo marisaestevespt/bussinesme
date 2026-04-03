@@ -4,7 +4,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, Mail } from 'lucide-react';
+import { Loader2, Mail, Moon } from 'lucide-react';
 import { toast } from 'sonner';
 
 const OWNER_SECTION_LABELS: Record<string, string> = {
@@ -26,25 +26,73 @@ const OWNER_SECTION_LABELS: Record<string, string> = {
   prazos_fiscais: 'Prazos fiscais próximos ou em atraso',
 };
 
+const OWNER_EOD_SECTION_LABELS: Record<string, string> = {
+  tarefas_concluidas_equipa: 'Tarefas concluídas hoje (equipa)',
+  rotinas_progresso: 'Progresso das rotinas do dia',
+  tempo_trabalhado: 'Tempo trabalhado hoje (equipa)',
+  vendas_hoje: 'Vendas do dia',
+  pagamentos_recebidos: 'Pagamentos recebidos',
+  projetos_fechados: 'Projetos fechados hoje',
+  tarefas_atraso: 'Tarefas que ficaram em atraso',
+};
+
 export function SettingsDigest() {
-  const { settings, isLoading, update, ownerDefaultSections } = useDigestSettings(true);
+  return (
+    <div className="space-y-10">
+      <DigestSection
+        type="morning"
+        icon={<Mail className="h-4 w-4" />}
+        title="Briefing da Manhã"
+        description="Recebe todas as manhãs tudo o que vai acontecer no dia no negócio."
+        sectionLabels={OWNER_SECTION_LABELS}
+        defaultTime="08:00"
+      />
+      <Separator />
+      <DigestSection
+        type="eod"
+        icon={<Moon className="h-4 w-4" />}
+        title="Wrap-up de Fim de Dia"
+        description="Recebe ao fim do dia um resumo do que foi feito, concluído e o que ficou pendente."
+        sectionLabels={OWNER_EOD_SECTION_LABELS}
+        defaultTime="18:30"
+      />
+    </div>
+  );
+}
+
+function DigestSection({
+  type,
+  icon,
+  title,
+  description,
+  sectionLabels,
+  defaultTime,
+}: {
+  type: 'morning' | 'eod';
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  sectionLabels: Record<string, string>;
+  defaultTime: string;
+}) {
+  const { settings, isLoading, update, defaultSections } = useDigestSettings(true, type);
   const [enabled, setEnabled] = useState(false);
-  const [sendTime, setSendTime] = useState('08:00');
-  const [sections, setSections] = useState<Record<string, boolean>>(ownerDefaultSections);
+  const [sendTime, setSendTime] = useState(defaultTime);
+  const [sections, setSections] = useState<Record<string, boolean>>(defaultSections);
 
   useEffect(() => {
     if (settings) {
       setEnabled(settings.enabled);
-      setSendTime(settings.send_time?.substring(0, 5) || '08:00');
-      setSections({ ...ownerDefaultSections, ...(settings.sections || {}) });
+      setSendTime(settings.send_time?.substring(0, 5) || defaultTime);
+      setSections({ ...defaultSections, ...(settings.sections || {}) });
     }
   }, [settings]);
 
   const handleToggleEnabled = async (val: boolean) => {
     setEnabled(val);
     try {
-      await update({ enabled: val, sections });
-      toast.success(val ? 'Resumo diário activado' : 'Resumo diário desactivado');
+      await update({ enabled: val, sections, send_time: sendTime + ':00' });
+      toast.success(val ? `${title} activado` : `${title} desactivado`);
     } catch {
       toast.error('Erro ao guardar');
       setEnabled(!val);
@@ -82,20 +130,18 @@ export function SettingsDigest() {
     <div className="space-y-6">
       <div className="space-y-1">
         <h3 className="text-base font-semibold flex items-center gap-2">
-          <Mail className="h-4 w-4" />
-          Briefing Diário do Negócio
+          {icon}
+          {title}
         </h3>
-        <p className="text-sm text-muted-foreground">
-          Recebe todas as manhãs tudo o que vai acontecer no dia no negócio.
-        </p>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
 
       <div className="flex items-center justify-between">
-        <Label htmlFor="digest-enabled" className="text-sm font-medium">
-          Activar briefing diário do negócio
+        <Label htmlFor={`digest-enabled-${type}`} className="text-sm font-medium">
+          Activar {title.toLowerCase()}
         </Label>
         <Switch
-          id="digest-enabled"
+          id={`digest-enabled-${type}`}
           checked={enabled}
           onCheckedChange={handleToggleEnabled}
         />
@@ -123,13 +169,13 @@ export function SettingsDigest() {
           <div className="space-y-4">
             <Label className="text-sm font-medium">O que incluir no resumo</Label>
             <div className="space-y-3">
-              {Object.entries(OWNER_SECTION_LABELS).map(([key, label]) => (
+              {Object.entries(sectionLabels).map(([key, label]) => (
                 <div key={key} className="flex items-center justify-between">
-                  <Label htmlFor={`section-${key}`} className="text-sm text-foreground">
+                  <Label htmlFor={`section-${type}-${key}`} className="text-sm text-foreground">
                     {label}
                   </Label>
                   <Switch
-                    id={`section-${key}`}
+                    id={`section-${type}-${key}`}
                     checked={sections[key] ?? true}
                     onCheckedChange={(val) => handleSectionToggle(key, val)}
                   />

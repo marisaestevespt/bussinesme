@@ -155,6 +155,28 @@ const TEMPLATES: TemplateDefaults[] = [
     footer: 'Este resumo é gerado automaticamente com base na atividade do dia.',
     bodyBuilder: () => '',
   },
+  {
+    key: 'owner-eod-digest',
+    label: 'Wrap-up do dia (Owner)',
+    description: 'Resumo de fim de dia enviado ao dono do negócio',
+    emoji: '🌙',
+    title: 'Wrap-up do dia',
+    subtitle: 'Boa noite, {name}! Aqui está o resumo do que aconteceu hoje.',
+    ctaText: '',
+    footer: 'Este wrap-up é gerado automaticamente com base na atividade do dia.',
+    bodyBuilder: () => '',
+  },
+  {
+    key: 'member-eod-digest',
+    label: 'Wrap-up do dia (Membro)',
+    description: 'Resumo de fim de dia enviado a cada membro da equipa',
+    emoji: '🌙',
+    title: 'Wrap-up do dia',
+    subtitle: 'Boa noite, {name}! Aqui está o resumo do que aconteceu hoje.',
+    ctaText: '',
+    footer: 'Este wrap-up é gerado automaticamente com base na atividade do dia.',
+    bodyBuilder: () => '',
+  },
 ];
 
 function buildPreview(tmpl: TemplateDefaults, custom: TemplateCustom, biz: string): string {

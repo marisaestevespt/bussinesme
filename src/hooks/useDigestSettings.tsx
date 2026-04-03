@@ -12,6 +12,7 @@ export interface DigestSettings {
   send_day_of_week: number | null;
   send_day_of_month: number | null;
   sections: Record<string, boolean>;
+  digest_type: 'morning' | 'eod';
 }
 
 const OWNER_DEFAULT_SECTIONS: Record<string, boolean> = {
@@ -45,7 +46,25 @@ const MEMBER_DEFAULT_SECTIONS: Record<string, boolean> = {
   tempo_registado: true,
 };
 
-export function useDigestSettings(isOwnerDigest: boolean) {
+const OWNER_EOD_DEFAULT_SECTIONS: Record<string, boolean> = {
+  tarefas_concluidas_equipa: true,
+  rotinas_progresso: true,
+  tempo_trabalhado: true,
+  vendas_hoje: true,
+  pagamentos_recebidos: true,
+  projetos_fechados: true,
+  tarefas_atraso: true,
+};
+
+const MEMBER_EOD_DEFAULT_SECTIONS: Record<string, boolean> = {
+  tarefas_concluidas: true,
+  rotinas_progresso: true,
+  tempo_registado: true,
+  tarefas_atraso: true,
+  preview_amanha: true,
+};
+
+export function useDigestSettings(isOwnerDigest: boolean, digestType: 'morning' | 'eod' = 'morning') {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -65,16 +84,17 @@ export function useDigestSettings(isOwnerDigest: boolean) {
   const profileId = profileQuery.data;
 
   const settingsQuery = useQuery({
-    queryKey: ['digest-settings', profileId, isOwnerDigest],
+    queryKey: ['digest-settings', profileId, isOwnerDigest, digestType],
     enabled: !!profileId,
     queryFn: async () => {
       const { data } = await supabase
         .from('digest_settings')
         .select('*')
         .eq('user_id', profileId!)
-        .eq('is_owner_digest', isOwnerDigest)
-        .maybeSingle();
-      return data as DigestSettings | null;
+        .eq('is_owner_digest', isOwnerDigest);
+      // Filter by digest_type in JS since it's a new column
+      const match = (data || []).find((d: any) => (d.digest_type || 'morning') === digestType);
+      return (match as DigestSettings | undefined) || null;
     },
   });
 
@@ -82,7 +102,9 @@ export function useDigestSettings(isOwnerDigest: boolean) {
     mutationFn: async (updates: Partial<DigestSettings>) => {
       if (!profileId) throw new Error('Profile not found');
 
-      const defaultSections = isOwnerDigest ? OWNER_DEFAULT_SECTIONS : MEMBER_DEFAULT_SECTIONS;
+      const defaultSections = isOwnerDigest
+        ? (digestType === 'eod' ? OWNER_EOD_DEFAULT_SECTIONS : OWNER_DEFAULT_SECTIONS)
+        : (digestType === 'eod' ? MEMBER_EOD_DEFAULT_SECTIONS : MEMBER_DEFAULT_SECTIONS);
 
       if (settingsQuery.data?.id) {
         const { error } = await supabase
@@ -96,6 +118,7 @@ export function useDigestSettings(isOwnerDigest: boolean) {
           .insert({
             user_id: profileId,
             is_owner_digest: isOwnerDigest,
+            digest_type: digestType,
             sections: defaultSections,
             ...updates,
           } as any);
@@ -103,9 +126,14 @@ export function useDigestSettings(isOwnerDigest: boolean) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['digest-settings', profileId, isOwnerDigest] });
+      queryClient.invalidateQueries({ queryKey: ['digest-settings', profileId, isOwnerDigest, digestType] });
     },
   });
+
+  const getDefaultSections = () => {
+    if (isOwnerDigest) return digestType === 'eod' ? OWNER_EOD_DEFAULT_SECTIONS : OWNER_DEFAULT_SECTIONS;
+    return digestType === 'eod' ? MEMBER_EOD_DEFAULT_SECTIONS : MEMBER_DEFAULT_SECTIONS;
+  };
 
   return {
     settings: settingsQuery.data,
@@ -115,5 +143,8 @@ export function useDigestSettings(isOwnerDigest: boolean) {
     isUpdating: upsertMutation.isPending,
     ownerDefaultSections: OWNER_DEFAULT_SECTIONS,
     memberDefaultSections: MEMBER_DEFAULT_SECTIONS,
+    ownerEodDefaultSections: OWNER_EOD_DEFAULT_SECTIONS,
+    memberEodDefaultSections: MEMBER_EOD_DEFAULT_SECTIONS,
+    defaultSections: getDefaultSections(),
   };
 }
