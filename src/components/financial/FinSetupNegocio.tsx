@@ -14,6 +14,8 @@ interface PaymentMethod {
   type: string;
   label: string;
   value: string;
+  card_last4?: string;
+  card_expiry?: string;
 }
 
 const PAYMENT_TYPE_OPTIONS = [
@@ -21,6 +23,7 @@ const PAYMENT_TYPE_OPTIONS = [
   { value: 'mbway', label: 'MBWay' },
   { value: 'paypal', label: 'PayPal' },
   { value: 'stripe', label: 'Stripe' },
+  { value: 'cartao', label: 'Cartão' },
   { value: 'mb_ref', label: 'Referência Multibanco' },
   { value: 'outro', label: 'Outro' },
 ];
