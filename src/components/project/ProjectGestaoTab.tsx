@@ -342,6 +342,8 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             created_by: user?.id || null,
             payment_method: getMethodForEntry(false),
           });
+        }
+      } else if (payMethod === 'avenca_mensal') {
         const meses = parseInt(numMeses);
         const day = parseInt(payDay);
         const valor = parseFloat(avencaValue);
