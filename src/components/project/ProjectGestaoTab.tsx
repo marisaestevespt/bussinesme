@@ -246,6 +246,8 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
       const entries: any[] = [];
       const product = productName || clientData?.current_product || '';
       const client = clientName || '';
+      const vatRate = (productsList || []).find(p => p.name === product)?.vat_rate || 0;
+      const applyVat = (base: number) => Math.round(base * (1 + vatRate / 100) * 100) / 100;
       const year = new Date().getFullYear();
       let saleCounter = 0;
       const genSaleId = () => { saleCounter++; return `V${year}-${Date.now()}-${saleCounter}`; };
