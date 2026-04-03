@@ -424,6 +424,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             onValueChange={v => {
               setPayMethod(v);
               updatePaymentMethod.mutate(v);
+              if (onUpdateProject) onUpdateProject('payment_method', v);
             }}
             disabled={!resolvedClientId}
           >
