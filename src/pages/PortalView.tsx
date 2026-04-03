@@ -246,7 +246,43 @@ export default function PortalViewPage() {
         {/* ═══ HOME ═══ */}
         {activeSection === 'home' && (
           <>
-            {/* Quick info cards — prominent, right below header */}
+
+            {/* Welcome hero with project status */}
+            <div
+              className="rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden"
+              style={{ background: `linear-gradient(135deg, ${pc} 0%, ${pcAlpha(0.8)} 100%)` }}
+            >
+              <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10 bg-white -translate-y-1/2 translate-x-1/2" />
+              <div className="relative z-10">
+                <p className="text-white/70 text-sm mb-1">Olá 👋</p>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ fontFamily: 'var(--font-display, "Plus Jakarta Sans", sans-serif)' }}>
+                  Bem-vinda, {firstName}!
+                </h1>
+                <p className="text-white/80 text-sm mt-2 max-w-md">
+                  Este é o teu espaço de acompanhamento. Aqui encontras tudo o que precisas.
+                </p>
+
+                {/* Project status bar */}
+                {phases.length > 0 && (
+                  <div className="mt-5 bg-white/15 rounded-xl p-4 backdrop-blur-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-white/90 text-xs font-medium">Progresso do Projeto</span>
+                      <span className="text-white font-bold text-sm">{projectProgress}%</span>
+                    </div>
+                    <div className="h-2 bg-white/20 rounded-full overflow-hidden mb-3">
+                      <div className="h-full bg-white rounded-full transition-all" style={{ width: `${projectProgress}%` }} />
+                    </div>
+                    {activePhase && (
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
+                        <span className="text-white/90 text-xs">Fase atual: <strong>{activePhase.title}</strong></span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {portal.show_meetings && (() => {
                 const next = meetings
@@ -298,42 +334,6 @@ export default function PortalViewPage() {
                   </div>
                 );
               })()}
-            </div>
-
-            {/* Welcome hero with project status */}
-            <div
-              className="rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden"
-              style={{ background: `linear-gradient(135deg, ${pc} 0%, ${pcAlpha(0.8)} 100%)` }}
-            >
-              <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10 bg-white -translate-y-1/2 translate-x-1/2" />
-              <div className="relative z-10">
-                <p className="text-white/70 text-sm mb-1">Olá 👋</p>
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ fontFamily: 'var(--font-display, "Plus Jakarta Sans", sans-serif)' }}>
-                  Bem-vinda, {firstName}!
-                </h1>
-                <p className="text-white/80 text-sm mt-2 max-w-md">
-                  Este é o teu espaço de acompanhamento. Aqui encontras tudo o que precisas.
-                </p>
-
-                {/* Project status bar */}
-                {phases.length > 0 && (
-                  <div className="mt-5 bg-white/15 rounded-xl p-4 backdrop-blur-sm">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-white/90 text-xs font-medium">Progresso do Projeto</span>
-                      <span className="text-white font-bold text-sm">{projectProgress}%</span>
-                    </div>
-                    <div className="h-2 bg-white/20 rounded-full overflow-hidden mb-3">
-                      <div className="h-full bg-white rounded-full transition-all" style={{ width: `${projectProgress}%` }} />
-                    </div>
-                    {activePhase && (
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
-                        <span className="text-white/90 text-xs">Fase atual: <strong>{activePhase.title}</strong></span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
             </div>
 
             {/* Quick action cards */}
