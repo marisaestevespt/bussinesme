@@ -325,9 +325,10 @@ export default function ClienteDetailPage() {
         deadline = format(end, 'yyyy-MM-dd');
       }
 
+      const isRecurring = matchedProduct?.sales_type === 'avenca_mensal' || matchedProduct?.sales_type === 'subscricao';
       const { data, error } = await supabase.from('projects').insert({
         name,
-        type: 'cliente_projeto_unico',
+        type: isRecurring ? 'cliente_servico_mensal' : 'cliente_projeto_unico',
         status: 'em_onboarding',
         department: 'clientes',
         departments: ['clientes', 'operacao'],
