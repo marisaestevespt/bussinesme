@@ -138,7 +138,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
       return;
     }
     if (!onUpdateProject) return;
-    const config = { totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity };
+    const config = { totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity, paymentMethodType, entradaPaymentMethod, prestacoesPaymentMethod };
     const timer = setTimeout(() => {
       onUpdateProject('payment_config', config);
     }, 800);
