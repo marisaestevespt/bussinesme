@@ -162,7 +162,7 @@ export default function FornecedoresPage() {
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [expenseEdit, setExpenseEdit] = useState<any>({});
   const [autoOpened, setAutoOpened] = useState(false);
-  const [cancelDialog, setCancelDialog] = useState<{ supplierId: string } | null>(null);
+  const [cancelDialog, setCancelDialog] = useState<{ supplierId: string; adjustValue: string; showAdjust: boolean } | null>(null);
 
   // Dynamic payment methods from business setup
   const { data: setupPaymentMethods } = useQuery({
@@ -201,9 +201,9 @@ export default function FornecedoresPage() {
 
   // Cancel recurrence: mark rule as cancelled + delete future (and optionally current month) unpaid expenses
   const cancelRecurrence = useMutation({
-    mutationFn: async ({ supplierId, includeCurrentMonth }: { supplierId: string; includeCurrentMonth: boolean }) => {
+    mutationFn: async ({ supplierId, includeCurrentMonth, adjustedValue }: { supplierId: string; includeCurrentMonth: boolean; adjustedValue?: number }) => {
       const { data: rules } = await supabase.from('financial_expenses')
-        .select('id')
+        .select('id, vat_rate')
         .eq('supplier_id', supplierId)
         .eq('is_recurring', true);
       
@@ -228,19 +228,35 @@ export default function FornecedoresPage() {
         .eq('is_recurring', false)
         .in('parent_expense_id', ruleIds);
 
-      const toDelete = (childExpenses || []).filter((e: any) => {
-        if (isPaidExpenseStatus(e.status)) return false;
+      const toDelete: any[] = [];
+      let currentMonthExpenseId: string | null = null;
+
+      (childExpenses || []).forEach((e: any) => {
+        if (isPaidExpenseStatus(e.status)) return;
         const eYear = e.expense_year || parseInt((e.expense_date || '').slice(0, 4));
         const eMonth = e.expense_month || parseInt((e.expense_date || '').slice(5, 7));
-        if (eYear > currentYr || (eYear === currentYr && eMonth > currentMo)) return true;
-        if (includeCurrentMonth && eYear === currentYr && eMonth === currentMo) return true;
-        return false;
+        if (eYear > currentYr || (eYear === currentYr && eMonth > currentMo)) {
+          toDelete.push(e);
+        } else if (includeCurrentMonth && eYear === currentYr && eMonth === currentMo) {
+          toDelete.push(e);
+        } else if (!includeCurrentMonth && eYear === currentYr && eMonth === currentMo) {
+          currentMonthExpenseId = e.id;
+        }
       });
 
       if (toDelete.length > 0) {
         await supabase.from('financial_expenses')
           .delete()
           .in('id', toDelete.map(e => e.id));
+      }
+
+      // Adjust current month expense value if requested
+      if (!includeCurrentMonth && adjustedValue != null && adjustedValue > 0 && currentMonthExpenseId) {
+        const vatRate = rules[0]?.vat_rate || 0;
+        const newTotal = Math.round(adjustedValue * (1 + vatRate / 100) * 100) / 100;
+        await supabase.from('financial_expenses')
+          .update({ base_value: adjustedValue, total_with_vat: newTotal } as any)
+          .eq('id', currentMonthExpenseId);
       }
 
       return toDelete.length;
@@ -703,7 +719,7 @@ export default function FornecedoresPage() {
                   </Button>
                 )}
                 {form.id && supplierExpenses.some((e: any) => e.is_recurring && e.source_type === 'rule' && e.status !== 'cancelado') && (
-                  <Button type="button" variant="outline" size="sm" className="w-full text-destructive hover:text-destructive" onClick={() => setCancelDialog({ supplierId: form.id })}>
+                  <Button type="button" variant="outline" size="sm" className="w-full text-destructive hover:text-destructive" onClick={() => setCancelDialog({ supplierId: form.id, adjustValue: '', showAdjust: false })}>
                     <Ban className="h-3.5 w-3.5 mr-1" /> Cancelar Recorrência
                   </Button>
                 )}
@@ -1025,11 +1041,31 @@ export default function FornecedoresPage() {
                 A recorrência será cancelada e todas as despesas futuras não pagas serão eliminadas.
               </p>
               <p className="text-sm font-medium">A despesa deste mês deve ser mantida ou eliminada?</p>
+              
+              {cancelDialog?.showAdjust && (
+                <div className="space-y-2 rounded-md border border-border p-3">
+                  <Label className="text-xs">Ajustar valor base deste mês (€)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="Deixar vazio para manter o valor atual"
+                    value={cancelDialog.adjustValue}
+                    onChange={e => setCancelDialog(prev => prev ? { ...prev, adjustValue: e.target.value } : null)}
+                  />
+                  <p className="text-[10px] text-muted-foreground">Útil para acertos ou última parcela parcial</p>
+                </div>
+              )}
+
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" onClick={() => {
-                  if (cancelDialog) cancelRecurrence.mutate({ supplierId: cancelDialog.supplierId, includeCurrentMonth: false });
+                  if (cancelDialog && !cancelDialog.showAdjust) {
+                    setCancelDialog(prev => prev ? { ...prev, showAdjust: true } : null);
+                  } else if (cancelDialog) {
+                    const adj = cancelDialog.adjustValue ? parseFloat(cancelDialog.adjustValue) : undefined;
+                    cancelRecurrence.mutate({ supplierId: cancelDialog.supplierId, includeCurrentMonth: false, adjustedValue: adj });
+                  }
                 }}>
-                  Manter este mês
+                  {cancelDialog?.showAdjust ? 'Confirmar e manter' : 'Manter este mês'}
                 </Button>
                 <Button variant="destructive" className="flex-1" onClick={() => {
                   if (cancelDialog) cancelRecurrence.mutate({ supplierId: cancelDialog.supplierId, includeCurrentMonth: true });
