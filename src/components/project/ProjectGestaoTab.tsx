@@ -272,6 +272,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
         for (let i = 0; i < nPrest; i++) {
           const prestDate = i === 0 ? start : setDate(addMonths(start, i), day);
           entries.push({
+            sale_id: genSaleId(),
             status: 'aguarda_pagamento',
             payment_date: format(prestDate, 'yyyy-MM-dd'),
             description: `Prestação ${i + 1}/${nPrest} — ${product}`,
