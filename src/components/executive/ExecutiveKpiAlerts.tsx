@@ -28,7 +28,7 @@ export function ExecutiveKpiAlerts() {
           .select('id,invoice_total,sale_month,status')
           .eq('sale_year', currentYear),
         supabase.from('commercial_annual_goals').select('goal_amount').eq('year', currentYear).maybeSingle(),
-        supabase.from('team_members').select('id,status,weekly_hours'),
+        supabase.from('team_members').select('id,status,expected_weekly_hours'),
         supabase.from('time_entries').select('member_id,duration').gte('entry_date', monthStart).lte('entry_date', monthEnd),
       ]);
       return {
