@@ -38,9 +38,70 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
         .order('sort_order', { ascending: true });
 
       if (tErr) throw tErr;
-      if (!templateTasks?.length) throw new Error('Este produto não tem template de projeto definido.');
 
-      // 2. Fetch project members with their team_member info (for role matching)
+      // 2. Fetch onboarding/offboarding SOPs from the product
+      const { data: productSops } = await supabase
+        .from('sops')
+        .select('id, name, sop_type, passos')
+        .eq('product_id', productId)
+        .eq('linked_entity_type', 'produto');
+
+      const onboardingSop = (productSops || []).find((s: any) => s.sop_type === 'onboarding' || s.name?.toLowerCase().includes('onboarding'));
+      const offboardingSop = (productSops || []).find((s: any) => s.name?.toLowerCase().includes('offboarding'));
+
+      // 3. Copy onboarding steps to client_onboarding
+      if (onboardingSop && clientId) {
+        const steps = (onboardingSop.passos as string[] || []).filter((s: string) => s?.trim());
+        if (steps.length > 0) {
+          // Check if client already has onboarding items to avoid duplicates
+          const { data: existing } = await supabase
+            .from('client_onboarding')
+            .select('id')
+            .eq('client_id', clientId)
+            .limit(1);
+
+          if (!existing?.length) {
+            const rows = steps.map((step: string, i: number) => ({
+              client_id: clientId,
+              activity: step,
+              sort_order: i,
+              completed: false,
+            }));
+            await supabase.from('client_onboarding').insert(rows);
+          }
+        }
+      }
+
+      // 4. Copy offboarding steps to client_offboarding
+      if (offboardingSop && clientId) {
+        const steps = (offboardingSop.passos as string[] || []).filter((s: string) => s?.trim());
+        if (steps.length > 0) {
+          const { data: existing } = await supabase
+            .from('client_offboarding')
+            .select('id')
+            .eq('client_id', clientId)
+            .limit(1);
+
+          if (!existing?.length) {
+            const rows = steps.map((step: string, i: number) => ({
+              client_id: clientId,
+              activity: step,
+              sort_order: i,
+              completed: false,
+            }));
+            await supabase.from('client_offboarding').insert(rows);
+          }
+        }
+      }
+
+      // 5. If no template tasks, still return success for SOP copy
+      if (!templateTasks?.length) {
+        const copiedSops = [onboardingSop, offboardingSop].filter(Boolean).length;
+        if (copiedSops > 0) return 0; // signal that SOPs were copied but no tasks
+        throw new Error('Este produto não tem template de projeto nem SOPs de onboarding/offboarding definidos.');
+      }
+
+      // 6. Fetch project members with their team_member info (for role matching)
       const { data: projectMembers } = await supabase
         .from('project_members')
         .select('profile_id')
@@ -48,8 +109,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
 
       const profileIds = (projectMembers || []).map((m: any) => m.profile_id);
 
-      // Get team_members linked to those profiles
-      let membersByRole: Record<string, string> = {}; // role_title → profile_id
+      let membersByRole: Record<string, string> = {};
       if (profileIds.length > 0) {
         const { data: teamMembers } = await supabase
           .from('team_members')
@@ -59,12 +119,10 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
 
         for (const tm of teamMembers || []) {
           if (!tm.profile_id) continue;
-          // Index by role_title (lowered)
           if (tm.role_title) {
             const key = tm.role_title.toLowerCase().trim();
             if (!membersByRole[key]) membersByRole[key] = tm.profile_id;
           }
-          // Also index by work_areas
           const areas = Array.isArray(tm.work_areas) ? tm.work_areas : [];
           for (const area of areas) {
             const key = String(area).toLowerCase().trim();
@@ -73,7 +131,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
         }
       }
 
-      // 3. Fetch historical avg times for matching task names
+      // 7. Fetch historical avg times
       const taskNames = templateTasks.map(t => (t as any).task_name).filter(Boolean);
       let historicalAvg: Record<string, { sum: number; count: number }> = {};
 
@@ -96,41 +154,32 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
           if (timeEntries?.length) {
             const taskIdToName: Record<string, string> = {};
             for (const t of historicalTasks) taskIdToName[t.id] = t.name;
-
             for (const te of timeEntries) {
               const name = taskIdToName[te.task_id];
               if (!name) continue;
               if (!historicalAvg[name]) historicalAvg[name] = { sum: 0, count: 0 };
-              historicalAvg[name].sum += (te.duration_minutes || 0) / 60; // hours
+              historicalAvg[name].sum += (te.duration_minutes || 0) / 60;
               historicalAvg[name].count += 1;
             }
           }
         }
       }
 
-      // 4. Build tasks to insert
+      // 8. Build and insert tasks
       const baseDate = projectStartDate ? parseISO(projectStartDate) : new Date();
-      
-      // First pass: create non-subtasks, then subtasks
       const parentTasks = templateTasks.filter((t: any) => !t.is_subtask);
-      const subTasks = templateTasks.filter((t: any) => t.is_subtask);
+      const insertedParentIds: Record<string, string> = {};
 
-      const insertedParentIds: Record<string, string> = {}; // template_id → new task id
-
-      // Insert parent tasks
       for (const tmpl of parentTasks) {
         const t = tmpl as any;
         const responsibleKey = t.responsible?.toLowerCase().trim();
         const assignedTo = responsibleKey ? (membersByRole[responsibleKey] || null) : null;
-        
         const ruleDays = parseRuleDays(t.rule);
         const deadline = ruleDays ? addDays(baseDate, ruleDays).toISOString().split('T')[0] : null;
 
-        // Combine template estimated_time as one more data point in the historical average
         const hist = historicalAvg[t.task_name];
         let estimatedTime: number | null = null;
         if (t.estimated_time != null && hist) {
-          // Average of historical avg + template value
           estimatedTime = Math.round(((hist.sum + Number(t.estimated_time)) / (hist.count + 1)) * 10) / 10;
         } else if (hist) {
           estimatedTime = Math.round((hist.sum / hist.count) * 10) / 10;
@@ -159,10 +208,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
         if (inserted) insertedParentIds[t.id] = inserted.id;
       }
 
-      // Insert subtasks (link to last parent created before them)
       let lastParentId: string | null = null;
-      // We need to figure out which parent each subtask belongs to
-      // Logic: a subtask belongs to the parent task above it in sort_order
       for (const tmpl of templateTasks) {
         const t = tmpl as any;
         if (!t.is_subtask) {
@@ -172,7 +218,6 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
 
         const responsibleKey = t.responsible?.toLowerCase().trim();
         const assignedTo = responsibleKey ? (membersByRole[responsibleKey] || null) : null;
-        
         const ruleDays = parseRuleDays(t.rule);
         const deadline = ruleDays ? addDays(baseDate, ruleDays).toISOString().split('T')[0] : null;
 
