@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Trash2, RefreshCw, CalendarClock, Pencil, Check, X } from 'lucide-react';
+import { Plus, Trash2, RefreshCw, CalendarClock, Pencil, Check, X, Ban } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -196,6 +196,54 @@ export default function FornecedoresPage() {
         status: normalizeUnpaidExpenseStatus(expense.status, expense.expense_date),
       }));
     },
+  });
+
+  // Cancel recurrence: mark rule as cancelled + delete all future unpaid expenses
+  const cancelRecurrence = useMutation({
+    mutationFn: async (supplierId: string) => {
+      // Find all recurring rules for this supplier
+      const { data: rules } = await supabase.from('financial_expenses')
+        .select('id')
+        .eq('supplier_id', supplierId)
+        .eq('is_recurring', true);
+      
+      if (!rules || rules.length === 0) {
+        toast.error('Sem despesa recorrente associada');
+        return;
+      }
+
+      const ruleIds = rules.map(r => r.id);
+
+      // Mark all rules as cancelled
+      await supabase.from('financial_expenses')
+        .update({ status: 'cancelado' } as any)
+        .in('id', ruleIds);
+
+      // Delete all future unpaid child expenses (keep past/paid ones)
+      const today = new Date().toISOString().slice(0, 10);
+      const { data: futureExpenses } = await supabase.from('financial_expenses')
+        .select('id, status, expense_date')
+        .eq('supplier_id', supplierId)
+        .eq('is_recurring', false)
+        .in('parent_expense_id', ruleIds);
+
+      const toDelete = (futureExpenses || []).filter((e: any) =>
+        !isPaidExpenseStatus(e.status) && e.expense_date > today
+      );
+
+      if (toDelete.length > 0) {
+        await supabase.from('financial_expenses')
+          .delete()
+          .in('id', toDelete.map(e => e.id));
+      }
+
+      return toDelete.length;
+    },
+    onSuccess: (count) => {
+      invalidateAll();
+      toast.success(`Recorrência cancelada${count ? ` — ${count} despesas futuras eliminadas` : ''}`);
+    },
+    onError: () => toast.error('Erro ao cancelar recorrência'),
   });
 
 
@@ -645,6 +693,15 @@ export default function FornecedoresPage() {
                 {form.id && form.contract_end_date && (
                   <Button type="button" variant="outline" size="sm" className="w-full" onClick={openRenewalDialog}>
                     <RefreshCw className="h-3.5 w-3.5 mr-1" /> Renovar Contrato
+                  </Button>
+                )}
+                {form.id && supplierExpenses.some((e: any) => e.is_recurring && e.source_type === 'rule' && e.status !== 'cancelado') && (
+                  <Button type="button" variant="outline" size="sm" className="w-full text-destructive hover:text-destructive" onClick={() => {
+                    if (window.confirm('Cancelar todas as recorrências deste fornecedor? As despesas futuras não pagas serão eliminadas.')) {
+                      cancelRecurrence.mutate(form.id);
+                    }
+                  }}>
+                    <Ban className="h-3.5 w-3.5 mr-1" /> Cancelar Recorrência
                   </Button>
                 )}
                 {form.last_renewal_date && (
