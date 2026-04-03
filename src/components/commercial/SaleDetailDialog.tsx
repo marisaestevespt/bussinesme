@@ -156,8 +156,11 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
       try {
         const { data: clientData } = await supabase.from('clients').select('email, id').eq('full_name', form.client).maybeSingle();
         if (clientData?.email) {
-          const { data: portal } = await supabase.from('client_portals').select('token').eq('client_id', clientData.id).eq('is_active', true).maybeSingle();
-          const { data: settings } = await supabase.from('business_settings').select('business_name, primary_color, text_color, accent_color, font_display, font_body, logo_url').limit(1).maybeSingle();
+          const [{ data: portal }, { data: settings }, { data: emailCustom }] = await Promise.all([
+            supabase.from('client_portals').select('token').eq('client_id', clientData.id).eq('is_active', true).maybeSingle(),
+            supabase.from('business_settings').select('business_name, primary_color, text_color, accent_color, font_display, font_body, logo_url').limit(1).maybeSingle(),
+            supabase.from('email_template_settings').select('*').eq('template_key', 'invoice-available').maybeSingle(),
+          ]);
           
           const portalUrl = portal?.token ? `${window.location.origin}/portal/${portal.token}` : undefined;
           
@@ -172,13 +175,19 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
                 amount: form.invoice_total ? String(parseFloat(form.invoice_total).toFixed(2)) : undefined,
                 portalUrl,
                 businessName: settings?.business_name,
-                primaryColor: settings?.primary_color || undefined,
-                primaryForeground: '0 0% 100%',
-                textColor: settings?.text_color || undefined,
-                accentColor: settings?.accent_color || undefined,
-                fontDisplay: settings?.font_display || undefined,
-                fontBody: settings?.font_body || undefined,
+                primaryColor: (emailCustom as any)?.primary_color || settings?.primary_color || undefined,
+                primaryForeground: (emailCustom as any)?.primary_foreground || '0 0% 100%',
+                textColor: (emailCustom as any)?.text_color || settings?.text_color || undefined,
+                accentColor: (emailCustom as any)?.muted_color || settings?.accent_color || undefined,
+                fontDisplay: (emailCustom as any)?.font_display || settings?.font_display || undefined,
+                fontBody: (emailCustom as any)?.font_body || settings?.font_body || undefined,
                 logoUrl: settings?.logo_url || undefined,
+                // Custom text overrides
+                customTitle: (emailCustom as any)?.title_text || undefined,
+                customSubtitle: (emailCustom as any)?.subtitle_text || undefined,
+                customCta: (emailCustom as any)?.cta_text || undefined,
+                customFooter: (emailCustom as any)?.footer_text || undefined,
+                customEmoji: (emailCustom as any)?.emoji || undefined,
               },
             },
           });
