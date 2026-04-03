@@ -81,11 +81,34 @@ const TEMPLATES: TemplateDefaults[] = [
   },
   {
     key: 'payment-reminder',
-    label: 'Lembrete de pagamento',
-    description: 'Enviado automaticamente 3 dias antes e no dia do vencimento do pagamento',
+    label: 'Lembrete de pagamento (3 dias antes)',
+    description: 'Enviado 3 dias antes do vencimento para o cliente se organizar',
     emoji: '🔔',
     title: '{name}, lembrete de pagamento',
     subtitle: 'Enviamos este lembrete para que possa organizar o pagamento referente a {product}, que vence em breve.',
+    ctaText: '',
+    footer: 'Se já efetuou o pagamento, por favor ignore este email.',
+    bodyBuilder: (data, style) => {
+      const cardStyle = `background-color:#f7f7fa;border-radius:10px;padding:16px 20px;margin-bottom:12px`;
+      const rowStyle = `font-size:13px;color:${style.brandMuted};line-height:2;margin:0`;
+      const labelStyle = `font-weight:600;color:${style.brandText}`;
+      return `
+        <div style="${cardStyle}">
+          <p style="font-size:24px;font-weight:700;color:${style.brandPrimary};text-align:center;margin:12px 0 4px;font-family:${style.displayFont}">350€</p>
+          <p style="font-size:11px;color:${style.brandMuted};text-align:center;margin:0 0 12px;text-transform:uppercase;letter-spacing:0.5px">Valor a pagar</p>
+          <p style="${rowStyle}"><span style="${labelStyle}">Serviço: </span>Consultoria Digital</p>
+          <p style="${rowStyle}"><span style="${labelStyle}">Data de vencimento: </span>15/04/2026</p>
+        </div>
+      `;
+    },
+  },
+  {
+    key: 'payment-due-today',
+    label: 'Pagamento no dia do vencimento',
+    description: 'Enviado no dia do vencimento com método de pagamento e IBAN (se transferência)',
+    emoji: '📩',
+    title: '{name}, o pagamento vence hoje',
+    subtitle: 'Passa por aqui um lembrete gentil — o pagamento referente a {product} vence hoje.',
     ctaText: '',
     footer: 'Se já efetuou o pagamento, por favor ignore este email.',
     bodyBuilder: (data, style) => {

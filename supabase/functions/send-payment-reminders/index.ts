@@ -101,28 +101,35 @@ Deno.serve(async (req) => {
       const formattedDate = `${String(payDate.getDate()).padStart(2, '0')}/${String(payDate.getMonth() + 1).padStart(2, '0')}/${payDate.getFullYear()}`
 
       try {
+        const templateName = isToday ? 'payment-due-today' : 'payment-reminder'
+        const templateData: Record<string, any> = {
+          clientName: client.full_name,
+          productName: sale.product || 'Serviço',
+          amount: String(sale.invoice_total || 0),
+          dueDate: formattedDate,
+          businessName: settings?.business_name || '',
+          primaryColor: settings?.primary_color || '',
+          primaryForeground: settings?.secondary_color || '',
+          textColor: settings?.text_color || '',
+          accentColor: settings?.accent_color || '',
+          fontDisplay: settings?.font_display || '',
+          fontBody: settings?.font_body || '',
+          logoUrl: settings?.logo_url || '',
+        }
+
+        if (isToday) {
+          templateData.paymentMethod = client.payment_method || ''
+          templateData.iban = bizSetup?.iban || ''
+        } else {
+          templateData.daysUntil = daysUntil
+        }
+
         const { error: invokeError } = await supabase.functions.invoke('send-transactional-email', {
           body: {
-            templateName: 'payment-reminder',
+            templateName,
             recipientEmail: client.email,
-            idempotencyKey: `payment-reminder-${sale.id}-${isToday ? 'today' : '3days'}-${todayStr}`,
-            templateData: {
-              clientName: client.full_name,
-              productName: sale.product || 'Serviço',
-              amount: String(sale.invoice_total || 0),
-              dueDate: formattedDate,
-              daysUntil,
-              paymentMethod: client.payment_method || '',
-              iban: bizSetup?.iban || '',
-              businessName: settings?.business_name || '',
-              primaryColor: settings?.primary_color || '',
-              primaryForeground: settings?.secondary_color || '',
-              textColor: settings?.text_color || '',
-              accentColor: settings?.accent_color || '',
-              fontDisplay: settings?.font_display || '',
-              fontBody: settings?.font_body || '',
-              logoUrl: settings?.logo_url || '',
-            },
+            idempotencyKey: `${templateName}-${sale.id}-${todayStr}`,
+            templateData,
           },
         })
 
