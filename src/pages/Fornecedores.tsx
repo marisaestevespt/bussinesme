@@ -283,6 +283,7 @@ export default function FornecedoresPage() {
           _recurringLoaded: selectedSupplierId,
           _existingRecurring: {
             value: recurringRule.base_value,
+            total: recurringRule.total_with_vat,
             periodicity: recurringRule.periodicity || 'mensal',
             vat_rate: recurringRule.vat_rate,
             category: recurringRule.category,
