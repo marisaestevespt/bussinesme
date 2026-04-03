@@ -266,28 +266,32 @@ export default function ClienteDetailPage() {
   const { data: clientMeetings = [] } = useFilteredMeetings(isNew ? undefined : id);
 
   // Create meeting
-  const createMeeting = useMutation({
-    mutationFn: async (data: { title: string; date_time: string; meeting_url: string; meeting_type: string; department: string }) => {
-      const { error } = await supabase.from('meetings').insert({
-        title: data.title,
-        date_time: data.date_time,
-        client_id: id || null,
-        client_name: form.full_name || '',
-        status: 'agendada' as any,
-        meeting_url: data.meeting_url || null,
-        meeting_type: data.meeting_type as any,
-        department: data.department || null,
-      });
-      if (error) throw error;
+  // Profiles and projects for MeetingFormDialog
+  const { data: meetingProfiles = [] } = useQuery({
+    queryKey: ['profiles-for-meetings'],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id, user_id, full_name, avatar_url');
+      return (data || []) as { id: string; user_id: string; full_name: string | null; avatar_url: string | null }[];
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['meetings'] });
-      toast.success('Reunião criada');
-      setMeetingOpen(false);
-      setMeetingForm({ title: '', date_time: '', meeting_url: '', meeting_type: 'cliente', department: '' });
-    },
-    onError: () => toast.error('Erro ao criar reunião'),
   });
+  const { data: meetingProjectOptions = [] } = useQuery({
+    queryKey: ['projects-for-meetings'],
+    queryFn: async () => {
+      const { data } = await supabase.from('projects').select('id, name, client_id, client_name, department, type');
+      return (data || []) as { id: string; name: string; client_id: string | null; client_name: string | null; department: string | null; type: string | null }[];
+    },
+  });
+  const meetingClients = (commercialData.sales.data || [])
+    .map(s => s.client)
+    .filter((v, i, a) => v && a.indexOf(v) === i)
+    .map(name => {
+      const c = client;
+      return { id: c?.id || '', full_name: name || '' };
+    });
+  // Build a proper clients list from our client + any others
+  const meetingClientsList = client ? [{ id: client.id, full_name: client.full_name }] : [];
+
+  const defaultRecurrenceEnd = form.end_of_cycle ? parseISO(form.end_of_cycle) : undefined;
 
   // History
   const { history, addEntry: addHistory, updateEntry: updateHistory, deleteEntry: deleteHistory } = useClientHistory(isNew ? undefined : id);
