@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import { FinancialHealthSection } from './FinancialHealthSection';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -148,6 +148,75 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
     });
     return map;
   }, [monthExpenses]);
+
+  // Auto-materialize recurring subscription & contract expenses for current/past months
+  const autoMaterializeRef = useRef(new Set<string>());
+  const autoMaterialize = useCallback(async () => {
+    const now = new Date();
+    const nowYear = now.getFullYear();
+    const nowMonth = now.getMonth() + 1;
+    // Only auto-create for current or past months (not future)
+    if (currentYear > nowYear || (currentYear === nowYear && m > nowMonth)) return;
+
+    const toCreate: Array<() => Promise<void>> = [];
+
+    // Subscriptions without linked expense
+    for (const sub of dueSubscriptions) {
+      const key = `sub-${sub.id}-${m}-${currentYear}`;
+      if (subExpenseMap.has(sub.id) || autoMaterializeRef.current.has(key)) continue;
+      autoMaterializeRef.current.add(key);
+      const subName = sub.expense_name || sub.description || '';
+      const dateStr = getSubscriptionDueDate(sub, m, currentYear);
+      const status = getAutoExpenseStatus(dateStr);
+      toCreate.push(async () => {
+        await fin.upsertExpense.mutateAsync({
+          description: `${subName} — ${MONTHS[m - 1]} ${currentYear}`,
+          category: sub.category || 'outro',
+          base_value: sub.base_value,
+          vat_rate: sub.vat_rate || 0,
+          total_with_vat: sub.total_with_vat,
+          location: sub.location,
+          expense_date: dateStr,
+          expense_month: m,
+          expense_quarter: Math.ceil(m / 3),
+          expense_year: currentYear,
+          status,
+          source_type: 'subscription',
+          source_id: sub.id,
+          parent_expense_id: sub.id,
+          supplier_id: sub.supplier_id,
+          payment_method: sub.payment_method,
+        } as any);
+      });
+    }
+
+    // Contracts without linked expense
+    for (const contract of activeContracts as any[]) {
+      const key = `contract-${contract.id}-${m}-${currentYear}`;
+      if (contractExpenseMap.has(contract.id) || autoMaterializeRef.current.has(key)) continue;
+      autoMaterializeRef.current.add(key);
+      const memberName = contract.team_members?.full_name || '—';
+      const value = contract.monthly_value || 0;
+      const dateStr = `${currentYear}-${String(m).padStart(2, '0')}-${String(contract.payment_day || 15).padStart(2, '0')}`;
+      const status = getAutoExpenseStatus(dateStr);
+      toCreate.push(async () => {
+        await fin.upsertExpense.mutateAsync({
+          description: `Pagamento — ${memberName} — ${String(m).padStart(2, '0')}/${currentYear}`,
+          category: 'ordenados',
+          base_value: value, vat_rate: 0, total_with_vat: value, location: 'portugal',
+          expense_date: dateStr, expense_month: m, expense_quarter: Math.ceil(m / 3),
+          expense_year: currentYear, status, source_type: 'contract', source_id: contract.id,
+        } as any);
+      });
+    }
+
+    if (toCreate.length > 0) {
+      for (const fn of toCreate) await fn();
+      qc.invalidateQueries({ queryKey: ['financial-expenses'] });
+    }
+  }, [dueSubscriptions, activeContracts, subExpenseMap, contractExpenseMap, m, currentYear, fin, qc]);
+
+  useEffect(() => { autoMaterialize(); }, [autoMaterialize]);
 
 
   const totalEntradas = monthSales.reduce((s, v) => s + v.invoice_total, 0);
