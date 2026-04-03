@@ -162,6 +162,7 @@ export default function FornecedoresPage() {
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [expenseEdit, setExpenseEdit] = useState<any>({});
   const [autoOpened, setAutoOpened] = useState(false);
+  const [cancelDialog, setCancelDialog] = useState<{ supplierId: string } | null>(null);
 
   // Dynamic payment methods from business setup
   const { data: setupPaymentMethods } = useQuery({
@@ -198,10 +199,9 @@ export default function FornecedoresPage() {
     },
   });
 
-  // Cancel recurrence: mark rule as cancelled + delete all future unpaid expenses
+  // Cancel recurrence: mark rule as cancelled + delete future (and optionally current month) unpaid expenses
   const cancelRecurrence = useMutation({
-    mutationFn: async (supplierId: string) => {
-      // Find all recurring rules for this supplier
+    mutationFn: async ({ supplierId, includeCurrentMonth }: { supplierId: string; includeCurrentMonth: boolean }) => {
       const { data: rules } = await supabase.from('financial_expenses')
         .select('id')
         .eq('supplier_id', supplierId)
@@ -214,22 +214,28 @@ export default function FornecedoresPage() {
 
       const ruleIds = rules.map(r => r.id);
 
-      // Mark all rules as cancelled
       await supabase.from('financial_expenses')
         .update({ status: 'cancelado' } as any)
         .in('id', ruleIds);
 
-      // Delete all future unpaid child expenses (keep past/paid ones)
-      const today = new Date().toISOString().slice(0, 10);
-      const { data: futureExpenses } = await supabase.from('financial_expenses')
-        .select('id, status, expense_date')
+      const now = new Date();
+      const currentYr = now.getFullYear();
+      const currentMo = now.getMonth() + 1;
+
+      const { data: childExpenses } = await supabase.from('financial_expenses')
+        .select('id, status, expense_date, expense_month, expense_year')
         .eq('supplier_id', supplierId)
         .eq('is_recurring', false)
         .in('parent_expense_id', ruleIds);
 
-      const toDelete = (futureExpenses || []).filter((e: any) =>
-        !isPaidExpenseStatus(e.status) && e.expense_date > today
-      );
+      const toDelete = (childExpenses || []).filter((e: any) => {
+        if (isPaidExpenseStatus(e.status)) return false;
+        const eYear = e.expense_year || parseInt((e.expense_date || '').slice(0, 4));
+        const eMonth = e.expense_month || parseInt((e.expense_date || '').slice(5, 7));
+        if (eYear > currentYr || (eYear === currentYr && eMonth > currentMo)) return true;
+        if (includeCurrentMonth && eYear === currentYr && eMonth === currentMo) return true;
+        return false;
+      });
 
       if (toDelete.length > 0) {
         await supabase.from('financial_expenses')
@@ -241,7 +247,8 @@ export default function FornecedoresPage() {
     },
     onSuccess: (count) => {
       invalidateAll();
-      toast.success(`Recorrência cancelada${count ? ` — ${count} despesas futuras eliminadas` : ''}`);
+      setCancelDialog(null);
+      toast.success(`Recorrência cancelada${count ? ` — ${count} despesas eliminadas` : ''}`);
     },
     onError: () => toast.error('Erro ao cancelar recorrência'),
   });
@@ -696,11 +703,7 @@ export default function FornecedoresPage() {
                   </Button>
                 )}
                 {form.id && supplierExpenses.some((e: any) => e.is_recurring && e.source_type === 'rule' && e.status !== 'cancelado') && (
-                  <Button type="button" variant="outline" size="sm" className="w-full text-destructive hover:text-destructive" onClick={() => {
-                    if (window.confirm('Cancelar todas as recorrências deste fornecedor? As despesas futuras não pagas serão eliminadas.')) {
-                      cancelRecurrence.mutate(form.id);
-                    }
-                  }}>
+                  <Button type="button" variant="outline" size="sm" className="w-full text-destructive hover:text-destructive" onClick={() => setCancelDialog({ supplierId: form.id })}>
                     <Ban className="h-3.5 w-3.5 mr-1" /> Cancelar Recorrência
                   </Button>
                 )}
@@ -1009,6 +1012,31 @@ export default function FornecedoresPage() {
               <Button className="w-full" onClick={() => renewContract.mutate()} disabled={!renewForm.new_end_date}>
                 <RefreshCw className="h-4 w-4 mr-1" /> Confirmar Renovação
               </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Cancel recurrence dialog */}
+        <Dialog open={!!cancelDialog} onOpenChange={(v) => !v && setCancelDialog(null)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader><DialogTitle>Cancelar Recorrência</DialogTitle></DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                A recorrência será cancelada e todas as despesas futuras não pagas serão eliminadas.
+              </p>
+              <p className="text-sm font-medium">A despesa deste mês deve ser mantida ou eliminada?</p>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={() => {
+                  if (cancelDialog) cancelRecurrence.mutate({ supplierId: cancelDialog.supplierId, includeCurrentMonth: false });
+                }}>
+                  Manter este mês
+                </Button>
+                <Button variant="destructive" className="flex-1" onClick={() => {
+                  if (cancelDialog) cancelRecurrence.mutate({ supplierId: cancelDialog.supplierId, includeCurrentMonth: true });
+                }}>
+                  Eliminar também
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
