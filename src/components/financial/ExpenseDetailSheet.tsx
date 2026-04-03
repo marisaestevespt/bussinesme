@@ -70,6 +70,11 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
       source_id: expense.source_id,
       department: expense.department || '',
       supplier_id: expense.supplier_id || null,
+      is_recurring: (expense as any).is_recurring || false,
+      periodicity: (expense as any).periodicity || 'mensal',
+      monthly_equivalent: (expense as any).monthly_equivalent || 0,
+      payment_method: (expense as any).payment_method || '',
+      expense_name: (expense as any).expense_name || '',
     });
   }
 
