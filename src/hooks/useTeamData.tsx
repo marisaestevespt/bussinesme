@@ -223,9 +223,10 @@ export function useTeamData() {
   const feedback = useQuery({
     queryKey: [...KEY, 'feedback'],
     queryFn: async () => {
-      const { data } = await supabase.from('feedback_sessions').select('*').order('session_date', { ascending: false });
+      const { data } = await supabase.from('feedback_sessions').select('*').order('session_date', { ascending: false }).limit(200);
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const upsertFeedback = useMutation({
