@@ -154,6 +154,7 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
       sale_year: saleYear,
       is_special_offer: form.is_special_offer || false,
       special_offer_reason: form.is_special_offer ? (form.special_offer_reason || null) : null,
+      payment_method: form.payment_method || null,
     } as any).eq('id', saleId);
 
     if (error) { toast.error('Erro ao guardar'); return; }
