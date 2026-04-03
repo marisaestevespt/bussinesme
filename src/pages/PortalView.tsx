@@ -155,7 +155,9 @@ export default function PortalViewPage() {
     </div>
   );
 
-  const primaryColor = settings?.primary_color || '#C2662D';
+  const rawColor = settings?.primary_color || '12 76% 52%';
+  const pc = `hsl(${rawColor})`;
+  const pcAlpha = (a: number) => `hsl(${rawColor} / ${a})`;
   const logoUrl = settings?.logo_url;
   const firstName = client.full_name?.split(' ')[0] || '';
 
