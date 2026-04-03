@@ -47,7 +47,7 @@ export function ExecutiveKpiAlerts() {
     if (!d) return null;
     const active = d.members.filter(m => m.status === 'ativo' || m.status === 'prestador');
     if (active.length === 0) return null;
-    const totalCap = active.reduce((s, m) => s + (Number(m.weekly_hours) || 40) * 4.33, 0);
+    const totalCap = active.reduce((s, m) => s + (Number(m.expected_weekly_hours) || 40) * 4.33, 0);
     const totalUsed = d.timeEntries.reduce((s, e) => s + (Number(e.duration) || 0), 0);
     const pct = totalCap > 0 ? Math.round((totalUsed / totalCap) * 100) : 0;
     const overloaded = active.filter(m => {
