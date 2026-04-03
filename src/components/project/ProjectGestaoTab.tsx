@@ -406,6 +406,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
                 sale_year: proRataPayDate.getFullYear(),
                 sale_quarter: Math.ceil((proRataPayDate.getMonth() + 1) / 3),
                 created_by: user?.id || null,
+                payment_method: getMethodForEntry(false),
               });
             }
           }
