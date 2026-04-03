@@ -136,7 +136,7 @@ export default function PortalAuthPage() {
         }}
       >
         {loginBgUrl && (
-          <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${pc} 0%, ${pcAlpha(0.85)} 30%, ${pcAlpha(0.5)} 60%, ${pcAlpha(0.3)} 100%)` }} />
+          <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${pc} 0%, ${pcAlpha(0.75)} 40%, ${pcAlpha(0.45)} 100%)` }} />
         )}
         <div className="relative z-10 space-y-4 max-w-md">
           {logoUrl && <img src={logoUrl} alt="Logo" className="h-10 object-contain brightness-0 invert" />}
