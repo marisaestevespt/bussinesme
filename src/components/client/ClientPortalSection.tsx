@@ -43,9 +43,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
   
 
   const [replyText, setReplyText] = useState('');
-  const [newSummaryMonth, setNewSummaryMonth] = useState(new Date().getMonth() + 1);
-  const [newSummaryYear, setNewSummaryYear] = useState(new Date().getFullYear());
-  const [newSummaryContent, setNewSummaryContent] = useState('');
+  const [uploadingMaterial, setUploadingMaterial] = useState(false);
   const [uploadingMaterial, setUploadingMaterial] = useState(false);
 
   const { data: portalMaterials = [], refetch: refetchMaterials } = useQuery({
