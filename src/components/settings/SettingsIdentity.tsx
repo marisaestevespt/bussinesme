@@ -6,9 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { DISPLAY_FONTS, BODY_FONTS } from '@/lib/modules';
+import { SECTOR_OPTIONS, type BusinessSector } from '@/lib/sector-config';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Upload, Palette, Type, Building2, Save, Trash2, ImageIcon } from 'lucide-react';
+import { Upload, Palette, Type, Building2, Save, Trash2, ImageIcon, Briefcase } from 'lucide-react';
 
 /* ── colour helpers ── */
 
