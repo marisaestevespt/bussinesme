@@ -55,6 +55,8 @@ interface ProjectFull {
   project_mode: string | null;
   whatsapp_group_url: string | null;
   contract_documents: Array<{ name: string; url: string }> | null;
+  payment_method: string | null;
+  payment_config: Record<string, any> | null;
 }
 
 interface Profile { id: string; user_id: string; full_name: string | null; avatar_url: string | null; }
@@ -414,6 +416,17 @@ export default function ProjetoDetailPage() {
     setDirty(true);
   };
 
+  // Auto-save with debounce when dirty
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!dirty || !local) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      saveMutation.mutate();
+    }, 1500);
+    return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
+  }, [dirty, local]);
+
   const calcTotalTime = async (projectId: string) => {
     // Sum time from time_entries directly linked to project
     const { data: directTime } = await supabase.from('time_entries').select('duration').eq('project_id', projectId);
@@ -444,6 +457,7 @@ export default function ProjetoDetailPage() {
         entregaveis: local.entregaveis, recursos: local.recursos, project_notes: local.project_notes,
         closure_good: local.closure_good, closure_bad: local.closure_bad, closure_lessons: local.closure_lessons,
         cover_url: local.cover_url, contract_documents: local.contract_documents || [],
+        payment_method: local.payment_method || null, payment_config: local.payment_config || null,
       };
       // Auto-calculate total time when marking as concluded
       if (local.status === 'concluido' && project?.status !== 'concluido') {
@@ -959,7 +973,10 @@ export default function ProjetoDetailPage() {
                 productName={local.product_name || null}
                 startDate={local.start_date}
                 deadline={local.deadline}
+                projectPaymentMethod={local.payment_method}
+                projectPaymentConfig={local.payment_config}
                 onNewMeeting={() => setMeetingDialogOpen(true)}
+                onUpdateProject={(field, value) => updateField(field as keyof ProjectFull, value)}
               />
             </TabsContent>
           </Tabs>

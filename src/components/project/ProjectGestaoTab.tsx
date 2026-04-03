@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,7 +23,10 @@ interface Props {
   productName?: string | null;
   startDate?: string | null;
   deadline?: string | null;
+  projectPaymentMethod?: string | null;
+  projectPaymentConfig?: Record<string, any> | null;
   onNewMeeting: () => void;
+  onUpdateProject?: (field: string, value: any) => void;
 }
 
 const PAYMENT_METHODS = [
@@ -49,21 +52,21 @@ const SALE_STATUSES: Record<string, { label: string; color: string }> = {
   cancelado: { label: 'Cancelado', color: 'bg-muted text-muted-foreground' },
 };
 
-export function ProjectGestaoTab({ projectId, projectName, clientName, clientId, productName, startDate, deadline, onNewMeeting }: Props) {
+export function ProjectGestaoTab({ projectId, projectName, clientName, clientId, productName, startDate, deadline, projectPaymentMethod, projectPaymentConfig, onNewMeeting, onUpdateProject }: Props) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
 
   // ─── Payment config form state ─────────────────────────────────
-  const [payMethod, setPayMethod] = useState<string>('');
-  const [totalValue, setTotalValue] = useState('');
-  const [entradaValue, setEntradaValue] = useState('');
-  const [numPrestacoes, setNumPrestacoes] = useState('');
-  const [payDay, setPayDay] = useState('');
-  const [numMeses, setNumMeses] = useState('');
-  const [avencaValue, setAvencaValue] = useState('');
-  const [subscricaoValue, setSubscricaoValue] = useState('');
-  const [subscricaoPeriodicity, setSubscricaoPeriodicity] = useState('mensal');
+  const [payMethod, setPayMethod] = useState<string>(projectPaymentMethod || '');
+  const [totalValue, setTotalValue] = useState(projectPaymentConfig?.totalValue || '');
+  const [entradaValue, setEntradaValue] = useState(projectPaymentConfig?.entradaValue || '');
+  const [numPrestacoes, setNumPrestacoes] = useState(projectPaymentConfig?.numPrestacoes || '');
+  const [payDay, setPayDay] = useState(projectPaymentConfig?.payDay || '');
+  const [numMeses, setNumMeses] = useState(projectPaymentConfig?.numMeses || '');
+  const [avencaValue, setAvencaValue] = useState(projectPaymentConfig?.avencaValue || '');
+  const [subscricaoValue, setSubscricaoValue] = useState(projectPaymentConfig?.subscricaoValue || '');
+  const [subscricaoPeriodicity, setSubscricaoPeriodicity] = useState(projectPaymentConfig?.subscricaoPeriodicity || 'mensal');
 
   // ─── Client data (payment_method + start_date) ─────────────────
   const { data: clientData } = useQuery({
@@ -98,12 +101,27 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     }
   }, [billingStartDate, deadline, payMethod]);
 
-  // Sync payMethod from DB
+  // Sync payMethod from project first, then client fallback
   useEffect(() => {
-    if (clientData?.payment_method && !payMethod) {
+    if (projectPaymentMethod && !payMethod) {
+      setPayMethod(projectPaymentMethod);
+    } else if (clientData?.payment_method && !payMethod && !projectPaymentMethod) {
       setPayMethod(clientData.payment_method);
     }
-  }, [clientData?.payment_method]);
+  }, [clientData?.payment_method, projectPaymentMethod]);
+
+  // Persist payment config to project whenever it changes
+  const savePaymentConfigToProject = useCallback(() => {
+    if (!onUpdateProject) return;
+    const config = { totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity };
+    onUpdateProject('payment_config', config);
+  }, [totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity, onUpdateProject]);
+
+  useEffect(() => {
+    if (!onUpdateProject) return;
+    const timer = setTimeout(savePaymentConfigToProject, 800);
+    return () => clearTimeout(timer);
+  }, [totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity]);
 
   // ─── Project sales ────────────────────────────────────────────
   const qc = useQueryClient();
@@ -406,6 +424,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             onValueChange={v => {
               setPayMethod(v);
               updatePaymentMethod.mutate(v);
+              if (onUpdateProject) onUpdateProject('payment_method', v);
             }}
             disabled={!resolvedClientId}
           >
