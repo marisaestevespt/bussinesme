@@ -36,6 +36,8 @@ import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
+import { MeetingFormDialog } from '@/pages/Reunioes';
+import type { Profile as MeetingProfile, ProjectOption } from '@/pages/Reunioes';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -270,9 +272,12 @@ export default function ProjetoDetailPage() {
 
   // Meeting dialog
   const [meetingDialogOpen, setMeetingDialogOpen] = useState(false);
-  const [meetingTitle, setMeetingTitle] = useState('');
-  const [meetingDate, setMeetingDate] = useState<Date | undefined>();
-  const [meetingTime, setMeetingTime] = useState('10:00');
+
+  // Projects list for MeetingFormDialog
+  const { data: allProjectsForMeeting = [] } = useQuery({
+    queryKey: ['projects-for-meetings'],
+    queryFn: async () => { const { data } = await supabase.from('projects').select('id, name').order('name'); return (data || []) as ProjectOption[]; },
+  });
 
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', id],
@@ -510,27 +515,6 @@ export default function ProjetoDetailPage() {
     },
   });
 
-  const createMeetingMutation = useMutation({
-    mutationFn: async () => {
-      const dateTime = meetingDate ? new Date(`${format(meetingDate, 'yyyy-MM-dd')}T${meetingTime}`) : new Date();
-      const { data: meeting, error } = await supabase.from('meetings').insert({
-        title: meetingTitle, date_time: dateTime.toISOString(), project_id: id,
-        project_name: local?.name || '', created_by: user?.id,
-      }).select().single();
-      if (error) throw error;
-      // Add project members as meeting participants
-      if (projectMembers.length > 0 && meeting) {
-        await supabase.from('meeting_participants').insert(
-          projectMembers.map(pid => ({ meeting_id: meeting.id, profile_id: pid }))
-        );
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['project-meetings', id] });
-      toast.success('Reunião marcada');
-      setMeetingDialogOpen(false); setMeetingTitle(''); setMeetingDate(undefined); setMeetingTime('10:00');
-    },
-  });
 
   if (isLoading || !local) return <AppLayout><div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div></AppLayout>;
 
@@ -989,23 +973,16 @@ export default function ProjetoDetailPage() {
           </AlertDialog>
         </div>
 
-        {/* Meeting dialog */}
-        <Dialog open={meetingDialogOpen} onOpenChange={setMeetingDialogOpen}>
-          <DialogContent className="sm:max-w-2xl">
-            <DialogHeader><DialogTitle>Marcar Reunião</DialogTitle></DialogHeader>
-            <div className="grid gap-3 py-2">
-              <div className="space-y-1.5"><Label>Nome da reunião *</Label><Input value={meetingTitle} onChange={e => setMeetingTitle(e.target.value)} /></div>
-              <div className="space-y-1.5"><Label>Data e hora</Label>
-                <div className="flex gap-2">
-                  <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("flex-1 justify-start text-left font-normal", !meetingDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{meetingDate ? format(meetingDate, 'd MMM yyyy', { locale: pt }) : 'Data'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={meetingDate} onSelect={setMeetingDate} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
-                  <Input type="time" value={meetingTime} onChange={e => setMeetingTime(e.target.value)} className="w-24" />
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground">Projeto: {local.name} • {projectMembers.length} participante(s) adicionado(s) automaticamente</p>
-              <Button onClick={() => { if (!meetingTitle.trim() || !meetingDate) { toast.error('Nome e data obrigatórios'); return; } createMeetingMutation.mutate(); }} disabled={createMeetingMutation.isPending}>{createMeetingMutation.isPending ? 'A marcar...' : 'Marcar Reunião'}</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Meeting dialog — full form */}
+        <MeetingFormDialog
+          open={meetingDialogOpen}
+          onOpenChange={setMeetingDialogOpen}
+          profiles={profiles as MeetingProfile[]}
+          projects={allProjectsForMeeting}
+          clients={clientsList}
+          defaultClientId={local.client_id || undefined}
+          defaultClientName={local.client_name || undefined}
+        />
 
         {/* Task dialog */}
         <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
@@ -1262,23 +1239,14 @@ export default function ProjetoDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Meeting dialog */}
-      <Dialog open={meetingDialogOpen} onOpenChange={setMeetingDialogOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader><DialogTitle>Marcar Reunião</DialogTitle></DialogHeader>
-          <div className="grid gap-3 py-2">
-            <div className="space-y-1.5"><Label>Nome da reunião *</Label><Input value={meetingTitle} onChange={e => setMeetingTitle(e.target.value)} /></div>
-            <div className="space-y-1.5"><Label>Data e hora</Label>
-              <div className="flex gap-2">
-                <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("flex-1 justify-start text-left font-normal", !meetingDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{meetingDate ? format(meetingDate, 'd MMM yyyy', { locale: pt }) : 'Data'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={meetingDate} onSelect={setMeetingDate} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
-                <Input type="time" value={meetingTime} onChange={e => setMeetingTime(e.target.value)} className="w-24" />
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground">Projeto: {local.name} • {projectMembers.length} participante(s) adicionado(s) automaticamente</p>
-            <Button onClick={() => { if (!meetingTitle.trim() || !meetingDate) { toast.error('Nome e data obrigatórios'); return; } createMeetingMutation.mutate(); }} disabled={createMeetingMutation.isPending}>{createMeetingMutation.isPending ? 'A marcar...' : 'Marcar Reunião'}</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Meeting dialog — full form */}
+      <MeetingFormDialog
+        open={meetingDialogOpen}
+        onOpenChange={setMeetingDialogOpen}
+        profiles={profiles as MeetingProfile[]}
+        projects={allProjectsForMeeting}
+        clients={clientsList}
+      />
     </AppLayout>
   );
 }
