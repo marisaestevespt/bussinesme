@@ -625,9 +625,9 @@ export default function PortalViewPage() {
             </SectionCard>
 
             {/* Tasks */}
-            {tasks.length > 0 && (
-              <SectionCard className="p-5">
-                <p className="text-sm font-semibold mb-3">✅ Tarefas</p>
+            <SectionCard className="p-5">
+              <p className="text-sm font-semibold mb-3">✅ Tarefas</p>
+              {tasks.length > 0 ? (
                 <div className="space-y-1">
                   {tasks.map((t: any) => (
                     <div key={t.id} className="flex items-center justify-between py-2.5 px-2 -mx-2 rounded-lg hover:bg-muted/20 transition-colors">
@@ -636,13 +636,15 @@ export default function PortalViewPage() {
                     </div>
                   ))}
                 </div>
-              </SectionCard>
-            )}
+              ) : (
+                <p className="text-sm text-muted-foreground">Ainda sem tarefas atribuídas.</p>
+              )}
+            </SectionCard>
 
             {/* FAQs inside workspace */}
-            {faqs.length > 0 && (
-              <SectionCard className="p-5">
-                <p className="text-sm font-semibold mb-3">❓ Perguntas Frequentes</p>
+            <SectionCard className="p-5">
+              <p className="text-sm font-semibold mb-3">❓ Perguntas Frequentes</p>
+              {faqs.length > 0 ? (
                 <Accordion type="single" collapsible className="w-full">
                   {faqs.map((f: any) => (
                     <AccordionItem key={f.id} value={f.id} className="border-border/30">
@@ -653,8 +655,10 @@ export default function PortalViewPage() {
                     </AccordionItem>
                   ))}
                 </Accordion>
-              </SectionCard>
-            )}
+              ) : (
+                <p className="text-sm text-muted-foreground">Ainda sem perguntas frequentes.</p>
+              )}
+            </SectionCard>
           </div>
         )}
 
