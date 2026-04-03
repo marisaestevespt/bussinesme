@@ -515,27 +515,6 @@ export default function ProjetoDetailPage() {
     },
   });
 
-  const createMeetingMutation = useMutation({
-    mutationFn: async () => {
-      const dateTime = meetingDate ? new Date(`${format(meetingDate, 'yyyy-MM-dd')}T${meetingTime}`) : new Date();
-      const { data: meeting, error } = await supabase.from('meetings').insert({
-        title: meetingTitle, date_time: dateTime.toISOString(), project_id: id,
-        project_name: local?.name || '', created_by: user?.id,
-      }).select().single();
-      if (error) throw error;
-      // Add project members as meeting participants
-      if (projectMembers.length > 0 && meeting) {
-        await supabase.from('meeting_participants').insert(
-          projectMembers.map(pid => ({ meeting_id: meeting.id, profile_id: pid }))
-        );
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['project-meetings', id] });
-      toast.success('Reunião marcada');
-      setMeetingDialogOpen(false); setMeetingTitle(''); setMeetingDate(undefined); setMeetingTime('10:00');
-    },
-  });
 
   if (isLoading || !local) return <AppLayout><div className="flex justify-center py-12"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div></AppLayout>;
 
