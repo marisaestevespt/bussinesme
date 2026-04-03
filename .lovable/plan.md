@@ -1,65 +1,26 @@
 
-# Adaptação por Setor de Atividade
+## Importação Automática de Métricas de Redes Sociais
 
-## Contexto
-O campo `business_type` existente refere-se à forma jurídica (ENI/Empresa). Precisamos de um novo campo `business_sector` que define o **setor de atividade** e adapta toda a experiência.
+### Como funciona
+Uma edge function corre periodicamente (1x por dia ou sob pedido manual) e puxa métricas das APIs oficiais de cada rede social, guardando na tabela `channel_monthly_metrics` que já existe.
 
-## Setores suportados
-| Chave | Label | Exemplo |
-|-------|-------|---------|
-| `servicos_digitais` | Serviços Digitais | Gestão redes, design, consultoria, mentoria |
-| `saude_bem_estar` | Saúde & Bem-estar | Psicólogas, nutricionistas, esteticistas |
-| `educacao_formacao` | Educação & Formação | Formadores, coaches, escolas online |
-| `criativo_producao` | Criativo & Produção | Fotografia, vídeo, eventos, wedding planners |
+### Plataformas suportadas (por ordem de viabilidade)
+1. **Instagram / Facebook** — Meta Graph API (requer Facebook App + token de longa duração)
+2. **YouTube** — YouTube Data API v3 (requer Google API Key)
+3. **TikTok, LinkedIn, Pinterest** — APIs mais restritivas, implementação futura
 
-## Fase 1 — Base de dados + Config
-1. **Migration**: Adicionar coluna `business_sector` à tabela `business_settings` (default `servicos_digitais`)
-2. **Ficheiro de configuração**: Criar `src/lib/sector-config.ts` com mapeamento completo por setor:
-   - **Terminologia**: mapa de termos genéricos → termos do setor (ex: `clientes` → `pacientes` para saúde)
-   - **Módulos visíveis**: lista de módulos ativos/inativos por setor
-   - **Campos específicos**: campos extra que aparecem em formulários por setor
-   - **Templates sugeridos**: SOPs/processos pré-configurados por setor
+### Passos de implementação
 
-## Fase 2 — Hook + Provider
-3. **Hook `useSectorConfig()`**: Expõe terminologia, módulos visíveis e campos do setor atual, lendo de `useBusinessSettings()`
-4. **Função `t(key)`**: Traduz termos genéricos para o setor atual (ex: `t('clientes')` → "Pacientes")
+1. **UI de configuração** — Nova secção em Definições > Marketing para o utilizador colar os tokens de acesso de cada plataforma (guardados como secrets seguros)
+2. **Edge function `fetch-social-metrics`** — Chama as APIs oficiais, processa os dados e insere/atualiza na tabela `channel_monthly_metrics`
+3. **Botão "Atualizar métricas"** — Na página de análise de cada canal, para puxar dados a pedido
+4. **Cron job diário** (opcional) — Para atualizar automaticamente todos os dias
 
-## Fase 3 — UI adaptações
-5. **Sidebar**: Usar `t()` nos labels dos módulos; esconder módulos inativos para o setor
-6. **Páginas**: Substituir strings hardcoded pelos termos do setor nos headers/títulos principais
-7. **Settings**: Adicionar selector de setor no tab Identidade (ao lado do business_type)
+### Pré-requisitos do utilizador
+- **Instagram/Facebook**: Criar uma Facebook App (gratuita), gerar um Page Access Token de longa duração
+- **YouTube**: Criar uma API Key no Google Cloud Console (gratuita até 10.000 requests/dia)
 
-## Fase 4 — Templates por setor
-8. **Setup/Onboarding**: Quando o setor é escolhido, sugerir SOPs, processos e rotinas pré-configurados relevantes
-
-## O que muda por setor (exemplos concretos)
-
-### Terminologia
-| Genérico | Serviços Digitais | Saúde & Bem-estar | Educação | Criativo |
-|----------|-------------------|--------------------|----------|----------|
-| Clientes | Clientes | Pacientes | Alunos | Clientes |
-| Produto | Serviço | Especialidade | Programa | Serviço |
-| Projeto | Projeto | Acompanhamento | Curso | Projeto |
-| Venda | Venda | Consulta | Inscrição | Orçamento |
-| Reunião | Reunião | Sessão | Aula | Reunião |
-
-### Módulos
-| Módulo | Digital ✅ | Saúde | Educação | Criativo |
-|--------|-----------|-------|----------|----------|
-| Tráfego Pago | ✅ | ❌ | ⚪ | ⚪ |
-| Marketing | ✅ | ⚪ | ⚪ | ✅ |
-| CRM/Pipeline | ✅ | ⚪ | ⚪ | ✅ |
-| Conteúdos | ✅ | ⚪ | ✅ | ✅ |
-
-(✅ = ativo por defeito, ⚪ = disponível mas opcional, ❌ = escondido por defeito)
-
-### Campos específicos
-- **Saúde**: Nº cédula profissional, Especialidade, Seguro profissional
-- **Educação**: Plataforma de ensino, Nº certificação DGERT
-- **Criativo**: Portfolio URL, Equipamento principal
-- **Digital**: Ferramentas utilizadas, Nichos
-
-## Notas técnicas
-- O setor é escolhido no onboarding/setup e pode ser mudado nas Definições
-- A config é puramente frontend — não muda schema da DB por setor
-- Campos específicos por setor usam a tabela `custom_fields` existente ou JSON
+### O que será importado
+- **Instagram**: seguidores, impressões, alcance, engagement, visitas ao perfil, cliques na bio
+- **YouTube**: visualizações, horas assistidas, novos subscritores
+- **Outros**: métricas específicas conforme disponibilidade da API
