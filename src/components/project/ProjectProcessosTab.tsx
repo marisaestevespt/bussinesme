@@ -50,11 +50,12 @@ function ChecklistTable({
         </Button>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[32px_1fr_120px_120px_120px_32px] gap-2">
+        <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[32px_1fr_100px_100px_100px_100px_32px] gap-2">
           <span>✓</span>
           <span>Atividade</span>
           <span>Fase</span>
           <span>Responsável</span>
+          <span>Prazo</span>
           <span>Docs/Links</span>
           <span></span>
         </div>
