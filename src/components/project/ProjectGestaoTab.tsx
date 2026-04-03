@@ -369,6 +369,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             created_by: user?.id || null,
             payment_method: getMethodForEntry(false),
           });
+        }
 
         // Pro-rata: if deadline exists and ends after the last full payment period
         if (deadline) {
