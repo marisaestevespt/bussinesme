@@ -13,6 +13,7 @@ import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { FileText, Copy, Trash2 } from 'lucide-react';
 
 const ENTRY_STATUSES = [
+  { value: 'aguarda_pagamento', label: 'Aguarda Pagamento', cls: 'bg-muted text-muted-foreground' },
   { value: 'por_pagar', label: 'Por Pagar', cls: 'bg-muted text-muted-foreground' },
   { value: 'pendente', label: 'Pendente', cls: 'bg-warning/10 text-warning' },
   { value: 'em_atraso', label: 'Em Atraso', cls: 'bg-destructive/10 text-destructive' },
