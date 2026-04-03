@@ -59,7 +59,7 @@ export function InvoiceUpload({ documents, onChange, label = 'Fatura / Documento
       <input ref={inputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" className="hidden" onChange={handleUpload} />
       <Button type="button" variant="outline" size="sm" className="w-full" disabled={uploading} onClick={() => inputRef.current?.click()}>
         <Upload className="h-3.5 w-3.5 mr-1" />
-        {uploading ? 'A carregar...' : 'Carregar fatura'}
+        {uploading ? 'A carregar...' : 'Carregar ficheiro'}
       </Button>
     </div>
   );

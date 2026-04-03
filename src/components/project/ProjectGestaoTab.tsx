@@ -22,6 +22,7 @@ interface Props {
   clientId: string | undefined;
   productName?: string | null;
   startDate?: string | null;
+  deadline?: string | null;
   onNewMeeting: () => void;
 }
 
@@ -48,7 +49,7 @@ const SALE_STATUSES: Record<string, { label: string; color: string }> = {
   cancelado: { label: 'Cancelado', color: 'bg-muted text-muted-foreground' },
 };
 
-export function ProjectGestaoTab({ projectId, projectName, clientName, clientId, productName, startDate, onNewMeeting }: Props) {
+export function ProjectGestaoTab({ projectId, projectName, clientName, clientId, productName, startDate, deadline, onNewMeeting }: Props) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
@@ -84,6 +85,18 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   const resolvedClientId = clientData?.id || clientId;
   const billingStartDate = startDate || clientData?.start_date;
   const lastAutoGenerateKeyRef = useRef<string | null>(null);
+
+  // Auto-calculate numMeses from start_date + deadline for avença_mensal
+  useEffect(() => {
+    if (billingStartDate && deadline && (payMethod === 'avenca_mensal')) {
+      const s = parseISO(billingStartDate);
+      const e = parseISO(deadline);
+      const diffMonths = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
+      if (diffMonths > 0) {
+        setNumMeses(String(diffMonths));
+      }
+    }
+  }, [billingStartDate, deadline, payMethod]);
 
   // Sync payMethod from DB
   useEffect(() => {
