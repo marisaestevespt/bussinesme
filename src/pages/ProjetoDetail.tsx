@@ -438,11 +438,11 @@ export default function ProjetoDetailPage() {
         departments: local.departments,
         client_name: local.client_name, client_id: local.client_id,
         product_id: local.product_id, product_name: local.product_name,
-        deadline: local.deadline, progress: local.progress, notes: local.notes,
+        start_date: local.start_date, deadline: local.deadline, progress: local.progress, notes: local.notes,
         objetivo: local.objetivo, diretrizes: local.diretrizes, cronograma: local.cronograma, dependencias: local.dependencias,
         entregaveis: local.entregaveis, recursos: local.recursos, project_notes: local.project_notes,
         closure_good: local.closure_good, closure_bad: local.closure_bad, closure_lessons: local.closure_lessons,
-        cover_url: local.cover_url,
+        cover_url: local.cover_url, contract_documents: local.contract_documents || [],
       };
       // Auto-calculate total time when marking as concluded
       if (local.status === 'concluido' && project?.status !== 'concluido') {
