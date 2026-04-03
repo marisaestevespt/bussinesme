@@ -568,6 +568,24 @@ export default function ProjetoDetailPage() {
       </AppLayout>
     );
   }
+  // ─── Outras Informações sub-page ────────────────────────────────
+  if (subPage === 'outras_info') {
+    return (
+      <AppLayout>
+        <div className="space-y-4 max-w-3xl">
+          <Button variant="ghost" size="sm" onClick={() => setSubPage(null)} className="gap-1"><ArrowLeft className="h-4 w-4" /> Voltar</Button>
+          <h2 className="text-xl font-bold">Outras Informações</h2>
+          <MentionTextarea
+            value={(local.project_notes as string) || ''}
+            onChange={v => updateField('project_notes', v)}
+            rows={12}
+            placeholder="Informações adicionais sobre o projeto..."
+          />
+          {dirty && <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>}
+        </div>
+      </AppLayout>
+    );
+  }
 
   // ─── Reuniões sub-page (table view like Reunioes page) ────────
   if (subPage === 'reunioes') {
