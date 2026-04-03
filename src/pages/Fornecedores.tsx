@@ -421,19 +421,22 @@ export default function FornecedoresPage() {
         const newVat = form.default_vat_rate ?? 23;
         const { data: existingExps } = await supabase
           .from('financial_expenses')
-          .select('id, expense_month, expense_year, base_value, vat_rate, location')
+          .select('id, expense_month, expense_year, base_value, vat_rate, total_with_vat, location')
           .eq('supplier_id', form.id);
 
         if (existingExps && existingExps.length > 0) {
           for (const exp of existingExps) {
             const updates: Record<string, any> = {};
 
-            // Update location & VAT if supplier changed them
+            // Update location & VAT — keep total_with_vat unchanged, recalculate base_value
             if (exp.location !== newLocation || exp.vat_rate !== newVat) {
               updates.location = newLocation;
               updates.vat_rate = newVat;
-              const base = exp.base_value || 0;
-              updates.total_with_vat = Math.round(base * (1 + newVat / 100) * 100) / 100;
+              const total = exp.total_with_vat || (exp.base_value || 0) * (1 + (exp.vat_rate || 0) / 100);
+              updates.total_with_vat = total;
+              updates.base_value = newVat > 0
+                ? Math.round(total / (1 + newVat / 100) * 100) / 100
+                : total;
             }
 
             // Update description template if set
