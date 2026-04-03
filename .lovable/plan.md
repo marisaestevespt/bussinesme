@@ -1,26 +1,38 @@
 
-## Importação Automática de Métricas de Redes Sociais
+## AI Inteligente na Plataforma Lirah
 
-### Como funciona
-Uma edge function corre periodicamente (1x por dia ou sob pedido manual) e puxa métricas das APIs oficiais de cada rede social, guardando na tabela `channel_monthly_metrics` que já existe.
+### Arquitetura
+Uma **edge function `ai-insights`** que recebe um contexto (ex: "executive", "financial", "commercial") e:
+1. Consulta dados relevantes da base de dados
+2. Envia para o modelo AI com um system prompt especializado
+3. Retorna insights estruturados
 
-### Plataformas suportadas (por ordem de viabilidade)
-1. **Instagram / Facebook** — Meta Graph API (requer Facebook App + token de longa duração)
-2. **YouTube** — YouTube Data API v3 (requer Google API Key)
-3. **TikTok, LinkedIn, Pinterest** — APIs mais restritivas, implementação futura
+Usa **Lovable AI** (já configurado, sem necessidade de API keys adicionais).
 
-### Passos de implementação
+### Fase 1 — Relatórios Inteligentes (Briefing Executivo)
+- Botão "Gerar briefing AI" na **Sala Executiva**
+- Puxa dados: vendas do mês, clientes novos/perdidos, tarefas atrasadas, KPIs, métricas financeiras
+- AI gera um resumo executivo com:
+  - Estado geral do negócio (semáforo)
+  - Top 3 wins do período
+  - Top 3 riscos/problemas
+  - Ações sugeridas
 
-1. **UI de configuração** — Nova secção em Definições > Marketing para o utilizador colar os tokens de acesso de cada plataforma (guardados como secrets seguros)
-2. **Edge function `fetch-social-metrics`** — Chama as APIs oficiais, processa os dados e insere/atualiza na tabela `channel_monthly_metrics`
-3. **Botão "Atualizar métricas"** — Na página de análise de cada canal, para puxar dados a pedido
-4. **Cron job diário** (opcional) — Para atualizar automaticamente todos os dias
+### Fase 2 — Sugestões e Alertas Proativos
+- Widget na **Secretária** (dashboard principal) com alertas gerados por AI
+- Analisa padrões: clientes sem NPS, tarefas vencidas, queda de vendas, pagamentos em atraso
+- Cada alerta tem ação sugerida e link direto para resolver
+- Atualiza 1x por dia (cron) ou a pedido
 
-### Pré-requisitos do utilizador
-- **Instagram/Facebook**: Criar uma Facebook App (gratuita), gerar um Page Access Token de longa duração
-- **YouTube**: Criar uma API Key no Google Cloud Console (gratuita até 10.000 requests/dia)
+### Fase 3 — Análise de Dados com AI
+- Botão "Analisar com AI" nas páginas de:
+  - **Financeiro** → análise de cash flow, tendências de despesas
+  - **Comercial** → taxa de conversão, pipeline health
+  - **Marketing** → performance de conteúdos, engagement trends
+- Resultados aparecem num painel lateral com insights e gráficos sugeridos
 
-### O que será importado
-- **Instagram**: seguidores, impressões, alcance, engagement, visitas ao perfil, cliques na bio
-- **YouTube**: visualizações, horas assistidas, novos subscritores
-- **Outros**: métricas específicas conforme disponibilidade da API
+### Implementação técnica
+- 1 edge function com routing interno por tipo de análise
+- System prompts especializados por área
+- Dados passados como contexto JSON (sem acesso direto à DB pelo AI)
+- Cache de resultados para evitar chamadas repetidas
