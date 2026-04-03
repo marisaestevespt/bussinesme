@@ -13,6 +13,7 @@ import { SettingsDigest } from '@/components/settings/SettingsDigest';
 import { SettingsAuditLog } from '@/components/settings/SettingsAuditLog';
 import { SettingsAutomations } from '@/components/settings/SettingsAutomations';
 import { SettingsBackups } from '@/components/settings/SettingsBackups';
+import { SettingsEmails } from '@/components/settings/SettingsEmails';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
