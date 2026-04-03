@@ -649,12 +649,13 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
           </Button>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-6 gap-2">
+          <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-7 gap-2">
             <span>Status</span>
             <span>Data</span>
             <span>Descrição</span>
             <span>Valor Base</span>
             <span>Fatura</span>
+            <span>Método</span>
             <span>Produto</span>
           </div>
           {allSales.length === 0 ? (
@@ -662,10 +663,11 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
           ) : (
             allSales.map((s: any) => {
               const si = SALE_STATUSES[s.status] || { label: s.status, color: '' };
+              const methodLabel = PAYMENT_METHOD_OPTIONS.find(m => m.value === s.payment_method)?.label;
               return (
                 <div
                   key={s.id}
-                  className="px-4 py-2 text-xs grid grid-cols-6 gap-2 border-b items-center cursor-pointer hover:bg-muted/50"
+                  className="px-4 py-2 text-xs grid grid-cols-7 gap-2 border-b items-center cursor-pointer hover:bg-muted/50"
                   onClick={() => setSelectedSaleId(s.id)}
                 >
                   <span><Badge variant="outline" className={`text-[10px] ${si.color}`}>{si.label}</Badge></span>
@@ -673,6 +675,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
                   <span className="truncate">{s.description || '—'}{s.is_special_offer && <Gift className="inline h-3 w-3 ml-1 text-amber-500" />}</span>
                   <span>{Number(s.base_value).toFixed(2)}€</span>
                   <span>{Number(s.invoice_total).toFixed(2)}€</span>
+                  <span className="truncate text-muted-foreground">{methodLabel || '—'}</span>
                   <span className="truncate">{s.product || '—'}</span>
                 </div>
               );
