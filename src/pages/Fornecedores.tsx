@@ -39,14 +39,6 @@ const LOCATIONS = [
   { value: 'fora_ue', label: 'Fora da UE' },
 ];
 
-const FALLBACK_PAYMENT_METHODS = [
-  { value: 'transferencia', label: 'Transferência' },
-  { value: 'debito_direto', label: 'Débito Direto' },
-  { value: 'mbway', label: 'MB Way' },
-  { value: 'plataforma', label: 'Plataforma' },
-  { value: 'cartao', label: 'Cartão' },
-  { value: 'outro', label: 'Outro' },
-];
 
 const PERIODICITIES = [
   { value: 'semanal', label: 'Semanal' },
