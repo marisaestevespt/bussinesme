@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import type { useFinancialData } from '@/hooks/useFinancialData';
+import { normalizeUnpaidExpenseStatus } from '@/lib/expenseStatus';
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
@@ -73,9 +74,23 @@ export function FinSetupFinanceiro({ fin }: Props) {
       const base = parseFloat(exp.base_value) || 0;
       const vat = exp.vat_rate ?? 23;
       const total = Math.round(base * (1 + vat / 100) * 100) / 100;
+      const expenseDate = exp.expense_date || new Date().toISOString().slice(0, 10);
+      const expenseMonth = parseInt(expenseDate.slice(5, 7));
+      const expenseYear = parseInt(expenseDate.slice(0, 4));
+      const expenseQuarter = Math.ceil(expenseMonth / 3);
+      const status = normalizeUnpaidExpenseStatus(exp.status, expenseDate);
+
       const { error } = await supabase.from('financial_expenses').update({
-        status: exp.status, expense_date: exp.expense_date,
-        base_value: base, vat_rate: vat, total_with_vat: total, description: exp.description,
+        status,
+        expense_date: expenseDate,
+        base_value: base,
+        vat_rate: vat,
+        total_with_vat: total,
+        description: exp.description,
+        category: exp.category,
+        expense_month: expenseMonth,
+        expense_quarter: expenseQuarter,
+        expense_year: expenseYear,
       }).eq('id', exp.id);
       if (error) throw error;
     },
@@ -252,7 +267,10 @@ export function FinSetupFinanceiro({ fin }: Props) {
                                   <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="por_pagar">Por Pagar</SelectItem>
-                                    <SelectItem value="pago">Pago</SelectItem>
+                                    <SelectItem value="pendente">Pendente</SelectItem>
+                                    <SelectItem value="em_atraso">Em Atraso</SelectItem>
+                                    <SelectItem value="pago_falta_fatura">Pago, Falta Fatura</SelectItem>
+                                    <SelectItem value="tudo_ok">Tudo OK</SelectItem>
                                     <SelectItem value="cancelado">Cancelado</SelectItem>
                                   </SelectContent>
                                 </Select>
