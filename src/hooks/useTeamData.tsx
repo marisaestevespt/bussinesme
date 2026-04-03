@@ -157,9 +157,10 @@ export function useTeamData() {
   const perfWeekly = useQuery({
     queryKey: [...KEY, 'perf_weekly'],
     queryFn: async () => {
-      const { data } = await supabase.from('performance_weekly').select('*').order('week_start', { ascending: false });
+      const { data } = await supabase.from('performance_weekly').select('*').order('week_start', { ascending: false }).limit(200);
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const upsertPerfWeekly = useMutation({
@@ -189,9 +190,10 @@ export function useTeamData() {
   const perfMonthly = useQuery({
     queryKey: [...KEY, 'perf_monthly'],
     queryFn: async () => {
-      const { data } = await supabase.from('performance_monthly').select('*').order('year', { ascending: false });
+      const { data } = await supabase.from('performance_monthly').select('*').order('year', { ascending: false }).limit(200);
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const upsertPerfMonthly = useMutation({
@@ -221,9 +223,10 @@ export function useTeamData() {
   const feedback = useQuery({
     queryKey: [...KEY, 'feedback'],
     queryFn: async () => {
-      const { data } = await supabase.from('feedback_sessions').select('*').order('session_date', { ascending: false });
+      const { data } = await supabase.from('feedback_sessions').select('*').order('session_date', { ascending: false }).limit(200);
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const upsertFeedback = useMutation({
@@ -378,9 +381,10 @@ export function useTeamData() {
   const payments = useQuery({
     queryKey: [...KEY, 'payments'],
     queryFn: async () => {
-      const { data } = await supabase.from('member_payments').select('*').order('year', { ascending: false });
+      const { data } = await supabase.from('member_payments').select('*').order('year', { ascending: false }).limit(500);
       return data || [];
     },
+    staleTime: 2 * 60 * 1000,
   });
 
   const upsertPayment = useMutation({

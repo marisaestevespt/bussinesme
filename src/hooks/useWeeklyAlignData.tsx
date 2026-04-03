@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfWeek, endOfWeek, format, addWeeks, addDays, subDays, startOfMonth, endOfMonth, differenceInDays, parseISO } from 'date-fns';
@@ -7,7 +7,9 @@ import { useTeamData } from '@/hooks/useTeamData';
 const STALE = 2 * 60 * 1000;
 
 export function useWeeklyAlignData(weekOffset: number) {
-  const now = new Date();
+  // Stable "now" — only changes when the component remounts, not every render
+  const nowRef = useRef(new Date());
+  const now = nowRef.current;
 
   const weekStart = useMemo(() => {
     const base = startOfWeek(now, { weekStartsOn: 1 });
