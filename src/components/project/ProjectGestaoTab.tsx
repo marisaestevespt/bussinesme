@@ -102,14 +102,15 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   const billingStartDate = startDate || clientData?.start_date;
   const comData = useCommercialData();
 
-  const { data: productNamesList } = useQuery({
-    queryKey: ['product-names-gestao'],
+  const { data: productsList } = useQuery({
+    queryKey: ['products-gestao'],
     queryFn: async () => {
-      const { data } = await supabase.from('products').select('name');
-      return (data || []).map(p => p.name);
+      const { data } = await supabase.from('products').select('name, vat_rate');
+      return data || [];
     },
     staleTime: 5 * 60 * 1000,
   });
+  const productNamesList = useMemo(() => (productsList || []).map(p => p.name), [productsList]);
 
   // Auto-calculate numMeses from start_date + deadline for avença_mensal
   useEffect(() => {
