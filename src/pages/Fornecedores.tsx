@@ -198,6 +198,54 @@ export default function FornecedoresPage() {
     },
   });
 
+  // Cancel recurrence: mark rule as cancelled + delete all future unpaid expenses
+  const cancelRecurrence = useMutation({
+    mutationFn: async (supplierId: string) => {
+      // Find all recurring rules for this supplier
+      const { data: rules } = await supabase.from('financial_expenses')
+        .select('id')
+        .eq('supplier_id', supplierId)
+        .eq('is_recurring', true);
+      
+      if (!rules || rules.length === 0) {
+        toast.error('Sem despesa recorrente associada');
+        return;
+      }
+
+      const ruleIds = rules.map(r => r.id);
+
+      // Mark all rules as cancelled
+      await supabase.from('financial_expenses')
+        .update({ status: 'cancelado' } as any)
+        .in('id', ruleIds);
+
+      // Delete all future unpaid child expenses (keep past/paid ones)
+      const today = new Date().toISOString().slice(0, 10);
+      const { data: futureExpenses } = await supabase.from('financial_expenses')
+        .select('id, status, expense_date')
+        .eq('supplier_id', supplierId)
+        .eq('is_recurring', false)
+        .in('parent_expense_id', ruleIds);
+
+      const toDelete = (futureExpenses || []).filter((e: any) =>
+        !isPaidExpenseStatus(e.status) && e.expense_date > today
+      );
+
+      if (toDelete.length > 0) {
+        await supabase.from('financial_expenses')
+          .delete()
+          .in('id', toDelete.map(e => e.id));
+      }
+
+      return toDelete.length;
+    },
+    onSuccess: (count) => {
+      invalidateAll();
+      toast.success(`Recorrência cancelada${count ? ` — ${count} despesas futuras eliminadas` : ''}`);
+    },
+    onError: () => toast.error('Erro ao cancelar recorrência'),
+  });
+
 
   const updateExpense = useMutation({
     mutationFn: async (exp: any) => {
