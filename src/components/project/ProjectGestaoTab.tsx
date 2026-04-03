@@ -295,6 +295,8 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
           created_by: user?.id || null,
           payment_method: getMethodForEntry(true),
         });
+
+        // Prestações
         const restante = total - entrada;
         const valorPrestacao = Math.round((restante / nPrest) * 100) / 100;
         for (let i = 0; i < nPrest; i++) {

@@ -24,6 +24,13 @@ import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUplo
 const STATUS_OPTIONS = ENTRY_STATUSES;
 const DEFAULT_SOURCE_OPTIONS = ['Instagram', 'Sessão de Diagnóstico', 'Recomendação', 'Orgânico', 'Outro'];
 const SPECIAL_OFFER_REASONS = ['Campanha especial', 'Cliente antigo', 'Parceria', 'Desconto de lançamento', 'Upgrade de produto'];
+const SALE_PAYMENT_METHODS = [
+  { value: 'transferencia', label: 'Transferência Bancária' },
+  { value: 'cartao', label: 'Cartão de Crédito/Débito' },
+  { value: 'debito_direto', label: 'Débito Direto' },
+  { value: 'mbway', label: 'MB WAY' },
+  { value: 'multibanco', label: 'Multibanco' },
+];
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 interface Props {
