@@ -162,6 +162,19 @@ export default function FornecedoresPage() {
   const [expenseEdit, setExpenseEdit] = useState<any>({});
   const [autoOpened, setAutoOpened] = useState(false);
 
+  // Dynamic payment methods from business setup
+  const { data: setupPaymentMethods } = useQuery({
+    queryKey: ['business-setup-payment-methods'],
+    queryFn: async () => {
+      const { data } = await supabase.from('business_setup').select('payment_methods').limit(1).single();
+      return (data?.payment_methods as any[] || []).filter((m: any) => m.label?.trim());
+    },
+  });
+  const paymentMethods = setupPaymentMethods && setupPaymentMethods.length > 0
+    ? setupPaymentMethods.map((m: any) => ({ value: `${m.type}:${m.label}`, label: m.label }))
+    : FALLBACK_PAYMENT_METHODS;
+  const getPaymentLabel = (val: string) => paymentMethods.find(m => m.value === val)?.label || val || '—';
+
   // Expenses for the currently selected supplier
   const { data: supplierExpenses = [] } = useQuery({
     queryKey: ['supplier-expenses', selectedSupplierId],
