@@ -140,7 +140,8 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
       const totalSaidas = Math.round((subsTotal + pessoal + prest + impostos) * 100) / 100;
 
       const isPast = m <= currentMonth && now.getFullYear() === currentYear;
-      const entradas = isPast ? (revenueByMonth[m] || 0) : Math.round(avgRevenue * 100) / 100;
+      const hasScheduled = revenueByMonth[m] !== undefined && revenueByMonth[m] > 0;
+      const entradas = hasScheduled ? revenueByMonth[m] : (isPast ? 0 : Math.round(avgRevenue * 100) / 100);
       const balanco = Math.round((entradas - totalSaidas) * 100) / 100;
 
       const renewals = recurringExpenses.filter(s => {
