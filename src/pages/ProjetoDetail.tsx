@@ -457,6 +457,7 @@ export default function ProjetoDetailPage() {
         entregaveis: local.entregaveis, recursos: local.recursos, project_notes: local.project_notes,
         closure_good: local.closure_good, closure_bad: local.closure_bad, closure_lessons: local.closure_lessons,
         cover_url: local.cover_url, contract_documents: local.contract_documents || [],
+        payment_method: local.payment_method || null, payment_config: local.payment_config || null,
       };
       // Auto-calculate total time when marking as concluded
       if (local.status === 'concluido' && project?.status !== 'concluido') {
