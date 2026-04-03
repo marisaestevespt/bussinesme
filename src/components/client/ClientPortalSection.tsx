@@ -186,9 +186,6 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
             {portalData.portal_type === 'projeto_unico' && (
               <ToggleRow label="Timeline" checked={portalData.show_timeline} onChange={() => toggleField('show_timeline')} />
             )}
-            {portalData.portal_type === 'servico_mensal' && (
-              <ToggleRow label="Resumo Mensal" checked={portalData.show_monthly_summary} onChange={() => toggleField('show_monthly_summary')} />
-            )}
           </div>
         </CardContent>
       </Card>
