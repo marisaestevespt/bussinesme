@@ -810,7 +810,7 @@ export default function FornecedoresPage() {
                               <span>Ano: {exp.expense_year || '—'}</span>
                             </div>
                             {exp.payment_method && (
-                              <div className="text-[10px] text-muted-foreground">Método: {PAYMENT_LABELS[exp.payment_method as keyof typeof PAYMENT_LABELS] || exp.payment_method}</div>
+                              <div className="text-[10px] text-muted-foreground">Método: {getPaymentLabel(exp.payment_method)}</div>
                             )}
                             <div className="flex gap-2 justify-end pt-1">
                               <Button size="sm" variant="outline" className="h-7 px-3 text-xs" onClick={() => setEditingExpenseId(null)}>
