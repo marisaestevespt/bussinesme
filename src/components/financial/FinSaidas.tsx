@@ -22,6 +22,7 @@ import { CategorySelect } from './CategorySelect';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 import { SupplierSelect } from './SupplierSelect';
 import { useQuery } from '@tanstack/react-query';
+import { buildPaymentMethodOptions } from '@/lib/paymentMethods';
 import { supabase } from '@/integrations/supabase/client';
 import { exportCsv } from '@/lib/exportCsv';
 import { exportPdf } from '@/lib/exportPdf';
