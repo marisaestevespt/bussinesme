@@ -996,10 +996,22 @@ export default function AgendaPage() {
 
   const { isOwner, user } = useAuth();
   const { data: events = [], isLoading } = useEvents(user?.id, isOwner);
+  const { data: meetingEvents = [] } = useMeetingsAsEvents();
   const { data: types = [] } = useEventTypes();
   const { data: profiles = [] } = useProfiles();
 
-  const handleEventClick = (ev: EventRow) => { setDetailEvent(ev); setDetailOpen(true); };
+  // Merge events + meetings into a single sorted list
+  const allEvents = [...events, ...meetingEvents].sort((a, b) => a.start_date.localeCompare(b.start_date));
+
+  const handleEventClick = (ev: EventRow) => {
+    // If it's a meeting, navigate to meeting detail page
+    if ((ev as any)._isMeeting) {
+      window.open(`/hub/reunioes/${(ev as any)._meetingId}`, '_self');
+      return;
+    }
+    setDetailEvent(ev);
+    setDetailOpen(true);
+  };
   const handleEdit = () => { setDetailOpen(false); if (detailEvent) { setEditEvent(detailEvent); setFormOpen(true); } };
   const handleNewEvent = () => { setEditEvent(null); setFormOpen(true); };
 
@@ -1033,9 +1045,9 @@ export default function AgendaPage() {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         ) : view === 'calendar' ? (
-          <CalendarView events={events} types={types} onEventClick={handleEventClick} />
+          <CalendarView events={allEvents} types={types} onEventClick={handleEventClick} />
         ) : (
-          <ListView events={events} types={types} onEventClick={handleEventClick} />
+          <ListView events={allEvents} types={types} onEventClick={handleEventClick} />
         )}
       </div>
 
