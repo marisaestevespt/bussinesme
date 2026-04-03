@@ -36,6 +36,7 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 - has_role() is SECURITY DEFINER function for RLS
 
 ## Memories
+- [AI assistant](mem://features/ai-assistant.md) — Lirah AI floating chat with DB tools for queries and actions
 - [Brand name](mem://design/brand-name.md) — Lirah: acronym meaning, lyre symbolism, usage locations
 - [Color tokens](mem://design/color-tokens) — Full semantic palette, surfaces, opacity system
 - [Cron jobs](mem://features/cron-jobs.md) — Backend cron jobs for auto-status updates, notifications, and data sync
