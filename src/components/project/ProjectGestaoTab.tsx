@@ -418,6 +418,19 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     },
   });
 
+  const regenerateSales = useMutation({
+    mutationFn: async () => {
+      // Delete all existing project sales first
+      const { error: delErr } = await supabase.from('commercial_sales').delete().eq('project_id', projectId);
+      if (delErr) throw delErr;
+      // Then generate new ones
+      await generateSales.mutateAsync();
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Erro ao regenerar pagamentos');
+    },
+  });
+
   const hasExistingProjectSales = projectSales.length > 0;
 
   // Manual-only payment generation — no auto-generate
