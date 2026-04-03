@@ -177,9 +177,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
             <ToggleRow label="Espaço de Trabalho" checked={portalData.show_workspace} onChange={() => toggleField('show_workspace')} />
             <ToggleRow label="Reuniões" checked={portalData.show_meetings} onChange={() => toggleField('show_meetings')} />
             <ToggleRow label="Pagamentos" checked={portalData.show_payments} onChange={() => toggleField('show_payments')} />
-            <ToggleRow label="FAQ's" checked={portalData.show_faqs} onChange={() => toggleField('show_faqs')} />
             <ToggleRow label="Onboarding" checked={portalData.show_onboarding} onChange={() => toggleField('show_onboarding')} />
-            <ToggleRow label="Materiais" checked={(portalData as any).show_materials ?? true} onChange={() => toggleField('show_materials' as keyof Portal)} />
             <ToggleRow label="Fases / Timeline" checked={portalData.show_timeline} onChange={() => toggleField('show_timeline')} />
           </div>
         </CardContent>

@@ -164,7 +164,7 @@ export default function PortalViewPage() {
     ...(contractDocs.length > 0 ? [{ key: 'contract', label: 'Contrato', icon: FileText }] : []),
     ...(portal.show_meetings ? [{ key: 'meetings', label: 'Reuniões', icon: CalendarDays }] : []),
     ...(portal.show_payments ? [{ key: 'payments', label: 'Pagamentos', icon: CreditCard }] : []),
-    ...((portal as any).show_materials && portalMaterials.length > 0 ? [{ key: 'materials', label: 'Materiais', icon: FolderOpen }] : []),
+    
     ...(projectHistory.length > 0 ? [{ key: 'history', label: 'Histórico', icon: History }] : []),
   ];
 
@@ -964,41 +964,6 @@ export default function PortalViewPage() {
           </div>
         )}
 
-        {/* ═══ MATERIALS ═══ */}
-        {activeSection === 'materials' && (
-          <div className="space-y-5">
-            <SectionTitle icon={FolderOpen}>Materiais</SectionTitle>
-            <p className="text-sm text-muted-foreground -mt-2">Ficheiros partilhados pela equipa.</p>
-            {portalMaterials.length === 0 ? (
-              <SectionCard className="p-8 text-center">
-                <p className="text-sm text-muted-foreground">Sem materiais disponíveis.</p>
-              </SectionCard>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {portalMaterials.map((m: any) => (
-                  <SectionCard key={m.id} className="p-5">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="p-2 rounded-xl" style={{ backgroundColor: pcAlpha(0.08) }}>
-                          <FileText className="h-4 w-4" style={{ color: pc }} />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">{m.file_name}</p>
-                          {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
-                        </div>
-                      </div>
-                      <Button size="sm" variant="outline" className="rounded-lg shrink-0" asChild>
-                        <a href={m.file_url} target="_blank" rel="noopener noreferrer">
-                          <Download className="h-3.5 w-3.5 mr-1" />Abrir
-                        </a>
-                      </Button>
-                    </div>
-                  </SectionCard>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
         {/* ═══ HISTORY ═══ */}
         {activeSection === 'history' && (
