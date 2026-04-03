@@ -35,6 +35,7 @@ import { ProjectDeliverables } from '@/components/project/ProjectDeliverables';
 import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
+import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
