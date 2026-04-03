@@ -4,100 +4,37 @@ import { X, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TourStep {
   title: string;
   description: string;
   icon: string;
-  /** If set, step only shows when user can access this module OR is owner */
   requireModule?: string;
-  /** If true, step only shows for the owner */
   ownerOnly?: boolean;
 }
 
 const ALL_STEPS: TourStep[] = [
-  {
-    title: 'Bem-vindo à sua plataforma!',
-    description: 'Vamos fazer um tour rápido para conhecer as áreas principais. Demora menos de 1 minuto.',
-    icon: '🎉',
-  },
-  {
-    title: 'Secretária — o seu dia-a-dia',
-    description: 'Aqui encontra as tarefas do dia, reuniões, agenda e tudo o que precisa para organizar o seu trabalho. É a sua "mesa de trabalho" digital.',
-    icon: '🗂️',
-  },
-  {
-    title: 'Hub — a central de recursos',
-    description: 'Projetos, reuniões, tarefas, processos e biblioteca. Tudo o que a equipa precisa, organizado num só lugar.',
-    icon: '🏠',
-  },
-  {
-    title: 'Marketing',
-    description: 'Estratégia de conteúdo, canais, calendário editorial e métricas de desempenho dos seus canais de comunicação.',
-    icon: '📣',
-    requireModule: 'marketing',
-  },
-  {
-    title: 'Comercial',
-    description: 'Pipeline de vendas, CRM, metas comerciais e biblioteca de estratégias. Tudo para gerir o processo de vendas.',
-    icon: '🛒',
-    requireModule: 'comercial',
-  },
-  {
-    title: 'Clientes',
-    description: 'Gestão de clientes, onboarding, feedback e portal do cliente. Acompanhe todo o ciclo de vida.',
-    icon: '👤',
-    requireModule: 'clientes',
-  },
-  {
-    title: 'Contabilidade',
-    description: 'Entradas, saídas, balanço mensal, IVA e documentos fiscais. A saúde financeira do negócio.',
-    icon: '💰',
-    requireModule: 'financeiro',
-  },
-  {
-    title: 'Operação',
-    description: 'Gestão operacional do dia-a-dia, processos e entregáveis dos seus serviços.',
-    icon: '🎧',
-    requireModule: 'operacao',
-  },
-  {
-    title: 'Produtos',
-    description: 'Catálogo de produtos e serviços, KPIs, métricas de sucesso e calculadora de oferta.',
-    icon: '📦',
-    requireModule: 'produtos',
-  },
-  {
-    title: 'Recursos Humanos',
-    description: 'Gestão de equipa, escalas, ausências, desempenho e desenvolvimento profissional.',
-    icon: '👥',
-    requireModule: 'recursos-humanos',
-  },
-  {
-    title: 'Sala Executiva',
-    description: 'Visão geral do negócio: planeamento, produtividade, capacidade, KPIs e alinhamento semanal.',
-    icon: '👑',
-    ownerOnly: true,
-  },
-  {
-    title: 'Definições',
-    description: 'Configure o nome do negócio, cores, utilizadores, digestos e KPIs. Tudo personalizável ao seu gosto.',
-    icon: '⚙️',
-    ownerOnly: true,
-  },
-  {
-    title: 'Está pronto!',
-    description: 'Explore à vontade. Pode sempre aceder a qualquer secção pelo menu lateral. Se precisar de ajuda, estamos aqui.',
-    icon: '🚀',
-  },
+  { title: 'Bem-vindo à sua plataforma!', description: 'Vamos fazer um tour rápido para conhecer as áreas principais. Demora menos de 1 minuto.', icon: '🎉' },
+  { title: 'Secretária — o seu dia-a-dia', description: 'Aqui encontra as tarefas do dia, reuniões, agenda e tudo o que precisa para organizar o seu trabalho. É a sua "mesa de trabalho" digital.', icon: '🗂️' },
+  { title: 'Hub — a central de recursos', description: 'Projetos, reuniões, tarefas, processos e biblioteca. Tudo o que a equipa precisa, organizado num só lugar.', icon: '🏠' },
+  { title: 'Marketing', description: 'Estratégia de conteúdo, canais, calendário editorial e métricas de desempenho dos seus canais de comunicação.', icon: '📣', requireModule: 'marketing' },
+  { title: 'Comercial', description: 'Pipeline de vendas, CRM, metas comerciais e biblioteca de estratégias. Tudo para gerir o processo de vendas.', icon: '🛒', requireModule: 'comercial' },
+  { title: 'Clientes', description: 'Gestão de clientes, onboarding, feedback e portal do cliente. Acompanhe todo o ciclo de vida.', icon: '👤', requireModule: 'clientes' },
+  { title: 'Contabilidade', description: 'Entradas, saídas, balanço mensal, IVA e documentos fiscais. A saúde financeira do negócio.', icon: '💰', requireModule: 'financeiro' },
+  { title: 'Operação', description: 'Gestão operacional do dia-a-dia, processos e entregáveis dos seus serviços.', icon: '🎧', requireModule: 'operacao' },
+  { title: 'Produtos', description: 'Catálogo de produtos e serviços, KPIs, métricas de sucesso e calculadora de oferta.', icon: '📦', requireModule: 'produtos' },
+  { title: 'Recursos Humanos', description: 'Gestão de equipa, escalas, ausências, desempenho e desenvolvimento profissional.', icon: '👥', requireModule: 'recursos-humanos' },
+  { title: 'Sala Executiva', description: 'Visão geral do negócio: planeamento, produtividade, capacidade, KPIs e alinhamento semanal.', icon: '👑', ownerOnly: true },
+  { title: 'Definições', description: 'Configure o nome do negócio, cores, utilizadores, digestos e KPIs. Tudo personalizável ao seu gosto.', icon: '⚙️', ownerOnly: true },
+  { title: 'Está pronto!', description: 'Explore à vontade. Pode sempre aceder a qualquer secção pelo menu lateral. Se precisar de ajuda, estamos aqui.', icon: '🚀' },
 ];
-
-const TOUR_STORAGE_KEY = 'onboarding_tour_completed';
 
 export function OnboardingTour() {
   const [isVisible, setIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const { isOwner } = useAuth();
+  const [checked, setChecked] = useState(false);
+  const { user, isOwner } = useAuth();
   const { canAccess, loading: permLoading } = usePermissions();
 
   const steps = useMemo(() => {
@@ -109,18 +46,36 @@ export function OnboardingTour() {
     });
   }, [isOwner, canAccess, permLoading]);
 
+  // Check DB for onboarding_completed
   useEffect(() => {
-    if (permLoading) return;
-    const completed = localStorage.getItem(TOUR_STORAGE_KEY);
-    if (!completed && steps.length > 0) {
-      const timer = setTimeout(() => setIsVisible(true), 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [permLoading, steps.length]);
+    if (permLoading || !user?.id || steps.length === 0) return;
+    let cancelled = false;
+
+    supabase
+      .from('profiles')
+      .select('onboarding_completed')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        setChecked(true);
+        if (!data?.onboarding_completed) {
+          setTimeout(() => setIsVisible(true), 1500);
+        }
+      });
+
+    return () => { cancelled = true; };
+  }, [permLoading, user?.id, steps.length]);
 
   const completeTour = () => {
-    localStorage.setItem(TOUR_STORAGE_KEY, 'true');
     setIsVisible(false);
+    if (user?.id) {
+      supabase
+        .from('profiles')
+        .update({ onboarding_completed: true } as any)
+        .eq('user_id', user.id)
+        .then();
+    }
   };
 
   const nextStep = () => {
@@ -145,32 +100,17 @@ export function OnboardingTour() {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
       <div className="relative w-full max-w-lg mx-4 rounded-2xl bg-card border border-border shadow-2xl overflow-hidden">
-        {/* Progress bar */}
         <div className="h-1 bg-muted">
-          <div
-            className="h-full bg-primary transition-all duration-500 ease-out"
-            style={{ width: `${progress}%` }}
-          />
+          <div className="h-full bg-primary transition-all duration-500 ease-out" style={{ width: `${progress}%` }} />
         </div>
-
-        {/* Close button */}
-        <button
-          onClick={completeTour}
-          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors z-10"
-        >
+        <button onClick={completeTour} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors z-10">
           <X className="h-5 w-5" />
         </button>
-
-        {/* Content */}
         <div className="px-8 pt-8 pb-6 text-center space-y-4">
           <div className="text-5xl">{step.icon}</div>
           <h2 className="text-xl font-bold text-foreground">{step.title}</h2>
-          <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">
-            {step.description}
-          </p>
+          <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">{step.description}</p>
         </div>
-
-        {/* Step indicators */}
         <div className="flex justify-center gap-1.5 pb-4">
           {steps.map((_, i) => (
             <button
@@ -183,8 +123,6 @@ export function OnboardingTour() {
             />
           ))}
         </div>
-
-        {/* Actions */}
         <div className="flex items-center justify-between px-8 pb-6">
           <div>
             {!isFirst && (
@@ -201,13 +139,9 @@ export function OnboardingTour() {
             )}
             <Button onClick={nextStep} size="sm">
               {isLast ? (
-                <>
-                  <CheckCircle2 className="h-4 w-4 mr-1" /> Começar
-                </>
+                <><CheckCircle2 className="h-4 w-4 mr-1" /> Começar</>
               ) : (
-                <>
-                  Seguinte <ArrowRight className="h-4 w-4 ml-1" />
-                </>
+                <>Seguinte <ArrowRight className="h-4 w-4 ml-1" /></>
               )}
             </Button>
           </div>
