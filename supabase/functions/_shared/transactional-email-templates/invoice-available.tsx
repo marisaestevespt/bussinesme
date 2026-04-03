@@ -20,6 +20,12 @@ interface InvoiceAvailableProps {
   fontDisplay?: string
   fontBody?: string
   logoUrl?: string
+  // Custom text overrides from email_template_settings
+  customTitle?: string
+  customSubtitle?: string
+  customCta?: string
+  customFooter?: string
+  customEmoji?: string
 }
 
 function hslToCss(hsl: string | undefined, fallback: string): string {
