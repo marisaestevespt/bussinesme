@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Link2, RefreshCw, CheckCircle2, AlertCircle, Loader2, HelpCircle, Eye, EyeOff, Unplug, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 
 const PLATFORM_SETUP_GUIDE: Record<string, string[]> = {
