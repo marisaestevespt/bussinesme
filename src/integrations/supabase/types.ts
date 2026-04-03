@@ -3614,6 +3614,33 @@ export type Database = {
           },
         ]
       }
+      fiscal_deadline_completions: {
+        Row: {
+          completed_at: string
+          completed_by: string
+          created_at: string
+          deadline_key: string
+          id: string
+          year: number
+        }
+        Insert: {
+          completed_at?: string
+          completed_by: string
+          created_at?: string
+          deadline_key: string
+          id?: string
+          year: number
+        }
+        Update: {
+          completed_at?: string
+          completed_by?: string
+          created_at?: string
+          deadline_key?: string
+          id?: string
+          year?: number
+        }
+        Relationships: []
+      }
       fiscal_monthly_checks: {
         Row: {
           check_key: string
@@ -6808,6 +6835,8 @@ export type Database = {
           name: string
           notes: string | null
           objetivo: string | null
+          payment_config: Json | null
+          payment_method: string | null
           product_id: string | null
           product_name: string | null
           progress: number
@@ -6842,6 +6871,8 @@ export type Database = {
           name: string
           notes?: string | null
           objetivo?: string | null
+          payment_config?: Json | null
+          payment_method?: string | null
           product_id?: string | null
           product_name?: string | null
           progress?: number
@@ -6876,6 +6907,8 @@ export type Database = {
           name?: string
           notes?: string | null
           objetivo?: string | null
+          payment_config?: Json | null
+          payment_method?: string | null
           product_id?: string | null
           product_name?: string | null
           progress?: number
