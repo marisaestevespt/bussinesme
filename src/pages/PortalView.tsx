@@ -361,12 +361,12 @@ export default function PortalViewPage() {
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {onboarding.map((o: any, i: number) => {
-                      const [expanded, setExpanded] = useState(false);
+                      const isExpanded = expandedOnbStep === o.id;
                       return (
                         <div
                           key={o.id}
                           className="rounded-2xl border border-border/40 bg-white shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden"
-                          onClick={() => setExpanded(!expanded)}
+                          onClick={() => setExpandedOnbStep(isExpanded ? null : o.id)}
                         >
                           <div className="p-4 flex flex-col items-center text-center">
                             <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Passo</span>
@@ -384,19 +384,21 @@ export default function PortalViewPage() {
                               </span>
                             </div>
                           </div>
-                          {expanded && (
-                            <div className="px-4 pb-4 border-t border-border/20 pt-3 space-y-2">
+                          {isExpanded && (
+                            <div className="px-4 pb-4 border-t border-border/20 pt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
                               <p className="text-xs font-medium">{o.activity || 'Sem descrição'}</p>
                               {o.phase && <p className="text-[10px] text-muted-foreground">Fase: {o.phase}</p>}
                               {o.responsible && <p className="text-[10px] text-muted-foreground">Responsável: {o.responsible}</p>}
-                              <Checkbox
-                                checked={!!o.completed}
-                                onCheckedChange={async (v) => {
-                                  await sb('client_onboarding').update({ completed: !!v }).eq('id', o.id);
-                                  setOnboarding(prev => prev.map(x => x.id === o.id ? { ...x, completed: !!v } : x));
-                                }}
-                                className="mt-1"
-                              />
+                              <div className="flex items-center gap-2 mt-1">
+                                <Checkbox
+                                  checked={!!o.completed}
+                                  onCheckedChange={async (v) => {
+                                    await sb('client_onboarding').update({ completed: !!v }).eq('id', o.id);
+                                    setOnboarding(prev => prev.map(x => x.id === o.id ? { ...x, completed: !!v } : x));
+                                  }}
+                                />
+                                <span className="text-[10px] text-muted-foreground">Marcar como {o.completed ? 'pendente' : 'concluído'}</span>
+                              </div>
                             </div>
                           )}
                         </div>
