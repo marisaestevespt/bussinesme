@@ -377,39 +377,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
 
   const hasExistingProjectSales = projectSales.length > 0;
 
-  // ─── Auto-generate payments when all fields are filled ────────
-  const canAutoGenerate = !hasExistingProjectSales && !!billingStartDate && !!payMethod && !generateSales.isPending;
-
-  useEffect(() => {
-    if (!canAutoGenerate) return;
-
-    let ready = false;
-    if (payMethod === 'pagamento_total' && parseFloat(totalValue) > 0) ready = true;
-    if (payMethod === 'entrada_prestacoes' && parseFloat(totalValue) > 0 && parseFloat(entradaValue) > 0 && parseInt(numPrestacoes) > 0 && parseInt(payDay) > 0 && parseFloat(entradaValue) < parseFloat(totalValue)) ready = true;
-    if (payMethod === 'prestacoes' && parseFloat(totalValue) > 0 && parseInt(numPrestacoes) > 0 && parseInt(payDay) > 0) ready = true;
-    if (payMethod === 'avenca_mensal' && parseInt(numMeses) > 0 && parseInt(payDay) > 0 && parseFloat(avencaValue) > 0) ready = true;
-    if (!ready) return;
-
-    const autoGenerateKey = [
-      billingStartDate ?? '',
-      payMethod,
-      totalValue,
-      entradaValue,
-      numPrestacoes,
-      payDay,
-      numMeses,
-      avencaValue,
-    ].join('|');
-
-    if (lastAutoGenerateKeyRef.current === autoGenerateKey) return;
-
-    const timer = setTimeout(() => {
-      lastAutoGenerateKeyRef.current = autoGenerateKey;
-      generateSales.mutate();
-    }, 1200);
-
-    return () => clearTimeout(timer);
-  }, [payMethod, totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, billingStartDate, canAutoGenerate]);
+  // Manual-only payment generation — no auto-generate
 
   return (
     <div className="space-y-6">
