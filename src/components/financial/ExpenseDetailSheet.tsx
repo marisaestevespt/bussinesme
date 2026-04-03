@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { buildPaymentMethodOptions } from '@/lib/paymentMethods';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -46,7 +46,6 @@ interface Props {
 
 export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) {
   const [form, setForm] = useState<any>({});
-  const [lastId, setLastId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const { data: setupPM } = useQuery({
     queryKey: ['business-setup-payment-methods'],
@@ -57,12 +56,13 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
   });
   const paymentMethods = buildPaymentMethodOptions(setupPM);
 
-  // Sync form when expense changes
-  if (expense && expense.id !== lastId) {
-    setLastId(expense.id);
+  useEffect(() => {
+    if (!expense || !open) return;
+
     const allDocs = Array.isArray(expense.documents) ? expense.documents : [];
     const regularDocs = (allDocs as any[]).filter((d: any) => d.type !== 'meta_ads');
     const metaDocs = (allDocs as any[]).filter((d: any) => d.type === 'meta_ads');
+
     setForm({
       id: expense.id,
       status: expense.status || 'por_pagar',
@@ -86,7 +86,7 @@ export function ExpenseDetailSheet({ expense, open, onOpenChange, fin }: Props) 
       payment_method: (expense as any).payment_method || '',
       expense_name: (expense as any).expense_name || '',
     });
-  }
+  }, [expense, open]);
 
   if (!expense) return null;
 
