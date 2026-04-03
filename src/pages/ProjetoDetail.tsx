@@ -55,6 +55,8 @@ interface ProjectFull {
   project_mode: string | null;
   whatsapp_group_url: string | null;
   contract_documents: Array<{ name: string; url: string }> | null;
+  payment_method: string | null;
+  payment_config: Record<string, any> | null;
 }
 
 interface Profile { id: string; user_id: string; full_name: string | null; avatar_url: string | null; }
