@@ -203,6 +203,23 @@ function getTemplateBody(
   }
 }
 
+function EmailPreviewFrame({ html }: { html: string }) {
+  const srcDoc = useMemo(() => {
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet"></head><body style="margin:0;padding:0;background:#ffffff">${html}</body></html>`;
+  }, [html]);
+
+  return (
+    <div className="rounded-lg border overflow-hidden" style={{ background: '#ffffff' }}>
+      <iframe
+        srcDoc={srcDoc}
+        className="w-full border-0"
+        style={{ minHeight: 520, background: '#ffffff' }}
+        title="Email preview"
+      />
+    </div>
+  );
+}
+
 export function SettingsEmails() {
   const { settings } = useBusinessSettings();
   const [selectedTemplate, setSelectedTemplate] = useState<string>(TEMPLATES[0].key);
