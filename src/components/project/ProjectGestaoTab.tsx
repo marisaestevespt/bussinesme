@@ -191,6 +191,9 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
       const entries: any[] = [];
       const product = productName || clientData?.current_product || '';
       const client = clientName || '';
+      const year = new Date().getFullYear();
+      let saleCounter = 0;
+      const genSaleId = () => { saleCounter++; return `V${year}-${Date.now()}-${saleCounter}`; };
 
       if (payMethod === 'pagamento_total') {
         const val = parseFloat(totalValue);
