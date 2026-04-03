@@ -171,7 +171,12 @@ export default function FornecedoresPage() {
     },
   });
   const paymentMethods = setupPaymentMethods && setupPaymentMethods.length > 0
-    ? setupPaymentMethods.map((m: any) => ({ value: `${m.type}:${m.label}`, label: m.label }))
+    ? setupPaymentMethods.map((m: any) => {
+        const last4 = m.card_last4 ? ` ****${m.card_last4}` : '';
+        const expiry = m.card_expiry ? ` (${m.card_expiry})` : '';
+        const displayLabel = m.type === 'cartao' ? `${m.label}${last4}${expiry}` : m.label;
+        return { value: `${m.type}:${m.label}`, label: displayLabel };
+      })
     : FALLBACK_PAYMENT_METHODS;
   const getPaymentLabel = (val: string) => paymentMethods.find(m => m.value === val)?.label || val || '—';
 
