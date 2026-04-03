@@ -203,7 +203,7 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
       return { meetings: data };
     }
     case "query_team": {
-      let query = supabaseAdmin.from("team_members").select("id, name, email, role, work_areas, status, phone");
+      let query = supabaseAdmin.from("team_members").select("id, full_name, email, role_title, work_areas, status, whatsapp, work_schedule, expected_weekly_hours");
       if (args.search) query = query.ilike("name", `%${args.search}%`);
       query = query.eq("status", "active").order("name");
       const { data, error } = await query;
