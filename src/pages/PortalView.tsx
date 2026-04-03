@@ -196,7 +196,7 @@ export default function PortalViewPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: `linear-gradient(180deg, #fefcfa 0%, ${pc}06 100%)` }}>
+    <div className="min-h-screen" style={{ background: `linear-gradient(180deg, #fefcfa 0%, ${pcAlpha(0.04)} 100%)` }}>
       {/* ─── Header ─── */}
       <header className="sticky top-0 z-30 backdrop-blur-md bg-white/80 border-b border-border/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
