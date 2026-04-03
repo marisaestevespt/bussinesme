@@ -2672,6 +2672,7 @@ export type Database = {
       digest_settings: {
         Row: {
           created_at: string
+          digest_type: string
           enabled: boolean
           frequency: Database["public"]["Enums"]["digest_frequency"]
           id: string
@@ -2685,6 +2686,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          digest_type?: string
           enabled?: boolean
           frequency?: Database["public"]["Enums"]["digest_frequency"]
           id?: string
@@ -2698,6 +2700,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          digest_type?: string
           enabled?: boolean
           frequency?: Database["public"]["Enums"]["digest_frequency"]
           id?: string
