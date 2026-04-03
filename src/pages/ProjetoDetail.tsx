@@ -972,7 +972,10 @@ export default function ProjetoDetailPage() {
                 productName={local.product_name || null}
                 startDate={local.start_date}
                 deadline={local.deadline}
+                projectPaymentMethod={local.payment_method}
+                projectPaymentConfig={local.payment_config}
                 onNewMeeting={() => setMeetingDialogOpen(true)}
+                onUpdateProject={(field, value) => updateField(field as keyof ProjectFull, value)}
               />
             </TabsContent>
           </Tabs>
