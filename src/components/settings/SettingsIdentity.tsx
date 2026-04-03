@@ -268,6 +268,7 @@ export function SettingsIdentity() {
         .from('business_settings')
         .update({
           business_name: businessName.trim(),
+          business_sector: businessSector,
           logo_url: logoUrl,
           login_bg_url: loginBgUrl,
           support_hours: supportHours.trim() || null,
