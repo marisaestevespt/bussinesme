@@ -957,8 +957,6 @@ export default function ProjetoDetailPage() {
                       ))}
                     </div>
                   </div>
-                </>
-              )}
             </TabsContent>
 
             {/* ─── TAB 2: PROCESSOS ────────────────────────── */}
