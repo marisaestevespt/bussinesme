@@ -140,7 +140,8 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
       const totalSaidas = Math.round((subsTotal + pessoal + prest + impostos) * 100) / 100;
 
       const isPast = m <= currentMonth && now.getFullYear() === currentYear;
-      const entradas = isPast ? (revenueByMonth[m] || 0) : Math.round(avgRevenue * 100) / 100;
+      const hasScheduled = revenueByMonth[m] !== undefined && revenueByMonth[m] > 0;
+      const entradas = hasScheduled ? revenueByMonth[m] : (isPast ? 0 : Math.round(avgRevenue * 100) / 100);
       const balanco = Math.round((entradas - totalSaidas) * 100) / 100;
 
       const renewals = recurringExpenses.filter(s => {
@@ -149,7 +150,8 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
         return rd.getMonth() + 1 === m;
       });
 
-      return { mes: FULL[i], entradas, subs: subsTotal, pessoal, prestadores: prest, impostos, taxLabel: tax.label, totalSaidas, balanco, renewals, isPast };
+      const isEstimate = !isPast && !hasScheduled && entradas > 0;
+      return { mes: FULL[i], entradas, subs: subsTotal, pessoal, prestadores: prest, impostos, taxLabel: tax.label, totalSaidas, balanco, renewals, isPast, isEstimate };
     });
   }, [totalMonthly, payrollData, contractorsData, recurringExpenses, currentYear, sales, currentMonth, taxByMonth]);
 
@@ -202,7 +204,7 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
                   <TableCell className="font-medium">{p.mes}</TableCell>
                   <TableCell className="text-right text-emerald-600">
                     {fmt(p.entradas)}
-                    {!p.isPast && <span className="text-[10px] text-muted-foreground ml-1">(est.)</span>}
+                    {p.isEstimate && <span className="text-[10px] text-muted-foreground ml-1">(est.)</span>}
                   </TableCell>
                   <TableCell className="text-right">{fmt(p.subs)}</TableCell>
                   <TableCell className="text-right">{fmt(p.pessoal)}</TableCell>
