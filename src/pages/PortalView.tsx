@@ -799,7 +799,6 @@ export default function PortalViewPage() {
           )}
 
         </main>
-      </div>
     </div>
   );
 }
