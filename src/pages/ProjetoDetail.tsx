@@ -1004,6 +1004,8 @@ export default function ProjetoDetailPage() {
           clients={clientsList}
           defaultClientId={local.client_id || undefined}
           defaultClientName={local.client_name || undefined}
+          defaultProjectId={id}
+          defaultProjectName={local.name}
         />
 
         {/* Task dialog */}
