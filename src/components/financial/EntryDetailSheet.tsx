@@ -118,6 +118,17 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
     setSaving(false);
   };
 
+  const handleDelete = async () => {
+    const { error } = await supabase.from('commercial_sales').delete().eq('id', sale.id);
+    if (error) {
+      toast.error('Erro ao eliminar');
+    } else {
+      toast.success('Entrada eliminada');
+      qc.invalidateQueries({ queryKey: ['commercial'] });
+      onOpenChange(false);
+    }
+  };
+
   return (
     <>
     <Sheet open={open} onOpenChange={onOpenChange}>
