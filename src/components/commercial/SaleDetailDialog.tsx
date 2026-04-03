@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Switch } from '@/components/ui/switch';
-import { CalendarIcon, User, Gift, FileText } from 'lucide-react';
+import { CalendarIcon, User, Gift, FileText, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -35,6 +36,7 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
   const qc = useQueryClient();
   const { isOwner } = useAuth();
   const commercialData = useCommercialData();
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const { data: sale } = useQuery({
     queryKey: ['sale-detail-dialog', saleId],
@@ -142,10 +144,21 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
     onOpenChange(false);
   };
 
+  const handleDelete = async () => {
+    if (!saleId) return;
+    const { error } = await supabase.from('commercial_sales').delete().eq('id', saleId);
+    if (error) { toast.error('Erro ao eliminar'); return; }
+    toast.success('Entrada eliminada');
+    qc.invalidateQueries({ queryKey: ['commercial'] });
+    qc.invalidateQueries({ queryKey: ['project-sales'] });
+    onOpenChange(false);
+  };
+
   const effectiveStatus = getEffectiveEntryStatus(form.status || 'aguarda_pagamento', form.payment_date || null);
   const statusInfo = getEntryStatusBadge(effectiveStatus);
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-background">
         <DialogHeader>
@@ -287,10 +300,33 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
           />
 
           {isOwner && (
-            <Button className="w-full" onClick={save}>Guardar</Button>
+            <div className="flex gap-2">
+              <Button className="flex-1" onClick={save}>Guardar</Button>
+              <Button variant="destructive" size="icon" onClick={() => setConfirmDeleteOpen(true)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           )}
         </div>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Eliminar entrada</AlertDialogTitle>
+          <AlertDialogDescription>
+            Tens a certeza que queres eliminar esta entrada ({form.sale_id})? Esta ação não pode ser revertida.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Eliminar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
