@@ -337,7 +337,7 @@ export default function PortalViewPage() {
             </div>
 
             {/* Quick action cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {portal.show_onboarding && onboarding.length > 0 && (
                 <SectionCard className="p-5 cursor-pointer group" onClick={() => setActiveSection('onboarding')}>
                   <div className="flex items-start justify-between">
@@ -355,27 +355,72 @@ export default function PortalViewPage() {
                   </div>
                 </SectionCard>
               )}
-              <SectionCard className="p-5 cursor-pointer group" onClick={() => setActiveSection('questions')}>
-                <div className="flex items-start justify-between">
-                  <div className="p-2.5 rounded-xl" style={{ backgroundColor: pcAlpha(0.1) }}>
-                    <ClipboardList className="h-5 w-5" style={{ color: pc }} />
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:translate-x-0.5 transition-transform" />
-                </div>
-                <p className="font-semibold text-sm mt-3">Perguntas Iniciais</p>
-                <p className="text-xs text-muted-foreground mt-1">{questions.filter(q => q.answer).length}/{questions.length} respondidas</p>
-              </SectionCard>
-              <SectionCard className="p-5 cursor-pointer group" onClick={() => setActiveSection('feedback')}>
-                <div className="flex items-start justify-between">
-                  <div className="p-2.5 rounded-xl" style={{ backgroundColor: pcAlpha(0.1) }}>
-                    <MessageSquare className="h-5 w-5" style={{ color: pc }} />
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:translate-x-0.5 transition-transform" />
-                </div>
-                <p className="font-semibold text-sm mt-3">Feedback</p>
-                <p className="text-xs text-muted-foreground mt-1">Partilha a tua opinião</p>
-              </SectionCard>
             </div>
+
+            {/* Inline initial questions */}
+            {questions.length > 0 && (() => {
+              const allAnswered = questions.every((q: any) => q.answer?.trim());
+              const answeredCount = questions.filter((q: any) => q.answer?.trim()).length;
+              return (
+                <div
+                  className="rounded-2xl border-2 overflow-hidden transition-all"
+                  style={{
+                    borderColor: allAnswered ? 'hsl(var(--border))' : pcAlpha(0.3),
+                    boxShadow: allAnswered ? 'none' : `0 4px 24px ${pcAlpha(0.08)}`,
+                  }}
+                >
+                  <div
+                    className="px-5 py-3 flex items-center justify-between cursor-pointer"
+                    style={{ backgroundColor: allAnswered ? 'transparent' : pcAlpha(0.05) }}
+                    onClick={() => !allAnswered && setActiveSection('questions')}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg" style={{ backgroundColor: allAnswered ? 'hsl(var(--muted))' : pcAlpha(0.12) }}>
+                        <ClipboardList className="h-4 w-4" style={{ color: allAnswered ? 'hsl(var(--muted-foreground))' : pc }} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">Perguntas Iniciais</p>
+                        <p className="text-xs text-muted-foreground">{answeredCount}/{questions.length} respondidas</p>
+                      </div>
+                    </div>
+                    {!allAnswered ? (
+                      <Badge className="text-[10px] font-semibold text-white border-0 px-2.5 py-0.5" style={{ backgroundColor: pc }}>
+                        Por preencher
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px] font-medium text-emerald-600 border-emerald-200 bg-emerald-50">
+                        ✓ Completo
+                      </Badge>
+                    )}
+                  </div>
+                  {!allAnswered && (
+                    <div className="px-5 pb-5 space-y-4 bg-white">
+                      {questions.map((q: any) => (
+                        <div key={q.id} className="space-y-1.5">
+                          <p className="text-sm font-medium">{q.question}</p>
+                          {q.answer?.trim() ? (
+                            <div className="rounded-xl bg-emerald-50/50 border border-emerald-100 p-3">
+                              <p className="text-sm text-foreground">{q.answer}</p>
+                              <p className="text-[10px] text-muted-foreground mt-1">Respondida {q.answered_at ? format(parseISO(q.answered_at), 'dd/MM/yyyy') : ''}</p>
+                            </div>
+                          ) : (
+                            <Textarea
+                              className="text-sm rounded-xl border-border/40 bg-muted/10 focus-visible:ring-1"
+                              placeholder="A tua resposta..."
+                              onBlur={e => {
+                                if (e.target.value.trim()) answerQuestion(q.id, e.target.value);
+                              }}
+                              rows={2}
+                              style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Monthly summaries on home for servico_mensal */}
             {portal.portal_type === 'servico_mensal' && portal.show_monthly_summary && summaries.length > 0 && (
@@ -392,19 +437,27 @@ export default function PortalViewPage() {
               </SectionCard>
             )}
 
-            {portal.portal_type === 'servico_mensal' && portal.show_monthly_summary && summaries.length > 0 && (
-              <SectionCard className="p-6">
-                <SectionTitle icon={ClipboardList}>Resumos Mensais</SectionTitle>
-                <div className="space-y-3">
-                  {summaries.map((s: any) => (
-                    <div key={s.id} className="rounded-xl border border-border/40 bg-muted/20 p-4">
-                      <p className="font-semibold text-sm mb-1" style={{ color: pc }}>{s.month}/{s.year}</p>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{s.content}</p>
-                    </div>
-                  ))}
-                </div>
-              </SectionCard>
-            )}
+            {/* Feedback inline at bottom */}
+            <div className="rounded-2xl border border-border/30 bg-muted/5 p-5 space-y-3">
+              <div className="flex items-center gap-2.5">
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm font-medium text-muted-foreground">Tens algum feedback para nós?</p>
+              </div>
+              <Textarea
+                className="rounded-xl border-border/40 bg-white focus-visible:ring-1 text-sm"
+                placeholder="Partilha a tua opinião... 💬"
+                value={feedbackText}
+                onChange={e => setFeedbackText(e.target.value)}
+                rows={3}
+                style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
+              />
+              {feedbackText.trim() && (
+                <Button className="rounded-xl text-white text-sm" style={{ backgroundColor: pc }} onClick={sendFeedback}>
+                  <Send className="h-3.5 w-3.5 mr-1.5" />Enviar Feedback
+                </Button>
+              )}
+            </div>
+          </>
           </>
         )}
 
