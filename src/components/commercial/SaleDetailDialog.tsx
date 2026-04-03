@@ -158,6 +158,7 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
   const statusInfo = getEntryStatusBadge(effectiveStatus);
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-background">
         <DialogHeader>
