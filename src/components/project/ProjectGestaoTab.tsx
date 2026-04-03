@@ -12,6 +12,8 @@ import { ExternalLink, Plus, CreditCard, Loader2, Gift } from 'lucide-react';
 import { format, parseISO, addMonths, setDate } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { SaleDetailDialog } from '@/components/commercial/SaleDetailDialog';
+import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
+import { useCommercialData } from '@/hooks/useCommercialData';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -56,7 +58,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
-
+  const [manualEntryOpen, setManualEntryOpen] = useState(false);
   // ─── Payment config form state ─────────────────────────────────
   const [payMethod, setPayMethod] = useState<string>(projectPaymentMethod || '');
   const [totalValue, setTotalValue] = useState(projectPaymentConfig?.totalValue || '');
@@ -87,7 +89,16 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
 
   const resolvedClientId = clientData?.id || clientId;
   const billingStartDate = startDate || clientData?.start_date;
-  
+  const comData = useCommercialData();
+
+  const { data: productNamesList } = useQuery({
+    queryKey: ['product-names-gestao'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('name');
+      return (data || []).map(p => p.name);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   // Auto-calculate numMeses from start_date + deadline for avença_mensal
   useEffect(() => {
@@ -348,6 +359,38 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             created_by: user?.id || null,
           });
         }
+
+        // Pro-rata: if deadline exists and ends mid-month (not on day 1)
+        if (deadline) {
+          const endDate = parseISO(deadline);
+          const lastFullPayDate = setDate(addMonths(start, meses - 1), day);
+          const nextFullPayDate = setDate(addMonths(start, meses), day);
+          // If the contract ends between the last full payment and the next one
+          if (endDate > lastFullPayDate && endDate < nextFullPayDate) {
+            const daysInMonth = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0).getDate();
+            const proRataDays = endDate.getDate() - (day > endDate.getDate() ? 0 : day) + 1;
+            if (proRataDays > 0 && proRataDays < daysInMonth) {
+              const proRataValue = Math.round((valor / daysInMonth) * proRataDays * 100) / 100;
+              const proRataDate = setDate(addMonths(start, meses), day);
+              entries.push({
+                sale_id: genSaleId(),
+                status: 'aguarda_pagamento',
+                payment_date: format(proRataDate, 'yyyy-MM-dd'),
+                description: `Avença Mensal (pro-rata ${proRataDays}d) — ${product}`,
+                base_value: proRataValue,
+                invoice_total: proRataValue,
+                product,
+                client,
+                source: 'projeto',
+                project_id: projectId,
+                sale_month: proRataDate.getMonth() + 1,
+                sale_year: proRataDate.getFullYear(),
+                sale_quarter: Math.ceil((proRataDate.getMonth() + 1) / 3),
+                created_by: user?.id || null,
+              });
+            }
+          }
+        }
       }
 
       if (entries.length === 0) throw new Error('Nenhuma entrada gerada');
@@ -514,8 +557,11 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
 
       {/* Pagamentos */}
       <Card>
-        <CardHeader className="pb-2">
+        <CardHeader className="pb-2 flex flex-row items-center justify-between">
           <CardTitle className="text-sm">Pagamentos</CardTitle>
+          <Button size="sm" variant="outline" onClick={() => setManualEntryOpen(true)}>
+            <Plus className="h-3 w-3 mr-1" />Nova Entrada
+          </Button>
         </CardHeader>
         <CardContent className="p-0">
           <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-6 gap-2">
@@ -557,6 +603,13 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
       </Card>
 
       <SaleDetailDialog saleId={selectedSaleId} open={!!selectedSaleId} onOpenChange={o => { if (!o) setSelectedSaleId(null); }} />
+      <SaleFormDialog
+        open={manualEntryOpen}
+        onOpenChange={setManualEntryOpen}
+        products={productNamesList || []}
+        initialData={{ client: clientName, product: productName, source: 'projeto', project_id: projectId, status: 'aguarda_pagamento' }}
+        onSave={(sale) => { comData.upsertSale.mutate(sale); setManualEntryOpen(false); }}
+      />
 
       {/* Reuniões */}
       <Card>
