@@ -506,8 +506,8 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             <p className="text-xs text-muted-foreground">⚠️ Já existem pagamentos gerados para este projeto. Elimine-os primeiro para gerar novos.</p>
           )}
 
-          {!clientStartDate && payMethod && (
-            <p className="text-xs text-destructive">⚠️ O cliente não tem data de início definida. Defina-a na ficha do cliente para gerar pagamentos.</p>
+          {!billingStartDate && payMethod && (
+            <p className="text-xs text-destructive">⚠️ O projeto não tem data de início definida. Defina-a na ficha do projeto para gerar pagamentos.</p>
           )}
         </CardContent>
       </Card>
