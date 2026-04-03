@@ -46,6 +46,12 @@ const STATUSES: { value: MeetingStatus; label: string; color: string }[] = [
 
 interface CheckItem { text: string; checked: boolean; }
 
+interface MeetingDocument {
+  name: string;
+  url: string;
+  type: string;
+}
+
 interface MeetingFull {
   id: string;
   title: string;
@@ -72,6 +78,7 @@ interface MeetingFull {
   is_recurring: boolean;
   recurrence_frequency: string | null;
   recurrence_end_date: string | null;
+  documents: MeetingDocument[];
 }
 
 interface ProjectOption { id: string; name: string; }
