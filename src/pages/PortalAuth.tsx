@@ -88,7 +88,9 @@ export default function PortalAuthPage() {
     navigate(`/portal/${token}/view`, { replace: true });
   };
 
-  const primaryColor = settings?.primary_color || '#C2662D';
+  const rawColor = settings?.primary_color || '12 76% 52%';
+  const pc = `hsl(${rawColor})`;          // solid color
+  const pcAlpha = (a: number) => `hsl(${rawColor} / ${a})`; // with alpha
   const logoUrl = settings?.logo_url;
   const businessName = settings?.business_name || '';
   const welcomeText = settings?.welcome_text || `Bem-vinda ao teu espaço pessoal${businessName ? ` com a ${businessName}` : ''}.`;
