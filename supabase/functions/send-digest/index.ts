@@ -97,21 +97,34 @@ Deno.serve(async (req) => {
         if (!authUser?.email) continue;
 
         const sections = digest.sections || {};
+        const isEod = digest.digest_type === "eod";
         let htmlSections = "";
 
-        if (digest.is_owner_digest) {
-          htmlSections = await buildOwnerDigest(supabase, sections, todayStr, now);
+        if (isEod) {
+          // End-of-day wrap-up
+          if (digest.is_owner_digest) {
+            htmlSections = await buildOwnerEodDigest(supabase, sections, todayStr, now);
+          } else {
+            htmlSections = await buildMemberEodDigest(supabase, sections, digest, profile, todayStr, now);
+          }
         } else {
-          htmlSections = await buildMemberDigest(supabase, sections, digest, profile, todayStr, now);
+          // Morning briefing
+          if (digest.is_owner_digest) {
+            htmlSections = await buildOwnerDigest(supabase, sections, todayStr, now);
+          } else {
+            htmlSections = await buildMemberDigest(supabase, sections, digest, profile, todayStr, now);
+          }
         }
 
         // Build email
         const firstName = (profile.full_name || "").split(" ")[0] || "—";
-        const headerTitle = "Briefing do dia";
-        const greeting = `Bom dia, ${firstName}! Aqui está o teu briefing para hoje.`;
+        const headerTitle = isEod ? "Wrap-up do dia" : "Briefing do dia";
+        const greeting = isEod
+          ? `Boa noite, ${firstName}! Aqui está o resumo do que aconteceu hoje.`
+          : `Bom dia, ${firstName}! Aqui está o teu briefing para hoje.`;
         const subject = digest.is_owner_digest
-          ? `Briefing do dia — ${businessName} — ${formatDatePT(now)}`
-          : `Briefing do dia — ${formatDatePT(now)}`;
+          ? `${isEod ? "Wrap-up" : "Briefing"} do dia — ${businessName} — ${formatDatePT(now)}`
+          : `${isEod ? "Wrap-up" : "Briefing"} do dia — ${formatDatePT(now)}`;
 
         const html = buildEmailHtml({
           subject,
@@ -131,11 +144,14 @@ Deno.serve(async (req) => {
 
         // Send via transactional email if available, otherwise log
         try {
+          const templateName = digest.is_owner_digest
+            ? (isEod ? "owner-eod-digest" : "owner-digest")
+            : (isEod ? "member-eod-digest" : "member-digest");
           await supabase.functions.invoke("send-transactional-email", {
             body: {
-              templateName: digest.is_owner_digest ? "owner-digest" : "member-digest",
+              templateName,
               recipientEmail: authUser.email,
-              idempotencyKey: `digest-${digest.id}-${todayStr}`,
+              idempotencyKey: `digest-${digest.id}-${todayStr}-${isEod ? "eod" : "am"}`,
               templateData: { subject, html },
             },
           });
