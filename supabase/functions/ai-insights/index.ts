@@ -153,26 +153,25 @@ async function gatherData(supabase: any, type: string) {
     }
 
     case "financial": {
-      const [expenses, entries] = await Promise.all([
-        supabase.from("financial_expenses").select("id, amount, expense_date, category, description, status").gte("expense_date", `${year}-01-01`).lt("expense_date", `${year + 1}-01-01`).order("expense_date", { ascending: false }).limit(500),
-        supabase.from("financial_entries").select("id, amount, entry_date, category, description, status").gte("entry_date", `${year}-01-01`).lt("entry_date", `${year + 1}-01-01`).order("entry_date", { ascending: false }).limit(500),
+      const [expenses, sales] = await Promise.all([
+        supabase.from("financial_expenses").select("id, amount, total_with_vat, expense_date, category, description, status").gte("expense_date", `${year}-01-01`).lt("expense_date", `${year + 1}-01-01`).order("expense_date", { ascending: false }).limit(500),
+        supabase.from("commercial_sales").select("id, invoice_total, amount, payment_date, client, product, status, sale_month").eq("sale_year", year).order("payment_date", { ascending: false }).limit(500),
       ]);
 
-      const byMonth = (items: any[], dateField: string) => {
+      const byMonth = (items: any[], dateField: string, amountField: string) => {
         const grouped: Record<number, number> = {};
         for (const item of items) {
           const m = new Date(item[dateField]).getMonth() + 1;
-          grouped[m] = (grouped[m] || 0) + (Number(item.amount) || 0);
+          grouped[m] = (grouped[m] || 0) + (Number(item[amountField]) || 0);
         }
         return grouped;
       };
 
       return {
         ano: year,
-        entradas_por_mes: byMonth(entries.data || [], "entry_date"),
-        saidas_por_mes: byMonth(expenses.data || [], "expense_date"),
+        receitas_por_mes: byMonth(sales.data || [], "payment_date", "invoice_total"),
+        saidas_por_mes: byMonth(expenses.data || [], "expense_date", "total_with_vat"),
         top_categorias_despesa: groupByCategory(expenses.data || []),
-        top_categorias_receita: groupByCategory(entries.data || []),
       };
     }
 
