@@ -497,7 +497,7 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
           <Table>
-            <TableHeader><TableRow><TableHead>Status</TableHead><TableHead className="whitespace-nowrap">ID</TableHead><TableHead>Descrição</TableHead><TableHead>Categoria</TableHead><TableHead>Localização</TableHead><TableHead className="text-right whitespace-nowrap">Base (€)</TableHead><TableHead className="text-right whitespace-nowrap">IVA %</TableHead><TableHead className="text-right whitespace-nowrap">Total c/ IVA</TableHead><TableHead>Ação</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Status</TableHead><TableHead className="whitespace-nowrap">ID</TableHead><TableHead>Data Pgto.</TableHead><TableHead>Descrição</TableHead><TableHead>Categoria</TableHead><TableHead>Localização</TableHead><TableHead className="text-right whitespace-nowrap">Base (€)</TableHead><TableHead className="text-right whitespace-nowrap">IVA %</TableHead><TableHead className="text-right whitespace-nowrap">Total c/ IVA</TableHead></TableRow></TableHeader>
             <TableBody>
               {/* Regular expenses (excluding subscription/contract-linked ones to avoid duplicates) */}
               {monthExpenses.filter(e => e.source_type !== 'subscription' && e.source_type !== 'contract').map(e => (
@@ -513,13 +513,13 @@ export function FinMensal({ sales, expenses, fin, currentYear }: Props) {
                     />
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{(e as any).expense_id || '—'}</TableCell>
+                  <TableCell className="whitespace-nowrap">{(e as any).expense_date || '—'}</TableCell>
                   <TableCell>{e.description || '—'}</TableCell>
                   <TableCell>{getCategoryLabel('expense', e.category)}</TableCell>
                   <TableCell>{LOC_LABELS[(e as any).location] || (e as any).location || '—'}</TableCell>
                   <TableCell className="text-right">{fmt(e.base_value)}</TableCell>
                   <TableCell className="text-right">{(e as any).vat_rate ?? 0}%</TableCell>
                   <TableCell className="text-right">{fmt(e.total_with_vat)}</TableCell>
-                  <TableCell className="whitespace-nowrap">{(e as any).expense_date || '—'}</TableCell>
                 </TableRow>
               ))}
               {/* Subscription rows due this month */}
