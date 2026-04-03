@@ -91,7 +91,7 @@ const InvoiceAvailableEmail = ({
     display: 'inline-block',
     textAlign: 'center' as const,
   }
-  const footer = { fontSize: '13px', color: '#999', textAlign: 'center' as const, margin: '28px 0 0', lineHeight: '1.6' }
+  const footerStyle = { fontSize: '13px', color: '#999', textAlign: 'center' as const, margin: '28px 0 0', lineHeight: '1.6' }
 
   return (
     <Html lang="pt" dir="ltr">
