@@ -321,7 +321,12 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
 
       if (entries.length === 0) throw new Error('Nenhuma entrada gerada');
 
-      const { error } = await supabase.from('commercial_sales').insert(entries);
+      const upcomingEntries = entries.filter((entry) => parseISO(entry.payment_date) >= currentMonthStart);
+      if (upcomingEntries.length === 0) {
+        throw new Error('Não existem pagamentos por gerar a partir deste mês');
+      }
+
+      const { error } = await supabase.from('commercial_sales').insert(upcomingEntries);
       if (error) throw error;
 
       // Update client payment_method
