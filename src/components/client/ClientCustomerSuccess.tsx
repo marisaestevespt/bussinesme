@@ -158,17 +158,27 @@ export function ClientCustomerSuccess({ clientId, clientName, productName, start
     },
   });
 
-  // Auto-generate on first load if records are empty
-  const shouldAutoGenerate = productId && startDate && npsConfig;
-  useMemo(() => {
-    if (shouldAutoGenerate && npsRecords.length === 0 && !generateNpsRecords.isPending) {
+  // Auto-generate on first load if records are empty — only if product has config/milestones defined
+  const hasNpsConfig = npsConfig && (npsConfig as any).frequency_months > 0;
+  const autoGenNpsRef = useRef(false);
+  const autoGenMilestonesRef = useRef(false);
+
+  useEffect(() => {
+    if (productId && startDate && hasNpsConfig && npsRecords.length === 0 && !generateNpsRecords.isPending && !autoGenNpsRef.current) {
+      autoGenNpsRef.current = true;
       generateNpsRecords.mutate();
     }
-  }, [shouldAutoGenerate, npsRecords.length]);
+  }, [productId, startDate, hasNpsConfig, npsRecords.length]);
 
-  useMemo(() => {
-    if (productId && startDate && clientMilestones.length === 0 && !generateMilestones.isPending) {
-      generateMilestones.mutate();
+  useEffect(() => {
+    if (productId && startDate && clientMilestones.length === 0 && !generateMilestones.isPending && !autoGenMilestonesRef.current) {
+      autoGenMilestonesRef.current = true;
+      // Check if product actually has milestones before generating
+      supabase.from('product_milestones' as any).select('id').eq('product_id', productId).limit(1).then(({ data }) => {
+        if (data && data.length > 0) {
+          generateMilestones.mutate();
+        }
+      });
     }
   }, [productId, startDate, clientMilestones.length]);
 
