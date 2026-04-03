@@ -439,10 +439,15 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
 
   const regenerateSales = useMutation({
     mutationFn: async () => {
-      // Delete all existing project sales first
-      const { error: delErr } = await supabase.from('commercial_sales').delete().eq('project_id', projectId);
+      // Only delete pending sales — preserve paid/cancelled ones
+      const { error: delErr } = await supabase
+        .from('commercial_sales')
+        .delete()
+        .eq('project_id', projectId)
+        .eq('source', 'projeto')
+        .in('status', ['aguarda_pagamento', 'em_atraso']);
       if (delErr) throw delErr;
-      // Then generate new ones
+      // Then generate new ones (generateSales already filters to upcoming months)
       await generateSales.mutateAsync();
     },
     onError: (err: any) => {
