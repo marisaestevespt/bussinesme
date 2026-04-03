@@ -586,6 +586,7 @@ export default function FornecedoresPage() {
               total_with_vat: ruleTotal,
               location: form.location || 'portugal',
               category: form.category || 'outro',
+              payment_method: form.payment_method || null,
             };
             if (form.expense_description_template?.trim()) {
               updates.description = form.expense_description_template
