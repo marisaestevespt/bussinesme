@@ -81,16 +81,16 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   const [entradaPaymentMethod, setEntradaPaymentMethod] = useState(projectPaymentConfig?.entradaPaymentMethod || '');
   const [prestacoesPaymentMethod, setPrestacoesPaymentMethod] = useState(projectPaymentConfig?.prestacoesPaymentMethod || '');
 
-  // ─── Client data (payment_method + start_date) ─────────────────
+  // ─── Client data (start_date) ─────────────────────────────────
   const { data: clientData } = useQuery({
     queryKey: ['client-gestao', clientId, clientName],
     queryFn: async () => {
       if (clientId) {
-        const { data } = await supabase.from('clients').select('id, payment_method, start_date, current_product').eq('id', clientId).maybeSingle();
+        const { data } = await supabase.from('clients').select('id, start_date, current_product').eq('id', clientId).maybeSingle();
         return data;
       }
       if (clientName) {
-        const { data } = await supabase.from('clients').select('id, payment_method, start_date, current_product').eq('full_name', clientName).maybeSingle();
+        const { data } = await supabase.from('clients').select('id, start_date, current_product').eq('full_name', clientName).maybeSingle();
         return data;
       }
       return null;
