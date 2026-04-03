@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, useLayoutEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -121,16 +121,18 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     }
   }, [clientData?.payment_method, projectPaymentMethod]);
 
-  // Persist payment config to project whenever it changes
-  const savePaymentConfigToProject = useCallback(() => {
+  // Persist payment config to project whenever it changes (skip initial mount)
+  const hasMountedRef = useRef(false);
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
     if (!onUpdateProject) return;
     const config = { totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity };
-    onUpdateProject('payment_config', config);
-  }, [totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity, onUpdateProject]);
-
-  useEffect(() => {
-    if (!onUpdateProject) return;
-    const timer = setTimeout(savePaymentConfigToProject, 800);
+    const timer = setTimeout(() => {
+      onUpdateProject('payment_config', config);
+    }, 800);
     return () => clearTimeout(timer);
   }, [totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity]);
 
