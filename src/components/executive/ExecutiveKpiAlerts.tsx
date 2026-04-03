@@ -3,9 +3,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Users, TrendingUp, CreditCard, AlertTriangle, RefreshCw, UserPlus } from 'lucide-react';
-import { useClients } from '@/hooks/useClients';
-import { useCommercialData } from '@/hooks/useCommercialData';
-import { useTeamData } from '@/hooks/useTeamData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
@@ -20,45 +17,59 @@ const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
 const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
 
 export function ExecutiveKpiAlerts() {
-  const { clients } = useClients();
-  const commercial = useCommercialData(currentYear);
-  const { members } = useTeamData();
-  const teamMembers = members.data || [];
-
-  const timeEntriesMonth = useQuery({
-    queryKey: ['exec-kpi-time-entries', monthStart],
+  // Single batched query instead of 3 heavy hooks (useClients + useCommercialData + useTeamData)
+  const kpiData = useQuery({
+    queryKey: ['exec-kpi-batch', currentMonth, currentYear],
+    staleTime: 2 * 60 * 1000,
     queryFn: async () => {
-      const { data } = await supabase.from('time_entries').select('member_id,duration').gte('entry_date', monthStart).lte('entry_date', monthEnd);
-      return data || [];
+      const [clientsRes, salesRes, annualGoalRes, membersRes, timeRes] = await Promise.all([
+        supabase.from('clients').select('id,status').order('created_at', { ascending: false }),
+        supabase.from('commercial_sales')
+          .select('id,invoice_total,sale_month,status')
+          .eq('sale_year', currentYear),
+        supabase.from('commercial_annual_goals').select('goal_amount').eq('year', currentYear).maybeSingle(),
+        supabase.from('team_members').select('id,status,weekly_hours'),
+        supabase.from('time_entries').select('member_id,duration').gte('entry_date', monthStart).lte('entry_date', monthEnd),
+      ]);
+      return {
+        clients: clientsRes.data || [],
+        sales: salesRes.data || [],
+        annualGoal: annualGoalRes.data?.goal_amount || 0,
+        members: membersRes.data || [],
+        timeEntries: timeRes.data || [],
+      };
     },
   });
 
+  const d = kpiData.data;
+
   const capacityAlert = useMemo(() => {
-    const active = teamMembers.filter((m: any) => m.status === 'ativo' || m.status === 'prestador');
+    if (!d) return null;
+    const active = d.members.filter(m => m.status === 'ativo' || m.status === 'prestador');
     if (active.length === 0) return null;
-    const totalCap = active.reduce((s: number, m: any) => s + (Number(m.weekly_hours) || 40) * 4.33, 0);
-    const totalUsed = (timeEntriesMonth.data || []).reduce((s: number, e: any) => s + (Number(e.duration) || 0), 0);
+    const totalCap = active.reduce((s, m) => s + (Number(m.weekly_hours) || 40) * 4.33, 0);
+    const totalUsed = d.timeEntries.reduce((s, e) => s + (Number(e.duration) || 0), 0);
     const pct = totalCap > 0 ? Math.round((totalUsed / totalCap) * 100) : 0;
-    const overloaded = active.filter((m: any) => {
-      const mh = (timeEntriesMonth.data || []).filter((e: any) => e.member_id === m.id).reduce((s: number, e: any) => s + (Number(e.duration) || 0), 0);
+    const overloaded = active.filter(m => {
+      const mh = d.timeEntries.filter(e => e.member_id === m.id).reduce((s, e) => s + (Number(e.duration) || 0), 0);
       const cap = (Number(m.weekly_hours) || 40) * 4.33;
       return cap > 0 && (mh / cap) > 0.85;
     });
     return { pct, totalUsed: Math.round(totalUsed), totalCap: Math.round(totalCap), overloaded: overloaded.length, total: active.length };
-  }, [teamMembers, timeEntriesMonth.data]);
+  }, [d]);
 
-  const allClients = clients.data || [];
-  const activeClients = allClients.filter((c: any) => c.status === 'ativo').length;
-  const onboardingClients = allClients.filter((c: any) => c.status === 'em_onboarding').length;
-  const renewalClients = allClients.filter((c: any) => c.status === 'altura_renovacao').length;
+  const allClients = d?.clients || [];
+  const activeClients = allClients.filter(c => c.status === 'ativo').length;
+  const onboardingClients = allClients.filter(c => c.status === 'em_onboarding').length;
+  const renewalClients = allClients.filter(c => c.status === 'altura_renovacao').length;
 
-  const sales = commercial.sales.data || [];
-  const monthSales = sales.filter((s: any) => s.sale_month === currentMonth);
-  const monthRevenue = monthSales.reduce((sum: number, s: any) => sum + (s.invoice_total || 0), 0);
-  const yearRevenue = sales.reduce((sum: number, s: any) => sum + (s.invoice_total || 0), 0);
-  const overdueSales = sales.filter((s: any) => s.status === 'em_atraso').length;
+  const sales = d?.sales || [];
+  const monthSales = sales.filter(s => s.sale_month === currentMonth);
+  const monthRevenue = monthSales.reduce((sum, s) => sum + (Number(s.invoice_total) || 0), 0);
+  const yearRevenue = sales.reduce((sum, s) => sum + (Number(s.invoice_total) || 0), 0);
+  const overdueSales = sales.filter(s => s.status === 'em_atraso').length;
 
-  const annualGoal = commercial.annualGoal.data?.goal_amount || 0;
+  const annualGoal = d?.annualGoal || 0;
   const goalProgress = annualGoal > 0 ? Math.round((yearRevenue / annualGoal) * 100) : 0;
 
   const kpis = [
