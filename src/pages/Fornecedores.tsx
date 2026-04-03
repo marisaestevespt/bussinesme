@@ -162,6 +162,7 @@ export default function FornecedoresPage() {
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [expenseEdit, setExpenseEdit] = useState<any>({});
   const [autoOpened, setAutoOpened] = useState(false);
+  const [cancelDialog, setCancelDialog] = useState<{ supplierId: string } | null>(null);
 
   // Dynamic payment methods from business setup
   const { data: setupPaymentMethods } = useQuery({
