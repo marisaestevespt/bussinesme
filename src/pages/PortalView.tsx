@@ -378,6 +378,22 @@ export default function PortalViewPage() {
           {activeSection === 'workspace' && (
             <div className="space-y-4">
               <h2 className="text-lg font-bold">Espaço de Trabalho</h2>
+              {contractDocs.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-2"><CardTitle className="text-sm">Contrato</CardTitle></CardHeader>
+                  <CardContent className="space-y-2">
+                    {contractDocs.map((proj: any, pi: number) => {
+                      const docs = Array.isArray(proj.contract_documents) ? proj.contract_documents : [];
+                      return docs.map((doc: any, di: number) => (
+                        <a key={`${pi}-${di}`} href={doc.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
+                          <Download className="h-3.5 w-3.5 shrink-0" />
+                          {doc.name || 'Contrato'}
+                        </a>
+                      ));
+                    })}
+                  </CardContent>
+                </Card>
+              )}
               {client.documents && (
                 <Card>
                   <CardHeader className="pb-2"><CardTitle className="text-sm">Documentos</CardTitle></CardHeader>
