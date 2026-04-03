@@ -773,6 +773,7 @@ export default function SopDetailPage() {
                     <TableRow>
                       <TableHead>Fase</TableHead>
                       <TableHead>Atividade</TableHead>
+                      <TableHead className="w-28">Quem</TableHead>
                       <TableHead>Responsável</TableHead>
                       <TableHead>Regra</TableHead>
                       <TableHead className="w-10" />
@@ -780,7 +781,7 @@ export default function SopDetailPage() {
                   </TableHeader>
                   <TableBody>
                     {templateRows.length === 0 && (
-                      <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-4">Sem passos definidos</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-4">Sem passos definidos</TableCell></TableRow>
                     )}
                     {templateRows.map((row: any) => (
                       <TableRow key={row.id}>
@@ -791,7 +792,18 @@ export default function SopDetailPage() {
                           <Input defaultValue={row.activity || ''} placeholder="Atividade" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { activity: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
                         </TableCell>
                         <TableCell>
-                          <Input defaultValue={row.responsible || ''} placeholder="Responsável" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { responsible: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
+                          <Select defaultValue={row.responsible_type || 'equipa'} onValueChange={v => updateTemplateRow.mutate({ rowId: row.id, data: { responsible_type: v } })}>
+                            <SelectTrigger className="h-7 text-xs border-none shadow-none p-0">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="equipa">Equipa</SelectItem>
+                              <SelectItem value="cliente">Cliente</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Input defaultValue={row.responsible || ''} placeholder={row.responsible_type === 'cliente' ? 'N/A' : 'Função/Nome'} onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { responsible: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" disabled={row.responsible_type === 'cliente'} />
                         </TableCell>
                         <TableCell>
                           <Input defaultValue={row.rule || ''} placeholder="Regra" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { rule: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
