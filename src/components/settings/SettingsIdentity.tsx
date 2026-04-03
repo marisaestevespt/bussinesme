@@ -129,6 +129,7 @@ export function SettingsIdentity() {
   const qc = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [businessName, setBusinessName] = useState('');
+  const [businessSector, setBusinessSector] = useState<BusinessSector>('servicos_digitais');
   const [supportHours, setSupportHours] = useState('');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
