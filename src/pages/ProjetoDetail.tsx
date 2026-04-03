@@ -988,6 +988,44 @@ export default function ProjetoDetailPage() {
             <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar projeto?</AlertDialogTitle><AlertDialogDescription>Esta ação é irreversível. Todos os dados do projeto serão eliminados.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
           </AlertDialog>
         </div>
+
+        {/* Meeting dialog */}
+        <Dialog open={meetingDialogOpen} onOpenChange={setMeetingDialogOpen}>
+          <DialogContent className="sm:max-w-2xl">
+            <DialogHeader><DialogTitle>Marcar Reunião</DialogTitle></DialogHeader>
+            <div className="grid gap-3 py-2">
+              <div className="space-y-1.5"><Label>Nome da reunião *</Label><Input value={meetingTitle} onChange={e => setMeetingTitle(e.target.value)} /></div>
+              <div className="space-y-1.5"><Label>Data e hora</Label>
+                <div className="flex gap-2">
+                  <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("flex-1 justify-start text-left font-normal", !meetingDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{meetingDate ? format(meetingDate, 'd MMM yyyy', { locale: pt }) : 'Data'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={meetingDate} onSelect={setMeetingDate} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+                  <Input type="time" value={meetingTime} onChange={e => setMeetingTime(e.target.value)} className="w-24" />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">Projeto: {local.name} • {projectMembers.length} participante(s) adicionado(s) automaticamente</p>
+              <Button onClick={() => { if (!meetingTitle.trim() || !meetingDate) { toast.error('Nome e data obrigatórios'); return; } createMeetingMutation.mutate(); }} disabled={createMeetingMutation.isPending}>{createMeetingMutation.isPending ? 'A marcar...' : 'Marcar Reunião'}</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Task dialog */}
+        <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader><DialogTitle>Nova Tarefa</DialogTitle></DialogHeader>
+            <div className="grid gap-3 py-2">
+              <div className="space-y-1.5"><Label>Nome da tarefa *</Label><Input value={taskName} onChange={e => setTaskName(e.target.value)} /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5"><Label>Prioridade</Label>
+                  <Select value={taskPriority} onValueChange={setTaskPriority}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="alta">Alta</SelectItem><SelectItem value="media">Média</SelectItem><SelectItem value="baixa">Baixa</SelectItem></SelectContent></Select>
+                </div>
+                <div className="space-y-1.5"><Label>Data final</Label>
+                  <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !taskDeadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{taskDeadline ? format(taskDeadline, 'd MMM yyyy', { locale: pt }) : 'Data'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={taskDeadline} onSelect={setTaskDeadline} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">Projeto: {local.name} {local.department ? `• ${getDeptLabel(local.department)}` : ''}</p>
+              <Button onClick={() => { if (!taskName.trim()) { toast.error('Nome obrigatório'); return; } createTaskMutation.mutate(); }} disabled={createTaskMutation.isPending}>{createTaskMutation.isPending ? 'A criar...' : 'Criar Tarefa'}</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </AppLayout>
     );
   }
