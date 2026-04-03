@@ -89,7 +89,16 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
 
   const resolvedClientId = clientData?.id || clientId;
   const billingStartDate = startDate || clientData?.start_date;
-  
+  const comData = useCommercialData();
+
+  const { data: productNamesList } = useQuery({
+    queryKey: ['product-names-gestao'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('name');
+      return (data || []).map(p => p.name);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   // Auto-calculate numMeses from start_date + deadline for avença_mensal
   useEffect(() => {
