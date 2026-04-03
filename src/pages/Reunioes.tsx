@@ -325,22 +325,24 @@ function MeetingTypeStep({ onSelect }: { onSelect: (type: MeetingType) => void }
 export function MeetingFormDialog({
   open, onOpenChange, profiles, projects, clients,
   defaultClientId, defaultClientName, defaultRecurrenceEndDate,
+  defaultProjectId, defaultProjectName,
 }: {
   open: boolean; onOpenChange: (o: boolean) => void; profiles: Profile[]; projects: ProjectOption[]; clients: { id: string; full_name: string }[];
   defaultClientId?: string; defaultClientName?: string; defaultRecurrenceEndDate?: Date;
+  defaultProjectId?: string; defaultProjectName?: string;
 }) {
   const qc = useQueryClient();
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const hasDefaults = !!defaultClientId;
+  const hasDefaults = !!defaultClientId || !!defaultProjectId;
   const [step, setStep] = useState<'type' | 'form'>(hasDefaults ? 'form' : 'type');
-  const [meetingType, setMeetingType] = useState<MeetingType>(hasDefaults ? 'cliente' : 'recorrente');
+  const [meetingType, setMeetingType] = useState<MeetingType>(hasDefaults ? (defaultProjectId ? 'projeto' : 'cliente') : 'recorrente');
   const [title, setTitle] = useState('');
   const [dateTime, setDateTime] = useState<Date | undefined>();
   const [status, setStatus] = useState<MeetingStatus>('por_confirmar');
   const [clientId, setClientId] = useState(defaultClientId || '');
-  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
+  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>(defaultProjectId ? [defaultProjectId] : []);
   const [department, setDepartment] = useState(hasDefaults ? 'clientes' : '');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [meetingUrl, setMeetingUrl] = useState('');
@@ -350,16 +352,17 @@ export function MeetingFormDialog({
   // Recurrence state
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrenceFrequency, setRecurrenceFrequency] = useState<string>('semanal');
+  const [recurrenceStartDate, setRecurrenceStartDate] = useState<Date | undefined>();
   const [recurrenceEndDate, setRecurrenceEndDate] = useState<Date | undefined>(defaultRecurrenceEndDate);
 
   const skipAutoFillRef = useRef(false);
 
   const resetForm = () => {
-    setStep(hasDefaults ? 'form' : 'type'); setMeetingType(hasDefaults ? 'cliente' : 'recorrente');
+    setStep(hasDefaults ? 'form' : 'type'); setMeetingType(hasDefaults ? (defaultProjectId ? 'projeto' : 'cliente') : 'recorrente');
     setTitle(''); setDateTime(undefined); setStatus('por_confirmar');
-    setClientId(defaultClientId || ''); setSelectedProjectIds([]); setDepartment(hasDefaults ? 'clientes' : '');
+    setClientId(defaultClientId || ''); setSelectedProjectIds(defaultProjectId ? [defaultProjectId] : []); setDepartment(hasDefaults ? 'clientes' : '');
     setSelectedMembers([]); setMeetingUrl('');
-    setIsRecurring(false); setRecurrenceFrequency('semanal'); setRecurrenceEndDate(defaultRecurrenceEndDate);
+    setIsRecurring(false); setRecurrenceFrequency('semanal'); setRecurrenceStartDate(undefined); setRecurrenceEndDate(defaultRecurrenceEndDate);
     skipAutoFillRef.current = false;
   };
 
