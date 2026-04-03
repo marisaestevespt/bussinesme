@@ -259,9 +259,14 @@ export function EntryDetailSheet({ sale, open, onOpenChange }: Props) {
             label="Ficheiros (faturas, comprovativos, recibos)"
           />
 
-          <Button className="w-full" onClick={handleSave} disabled={saving}>
-            {saving ? 'A guardar...' : 'Guardar alterações'}
-          </Button>
+          <div className="flex gap-2">
+            <Button className="flex-1" onClick={handleSave} disabled={saving}>
+              {saving ? 'A guardar...' : 'Guardar alterações'}
+            </Button>
+            <Button variant="destructive" size="icon" onClick={() => setConfirmDeleteOpen(true)}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
