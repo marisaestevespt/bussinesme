@@ -31,12 +31,20 @@ interface Props {
   onUpdateProject?: (field: string, value: any) => void;
 }
 
-const PAYMENT_METHODS = [
+const PAYMENT_FORMS = [
   { value: 'pagamento_total', label: 'Pagamento Total' },
   { value: 'entrada_prestacoes', label: 'Entrada + Prestações' },
   { value: 'prestacoes', label: 'Prestações' },
   { value: 'avenca_mensal', label: 'Avença Mensal' },
   { value: 'subscricao', label: 'Subscrição' },
+];
+
+const PAYMENT_METHOD_OPTIONS = [
+  { value: 'transferencia', label: 'Transferência Bancária' },
+  { value: 'cartao', label: 'Cartão de Crédito/Débito' },
+  { value: 'debito_direto', label: 'Débito Direto' },
+  { value: 'mbway', label: 'MB WAY' },
+  { value: 'multibanco', label: 'Multibanco' },
 ];
 
 const SUBSCRIPTION_PERIODICITIES = [
