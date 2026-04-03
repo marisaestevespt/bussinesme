@@ -154,7 +154,7 @@ export function FloatingAiChat() {
                   ].map((q) => (
                     <button
                       key={q.text}
-                      onClick={() => { setInput(q.text); setTimeout(() => { const btn = document.querySelector('[data-send-btn]') as HTMLButtonElement; btn?.click(); }, 50); }}
+                      onClick={() => sendMessage(q.text)}
                       className="w-full flex items-center gap-2.5 text-[12px] px-3 py-2 rounded-xl border bg-muted/30 hover:bg-muted/70 transition-colors text-muted-foreground hover:text-foreground text-left"
                     >
                       <span className="text-sm">{q.icon}</span>
