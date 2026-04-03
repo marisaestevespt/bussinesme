@@ -8416,6 +8416,13 @@ export type Database = {
           id: string
         }[]
       }
+      get_portal_contract_documents: {
+        Args: { _token: string }
+        Returns: {
+          contract_documents: Json
+          project_name: string
+        }[]
+      }
       get_portal_meetings: {
         Args: { _token: string }
         Returns: {
