@@ -92,12 +92,21 @@ const TEMPLATES: TemplateDefaults[] = [
       const cardStyle = `background-color:#f7f7fa;border-radius:10px;padding:16px 20px;margin-bottom:12px`;
       const rowStyle = `font-size:13px;color:${style.brandMuted};line-height:2;margin:0`;
       const labelStyle = `font-weight:600;color:${style.brandText}`;
+      const paymentCardStyle = `background-color:#f0f4ff;border-radius:10px;padding:16px 20px;margin-top:12px;border:1px solid ${style.brandPrimary}22`;
+      const ibanStyle = `font-size:18px;font-weight:700;color:${style.brandPrimary};margin:8px 0 4px;letter-spacing:1px;font-family:'Courier New',monospace`;
       return `
         <div style="${cardStyle}">
           <p style="font-size:24px;font-weight:700;color:${style.brandPrimary};text-align:center;margin:12px 0 4px;font-family:${style.displayFont}">350€</p>
           <p style="font-size:11px;color:${style.brandMuted};text-align:center;margin:0 0 12px;text-transform:uppercase;letter-spacing:0.5px">Valor a pagar</p>
           <p style="${rowStyle}"><span style="${labelStyle}">Serviço: </span>Consultoria Digital</p>
           <p style="${rowStyle}"><span style="${labelStyle}">Data de vencimento: </span>15/04/2026</p>
+          <p style="${rowStyle}"><span style="${labelStyle}">Método de pagamento: </span>Transferência bancária</p>
+        </div>
+        <div style="${paymentCardStyle}">
+          <p style="font-size:13px;font-weight:700;color:${style.brandText};margin:0 0 8px;text-transform:uppercase;letter-spacing:0.5px">🏦 Dados para transferência</p>
+          <p style="font-size:13px;color:${style.brandMuted};line-height:1.6;margin:0 0 8px">Para efetuar o pagamento, transfira o valor para o IBAN abaixo:</p>
+          <p style="${ibanStyle}">PT50 0000 0000 0000 0000 0001 2</p>
+          <p style="font-size:12px;color:${style.brandMuted};margin:4px 0 0">Valor: 350€</p>
         </div>
       `;
     },
