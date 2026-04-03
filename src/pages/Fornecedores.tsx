@@ -900,6 +900,13 @@ export default function FornecedoresPage() {
                   <p className="text-[10px] text-muted-foreground">Ao guardar, as despesas por pagar deste fornecedor serão atualizadas com os novos valores.</p>
                 </div>
               )}
+
+              {/* Recurring expense link — create NEW recurring */}
+              <div className="rounded-lg border border-border p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <RefreshCw className="h-4 w-4 text-muted-foreground" />
+                    <Label className="text-sm font-normal">{form._existingRecurring ? 'Criar nova despesa recorrente' : 'Criar despesa recorrente'}</Label>
                   </div>
                   <Switch checked={form.create_recurring || false} onCheckedChange={v => setForm((f: any) => ({ ...f, create_recurring: v }))} />
                 </div>
