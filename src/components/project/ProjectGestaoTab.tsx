@@ -77,6 +77,9 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   const [avencaValue, setAvencaValue] = useState(projectPaymentConfig?.avencaValue || '');
   const [subscricaoValue, setSubscricaoValue] = useState(projectPaymentConfig?.subscricaoValue || '');
   const [subscricaoPeriodicity, setSubscricaoPeriodicity] = useState(projectPaymentConfig?.subscricaoPeriodicity || 'mensal');
+  const [paymentMethodType, setPaymentMethodType] = useState(projectPaymentConfig?.paymentMethodType || '');
+  const [entradaPaymentMethod, setEntradaPaymentMethod] = useState(projectPaymentConfig?.entradaPaymentMethod || '');
+  const [prestacoesPaymentMethod, setPrestacoesPaymentMethod] = useState(projectPaymentConfig?.prestacoesPaymentMethod || '');
 
   // ─── Client data (payment_method + start_date) ─────────────────
   const { data: clientData } = useQuery({
