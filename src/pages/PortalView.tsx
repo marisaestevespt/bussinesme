@@ -61,6 +61,7 @@ export default function PortalViewPage() {
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
   const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>({});
+  const [expandedOnbStep, setExpandedOnbStep] = useState<string | null>(null);
 
   useEffect(() => { init(); }, [token]);
 
