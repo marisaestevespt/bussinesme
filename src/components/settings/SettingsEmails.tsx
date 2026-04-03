@@ -205,7 +205,7 @@ function getTemplateBody(
 
 export function SettingsEmails() {
   const { settings } = useBusinessSettings();
-  const [selectedTemplate, setSelectedTemplate] = useState(TEMPLATES[0].key);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>(TEMPLATES[0].key);
 
   const template = TEMPLATES.find(t => t.key === selectedTemplate) || TEMPLATES[0];
   const previewHtml = renderEmailPreview(selectedTemplate, template.previewData as Record<string, any>, {
