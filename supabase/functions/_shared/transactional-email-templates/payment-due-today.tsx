@@ -142,6 +142,28 @@ const PaymentDueTodayEmail = ({
             </Section>
           )}
 
+          {isMbway && mbwayNumber && (
+            <Section style={paymentCard}>
+              <Text style={paymentTitle}>📱 Pagamento por MB WAY</Text>
+              <Text style={{ ...detailRow, lineHeight: '1.6', margin: '0 0 8px' }}>
+                Será enviado um pedido de pagamento para o seu telemóvel. Confirme no número:
+              </Text>
+              <Text style={ibanStyle}>{mbwayNumber}</Text>
+              <Text style={{ fontSize: '12px', color: brandMuted, margin: '4px 0 0' }}>
+                Valor: {value}€
+              </Text>
+            </Section>
+          )}
+
+          {isMultibanco && (
+            <Section style={paymentCard}>
+              <Text style={paymentTitle}>🏧 Pagamento por Multibanco</Text>
+              <Text style={{ ...detailRow, lineHeight: '1.6' }}>
+                Os dados para pagamento Multibanco serão enviados em separado ou disponibilizados no portal de cliente.
+              </Text>
+            </Section>
+          )}
+
           <Hr style={divider} />
 
           <Text style={{ fontSize: '14px', color: brandMuted, lineHeight: '1.6', margin: '0', textAlign: 'center' as const }}>
