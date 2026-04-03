@@ -88,7 +88,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "query_team",
-      description: "List team members with their roles and work areas.",
+      description: "List team members with their roles, work areas, and work schedules.",
       parameters: {
         type: "object",
         properties: {
