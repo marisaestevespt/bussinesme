@@ -226,16 +226,13 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     cancelada: { label: 'Cancelada', color: 'hsl(var(--destructive))' },
   };
 
-  // ─── Update payment method on client ──────────────────────────
-  const updatePaymentMethod = useMutation({
-    mutationFn: async (method: string) => {
-      if (!resolvedClientId) throw new Error('no client');
-      await supabase.from('clients').update({ payment_method: method }).eq('id', resolvedClientId);
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['client-gestao', clientId, clientName] });
-    },
-  });
+  // ─── Helper: resolve payment method for a generated entry ─────
+  const getMethodForEntry = (isEntrada: boolean) => {
+    if (payMethod === 'entrada_prestacoes') {
+      return isEntrada ? (entradaPaymentMethod || paymentMethodType || null) : (prestacoesPaymentMethod || paymentMethodType || null);
+    }
+    return paymentMethodType || null;
+  };
 
   // ─── Generate sales entries ───────────────────────────────────
   const generateSales = useMutation({
