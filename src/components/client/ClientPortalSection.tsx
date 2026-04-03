@@ -334,7 +334,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
                 </Button>
               </div>
             ))}
-            {portalMaterials.length === 0 && <p className="text-xs text-muted-foreground">Sem materiais partilhados</p>}
+            {portalMaterials.length === 0 && <p className="text-xs text-muted-foreground">Sem entregáveis. Carrega ficheiros para partilhar com o cliente.</p>}
           </CardContent>
         </Card>
       )}
