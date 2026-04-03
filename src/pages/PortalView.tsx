@@ -112,7 +112,7 @@ export default function PortalViewPage() {
     setOnboarding(onbR.data || []);
     setTasks((tasksR as any).data || []);
     setPhases(phasesR.data || []);
-    setSummaries(summR.data || []);
+    
     setProjectHistory((historyR as any).data || []);
     setPortalMaterials(materialsR.data || []);
     setContractDocs((contractR as any).data || []);
