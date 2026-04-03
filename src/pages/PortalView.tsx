@@ -196,7 +196,7 @@ export default function PortalViewPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: `linear-gradient(180deg, #fefcfa 0%, ${primaryColor}06 100%)` }}>
+    <div className="min-h-screen" style={{ background: `linear-gradient(180deg, #fefcfa 0%, ${pc}06 100%)` }}>
       {/* ─── Header ─── */}
       <header className="sticky top-0 z-30 backdrop-blur-md bg-white/80 border-b border-border/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
@@ -204,7 +204,7 @@ export default function PortalViewPage() {
             {logoUrl && <img src={logoUrl} alt="Logo" className="h-7 object-contain" />}
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: primaryColor }}>
+            <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: pc }}>
               {firstName.charAt(0).toUpperCase()}
             </div>
             <span className="text-sm font-medium text-foreground hidden sm:inline">{firstName}</span>
@@ -227,7 +227,7 @@ export default function PortalViewPage() {
                       ? 'font-semibold shadow-sm text-white'
                       : 'text-muted-foreground hover:bg-white hover:shadow-sm'
                   }`}
-                  style={active ? { backgroundColor: primaryColor } : undefined}
+                  style={active ? { backgroundColor: pc } : undefined}
                 >
                   <item.icon className="h-4 w-4" />
                   {item.label}
@@ -262,7 +262,7 @@ export default function PortalViewPage() {
                     ? 'text-white shadow-sm'
                     : 'bg-white text-muted-foreground border border-border/40'
                 }`}
-                style={activeSection === item.key ? { backgroundColor: primaryColor } : undefined}
+                style={activeSection === item.key ? { backgroundColor: pc } : undefined}
               >
                 <item.icon className="h-3.5 w-3.5" />
                 {item.label}
@@ -276,7 +276,7 @@ export default function PortalViewPage() {
               {/* Welcome hero */}
               <div
                 className="rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden"
-                style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}cc 100%)` }}
+                style={{ background: `linear-gradient(135deg, ${pc} 0%, ${pc}cc 100%)` }}
               >
                 <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10 bg-white -translate-y-1/2 translate-x-1/2" />
                 <div className="relative z-10">
@@ -295,15 +295,15 @@ export default function PortalViewPage() {
                 {portal.show_onboarding && onboarding.length > 0 && (
                   <SectionCard className="p-5 cursor-pointer group" onClick={() => setActiveSection('onboarding')}>
                     <div className="flex items-start justify-between">
-                      <div className="p-2.5 rounded-xl" style={{ backgroundColor: `${primaryColor}15` }}>
-                        <CheckSquare className="h-5 w-5" style={{ color: primaryColor }} />
+                      <div className="p-2.5 rounded-xl" style={{ backgroundColor: pcAlpha(0.1) }}>
+                        <CheckSquare className="h-5 w-5" style={{ color: pc }} />
                       </div>
                       <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:translate-x-0.5 transition-transform" />
                     </div>
                     <p className="font-semibold text-sm mt-3">Onboarding</p>
                     <div className="mt-2 flex items-center gap-2">
                       <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                        <div className="h-full rounded-full transition-all" style={{ width: `${onbPercent}%`, backgroundColor: primaryColor }} />
+                        <div className="h-full rounded-full transition-all" style={{ width: `${onbPercent}%`, backgroundColor: pc }} />
                       </div>
                       <span className="text-xs font-medium text-muted-foreground">{onbPercent}%</span>
                     </div>
@@ -311,8 +311,8 @@ export default function PortalViewPage() {
                 )}
                 <SectionCard className="p-5 cursor-pointer group" onClick={() => setActiveSection('questions')}>
                   <div className="flex items-start justify-between">
-                    <div className="p-2.5 rounded-xl" style={{ backgroundColor: `${primaryColor}15` }}>
-                      <ClipboardList className="h-5 w-5" style={{ color: primaryColor }} />
+                    <div className="p-2.5 rounded-xl" style={{ backgroundColor: pcAlpha(0.1) }}>
+                      <ClipboardList className="h-5 w-5" style={{ color: pc }} />
                     </div>
                     <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:translate-x-0.5 transition-transform" />
                   </div>
@@ -321,8 +321,8 @@ export default function PortalViewPage() {
                 </SectionCard>
                 <SectionCard className="p-5 cursor-pointer group" onClick={() => setActiveSection('feedback')}>
                   <div className="flex items-start justify-between">
-                    <div className="p-2.5 rounded-xl" style={{ backgroundColor: `${primaryColor}15` }}>
-                      <MessageSquare className="h-5 w-5" style={{ color: primaryColor }} />
+                    <div className="p-2.5 rounded-xl" style={{ backgroundColor: pcAlpha(0.1) }}>
+                      <MessageSquare className="h-5 w-5" style={{ color: pc }} />
                     </div>
                     <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:translate-x-0.5 transition-transform" />
                   </div>
@@ -342,13 +342,13 @@ export default function PortalViewPage() {
                       return (
                         <div key={p.id} className="flex items-center gap-4 relative">
                           {i < phases.length - 1 && (
-                            <div className="absolute left-4 top-10 w-0.5 h-6" style={{ backgroundColor: done ? `${primaryColor}40` : '#e5e5e5' }} />
+                            <div className="absolute left-4 top-10 w-0.5 h-6" style={{ backgroundColor: done ? pcAlpha(0.25) : '#e5e5e5' }} />
                           )}
                           <div
                             className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all ${
                               done ? 'text-white' : active ? 'text-white ring-4 ring-opacity-20' : 'bg-muted text-muted-foreground'
                             }`}
-                            style={done || active ? { backgroundColor: primaryColor, ...(active ? { ringColor: primaryColor } : {}) } : undefined}
+                            style={done || active ? { backgroundColor: pc, ...(active ? { ringColor: pc } : {}) } : undefined}
                           >
                             {done ? '✓' : i + 1}
                           </div>
@@ -358,7 +358,7 @@ export default function PortalViewPage() {
                           <Badge variant="outline" className={`text-[10px] ${
                             done ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                             active ? 'text-white border-0' : ''
-                          }`} style={active ? { backgroundColor: primaryColor } : undefined}>
+                          }`} style={active ? { backgroundColor: pc } : undefined}>
                             {done ? 'Concluído' : active ? 'Em curso' : 'Por começar'}
                           </Badge>
                         </div>
@@ -375,7 +375,7 @@ export default function PortalViewPage() {
                   <div className="space-y-3">
                     {summaries.map((s: any) => (
                       <div key={s.id} className="rounded-xl border border-border/40 bg-muted/20 p-4">
-                        <p className="font-semibold text-sm mb-1" style={{ color: primaryColor }}>{s.month}/{s.year}</p>
+                        <p className="font-semibold text-sm mb-1" style={{ color: pc }}>{s.month}/{s.year}</p>
                         <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{s.content}</p>
                       </div>
                     ))}
@@ -392,8 +392,8 @@ export default function PortalViewPage() {
                   return (
                     <SectionCard className="p-5 cursor-pointer group" onClick={() => setActiveSection('meetings')}>
                       <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl" style={{ backgroundColor: `${primaryColor}12` }}>
-                          <CalendarDays className="h-5 w-5" style={{ color: primaryColor }} />
+                        <div className="p-3 rounded-xl" style={{ backgroundColor: pcAlpha(0.08) }}>
+                          <CalendarDays className="h-5 w-5" style={{ color: pc }} />
                         </div>
                         <div className="flex-1">
                           <p className="text-xs text-muted-foreground font-medium">Próxima Reunião</p>
@@ -414,8 +414,8 @@ export default function PortalViewPage() {
                   return (
                     <SectionCard className="p-5 cursor-pointer group" onClick={() => setActiveSection('payments')}>
                       <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl" style={{ backgroundColor: `${primaryColor}12` }}>
-                          <CreditCard className="h-5 w-5" style={{ color: primaryColor }} />
+                        <div className="p-3 rounded-xl" style={{ backgroundColor: pcAlpha(0.08) }}>
+                          <CreditCard className="h-5 w-5" style={{ color: pc }} />
                         </div>
                         <div className="flex-1">
                           <p className="text-xs text-muted-foreground font-medium">Próximo Pagamento</p>
@@ -446,7 +446,7 @@ export default function PortalViewPage() {
                       return docs.map((doc: any, di: number) => (
                         <a key={`${pi}-${di}`} href={doc.url} target="_blank" rel="noopener noreferrer"
                           className="flex items-center gap-2.5 text-sm hover:underline rounded-lg p-2 -mx-2 hover:bg-muted/30 transition-colors"
-                          style={{ color: primaryColor }}>
+                          style={{ color: pc }}>
                           <Download className="h-3.5 w-3.5 shrink-0" />
                           {doc.name || 'Contrato'}
                         </a>
@@ -463,7 +463,7 @@ export default function PortalViewPage() {
                     {client.documents && (
                       <a href={client.documents} target="_blank" rel="noopener noreferrer"
                         className="flex items-center gap-2.5 text-sm hover:underline rounded-lg p-2 -mx-2 hover:bg-muted/30 transition-colors"
-                        style={{ color: primaryColor }}>
+                        style={{ color: pc }}>
                         <FileText className="h-3.5 w-3.5 shrink-0" />
                         Documentos
                       </a>
@@ -471,7 +471,7 @@ export default function PortalViewPage() {
                     {client.drive_folder_url && (
                       <a href={client.drive_folder_url} target="_blank" rel="noopener noreferrer"
                         className="flex items-center gap-2.5 text-sm hover:underline rounded-lg p-2 -mx-2 hover:bg-muted/30 transition-colors"
-                        style={{ color: primaryColor }}>
+                        style={{ color: pc }}>
                         <FolderOpen className="h-3.5 w-3.5 shrink-0" />
                         Pasta Drive
                       </a>
@@ -531,7 +531,7 @@ export default function PortalViewPage() {
                               </Button>
                             )}
                             {isPending ? (
-                              <Button size="sm" className="h-8 text-xs rounded-lg text-white" style={{ backgroundColor: primaryColor }}
+                              <Button size="sm" className="h-8 text-xs rounded-lg text-white" style={{ backgroundColor: pc }}
                                 onClick={async () => {
                                   const { data } = await (supabase as any).rpc('portal_confirm_meeting', { _token: token, _meeting_id: m.id });
                                   if (data) { setMeetings(prev => prev.map(x => x.id === m.id ? { ...x, status: 'confirmada' } : x)); toast.success('Presença confirmada ✨'); }
@@ -558,7 +558,7 @@ export default function PortalViewPage() {
               <SectionTitle icon={CreditCard}>Pagamentos</SectionTitle>
 
               {paymentMethods.length > 0 && (
-                <SectionCard className="p-5 border-l-4" style={{ borderLeftColor: primaryColor }}>
+                <SectionCard className="p-5 border-l-4" style={{ borderLeftColor: pc }}>
                   <p className="text-sm font-semibold mb-3">💳 Dados para pagamento</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {paymentMethods.map((pm: any, i: number) => (
@@ -595,7 +595,7 @@ export default function PortalViewPage() {
                         <span className="text-sm">
                           {docs.length > 0 ? docs.map((d: any, i: number) => (
                             <a key={i} href={d.url || d} target="_blank" rel="noopener noreferrer"
-                              className="block truncate max-w-[160px] hover:underline" style={{ color: primaryColor }}>
+                              className="block truncate max-w-[160px] hover:underline" style={{ color: pc }}>
                               {d.name || d.file_name || `Documento ${i + 1}`}
                             </a>
                           )) : <span className="text-muted-foreground/40">—</span>}
@@ -641,9 +641,9 @@ export default function PortalViewPage() {
               <SectionTitle icon={CheckSquare}>Onboarding</SectionTitle>
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all" style={{ width: `${onbPercent}%`, backgroundColor: primaryColor }} />
+                  <div className="h-full rounded-full transition-all" style={{ width: `${onbPercent}%`, backgroundColor: pc }} />
                 </div>
-                <span className="text-sm font-semibold" style={{ color: primaryColor }}>{onbPercent}%</span>
+                <span className="text-sm font-semibold" style={{ color: pc }}>{onbPercent}%</span>
               </div>
               <SectionCard className="overflow-hidden">
                 {onboarding.map((o: any) => (
@@ -678,7 +678,7 @@ export default function PortalViewPage() {
                       if (e.target.value !== (q.answer || '')) answerQuestion(q.id, e.target.value);
                     }}
                     rows={3}
-                    style={{ '--tw-ring-color': `${primaryColor}40` } as any}
+                    style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
                   />
                   {q.answered_at && <p className="text-xs text-muted-foreground">Respondida em {format(parseISO(q.answered_at), 'dd/MM/yyyy HH:mm')}</p>}
                 </SectionCard>
@@ -697,11 +697,11 @@ export default function PortalViewPage() {
                   value={feedbackText}
                   onChange={e => setFeedbackText(e.target.value)}
                   rows={4}
-                  style={{ '--tw-ring-color': `${primaryColor}40` } as any}
+                  style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
                 />
                 <Button
                   className="rounded-xl text-white"
-                  style={{ backgroundColor: primaryColor }}
+                  style={{ backgroundColor: pc }}
                   disabled={!feedbackText.trim()}
                   onClick={sendFeedback}
                 >
@@ -739,8 +739,8 @@ export default function PortalViewPage() {
                     <SectionCard key={m.id} className="p-5">
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="p-2 rounded-xl" style={{ backgroundColor: `${primaryColor}12` }}>
-                            <FileText className="h-4 w-4" style={{ color: primaryColor }} />
+                          <div className="p-2 rounded-xl" style={{ backgroundColor: pcAlpha(0.08) }}>
+                            <FileText className="h-4 w-4" style={{ color: pc }} />
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-medium truncate">{m.file_name}</p>
@@ -785,7 +785,7 @@ export default function PortalViewPage() {
                           <div key={i} className="flex items-center gap-2 text-xs">
                             <div className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
                               p.status === 'concluido' ? 'text-white' : p.status === 'em_curso' ? 'text-white' : 'bg-muted text-muted-foreground'
-                            }`} style={p.status === 'concluido' || p.status === 'em_curso' ? { backgroundColor: primaryColor } : undefined}>
+                            }`} style={p.status === 'concluido' || p.status === 'em_curso' ? { backgroundColor: pc } : undefined}>
                               {p.status === 'concluido' ? '✓' : i + 1}
                             </div>
                             <span className={p.status === 'concluido' ? 'text-muted-foreground line-through' : ''}>{p.title}</span>
@@ -802,7 +802,7 @@ export default function PortalViewPage() {
                         <AccordionContent className="space-y-2">
                           {h.monthly_summaries.map((s: any, i: number) => (
                             <div key={i} className="rounded-xl border border-border/30 bg-muted/10 p-3 text-xs">
-                              <p className="font-semibold" style={{ color: primaryColor }}>{s.month}/{s.year}</p>
+                              <p className="font-semibold" style={{ color: pc }}>{s.month}/{s.year}</p>
                               <p className="text-muted-foreground whitespace-pre-wrap mt-1">{s.content}</p>
                             </div>
                           ))}
