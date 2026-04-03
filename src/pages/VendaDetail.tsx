@@ -118,6 +118,11 @@ export default function VendaDetailPage() {
     const saleQuarter = saleMonth ? Math.ceil(saleMonth / 3) : null;
     const saleYear = payDateParsed ? payDateParsed.getFullYear() : null;
 
+    // Detect new documents for invoice email
+    const oldDocs: DocEntry[] = Array.isArray(sale?.documents) ? (sale.documents as DocEntry[]) : [];
+    const newDocs: DocEntry[] = Array.isArray(form.documents) ? form.documents : [];
+    const hasNewInvoice = newDocs.length > oldDocs.length;
+
     const { error } = await supabase.from('commercial_sales').update({
       status: form.status,
       payment_date: payDate,
@@ -136,6 +141,44 @@ export default function VendaDetailPage() {
     } as any).eq('id', id!);
 
     if (error) { toast.error('Erro ao guardar'); return; }
+
+    // Send invoice-available email if new documents were added
+    if (hasNewInvoice && form.client) {
+      try {
+        const { data: clientData } = await supabase.from('clients').select('email, id').eq('full_name', form.client).maybeSingle();
+        if (clientData?.email) {
+          const { data: portal } = await supabase.from('client_portals').select('token').eq('client_id', clientData.id).eq('is_active', true).maybeSingle();
+          const { data: settings } = await supabase.from('business_settings').select('business_name, primary_color, primary_foreground, text_color, accent_color, font_display, font_body, logo_url').limit(1).maybeSingle();
+          
+          const portalUrl = portal?.token ? `${window.location.origin}/portal/${portal.token}` : undefined;
+          
+          await supabase.functions.invoke('send-transactional-email', {
+            body: {
+              templateName: 'invoice-available',
+              recipientEmail: clientData.email,
+              idempotencyKey: `invoice-available-${id}-${newDocs.length}`,
+              templateData: {
+                clientName: form.client,
+                productName: form.product || undefined,
+                amount: form.invoice_total ? String(parseFloat(form.invoice_total).toFixed(2)) : undefined,
+                portalUrl,
+                businessName: settings?.business_name,
+                primaryColor: settings?.primary_color || undefined,
+                primaryForeground: settings?.primary_foreground || undefined,
+                textColor: settings?.text_color || undefined,
+                accentColor: settings?.accent_color || undefined,
+                fontDisplay: settings?.font_display || undefined,
+                fontBody: settings?.font_body || undefined,
+                logoUrl: settings?.logo_url || undefined,
+              },
+            },
+          });
+        }
+      } catch (e) {
+        console.error('Failed to send invoice email:', e);
+      }
+    }
+
     toast.success('Venda guardada');
     qc.invalidateQueries({ queryKey: ['commercial'] });
     qc.invalidateQueries({ queryKey: ['sale-detail', id] });
