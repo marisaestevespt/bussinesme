@@ -59,6 +59,8 @@ export default function PortalViewPage() {
   const [commentText, setCommentText] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
+  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
+  const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>({});
 
   useEffect(() => { init(); }, [token]);
 
@@ -357,65 +359,146 @@ export default function PortalViewPage() {
               )}
             </div>
 
-            {/* Inline initial questions */}
+            {/* Inline initial questions — step-by-step */}
             {questions.length > 0 && (() => {
               const allAnswered = questions.every((q: any) => q.answer?.trim());
               const answeredCount = questions.filter((q: any) => q.answer?.trim()).length;
+              const allSubmitted = allAnswered && !activeQuestionId;
+              // Auto-open first unanswered on mount
+              const firstUnanswered = questions.find((q: any) => !q.answer?.trim());
+              const currentOpen = activeQuestionId || (allSubmitted ? null : firstUnanswered?.id || null);
+
+              const handleSubmitAll = async () => {
+                // Save any remaining drafts
+                for (const [qId, text] of Object.entries(draftAnswers)) {
+                  if (text.trim()) await answerQuestion(qId, text);
+                }
+                setDraftAnswers({});
+                setActiveQuestionId(null);
+                toast.success('Respostas submetidas!');
+              };
+
               return (
                 <div
                   className="rounded-2xl border-2 overflow-hidden transition-all"
                   style={{
-                    borderColor: allAnswered ? 'hsl(var(--border))' : pcAlpha(0.3),
-                    boxShadow: allAnswered ? 'none' : `0 4px 24px ${pcAlpha(0.08)}`,
+                    borderColor: allSubmitted ? 'hsl(var(--border))' : pcAlpha(0.3),
+                    boxShadow: allSubmitted ? 'none' : `0 4px 24px ${pcAlpha(0.08)}`,
                   }}
                 >
+                  {/* Header */}
                   <div
-                    className="px-5 py-3 flex items-center justify-between cursor-pointer"
-                    style={{ backgroundColor: allAnswered ? 'transparent' : pcAlpha(0.05) }}
-                    onClick={() => !allAnswered && setActiveSection('questions')}
+                    className="px-6 py-4 flex items-center justify-between"
+                    style={{ backgroundColor: allSubmitted ? 'transparent' : pcAlpha(0.05) }}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg" style={{ backgroundColor: allAnswered ? 'hsl(var(--muted))' : pcAlpha(0.12) }}>
-                        <ClipboardList className="h-4 w-4" style={{ color: allAnswered ? 'hsl(var(--muted-foreground))' : pc }} />
+                      <div className="p-2 rounded-lg" style={{ backgroundColor: allSubmitted ? 'hsl(var(--muted))' : pcAlpha(0.12) }}>
+                        <ClipboardList className="h-4 w-4" style={{ color: allSubmitted ? 'hsl(var(--muted-foreground))' : pc }} />
                       </div>
                       <div>
                         <p className="text-sm font-semibold">Perguntas Iniciais</p>
                         <p className="text-xs text-muted-foreground">{answeredCount}/{questions.length} respondidas</p>
                       </div>
                     </div>
-                    {!allAnswered ? (
+                    {allSubmitted ? (
+                      <Badge variant="outline" className="text-[10px] font-medium text-emerald-600 border-emerald-200 bg-emerald-50">
+                        ✓ Submetido
+                      </Badge>
+                    ) : (
                       <Badge className="text-[10px] font-semibold text-white border-0 px-2.5 py-0.5" style={{ backgroundColor: pc }}>
                         Por preencher
                       </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-[10px] font-medium text-emerald-600 border-emerald-200 bg-emerald-50">
-                        ✓ Completo
-                      </Badge>
                     )}
                   </div>
-                  {!allAnswered && (
-                    <div className="px-5 pb-5 space-y-4 bg-white">
-                      {questions.map((q: any) => (
-                        <div key={q.id} className="space-y-1.5">
-                          <p className="text-sm font-medium">{q.question}</p>
-                          {q.answer?.trim() ? (
-                            <div className="rounded-xl bg-emerald-50/50 border border-emerald-100 p-3">
-                              <p className="text-sm text-foreground">{q.answer}</p>
-                              <p className="text-[10px] text-muted-foreground mt-1">Respondida {q.answered_at ? format(parseISO(q.answered_at), 'dd/MM/yyyy') : ''}</p>
-                            </div>
-                          ) : (
-                            <Textarea
-                              className="text-sm rounded-xl border-border/40 bg-muted/10 focus-visible:ring-1"
-                              placeholder="A tua resposta..."
-                              onBlur={e => {
-                                if (e.target.value.trim()) answerQuestion(q.id, e.target.value);
-                              }}
-                              rows={2}
-                              style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
-                            />
-                          )}
+
+                  {/* Questions list */}
+                  {!allSubmitted && (
+                    <div className="bg-white divide-y divide-border/30">
+                      {questions.map((q: any, i: number) => {
+                        const isOpen = currentOpen === q.id;
+                        const hasAnswer = q.answer?.trim() || draftAnswers[q.id]?.trim();
+                        return (
+                          <div key={q.id} className="transition-all">
+                            {/* Question row — clickable to toggle */}
+                            <button
+                              className="w-full px-6 py-3.5 flex items-center gap-3 text-left hover:bg-muted/30 transition-colors"
+                              onClick={() => setActiveQuestionId(isOpen ? null : q.id)}
+                            >
+                              <div
+                                className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all ${
+                                  hasAnswer ? 'text-white' : 'bg-muted text-muted-foreground'
+                                }`}
+                                style={hasAnswer ? { backgroundColor: pc } : undefined}
+                              >
+                                {hasAnswer ? '✓' : i + 1}
+                              </div>
+                              <p className={`text-sm flex-1 ${hasAnswer ? 'text-muted-foreground' : 'font-medium'}`}>{q.question}</p>
+                              <ChevronRight className={`h-4 w-4 text-muted-foreground/40 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+                            </button>
+
+                            {/* Answer area — only visible when open */}
+                            {isOpen && (
+                              <div className="px-6 pb-4 pl-[3.75rem]">
+                                {q.answer?.trim() ? (
+                                  <div className="space-y-2">
+                                    <div className="rounded-xl bg-emerald-50/50 border border-emerald-100 p-3">
+                                      <p className="text-sm">{q.answer}</p>
+                                      {q.answered_at && <p className="text-[10px] text-muted-foreground mt-1">Respondida {format(parseISO(q.answered_at), 'dd/MM/yyyy')}</p>}
+                                    </div>
+                                    <Textarea
+                                      className="text-sm rounded-xl border-border/40 bg-muted/10 focus-visible:ring-1"
+                                      placeholder="Editar resposta..."
+                                      defaultValue={q.answer}
+                                      onChange={e => setDraftAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
+                                      rows={2}
+                                      style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
+                                    />
+                                  </div>
+                                ) : (
+                                  <Textarea
+                                    className="text-sm rounded-xl border-border/40 bg-muted/10 focus-visible:ring-1"
+                                    placeholder="A tua resposta..."
+                                    value={draftAnswers[q.id] || ''}
+                                    onChange={e => setDraftAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
+                                    rows={3}
+                                    style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
+                                    autoFocus
+                                  />
+                                )}
+                                {(draftAnswers[q.id]?.trim() && draftAnswers[q.id] !== q.answer) && (
+                                  <Button
+                                    size="sm"
+                                    className="mt-2 rounded-lg text-white text-xs"
+                                    style={{ backgroundColor: pc }}
+                                    onClick={async () => {
+                                      await answerQuestion(q.id, draftAnswers[q.id]);
+                                      setDraftAnswers(prev => { const n = { ...prev }; delete n[q.id]; return n; });
+                                      // Auto-advance to next unanswered
+                                      const nextUnanswered = questions.find((qq: any) => qq.id !== q.id && !qq.answer?.trim());
+                                      setActiveQuestionId(nextUnanswered?.id || null);
+                                    }}
+                                  >
+                                    ✓ Guardar resposta
+                                  </Button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+
+                      {/* Submit all button */}
+                      {allAnswered && (
+                        <div className="px-6 py-4">
+                          <Button
+                            className="w-full rounded-xl text-white font-semibold"
+                            style={{ backgroundColor: pc }}
+                            onClick={handleSubmitAll}
+                          >
+                            <Send className="h-4 w-4 mr-2" />Submeter Respostas
+                          </Button>
                         </div>
-                      ))}
+                      )}
                     </div>
                   )}
                 </div>
