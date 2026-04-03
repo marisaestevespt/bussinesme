@@ -13,6 +13,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+interface TemplateVariable {
+  token: string;
+  label: string;
+  example: string;
+}
+
 interface TemplateDefaults {
   key: string;
   label: string;
@@ -22,6 +28,8 @@ interface TemplateDefaults {
   subtitle: string;
   ctaText: string;
   footer: string;
+  variables: TemplateVariable[];
+  paymentMethodNote?: string;
   bodyBuilder: (data: TemplateCustom, style: StyleCtx) => string;
 }
 
