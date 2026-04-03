@@ -201,9 +201,9 @@ export default function FornecedoresPage() {
 
   // Cancel recurrence: mark rule as cancelled + delete future (and optionally current month) unpaid expenses
   const cancelRecurrence = useMutation({
-    mutationFn: async ({ supplierId, includeCurrentMonth }: { supplierId: string; includeCurrentMonth: boolean }) => {
+    mutationFn: async ({ supplierId, includeCurrentMonth, adjustedValue }: { supplierId: string; includeCurrentMonth: boolean; adjustedValue?: number }) => {
       const { data: rules } = await supabase.from('financial_expenses')
-        .select('id')
+        .select('id, vat_rate')
         .eq('supplier_id', supplierId)
         .eq('is_recurring', true);
       
@@ -228,19 +228,35 @@ export default function FornecedoresPage() {
         .eq('is_recurring', false)
         .in('parent_expense_id', ruleIds);
 
-      const toDelete = (childExpenses || []).filter((e: any) => {
-        if (isPaidExpenseStatus(e.status)) return false;
+      const toDelete: any[] = [];
+      let currentMonthExpenseId: string | null = null;
+
+      (childExpenses || []).forEach((e: any) => {
+        if (isPaidExpenseStatus(e.status)) return;
         const eYear = e.expense_year || parseInt((e.expense_date || '').slice(0, 4));
         const eMonth = e.expense_month || parseInt((e.expense_date || '').slice(5, 7));
-        if (eYear > currentYr || (eYear === currentYr && eMonth > currentMo)) return true;
-        if (includeCurrentMonth && eYear === currentYr && eMonth === currentMo) return true;
-        return false;
+        if (eYear > currentYr || (eYear === currentYr && eMonth > currentMo)) {
+          toDelete.push(e);
+        } else if (includeCurrentMonth && eYear === currentYr && eMonth === currentMo) {
+          toDelete.push(e);
+        } else if (!includeCurrentMonth && eYear === currentYr && eMonth === currentMo) {
+          currentMonthExpenseId = e.id;
+        }
       });
 
       if (toDelete.length > 0) {
         await supabase.from('financial_expenses')
           .delete()
           .in('id', toDelete.map(e => e.id));
+      }
+
+      // Adjust current month expense value if requested
+      if (!includeCurrentMonth && adjustedValue != null && adjustedValue > 0 && currentMonthExpenseId) {
+        const vatRate = rules[0]?.vat_rate || 0;
+        const newTotal = Math.round(adjustedValue * (1 + vatRate / 100) * 100) / 100;
+        await supabase.from('financial_expenses')
+          .update({ base_value: adjustedValue, total_with_vat: newTotal } as any)
+          .eq('id', currentMonthExpenseId);
       }
 
       return toDelete.length;
