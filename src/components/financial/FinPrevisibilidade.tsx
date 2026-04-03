@@ -150,7 +150,8 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
         return rd.getMonth() + 1 === m;
       });
 
-      return { mes: FULL[i], entradas, subs: subsTotal, pessoal, prestadores: prest, impostos, taxLabel: tax.label, totalSaidas, balanco, renewals, isPast };
+      const isEstimate = !isPast && !hasScheduled && entradas > 0;
+      return { mes: FULL[i], entradas, subs: subsTotal, pessoal, prestadores: prest, impostos, taxLabel: tax.label, totalSaidas, balanco, renewals, isPast, isEstimate };
     });
   }, [totalMonthly, payrollData, contractorsData, recurringExpenses, currentYear, sales, currentMonth, taxByMonth]);
 
