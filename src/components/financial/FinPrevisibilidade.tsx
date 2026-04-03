@@ -204,7 +204,7 @@ export function FinPrevisibilidade({ fin, currentYear, sales }: Props) {
                   <TableCell className="font-medium">{p.mes}</TableCell>
                   <TableCell className="text-right text-emerald-600">
                     {fmt(p.entradas)}
-                    {!p.isPast && <span className="text-[10px] text-muted-foreground ml-1">(est.)</span>}
+                    {p.isEstimate && <span className="text-[10px] text-muted-foreground ml-1">(est.)</span>}
                   </TableCell>
                   <TableCell className="text-right">{fmt(p.subs)}</TableCell>
                   <TableCell className="text-right">{fmt(p.pessoal)}</TableCell>
