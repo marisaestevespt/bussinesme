@@ -547,9 +547,9 @@ export default function PortalViewPage() {
             <SectionTitle icon={Briefcase}>Espaço de Trabalho</SectionTitle>
 
             {/* Project phases / timeline */}
-            {phases.length > 0 && (
-              <SectionCard className="p-6">
-                <p className="text-sm font-semibold mb-4">📋 Fases do Projeto</p>
+            <SectionCard className="p-6">
+              <p className="text-sm font-semibold mb-4">📋 Fases do Projeto</p>
+              {phases.length > 0 ? (
                 <div className="space-y-0">
                   {phases.map((p: any, i: number) => {
                     const done = p.status === 'concluido';
@@ -580,8 +580,10 @@ export default function PortalViewPage() {
                     );
                   })}
                 </div>
-              </SectionCard>
-            )}
+              ) : (
+                <p className="text-sm text-muted-foreground">Ainda sem fases definidas. Em breve terás aqui o progresso do teu projeto.</p>
+              )}
+            </SectionCard>
 
             {/* Deliverables (documents & drive) */}
             <SectionCard className="p-6">
