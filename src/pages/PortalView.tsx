@@ -51,7 +51,7 @@ export default function PortalViewPage() {
   const [onboarding, setOnboarding] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [phases, setPhases] = useState<any[]>([]);
-  const [summaries, setSummaries] = useState<any[]>([]);
+  
   const [projectHistory, setProjectHistory] = useState<any[]>([]);
   const [portalMaterials, setPortalMaterials] = useState<any[]>([]);
   const [contractDocs, setContractDocs] = useState<any[]>([]);
@@ -88,7 +88,7 @@ export default function PortalViewPage() {
     setSettings(settingsRes.data);
     const pid = portalData.id;
     const cid = portalData.client_id;
-    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, summR, historyR, materialsR, contractR] = await Promise.all([
+    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, historyR, materialsR, contractR] = await Promise.all([
       sb('portal_faqs').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_initial_questions').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_comments').select('*').eq('portal_id', pid).order('created_at', { ascending: true }),
@@ -98,7 +98,6 @@ export default function PortalViewPage() {
       sb('client_onboarding').select('*').eq('client_id', cid).order('sort_order'),
       supabase.from('tasks').select('*').eq('visible_in_portal', true),
       sb('portal_timeline_phases').select('*').eq('portal_id', pid).order('sort_order'),
-      sb('portal_monthly_summaries').select('*').eq('portal_id', pid).order('year', { ascending: false }).order('month', { ascending: false }),
       (supabase as any).rpc('get_portal_project_history', { _token: token }),
       sb('portal_materials').select('*').eq('portal_id', pid).order('created_at', { ascending: false }),
       (supabase as any).rpc('get_portal_contract_documents', { _token: token }),
@@ -112,7 +111,6 @@ export default function PortalViewPage() {
     setOnboarding(onbR.data || []);
     setTasks((tasksR as any).data || []);
     setPhases(phasesR.data || []);
-    setSummaries(summR.data || []);
     setProjectHistory((historyR as any).data || []);
     setPortalMaterials(materialsR.data || []);
     setContractDocs((contractR as any).data || []);
@@ -505,20 +503,6 @@ export default function PortalViewPage() {
               );
             })()}
 
-            {/* Monthly summaries on home for servico_mensal */}
-            {portal.portal_type === 'servico_mensal' && portal.show_monthly_summary && summaries.length > 0 && (
-              <SectionCard className="p-6">
-                <SectionTitle icon={ClipboardList}>Resumos Mensais</SectionTitle>
-                <div className="space-y-3">
-                  {summaries.map((s: any) => (
-                    <div key={s.id} className="rounded-xl border border-border/40 bg-muted/20 p-4">
-                      <p className="font-semibold text-sm mb-1" style={{ color: pc }}>{s.month}/{s.year}</p>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{s.content}</p>
-                    </div>
-                  ))}
-                </div>
-              </SectionCard>
-            )}
 
             {/* Feedback inline at bottom */}
             <div className="rounded-2xl border border-border/30 bg-muted/5 p-5 space-y-3">
