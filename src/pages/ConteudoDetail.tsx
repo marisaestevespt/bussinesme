@@ -159,49 +159,56 @@ export default function ConteudoDetailPage() {
   const handleSave = async () => {
     if (!id) return;
     setSaving(true);
-    const firstImage = attachments.find(a => a.file_type === 'image');
-    const autoCover = firstImage?.file_url || null;
-    await supabase.from('content_items').update({
-      title: form.title, scheduled_at: form.scheduled_at, status: form.status,
-      funnel_stage: form.funnel_stage || null, content_type: form.content_type || null,
-      format: form.format || null, objective: form.objective || null,
-      product_name: form.product_name || null, product_id: form.product_id || null,
-      project_id: form.project_id || null,
-      assigned_to: form.assigned_to || null, copy_content: form.copy_content || null,
-      cover_url: autoCover,
-    } as any).eq('id', id);
-    await supabase.from('content_channels').delete().eq('content_id', id);
-    if (selectedChannels.length > 0) {
-      await supabase.from('content_channels').insert(
-        selectedChannels.map(chId => ({ content_id: id, channel_id: chId })) as any
-      );
-    }
-
-    // Sync content task (create or update)
-    if (form.status !== 'publicado') {
-      await syncContentTask(id, form.title, form.status, form.assigned_to || null);
-    } else {
-      // Mark task as done when content is published
-      const { data: activeTasks } = await supabase
-        .from('tasks')
-        .select('id')
-        .eq('content_id', id)
-        .neq('status', 'done');
-      if (activeTasks?.length) {
-        await supabase.from('tasks').update({
-          status: 'done',
-          updated_at: new Date().toISOString(),
-        }).eq('id', activeTasks[0].id);
+    try {
+      const firstImage = attachments.find(a => a.file_type === 'image');
+      const autoCover = firstImage?.file_url || null;
+      const { error: updateErr } = await supabase.from('content_items').update({
+        title: form.title, scheduled_at: form.scheduled_at, status: form.status,
+        funnel_stage: form.funnel_stage || null, content_type: form.content_type || null,
+        format: form.format || null, objective: form.objective || null,
+        product_name: form.product_name || null, product_id: form.product_id || null,
+        project_id: form.project_id || null,
+        assigned_to: form.assigned_to || null, copy_content: form.copy_content || null,
+        cover_url: autoCover,
+      } as any).eq('id', id);
+      if (updateErr) throw updateErr;
+      await supabase.from('content_channels').delete().eq('content_id', id);
+      if (selectedChannels.length > 0) {
+        await supabase.from('content_channels').insert(
+          selectedChannels.map(chId => ({ content_id: id, channel_id: chId })) as any
+        );
       }
-    }
 
-    queryClient.invalidateQueries({ queryKey: ['content-item', id] });
-    queryClient.invalidateQueries({ queryKey: ['content-item-channels', id] });
-    queryClient.invalidateQueries({ queryKey: ['content-items'] });
-    queryClient.invalidateQueries({ queryKey: ['content-channels'] });
-    queryClient.invalidateQueries({ queryKey: ['my-tasks'] });
-    toast.success('Guardado');
-    setSaving(false);
+      // Sync content task (create or update)
+      if (form.status !== 'publicado') {
+        await syncContentTask(id, form.title, form.status, form.assigned_to || null);
+      } else {
+        // Mark task as done when content is published
+        const { data: activeTasks } = await supabase
+          .from('tasks')
+          .select('id')
+          .eq('content_id', id)
+          .neq('status', 'done');
+        if (activeTasks?.length) {
+          await supabase.from('tasks').update({
+            status: 'done',
+            updated_at: new Date().toISOString(),
+          }).eq('id', activeTasks[0].id);
+        }
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['content-item', id] });
+      queryClient.invalidateQueries({ queryKey: ['content-item-channels', id] });
+      queryClient.invalidateQueries({ queryKey: ['content-items'] });
+      queryClient.invalidateQueries({ queryKey: ['content-channels'] });
+      queryClient.invalidateQueries({ queryKey: ['my-tasks'] });
+      toast.success('Guardado');
+    } catch (err: any) {
+      console.error('Content save error:', err);
+      toast.error(err?.message || 'Erro ao guardar conteúdo');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const uploadFiles = async (e: React.ChangeEvent<HTMLInputElement>, fileType: 'image' | 'file') => {
