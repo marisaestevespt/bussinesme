@@ -191,7 +191,10 @@ export default function FornecedoresPage() {
         .select('id,description,expense_name,expense_date,expense_id,base_value,vat_rate,total_with_vat,status,source_type,is_recurring,category,payment_method,documents,location,expense_month,expense_quarter,expense_year')
         .eq('supplier_id', selectedSupplierId!)
         .order('expense_date', { ascending: true });
-      return data || [];
+      return (data || []).map((expense: any) => ({
+        ...expense,
+        status: normalizeUnpaidExpenseStatus(expense.status, expense.expense_date),
+      }));
     },
   });
 

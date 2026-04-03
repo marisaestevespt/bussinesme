@@ -18,7 +18,7 @@ export type RecurringExpense = Expense & {
   renewal_date: string | null;
 };
 
-const MONTH_LABELS = ['Janeiro', 'Março', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+const MONTH_LABELS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 const normalizeExpenseRecord = <T extends Expense>(expense: T): T => ({
   ...expense,
