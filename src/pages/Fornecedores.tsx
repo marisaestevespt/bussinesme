@@ -368,7 +368,7 @@ export default function FornecedoresPage() {
         } as any).select('id').single();
         if (parentErr) throw parentErr;
 
-        // Generate individual expenses only if we have a date range
+        // Generate individual expenses
         const firstPayment = form.first_payment_date || form.contract_start_date;
         const endDate = form.contract_end_date;
         if (firstPayment && endDate) {
@@ -380,6 +380,35 @@ export default function FornecedoresPage() {
             form.location || 'portugal'
           );
           toast.success(`${count} despesas geradas`);
+        } else if (firstPayment) {
+          // No end date — generate just the first expense so it appears in the monthly view
+          const firstDate = new Date(firstPayment + 'T00:00:00');
+          const fMonth = firstDate.getMonth() + 1;
+          const fYear = firstDate.getFullYear();
+          const desc = form.expense_description_template
+            ? form.expense_description_template.replace('{nome}', form.name).replace('{mes}', String(fMonth).padStart(2, '0')).replace('{ano}', String(fYear))
+            : form.name;
+          await supabase.from('financial_expenses').insert({
+            description: desc,
+            expense_name: form.name,
+            supplier_id: supplierId,
+            base_value: base,
+            vat_rate: vat,
+            total_with_vat: total,
+            category: form.category || 'outro',
+            status: 'por_pagar',
+            location: form.location || 'portugal',
+            is_recurring: false,
+            parent_expense_id: parentData.id,
+            payment_method: form.payment_method || null,
+            expense_date: firstPayment,
+            expense_month: fMonth,
+            expense_quarter: Math.ceil(fMonth / 3),
+            expense_year: fYear,
+            source_type: 'subscription',
+            source_id: parentData.id,
+          } as any);
+          toast.success('Regra recorrente criada com 1ª despesa');
         } else {
           toast.success('Regra recorrente criada');
         }
