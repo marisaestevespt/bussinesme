@@ -40,7 +40,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
   const { feedback } = usePortalFeedback(portalId);
   const { comments, addComment } = usePortalComments(portalId);
   const { phases, addPhase, updatePhase, deletePhase } = usePortalTimeline(portalId);
-  const { summaries, addSummary, updateSummary, deleteSummary } = usePortalSummaries(portalId);
+  
 
   const [replyText, setReplyText] = useState('');
   const [newSummaryMonth, setNewSummaryMonth] = useState(new Date().getMonth() + 1);
