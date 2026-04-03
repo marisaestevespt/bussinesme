@@ -141,10 +141,13 @@ export default function ClientesPage() {
         </div>
 
         {/* Client list with tabs */}
-        <Card>
-          <CardHeader className="pb-2">
+        <Card className="shadow-sm">
+          <CardHeader className="pb-3 pt-5 px-6">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">Lista de Clientes & Alunos</CardTitle>
+              <div>
+                <CardTitle className="text-base font-semibold">Lista de Clientes & Alunos</CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">Mostrando {items.length} de {clients.totalCount}</p>
+              </div>
               <Tabs value={tab} onValueChange={v => setTab(v as any)}>
                 <TabsList className="h-8">
                   <TabsTrigger value="ativos" className="text-xs px-3">
@@ -157,7 +160,7 @@ export default function ClientesPage() {
               </Tabs>
             </div>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="p-0 pt-1">
             <InfiniteScrollList
               totalCount={clients.totalCount}
               loadedCount={items.length}
