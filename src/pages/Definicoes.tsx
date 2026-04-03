@@ -86,7 +86,7 @@ export default function DefinicoesPage() {
           {tab === 'identidade' && <SettingsIdentity />}
           {tab === 'fiscal' && <SettingsFiscal />}
           {tab === 'setup-negocio' && <FinSetupNegocio />}
-          {tab === 'marketing' && <ChannelSettings />}
+          {tab === 'marketing' && <div className="space-y-8"><ChannelSettings /><SocialTokensSettings /></div>}
           {tab === 'utilizadores' && <SettingsUsers />}
           {tab === 'kpis' && <SettingsKpis />}
           {tab === 'resumo' && <SettingsDigest />}
