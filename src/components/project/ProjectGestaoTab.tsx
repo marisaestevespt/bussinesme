@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -82,7 +82,8 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   });
 
   const resolvedClientId = clientData?.id || clientId;
-  const clientStartDate = clientData?.start_date;
+  const billingStartDate = startDate || clientData?.start_date;
+  const lastAutoGenerateKeyRef = useRef<string | null>(null);
 
   // Sync payMethod from DB
   useEffect(() => {
@@ -186,8 +187,11 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   // ─── Generate sales entries ───────────────────────────────────
   const generateSales = useMutation({
     mutationFn: async () => {
-      if (!clientStartDate) throw new Error('Cliente sem data de início definida');
-      const start = parseISO(clientStartDate);
+      if (!billingStartDate) throw new Error('Projeto sem data de início definida');
+      const start = parseISO(billingStartDate);
+      const currentMonthStart = new Date();
+      currentMonthStart.setDate(1);
+      currentMonthStart.setHours(0, 0, 0, 0);
       const entries: any[] = [];
       const product = productName || clientData?.current_product || '';
       const client = clientName || '';
@@ -317,7 +321,12 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
 
       if (entries.length === 0) throw new Error('Nenhuma entrada gerada');
 
-      const { error } = await supabase.from('commercial_sales').insert(entries);
+      const upcomingEntries = entries.filter((entry) => parseISO(entry.payment_date) >= currentMonthStart);
+      if (upcomingEntries.length === 0) {
+        throw new Error('Não existem pagamentos por gerar a partir deste mês');
+      }
+
+      const { error } = await supabase.from('commercial_sales').insert(upcomingEntries);
       if (error) throw error;
 
       // Update client payment_method
@@ -338,21 +347,38 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   const hasExistingProjectSales = projectSales.length > 0;
 
   // ─── Auto-generate payments when all fields are filled ────────
-  const canAutoGenerate = !hasExistingProjectSales && !!clientStartDate && !!payMethod && !generateSales.isPending;
+  const canAutoGenerate = !hasExistingProjectSales && !!billingStartDate && !!payMethod && !generateSales.isPending;
 
   useEffect(() => {
     if (!canAutoGenerate) return;
+
     let ready = false;
     if (payMethod === 'pagamento_total' && parseFloat(totalValue) > 0) ready = true;
     if (payMethod === 'entrada_prestacoes' && parseFloat(totalValue) > 0 && parseFloat(entradaValue) > 0 && parseInt(numPrestacoes) > 0 && parseInt(payDay) > 0 && parseFloat(entradaValue) < parseFloat(totalValue)) ready = true;
     if (payMethod === 'prestacoes' && parseFloat(totalValue) > 0 && parseInt(numPrestacoes) > 0 && parseInt(payDay) > 0) ready = true;
     if (payMethod === 'avenca_mensal' && parseInt(numMeses) > 0 && parseInt(payDay) > 0 && parseFloat(avencaValue) > 0) ready = true;
-    if (ready) {
-      // Small delay so user can finish typing
-      const timer = setTimeout(() => generateSales.mutate(), 1200);
-      return () => clearTimeout(timer);
-    }
-  }, [payMethod, totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, canAutoGenerate]);
+    if (!ready) return;
+
+    const autoGenerateKey = [
+      billingStartDate ?? '',
+      payMethod,
+      totalValue,
+      entradaValue,
+      numPrestacoes,
+      payDay,
+      numMeses,
+      avencaValue,
+    ].join('|');
+
+    if (lastAutoGenerateKeyRef.current === autoGenerateKey) return;
+
+    const timer = setTimeout(() => {
+      lastAutoGenerateKeyRef.current = autoGenerateKey;
+      generateSales.mutate();
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, [payMethod, totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, billingStartDate, canAutoGenerate]);
 
   return (
     <div className="space-y-6">
@@ -480,8 +506,8 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             <p className="text-xs text-muted-foreground">⚠️ Já existem pagamentos gerados para este projeto. Elimine-os primeiro para gerar novos.</p>
           )}
 
-          {!clientStartDate && payMethod && (
-            <p className="text-xs text-destructive">⚠️ O cliente não tem data de início definida. Defina-a na ficha do cliente para gerar pagamentos.</p>
+          {!billingStartDate && payMethod && (
+            <p className="text-xs text-destructive">⚠️ O projeto não tem data de início definida. Defina-a na ficha do projeto para gerar pagamentos.</p>
           )}
         </CardContent>
       </Card>
