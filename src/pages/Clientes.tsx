@@ -58,19 +58,35 @@ export default function ClientesPage() {
   const renderClientRow = (c: Client) => (
     <div
       key={c.id}
-      className="px-4 py-2.5 text-sm grid grid-cols-6 gap-2 border-b hover:bg-muted/50 cursor-pointer items-center"
+      className="px-4 py-2.5 text-sm border-b hover:bg-muted/50 cursor-pointer"
       onClick={() => navigate(`/hub/clientes/${c.id}`)}
     >
-      <span className="font-mono text-xs">{c.client_id}</span>
-      <span>
-        <Badge variant="outline" className={STATUS_BADGE[c.status]?.className || ''}>
-          {STATUS_BADGE[c.status]?.label || c.status}
-        </Badge>
-      </span>
-      <span className="truncate">{c.full_name}</span>
-      <span className="truncate text-muted-foreground">{c.email || '—'}</span>
-      <span className="truncate text-muted-foreground">{c.whatsapp || '—'}</span>
-      <span className="truncate">{c.current_product || '—'}</span>
+      {/* Desktop: grid row */}
+      <div className="hidden md:grid grid-cols-6 gap-2 items-center">
+        <span className="font-mono text-xs">{c.client_id}</span>
+        <span>
+          <Badge variant="outline" className={STATUS_BADGE[c.status]?.className || ''}>
+            {STATUS_BADGE[c.status]?.label || c.status}
+          </Badge>
+        </span>
+        <span className="truncate">{c.full_name}</span>
+        <span className="truncate text-muted-foreground">{c.email || '—'}</span>
+        <span className="truncate text-muted-foreground">{c.whatsapp || '—'}</span>
+        <span className="truncate">{c.current_product || '—'}</span>
+      </div>
+      {/* Mobile: stacked */}
+      <div className="md:hidden space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="font-medium truncate">{c.full_name}</span>
+          <Badge variant="outline" className={`shrink-0 text-[10px] ${STATUS_BADGE[c.status]?.className || ''}`}>
+            {STATUS_BADGE[c.status]?.label || c.status}
+          </Badge>
+        </div>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="font-mono">{c.client_id}</span>
+          {c.current_product && <span>· {c.current_product}</span>}
+        </div>
+      </div>
     </div>
   );
 
