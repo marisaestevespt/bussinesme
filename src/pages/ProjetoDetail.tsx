@@ -864,10 +864,7 @@ export default function ProjetoDetailPage() {
                 </div>
               </div>
 
-              {/* Sections below only for non-service-mensal projects */}
-              {local.type !== 'cliente_servico_mensal' && (
-                <>
-                  {/* Tarefas */}
+              {/* Tarefas */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
