@@ -173,7 +173,7 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
                 portalUrl,
                 businessName: settings?.business_name,
                 primaryColor: settings?.primary_color || undefined,
-                primaryForeground: settings?.primary_foreground || undefined,
+                primaryForeground: '0 0% 100%',
                 textColor: settings?.text_color || undefined,
                 accentColor: settings?.accent_color || undefined,
                 fontDisplay: settings?.font_display || undefined,
