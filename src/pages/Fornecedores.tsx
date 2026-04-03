@@ -407,7 +407,14 @@ export default function FornecedoresPage() {
 
       let supplierId = form.id;
       if (form.id) {
-        await supabase.from('suppliers').update(record as any).eq('id', form.id);
+        const { error: supplierError } = await supabase.from('suppliers').update(record as any).eq('id', form.id);
+        if (supplierError) throw supplierError;
+
+        const { error: paymentMethodSyncError } = await supabase
+          .from('financial_expenses')
+          .update({ payment_method: record.payment_method || null } as any)
+          .eq('supplier_id', form.id);
+        if (paymentMethodSyncError) throw paymentMethodSyncError;
 
         // Cascade location/VAT changes to all existing expenses for this supplier
         const newLocation = form.location || 'portugal';
@@ -562,6 +569,7 @@ export default function FornecedoresPage() {
           monthly_equivalent: editMonthly,
           location: form.location || 'portugal',
           category: form.category || 'outro',
+          payment_method: form.payment_method || null,
         } as any).eq('id', ruleId);
 
         // Cascade to unpaid child expenses
@@ -578,6 +586,7 @@ export default function FornecedoresPage() {
               total_with_vat: ruleTotal,
               location: form.location || 'portugal',
               category: form.category || 'outro',
+              payment_method: form.payment_method || null,
             };
             if (form.expense_description_template?.trim()) {
               updates.description = form.expense_description_template
