@@ -171,6 +171,7 @@ export function SettingsIdentity() {
   useEffect(() => {
     if (!settings) return;
     setBusinessName(settings.business_name);
+    setBusinessSector(((settings as any).business_sector as BusinessSector) || 'servicos_digitais');
     setSupportHours((settings as any).support_hours || '');
     setLogoPreview(settings.logo_url);
     setBgPreview((settings as any).login_bg_url || null);
