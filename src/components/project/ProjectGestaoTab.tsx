@@ -86,6 +86,18 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   const billingStartDate = startDate || clientData?.start_date;
   const lastAutoGenerateKeyRef = useRef<string | null>(null);
 
+  // Auto-calculate numMeses from start_date + deadline for avença_mensal
+  useEffect(() => {
+    if (billingStartDate && deadline && (payMethod === 'avenca_mensal')) {
+      const s = parseISO(billingStartDate);
+      const e = parseISO(deadline);
+      const diffMonths = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
+      if (diffMonths > 0) {
+        setNumMeses(String(diffMonths));
+      }
+    }
+  }, [billingStartDate, deadline, payMethod]);
+
   // Sync payMethod from DB
   useEffect(() => {
     if (clientData?.payment_method && !payMethod) {
