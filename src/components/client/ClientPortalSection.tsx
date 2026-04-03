@@ -44,7 +44,6 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
 
   const [replyText, setReplyText] = useState('');
   const [uploadingMaterial, setUploadingMaterial] = useState(false);
-  const [uploadingMaterial, setUploadingMaterial] = useState(false);
 
   const { data: portalMaterials = [], refetch: refetchMaterials } = useQuery({
     queryKey: ['portal-materials', portalId],
