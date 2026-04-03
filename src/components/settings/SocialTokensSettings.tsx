@@ -354,6 +354,23 @@ export function SocialTokensSettings() {
               </div>
             ))}
 
+            {/* Setup guide */}
+            {editChannel && PLATFORM_SETUP_GUIDE[editChannel.platform] && (
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full">
+                  <ChevronDown className="h-3 w-3 transition-transform [[data-state=open]_&]:rotate-180" />
+                  Como obter estas credenciais?
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="mt-2 rounded-md bg-muted/50 p-3 space-y-1">
+                    {PLATFORM_SETUP_GUIDE[editChannel.platform].map((step, i) => (
+                      <p key={i} className="text-[11px] text-muted-foreground leading-relaxed">{step}</p>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+
             <Button className="w-full" onClick={saveToken} disabled={!formData.access_token?.trim()}>
               Guardar
             </Button>
