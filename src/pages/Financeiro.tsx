@@ -262,6 +262,13 @@ export default function FinanceiroPage() {
           </div>
         </div>
 
+        {/* AI Financial Analysis */}
+        <AiInsightsPanel
+          type="financial"
+          title="Análise Financeira AI"
+          buttonLabel="Analisar com AI"
+        />
+
         <div className="flex items-center justify-between">
           <YearSelector year={year} onChange={setYear} />
           <Button size="sm" variant="outline" onClick={() => exportPdf(`Relatório Financeiro Anual — ${year}`, 'fin-annual-report')}>
