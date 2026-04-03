@@ -950,13 +950,13 @@ function ContractRow({ contract, linkedExpense, isPaid, month, currentYear, fin,
         <ExpenseStatusSelect expenseId={linkedExpense?.id || `contract-${contract.id}`} currentStatus={currentStatus} onUpdate={handleStatusChange} />
       </TableCell>
       <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{expenseId}</TableCell>
+      <TableCell className="whitespace-nowrap">{expenseDate}</TableCell>
       <TableCell>{description}</TableCell>
       <TableCell>{categoryLabel}</TableCell>
       <TableCell>{location}</TableCell>
       <TableCell className="text-right">{fmt(baseValue)}</TableCell>
       <TableCell className="text-right">{vatRate}%</TableCell>
       <TableCell className="text-right">{fmt(totalWithVat)}</TableCell>
-      <TableCell className="whitespace-nowrap">{expenseDate}</TableCell>
     </TableRow>
   );
 }
