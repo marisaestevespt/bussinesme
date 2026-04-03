@@ -130,29 +130,34 @@ export function FloatingAiChat() {
           {/* Messages */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full text-center gap-3 py-8">
+              <div className="flex flex-col items-center justify-center h-full text-center gap-3 py-6">
                 <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
                   <Bot className="h-6 w-6 text-primary" />
                 </div>
                 <div>
                   <p className="text-sm font-medium">Olá! Sou a Lirah AI 👋</p>
                   <p className="text-xs text-muted-foreground mt-1 max-w-[260px]">
-                    Posso ajudar-te a consultar dados, analisar o teu negócio e executar ações no sistema.
+                    Posso ajudar-te a consultar dados, analisar o teu negócio e executar ações.
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-1.5 mt-2 justify-center">
+
+                <div className="w-full space-y-2 mt-2 text-left px-1">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-1">Experimenta perguntar</p>
                   {[
-                    "Quantos clientes ativos tenho?",
-                    "Tarefas em atraso",
-                    "Resumo financeiro deste mês",
-                    "Próximas reuniões",
+                    { icon: "👥", text: "Quantos clientes ativos tenho?" },
+                    { icon: "✅", text: "Mostra as minhas tarefas em atraso" },
+                    { icon: "💰", text: "Resumo financeiro deste mês" },
+                    { icon: "📅", text: "Quais são as próximas reuniões?" },
+                    { icon: "📊", text: "Como estão as vendas este trimestre?" },
+                    { icon: "👥", text: "Quem está na minha equipa?" },
                   ].map((q) => (
                     <button
-                      key={q}
-                      onClick={() => { setInput(q); }}
-                      className="text-[11px] px-2.5 py-1.5 rounded-full border bg-muted/50 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                      key={q.text}
+                      onClick={() => { setInput(q.text); setTimeout(() => { const btn = document.querySelector('[data-send-btn]') as HTMLButtonElement; btn?.click(); }, 50); }}
+                      className="w-full flex items-center gap-2.5 text-[12px] px-3 py-2 rounded-xl border bg-muted/30 hover:bg-muted/70 transition-colors text-muted-foreground hover:text-foreground text-left"
                     >
-                      {q}
+                      <span className="text-sm">{q.icon}</span>
+                      <span>{q.text}</span>
                     </button>
                   ))}
                 </div>
