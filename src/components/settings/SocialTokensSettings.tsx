@@ -269,12 +269,26 @@ export function SocialTokensSettings() {
               const isConfigured = !!token?.access_token;
               const isSyncing = syncing === ch.id;
 
+              // Token expiry check (Instagram/Facebook ~60 days, YouTube never)
+              const tokenExpires = platform !== 'youtube' && isConfigured && token?.updated_at;
+              const daysRemaining = tokenExpires ? 60 - differenceInDays(new Date(), new Date(token.updated_at)) : null;
+              const isExpiringSoon = daysRemaining !== null && daysRemaining <= 7 && daysRemaining > 0;
+              const isExpired = daysRemaining !== null && daysRemaining <= 0;
+
               return (
                 <div key={ch.id} className="flex items-center justify-between py-2.5 px-2 rounded-md hover:bg-muted/40 transition-colors">
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2.5 flex-wrap">
                     <span className="text-base">{info?.emoji || '📢'}</span>
                     <span className="text-sm font-medium text-foreground">{ch.name}</span>
-                    {isConfigured ? (
+                    {isExpired ? (
+                      <Badge variant="destructive" className="text-[10px] gap-1">
+                        <AlertCircle className="h-3 w-3" /> Token expirado
+                      </Badge>
+                    ) : isExpiringSoon ? (
+                      <Badge variant="outline" className="text-[10px] gap-1 text-amber-600 border-amber-200 dark:text-amber-400 dark:border-amber-800">
+                        <AlertCircle className="h-3 w-3" /> Expira em {daysRemaining}d
+                      </Badge>
+                    ) : isConfigured ? (
                       <Badge variant="outline" className="text-[10px] gap-1 text-emerald-600 border-emerald-200 dark:text-emerald-400 dark:border-emerald-800">
                         <CheckCircle2 className="h-3 w-3" /> Conectado
                       </Badge>
