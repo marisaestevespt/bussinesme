@@ -56,7 +56,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
-
+  const [manualEntryOpen, setManualEntryOpen] = useState(false);
   // ─── Payment config form state ─────────────────────────────────
   const [payMethod, setPayMethod] = useState<string>(projectPaymentMethod || '');
   const [totalValue, setTotalValue] = useState(projectPaymentConfig?.totalValue || '');
