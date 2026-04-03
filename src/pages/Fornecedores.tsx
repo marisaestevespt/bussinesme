@@ -527,6 +527,10 @@ export default function FornecedoresPage() {
       toast.success('Fornecedor guardado');
       setOpen(false);
     },
+    onError: (err: any) => {
+      console.error('Supplier save error:', err);
+      toast.error(`Erro ao guardar fornecedor: ${err.message || 'Erro desconhecido'}`);
+    },
   });
 
   const remove = useMutation({
