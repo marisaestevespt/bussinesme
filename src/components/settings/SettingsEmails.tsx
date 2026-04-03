@@ -346,7 +346,12 @@ export function SettingsEmails() {
               </SelectTrigger>
               <SelectContent>
                 {TEMPLATES.map(t => (
-                  <SelectItem key={t.key} value={t.key}>{t.label}</SelectItem>
+                  <SelectItem key={t.key} value={t.key}>
+                    <div className="flex flex-col items-start">
+                      <span>{t.label}</span>
+                      <span className="text-[11px] text-muted-foreground font-normal">{t.description}</span>
+                    </div>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
