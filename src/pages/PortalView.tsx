@@ -246,6 +246,60 @@ export default function PortalViewPage() {
         {/* ═══ HOME ═══ */}
         {activeSection === 'home' && (
           <>
+            {/* Quick info cards — prominent, right below header */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {portal.show_meetings && (() => {
+                const next = meetings
+                  .filter((m: any) => ['marcada', 'agendada', 'confirmada', 'por_confirmar'].includes(m.status) && m.date_time)
+                  .sort((a: any, b: any) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
+                return (
+                  <div
+                    className="rounded-2xl p-5 cursor-pointer group border transition-all hover:scale-[1.01]"
+                    style={{ backgroundColor: pcAlpha(0.04), borderColor: pcAlpha(0.12), boxShadow: `0 4px 24px ${pcAlpha(0.10)}, 0 1px 4px rgba(0,0,0,0.04)` }}
+                    onClick={() => setActiveSection('meetings')}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 rounded-xl" style={{ backgroundColor: pcAlpha(0.12) }}>
+                        <CalendarDays className="h-5 w-5" style={{ color: pc }} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs text-muted-foreground font-medium">Próxima Reunião</p>
+                        <p className="text-sm font-bold mt-0.5">
+                          {next ? format(parseISO(next.date_time), "d 'de' MMMM, HH:mm", { locale: pt }) : 'Sem reuniões agendadas'}
+                        </p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  </div>
+                );
+              })()}
+              {portal.show_payments && (() => {
+                const next = payments
+                  .filter((p: any) => !['pago'].includes(p.status) && p.payment_date)
+                  .sort((a: any, b: any) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime())[0];
+                return (
+                  <div
+                    className="rounded-2xl p-5 cursor-pointer group border transition-all hover:scale-[1.01]"
+                    style={{ backgroundColor: pcAlpha(0.04), borderColor: pcAlpha(0.12), boxShadow: `0 4px 24px ${pcAlpha(0.10)}, 0 1px 4px rgba(0,0,0,0.04)` }}
+                    onClick={() => setActiveSection('payments')}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 rounded-xl" style={{ backgroundColor: pcAlpha(0.12) }}>
+                        <CreditCard className="h-5 w-5" style={{ color: pc }} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs text-muted-foreground font-medium">Próximo Pagamento</p>
+                        <p className="text-sm font-bold mt-0.5">
+                          {next ? format(parseISO(next.payment_date), "d 'de' MMMM, yyyy", { locale: pt }) : 'Sem pagamentos pendentes'}
+                        </p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
             {/* Welcome hero with project status */}
             <div
               className="rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden"
@@ -338,51 +392,19 @@ export default function PortalViewPage() {
               </SectionCard>
             )}
 
-            {/* Quick info cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {portal.show_meetings && (() => {
-                const next = meetings
-                  .filter((m: any) => ['marcada', 'agendada', 'confirmada', 'por_confirmar'].includes(m.status) && m.date_time)
-                  .sort((a: any, b: any) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
-                return (
-                  <SectionCard className="p-5 cursor-pointer group" onClick={() => setActiveSection('meetings')}>
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-xl" style={{ backgroundColor: pcAlpha(0.08) }}>
-                        <CalendarDays className="h-5 w-5" style={{ color: pc }} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs text-muted-foreground font-medium">Próxima Reunião</p>
-                        <p className="text-sm font-semibold mt-0.5">
-                          {next ? format(parseISO(next.date_time), "d 'de' MMMM, HH:mm", { locale: pt }) : 'Sem reuniões agendadas'}
-                        </p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:translate-x-0.5 transition-transform" />
+            {portal.portal_type === 'servico_mensal' && portal.show_monthly_summary && summaries.length > 0 && (
+              <SectionCard className="p-6">
+                <SectionTitle icon={ClipboardList}>Resumos Mensais</SectionTitle>
+                <div className="space-y-3">
+                  {summaries.map((s: any) => (
+                    <div key={s.id} className="rounded-xl border border-border/40 bg-muted/20 p-4">
+                      <p className="font-semibold text-sm mb-1" style={{ color: pc }}>{s.month}/{s.year}</p>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{s.content}</p>
                     </div>
-                  </SectionCard>
-                );
-              })()}
-              {portal.show_payments && (() => {
-                const next = payments
-                  .filter((p: any) => !['pago'].includes(p.status) && p.payment_date)
-                  .sort((a: any, b: any) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime())[0];
-                return (
-                  <SectionCard className="p-5 cursor-pointer group" onClick={() => setActiveSection('payments')}>
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-xl" style={{ backgroundColor: pcAlpha(0.08) }}>
-                        <CreditCard className="h-5 w-5" style={{ color: pc }} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs text-muted-foreground font-medium">Próximo Pagamento</p>
-                        <p className="text-sm font-semibold mt-0.5">
-                          {next ? format(parseISO(next.payment_date), "d 'de' MMMM, yyyy", { locale: pt }) : 'Sem pagamentos pendentes'}
-                        </p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                  </SectionCard>
-                );
-              })()}
-            </div>
+                  ))}
+                </div>
+              </SectionCard>
+            )}
           </>
         )}
 
