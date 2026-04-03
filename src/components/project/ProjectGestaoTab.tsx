@@ -12,6 +12,8 @@ import { ExternalLink, Plus, CreditCard, Loader2, Gift } from 'lucide-react';
 import { format, parseISO, addMonths, setDate } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { SaleDetailDialog } from '@/components/commercial/SaleDetailDialog';
+import { SaleFormDialog } from '@/components/commercial/SaleFormDialog';
+import { useCommercialData } from '@/hooks/useCommercialData';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 
