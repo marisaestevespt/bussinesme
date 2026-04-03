@@ -82,7 +82,7 @@ const TEMPLATES: TemplateDefaults[] = [
   {
     key: 'payment-reminder',
     label: 'Lembrete de pagamento',
-    description: 'Enviado automaticamente antes do vencimento',
+    description: 'Enviado automaticamente 3 dias antes e no dia do vencimento do pagamento',
     emoji: '🔔',
     title: '{name}, lembrete de pagamento',
     subtitle: 'Enviamos este lembrete para que possa organizar o pagamento referente a {product}, que vence em breve.',
