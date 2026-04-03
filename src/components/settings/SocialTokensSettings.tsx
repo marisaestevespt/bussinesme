@@ -79,6 +79,7 @@ interface ChannelToken {
   access_token: string;
   token_metadata: any;
   last_synced_at: string | null;
+  updated_at: string;
 }
 
 export function SocialTokensSettings() {
