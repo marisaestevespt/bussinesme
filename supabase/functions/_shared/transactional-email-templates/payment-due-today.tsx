@@ -14,6 +14,7 @@ interface PaymentDueTodayProps {
   dueDate?: string
   paymentMethod?: string
   iban?: string
+  mbwayNumber?: string
   businessName?: string
   primaryColor?: string
   primaryForeground?: string
