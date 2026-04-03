@@ -93,7 +93,6 @@ export default function DefinicoesPage() {
           {tab === 'automacoes' && <SettingsAutomations />}
           {tab === 'backups' && <SettingsBackups />}
           {tab === 'auditoria' && <SettingsAuditLog />}
-          {tab === 'auditoria' && <SettingsAuditLog />}
         </div>
 
         {/* Reset section - owner only */}
