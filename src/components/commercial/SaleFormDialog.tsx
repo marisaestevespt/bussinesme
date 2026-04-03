@@ -44,6 +44,7 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
     payment_date: undefined as Date | undefined,
     description: '',
     base_value: '',
+    vat_rate: '' as string,
     invoice_total: '',
     product: '',
     client: '',
@@ -63,6 +64,7 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
         payment_date: initialData.payment_date ? new Date(initialData.payment_date) : undefined,
         description: initialData.description || '',
         base_value: initialData.base_value?.toString() || '',
+        vat_rate: initialData.vat_rate?.toString() || '',
         invoice_total: initialData.invoice_total?.toString() || '',
         product: initialData.product || '',
         client: initialData.client || '',
@@ -72,7 +74,7 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
         special_offer_reason: initialData.special_offer_reason || '',
       });
     } else {
-      setForm({ id: '', sale_id: '', status: 'aguarda_pagamento', payment_date: undefined, description: '', base_value: '', invoice_total: '', product: '', client: '', source: '', documents: [], is_special_offer: false, special_offer_reason: '' });
+      setForm({ id: '', sale_id: '', status: 'aguarda_pagamento', payment_date: undefined, description: '', base_value: '', vat_rate: '', invoice_total: '', product: '', client: '', source: '', documents: [], is_special_offer: false, special_offer_reason: '' });
     }
   }, [initialData, open]);
 
@@ -120,20 +122,30 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
   });
   const sourceOptions = [...new Set([...DEFAULT_SOURCE_OPTIONS, ...(customSources.data || [])])];
 
-  const getVatMultiplier = () => {
+  const getEffectiveVatRate = () => {
+    if (form.vat_rate !== '') return parseFloat(form.vat_rate) || 0;
     const rate = productInfo.data?.vat_rate;
-    if (!rate || rate === 'isento') return 1;
-    return 1 + parseFloat(rate) / 100;
+    if (!rate || rate === 'isento') return 0;
+    return parseFloat(rate) || 0;
   };
 
-  // Auto-calculate invoice_total when base_value or product VAT changes
+  // Auto-fill vat_rate from product when product changes
+  useEffect(() => {
+    if (productInfo.data?.vat_rate && !form.vat_rate) {
+      const rate = productInfo.data.vat_rate === 'isento' ? '0' : productInfo.data.vat_rate;
+      setForm(f => ({ ...f, vat_rate: rate }));
+    }
+  }, [productInfo.data?.vat_rate]);
+
+  // Auto-calculate invoice_total when base_value or vat_rate changes
   useEffect(() => {
     if (form.base_value) {
       const base = parseFloat(form.base_value) || 0;
-      const total = Math.round(base * getVatMultiplier() * 100) / 100;
+      const vat = getEffectiveVatRate();
+      const total = Math.round(base * (1 + vat / 100) * 100) / 100;
       setForm(f => ({ ...f, invoice_total: total.toString() }));
     }
-  }, [form.base_value, productInfo.data?.vat_rate]);
+  }, [form.base_value, form.vat_rate]);
 
   const handleSave = () => {
     if (!form.description?.trim()) { toast.error('Preenche a descrição'); return; }
@@ -209,13 +221,30 @@ export function SaleFormDialog({ open, onOpenChange, products, onSave, initialDa
             <Label>Descrição</Label>
             <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div><Label>Valor Base (€)</Label><Input type="number" step="0.01" value={form.base_value} onChange={e => setForm(f => ({ ...f, base_value: e.target.value }))} /></div>
             <div>
-              <Label>Fatura Total (€) {productInfo.data?.vat_rate && productInfo.data.vat_rate !== 'isento' ? <span className="text-muted-foreground font-normal">({productInfo.data.vat_rate}% IVA)</span> : productInfo.data?.vat_rate === 'isento' ? <span className="text-muted-foreground font-normal">(Isento)</span> : null}</Label>
+              <Label>IVA (%)</Label>
+              <Select value={form.vat_rate || '23'} onValueChange={v => setForm(f => ({ ...f, vat_rate: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">0% (Isento)</SelectItem>
+                  <SelectItem value="6">6%</SelectItem>
+                  <SelectItem value="13">13%</SelectItem>
+                  <SelectItem value="23">23%</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Fatura Total (€)</Label>
               <Input type="number" step="0.01" value={form.invoice_total} onChange={e => setForm(f => ({ ...f, invoice_total: e.target.value }))} />
             </div>
           </div>
+          {form.base_value && parseFloat(form.base_value) > 0 && parseFloat(form.vat_rate || '0') > 0 && (
+            <p className="text-xs text-muted-foreground -mt-2">
+              IVA: {((parseFloat(form.invoice_total) || 0) - (parseFloat(form.base_value) || 0)).toFixed(2)} €
+            </p>
+          )}
           <div>
             <Label>Produto</Label>
             <Select value={form.product} onValueChange={v => setForm(f => ({ ...f, product: v }))}>
