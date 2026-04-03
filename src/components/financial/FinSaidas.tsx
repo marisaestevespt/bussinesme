@@ -91,6 +91,10 @@ export function FinSaidas({ fin, currentYear }: Props) {
     if (filter === 'quarter') return e.expense_year === currentYear && e.expense_quarter === currentQuarter;
     if (filter === 'month') return e.expense_year === currentYear && e.expense_month === currentMonth;
     return true;
+  }).sort((a, b) => {
+    const da = a.expense_date || '';
+    const db = b.expense_date || '';
+    return da.localeCompare(db);
   });
 
   // Summary for recurring
