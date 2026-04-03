@@ -23,6 +23,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'welcome-member': welcomeMember,
   'client-offboarding': clientOffboarding,
   'payment-reminder': paymentReminder,
+  'payment-due-today': paymentDueToday,
   'invoice-available': invoiceAvailable,
   'owner-digest': ownerDigest,
   'member-digest': memberDigest,
