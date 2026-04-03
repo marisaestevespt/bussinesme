@@ -415,20 +415,38 @@ export default function FornecedoresPage() {
       let supplierId = form.id;
       if (form.id) {
         await supabase.from('suppliers').update(record as any).eq('id', form.id);
-        // If description template changed, update all existing expenses for this supplier
-        if (form.expense_description_template?.trim()) {
-          const { data: expenses } = await supabase
-            .from('financial_expenses')
-            .select('id, expense_month, expense_year')
-            .eq('supplier_id', form.id);
-          if (expenses && expenses.length > 0) {
-            for (const exp of expenses) {
+
+        // Cascade location/VAT changes to all existing expenses for this supplier
+        const newLocation = form.location || 'portugal';
+        const newVat = form.default_vat_rate ?? 23;
+        const { data: existingExps } = await supabase
+          .from('financial_expenses')
+          .select('id, expense_month, expense_year, base_value, vat_rate, location')
+          .eq('supplier_id', form.id);
+
+        if (existingExps && existingExps.length > 0) {
+          for (const exp of existingExps) {
+            const updates: Record<string, any> = {};
+
+            // Update location & VAT if supplier changed them
+            if (exp.location !== newLocation || exp.vat_rate !== newVat) {
+              updates.location = newLocation;
+              updates.vat_rate = newVat;
+              const base = exp.base_value || 0;
+              updates.total_with_vat = Math.round(base * (1 + newVat / 100) * 100) / 100;
+            }
+
+            // Update description template if set
+            if (form.expense_description_template?.trim()) {
               const month = String(exp.expense_month).padStart(2, '0');
-              const desc = form.expense_description_template
+              updates.description = form.expense_description_template
                 .replace('{mes}', month)
                 .replace('{ano}', String(exp.expense_year))
                 .replace('{nome}', form.name);
-              await supabase.from('financial_expenses').update({ description: desc } as any).eq('id', exp.id);
+            }
+
+            if (Object.keys(updates).length > 0) {
+              await supabase.from('financial_expenses').update(updates as any).eq('id', exp.id);
             }
           }
         }
