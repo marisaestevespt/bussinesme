@@ -287,7 +287,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
       {(portalData as any).show_materials && (
         <Card>
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm">Materiais Partilhados</CardTitle>
+            <CardTitle className="text-sm">Entregáveis</CardTitle>
             <label>
               <input
                 type="file"
