@@ -312,8 +312,18 @@ export function SaleDetailDialog({ saleId, open, onOpenChange }: Props) {
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Fonte</Label>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Método de Pagamento</Label>
+              <Select value={form.payment_method || ''} onValueChange={v => setForm((f: any) => ({ ...f, payment_method: v }))} disabled={!isOwner}>
+                <SelectTrigger><SelectValue placeholder="Não definido" /></SelectTrigger>
+                <SelectContent>
+                  {SALE_PAYMENT_METHODS.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Fonte</Label>
             <Select value={form.source || ''} onValueChange={v => {
               if (v === '__custom__') {
                 const custom = prompt('Introduz a nova fonte:');
