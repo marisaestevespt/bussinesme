@@ -22,6 +22,7 @@ interface Props {
   clientId: string | undefined;
   productName?: string | null;
   startDate?: string | null;
+  deadline?: string | null;
   onNewMeeting: () => void;
 }
 
