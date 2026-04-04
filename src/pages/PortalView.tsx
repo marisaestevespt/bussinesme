@@ -467,11 +467,11 @@ export default function PortalViewPage() {
 
             {/* Inline initial questions — step-by-step */}
             {questions.length > 0 && (() => {
-              const allAnswered = questions.every((q: any) => q.answer?.trim());
-              const answeredCount = questions.filter((q: any) => q.answer?.trim()).length;
+              const isQAnswered = (q: any) => q.answer?.trim() || (Array.isArray(q.file_urls) && q.file_urls.length > 0);
+              const allAnswered = questions.every(isQAnswered);
+              const answeredCount = questions.filter(isQAnswered).length;
               const allSubmitted = allAnswered && !activeQuestionId;
-              // Auto-open first unanswered on mount
-              const firstUnanswered = questions.find((q: any) => !q.answer?.trim());
+              const firstUnanswered = questions.find((q: any) => !isQAnswered(q));
               const currentOpen = activeQuestionId || (allSubmitted ? null : firstUnanswered?.id || null);
 
               const handleSubmitAll = async () => {
