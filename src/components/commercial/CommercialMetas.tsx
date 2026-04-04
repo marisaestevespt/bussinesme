@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, Plus, Trash2, Save } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useCommercialData } from '@/hooks/useCommercialData';
+import { useProducts } from '@/hooks/useProducts';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const QUARTER_RANGES: Record<number, string> = { 1: 'Jan–Mar', 2: 'Abr–Jun', 3: 'Jul–Set', 4: 'Out–Dez' };
@@ -22,8 +23,27 @@ const pct = (part: number, whole: number) => whole > 0 ? ((part / whole) * 100).
 
 export function CommercialMetas() {
   const data = useCommercialData();
+  const { products } = useProducts();
   const [annualInput, setAnnualInput] = useState('');
   const [newProduct, setNewProduct] = useState({ product_name: '', goal_amount: '', intention: '' });
+
+  // Auto-create product goals for products that don't have one yet
+  useEffect(() => {
+    const existingGoals = data.productGoals.data || [];
+    const activeProducts = (products || []).filter(p => p.status === 'ativo');
+    if (activeProducts.length === 0 || !data.productGoals.data) return;
+
+    const existingNames = new Set(existingGoals.map(g => g.product_name.toLowerCase()));
+    const missing = activeProducts.filter(p => !existingNames.has(p.name.toLowerCase()));
+
+    missing.forEach((p, i) => {
+      data.upsertProductGoal.mutate({
+        product_name: p.name,
+        goal_amount: 0,
+        sort_order: existingGoals.length + i,
+      });
+    });
+  }, [products, data.productGoals.data]);
 
   const handleAnnualSave = () => {
     const v = parseFloat(annualInput);
