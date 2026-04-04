@@ -36,7 +36,7 @@ const PHASES = [
   { value: 'estrategia', label: 'Estratégia', color: 'bg-violet-100 text-violet-800', dot: 'bg-violet-500' },
   { value: 'antecipacao', label: 'Antecipação', color: 'bg-amber-100 text-amber-800', dot: 'bg-amber-500' },
   { value: 'captacao', label: 'Captação', color: 'bg-blue-100 text-blue-800', dot: 'bg-blue-500' },
-  { value: 'produto_servico', label: 'Produto/Serviço', color: 'bg-emerald-100 text-emerald-800', dot: 'bg-emerald-500' },
+  { value: 'produto_servico', label: 'Produto', color: 'bg-emerald-100 text-emerald-800', dot: 'bg-emerald-500' },
   { value: 'venda', label: 'Venda', color: 'bg-rose-100 text-rose-800', dot: 'bg-rose-500' },
   { value: 'debriefing_pos_fecho', label: 'Debriefing & Pós Fecho', color: 'bg-slate-100 text-slate-800', dot: 'bg-slate-500' },
 ];
