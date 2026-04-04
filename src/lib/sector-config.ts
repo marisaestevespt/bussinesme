@@ -168,6 +168,11 @@ const SECTOR_MODULE_OVERRIDES: Record<BusinessSector, Partial<Record<string, Mod
     'trafego-pago': 'hidden',
     marketing: 'available',
   },
+  oficina_automovel: {
+    'trafego-pago': 'hidden',
+    marketing: 'available',
+    comercial: 'available',
+  },
 };
 
 /* ── Sector-specific fields ── */
