@@ -10,7 +10,8 @@ export type BusinessSector =
   | 'saude_bem_estar'
   | 'educacao_formacao'
   | 'criativo_producao'
-  | 'consultoria_juridico';
+  | 'consultoria_juridico'
+  | 'oficina_automovel';
 
 export const SECTOR_OPTIONS: { value: BusinessSector; label: string; description: string }[] = [
   { value: 'servicos_digitais', label: 'Serviços Digitais', description: 'Gestão de redes, design, consultoria, mentoria' },
@@ -18,6 +19,7 @@ export const SECTOR_OPTIONS: { value: BusinessSector; label: string; description
   { value: 'educacao_formacao', label: 'Educação & Formação', description: 'Formação, coaching, escolas online' },
   { value: 'criativo_producao', label: 'Criativo & Produção', description: 'Fotografia, vídeo, eventos, wedding planning' },
   { value: 'consultoria_juridico', label: 'Consultoria & Jurídico', description: 'Advogados, contabilistas, consultores de gestão' },
+  { value: 'oficina_automovel', label: 'Oficina & Automóvel', description: 'Oficinas, mecânica, reparação, inspeções, autopeças' },
 ];
 
 /* ── Terminology maps ── */
