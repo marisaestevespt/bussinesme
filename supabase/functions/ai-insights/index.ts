@@ -177,7 +177,7 @@ async function gatherData(supabase: any, type: string) {
 
     case "commercial": {
       const [sales, leads] = await Promise.all([
-        supabase.from("commercial_sales").select("id, amount, status, sale_month, sale_year, client, product, source").eq("sale_year", year).limit(500),
+        supabase.from("commercial_sales").select("id, base_value, invoice_total, status, sale_month, sale_year, client, product, source").eq("sale_year", year).limit(500),
         supabase.from("crm_leads").select("id, name, status, pipeline_id, value, created_at").limit(300),
       ]);
 
