@@ -139,6 +139,36 @@ export default function PortalViewPage() {
     toast.success('Resposta guardada ✨');
   };
 
+  const [uploadingQuestionFiles, setUploadingQuestionFiles] = useState<Record<string, boolean>>({});
+
+  const uploadQuestionFiles = async (qId: string, files: FileList) => {
+    if (!files.length || !token) return;
+    setUploadingQuestionFiles(prev => ({ ...prev, [qId]: true }));
+    try {
+      const urls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const ext = file.name.split('.').pop();
+        const path = `${token}/${qId}/${Date.now()}-${i}.${ext}`;
+        const { error } = await supabase.storage.from('portal-uploads').upload(path, file);
+        if (error) throw error;
+        const { data: urlData } = supabase.storage.from('portal-uploads').getPublicUrl(path);
+        urls.push(urlData.publicUrl);
+      }
+      const question = questions.find(q => q.id === qId);
+      const existing: string[] = Array.isArray(question?.file_urls) ? question.file_urls : [];
+      const allUrls = [...existing, ...urls];
+      await sb('portal_initial_questions').update({ file_urls: allUrls, answered_at: new Date().toISOString() }).eq('id', qId);
+      setQuestions(prev => prev.map(q => q.id === qId ? { ...q, file_urls: allUrls, answered_at: new Date().toISOString() } : q));
+      toast.success(`${urls.length} ficheiro(s) enviado(s) ✨`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao enviar ficheiro(s)');
+    } finally {
+      setUploadingQuestionFiles(prev => ({ ...prev, [qId]: false }));
+    }
+  };
+
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-[#fefcfa]">
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
