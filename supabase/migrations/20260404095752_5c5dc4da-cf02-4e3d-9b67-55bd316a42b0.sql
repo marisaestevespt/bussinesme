@@ -1,0 +1,1 @@
+UPDATE public.system_config SET value = 'false' WHERE key = 'suspended';
