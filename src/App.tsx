@@ -76,6 +76,8 @@ import FornecedoresPage from "./pages/Fornecedores";
 import OperacaoPage from "./pages/Operacao";
 import RecursosHumanosSubPage from "./pages/RecursosHumanosSubPage";
 import { ensureYearRoutineTasks } from '@/hooks/usePlanningRoutines';
+import { useSuspensionCheck } from '@/hooks/useSuspensionCheck';
+import { SuspensionScreen } from '@/components/SuspensionScreen';
 
 import { useEffect, useRef } from 'react';
 
@@ -84,6 +86,7 @@ const queryClient = new QueryClient();
 function AppRoutes() {
   const { user, loading: authLoading, isOwner } = useAuth();
   const { isSetupComplete, loading: settingsLoading } = useBusinessSettings();
+  const { suspended, loading: suspensionLoading } = useSuspensionCheck();
 
   // Ensure routine tasks exist for current year on boot
   const routineBootRef = useRef(false);
@@ -95,7 +98,7 @@ function AppRoutes() {
     }
   }, [user]);
 
-  if (authLoading || settingsLoading) {
+  if (authLoading || settingsLoading || suspensionLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -112,6 +115,11 @@ function AppRoutes() {
         <Route path="*" element={<AuthPage />} />
       </Routes>
     );
+  }
+
+  // Check suspension AFTER auth but BEFORE app content
+  if (suspended) {
+    return <SuspensionScreen />;
   }
 
   if (!isSetupComplete) {
