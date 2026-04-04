@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, Plus, Trash2, Save } from 'lucide-react';
+import { AlertTriangle, Plus, Trash2, Save, Pencil } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { useProducts } from '@/hooks/useProducts';
