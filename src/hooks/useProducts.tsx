@@ -17,7 +17,7 @@ export const ESCADA_OPTIONS = [
   { value: 'qualificacao', label: 'Qualificação' },
   { value: 'produto_entrada', label: 'Produto de Entrada' },
   { value: 'produto_intermedio', label: 'Produto Intermédio' },
-  { value: 'servico_premium', label: 'Serviço Premium' },
+  { value: 'servico_premium', label: 'Produto Premium' },
   { value: 'produto_recorrencia', label: 'Produto de Recorrência' },
 ] as const;
 
