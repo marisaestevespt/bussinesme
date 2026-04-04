@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGr
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -47,9 +46,6 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
   const [meetingDate, setMeetingDate] = useState<Date | undefined>(undefined);
   const [meetingTime, setMeetingTime] = useState('10:00');
   const [meetingTitle, setMeetingTitle] = useState('');
-  const [interactionsOpen, setInteractionsOpen] = useState(false);
-  const [actionsOpen, setActionsOpen] = useState(false);
-  const [pipelinesOpen, setPipelinesOpen] = useState(false);
   const qc = useQueryClient();
 
   const interactions = useLeadInteractions(lead?.id || null);
@@ -444,92 +440,70 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
             {lead?.id && (
               <div className="space-y-2">
                 {/* Interactions */}
-                <Collapsible open={interactionsOpen} onOpenChange={setInteractionsOpen}>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-between px-3 h-10 font-semibold text-sm">
-                      <span>Histórico de Interações ({(interactions.data || []).length})</span>
-                      <ChevronDown className={cn("h-4 w-4 transition-transform", interactionsOpen && "rotate-180")} />
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="space-y-3 px-1 pt-2">
-                    <div className="flex justify-end">
-                      <Button variant="outline" size="sm" onClick={() => setInteractionDialog(true)}><Plus className="h-3 w-3 mr-1" />Nova</Button>
-                    </div>
-                    {(interactions.data || []).length === 0 ? (
-                      <p className="text-sm text-muted-foreground">Sem interações registadas.</p>
-                    ) : (
-                      <Table>
-                        <TableHeader><TableRow>
-                          <TableHead className="w-[90px]">Data</TableHead>
-                          <TableHead className="w-[100px]">Tipo</TableHead>
-                          <TableHead>Notas</TableHead>
-                          <TableHead className="w-[50px]"></TableHead>
-                        </TableRow></TableHeader>
-                        <TableBody>
-                          {(interactions.data || []).map((i: any) => (
-                            <TableRow key={i.id}>
-                              <TableCell className="text-xs">{i.interaction_date ? format(new Date(i.interaction_date), 'dd/MM/yy') : ''}</TableCell>
-                              <TableCell><Badge variant="secondary" className="text-xs">{INTERACTION_TYPES.find(t => t.value === i.interaction_type)?.label || i.interaction_type}</Badge></TableCell>
-                              <TableCell className="text-xs">{i.notes || '—'}</TableCell>
-                              <TableCell>
-                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteInteraction.mutate(i.id)}>
-                                  <Trash2 className="h-3 w-3 text-destructive" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    )}
-                  </CollapsibleContent>
-                </Collapsible>
-
-                {/* Actions checklist */}
-                <Collapsible open={actionsOpen} onOpenChange={setActionsOpen}>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-between px-3 h-10 font-semibold text-sm">
-                      <span>Lista de Ações ({(actions.data || []).length})</span>
-                      <ChevronDown className={cn("h-4 w-4 transition-transform", actionsOpen && "rotate-180")} />
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="space-y-3 px-1 pt-2">
-                    <div className="space-y-2">
-                      {(actions.data || []).map((a: any) => (
-                        <div key={a.id} className="flex items-center gap-2">
-                          <Checkbox
-                            checked={a.completed}
-                            onCheckedChange={checked => upsertLeadAction.mutate({ id: a.id, lead_id: a.lead_id, completed: !!checked })}
-                          />
-                          <span className={cn("text-sm flex-1", a.completed && "line-through text-muted-foreground")}>{a.task}</span>
-                          {a.deadline && <span className="text-xs text-muted-foreground">{format(new Date(a.deadline), 'dd/MM')}</span>}
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteLeadAction.mutate(a.id)}>
-                            <Trash2 className="h-3 w-3 text-destructive" />
-                          </Button>
-                        </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold">Histórico de Interações ({(interactions.data || []).length})</h3>
+                    <Button variant="outline" size="sm" onClick={() => setInteractionDialog(true)}><Plus className="h-3 w-3 mr-1" />Nova</Button>
+                  </div>
+                  {(interactions.data || []).length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Sem interações registadas.</p>
+                  ) : (
+                    <div className="space-y-1">
+                      {(interactions.data || []).map((i: any) => (
+                        <Collapsible key={i.id}>
+                          <div className="flex items-center gap-2 rounded-md border px-3 py-2">
+                            <CollapsibleTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0 p-0">
+                                <ChevronDown className="h-3.5 w-3.5 transition-transform [[data-state=open]>&]:rotate-180" />
+                              </Button>
+                            </CollapsibleTrigger>
+                            <span className="text-xs text-muted-foreground w-[70px] flex-shrink-0">{i.interaction_date ? format(new Date(i.interaction_date), 'dd/MM/yy') : ''}</span>
+                            <Badge variant="secondary" className="text-xs flex-shrink-0">{INTERACTION_TYPES.find(t => t.value === i.interaction_type)?.label || i.interaction_type}</Badge>
+                            <span className="text-xs truncate flex-1 text-muted-foreground">{i.notes || ''}</span>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={() => deleteInteraction.mutate(i.id)}>
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </Button>
+                          </div>
+                          <CollapsibleContent className="px-3 pb-2 pt-1">
+                            <p className="text-sm whitespace-pre-wrap">{i.notes || 'Sem notas.'}</p>
+                            {i.files && (
+                              <a href={i.files} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline mt-1 block">📎 {i.files.split('/').pop()}</a>
+                            )}
+                          </CollapsibleContent>
+                        </Collapsible>
                       ))}
                     </div>
-                    <div className="flex gap-2">
-                      <Input placeholder="Nova ação..." value={newAction} onChange={e => setNewAction(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddAction()} />
-                      <Button size="sm" variant="outline" onClick={handleAddAction}><Plus className="h-3 w-3" /></Button>
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
+                  )}
+                </div>
+
+                {/* Actions checklist */}
+                <Separator />
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold">Lista de Ações ({(actions.data || []).length})</h3>
+                  <div className="space-y-2">
+                    {(actions.data || []).map((a: any) => (
+                      <div key={a.id} className="flex items-center gap-2">
+                        <Checkbox
+                          checked={a.completed}
+                          onCheckedChange={checked => upsertLeadAction.mutate({ id: a.id, lead_id: a.lead_id, completed: !!checked })}
+                        />
+                        <span className={cn("text-sm flex-1", a.completed && "line-through text-muted-foreground")}>{a.task}</span>
+                        {a.deadline && <span className="text-xs text-muted-foreground">{format(new Date(a.deadline), 'dd/MM')}</span>}
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteLeadAction.mutate(a.id)}>
+                          <Trash2 className="h-3 w-3 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input placeholder="Nova ação..." value={newAction} onChange={e => setNewAction(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddAction()} />
+                    <Button size="sm" variant="outline" onClick={handleAddAction}><Plus className="h-3 w-3" /></Button>
+                  </div>
+                </div>
 
                 {/* Pipeline History */}
-                <Collapsible open={pipelinesOpen} onOpenChange={setPipelinesOpen}>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-between px-3 h-10 font-semibold text-sm">
-                      <div className="flex items-center gap-2">
-                        <GitBranch className="h-4 w-4 text-muted-foreground" />
-                        <span>Pipelines</span>
-                      </div>
-                      <ChevronDown className={cn("h-4 w-4 transition-transform", pipelinesOpen && "rotate-180")} />
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="px-1 pt-2">
-                    <PipelineHistory leadId={lead.id} />
-                  </CollapsibleContent>
-                </Collapsible>
+                <Separator />
+                <PipelineHistory leadId={lead.id} />
               </div>
             )}
 
