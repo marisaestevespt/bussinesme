@@ -112,7 +112,7 @@ async function gatherData(supabase: any, type: string) {
       const totalRevenue = monthSales.reduce((sum: number, s: any) => sum + (Number(s.invoice_total) || Number(s.amount) || 0), 0);
       const pendingTasks = (tasks.data || []).filter((t: any) => t.status !== "concluida" && t.status !== "cancelada");
       const overdueTasks = pendingTasks.filter((t: any) => t.due_date && new Date(t.due_date) < now);
-      const totalExpenses = (expenses.data || []).reduce((sum: number, e: any) => sum + (Number(e.total_with_vat) || Number(e.amount) || 0), 0);
+      const totalExpenses = (expenses.data || []).reduce((sum: number, e: any) => sum + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0);
 
       return {
         periodo: `${String(month).padStart(2, "0")}/${year}`,
