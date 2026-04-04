@@ -120,6 +120,7 @@ function AppRoutes() {
   // Check suspension AFTER auth but BEFORE app content
   if (suspended) {
     return <SuspensionScreen />;
+  }
 
   if (!isSetupComplete) {
     return (
