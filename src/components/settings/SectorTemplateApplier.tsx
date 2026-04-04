@@ -5,8 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Sparkles, FileText, DollarSign, GitBranch, CalendarCheck, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
-import { SECTOR_TEMPLATES, type SectorTemplateData } from '@/lib/sector-templates';
+import { Sparkles, FileText, DollarSign, CalendarCheck, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { SECTOR_TEMPLATES } from '@/lib/sector-templates';
 import { SECTOR_OPTIONS, type BusinessSector } from '@/lib/sector-config';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -14,18 +14,24 @@ interface Props {
   sector: BusinessSector;
 }
 
-type TemplateCategory = 'sops' | 'categories' | 'processes' | 'routines';
+type TemplateCategory = 'sops' | 'categories' | 'routines';
 
 const CATEGORY_META: Record<TemplateCategory, { label: string; icon: typeof FileText; description: string }> = {
   sops: { label: 'SOPs', icon: FileText, description: 'Procedimentos operacionais padrão' },
   categories: { label: 'Categorias Financeiras', icon: DollarSign, description: 'Categorias de receita e despesa' },
-  processes: { label: 'Processos', icon: GitBranch, description: 'Processos departamentais tipo' },
   routines: { label: 'Rotinas', icon: CalendarCheck, description: 'Rotinas recorrentes sugeridas' },
+};
+
+const FREQ_MAP: Record<string, string> = {
+  diaria: 'daily',
+  semanal: 'weekly',
+  mensal: 'monthly',
+  trimestral: 'quarterly',
 };
 
 export function SectorTemplateApplier({ sector }: Props) {
   const { user } = useAuth();
-  const [selected, setSelected] = useState<Set<TemplateCategory>>(new Set(['sops', 'categories', 'processes', 'routines']));
+  const [selected, setSelected] = useState<Set<TemplateCategory>>(new Set(['sops', 'categories', 'routines']));
   const [expanded, setExpanded] = useState<TemplateCategory | null>(null);
   const [applying, setApplying] = useState(false);
   const [showPanel, setShowPanel] = useState(false);
@@ -48,55 +54,42 @@ export function SectorTemplateApplier({ sector }: Props) {
 
     try {
       const userId = user?.id;
-      let sopCount = 0, catCount = 0, procCount = 0, routCount = 0;
+      let sopCount = 0, catCount = 0, routCount = 0;
 
       if (selected.has('sops') && templates.sops.length > 0) {
         for (const sop of templates.sops) {
           const { error } = await supabase.from('sops').insert({
-            title: sop.title,
+            name: sop.title,
             department: sop.department,
-            content: sop.steps.map((s, i) => `${i + 1}. ${s}`).join('\n'),
+            passos: sop.steps.map((s, i) => ({ id: crypto.randomUUID(), order: i + 1, text: s })),
             status: 'ativo',
             created_by: userId,
-            source: 'template',
-          } as any);
+          });
           if (!error) sopCount++;
         }
       }
 
       if (selected.has('categories') && templates.categories.length > 0) {
         for (const cat of templates.categories) {
+          const value = cat.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
           const { error } = await supabase.from('financial_categories').insert({
-            name: cat.name,
-            type: cat.type,
-            source: 'template',
-          } as any);
+            label: cat.name,
+            value,
+            category_type: cat.type === 'receita' ? 'entrada' : 'saida',
+          });
           if (!error) catCount++;
-        }
-      }
-
-      if (selected.has('processes') && templates.processes.length > 0) {
-        for (const proc of templates.processes) {
-          const { error } = await supabase.from('department_processes').insert({
-            name: proc.name,
-            department: proc.department,
-            steps: proc.steps,
-            source: 'template',
-          } as any);
-          if (!error) procCount++;
         }
       }
 
       if (selected.has('routines') && templates.routines.length > 0) {
         for (const routine of templates.routines) {
           const { error } = await supabase.from('planning_routines').insert({
-            name: routine.name,
-            frequency: routine.frequency,
+            title: routine.name,
+            recurrence_type: FREQ_MAP[routine.frequency] || 'weekly',
             department: routine.department,
-            description: routine.description,
-            is_active: true,
-            source: 'template',
-          } as any);
+            active: true,
+            created_by: userId,
+          });
           if (!error) routCount++;
         }
       }
@@ -104,7 +97,6 @@ export function SectorTemplateApplier({ sector }: Props) {
       const parts: string[] = [];
       if (sopCount) parts.push(`${sopCount} SOPs`);
       if (catCount) parts.push(`${catCount} categorias`);
-      if (procCount) parts.push(`${procCount} processos`);
       if (routCount) parts.push(`${routCount} rotinas`);
 
       if (parts.length > 0) {
@@ -119,6 +111,13 @@ export function SectorTemplateApplier({ sector }: Props) {
     } finally {
       setApplying(false);
     }
+  };
+
+  // Combine all template items for display
+  const displayItems: Record<TemplateCategory, Array<{ title?: string; name?: string; type?: string }>> = {
+    sops: templates.sops,
+    categories: templates.categories,
+    routines: templates.routines,
   };
 
   if (!showPanel) {
@@ -150,7 +149,7 @@ export function SectorTemplateApplier({ sector }: Props) {
         {(Object.keys(CATEGORY_META) as TemplateCategory[]).map(cat => {
           const meta = CATEGORY_META[cat];
           const Icon = meta.icon;
-          const items = templates[cat];
+          const items = displayItems[cat];
           const isExpanded = expanded === cat;
 
           return (
@@ -185,7 +184,14 @@ export function SectorTemplateApplier({ sector }: Props) {
                     {items.map((item: any, i: number) => (
                       <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
                         <span className="text-primary mt-0.5">•</span>
-                        <span>{item.title || item.name} {item.type && <Badge variant="outline" className="text-[9px] ml-1 px-1 py-0">{item.type}</Badge>}</span>
+                        <span>
+                          {item.title || item.name}
+                          {item.type && (
+                            <Badge variant="outline" className="text-[9px] ml-1 px-1 py-0">
+                              {item.type === 'receita' ? 'receita' : 'despesa'}
+                            </Badge>
+                          )}
+                        </span>
                       </li>
                     ))}
                   </ul>
