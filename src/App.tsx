@@ -76,6 +76,8 @@ import FornecedoresPage from "./pages/Fornecedores";
 import OperacaoPage from "./pages/Operacao";
 import RecursosHumanosSubPage from "./pages/RecursosHumanosSubPage";
 import { ensureYearRoutineTasks } from '@/hooks/usePlanningRoutines';
+import { useSuspensionCheck } from '@/hooks/useSuspensionCheck';
+import { SuspensionScreen } from '@/components/SuspensionScreen';
 
 import { useEffect, useRef } from 'react';
 
