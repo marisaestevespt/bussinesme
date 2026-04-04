@@ -225,7 +225,7 @@ function VisaoGeralTab({ projectId, tasks, launchData, profiles, profileMap, qc,
           {[
             { key: 'links', icon: Link2, label: 'Links Úteis' },
             { key: 'materiais', icon: Package, label: 'Materiais & Recursos' },
-            { key: 'produto', icon: Layers, label: 'Produto/Serviço' },
+            { key: 'produto', icon: Layers, label: 'Produto' },
           ].map(i => (
             <button key={i.key} onClick={() => onNavigateContent(i.key)} className="w-full flex items-center gap-2.5 p-3 rounded-lg border hover:bg-muted/50 transition-colors text-left">
               <i.icon className="h-4 w-4 text-primary shrink-0" />
