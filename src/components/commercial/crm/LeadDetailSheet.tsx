@@ -477,51 +477,33 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                 </div>
 
                 {/* Actions checklist */}
-                <Collapsible open={actionsOpen} onOpenChange={setActionsOpen}>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-between px-3 h-10 font-semibold text-sm">
-                      <span>Lista de Ações ({(actions.data || []).length})</span>
-                      <ChevronDown className={cn("h-4 w-4 transition-transform", actionsOpen && "rotate-180")} />
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="space-y-3 px-1 pt-2">
-                    <div className="space-y-2">
-                      {(actions.data || []).map((a: any) => (
-                        <div key={a.id} className="flex items-center gap-2">
-                          <Checkbox
-                            checked={a.completed}
-                            onCheckedChange={checked => upsertLeadAction.mutate({ id: a.id, lead_id: a.lead_id, completed: !!checked })}
-                          />
-                          <span className={cn("text-sm flex-1", a.completed && "line-through text-muted-foreground")}>{a.task}</span>
-                          {a.deadline && <span className="text-xs text-muted-foreground">{format(new Date(a.deadline), 'dd/MM')}</span>}
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteLeadAction.mutate(a.id)}>
-                            <Trash2 className="h-3 w-3 text-destructive" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex gap-2">
-                      <Input placeholder="Nova ação..." value={newAction} onChange={e => setNewAction(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddAction()} />
-                      <Button size="sm" variant="outline" onClick={handleAddAction}><Plus className="h-3 w-3" /></Button>
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
+                <Separator />
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold">Lista de Ações ({(actions.data || []).length})</h3>
+                  <div className="space-y-2">
+                    {(actions.data || []).map((a: any) => (
+                      <div key={a.id} className="flex items-center gap-2">
+                        <Checkbox
+                          checked={a.completed}
+                          onCheckedChange={checked => upsertLeadAction.mutate({ id: a.id, lead_id: a.lead_id, completed: !!checked })}
+                        />
+                        <span className={cn("text-sm flex-1", a.completed && "line-through text-muted-foreground")}>{a.task}</span>
+                        {a.deadline && <span className="text-xs text-muted-foreground">{format(new Date(a.deadline), 'dd/MM')}</span>}
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteLeadAction.mutate(a.id)}>
+                          <Trash2 className="h-3 w-3 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input placeholder="Nova ação..." value={newAction} onChange={e => setNewAction(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddAction()} />
+                    <Button size="sm" variant="outline" onClick={handleAddAction}><Plus className="h-3 w-3" /></Button>
+                  </div>
+                </div>
 
                 {/* Pipeline History */}
-                <Collapsible open={pipelinesOpen} onOpenChange={setPipelinesOpen}>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-between px-3 h-10 font-semibold text-sm">
-                      <div className="flex items-center gap-2">
-                        <GitBranch className="h-4 w-4 text-muted-foreground" />
-                        <span>Pipelines</span>
-                      </div>
-                      <ChevronDown className={cn("h-4 w-4 transition-transform", pipelinesOpen && "rotate-180")} />
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="px-1 pt-2">
-                    <PipelineHistory leadId={lead.id} />
-                  </CollapsibleContent>
-                </Collapsible>
+                <Separator />
+                <PipelineHistory leadId={lead.id} />
               </div>
             )}
 
