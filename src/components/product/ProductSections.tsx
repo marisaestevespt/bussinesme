@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { LinkedSopsSection } from '@/components/LinkedSopsSection';
+import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
 
 // ─── Processos Section ─────────────────────────────────────────
 
