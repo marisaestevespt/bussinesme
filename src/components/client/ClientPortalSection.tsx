@@ -215,27 +215,63 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
       <Card>
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
           <CardTitle className="text-sm">Perguntas Iniciais</CardTitle>
-          <Button size="sm" variant="outline" onClick={() => addQuestion.mutate({ portal_id: portalId!, question: '', sort_order: (questions.data?.length || 0) })}>
+          <Button size="sm" variant="outline" onClick={() => addQuestion.mutate({ portal_id: portalId!, question: '', sort_order: (questions.data?.length || 0), answer_type: 'text' })}>
             <Plus className="h-3 w-3 mr-1" />Nova Pergunta
           </Button>
         </CardHeader>
         <CardContent className="space-y-2">
-          {(questions.data || []).map(q => (
-            <div key={q.id} className="flex gap-2 items-start border rounded-md p-2">
-              <div className="flex-1 space-y-1">
-                <Input className="h-7 text-xs" defaultValue={q.question} placeholder="Pergunta" onBlur={e => updateQuestion.mutate({ id: q.id, question: e.target.value })} />
-                {q.answer ? (
-                  <div className="bg-muted/50 p-2 rounded text-xs">
-                    <span className="font-medium">Resposta do cliente:</span> {q.answer}
-                    {q.answered_at && <span className="text-muted-foreground ml-2">({format(parseISO(q.answered_at), 'dd/MM/yyyy HH:mm')})</span>}
+          {(questions.data || []).map(q => {
+            const answerType = (q as any).answer_type || 'text';
+            const fileUrls: string[] = Array.isArray((q as any).file_urls) ? (q as any).file_urls : [];
+            return (
+              <div key={q.id} className="flex gap-2 items-start border rounded-md p-2">
+                <div className="flex-1 space-y-1">
+                  <div className="flex gap-2 items-center">
+                    <Input className="h-7 text-xs flex-1" defaultValue={q.question} placeholder="Pergunta" onBlur={e => updateQuestion.mutate({ id: q.id, question: e.target.value })} />
+                    <Select value={answerType} onValueChange={v => updateQuestion.mutate({ id: q.id, answer_type: v } as any)}>
+                      <SelectTrigger className="h-7 w-[110px] text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="text"><span className="flex items-center gap-1"><FileText className="h-3 w-3" /> Texto</span></SelectItem>
+                        <SelectItem value="file"><span className="flex items-center gap-1"><Upload className="h-3 w-3" /> Ficheiro</span></SelectItem>
+                        <SelectItem value="image"><span className="flex items-center gap-1"><ImageIcon className="h-3 w-3" /> Imagem</span></SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                ) : (
-                  <p className="text-xs text-muted-foreground italic">Aguardando resposta do cliente</p>
-                )}
+                  {q.answer ? (
+                    <div className="bg-muted/50 p-2 rounded text-xs">
+                      <span className="font-medium">Resposta do cliente:</span> {q.answer}
+                      {q.answered_at && <span className="text-muted-foreground ml-2">({format(parseISO(q.answered_at), 'dd/MM/yyyy HH:mm')})</span>}
+                    </div>
+                  ) : null}
+                  {fileUrls.length > 0 && (
+                    <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
+                      <span className="font-medium">Ficheiros enviados:</span>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {fileUrls.map((url: string, i: number) => {
+                          const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+                          return isImage ? (
+                            <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                              <img src={url} alt="" className="h-16 w-16 object-cover rounded border" />
+                            </a>
+                          ) : (
+                            <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
+                              <FileText className="h-3 w-3" />{url.split('/').pop()}
+                            </a>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  {!q.answer && fileUrls.length === 0 && (
+                    <p className="text-xs text-muted-foreground italic">Aguardando resposta do cliente</p>
+                  )}
+                </div>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteQuestion.mutate(q.id)}><X className="h-3 w-3" /></Button>
               </div>
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteQuestion.mutate(q.id)}><X className="h-3 w-3" /></Button>
-            </div>
-          ))}
+            );
+          })}
           {(questions.data || []).length === 0 && <p className="text-xs text-muted-foreground">Sem perguntas definidas</p>}
         </CardContent>
       </Card>
