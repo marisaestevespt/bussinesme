@@ -154,8 +154,8 @@ async function gatherData(supabase: any, type: string) {
 
     case "financial": {
       const [expenses, sales] = await Promise.all([
-        supabase.from("financial_expenses").select("id, amount, total_with_vat, expense_date, category, description, status").gte("expense_date", `${year}-01-01`).lt("expense_date", `${year + 1}-01-01`).order("expense_date", { ascending: false }).limit(500),
-        supabase.from("commercial_sales").select("id, invoice_total, amount, payment_date, client, product, status, sale_month").eq("sale_year", year).order("payment_date", { ascending: false }).limit(500),
+        supabase.from("financial_expenses").select("id, base_value, total_with_vat, expense_date, category, description, status").gte("expense_date", `${year}-01-01`).lt("expense_date", `${year + 1}-01-01`).order("expense_date", { ascending: false }).limit(500),
+        supabase.from("commercial_sales").select("id, invoice_total, base_value, payment_date, client, product, status, sale_month").eq("sale_year", year).order("payment_date", { ascending: false }).limit(500),
       ]);
 
       const byMonth = (items: any[], dateField: string, amountField: string) => {
