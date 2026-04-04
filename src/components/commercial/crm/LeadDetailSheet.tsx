@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,12 +12,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Plus, Trash2, GitBranch, UserPlus, Video } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { CalendarIcon, Plus, Trash2, GitBranch, UserPlus, Video, ChevronDown, Upload } from 'lucide-react';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { CRM_STATUSES, CRM_SOURCES, INTERACTION_TYPES, statusLabel, getFollowUpState } from '@/hooks/useCrmData';
 import { useCrmData } from '@/hooks/useCrmData';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -47,6 +47,9 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
   const [meetingDate, setMeetingDate] = useState<Date | undefined>(undefined);
   const [meetingTime, setMeetingTime] = useState('10:00');
   const [meetingTitle, setMeetingTitle] = useState('');
+  const [interactionsOpen, setInteractionsOpen] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [pipelinesOpen, setPipelinesOpen] = useState(false);
   const qc = useQueryClient();
 
   const interactions = useLeadInteractions(lead?.id || null);
@@ -128,12 +131,23 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
     setNewAction('');
   };
 
+  const handleFileUpload = async (file: File) => {
+    if (!lead?.id) return;
+    const path = `crm/${lead.id}/${Date.now()}_${file.name}`;
+    const { error: uploadErr } = await supabase.storage.from('commercial-files').upload(path, file);
+    if (uploadErr) { toast.error('Erro ao fazer upload'); return; }
+    const { data: urlData } = supabase.storage.from('commercial-files').getPublicUrl(path);
+    const currentDocs = form.documents || '';
+    const newDocs = currentDocs ? `${currentDocs}\n${urlData.publicUrl}` : urlData.publicUrl;
+    set({ documents: newDocs });
+    toast.success('Ficheiro carregado!');
+  };
+
   const handleConvertToClient = async () => {
     if (!lead?.id) return;
     try {
       const productName = form.closed_product || form.potential_product || null;
 
-      // 1. Create client with mapped fields
       const { data: newClient, error: clientError } = await supabase.from('clients').insert({
         full_name: form.name || '',
         email: form.email || null,
@@ -145,11 +159,9 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
       }).select('id').single();
       if (clientError) throw clientError;
 
-      // 2. Calculate time in CRM
       const addedDate = form.added_at ? parseISO(form.added_at) : new Date();
       const daysInCrm = differenceInDays(new Date(), addedDate);
 
-      // 3. Build history entry text with CRM data
       const responsibleName = profiles.find(p => p.id === form.responsible_id)?.full_name || '';
       const parts = [
         `Convertido de Lead CRM`,
@@ -166,7 +178,6 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
         form.followup_notes ? `Notas FU: ${form.followup_notes}` : null,
       ].filter(Boolean).join('\n');
 
-      // 4. Create history entry
       await supabase.from('client_history').insert({
         client_id: newClient.id,
         entry_date: format(new Date(), 'yyyy-MM-dd'),
@@ -174,17 +185,14 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
         observations: observations || null,
       });
 
-      // 5. Auto-create project if product is associated
       let createdProjectId: string | null = null;
       if (productName) {
-        // Find product to get product_type, sales_type and cycle_duration
         const { data: matchedProduct } = await supabase
           .from('products')
           .select('id, product_type, sales_type, cycle_duration')
           .eq('name', productName)
           .maybeSingle();
 
-        // Calculate deadline from today + cycle_duration
         let deadline: string | null = null;
         if (matchedProduct?.cycle_duration) {
           const end = new Date();
@@ -209,7 +217,6 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
 
         createdProjectId = newProject?.id || null;
 
-        // 6. Auto-create portal if product type supports it
         if (matchedProduct?.product_type) {
           const projetoTypes = ['projeto_1_1', 'consultoria_individual', 'consultoria_grupo', 'mentoria_individual', 'mentoria_grupo'];
           let portalType: 'projeto_unico' | 'servico_mensal' | null = null;
@@ -223,7 +230,6 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
               is_active: true,
             });
 
-            // Seed FAQs from product
             if (matchedProduct.id) {
               const { data: productData } = await supabase
                 .from('products')
@@ -268,15 +274,17 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
     }
   };
 
+  const docLinks = (form.documents || '').split('\n').filter(Boolean);
+
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>{form.id ? 'Ficha do Lead' : 'Nova Lead'}</SheetTitle>
-          </SheetHeader>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{form.id ? 'Ficha do Lead' : 'Nova Lead'}</DialogTitle>
+          </DialogHeader>
 
-          <div className="space-y-5 mt-4">
+          <div className="space-y-5 mt-2">
             {/* Core fields */}
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2">
@@ -361,37 +369,44 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                 <Label>Notas FU</Label>
                 <Input value={form.followup_notes || ''} onChange={e => set({ followup_notes: e.target.value })} />
               </div>
-              <div className="col-span-2 space-y-2">
-                <Label>Documentos</Label>
-                <Input value={form.documents || ''} onChange={e => set({ documents: e.target.value })} placeholder="Link para documentos (https://...)" />
-                {lead?.id && (
-                  <div className="flex items-center gap-2">
-                    <Input
+            </div>
+
+            {/* Documents section */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Documentos</Label>
+              <Input value={form.documents || ''} onChange={e => set({ documents: e.target.value })} placeholder="Link para documentos (https://...)" />
+              {lead?.id && (
+                <div>
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors border border-dashed rounded-md p-3 justify-center">
+                    <Upload className="h-4 w-4" />
+                    <span>Fazer upload de ficheiro</span>
+                    <input
                       type="file"
-                      className="text-xs"
-                      onChange={async (e) => {
+                      className="hidden"
+                      onChange={e => {
                         const file = e.target.files?.[0];
-                        if (!file || !lead?.id) return;
-                        const path = `crm/${lead.id}/${Date.now()}_${file.name}`;
-                        const { error: uploadErr } = await supabase.storage.from('commercial-files').upload(path, file);
-                        if (uploadErr) { toast.error('Erro ao fazer upload'); return; }
-                        const { data: urlData } = supabase.storage.from('commercial-files').getPublicUrl(path);
-                        const currentDocs = form.documents || '';
-                        const newDocs = currentDocs ? `${currentDocs}\n${urlData.publicUrl}` : urlData.publicUrl;
-                        set({ documents: newDocs });
-                        toast.success('Ficheiro carregado!');
+                        if (file) handleFileUpload(file);
+                        e.target.value = '';
                       }}
                     />
-                  </div>
-                )}
-                {form.documents && form.documents.includes('\n') && (
-                  <div className="space-y-1">
-                    {form.documents.split('\n').filter(Boolean).map((url: string, i: number) => (
-                      <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline block truncate">{url.split('/').pop()}</a>
-                    ))}
-                  </div>
-                )}
-              </div>
+                  </label>
+                </div>
+              )}
+              {docLinks.length > 0 && (
+                <div className="space-y-1 rounded-md border p-2">
+                  {docLinks.map((url: string, i: number) => (
+                    <div key={i} className="flex items-center justify-between gap-2">
+                      <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate flex-1">{decodeURIComponent(url.split('/').pop() || url)}</a>
+                      <Button variant="ghost" size="icon" className="h-5 w-5 flex-shrink-0" onClick={() => {
+                        const updated = docLinks.filter((_, j) => j !== i).join('\n');
+                        set({ documents: updated });
+                      }}>
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <Separator />
@@ -409,92 +424,113 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
               </div>
             )}
 
-            <Button className="w-full" onClick={handleSave}>Guardar</Button>
+            <div className="flex gap-2">
+              <Button className="flex-1" onClick={handleSave}>Guardar</Button>
+              {lead?.id && (
+                <Button variant="outline" className="border-primary text-primary hover:bg-primary/10" onClick={handleConvertToClient}>
+                  <UserPlus className="h-4 w-4 mr-2" /> Converter em Cliente
+                </Button>
+              )}
+            </div>
 
-            {/* Convert to client button - only for saved leads with status "ganho" */}
-            {lead?.id && (form.status === 'ganho') && (
-              <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10" onClick={handleConvertToClient}>
-                <UserPlus className="h-4 w-4 mr-2" /> Converter em Cliente
-              </Button>
-            )}
-
-            {/* Schedule meeting button - for saved leads */}
+            {/* Schedule meeting button */}
             {lead?.id && (
               <Button variant="outline" className="w-full" onClick={() => { setMeetingTitle(`Diagnóstico — ${form.name || 'Lead'}`); setMeetingDate(undefined); setMeetingTime('10:00'); setMeetingDialog(true); }}>
                 <Video className="h-4 w-4 mr-2" /> Agendar Reunião
               </Button>
             )}
 
-            {/* Interactions - only for saved leads */}
+            {/* Collapsible sections for saved leads */}
             {lead?.id && (
-              <>
-                <Separator />
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold">Histórico de Interações</h3>
-                    <Button variant="outline" size="sm" onClick={() => setInteractionDialog(true)}><Plus className="h-3 w-3 mr-1" />Nova</Button>
-                  </div>
-                  {(interactions.data || []).length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Sem interações registadas.</p>
-                  ) : (
-                    <Table>
-                      <TableHeader><TableRow>
-                        <TableHead className="w-[90px]">Data</TableHead>
-                        <TableHead className="w-[100px]">Tipo</TableHead>
-                        <TableHead>Notas</TableHead>
-                        <TableHead className="w-[50px]"></TableHead>
-                      </TableRow></TableHeader>
-                      <TableBody>
-                        {(interactions.data || []).map((i: any) => (
-                          <TableRow key={i.id}>
-                            <TableCell className="text-xs">{i.interaction_date ? format(new Date(i.interaction_date), 'dd/MM/yy') : ''}</TableCell>
-                            <TableCell><Badge variant="secondary" className="text-xs">{INTERACTION_TYPES.find(t => t.value === i.interaction_type)?.label || i.interaction_type}</Badge></TableCell>
-                            <TableCell className="text-xs">{i.notes || '—'}</TableCell>
-                            <TableCell>
-                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteInteraction.mutate(i.id)}>
-                                <Trash2 className="h-3 w-3 text-destructive" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </div>
+              <div className="space-y-2">
+                {/* Interactions */}
+                <Collapsible open={interactionsOpen} onOpenChange={setInteractionsOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" className="w-full justify-between px-3 h-10 font-semibold text-sm">
+                      <span>Histórico de Interações ({(interactions.data || []).length})</span>
+                      <ChevronDown className={cn("h-4 w-4 transition-transform", interactionsOpen && "rotate-180")} />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-3 px-1 pt-2">
+                    <div className="flex justify-end">
+                      <Button variant="outline" size="sm" onClick={() => setInteractionDialog(true)}><Plus className="h-3 w-3 mr-1" />Nova</Button>
+                    </div>
+                    {(interactions.data || []).length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Sem interações registadas.</p>
+                    ) : (
+                      <Table>
+                        <TableHeader><TableRow>
+                          <TableHead className="w-[90px]">Data</TableHead>
+                          <TableHead className="w-[100px]">Tipo</TableHead>
+                          <TableHead>Notas</TableHead>
+                          <TableHead className="w-[50px]"></TableHead>
+                        </TableRow></TableHeader>
+                        <TableBody>
+                          {(interactions.data || []).map((i: any) => (
+                            <TableRow key={i.id}>
+                              <TableCell className="text-xs">{i.interaction_date ? format(new Date(i.interaction_date), 'dd/MM/yy') : ''}</TableCell>
+                              <TableCell><Badge variant="secondary" className="text-xs">{INTERACTION_TYPES.find(t => t.value === i.interaction_type)?.label || i.interaction_type}</Badge></TableCell>
+                              <TableCell className="text-xs">{i.notes || '—'}</TableCell>
+                              <TableCell>
+                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteInteraction.mutate(i.id)}>
+                                  <Trash2 className="h-3 w-3 text-destructive" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </CollapsibleContent>
+                </Collapsible>
 
                 {/* Actions checklist */}
-                <Separator />
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold">Lista de Ações</h3>
-                  <div className="space-y-2">
-                    {(actions.data || []).map((a: any) => (
-                      <div key={a.id} className="flex items-center gap-2">
-                        <Checkbox
-                          checked={a.completed}
-                          onCheckedChange={checked => upsertLeadAction.mutate({ id: a.id, lead_id: a.lead_id, completed: !!checked })}
-                        />
-                        <span className={cn("text-sm flex-1", a.completed && "line-through text-muted-foreground")}>{a.task}</span>
-                        {a.deadline && <span className="text-xs text-muted-foreground">{format(new Date(a.deadline), 'dd/MM')}</span>}
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteLeadAction.mutate(a.id)}>
-                          <Trash2 className="h-3 w-3 text-destructive" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <Input placeholder="Nova ação..." value={newAction} onChange={e => setNewAction(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddAction()} />
-                    <Button size="sm" variant="outline" onClick={handleAddAction}><Plus className="h-3 w-3" /></Button>
-                  </div>
-                </div>
-              </>
-            )}
+                <Collapsible open={actionsOpen} onOpenChange={setActionsOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" className="w-full justify-between px-3 h-10 font-semibold text-sm">
+                      <span>Lista de Ações ({(actions.data || []).length})</span>
+                      <ChevronDown className={cn("h-4 w-4 transition-transform", actionsOpen && "rotate-180")} />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-3 px-1 pt-2">
+                    <div className="space-y-2">
+                      {(actions.data || []).map((a: any) => (
+                        <div key={a.id} className="flex items-center gap-2">
+                          <Checkbox
+                            checked={a.completed}
+                            onCheckedChange={checked => upsertLeadAction.mutate({ id: a.id, lead_id: a.lead_id, completed: !!checked })}
+                          />
+                          <span className={cn("text-sm flex-1", a.completed && "line-through text-muted-foreground")}>{a.task}</span>
+                          {a.deadline && <span className="text-xs text-muted-foreground">{format(new Date(a.deadline), 'dd/MM')}</span>}
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteLeadAction.mutate(a.id)}>
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <Input placeholder="Nova ação..." value={newAction} onChange={e => setNewAction(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddAction()} />
+                      <Button size="sm" variant="outline" onClick={handleAddAction}><Plus className="h-3 w-3" /></Button>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
 
-            {/* Pipeline History */}
-            {lead?.id && (
-              <>
-                <Separator />
-                <PipelineHistory leadId={lead.id} />
-              </>
+                {/* Pipeline History */}
+                <Collapsible open={pipelinesOpen} onOpenChange={setPipelinesOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" className="w-full justify-between px-3 h-10 font-semibold text-sm">
+                      <div className="flex items-center gap-2">
+                        <GitBranch className="h-4 w-4 text-muted-foreground" />
+                        <span>Pipelines</span>
+                      </div>
+                      <ChevronDown className={cn("h-4 w-4 transition-transform", pipelinesOpen && "rotate-180")} />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="px-1 pt-2">
+                    <PipelineHistory leadId={lead.id} />
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
             )}
 
             {/* Delete */}
@@ -507,8 +543,8 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
               </>
             )}
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       {/* New Interaction Dialog */}
       <InteractionDialog
@@ -574,7 +610,6 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                 department: 'comercial',
               });
               if (error) { toast.error('Erro ao criar reunião'); return; }
-              // Also register interaction
               if (lead?.id) {
                 await supabase.from('crm_interactions').insert({
                   lead_id: lead.id,
@@ -686,7 +721,6 @@ function PipelineHistory({ leadId }: { leadId: string }) {
     enabled: !!leadId,
   });
 
-  // All pipelines for move dialog
   const { data: allPipelines = [] } = useQuery({
     queryKey: ['crm-all-pipelines'],
     queryFn: async () => {
@@ -708,7 +742,6 @@ function PipelineHistory({ leadId }: { leadId: string }) {
   const moveLead = useMutation({
     mutationFn: async () => {
       if (!selectedPipeline || !selectedStage) return;
-      // Check if already in this pipeline
       const existing = history.find(h => h.pipelineId === selectedPipeline);
       if (existing) {
         const { error } = await supabase.from('crm_pipeline_leads')
@@ -736,11 +769,7 @@ function PipelineHistory({ leadId }: { leadId: string }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <GitBranch className="h-4 w-4 text-muted-foreground" />
-          <h3 className="text-sm font-semibold">Pipelines</h3>
-        </div>
+      <div className="flex justify-end">
         <Button variant="outline" size="sm" onClick={() => setMoveOpen(true)}>
           <Plus className="h-3 w-3 mr-1" /> Mover para Pipeline
         </Button>
