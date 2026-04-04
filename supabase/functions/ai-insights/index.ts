@@ -126,8 +126,8 @@ async function gatherData(supabase: any, type: string) {
     case "alerts": {
       const [clients, tasks, sales, nps] = await Promise.all([
         supabase.from("clients").select("id, full_name, status, end_of_cycle, start_date, email").eq("status", "ativo").limit(500),
-        supabase.from("tasks").select("id, title, status, due_date, assigned_to").not("status", "in", '("concluida","cancelada")').limit(500),
-        supabase.from("commercial_sales").select("id, client, base_value, invoice_total, status, payment_date").eq("status", "pendente").limit(200),
+        supabase.from("tasks").select("id, name, status, deadline, assigned_to").not("status", "in", '("concluida","cancelada")').limit(500),
+        supabase.from("commercial_sales").select("id, client, base_value, invoice_total, status, payment_date").in("status", ["pendente", "aguarda_pagamento"]).limit(200),
         supabase.from("client_nps_records").select("id, client_id, status, expected_date").eq("status", "pending").limit(200),
       ]);
 
