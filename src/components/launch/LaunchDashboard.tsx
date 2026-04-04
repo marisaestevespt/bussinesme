@@ -1022,7 +1022,7 @@ function LinksUteisSection({ data, onSave }: any) {
   const categories = [
     { value: 'geral', label: 'Geral' },
     { value: 'antecipacao', label: 'Antecipação / Captação' },
-    { value: 'venda', label: 'Venda do Produto/Serviço' },
+    { value: 'venda', label: 'Venda do Produto' },
   ];
 
   return (
