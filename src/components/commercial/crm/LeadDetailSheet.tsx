@@ -611,10 +611,35 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
 /* ─── Interaction Dialog ─── */
 function InteractionDialog({ open, onOpenChange, leadId, onSave }: { open: boolean; onOpenChange: (v: boolean) => void; leadId?: string; onSave: (r: any) => void }) {
   const [form, setForm] = useState({ interaction_date: new Date(), interaction_type: 'outro', notes: '', files: '' });
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (open) setForm({ interaction_date: new Date(), interaction_type: 'outro', notes: '', files: '' });
   }, [open]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    const urls: string[] = form.files ? form.files.split(',').map(u => u.trim()).filter(Boolean) : [];
+    try {
+      for (const file of Array.from(files)) {
+        const ext = file.name.split('.').pop();
+        const path = `crm-interactions/${leadId || 'new'}/${Date.now()}-${file.name}`;
+        const { error } = await supabase.storage.from('commercial-files').upload(path, file);
+        if (error) throw error;
+        const { data: urlData } = supabase.storage.from('commercial-files').getPublicUrl(path);
+        urls.push(urlData.publicUrl);
+      }
+      setForm(f => ({ ...f, files: urls.join(', ') }));
+      toast.success('Ficheiro(s) carregado(s)');
+    } catch (err: any) {
+      toast.error('Erro ao carregar ficheiro: ' + err.message);
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -643,8 +668,18 @@ function InteractionDialog({ open, onOpenChange, leadId, onSave }: { open: boole
             </Select>
           </div>
           <div><Label>Notas</Label><Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} /></div>
-          <div><Label>Ficheiros (link)</Label><Input value={form.files} onChange={e => setForm(f => ({ ...f, files: e.target.value }))} placeholder="https://..." /></div>
-          <Button className="w-full" onClick={() => onSave({
+          <div>
+            <Label>Ficheiros</Label>
+            <div className="flex gap-2">
+              <Input value={form.files} onChange={e => setForm(f => ({ ...f, files: e.target.value }))} placeholder="Cole um link ou faça upload" className="flex-1" />
+              <Button variant="outline" size="icon" className="shrink-0" disabled={uploading} onClick={() => document.getElementById('interaction-file-input')?.click()}>
+                <Upload className="h-4 w-4" />
+              </Button>
+              <input id="interaction-file-input" type="file" multiple className="hidden" onChange={handleFileUpload} />
+            </div>
+            {uploading && <p className="text-xs text-muted-foreground mt-1">A carregar...</p>}
+          </div>
+          <Button className="w-full" disabled={uploading} onClick={() => onSave({
             lead_id: leadId,
             interaction_date: format(form.interaction_date, 'yyyy-MM-dd'),
             interaction_type: form.interaction_type,
