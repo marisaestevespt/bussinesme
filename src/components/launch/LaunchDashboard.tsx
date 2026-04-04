@@ -941,7 +941,7 @@ function ProdutoSection({ data, onSave }: any) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold">Produto/Serviço</h2>
+      <h2 className="text-xl font-bold">Produto</h2>
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         {cards.map(c => (
           <button key={c.key} onClick={() => setSub(c.key)} className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border overflow-hidden h-28 transition-all hover:shadow-md text-center">
