@@ -996,7 +996,7 @@ function MateriaisSection({ data, onSave }: any) {
     <div className="space-y-4">
       <h2 className="text-xl font-bold">Materiais & Recursos</h2>
       <MaterialBlock title="Evento / Anúncio de Lançamento / Antecipação" value={antecipacao} onChange={setAntecipacao} />
-      <MaterialBlock title="Venda do Produto/Serviço" value={venda} onChange={setVenda} />
+      <MaterialBlock title="Venda do Produto" value={venda} onChange={setVenda} />
       <Button onClick={save} className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>
     </div>
   );
