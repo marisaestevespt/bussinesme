@@ -109,7 +109,7 @@ async function gatherData(supabase: any, type: string) {
       const activeClients = (clients.data || []).filter((c: any) => c.status === "ativo").length;
       const totalClients = (clients.data || []).length;
       const monthSales = (sales.data || []).filter((s: any) => s.sale_month === month);
-      const totalRevenue = monthSales.reduce((sum: number, s: any) => sum + (Number(s.invoice_total) || Number(s.amount) || 0), 0);
+      const totalRevenue = monthSales.reduce((sum: number, s: any) => sum + (Number(s.invoice_total) || Number(s.base_value) || 0), 0);
       const pendingTasks = (tasks.data || []).filter((t: any) => t.status !== "concluida" && t.status !== "cancelada");
       const overdueTasks = pendingTasks.filter((t: any) => t.due_date && new Date(t.due_date) < now);
       const totalExpenses = (expenses.data || []).reduce((sum: number, e: any) => sum + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0);
