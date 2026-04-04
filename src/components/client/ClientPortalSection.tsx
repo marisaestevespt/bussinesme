@@ -106,7 +106,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
         <CardContent>
           <p className="text-sm text-muted-foreground">
             O tipo de produto atual ({currentProduct || 'nenhum'}) não gera portal de cliente.
-            Apenas produtos do tipo Projeto 1:1, Consultoria, Mentoria ou Serviço Mensal criam portal.
+            Apenas produtos do tipo Projeto 1:1, Consultoria, Mentoria ou Produto Mensal criam portal.
           </p>
         </CardContent>
       </Card>
