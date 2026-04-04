@@ -186,7 +186,7 @@ async function gatherData(supabase: any, type: string) {
         const m = s.sale_month;
         if (!monthSales[m]) monthSales[m] = { count: 0, revenue: 0 };
         monthSales[m].count++;
-        monthSales[m].revenue += Number(s.amount) || 0;
+        monthSales[m].revenue += Number(s.invoice_total) || Number(s.base_value) || 0;
       }
 
       const leadsByStatus: Record<string, number> = {};
