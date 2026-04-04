@@ -33,7 +33,9 @@ export function SuspensionScreen() {
               Regularizar Pagamento
             </a>
             <a
-              href="mailto:suporte@lirah.pt"
+              href="https://wa.me/351910000000?text=Ol%C3%A1%2C%20preciso%20de%20ajuda%20com%20o%20meu%20acesso."
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-lg text-sm font-medium ring-offset-background transition-all duration-200 border border-input bg-background hover:bg-accent/50 hover:text-accent-foreground hover:border-accent h-10 px-6 w-full"
             >
               Contactar Suporte
