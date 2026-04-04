@@ -163,7 +163,7 @@ export function FinancialHealthSection({ sales, allSales, currentYear, month }: 
                 <p className="text-xs text-muted-foreground">MRR (Receita Recorrente)</p>
               </div>
               <p className="text-lg font-bold">{fmt(mrr.total)}</p>
-              <p className="text-[10px] text-muted-foreground">{mrr.count} cliente{mrr.count !== 1 ? 's' : ''} com serviço mensal</p>
+              <p className="text-[10px] text-muted-foreground">{mrr.count} cliente{mrr.count !== 1 ? 's' : ''} com produto mensal</p>
             </CardContent>
           </Card>
 

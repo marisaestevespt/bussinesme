@@ -702,7 +702,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           <p className="text-[10px] text-muted-foreground mb-2">Recebimentos este mês</p>
           <Table>
             <TableHeader><TableRow>
-              <TableHead>Nº Venda</TableHead><TableHead>Status</TableHead><TableHead>Data transação</TableHead><TableHead>Descrição</TableHead><TableHead className="text-right">Valor Base</TableHead><TableHead>Produto/Serviço</TableHead><TableHead>Cliente</TableHead>
+              <TableHead>Nº Venda</TableHead><TableHead>Status</TableHead><TableHead>Data transação</TableHead><TableHead>Descrição</TableHead><TableHead className="text-right">Valor Base</TableHead><TableHead>Produto</TableHead><TableHead>Cliente</TableHead>
             </TableRow></TableHeader>
             <TableBody>
               {sales.length === 0 ? (

@@ -106,7 +106,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
         <CardContent>
           <p className="text-sm text-muted-foreground">
             O tipo de produto atual ({currentProduct || 'nenhum'}) não gera portal de cliente.
-            Apenas produtos do tipo Projeto 1:1, Consultoria, Mentoria ou Serviço Mensal criam portal.
+            Apenas produtos do tipo Projeto 1:1, Consultoria, Mentoria ou Produto Mensal criam portal.
           </p>
         </CardContent>
       </Card>
@@ -168,7 +168,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
 
           {/* Tipo */}
           <div className="text-xs text-muted-foreground">
-            Tipo: <Badge variant="outline">{portalData.portal_type === 'projeto_unico' ? 'Projeto Único' : 'Serviço Mensal'}</Badge>
+            Tipo: <Badge variant="outline">{portalData.portal_type === 'projeto_unico' ? 'Projeto Único' : 'Produto Mensal'}</Badge>
           </div>
 
           {/* Toggles */}

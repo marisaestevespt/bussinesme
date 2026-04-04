@@ -72,7 +72,7 @@ const COMMON_VARS: TemplateVariable[] = [
 const PAYMENT_VARS: TemplateVariable[] = [
   ...COMMON_VARS,
   { token: '{amount}', label: 'Valor do pagamento', example: '350.00' },
-  { token: '{product}', label: 'Nome do produto/serviço', example: 'Consultoria Digital' },
+  { token: '{product}', label: 'Nome do produto', example: 'Consultoria Digital' },
 ];
 
 const TEMPLATES: TemplateDefaults[] = [

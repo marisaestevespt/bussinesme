@@ -36,7 +36,7 @@ const PHASES = [
   { value: 'estrategia', label: 'Estratégia', color: 'bg-violet-100 text-violet-800', dot: 'bg-violet-500' },
   { value: 'antecipacao', label: 'Antecipação', color: 'bg-amber-100 text-amber-800', dot: 'bg-amber-500' },
   { value: 'captacao', label: 'Captação', color: 'bg-blue-100 text-blue-800', dot: 'bg-blue-500' },
-  { value: 'produto_servico', label: 'Produto/Serviço', color: 'bg-emerald-100 text-emerald-800', dot: 'bg-emerald-500' },
+  { value: 'produto_servico', label: 'Produto', color: 'bg-emerald-100 text-emerald-800', dot: 'bg-emerald-500' },
   { value: 'venda', label: 'Venda', color: 'bg-rose-100 text-rose-800', dot: 'bg-rose-500' },
   { value: 'debriefing_pos_fecho', label: 'Debriefing & Pós Fecho', color: 'bg-slate-100 text-slate-800', dot: 'bg-slate-500' },
 ];
@@ -225,7 +225,7 @@ function VisaoGeralTab({ projectId, tasks, launchData, profiles, profileMap, qc,
           {[
             { key: 'links', icon: Link2, label: 'Links Úteis' },
             { key: 'materiais', icon: Package, label: 'Materiais & Recursos' },
-            { key: 'produto', icon: Layers, label: 'Produto/Serviço' },
+            { key: 'produto', icon: Layers, label: 'Produto' },
           ].map(i => (
             <button key={i.key} onClick={() => onNavigateContent(i.key)} className="w-full flex items-center gap-2.5 p-3 rounded-lg border hover:bg-muted/50 transition-colors text-left">
               <i.icon className="h-4 w-4 text-primary shrink-0" />
@@ -709,7 +709,7 @@ function ConteudoTab({ projectId, launchData, profiles, qc, initialSection, onCl
     { key: 'cronograma_content', icon: CalendarIcon, label: 'Cronograma' },
     { key: 'analise_publico', icon: Users, label: 'Análise do Público' },
     { key: 'estrategia_lanc', icon: Zap, label: 'Estratégia de Lançamento' },
-    { key: 'produto', icon: Layers, label: 'Produto/Serviço' },
+    { key: 'produto', icon: Layers, label: 'Produto' },
     { key: 'materiais', icon: Package, label: 'Materiais & Recursos' },
     { key: 'links', icon: Link2, label: 'Links Úteis' },
     { key: 'tracking', icon: BarChart3, label: 'Tracking de Resultados' },
@@ -921,7 +921,7 @@ function EstrategiaSection({ data, onSave }: any) {
   );
 }
 
-// ─── Produto/Serviço ────────────────────────────────────────────
+// ─── Produto ────────────────────────────────────────────
 
 function ProdutoSection({ data, onSave }: any) {
   const [sub, setSub] = useState<string | null>(null);
@@ -941,7 +941,7 @@ function ProdutoSection({ data, onSave }: any) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold">Produto/Serviço</h2>
+      <h2 className="text-xl font-bold">Produto</h2>
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         {cards.map(c => (
           <button key={c.key} onClick={() => setSub(c.key)} className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border overflow-hidden h-28 transition-all hover:shadow-md text-center">
@@ -996,7 +996,7 @@ function MateriaisSection({ data, onSave }: any) {
     <div className="space-y-4">
       <h2 className="text-xl font-bold">Materiais & Recursos</h2>
       <MaterialBlock title="Evento / Anúncio de Lançamento / Antecipação" value={antecipacao} onChange={setAntecipacao} />
-      <MaterialBlock title="Venda do Produto/Serviço" value={venda} onChange={setVenda} />
+      <MaterialBlock title="Venda do Produto" value={venda} onChange={setVenda} />
       <Button onClick={save} className="gap-2"><Save className="h-4 w-4" /> Guardar</Button>
     </div>
   );
@@ -1022,7 +1022,7 @@ function LinksUteisSection({ data, onSave }: any) {
   const categories = [
     { value: 'geral', label: 'Geral' },
     { value: 'antecipacao', label: 'Antecipação / Captação' },
-    { value: 'venda', label: 'Venda do Produto/Serviço' },
+    { value: 'venda', label: 'Venda do Produto' },
   ];
 
   return (

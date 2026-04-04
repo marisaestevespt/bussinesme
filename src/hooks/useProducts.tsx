@@ -17,7 +17,7 @@ export const ESCADA_OPTIONS = [
   { value: 'qualificacao', label: 'Qualificação' },
   { value: 'produto_entrada', label: 'Produto de Entrada' },
   { value: 'produto_intermedio', label: 'Produto Intermédio' },
-  { value: 'servico_premium', label: 'Serviço Premium' },
+  { value: 'servico_premium', label: 'Produto Premium' },
   { value: 'produto_recorrencia', label: 'Produto de Recorrência' },
 ] as const;
 
@@ -28,7 +28,7 @@ export const PRODUCT_TYPE_OPTIONS = [
   { value: 'consultoria_grupo', label: 'Consultoria em grupo' },
   { value: 'mentoria_individual', label: 'Mentoria individual' },
   { value: 'mentoria_grupo', label: 'Mentoria em grupo' },
-  { value: 'servico_mensal', label: 'Serviço mensal' },
+  { value: 'servico_mensal', label: 'Produto Mensal' },
   { value: 'template', label: 'Template' },
 ] as const;
 
