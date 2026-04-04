@@ -312,8 +312,15 @@ export default function PortalViewPage() {
                 );
               })()}
               {portal.show_payments && (() => {
+                const paidStatuses = ['pago', 'pago_falta_fatura'];
                 const next = payments
-                  .filter((p: any) => !['pago'].includes(p.status) && p.payment_date)
+                  .filter((p: any) => {
+                    if (!p.payment_date) return false;
+                    const isPaid = paidStatuses.includes(p.status);
+                    if (isPaid) return false;
+                    // Show future pending payments OR past overdue ones
+                    return true;
+                  })
                   .sort((a: any, b: any) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime())[0];
                 return (
                   <div
