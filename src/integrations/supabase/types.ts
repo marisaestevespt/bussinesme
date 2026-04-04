@@ -5581,8 +5581,10 @@ export type Database = {
       portal_initial_questions: {
         Row: {
           answer: string | null
+          answer_type: string
           answered_at: string | null
           created_at: string
+          file_urls: Json | null
           id: string
           portal_id: string
           question: string
@@ -5590,8 +5592,10 @@ export type Database = {
         }
         Insert: {
           answer?: string | null
+          answer_type?: string
           answered_at?: string | null
           created_at?: string
+          file_urls?: Json | null
           id?: string
           portal_id: string
           question: string
@@ -5599,8 +5603,10 @@ export type Database = {
         }
         Update: {
           answer?: string | null
+          answer_type?: string
           answered_at?: string | null
           created_at?: string
+          file_urls?: Json | null
           id?: string
           portal_id?: string
           question?: string
