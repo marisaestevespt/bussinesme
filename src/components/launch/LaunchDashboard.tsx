@@ -921,7 +921,7 @@ function EstrategiaSection({ data, onSave }: any) {
   );
 }
 
-// ─── Produto/Serviço ────────────────────────────────────────────
+// ─── Produto ────────────────────────────────────────────
 
 function ProdutoSection({ data, onSave }: any) {
   const [sub, setSub] = useState<string | null>(null);
