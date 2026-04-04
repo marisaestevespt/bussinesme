@@ -131,7 +131,7 @@ async function gatherData(supabase: any, type: string) {
         supabase.from("client_nps_records").select("id, client_id, status, expected_date").eq("status", "pending").limit(200),
       ]);
 
-      const overdueTasks = (tasks.data || []).filter((t: any) => t.due_date && new Date(t.due_date) < now);
+      const overdueTasks = (tasks.data || []).filter((t: any) => t.deadline && new Date(t.deadline) < now);
       const nearEndClients = (clients.data || []).filter((c: any) => {
         if (!c.end_of_cycle) return false;
         const days = Math.ceil((new Date(c.end_of_cycle).getTime() - now.getTime()) / 86400000);
