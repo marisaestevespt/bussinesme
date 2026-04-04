@@ -181,4 +181,38 @@ export const SECTOR_TEMPLATES: Record<BusinessSector, SectorTemplateData> = {
       { name: 'Registo de formação contínua', frequency: 'trimestral', department: 'operacoes', description: 'Registar horas de formação para cumprimento de obrigações da Ordem' },
     ],
   },
+
+  oficina_automovel: {
+    sops: [
+      { title: 'Receção de viatura', department: 'operacoes', steps: ['Registo do cliente e viatura', 'Inspeção visual inicial', 'Fotografar estado da viatura', 'Identificar queixas do cliente', 'Criar ficha de intervenção', 'Entregar comprovativo ao cliente'] },
+      { title: 'Diagnóstico e orçamentação', department: 'operacoes', steps: ['Diagnóstico técnico (computador/visual)', 'Identificar peças necessárias', 'Consultar preços de peças', 'Calcular mão de obra', 'Elaborar orçamento', 'Enviar ao cliente para aprovação'] },
+      { title: 'Processo de reparação', department: 'operacoes', steps: ['Confirmar aprovação do orçamento', 'Encomendar peças (se necessário)', 'Atribuir mecânico responsável', 'Executar reparação', 'Teste de qualidade', 'Registar trabalho efetuado'] },
+      { title: 'Entrega de viatura', department: 'operacoes', steps: ['Limpeza básica da viatura', 'Revisão final com checklist', 'Preparar fatura', 'Contactar cliente para levantamento', 'Explicar intervenção realizada', 'Cobrar e entregar documentação'] },
+      { title: 'Gestão de garantias', department: 'operacoes', steps: ['Verificar se a reparação está em garantia', 'Contactar fornecedor/marca', 'Documentar reclamação', 'Agendar reparação em garantia', 'Registar resolução'] },
+    ],
+    categories: [
+      { name: 'Mão de obra', type: 'receita' },
+      { name: 'Venda de peças', type: 'receita' },
+      { name: 'Diagnósticos', type: 'receita' },
+      { name: 'Inspeções', type: 'receita' },
+      { name: 'Revisões programadas', type: 'receita' },
+      { name: 'Peças e componentes', type: 'despesa' },
+      { name: 'Ferramentas e equipamento', type: 'despesa' },
+      { name: 'Renda de oficina', type: 'despesa' },
+      { name: 'Óleos e lubrificantes', type: 'despesa' },
+      { name: 'Consumíveis (filtros, pastilhas)', type: 'despesa' },
+      { name: 'Seguros', type: 'despesa' },
+      { name: 'Licenças e certificações', type: 'despesa' },
+    ],
+    processes: [
+      { name: 'Fluxo de reparação', department: 'operacoes', steps: ['Receção', 'Diagnóstico', 'Orçamento', 'Aprovação', 'Reparação', 'Teste', 'Entrega'] },
+      { name: 'Pipeline comercial', department: 'comercial', steps: ['Contacto', 'Diagnóstico', 'Orçamento enviado', 'Aprovado', 'Em reparação', 'Pronto a levantar'] },
+    ],
+    routines: [
+      { name: 'Verificação de viaturas em oficina', frequency: 'diaria', department: 'operacoes', description: 'Rever estado e progresso de cada viatura em reparação' },
+      { name: 'Follow-up de orçamentos pendentes', frequency: 'semanal', department: 'comercial', description: 'Contactar clientes com orçamentos enviados sem resposta' },
+      { name: 'Inventário de peças e consumíveis', frequency: 'mensal', department: 'operacoes', description: 'Verificar stock e encomendar peças em falta' },
+      { name: 'Manutenção de equipamento', frequency: 'trimestral', department: 'operacoes', description: 'Calibração de ferramentas, manutenção de elevadores e compressores' },
+    ],
+  },
 };

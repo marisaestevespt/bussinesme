@@ -10,7 +10,8 @@ export type BusinessSector =
   | 'saude_bem_estar'
   | 'educacao_formacao'
   | 'criativo_producao'
-  | 'consultoria_juridico';
+  | 'consultoria_juridico'
+  | 'oficina_automovel';
 
 export const SECTOR_OPTIONS: { value: BusinessSector; label: string; description: string }[] = [
   { value: 'servicos_digitais', label: 'Serviços Digitais', description: 'Gestão de redes, design, consultoria, mentoria' },
@@ -18,6 +19,7 @@ export const SECTOR_OPTIONS: { value: BusinessSector; label: string; description
   { value: 'educacao_formacao', label: 'Educação & Formação', description: 'Formação, coaching, escolas online' },
   { value: 'criativo_producao', label: 'Criativo & Produção', description: 'Fotografia, vídeo, eventos, wedding planning' },
   { value: 'consultoria_juridico', label: 'Consultoria & Jurídico', description: 'Advogados, contabilistas, consultores de gestão' },
+  { value: 'oficina_automovel', label: 'Oficina & Automóvel', description: 'Oficinas, mecânica, reparação, inspeções, autopeças' },
 ];
 
 /* ── Terminology maps ── */
@@ -123,6 +125,27 @@ const SECTOR_TERMS: Record<BusinessSector, Partial<Record<TermKey, string>>> = {
     proposta: 'Parecer',
     propostas: 'Pareceres',
   },
+  oficina_automovel: {
+    clientes: 'Clientes',
+    cliente: 'Cliente',
+    produto: 'Serviço',
+    produtos: 'Serviços',
+    projeto: 'Veículo',
+    projetos: 'Veículos',
+    venda: 'Reparação',
+    vendas: 'Reparações',
+    reuniao: 'Agendamento',
+    reunioes: 'Agendamentos',
+    lead: 'Contacto',
+    leads: 'Contactos',
+    contrato: 'Orçamento',
+    contratos: 'Orçamentos',
+    entregavel: 'Serviço',
+    entregaveis: 'Serviços',
+    pipeline: 'Pipeline',
+    proposta: 'Orçamento',
+    propostas: 'Orçamentos',
+  },
 };
 
 /* ── Module visibility ── */
@@ -144,6 +167,11 @@ const SECTOR_MODULE_OVERRIDES: Record<BusinessSector, Partial<Record<string, Mod
   consultoria_juridico: {
     'trafego-pago': 'hidden',
     marketing: 'available',
+  },
+  oficina_automovel: {
+    'trafego-pago': 'hidden',
+    marketing: 'available',
+    comercial: 'available',
   },
 };
 
@@ -193,6 +221,22 @@ const SECTOR_FIELDS: Record<BusinessSector, SectorField[]> = {
     { key: 'tribunal_competente', label: 'Tribunal competente', placeholder: 'Ex: Tribunal de Lisboa', type: 'text', entity: 'project' },
     { key: 'num_processo', label: 'Nº do processo', placeholder: 'Ex: 1234/26.0YXLSB', type: 'text', entity: 'project' },
     { key: 'tipo_servico', label: 'Tipo de serviço', placeholder: 'Ex: Consultoria, Contencioso, Due Diligence', type: 'text', entity: 'product' },
+  ],
+  oficina_automovel: [
+    { key: 'alvara', label: 'Nº Alvará / Licença', placeholder: 'Ex: ALV-12345', type: 'text', entity: 'business' },
+    { key: 'especialidades_oficina', label: 'Especialidades', placeholder: 'Ex: Mecânica geral, Elétrica, Chapa e pintura', type: 'text', entity: 'business' },
+    { key: 'marcas_autorizadas', label: 'Marcas autorizadas', placeholder: 'Ex: Bosch Car Service, Renault', type: 'text', entity: 'business' },
+    { key: 'matricula', label: 'Matrícula', placeholder: 'Ex: AA-00-AA', type: 'text', entity: 'project' },
+    { key: 'marca_veiculo', label: 'Marca', placeholder: 'Ex: BMW, Renault, Toyota', type: 'text', entity: 'project' },
+    { key: 'modelo_veiculo', label: 'Modelo', placeholder: 'Ex: Série 3, Clio, Corolla', type: 'text', entity: 'project' },
+    { key: 'ano_veiculo', label: 'Ano', placeholder: 'Ex: 2022', type: 'text', entity: 'project' },
+    { key: 'vin', label: 'VIN', placeholder: 'Ex: WBAPH5C55BA123456', type: 'text', entity: 'project' },
+    { key: 'quilometragem', label: 'Quilometragem', placeholder: 'Ex: 85.000 km', type: 'text', entity: 'project' },
+    { key: 'combustivel', label: 'Combustível', placeholder: 'Ex: Gasolina, Diesel, Elétrico, Híbrido', type: 'text', entity: 'project' },
+    { key: 'cor_veiculo', label: 'Cor', placeholder: 'Ex: Preto metalizado', type: 'text', entity: 'project' },
+    { key: 'num_chassi', label: 'Nº Chassi', placeholder: 'Ex: ABC123456', type: 'text', entity: 'project' },
+    { key: 'seguradora', label: 'Seguradora', placeholder: 'Ex: Fidelidade, Allianz', type: 'text', entity: 'project' },
+    { key: 'tipo_reparacao', label: 'Tipo de reparação', placeholder: 'Ex: Revisão, Travões, Motor', type: 'text', entity: 'product' },
   ],
 };
 
@@ -295,6 +339,23 @@ const SECTOR_WORKFLOWS: Record<BusinessSector, SectorWorkflow> = {
       { name: 'Atualização de processos', frequency: 'semanal', description: 'Atualizar estado de cada processo ativo' },
       { name: 'Faturação de avenças', frequency: 'mensal', description: 'Emitir faturas de avenças mensais' },
       { name: 'Formação contínua obrigatória', frequency: 'trimestral', description: 'Registar horas de formação para a Ordem' },
+    ],
+  },
+  oficina_automovel: {
+    pipelineStages: [
+      { key: 'contacto', label: 'Contacto', color: '#94a3b8' },
+      { key: 'diagnostico', label: 'Diagnóstico', color: '#60a5fa' },
+      { key: 'orcamento', label: 'Orçamento Enviado', color: '#fbbf24' },
+      { key: 'aprovado', label: 'Aprovado', color: '#f97316' },
+      { key: 'em_reparacao', label: 'Em Reparação', color: '#a78bfa' },
+      { key: 'pronto', label: 'Pronto a Levantar', color: '#22c55e' },
+    ],
+    meetingTypes: ['Receção de viatura', 'Diagnóstico presencial', 'Entrega de viatura', 'Orçamentação', 'Inspeção'],
+    suggestedRoutines: [
+      { name: 'Verificação de viaturas em oficina', frequency: 'diaria', description: 'Rever estado de cada viatura em reparação' },
+      { name: 'Contacto a clientes com orçamento pendente', frequency: 'semanal', description: 'Follow-up de orçamentos enviados sem resposta' },
+      { name: 'Inventário de peças', frequency: 'mensal', description: 'Verificar stock de peças e consumíveis mais usados' },
+      { name: 'Manutenção de equipamento de oficina', frequency: 'trimestral', description: 'Calibração e manutenção de ferramentas e elevadores' },
     ],
   },
 };
