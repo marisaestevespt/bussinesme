@@ -522,7 +522,7 @@ export default function PortalViewPage() {
                     <div className="bg-white divide-y divide-border/30">
                       {questions.map((q: any, i: number) => {
                         const isOpen = currentOpen === q.id;
-                        const hasAnswer = q.answer?.trim() || draftAnswers[q.id]?.trim();
+                        const hasAnswer = q.answer?.trim() || draftAnswers[q.id]?.trim() || (Array.isArray(q.file_urls) && q.file_urls.length > 0);
                         return (
                           <div key={q.id} className="transition-all">
                             {/* Question row — clickable to toggle */}
