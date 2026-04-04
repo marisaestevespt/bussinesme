@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { LinkedSopsSection } from '@/components/LinkedSopsSection';
+import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
 
 // ─── Processos Section ─────────────────────────────────────────
 
@@ -424,9 +425,18 @@ interface ContabilidadeSectionProps {
   onDeleteCost: (id: string) => void;
 }
 
-export function ProductContabilidadeSection({ form, costs, isOwner, onUpdateField, onAddCost, onUpdateCost, onDeleteCost }: ContabilidadeSectionProps) {
+export function ProductContabilidadeSection({ form, costs, isOwner, productId, onUpdateField, onAddCost, onUpdateCost, onDeleteCost }: ContabilidadeSectionProps) {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+      {/* Tabela de Preços */}
+      {((form.ticket_type as string) || 'fixo') === 'variavel' && productId && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Tabela de Preços</CardTitle></CardHeader>
+          <CardContent>
+            <ProductPriceTiers productId={productId} readOnly={!isOwner} />
+          </CardContent>
+        </Card>
+      )}
       <Card>
         <CardHeader><CardTitle className="text-base">Dados de Faturação</CardTitle></CardHeader>
         <CardContent className="space-y-4">
