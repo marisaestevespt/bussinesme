@@ -86,6 +86,7 @@ const queryClient = new QueryClient();
 function AppRoutes() {
   const { user, loading: authLoading, isOwner } = useAuth();
   const { isSetupComplete, loading: settingsLoading } = useBusinessSettings();
+  const { suspended, loading: suspensionLoading } = useSuspensionCheck();
 
   // Ensure routine tasks exist for current year on boot
   const routineBootRef = useRef(false);
