@@ -231,7 +231,7 @@ function groupByCategory(items: any[]) {
   const grouped: Record<string, number> = {};
   for (const item of items) {
     const cat = item.category || "Sem categoria";
-    grouped[cat] = (grouped[cat] || 0) + (Number(item.amount) || 0);
+    grouped[cat] = (grouped[cat] || 0) + (Number(item.total_with_vat) || Number(item.base_value) || 0);
   }
   return Object.entries(grouped)
     .sort((a, b) => b[1] - a[1])
