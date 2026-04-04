@@ -144,7 +144,7 @@ async function gatherData(supabase: any, type: string) {
       const overdueNps = (nps.data || []).filter((n: any) => new Date(n.expected_date) < now);
 
       return {
-        tarefas_atrasadas: overdueTasks.map((t: any) => ({ titulo: t.title, vencimento: t.due_date })).slice(0, 10),
+        tarefas_atrasadas: overdueTasks.map((t: any) => ({ titulo: t.name, vencimento: t.deadline })).slice(0, 10),
         clientes_fim_ciclo: nearEndClients.map((c: any) => ({ nome: c.full_name, fim: c.end_of_cycle })),
         pagamentos_pendentes: pendingPayments.map((s: any) => ({ cliente: s.client, valor: s.invoice_total || s.base_value, data: s.payment_date })).slice(0, 10),
         nps_pendentes: overdueNps.length,
