@@ -371,17 +371,10 @@ export default function ProdutoDetailPage() {
                   <Input value={form.ticket || ''} onChange={e => update('ticket', e.target.value)} placeholder="Ex: 480€" className="h-9" readOnly={!isOwner} />
                 </div>
               ) : (
-                <>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Ticket Médio (€)</Label>
-                    <Input value={form.ticket || ''} onChange={e => update('ticket', e.target.value)} placeholder="Ex: 400-480€" className="h-9" readOnly={!isOwner} />
-                  </div>
-                  {!isNew && id && (
-                    <div className="col-span-full">
-                      <ProductPriceTiers productId={id} readOnly={!isOwner} />
-                    </div>
-                  )}
-                </>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Ticket Médio (€)</Label>
+                  <Input value={form.ticket || ''} onChange={e => update('ticket', e.target.value)} placeholder="Ex: 400-480€" className="h-9" readOnly={!isOwner} />
+                </div>
               )}
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Horas mensais por cliente</Label>
