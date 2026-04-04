@@ -444,45 +444,41 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
             {lead?.id && (
               <div className="space-y-2">
                 {/* Interactions */}
-                <Collapsible open={interactionsOpen} onOpenChange={setInteractionsOpen}>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-between px-3 h-10 font-semibold text-sm">
-                      <span>Histórico de Interações ({(interactions.data || []).length})</span>
-                      <ChevronDown className={cn("h-4 w-4 transition-transform", interactionsOpen && "rotate-180")} />
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="space-y-3 px-1 pt-2">
-                    <div className="flex justify-end">
-                      <Button variant="outline" size="sm" onClick={() => setInteractionDialog(true)}><Plus className="h-3 w-3 mr-1" />Nova</Button>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold">Histórico de Interações ({(interactions.data || []).length})</h3>
+                    <Button variant="outline" size="sm" onClick={() => setInteractionDialog(true)}><Plus className="h-3 w-3 mr-1" />Nova</Button>
+                  </div>
+                  {(interactions.data || []).length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Sem interações registadas.</p>
+                  ) : (
+                    <div className="space-y-1">
+                      {(interactions.data || []).map((i: any) => (
+                        <Collapsible key={i.id}>
+                          <div className="flex items-center gap-2 rounded-md border px-3 py-2">
+                            <CollapsibleTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0 p-0">
+                                <ChevronDown className="h-3.5 w-3.5 transition-transform [[data-state=open]>&]:rotate-180" />
+                              </Button>
+                            </CollapsibleTrigger>
+                            <span className="text-xs text-muted-foreground w-[70px] flex-shrink-0">{i.interaction_date ? format(new Date(i.interaction_date), 'dd/MM/yy') : ''}</span>
+                            <Badge variant="secondary" className="text-xs flex-shrink-0">{INTERACTION_TYPES.find(t => t.value === i.interaction_type)?.label || i.interaction_type}</Badge>
+                            <span className="text-xs truncate flex-1 text-muted-foreground">{i.notes || ''}</span>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={() => deleteInteraction.mutate(i.id)}>
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </Button>
+                          </div>
+                          <CollapsibleContent className="px-3 pb-2 pt-1">
+                            <p className="text-sm whitespace-pre-wrap">{i.notes || 'Sem notas.'}</p>
+                            {i.files && (
+                              <a href={i.files} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline mt-1 block">📎 {i.files.split('/').pop()}</a>
+                            )}
+                          </CollapsibleContent>
+                        </Collapsible>
+                      ))}
                     </div>
-                    {(interactions.data || []).length === 0 ? (
-                      <p className="text-sm text-muted-foreground">Sem interações registadas.</p>
-                    ) : (
-                      <Table>
-                        <TableHeader><TableRow>
-                          <TableHead className="w-[90px]">Data</TableHead>
-                          <TableHead className="w-[100px]">Tipo</TableHead>
-                          <TableHead>Notas</TableHead>
-                          <TableHead className="w-[50px]"></TableHead>
-                        </TableRow></TableHeader>
-                        <TableBody>
-                          {(interactions.data || []).map((i: any) => (
-                            <TableRow key={i.id}>
-                              <TableCell className="text-xs">{i.interaction_date ? format(new Date(i.interaction_date), 'dd/MM/yy') : ''}</TableCell>
-                              <TableCell><Badge variant="secondary" className="text-xs">{INTERACTION_TYPES.find(t => t.value === i.interaction_type)?.label || i.interaction_type}</Badge></TableCell>
-                              <TableCell className="text-xs">{i.notes || '—'}</TableCell>
-                              <TableCell>
-                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteInteraction.mutate(i.id)}>
-                                  <Trash2 className="h-3 w-3 text-destructive" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    )}
-                  </CollapsibleContent>
-                </Collapsible>
+                  )}
+                </div>
 
                 {/* Actions checklist */}
                 <Collapsible open={actionsOpen} onOpenChange={setActionsOpen}>
