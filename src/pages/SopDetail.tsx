@@ -31,7 +31,7 @@ const DEPARTMENTS = [
   { value: 'financeiro', label: 'Financeiro' },
   { value: 'customer_success', label: 'Customer Success' },
   { value: 'operacoes', label: 'Operações' },
-  { value: 'produto_servico', label: 'Produto/Serviço' },
+  { value: 'produto_servico', label: 'Produto' },
   { value: 'recursos_humanos', label: 'Pessoas' },
 ];
 
