@@ -280,12 +280,20 @@ export function useCommercialData(year = currentYear) {
     yearSales.filter(v => v.sale_quarter === q).reduce((s, v) => s + Number(v.invoice_total || 0), 0)
   );
 
+  const normalize = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ');
   const productTotals = (productGoals.data || []).map(pg => {
-    const goalName = pg.product_name.toLowerCase().trim();
+    const goalName = normalize(pg.product_name);
     return {
       ...pg,
       totalInvoiced: yearSales
-        .filter(v => (v.product || '').toLowerCase().trim().includes(goalName) || goalName.includes((v.product || '').toLowerCase().trim()))
+        .filter(v => {
+          const saleName = normalize(v.product || '');
+          if (!saleName) return false;
+          return saleName === goalName
+            || saleName.includes(goalName)
+            || goalName.includes(saleName)
+            || saleName.replace(/s\b/g, '') === goalName.replace(/s\b/g, '');
+        })
         .reduce((s, v) => s + Number(v.invoice_total || 0), 0),
     };
   });
