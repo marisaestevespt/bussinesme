@@ -222,6 +222,22 @@ const SECTOR_FIELDS: Record<BusinessSector, SectorField[]> = {
     { key: 'num_processo', label: 'Nº do processo', placeholder: 'Ex: 1234/26.0YXLSB', type: 'text', entity: 'project' },
     { key: 'tipo_servico', label: 'Tipo de serviço', placeholder: 'Ex: Consultoria, Contencioso, Due Diligence', type: 'text', entity: 'product' },
   ],
+  oficina_automovel: [
+    { key: 'alvara', label: 'Nº Alvará / Licença', placeholder: 'Ex: ALV-12345', type: 'text', entity: 'business' },
+    { key: 'especialidades_oficina', label: 'Especialidades', placeholder: 'Ex: Mecânica geral, Elétrica, Chapa e pintura', type: 'text', entity: 'business' },
+    { key: 'marcas_autorizadas', label: 'Marcas autorizadas', placeholder: 'Ex: Bosch Car Service, Renault', type: 'text', entity: 'business' },
+    { key: 'matricula', label: 'Matrícula', placeholder: 'Ex: AA-00-AA', type: 'text', entity: 'project' },
+    { key: 'marca_veiculo', label: 'Marca', placeholder: 'Ex: BMW, Renault, Toyota', type: 'text', entity: 'project' },
+    { key: 'modelo_veiculo', label: 'Modelo', placeholder: 'Ex: Série 3, Clio, Corolla', type: 'text', entity: 'project' },
+    { key: 'ano_veiculo', label: 'Ano', placeholder: 'Ex: 2022', type: 'text', entity: 'project' },
+    { key: 'vin', label: 'VIN', placeholder: 'Ex: WBAPH5C55BA123456', type: 'text', entity: 'project' },
+    { key: 'quilometragem', label: 'Quilometragem', placeholder: 'Ex: 85.000 km', type: 'text', entity: 'project' },
+    { key: 'combustivel', label: 'Combustível', placeholder: 'Ex: Gasolina, Diesel, Elétrico, Híbrido', type: 'text', entity: 'project' },
+    { key: 'cor_veiculo', label: 'Cor', placeholder: 'Ex: Preto metalizado', type: 'text', entity: 'project' },
+    { key: 'num_chassi', label: 'Nº Chassi', placeholder: 'Ex: ABC123456', type: 'text', entity: 'project' },
+    { key: 'seguradora', label: 'Seguradora', placeholder: 'Ex: Fidelidade, Allianz', type: 'text', entity: 'project' },
+    { key: 'tipo_reparacao', label: 'Tipo de reparação', placeholder: 'Ex: Revisão, Travões, Motor', type: 'text', entity: 'product' },
+  ],
 };
 
 /* ── Workflow configuration per sector ── */
