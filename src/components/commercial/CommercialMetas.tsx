@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,97 @@ const MONTH_RANGE = (m: number, year: number) => {
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const pct = (part: number, whole: number) => whole > 0 ? ((part / whole) * 100).toFixed(1) + '%' : '0%';
+
+/** Inline editable cell: shows static value + pencil, or input + save */
+function EditableAmount({
+  value,
+  onSave,
+  className = 'w-28',
+}: {
+  value: number;
+  onSave: (v: number) => void;
+  className?: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [input, setInput] = useState('');
+
+  if (!editing) {
+    return (
+      <div className="flex items-center justify-end gap-1">
+        <span className="font-medium">€{fmt(value)}</span>
+        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => { setInput(value ? String(value) : ''); setEditing(true); }}>
+          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+        </Button>
+      </div>
+    );
+  }
+
+  const save = () => {
+    const v = parseFloat(input);
+    if (!isNaN(v)) onSave(v);
+    setEditing(false);
+  };
+
+  return (
+    <div className="flex items-center justify-end gap-1">
+      <Input
+        type="number"
+        step="0.01"
+        className={`${className} text-right`}
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        onKeyDown={e => e.key === 'Enter' && save()}
+        autoFocus
+      />
+      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={save}>
+        <Save className="h-3.5 w-3.5" />
+      </Button>
+    </div>
+  );
+}
+
+/** Inline editable text cell */
+function EditableText({
+  value,
+  onSave,
+  placeholder = '',
+}: {
+  value: string;
+  onSave: (v: string) => void;
+  placeholder?: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [input, setInput] = useState('');
+
+  if (!editing) {
+    return (
+      <div className="flex items-center gap-1">
+        <span className="text-sm">{value || <span className="text-muted-foreground">{placeholder || '—'}</span>}</span>
+        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => { setInput(value || ''); setEditing(true); }}>
+          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+        </Button>
+      </div>
+    );
+  }
+
+  const save = () => { onSave(input); setEditing(false); };
+
+  return (
+    <div className="flex items-center gap-1">
+      <Input
+        className="text-sm"
+        value={input}
+        placeholder={placeholder}
+        onChange={e => setInput(e.target.value)}
+        onKeyDown={e => e.key === 'Enter' && save()}
+        autoFocus
+      />
+      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={save}>
+        <Save className="h-3.5 w-3.5" />
+      </Button>
+    </div>
+  );
+}
 
 export function CommercialMetas() {
   const data = useCommercialData();
@@ -143,17 +234,19 @@ export function CommercialMetas() {
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.product_name}</TableCell>
                   <TableCell className="text-right">
-                    <Input type="number" step="0.01" className="w-28 ml-auto text-right" defaultValue={Number(p.goal_amount)} onBlur={e => {
-                      const v = parseFloat(e.target.value);
-                      if (!isNaN(v)) data.upsertProductGoal.mutate({ id: p.id, product_name: p.product_name, goal_amount: v, intention: p.intention || undefined });
-                    }} />
+                    <EditableAmount
+                      value={Number(p.goal_amount)}
+                      onSave={v => data.upsertProductGoal.mutate({ id: p.id, product_name: p.product_name, goal_amount: v, intention: p.intention || undefined })}
+                    />
                   </TableCell>
                   <TableCell className="text-right">€{fmt(p.totalInvoiced)}</TableCell>
                   <TableCell className="text-right">{pct(p.totalInvoiced, Number(p.goal_amount))}</TableCell>
                   <TableCell>
-                    <Input defaultValue={p.intention || ''} className="text-sm" onBlur={e => {
-                      data.upsertProductGoal.mutate({ id: p.id, product_name: p.product_name, goal_amount: Number(p.goal_amount), intention: e.target.value });
-                    }} />
+                    <EditableText
+                      value={p.intention || ''}
+                      placeholder="Intenção"
+                      onSave={v => data.upsertProductGoal.mutate({ id: p.id, product_name: p.product_name, goal_amount: Number(p.goal_amount), intention: v })}
+                    />
                   </TableCell>
                   <TableCell><Button variant="ghost" size="sm" onClick={() => data.deleteProductGoal.mutate(p.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button></TableCell>
                 </TableRow>
@@ -204,10 +297,10 @@ export function CommercialMetas() {
                   <TableCell className="font-medium">T{q.quarter}</TableCell>
                   <TableCell className="text-muted-foreground">{QUARTER_RANGES[q.quarter]}</TableCell>
                   <TableCell className="text-right">
-                    <Input type="number" step="0.01" className="w-28 ml-auto text-right" defaultValue={q.goal_amount || ''} onBlur={e => {
-                      const v = parseFloat(e.target.value);
-                      if (!isNaN(v)) data.upsertQuarterlyGoal.mutate({ quarter: q.quarter, goal_amount: v });
-                    }} />
+                    <EditableAmount
+                      value={q.goal_amount}
+                      onSave={v => data.upsertQuarterlyGoal.mutate({ quarter: q.quarter, goal_amount: v })}
+                    />
                   </TableCell>
                   <TableCell className="text-right">€{fmt(data.quarterTotals[q.quarter - 1])}</TableCell>
                   <TableCell className="text-right">{pct(data.quarterTotals[q.quarter - 1], q.goal_amount)}</TableCell>
@@ -251,10 +344,10 @@ export function CommercialMetas() {
                     <TableCell className="text-muted-foreground">T{MONTH_QUARTER(m.month)}</TableCell>
                     <TableCell className="font-medium">{MONTH_NAMES[m.month - 1]}</TableCell>
                     <TableCell className="text-right">
-                      <Input type="number" step="0.01" className="w-28 ml-auto text-right" defaultValue={m.goal_amount || ''} onBlur={e => {
-                        const v = parseFloat(e.target.value);
-                        if (!isNaN(v)) data.upsertMonthlyGoal.mutate({ month: m.month, goal_amount: v });
-                      }} />
+                      <EditableAmount
+                        value={m.goal_amount}
+                        onSave={v => data.upsertMonthlyGoal.mutate({ month: m.month, goal_amount: v })}
+                      />
                     </TableCell>
                     <TableCell className="text-right">€{fmt(monthInvoiced)}</TableCell>
                     <TableCell className="text-right">{pct(monthInvoiced, m.goal_amount)}</TableCell>
