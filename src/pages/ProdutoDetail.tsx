@@ -25,6 +25,7 @@ import { ProductComercialSection } from '@/components/product/ProductComercialSe
 import { ProductMarketingSection } from '@/components/product/ProductMarketingSection';
 import { ProductProcessosSection, ProductBackofficeSection, ProductArquivoSection, ProductContabilidadeSection } from '@/components/product/ProductSections';
 import { ProductSalesTab } from '@/components/product/ProductSalesTab';
+import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
 import { format, parseISO, isFuture, isToday } from 'date-fns';
 import { BackNavigation } from '@/components/BackNavigation';
 import { cn } from '@/lib/utils';
