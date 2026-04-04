@@ -49,7 +49,10 @@ export function CommercialMetas() {
 
   const handleAnnualSave = () => {
     const v = parseFloat(annualInput);
-    if (!isNaN(v)) data.upsertAnnualGoal.mutate(v);
+    if (!isNaN(v)) {
+      data.upsertAnnualGoal.mutate(v);
+      setEditingAnnual(false);
+    }
   };
 
   // Product goals
