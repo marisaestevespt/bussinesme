@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { DISPLAY_FONTS, BODY_FONTS } from '@/lib/modules';
 import { SECTOR_OPTIONS, type BusinessSector } from '@/lib/sector-config';
+import { SectorTemplateApplier } from './SectorTemplateApplier';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Upload, Palette, Type, Building2, Save, Trash2, ImageIcon, Briefcase } from 'lucide-react';
@@ -324,6 +325,7 @@ export function SettingsIdentity() {
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">Adapta a terminologia, módulos visíveis e campos do sistema ao teu tipo de negócio.</p>
+          <SectorTemplateApplier sector={businessSector} />
           <Label htmlFor="supportHours" className="text-sm font-medium">Horário de atendimento</Label>
           <Input id="supportHours" value={supportHours} onChange={(e) => setSupportHours(e.target.value)} placeholder="Ex: Seg a Sex, 10h – 18h" className="h-11" />
           <p className="text-xs text-muted-foreground">Será visível no portal do cliente.</p>
