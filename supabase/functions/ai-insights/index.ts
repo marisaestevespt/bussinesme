@@ -101,18 +101,18 @@ async function gatherData(supabase: any, type: string) {
     case "executive": {
       const [clients, sales, tasks, expenses] = await Promise.all([
         supabase.from("clients").select("id, status, full_name, start_date, end_of_cycle").limit(500),
-        supabase.from("commercial_sales").select("id, amount, invoice_total, status, sale_month, sale_year, client, product").eq("sale_year", year).limit(500),
+        supabase.from("commercial_sales").select("id, base_value, invoice_total, status, sale_month, sale_year, client, product").eq("sale_year", year).limit(500),
         supabase.from("tasks").select("id, status, due_date, title").limit(500),
-        supabase.from("financial_expenses").select("id, amount, total_with_vat, expense_date, category, status").gte("expense_date", monthStart).lt("expense_date", monthEnd).limit(500),
+        supabase.from("financial_expenses").select("id, base_value, total_with_vat, expense_date, category, status").gte("expense_date", monthStart).lt("expense_date", monthEnd).limit(500),
       ]);
 
       const activeClients = (clients.data || []).filter((c: any) => c.status === "ativo").length;
       const totalClients = (clients.data || []).length;
       const monthSales = (sales.data || []).filter((s: any) => s.sale_month === month);
-      const totalRevenue = monthSales.reduce((sum: number, s: any) => sum + (Number(s.invoice_total) || Number(s.amount) || 0), 0);
+      const totalRevenue = monthSales.reduce((sum: number, s: any) => sum + (Number(s.invoice_total) || Number(s.base_value) || 0), 0);
       const pendingTasks = (tasks.data || []).filter((t: any) => t.status !== "concluida" && t.status !== "cancelada");
       const overdueTasks = pendingTasks.filter((t: any) => t.due_date && new Date(t.due_date) < now);
-      const totalExpenses = (expenses.data || []).reduce((sum: number, e: any) => sum + (Number(e.total_with_vat) || Number(e.amount) || 0), 0);
+      const totalExpenses = (expenses.data || []).reduce((sum: number, e: any) => sum + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0);
 
       return {
         periodo: `${String(month).padStart(2, "0")}/${year}`,
@@ -127,7 +127,7 @@ async function gatherData(supabase: any, type: string) {
       const [clients, tasks, sales, nps] = await Promise.all([
         supabase.from("clients").select("id, full_name, status, end_of_cycle, start_date, email").eq("status", "ativo").limit(500),
         supabase.from("tasks").select("id, title, status, due_date, assigned_to").not("status", "in", '("concluida","cancelada")').limit(500),
-        supabase.from("commercial_sales").select("id, client, amount, status, payment_date").eq("status", "pendente").limit(200),
+        supabase.from("commercial_sales").select("id, client, base_value, invoice_total, status, payment_date").eq("status", "pendente").limit(200),
         supabase.from("client_nps_records").select("id, client_id, status, expected_date").eq("status", "pending").limit(200),
       ]);
 
@@ -146,7 +146,7 @@ async function gatherData(supabase: any, type: string) {
       return {
         tarefas_atrasadas: overdueTasks.map((t: any) => ({ titulo: t.title, vencimento: t.due_date })).slice(0, 10),
         clientes_fim_ciclo: nearEndClients.map((c: any) => ({ nome: c.full_name, fim: c.end_of_cycle })),
-        pagamentos_pendentes: pendingPayments.map((s: any) => ({ cliente: s.client, valor: s.amount, data: s.payment_date })).slice(0, 10),
+        pagamentos_pendentes: pendingPayments.map((s: any) => ({ cliente: s.client, valor: s.invoice_total || s.base_value, data: s.payment_date })).slice(0, 10),
         nps_pendentes: overdueNps.length,
         total_tarefas_atrasadas: overdueTasks.length,
       };
@@ -154,8 +154,8 @@ async function gatherData(supabase: any, type: string) {
 
     case "financial": {
       const [expenses, sales] = await Promise.all([
-        supabase.from("financial_expenses").select("id, amount, total_with_vat, expense_date, category, description, status").gte("expense_date", `${year}-01-01`).lt("expense_date", `${year + 1}-01-01`).order("expense_date", { ascending: false }).limit(500),
-        supabase.from("commercial_sales").select("id, invoice_total, amount, payment_date, client, product, status, sale_month").eq("sale_year", year).order("payment_date", { ascending: false }).limit(500),
+        supabase.from("financial_expenses").select("id, base_value, total_with_vat, expense_date, category, description, status").gte("expense_date", `${year}-01-01`).lt("expense_date", `${year + 1}-01-01`).order("expense_date", { ascending: false }).limit(500),
+        supabase.from("commercial_sales").select("id, invoice_total, base_value, payment_date, client, product, status, sale_month").eq("sale_year", year).order("payment_date", { ascending: false }).limit(500),
       ]);
 
       const byMonth = (items: any[], dateField: string, amountField: string) => {
@@ -177,7 +177,7 @@ async function gatherData(supabase: any, type: string) {
 
     case "commercial": {
       const [sales, leads] = await Promise.all([
-        supabase.from("commercial_sales").select("id, amount, status, sale_month, sale_year, client, product, source").eq("sale_year", year).limit(500),
+        supabase.from("commercial_sales").select("id, base_value, invoice_total, status, sale_month, sale_year, client, product, source").eq("sale_year", year).limit(500),
         supabase.from("crm_leads").select("id, name, status, pipeline_id, value, created_at").limit(300),
       ]);
 
@@ -186,7 +186,7 @@ async function gatherData(supabase: any, type: string) {
         const m = s.sale_month;
         if (!monthSales[m]) monthSales[m] = { count: 0, revenue: 0 };
         monthSales[m].count++;
-        monthSales[m].revenue += Number(s.amount) || 0;
+        monthSales[m].revenue += Number(s.invoice_total) || Number(s.base_value) || 0;
       }
 
       const leadsByStatus: Record<string, number> = {};
@@ -231,7 +231,7 @@ function groupByCategory(items: any[]) {
   const grouped: Record<string, number> = {};
   for (const item of items) {
     const cat = item.category || "Sem categoria";
-    grouped[cat] = (grouped[cat] || 0) + (Number(item.amount) || 0);
+    grouped[cat] = (grouped[cat] || 0) + (Number(item.total_with_vat) || Number(item.base_value) || 0);
   }
   return Object.entries(grouped)
     .sort((a, b) => b[1] - a[1])
