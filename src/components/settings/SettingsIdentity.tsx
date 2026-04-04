@@ -325,6 +325,7 @@ export function SettingsIdentity() {
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">Adapta a terminologia, módulos visíveis e campos do sistema ao teu tipo de negócio.</p>
+          <SectorTemplateApplier sector={businessSector} />
           <Label htmlFor="supportHours" className="text-sm font-medium">Horário de atendimento</Label>
           <Input id="supportHours" value={supportHours} onChange={(e) => setSupportHours(e.target.value)} placeholder="Ex: Seg a Sex, 10h – 18h" className="h-11" />
           <p className="text-xs text-muted-foreground">Será visível no portal do cliente.</p>
