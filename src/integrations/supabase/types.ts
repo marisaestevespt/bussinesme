@@ -6752,6 +6752,7 @@ export type Database = {
           sales_type: string | null
           status: string
           ticket: string | null
+          ticket_type: string
           updated_at: string
           vat_rate: string | null
         }
@@ -6785,6 +6786,7 @@ export type Database = {
           sales_type?: string | null
           status?: string
           ticket?: string | null
+          ticket_type?: string
           updated_at?: string
           vat_rate?: string | null
         }
@@ -6818,6 +6820,7 @@ export type Database = {
           sales_type?: string | null
           status?: string
           ticket?: string | null
+          ticket_type?: string
           updated_at?: string
           vat_rate?: string | null
         }

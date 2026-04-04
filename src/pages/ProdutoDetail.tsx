@@ -356,13 +356,32 @@ export default function ProdutoDetailPage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Ticket Médio (€)</Label>
-                <Input value={form.ticket || ''} onChange={e => update('ticket', e.target.value)} placeholder="Ex: 400-480€" className="h-9" readOnly={!isOwner} />
+                <Label className="text-xs text-muted-foreground">Tipo de Ticket</Label>
+                <Select value={(form as any).ticket_type || 'fixo'} onValueChange={v => update('ticket_type', v)} disabled={!isOwner}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fixo">Fixo</SelectItem>
+                    <SelectItem value="variavel">Variável</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              {!isNew && id && (
-                <div className="col-span-full">
-                  <ProductPriceTiers productId={id} readOnly={!isOwner} />
+              {((form as any).ticket_type || 'fixo') === 'fixo' ? (
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Ticket (€)</Label>
+                  <Input value={form.ticket || ''} onChange={e => update('ticket', e.target.value)} placeholder="Ex: 480€" className="h-9" readOnly={!isOwner} />
                 </div>
+              ) : (
+                <>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Ticket Médio (€)</Label>
+                    <Input value={form.ticket || ''} onChange={e => update('ticket', e.target.value)} placeholder="Ex: 400-480€" className="h-9" readOnly={!isOwner} />
+                  </div>
+                  {!isNew && id && (
+                    <div className="col-span-full">
+                      <ProductPriceTiers productId={id} readOnly={!isOwner} />
+                    </div>
+                  )}
+                </>
               )}
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Horas mensais por cliente</Label>
