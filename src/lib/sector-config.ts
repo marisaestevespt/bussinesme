@@ -125,6 +125,27 @@ const SECTOR_TERMS: Record<BusinessSector, Partial<Record<TermKey, string>>> = {
     proposta: 'Parecer',
     propostas: 'Pareceres',
   },
+  oficina_automovel: {
+    clientes: 'Clientes',
+    cliente: 'Cliente',
+    produto: 'Serviço',
+    produtos: 'Serviços',
+    projeto: 'Veículo',
+    projetos: 'Veículos',
+    venda: 'Reparação',
+    vendas: 'Reparações',
+    reuniao: 'Agendamento',
+    reunioes: 'Agendamentos',
+    lead: 'Contacto',
+    leads: 'Contactos',
+    contrato: 'Orçamento',
+    contratos: 'Orçamentos',
+    entregavel: 'Serviço',
+    entregaveis: 'Serviços',
+    pipeline: 'Pipeline',
+    proposta: 'Orçamento',
+    propostas: 'Orçamentos',
+  },
 };
 
 /* ── Module visibility ── */
