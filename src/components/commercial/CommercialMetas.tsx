@@ -25,6 +25,7 @@ export function CommercialMetas() {
   const data = useCommercialData();
   const { products } = useProducts();
   const [annualInput, setAnnualInput] = useState('');
+  const [editingAnnual, setEditingAnnual] = useState(false);
   const [newProduct, setNewProduct] = useState({ product_name: '', goal_amount: '', intention: '' });
 
   // Auto-create product goals for products that don't have one yet
