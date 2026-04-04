@@ -28,9 +28,10 @@ export function CommercialMetas() {
   const [newProduct, setNewProduct] = useState({ product_name: '', goal_amount: '', intention: '' });
 
   // Auto-create product goals for products that don't have one yet
+  const productsList = products.data || [];
   useEffect(() => {
     const existingGoals = data.productGoals.data || [];
-    const activeProducts = (products || []).filter(p => p.status === 'ativo');
+    const activeProducts = productsList.filter(p => p.status === 'ativo');
     if (activeProducts.length === 0 || !data.productGoals.data) return;
 
     const existingNames = new Set(existingGoals.map(g => g.product_name.toLowerCase()));
@@ -43,7 +44,7 @@ export function CommercialMetas() {
         sort_order: existingGoals.length + i,
       });
     });
-  }, [products, data.productGoals.data]);
+  }, [productsList.length, data.productGoals.data?.length]);
 
   const handleAnnualSave = () => {
     const v = parseFloat(annualInput);
