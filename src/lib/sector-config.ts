@@ -88,8 +88,8 @@ const SECTOR_TERMS: Record<BusinessSector, Partial<Record<TermKey, string>>> = {
     propostas: 'Propostas',
   },
   criativo_producao: {
-    produto: 'Serviço',
-    produtos: 'Serviços',
+    produto: 'Produto',
+    produtos: 'Produtos',
     venda: 'Orçamento',
     vendas: 'Orçamentos',
     entregavel: 'Entrega',

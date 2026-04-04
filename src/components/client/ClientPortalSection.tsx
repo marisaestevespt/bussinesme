@@ -168,7 +168,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
 
           {/* Tipo */}
           <div className="text-xs text-muted-foreground">
-            Tipo: <Badge variant="outline">{portalData.portal_type === 'projeto_unico' ? 'Projeto Único' : 'Serviço Mensal'}</Badge>
+            Tipo: <Badge variant="outline">{portalData.portal_type === 'projeto_unico' ? 'Projeto Único' : 'Produto Mensal'}</Badge>
           </div>
 
           {/* Toggles */}

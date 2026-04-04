@@ -114,7 +114,7 @@ export function StrategicMetricsSection() {
           icon={DollarSign}
           label="MRR"
           value={m.mrr > 0 ? `€${fmt(m.mrr)}` : '—'}
-          tooltip="Receita Recorrente Mensal: soma do ticket de clientes ativos com serviço mensal."
+          tooltip="Receita Recorrente Mensal: soma do ticket de clientes ativos com produto mensal."
           trend={<TrendIndicator current={m.mrr} previous={m.mrrPrev} />}
           isLoading={m.isLoading}
         />

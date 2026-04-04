@@ -460,7 +460,7 @@ export function ProductContabilidadeSection({ form, costs, isOwner, productId, o
               <Input
                 value={(form.invoice_denomination as string) || ''}
                 onChange={e => onUpdateField('invoice_denomination', e.target.value)}
-                placeholder="Ex: Serviço de Consultoria de Marketing Digital"
+                placeholder="Ex: Consultoria de Marketing Digital"
                 readOnly={!isOwner}
               />
             </div>

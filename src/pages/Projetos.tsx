@@ -38,7 +38,7 @@ const PROJECT_TYPES = [
   { value: 'interno', label: 'Interno', color: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
   { value: 'lancamento', label: 'Interno - Lançamento', color: 'bg-rose-100 text-rose-800 border-rose-200' },
   { value: 'cliente_projeto_unico', label: 'Cliente - Projeto Único', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-  { value: 'cliente_servico_mensal', label: 'Cliente - Serviço Mensal', color: 'bg-teal-100 text-teal-800 border-teal-200' },
+  { value: 'cliente_servico_mensal', label: 'Cliente - Produto Mensal', color: 'bg-teal-100 text-teal-800 border-teal-200' },
 ];
 
 const PROJECT_STATUSES = [
