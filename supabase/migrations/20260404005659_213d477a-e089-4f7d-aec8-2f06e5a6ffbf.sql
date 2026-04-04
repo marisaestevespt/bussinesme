@@ -1,0 +1,3 @@
+UPDATE public.products SET name = 'Assistente Virtual' WHERE id = '4911f2fe-3eec-4121-a26a-40b7d47c91b0' AND name = 'Serviço de Assistente Virtual';
+UPDATE public.commercial_product_goals SET product_name = 'Assistente Virtual' WHERE product_name = 'Serviço de Assistente Virtual';
+UPDATE public.commercial_sales SET product = 'Assistente Virtual' WHERE product IN ('Serviço de Assistente Virtual', 'Serviços de Assistente Virtual');
