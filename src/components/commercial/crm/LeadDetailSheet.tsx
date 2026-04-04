@@ -46,9 +46,6 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
   const [meetingDate, setMeetingDate] = useState<Date | undefined>(undefined);
   const [meetingTime, setMeetingTime] = useState('10:00');
   const [meetingTitle, setMeetingTitle] = useState('');
-  const [interactionsOpen, setInteractionsOpen] = useState(false);
-  const [actionsOpen, setActionsOpen] = useState(false);
-  const [pipelinesOpen, setPipelinesOpen] = useState(false);
   const qc = useQueryClient();
 
   const interactions = useLeadInteractions(lead?.id || null);
