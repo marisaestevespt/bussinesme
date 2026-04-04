@@ -275,247 +275,249 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="!max-w-4xl w-[95vw] !max-h-[92vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="!w-[96vw] !max-w-[1400px] !h-[94vh] !max-h-[94vh] !gap-0 !p-0 overflow-hidden">
+          <DialogHeader className="border-b px-6 py-5 pr-12">
             <DialogTitle>{form.id ? 'Ficha do Lead' : 'Nova Lead'}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-5 mt-2">
-            {/* Core fields */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2">
-                <Label>Nome *</Label>
-                <Input value={form.name || ''} onChange={e => set({ name: e.target.value })} />
-              </div>
-              <div>
-                <Label>Adicionado</Label>
-                <Input value={form.added_at || ''} disabled className="text-muted-foreground" />
-              </div>
-              <div>
-                <Label>Fonte da Lead</Label>
-                <Select value={form.source || ''} onValueChange={v => set({ source: v })}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                  <SelectContent>{CRM_SOURCES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="col-span-2">
-                <Label>Status</Label>
-                <Select value={form.status || 'lead'} onValueChange={handleStatusChange}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{CRM_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div><Label>Email</Label><Input value={form.email || ''} onChange={e => set({ email: e.target.value })} /></div>
-              <div><Label>Telefone</Label><Input value={form.phone || ''} onChange={e => set({ phone: e.target.value })} /></div>
-              <div className="col-span-2">
-                <Label>Vendedor / Responsável</Label>
-                <Select value={form.responsible_id || ''} onValueChange={v => set({ responsible_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                  <SelectContent>
-                    {commercialMembers.length > 0 && (
-                      <SelectGroup>
-                        <SelectLabel className="text-[10px] text-muted-foreground">Equipa Comercial</SelectLabel>
-                        {commercialMembers.map(cm => (
-                          <SelectItem key={`cm-${cm.profile_id || cm.id}`} value={cm.profile_id || cm.id}>
-                            {cm.full_name} <span className="text-muted-foreground ml-1">⭐</span>
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    )}
-                    <SelectGroup>
-                      <SelectLabel className="text-[10px] text-muted-foreground">Todos</SelectLabel>
-                      {profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="col-span-2">
-                <Label>Produto Potencial</Label>
-                <Select value={form.potential_product || ''} onValueChange={v => set({ potential_product: v })}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                  <SelectContent>{products.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="col-span-2">
-                <Label>Produto Fechado</Label>
-                <Select value={form.closed_product || ''} onValueChange={v => set({ closed_product: v })}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                  <SelectContent>{products.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Próximo Follow-up</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.next_followup && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {form.next_followup ? format(form.next_followup, 'dd/MM/yyyy') : 'Selecionar'}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={form.next_followup} onSelect={d => set({ next_followup: d })} className="p-3 pointer-events-auto" />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div>
-                <Label>Valor Estimado (€)</Label>
-                <Input type="number" step="0.01" value={form.estimated_value || ''} onChange={e => set({ estimated_value: e.target.value })} />
-              </div>
-              <div className="col-span-2">
-                <Label>Notas FU</Label>
-                <Input value={form.followup_notes || ''} onChange={e => set({ followup_notes: e.target.value })} />
-              </div>
-            </div>
-
-            {/* Documents section */}
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold">Documentos</Label>
-              <Input value={form.documents || ''} onChange={e => set({ documents: e.target.value })} placeholder="Link para documentos (https://...)" />
-              {lead?.id && (
+          <div className="min-h-0 overflow-y-auto px-6 py-5">
+            <div className="space-y-5">
+              {/* Core fields */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <Label>Nome *</Label>
+                  <Input value={form.name || ''} onChange={e => set({ name: e.target.value })} />
+                </div>
                 <div>
-                  <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors border border-dashed rounded-md p-3 justify-center">
-                    <Upload className="h-4 w-4" />
-                    <span>Fazer upload de ficheiro</span>
-                    <input
-                      type="file"
-                      className="hidden"
-                      onChange={e => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFileUpload(file);
-                        e.target.value = '';
-                      }}
-                    />
-                  </label>
+                  <Label>Adicionado</Label>
+                  <Input value={form.added_at || ''} disabled className="text-muted-foreground" />
                 </div>
-              )}
-              {docLinks.length > 0 && (
-                <div className="space-y-1 rounded-md border p-2">
-                  {docLinks.map((url: string, i: number) => (
-                    <div key={i} className="flex items-center justify-between gap-2">
-                      <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate flex-1">{decodeURIComponent(url.split('/').pop() || url)}</a>
-                      <Button variant="ghost" size="icon" className="h-5 w-5 flex-shrink-0" onClick={() => {
-                        const updated = docLinks.filter((_, j) => j !== i).join('\n');
-                        set({ documents: updated });
-                      }}>
-                        <Trash2 className="h-3 w-3 text-destructive" />
+                <div>
+                  <Label>Fonte da Lead</Label>
+                  <Select value={form.source || ''} onValueChange={v => set({ source: v })}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                    <SelectContent>{CRM_SOURCES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="col-span-2">
+                  <Label>Status</Label>
+                  <Select value={form.status || 'lead'} onValueChange={handleStatusChange}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{CRM_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div><Label>Email</Label><Input value={form.email || ''} onChange={e => set({ email: e.target.value })} /></div>
+                <div><Label>Telefone</Label><Input value={form.phone || ''} onChange={e => set({ phone: e.target.value })} /></div>
+                <div className="col-span-2">
+                  <Label>Vendedor / Responsável</Label>
+                  <Select value={form.responsible_id || ''} onValueChange={v => set({ responsible_id: v })}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                    <SelectContent>
+                      {commercialMembers.length > 0 && (
+                        <SelectGroup>
+                          <SelectLabel className="text-[10px] text-muted-foreground">Equipa Comercial</SelectLabel>
+                          {commercialMembers.map(cm => (
+                            <SelectItem key={`cm-${cm.profile_id || cm.id}`} value={cm.profile_id || cm.id}>
+                              {cm.full_name} <span className="text-muted-foreground ml-1">⭐</span>
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      )}
+                      <SelectGroup>
+                        <SelectLabel className="text-[10px] text-muted-foreground">Todos</SelectLabel>
+                        {profiles.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name || 'Sem nome'}</SelectItem>)}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="col-span-2">
+                  <Label>Produto Potencial</Label>
+                  <Select value={form.potential_product || ''} onValueChange={v => set({ potential_product: v })}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                    <SelectContent>{products.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="col-span-2">
+                  <Label>Produto Fechado</Label>
+                  <Select value={form.closed_product || ''} onValueChange={v => set({ closed_product: v })}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                    <SelectContent>{products.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Próximo Follow-up</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.next_followup && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {form.next_followup ? format(form.next_followup, 'dd/MM/yyyy') : 'Selecionar'}
                       </Button>
-                    </div>
-                  ))}
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={form.next_followup} onSelect={d => set({ next_followup: d })} className="p-3 pointer-events-auto" />
+                    </PopoverContent>
+                  </Popover>
                 </div>
-              )}
-            </div>
-
-            <Separator />
-
-            {/* Context */}
-            <div>
-              <Label className="text-sm font-semibold">Contexto</Label>
-              <Textarea className="mt-1" rows={3} value={form.context || ''} onChange={e => set({ context: e.target.value })} placeholder="Notas gerais sobre este lead..." />
-            </div>
-
-            {form.lost_reason && (
-              <div>
-                <Label className="text-sm font-semibold text-destructive">Motivo de Perda</Label>
-                <p className="text-sm mt-1">{form.lost_reason}</p>
+                <div>
+                  <Label>Valor Estimado (€)</Label>
+                  <Input type="number" step="0.01" value={form.estimated_value || ''} onChange={e => set({ estimated_value: e.target.value })} />
+                </div>
+                <div className="col-span-2">
+                  <Label>Notas FU</Label>
+                  <Input value={form.followup_notes || ''} onChange={e => set({ followup_notes: e.target.value })} />
+                </div>
               </div>
-            )}
 
-            <div className="flex gap-2">
-              <Button className="flex-1" onClick={handleSave}>Guardar</Button>
-              {lead?.id && (
-                <Button variant="outline" className="border-primary text-primary hover:bg-primary/10" onClick={handleConvertToClient}>
-                  <UserPlus className="h-4 w-4 mr-2" /> Converter em Cliente
-                </Button>
-              )}
-            </div>
-
-            {/* Schedule meeting button */}
-            {lead?.id && (
-              <Button variant="outline" className="w-full" onClick={() => { setMeetingTitle(`Diagnóstico — ${form.name || 'Lead'}`); setMeetingDate(undefined); setMeetingTime('10:00'); setMeetingDialog(true); }}>
-                <Video className="h-4 w-4 mr-2" /> Agendar Reunião
-              </Button>
-            )}
-
-            {/* Collapsible sections for saved leads */}
-            {lead?.id && (
+              {/* Documents section */}
               <div className="space-y-2">
-                {/* Interactions */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold">Histórico de Interações ({(interactions.data || []).length})</h3>
-                    <Button variant="outline" size="sm" onClick={() => setInteractionDialog(true)}><Plus className="h-3 w-3 mr-1" />Nova</Button>
+                <Label className="text-sm font-semibold">Documentos</Label>
+                <Input value={form.documents || ''} onChange={e => set({ documents: e.target.value })} placeholder="Link para documentos (https://...)" />
+                {lead?.id && (
+                  <div>
+                    <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors border border-dashed rounded-md p-3 justify-center">
+                      <Upload className="h-4 w-4" />
+                      <span>Fazer upload de ficheiro</span>
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={e => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file);
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
                   </div>
-                  {(interactions.data || []).length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Sem interações registadas.</p>
-                  ) : (
-                    <div className="space-y-1">
-                      {(interactions.data || []).map((i: any) => (
-                        <Collapsible key={i.id}>
-                          <div className="flex items-center gap-2 rounded-md border px-3 py-2">
-                            <CollapsibleTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0 p-0">
-                                <ChevronDown className="h-3.5 w-3.5 transition-transform [[data-state=open]>&]:rotate-180" />
-                              </Button>
-                            </CollapsibleTrigger>
-                            <span className="text-xs text-muted-foreground w-[70px] flex-shrink-0">{i.interaction_date ? format(new Date(i.interaction_date), 'dd/MM/yy') : ''}</span>
-                            <Badge variant="secondary" className="text-xs flex-shrink-0">{INTERACTION_TYPES.find(t => t.value === i.interaction_type)?.label || i.interaction_type}</Badge>
-                            <span className="text-xs truncate flex-1 text-muted-foreground">{i.notes || ''}</span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={() => deleteInteraction.mutate(i.id)}>
-                              <Trash2 className="h-3 w-3 text-destructive" />
-                            </Button>
-                          </div>
-                          <CollapsibleContent className="px-3 pb-2 pt-1">
-                            <p className="text-sm whitespace-pre-wrap">{i.notes || 'Sem notas.'}</p>
-                            {i.files && (
-                              <a href={i.files} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline mt-1 block">📎 {i.files.split('/').pop()}</a>
-                            )}
-                          </CollapsibleContent>
-                        </Collapsible>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Actions checklist */}
-                <Separator />
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold">Lista de Ações ({(actions.data || []).length})</h3>
-                  <div className="space-y-2">
-                    {(actions.data || []).map((a: any) => (
-                      <div key={a.id} className="flex items-center gap-2">
-                        <Checkbox
-                          checked={a.completed}
-                          onCheckedChange={checked => upsertLeadAction.mutate({ id: a.id, lead_id: a.lead_id, completed: !!checked })}
-                        />
-                        <span className={cn("text-sm flex-1", a.completed && "line-through text-muted-foreground")}>{a.task}</span>
-                        {a.deadline && <span className="text-xs text-muted-foreground">{format(new Date(a.deadline), 'dd/MM')}</span>}
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteLeadAction.mutate(a.id)}>
+                )}
+                {docLinks.length > 0 && (
+                  <div className="space-y-1 rounded-md border p-2">
+                    {docLinks.map((url: string, i: number) => (
+                      <div key={i} className="flex items-center justify-between gap-2">
+                        <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate flex-1">{decodeURIComponent(url.split('/').pop() || url)}</a>
+                        <Button variant="ghost" size="icon" className="h-5 w-5 flex-shrink-0" onClick={() => {
+                          const updated = docLinks.filter((_, j) => j !== i).join('\n');
+                          set({ documents: updated });
+                        }}>
                           <Trash2 className="h-3 w-3 text-destructive" />
                         </Button>
                       </div>
                     ))}
                   </div>
-                  <div className="flex gap-2">
-                    <Input placeholder="Nova ação..." value={newAction} onChange={e => setNewAction(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddAction()} />
-                    <Button size="sm" variant="outline" onClick={handleAddAction}><Plus className="h-3 w-3" /></Button>
-                  </div>
-                </div>
-
-                {/* Pipeline History */}
-                <Separator />
-                <PipelineHistory leadId={lead.id} />
+                )}
               </div>
-            )}
 
-            {/* Delete */}
-            {lead?.id && onDelete && (
-              <>
-                <Separator />
-                <Button variant="destructive" size="sm" className="w-full" onClick={() => { onDelete(lead.id); onOpenChange(false); }}>
-                  Eliminar Lead
+              <Separator />
+
+              {/* Context */}
+              <div>
+                <Label className="text-sm font-semibold">Contexto</Label>
+                <Textarea className="mt-1" rows={4} value={form.context || ''} onChange={e => set({ context: e.target.value })} placeholder="Notas gerais sobre este lead..." />
+              </div>
+
+              {form.lost_reason && (
+                <div>
+                  <Label className="text-sm font-semibold text-destructive">Motivo de Perda</Label>
+                  <p className="text-sm mt-1">{form.lost_reason}</p>
+                </div>
+              )}
+
+              <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_auto]">
+                <Button className="w-full" onClick={handleSave}>Guardar</Button>
+                {lead?.id && (
+                  <Button variant="outline" className="w-full lg:w-auto border-primary text-primary hover:bg-primary/10" onClick={handleConvertToClient}>
+                    <UserPlus className="h-4 w-4 mr-2" /> Converter em Cliente
+                  </Button>
+                )}
+              </div>
+
+              {/* Schedule meeting button */}
+              {lead?.id && (
+                <Button variant="outline" className="w-full" onClick={() => { setMeetingTitle(`Diagnóstico — ${form.name || 'Lead'}`); setMeetingDate(undefined); setMeetingTime('10:00'); setMeetingDialog(true); }}>
+                  <Video className="h-4 w-4 mr-2" /> Agendar Reunião
                 </Button>
-              </>
-            )}
+              )}
+
+              {/* Collapsible sections for saved leads */}
+              {lead?.id && (
+                <div className="space-y-2">
+                  {/* Interactions */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-sm font-semibold">Histórico de Interações ({(interactions.data || []).length})</h3>
+                      <Button variant="outline" size="sm" onClick={() => setInteractionDialog(true)}><Plus className="h-3 w-3 mr-1" />Nova</Button>
+                    </div>
+                    {(interactions.data || []).length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Sem interações registadas.</p>
+                    ) : (
+                      <div className="space-y-1">
+                        {(interactions.data || []).map((i: any) => (
+                          <Collapsible key={i.id}>
+                            <div className="flex items-center gap-2 rounded-md border px-3 py-2">
+                              <CollapsibleTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0 p-0">
+                                  <ChevronDown className="h-3.5 w-3.5 transition-transform [[data-state=open]>&]:rotate-180" />
+                                </Button>
+                              </CollapsibleTrigger>
+                              <span className="text-xs text-muted-foreground w-[70px] flex-shrink-0">{i.interaction_date ? format(new Date(i.interaction_date), 'dd/MM/yy') : ''}</span>
+                              <Badge variant="secondary" className="text-xs flex-shrink-0">{INTERACTION_TYPES.find(t => t.value === i.interaction_type)?.label || i.interaction_type}</Badge>
+                              <span className="text-xs truncate flex-1 text-muted-foreground">{i.notes || ''}</span>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={() => deleteInteraction.mutate(i.id)}>
+                                <Trash2 className="h-3 w-3 text-destructive" />
+                              </Button>
+                            </div>
+                            <CollapsibleContent className="px-3 pb-2 pt-1">
+                              <p className="text-sm whitespace-pre-wrap">{i.notes || 'Sem notas.'}</p>
+                              {i.files && (
+                                <a href={i.files} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline mt-1 block">📎 {i.files.split('/').pop()}</a>
+                              )}
+                            </CollapsibleContent>
+                          </Collapsible>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions checklist */}
+                  <Separator />
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold">Lista de Ações ({(actions.data || []).length})</h3>
+                    <div className="space-y-2">
+                      {(actions.data || []).map((a: any) => (
+                        <div key={a.id} className="flex items-center gap-2">
+                          <Checkbox
+                            checked={a.completed}
+                            onCheckedChange={checked => upsertLeadAction.mutate({ id: a.id, lead_id: a.lead_id, completed: !!checked })}
+                          />
+                          <span className={cn("text-sm flex-1", a.completed && "line-through text-muted-foreground")}>{a.task}</span>
+                          {a.deadline && <span className="text-xs text-muted-foreground">{format(new Date(a.deadline), 'dd/MM')}</span>}
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteLeadAction.mutate(a.id)}>
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+                      <Input placeholder="Nova ação..." value={newAction} onChange={e => setNewAction(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddAction()} />
+                      <Button size="sm" variant="outline" onClick={handleAddAction}><Plus className="h-3 w-3" /></Button>
+                    </div>
+                  </div>
+
+                  {/* Pipeline History */}
+                  <Separator />
+                  <PipelineHistory leadId={lead.id} />
+                </div>
+              )}
+
+              {/* Delete */}
+              {lead?.id && onDelete && (
+                <>
+                  <Separator />
+                  <Button variant="destructive" size="sm" className="w-full" onClick={() => { onDelete(lead.id); onOpenChange(false); }}>
+                    Eliminar Lead
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
