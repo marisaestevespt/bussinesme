@@ -24,8 +24,8 @@ type TermKey =
 const BASE_TERMS: Record<TermKey, string> = {
   clientes: 'Clientes',
   cliente: 'Cliente',
-  produto: 'Serviço',
-  produtos: 'Serviços',
+  produto: 'Produto',
+  produtos: 'Produtos',
   projeto: 'Projeto',
   projetos: 'Projetos',
   venda: 'Venda',
