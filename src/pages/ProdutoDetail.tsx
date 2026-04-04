@@ -355,9 +355,14 @@ export default function ProdutoDetailPage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Ticket (€)</Label>
+                <Label className="text-xs text-muted-foreground">Ticket Médio (€)</Label>
                 <Input value={form.ticket || ''} onChange={e => update('ticket', e.target.value)} placeholder="Ex: 400-480€" className="h-9" readOnly={!isOwner} />
               </div>
+              {!isNew && id && (
+                <div className="col-span-full">
+                  <ProductPriceTiers productId={id} readOnly={!isOwner} />
+                </div>
+              )}
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">Horas mensais por cliente</Label>
                 <Input type="number" value={form.monthly_hours_per_client ?? ''} onChange={e => update('monthly_hours_per_client', e.target.value ? Number(e.target.value) : null)} placeholder="Ex: 20" className="h-9" readOnly={!isOwner} />
