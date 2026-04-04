@@ -631,7 +631,7 @@ export default function SopDetailPage() {
             <Input value={sopRoleTitle} onChange={e => setSopRoleTitle(e.target.value)} placeholder="Ex: Designer, Psicóloga..." className="h-9" />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">Produto/Serviço</Label>
+            <Label className="text-xs text-muted-foreground">Produto</Label>
             <Select value={sopProductId || '_none_'} onValueChange={v => setSopProductId(v === '_none_' ? '' : v)}>
               <SelectTrigger className="h-9"><SelectValue placeholder="Nenhum" /></SelectTrigger>
               <SelectContent>

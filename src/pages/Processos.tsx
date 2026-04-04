@@ -457,7 +457,7 @@ export default function ProcessosPage() {
               </Popover>
             </div>
             <div>
-              <Label>Produto/Serviço associado</Label>
+              <Label>Produto associado</Label>
               <Select value={newSopProductId || '_none_'} onValueChange={v => setNewSopProductId(v === '_none_' ? '' : v)}>
                 <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
                 <SelectContent>
