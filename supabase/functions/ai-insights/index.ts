@@ -102,7 +102,7 @@ async function gatherData(supabase: any, type: string) {
       const [clients, sales, tasks, expenses] = await Promise.all([
         supabase.from("clients").select("id, status, full_name, start_date, end_of_cycle").limit(500),
         supabase.from("commercial_sales").select("id, base_value, invoice_total, status, sale_month, sale_year, client, product").eq("sale_year", year).limit(500),
-        supabase.from("tasks").select("id, status, due_date, title").limit(500),
+        supabase.from("tasks").select("id, status, deadline, name").limit(500),
         supabase.from("financial_expenses").select("id, base_value, total_with_vat, expense_date, category, status").gte("expense_date", monthStart).lt("expense_date", monthEnd).limit(500),
       ]);
 
@@ -111,7 +111,7 @@ async function gatherData(supabase: any, type: string) {
       const monthSales = (sales.data || []).filter((s: any) => Number(s.sale_month) === month);
       const totalRevenue = monthSales.reduce((sum: number, s: any) => sum + (Number(s.invoice_total) || Number(s.base_value) || 0), 0);
       const pendingTasks = (tasks.data || []).filter((t: any) => t.status !== "concluida" && t.status !== "cancelada");
-      const overdueTasks = pendingTasks.filter((t: any) => t.due_date && new Date(t.due_date) < now);
+      const overdueTasks = pendingTasks.filter((t: any) => t.deadline && new Date(t.deadline) < now);
       const totalExpenses = (expenses.data || []).reduce((sum: number, e: any) => sum + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0);
 
       return {
@@ -126,12 +126,12 @@ async function gatherData(supabase: any, type: string) {
     case "alerts": {
       const [clients, tasks, sales, nps] = await Promise.all([
         supabase.from("clients").select("id, full_name, status, end_of_cycle, start_date, email").eq("status", "ativo").limit(500),
-        supabase.from("tasks").select("id, title, status, due_date, assigned_to").not("status", "in", '("concluida","cancelada")').limit(500),
-        supabase.from("commercial_sales").select("id, client, base_value, invoice_total, status, payment_date").eq("status", "pendente").limit(200),
+        supabase.from("tasks").select("id, name, status, deadline, assigned_to").not("status", "in", '("concluida","cancelada")').limit(500),
+        supabase.from("commercial_sales").select("id, client, base_value, invoice_total, status, payment_date").in("status", ["pendente", "aguarda_pagamento"]).limit(200),
         supabase.from("client_nps_records").select("id, client_id, status, expected_date").eq("status", "pending").limit(200),
       ]);
 
-      const overdueTasks = (tasks.data || []).filter((t: any) => t.due_date && new Date(t.due_date) < now);
+      const overdueTasks = (tasks.data || []).filter((t: any) => t.deadline && new Date(t.deadline) < now);
       const nearEndClients = (clients.data || []).filter((c: any) => {
         if (!c.end_of_cycle) return false;
         const days = Math.ceil((new Date(c.end_of_cycle).getTime() - now.getTime()) / 86400000);
@@ -144,7 +144,7 @@ async function gatherData(supabase: any, type: string) {
       const overdueNps = (nps.data || []).filter((n: any) => new Date(n.expected_date) < now);
 
       return {
-        tarefas_atrasadas: overdueTasks.map((t: any) => ({ titulo: t.title, vencimento: t.due_date })).slice(0, 10),
+        tarefas_atrasadas: overdueTasks.map((t: any) => ({ titulo: t.name, vencimento: t.deadline })).slice(0, 10),
         clientes_fim_ciclo: nearEndClients.map((c: any) => ({ nome: c.full_name, fim: c.end_of_cycle })),
         pagamentos_pendentes: pendingPayments.map((s: any) => ({ cliente: s.client, valor: s.invoice_total || s.base_value, data: s.payment_date })).slice(0, 10),
         nps_pendentes: overdueNps.length,
@@ -178,7 +178,7 @@ async function gatherData(supabase: any, type: string) {
     case "commercial": {
       const [sales, leads] = await Promise.all([
         supabase.from("commercial_sales").select("id, base_value, invoice_total, status, sale_month, sale_year, client, product, source").eq("sale_year", year).limit(500),
-        supabase.from("crm_leads").select("id, name, status, pipeline_id, value, created_at").limit(300),
+        supabase.from("crm_leads").select("id, name, status, potential_product, estimated_value, created_at").limit(300),
       ]);
 
       const monthSales: Record<number, { count: number; revenue: number }> = {};
