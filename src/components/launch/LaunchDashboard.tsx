@@ -709,7 +709,7 @@ function ConteudoTab({ projectId, launchData, profiles, qc, initialSection, onCl
     { key: 'cronograma_content', icon: CalendarIcon, label: 'Cronograma' },
     { key: 'analise_publico', icon: Users, label: 'Análise do Público' },
     { key: 'estrategia_lanc', icon: Zap, label: 'Estratégia de Lançamento' },
-    { key: 'produto', icon: Layers, label: 'Produto/Serviço' },
+    { key: 'produto', icon: Layers, label: 'Produto' },
     { key: 'materiais', icon: Package, label: 'Materiais & Recursos' },
     { key: 'links', icon: Link2, label: 'Links Úteis' },
     { key: 'tracking', icon: BarChart3, label: 'Tracking de Resultados' },
