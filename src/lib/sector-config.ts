@@ -341,6 +341,23 @@ const SECTOR_WORKFLOWS: Record<BusinessSector, SectorWorkflow> = {
       { name: 'Formação contínua obrigatória', frequency: 'trimestral', description: 'Registar horas de formação para a Ordem' },
     ],
   },
+  oficina_automovel: {
+    pipelineStages: [
+      { key: 'contacto', label: 'Contacto', color: '#94a3b8' },
+      { key: 'diagnostico', label: 'Diagnóstico', color: '#60a5fa' },
+      { key: 'orcamento', label: 'Orçamento Enviado', color: '#fbbf24' },
+      { key: 'aprovado', label: 'Aprovado', color: '#f97316' },
+      { key: 'em_reparacao', label: 'Em Reparação', color: '#a78bfa' },
+      { key: 'pronto', label: 'Pronto a Levantar', color: '#22c55e' },
+    ],
+    meetingTypes: ['Receção de viatura', 'Diagnóstico presencial', 'Entrega de viatura', 'Orçamentação', 'Inspeção'],
+    suggestedRoutines: [
+      { name: 'Verificação de viaturas em oficina', frequency: 'diaria', description: 'Rever estado de cada viatura em reparação' },
+      { name: 'Contacto a clientes com orçamento pendente', frequency: 'semanal', description: 'Follow-up de orçamentos enviados sem resposta' },
+      { name: 'Inventário de peças', frequency: 'mensal', description: 'Verificar stock de peças e consumíveis mais usados' },
+      { name: 'Manutenção de equipamento de oficina', frequency: 'trimestral', description: 'Calibração e manutenção de ferramentas e elevadores' },
+    ],
+  },
 };
 
 /* ── Config builder ── */
