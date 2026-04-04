@@ -24,8 +24,7 @@ export function SuspensionScreen() {
           </div>
           <div className="pt-2 space-y-3">
             <a
-              href="https://wa.me/351910000000?text=Ol%C3%A1%2C%20gostaria%20de%20regularizar%20o%20meu%20pagamento."
-              target="_blank"
+              href="https://wa.link/s6w2z1"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium ring-offset-background transition-all duration-200 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md h-10 px-6 w-full"
             >
@@ -33,8 +32,7 @@ export function SuspensionScreen() {
               Regularizar Pagamento
             </a>
             <a
-              href="https://wa.me/351910000000?text=Ol%C3%A1%2C%20preciso%20de%20ajuda%20com%20o%20meu%20acesso."
-              target="_blank"
+              href="https://wa.link/s6w2z1"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-lg text-sm font-medium ring-offset-background transition-all duration-200 border border-input bg-background hover:bg-accent/50 hover:text-accent-foreground hover:border-accent h-10 px-6 w-full"
             >
