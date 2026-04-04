@@ -32,7 +32,7 @@ export function CommercialMetas() {
   const productsList = products.data || [];
   useEffect(() => {
     const existingGoals = data.productGoals.data || [];
-    const activeProducts = productsList.filter(p => p.status === 'ativo');
+    const activeProducts = productsList.filter(p => p.status !== 'arquivado' && p.status !== 'cancelado');
     if (activeProducts.length === 0 || !data.productGoals.data) return;
 
     const existingNames = new Set(existingGoals.map(g => g.product_name.toLowerCase()));
