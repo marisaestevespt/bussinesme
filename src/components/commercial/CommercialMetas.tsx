@@ -99,10 +99,19 @@ export function CommercialMetas() {
               <div><p className="text-sm text-muted-foreground">Ano</p><p className="text-lg font-medium">{data.year}</p></div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Meta de Vendas Anual (€)</p>
-                <div className="flex gap-2">
-                  <Input type="number" step="0.01" defaultValue={data.annualGoalAmount || ''} onChange={e => setAnnualInput(e.target.value)} />
-                  <Button size="sm" onClick={handleAnnualSave}><Save className="h-4 w-4" /></Button>
-                </div>
+                {data.annualGoalAmount > 0 && !editingAnnual ? (
+                  <div className="flex items-center gap-2">
+                    <p className="text-lg font-medium">€{fmt(data.annualGoalAmount)}</p>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setAnnualInput(String(data.annualGoalAmount)); setEditingAnnual(true); }}>
+                      <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Input type="number" step="0.01" defaultValue={data.annualGoalAmount || ''} onChange={e => setAnnualInput(e.target.value)} autoFocus={editingAnnual} />
+                    <Button size="sm" onClick={handleAnnualSave}><Save className="h-4 w-4" /></Button>
+                  </div>
+                )}
               </div>
               <div><p className="text-sm text-muted-foreground">Total Faturado</p><p className="text-lg font-medium">€{fmt(data.totalInvoiced)}</p></div>
               <div><p className="text-sm text-muted-foreground">% Progresso</p><p className="text-lg font-medium">{data.progressPct.toFixed(1)}%</p></div>
