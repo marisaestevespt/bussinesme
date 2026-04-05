@@ -16,7 +16,7 @@ export function useSuspensionCheck() {
         .maybeSingle();
 
       if (mounted) {
-        setSuspended(true); // TEMP: forçar ecrã de bloqueio para preview
+        setSuspended(data?.value === 'true');
         setLoading(false);
       }
     };
