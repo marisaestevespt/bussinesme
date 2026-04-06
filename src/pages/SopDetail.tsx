@@ -136,7 +136,8 @@ export default function SopDetailPage() {
   const [sopVersion, setSopVersion] = useState(1);
   const [sopVersionNotes, setSopVersionNotes] = useState('');
   const [showCreateTasks, setShowCreateTasks] = useState(false);
-  const [sopEstimatedTime, setSopEstimatedTime] = useState('');
+  const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
+  const [docExpandedSteps, setDocExpandedSteps] = useState<Set<string>>(new Set());
   const [taskProjectId, setTaskProjectId] = useState('');
   const [taskDepartment, setTaskDepartment] = useState('');
   const [taskDeadline, setTaskDeadline] = useState('');
