@@ -78,7 +78,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
                 documents_links: t.documents_links || null,
                 sort_order: i,
                 completed: false,
-                due_date: ruleDays != null ? addDays(baseDate, ruleDays).toISOString().split('T')[0] : null,
+                due_date: ruleDays != null ? calcDueDate(baseDate, ruleDays, t.rule_unit) : null,
               };
             });
             await supabase.from('client_onboarding').insert(rows);
@@ -114,7 +114,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
                 documents_links: t.documents_links || null,
                 sort_order: i,
                 completed: false,
-                due_date: ruleDays != null ? addDays(new Date(), ruleDays).toISOString().split('T')[0] : null,
+                due_date: ruleDays != null ? calcDueDate(new Date(), ruleDays, t.rule_unit) : null,
               };
             });
             await supabase.from('client_offboarding').insert(rows);
@@ -201,7 +201,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
         const responsibleKey = t.responsible?.toLowerCase().trim();
         const assignedTo = responsibleKey ? (membersByRole[responsibleKey] || null) : null;
         const ruleDays = parseRuleDays(t.rule);
-        const deadline = ruleDays ? addDays(baseDate, ruleDays).toISOString().split('T')[0] : null;
+        const deadline = ruleDays ? calcDueDate(baseDate, ruleDays) : null;
 
         const hist = historicalAvg[t.task_name];
         let estimatedTime: number | null = null;
@@ -245,7 +245,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
         const responsibleKey = t.responsible?.toLowerCase().trim();
         const assignedTo = responsibleKey ? (membersByRole[responsibleKey] || null) : null;
         const ruleDays = parseRuleDays(t.rule);
-        const deadline = ruleDays ? addDays(baseDate, ruleDays).toISOString().split('T')[0] : null;
+        const deadline = ruleDays ? calcDueDate(baseDate, ruleDays) : null;
 
         const histSub = historicalAvg[t.task_name];
         let estimatedTime: number | null = null;
