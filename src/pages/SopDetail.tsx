@@ -91,11 +91,21 @@ export default function SopDetailPage() {
     },
   });
 
-  // Fetch step documents
+  // Fetch structured steps
+  const { data: sopSteps = [] } = useQuery({
+    queryKey: ['sop-steps', id],
+    queryFn: async () => {
+      const { data } = await supabase.from('sop_steps' as any).select('*').eq('sop_id', id!).order('sort_order');
+      return (data || []) as any[];
+    },
+    enabled: !!id,
+  });
+
+  // Fetch step documents (linked to sop_steps via step_id)
   const { data: stepDocuments = [] } = useQuery({
     queryKey: ['sop-step-documents', id],
     queryFn: async () => {
-      const { data } = await supabase.from('sop_step_documents' as any).select('*').eq('sop_id', id!).order('step_index').order('sort_order');
+      const { data } = await supabase.from('sop_step_documents' as any).select('*').eq('sop_id', id!).order('sort_order');
       return (data || []) as any[];
     },
     enabled: !!id,
