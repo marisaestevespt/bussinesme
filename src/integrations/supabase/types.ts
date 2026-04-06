@@ -8820,6 +8820,19 @@ export type Database = {
           title: string
         }[]
       }
+      get_portal_onboarding: {
+        Args: { _token: string }
+        Returns: {
+          activity: string
+          completed: boolean
+          documents_links: string
+          due_date: string
+          id: string
+          phase: string
+          responsible: string
+          sort_order: number
+        }[]
+      }
       get_portal_payment_methods: { Args: { _token: string }; Returns: Json }
       get_portal_payments: {
         Args: { _token: string }
