@@ -25,13 +25,33 @@ const ACTION_LABELS: Record<string, { label: string; icon: string; color: string
   send_email: { label: "Enviar email", icon: "📧", color: "text-purple-600" },
 };
 
+const STORAGE_KEY_MESSAGES = "lirah-ai-messages";
+const STORAGE_KEY_OPEN = "lirah-ai-open";
+
+function loadPersistedMessages(): Msg[] {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY_MESSAGES);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
 export function FloatingAiChat() {
-  const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Msg[]>([]);
+  const [open, setOpen] = useState(() => sessionStorage.getItem(STORAGE_KEY_OPEN) === "true");
+  const [messages, setMessages] = useState<Msg[]>(loadPersistedMessages);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Persist messages to sessionStorage
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEY_MESSAGES, JSON.stringify(messages));
+  }, [messages]);
+
+  // Persist open state
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEY_OPEN, String(open));
+  }, [open]);
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
