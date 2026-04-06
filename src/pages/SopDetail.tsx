@@ -139,6 +139,12 @@ export default function SopDetailPage() {
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
   const [docExpandedSteps, setDocExpandedSteps] = useState<Set<string>>(new Set());
   const [sopEstimatedTime, setSopEstimatedTime] = useState('');
+  const [editingSections, setEditingSections] = useState<Set<string>>(new Set());
+  const toggleEdit = (section: string) => setEditingSections(prev => {
+    const next = new Set(prev);
+    next.has(section) ? next.delete(section) : next.add(section);
+    return next;
+  });
   const [taskProjectId, setTaskProjectId] = useState('');
   const [taskDepartment, setTaskDepartment] = useState('');
   const [taskDeadline, setTaskDeadline] = useState('');
