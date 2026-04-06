@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, X, ChevronDown, ChevronRight, Layers } from 'lucide-react';
+import { Plus, X, ChevronDown, ChevronRight, Layers, ListChecks } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Template {
@@ -97,6 +97,19 @@ function PhaseCard({
 
   useEffect(() => setName(phase.name), [phase.name]);
 
+  // Fetch SOP steps when a SOP is linked
+  const { data: sopSteps = [] } = useQuery({
+    queryKey: ['sop-steps', phase.linked_sop_id],
+    enabled: !!phase.linked_sop_id,
+    queryFn: async () => {
+      const { data } = await supabase.from('sop_steps').select('id, description, responsible, sort_order')
+        .eq('sop_id', phase.linked_sop_id!).order('sort_order');
+      return data || [];
+    },
+  });
+
+  const linkedSopName = sops.find(s => s.id === phase.linked_sop_id)?.name;
+
   return (
     <Card className="border-l-4 border-l-primary/30">
       <CardHeader className="pb-2 pt-3 px-4 flex flex-row items-center justify-between gap-2">
@@ -131,8 +144,27 @@ function PhaseCard({
         </div>
       </CardHeader>
       {expanded && (
-        <CardContent className="pb-3 pt-0 px-4 space-y-2">
-          {deliverables.length === 0 && (
+        <CardContent className="pb-3 pt-0 px-4 space-y-3">
+          {/* SOP Steps */}
+          {sopSteps.length > 0 && (
+            <div className="rounded-md border border-dashed border-primary/20 bg-primary/[0.02] p-3 space-y-1.5">
+              <p className="text-[10px] font-medium text-primary flex items-center gap-1.5">
+                <ListChecks className="h-3 w-3" /> Passos do SOP: {linkedSopName}
+              </p>
+              {sopSteps.map((step, i) => (
+                <div key={step.id} className="flex items-start gap-2 pl-1">
+                  <span className="text-[10px] text-muted-foreground font-mono w-4 text-right shrink-0 mt-0.5">{i + 1}.</span>
+                  <p className="text-xs text-muted-foreground leading-relaxed flex-1">{step.description}</p>
+                  {step.responsible && (
+                    <Badge variant="secondary" className="text-[9px] shrink-0">{step.responsible}</Badge>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Deliverables */}
+          {deliverables.length === 0 && sopSteps.length === 0 && (
             <p className="text-xs text-muted-foreground italic pl-6 py-2">Sem entregas nesta fase.</p>
           )}
           {deliverables.map((d, i) => (
