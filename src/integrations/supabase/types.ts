@@ -7437,6 +7437,7 @@ export type Database = {
           id: string
           sop_id: string
           sort_order: number | null
+          step_id: string | null
           step_index: number
           title: string
           updated_at: string
@@ -7449,6 +7450,7 @@ export type Database = {
           id?: string
           sop_id: string
           sort_order?: number | null
+          step_id?: string | null
           step_index: number
           title?: string
           updated_at?: string
@@ -7461,6 +7463,7 @@ export type Database = {
           id?: string
           sop_id?: string
           sort_order?: number | null
+          step_id?: string | null
           step_index?: number
           title?: string
           updated_at?: string
@@ -7468,6 +7471,63 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "sop_step_documents_sop_id_fkey"
+            columns: ["sop_id"]
+            isOneToOne: false
+            referencedRelation: "sops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sop_step_documents_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "sop_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sop_steps: {
+        Row: {
+          created_at: string
+          deadline_days: number | null
+          deadline_trigger: string | null
+          deadline_unit: string | null
+          description: string
+          id: string
+          portal_visible: boolean
+          responsible: string | null
+          sop_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deadline_days?: number | null
+          deadline_trigger?: string | null
+          deadline_unit?: string | null
+          description?: string
+          id?: string
+          portal_visible?: boolean
+          responsible?: string | null
+          sop_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deadline_days?: number | null
+          deadline_trigger?: string | null
+          deadline_unit?: string | null
+          description?: string
+          id?: string
+          portal_visible?: boolean
+          responsible?: string | null
+          sop_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sop_steps_sop_id_fkey"
             columns: ["sop_id"]
             isOneToOne: false
             referencedRelation: "sops"
