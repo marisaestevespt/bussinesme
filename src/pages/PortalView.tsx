@@ -448,13 +448,13 @@ export default function PortalViewPage() {
                                   <Checkbox
                                     checked={!!o.completed}
                                     onCheckedChange={async (v) => {
-                                      await sb('client_onboarding').update({ completed: !!v }).eq('id', o.id);
+                                      await (supabase as any).rpc('portal_toggle_onboarding_step', { _token: token, _step_id: o.id, _completed: !!v });
                                       setOnboarding(prev => prev.map(x => x.id === o.id ? { ...x, completed: !!v } : x));
                                       // Recalculate cascading dates when completing a step
                                       if (v && client?.id) {
                                         const { recalcCascadingDates } = await import('@/components/LinkedSopsSection');
                                         await recalcCascadingDates('client_onboarding', client.id, o.sort_order ?? i);
-                                        const { data: refreshed } = await sb('client_onboarding').select('*').eq('client_id', client.id).order('sort_order');
+                                        const { data: refreshed } = await (supabase as any).rpc('get_portal_onboarding', { _token: token });
                                         if (refreshed) setOnboarding(refreshed);
                                       }
                                     }}
@@ -1127,12 +1127,12 @@ export default function PortalViewPage() {
                               <Checkbox
                                 checked={!!o.completed}
                                 onCheckedChange={async (v) => {
-                                  await sb('client_onboarding').update({ completed: !!v }).eq('id', o.id);
+                                  await (supabase as any).rpc('portal_toggle_onboarding_step', { _token: token, _step_id: o.id, _completed: !!v });
                                   setOnboarding(prev => prev.map(x => x.id === o.id ? { ...x, completed: !!v } : x));
                                   if (v && client?.id) {
                                     const { recalcCascadingDates } = await import('@/components/LinkedSopsSection');
                                     await recalcCascadingDates('client_onboarding', client.id, o.sort_order ?? i);
-                                    const { data: refreshed } = await sb('client_onboarding').select('*').eq('client_id', client.id).order('sort_order');
+                                    const { data: refreshed } = await (supabase as any).rpc('get_portal_onboarding', { _token: token });
                                     if (refreshed) setOnboarding(refreshed);
                                   }
                                 }}
