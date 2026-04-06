@@ -500,11 +500,6 @@ export default function ClienteDetailPage() {
                     answer_type: dq.answer_type || 'text',
                   }))
                 );
-              }
-                    sort_order: dq.sort_order ?? i,
-                  }))
-                );
-              }
             }
           }
         }
