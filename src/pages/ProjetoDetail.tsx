@@ -33,6 +33,7 @@ import { PROJECT_TYPES, PROJECT_STATUSES, DEPARTMENTS, getTypeInfo, getStatusInf
 import { LaunchDashboard } from '@/components/launch/LaunchDashboard';
 import { ProjectDeliverables } from '@/components/project/ProjectDeliverables';
 import { ProjectProcessosTab } from '@/components/project/ProjectProcessosTab';
+import { ProjectPhasesTimeline } from '@/components/project/ProjectPhasesTimeline';
 import { ProjectGestaoTab } from '@/components/project/ProjectGestaoTab';
 import { ClientPortalSection } from '@/components/client/ClientPortalSection';
 import { InvoiceUpload, type DocEntry } from '@/components/financial/InvoiceUpload';
@@ -960,7 +961,8 @@ export default function ProjetoDetailPage() {
             </TabsContent>
 
             {/* ─── TAB 2: PROCESSOS ────────────────────────── */}
-            <TabsContent value="processos" className="mt-4">
+            <TabsContent value="processos" className="mt-4 space-y-6">
+              <ProjectPhasesTimeline projectId={id!} />
               <ProjectProcessosTab
                 projectId={id!}
                 clientId={resolvedClientId}
