@@ -234,8 +234,19 @@ export function FloatingAiChat() {
   };
 
   const handleConfirm = (msgIndex: number) => {
+    const proposal = messages[msgIndex]?.action_proposal;
     setMessages((prev) => prev.map((m, i) => i === msgIndex ? { ...m, confirmed: true } : m));
-    sendMessage("[AÇÃO CONFIRMADA] Sim, pode executar.", true);
+    // Include proposal details so the AI knows exactly what to execute
+    const proposalSummary = proposal
+      ? `\n\nDetalhes da ação a executar:\n${JSON.stringify({
+          action_type: proposal.action_type,
+          workflow: proposal.workflow || false,
+          steps: proposal.steps,
+          details: proposal.details,
+          description: proposal.description,
+        })}`
+      : "";
+    sendMessage(`[AÇÃO CONFIRMADA] Sim, pode executar.${proposalSummary}`, true);
   };
 
   const handleReject = (msgIndex: number) => {
