@@ -541,16 +541,43 @@ export default function SopDetailPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-template-rows', templateTable, linkedProductId] }),
   });
 
+  // ─── Sop Steps CRUD ──────────────────────────────────────
+  const addSopStep = useMutation({
+    mutationFn: async () => {
+      await supabase.from('sop_steps' as any).insert({
+        sop_id: id,
+        description: '',
+        sort_order: sopSteps.length,
+      });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-steps', id] }),
+  });
+
+  const updateSopStep = useMutation({
+    mutationFn: async ({ stepId, data }: { stepId: string; data: Record<string, any> }) => {
+      await supabase.from('sop_steps' as any).update(data).eq('id', stepId);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-steps', id] }),
+  });
+
+  const deleteSopStep = useMutation({
+    mutationFn: async (stepId: string) => {
+      await supabase.from('sop_steps' as any).delete().eq('id', stepId);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-steps', id] }),
+  });
+
   // ─── Step Documents CRUD ──────────────────────────────────────
   const addStepDoc = useMutation({
-    mutationFn: async (stepIndex: number) => {
+    mutationFn: async (stepId: string) => {
       await supabase.from('sop_step_documents' as any).insert({
         sop_id: id,
-        step_index: stepIndex,
+        step_id: stepId,
+        step_index: 0,
         document_type: 'template',
         title: '',
         content: '',
-        sort_order: stepDocuments.filter((d: any) => d.step_index === stepIndex).length,
+        sort_order: stepDocuments.filter((d: any) => d.step_id === stepId).length,
       });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-step-documents', id] }),
