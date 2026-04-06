@@ -832,157 +832,183 @@ export default function SopDetailPage() {
           <EditableCheckList items={inputs} onChange={setInputs} />
         </section>
 
-        {/* 4. Passos do Processo */}
+        {/* 4. Passos do Processo (unified with onboarding/offboarding) */}
         <section>
-          <h3 className="text-lg font-semibold mb-2">4. Passos do Processo</h3>
-          <EditableTextList items={passos} onChange={setPassos} placeholder="Descrever passo..." />
-
-          {/* Documents per step */}
-          <div className="mt-4 space-y-3">
-            <h4 className="text-sm font-semibold flex items-center gap-2">
-              <FileText className="h-4 w-4" /> Documentos e Templates por Passo
-            </h4>
-            {passos.map((passo, i) => {
-              if (!passo.trim()) return null;
-              const docs = stepDocuments.filter((d: any) => d.step_index === i);
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold">4. Passos do Processo</h3>
+            <Button size="sm" variant="outline" onClick={() => addSopStep.mutate()}>
+              <Plus className="h-3 w-3 mr-1" /> Passo
+            </Button>
+          </div>
+          {(isOnboardingSop || isOffboardingSop) && (
+            <p className="text-xs text-muted-foreground mb-3">
+              Os passos marcados com 👁️ aparecerão no checklist do cliente no portal. Os restantes são apenas internos.
+            </p>
+          )}
+          {sopSteps.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-6">Sem passos definidos. Clica em "+ Passo" para começar.</p>
+          )}
+          <div className="space-y-2">
+            {sopSteps.map((step: any, idx: number) => {
+              const isExpanded = expandedSteps.has(step.id);
+              const isDocOpen = docExpandedSteps.has(step.id);
+              const docs = stepDocuments.filter((d: any) => d.step_id === step.id);
               return (
-                <div key={i} className="border rounded-lg p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-muted-foreground">Passo {i + 1}: <span className="text-foreground">{passo.length > 60 ? passo.slice(0, 60) + '…' : passo}</span></span>
-                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => addStepDoc.mutate(i)}>
-                      <Plus className="h-3 w-3 mr-1" /> Template
+                <div key={step.id} className="border rounded-lg overflow-hidden">
+                  {/* Main row */}
+                  <div className="flex items-center gap-2 px-3 py-2">
+                    <span className="text-xs text-muted-foreground font-mono w-6 shrink-0">{idx + 1}.</span>
+                    <Input
+                      defaultValue={step.description}
+                      onBlur={e => updateSopStep.mutate({ stepId: step.id, data: { description: e.target.value } })}
+                      placeholder="Descrever passo..."
+                      className="flex-1 border-none shadow-none h-8 px-1 text-sm focus-visible:ring-0"
+                    />
+                    {/* Portal visibility toggle */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn("h-7 w-7 shrink-0", step.portal_visible ? "text-primary" : "text-muted-foreground/30")}
+                      onClick={() => updateSopStep.mutate({ stepId: step.id, data: { portal_visible: !step.portal_visible } })}
+                      title={step.portal_visible ? 'Visível no portal' : 'Não visível no portal'}
+                    >
+                      {step.portal_visible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                    </Button>
+                    {/* Doc toggle */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn("h-7 w-7 shrink-0", docs.length > 0 ? "text-primary" : "text-muted-foreground/30")}
+                      onClick={() => setDocExpandedSteps(prev => {
+                        const next = new Set(prev);
+                        next.has(step.id) ? next.delete(step.id) : next.add(step.id);
+                        return next;
+                      })}
+                      title="Documentos"
+                    >
+                      <Paperclip className="h-3.5 w-3.5" />
+                      {docs.length > 0 && <span className="absolute -top-0.5 -right-0.5 text-[9px] bg-primary text-primary-foreground rounded-full w-3.5 h-3.5 flex items-center justify-center">{docs.length}</span>}
+                    </Button>
+                    {/* Expand details */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 shrink-0 text-muted-foreground"
+                      onClick={() => setExpandedSteps(prev => {
+                        const next = new Set(prev);
+                        next.has(step.id) ? next.delete(step.id) : next.add(step.id);
+                        return next;
+                      })}
+                    >
+                      {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => deleteSopStep.mutate(step.id)}>
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
-                  {docs.map((doc: any) => (
-                    <div key={doc.id} className="bg-muted/30 rounded-md p-3 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={doc.document_type}
-                          onChange={e => updateStepDoc.mutate({ docId: doc.id, data: { document_type: e.target.value } })}
-                          className="text-xs bg-transparent border rounded px-2 py-1 text-muted-foreground"
-                        >
-                          <option value="email">📧 Email</option>
-                          <option value="mensagem">💬 Mensagem</option>
-                          <option value="documento">📄 Documento</option>
-                          <option value="template">📋 Template</option>
-                        </select>
-                        <Input
-                          defaultValue={doc.title}
-                          onBlur={e => updateStepDoc.mutate({ docId: doc.id, data: { title: e.target.value } })}
-                          placeholder="Título do template..."
-                          className="flex-1 h-7 text-xs"
-                        />
-                        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => deleteStepDoc.mutate(doc.id)}>
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+
+                  {/* Expanded details: deadline, trigger, responsible */}
+                  {isExpanded && (
+                    <div className="px-3 pb-3 pt-1 border-t bg-muted/20">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="flex items-center gap-1.5">
+                          <Label className="text-[10px] text-muted-foreground whitespace-nowrap">Prazo</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            defaultValue={step.deadline_days ?? ''}
+                            placeholder="Nº"
+                            onBlur={e => updateSopStep.mutate({ stepId: step.id, data: { deadline_days: e.target.value ? parseInt(e.target.value) : null } })}
+                            className="h-7 text-xs w-14"
+                          />
+                          <select
+                            value={step.deadline_unit || 'dias'}
+                            onChange={e => updateSopStep.mutate({ stepId: step.id, data: { deadline_unit: e.target.value } })}
+                            className="text-[10px] bg-transparent border rounded px-1 py-1 text-muted-foreground"
+                          >
+                            <option value="horas_uteis">h úteis</option>
+                            <option value="dias_uteis">dias úteis</option>
+                            <option value="dias">dias</option>
+                            <option value="semanas">semanas</option>
+                          </select>
+                        </div>
+                        <div>
+                          <Label className="text-[10px] text-muted-foreground">Gatilho</Label>
+                          <select
+                            value={step.deadline_trigger || 'apos_inicio'}
+                            onChange={e => updateSopStep.mutate({ stepId: step.id, data: { deadline_trigger: e.target.value } })}
+                            className="w-full text-xs bg-transparent border rounded px-2 py-1.5 text-muted-foreground"
+                          >
+                            <option value="apos_inicio">Após início</option>
+                            <option value="apos_passo_anterior">Após passo anterior</option>
+                            <option value="reuniao_inicial">Após reunião inicial</option>
+                            <option value="assinatura_contrato">Após assinatura contrato</option>
+                            <option value="onboarding_completo">Após onboarding completo</option>
+                            <option value="fim_ciclo">Antes do fim do ciclo</option>
+                          </select>
+                        </div>
+                        <div>
+                          <Label className="text-[10px] text-muted-foreground">Responsável</Label>
+                          <Select
+                            value={step.responsible || '_none_'}
+                            onValueChange={v => updateSopStep.mutate({ stepId: step.id, data: { responsible: v === '_none_' ? null : v } })}
+                          >
+                            <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="_none_">Nenhum</SelectItem>
+                              <SelectItem value="cliente">Cliente</SelectItem>
+                              {teamMembers.map((m: any) => <SelectItem key={m.id} value={m.full_name}>{m.full_name}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
-                      <Textarea
-                        defaultValue={doc.content || ''}
-                        onBlur={e => updateStepDoc.mutate({ docId: doc.id, data: { content: e.target.value } })}
-                        placeholder="Conteúdo do template (ex: texto do email, mensagem...)&#10;Usa {nome_cliente}, {produto}, {data} como variáveis..."
-                        className="min-h-[80px] text-xs"
-                      />
                     </div>
-                  ))}
+                  )}
+
+                  {/* Inline docs */}
+                  {isDocOpen && (
+                    <div className="px-3 pb-3 pt-1 border-t bg-muted/10 space-y-2">
+                      {docs.map((doc: any) => (
+                        <div key={doc.id} className="flex items-start gap-2 bg-background rounded p-2 border">
+                          <select
+                            value={doc.document_type}
+                            onChange={e => updateStepDoc.mutate({ docId: doc.id, data: { document_type: e.target.value } })}
+                            className="text-[10px] bg-transparent border rounded px-1 py-0.5 text-muted-foreground shrink-0 mt-0.5"
+                          >
+                            <option value="email">📧</option>
+                            <option value="mensagem">💬</option>
+                            <option value="documento">📄</option>
+                            <option value="template">📋</option>
+                          </select>
+                          <div className="flex-1 space-y-1">
+                            <Input
+                              defaultValue={doc.title}
+                              onBlur={e => updateStepDoc.mutate({ docId: doc.id, data: { title: e.target.value } })}
+                              placeholder="Título..."
+                              className="h-6 text-xs border-none shadow-none px-0 focus-visible:ring-0"
+                            />
+                            <Textarea
+                              defaultValue={doc.content || ''}
+                              onBlur={e => updateStepDoc.mutate({ docId: doc.id, data: { content: e.target.value } })}
+                              placeholder="Conteúdo... ({nome_cliente}, {produto}, {data})"
+                              className="min-h-[50px] text-xs resize-none"
+                            />
+                          </div>
+                          <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => deleteStepDoc.mutate(doc.id)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => addStepDoc.mutate(step.id)}>
+                        <Plus className="h-3 w-3 mr-1" /> Documento/Template
+                      </Button>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
         </section>
-
-        {/* Template de Onboarding/Offboarding (structured steps for client automation) */}
-        {(isOnboardingSop || isOffboardingSop) && (
-          <section>
-            <Card>
-              <CardHeader className="flex-row items-center justify-between">
-                <CardTitle className="text-base">
-                  {isOnboardingSop ? 'Template de Onboarding de Clientes' : 'Template de Offboarding de Clientes'}
-                </CardTitle>
-                <Button size="sm" variant="outline" onClick={() => addTemplateRow.mutate()}>
-                  <Plus className="h-3 w-3 mr-1" /> Adicionar Passo
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Estes passos serão copiados automaticamente para cada cliente associado a este produto.
-                </p>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Fase</TableHead>
-                      <TableHead>Atividade</TableHead>
-                      <TableHead>Responsável</TableHead>
-                      <TableHead>Prazo</TableHead>
-                      <TableHead>Gatilho</TableHead>
-                      <TableHead className="w-10" />
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {templateRows.length === 0 && (
-                      <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-4">Sem passos definidos</TableCell></TableRow>
-                    )}
-                    {templateRows.map((row: any) => (
-                      <TableRow key={row.id}>
-                        <TableCell>
-                          <Input defaultValue={row.phase || ''} placeholder="Fase" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { phase: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
-                        </TableCell>
-                        <TableCell>
-                          <Input defaultValue={row.activity || ''} placeholder="Atividade" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { activity: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
-                        </TableCell>
-                        <TableCell>
-                          <Input defaultValue={row.responsible || ''} placeholder="Cliente / Função" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { responsible: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1.5">
-                            <Input
-                              type="number"
-                              min={0}
-                              defaultValue={row.rule_days ?? ''}
-                              placeholder="Nº"
-                              onBlur={e => {
-                                const val = e.target.value ? parseInt(e.target.value) : null;
-                                updateTemplateRow.mutate({ rowId: row.id, data: { rule_days: val, rule: val != null ? `+${val} ${row.rule_unit || 'dias_uteis'}` : null } });
-                              }}
-                              className="border-none shadow-none h-auto p-0 text-sm w-12"
-                            />
-                            <select
-                              value={row.rule_unit || 'dias_uteis'}
-                              onChange={e => updateTemplateRow.mutate({ rowId: row.id, data: { rule_unit: e.target.value } })}
-                              className="text-xs bg-transparent border-none p-0 text-muted-foreground focus:outline-none"
-                            >
-                              <option value="horas_uteis">h úteis</option>
-                              <option value="dias_uteis">dias úteis</option>
-                              <option value="dias_corridos">dias</option>
-                              <option value="semanas">semanas</option>
-                            </select>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <select
-                            value={row.rule_trigger || 'inicio_cliente'}
-                            onChange={e => updateTemplateRow.mutate({ rowId: row.id, data: { rule_trigger: e.target.value } })}
-                            className="text-xs bg-transparent border-none p-0 text-muted-foreground focus:outline-none"
-                          >
-                            <option value="inicio_cliente">Após início do cliente</option>
-                            <option value="reuniao_inicial">Após reunião inicial</option>
-                            <option value="assinatura_contrato">Após assinatura de contrato</option>
-                            <option value="onboarding_completo">Após onboarding completo</option>
-                            <option value="fim_ciclo">Antes do fim do ciclo</option>
-                          </select>
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteTemplateRow.mutate(row.id)}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </section>
-        )}
 
         {/* Antecedência de Renovação (for Offboarding SOP) */}
         {isOffboardingSop && (
