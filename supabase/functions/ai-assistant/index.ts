@@ -490,21 +490,24 @@ Para propose_workflow, steps deve ter:
 - action_type: create / update / delete / send_email
 - details: { table, data, filters } — usa {{step_N.campo}} para encadear
 
-Tabelas principais:
+Tabelas principais (COLUNAS EXATAS — usa estes nomes):
 - team_members: equipa (full_name, email, role_title, work_areas, work_schedule, expected_weekly_hours, status)
 - clients: clientes (full_name, email, status, current_product, start_date, nif, whatsapp, payment_method)
-- tasks: tarefas (title, status, priority, due_date/deadline, assigned_to, department)
+- tasks: tarefas (name, status, priority, deadline, assigned_to, department, project_id, client_id, notes, tag, scheduled_time)
 - projects: projetos (name, status, client_id, product_id, start_date, deadline, progress)
 - financial_entries: entradas | financial_expenses: despesas
-- commercial_sales: vendas | meetings: reuniões
+- commercial_sales: vendas (sale_id, client, product, base_value, invoice_total, status, payment_date)
+- meetings: reuniões (title, date_time, status, client_id, project_id, department)
 - products: produtos (name, category, base_price, status)
 - product_deliverable_templates: templates de entregáveis do produto
-- project_deliverables: entregáveis do projeto
-- content_items: conteúdos | crm_leads: leads CRM
+- project_deliverables: entregáveis do projeto (project_id, name, status, deadline)
+- content_items: conteúdos | crm_leads: leads CRM (name, email, phone, status, source, potential_product)
 - crm_pipeline_leads: leads nos pipelines
 - client_onboarding: checklist onboarding do cliente
 - client_portals: portal do cliente
 - planning_goals: objetivos de planeamento
+
+⚠️ ATENÇÃO: A tabela tasks usa "name" (não "title") e "deadline" (não "due_date").
 
 Regras:
 - Sê conciso mas simpático. Usa emojis com moderação.
