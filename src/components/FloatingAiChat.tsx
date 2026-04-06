@@ -192,11 +192,21 @@ export function FloatingAiChat() {
 
     // Attach file if present
     if (pendingFile) {
-      body.file = {
-        name: pendingFile.name,
-        type: pendingFile.type,
-        base64: pendingFile.base64,
-      };
+      if (pendingFile.extractedText) {
+        // For PDFs: send extracted text instead of binary
+        body.file = {
+          name: pendingFile.name,
+          type: "text/plain",
+          extractedText: pendingFile.extractedText,
+        };
+      } else {
+        // For images and other files: send base64
+        body.file = {
+          name: pendingFile.name,
+          type: pendingFile.type,
+          base64: pendingFile.base64,
+        };
+      }
       setPendingFile(null);
     }
 
