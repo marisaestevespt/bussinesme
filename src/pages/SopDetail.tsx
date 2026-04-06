@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Plus, Trash2, Save, ExternalLink, GripVertical, ListChecks, History, FileText, ChevronDown, ChevronUp, Eye, EyeOff, Paperclip } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, ExternalLink, GripVertical, ListChecks, History, FileText, ChevronDown, ChevronUp, Eye, EyeOff, Paperclip, Pencil } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
