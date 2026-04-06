@@ -1445,39 +1445,73 @@ export default function SopDetailPage() {
         )}
 
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 flex-row items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">5</span>
               Decisões / Exceções
             </CardTitle>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('decisoes')}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
           </CardHeader>
           <CardContent>
-            <EditableBulletList items={decisoes} onChange={setDecisoes} placeholder="(se acontecer X, fazer Y)" />
+            {editingSections.has('decisoes') ? (
+              <EditableBulletList items={decisoes} onChange={setDecisoes} placeholder="(se acontecer X, fazer Y)" />
+            ) : (
+              decisoes.filter(d => d.trim()).length > 0 ? (
+                <ul className="text-sm space-y-0.5">{decisoes.filter(d => d.trim()).map((d, i) => <li key={i}>• {d}</li>)}</ul>
+              ) : <p className="text-sm text-muted-foreground italic">Sem decisões definidas</p>
+            )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 flex-row items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">6</span>
               Outputs Finais
             </CardTitle>
-            <p className="text-sm text-emerald-600 mt-1">✅ O processo considera-se concluído quando:</p>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('outputs')}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
           </CardHeader>
           <CardContent>
-            <EditableCheckList items={outputs} onChange={setOutputs} />
+            {editingSections.has('outputs') ? (
+              <>
+                <p className="text-sm text-emerald-600 mb-3">✅ O processo considera-se concluído quando:</p>
+                <EditableCheckList items={outputs} onChange={setOutputs} />
+              </>
+            ) : (
+              outputs.filter(o => o.text.trim()).length > 0 ? (
+                <ul className="text-sm space-y-1">{outputs.filter(o => o.text.trim()).map((o, i) => (
+                  <li key={i} className="flex items-center gap-2">
+                    <span className={o.checked ? 'text-primary' : 'text-muted-foreground'}>{o.checked ? '✅' : '⬜'}</span>
+                    <span className={o.checked ? 'line-through text-muted-foreground' : ''}>{o.text}</span>
+                  </li>
+                ))}</ul>
+              ) : <p className="text-sm text-muted-foreground italic">Sem outputs definidos</p>
+            )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 flex-row items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">7</span>
               Notas
             </CardTitle>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('notas')}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
           </CardHeader>
           <CardContent>
-            <EditableBulletList items={notas} onChange={setNotas} placeholder="Nota..." />
+            {editingSections.has('notas') ? (
+              <EditableBulletList items={notas} onChange={setNotas} placeholder="Nota..." />
+            ) : (
+              notas.filter(n => n.trim()).length > 0 ? (
+                <ul className="text-sm space-y-0.5">{notas.filter(n => n.trim()).map((n, i) => <li key={i}>• {n}</li>)}</ul>
+              ) : <p className="text-sm text-muted-foreground italic">Sem notas</p>
+            )}
           </CardContent>
         </Card>
 
