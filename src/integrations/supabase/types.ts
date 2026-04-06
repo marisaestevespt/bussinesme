@@ -8854,6 +8854,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      notify_portal_questions_submitted: {
+        Args: { _client_id: string; _client_name: string }
+        Returns: undefined
+      }
       portal_confirm_meeting: {
         Args: { _meeting_id: string; _token: string }
         Returns: boolean

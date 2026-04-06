@@ -482,6 +482,13 @@ export default function PortalViewPage() {
                 setDraftAnswers({});
                 setActiveQuestionId(null);
                 toast.success('Respostas submetidas!');
+                // Notify owner(s) that client submitted initial questions
+                if (client?.id && client?.full_name) {
+                  (supabase as any).rpc('notify_portal_questions_submitted', {
+                    _client_name: client.full_name,
+                    _client_id: client.id,
+                  }).catch(() => {});
+                }
               };
 
               return (
