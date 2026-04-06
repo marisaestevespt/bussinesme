@@ -8879,6 +8879,10 @@ export type Database = {
         Args: { _email: string; _token: string }
         Returns: boolean
       }
+      portal_toggle_onboarding_step: {
+        Args: { _completed: boolean; _step_id: string; _token: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "owner" | "admin" | "member"
