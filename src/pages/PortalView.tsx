@@ -213,6 +213,7 @@ export default function PortalViewPage() {
   const statusLabel = (s: string) => {
     const map: Record<string, { text: string; cls: string }> = {
       pago: { text: 'Pago', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+      tudo_ok: { text: 'Pago', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
       em_falta: { text: 'Em falta', cls: 'bg-red-50 text-red-600 border-red-200' },
       pendente: { text: 'Pendente', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
       aguarda_pagamento: { text: 'Aguarda pagamento', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
