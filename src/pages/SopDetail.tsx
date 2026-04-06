@@ -1010,6 +1010,7 @@ export default function SopDetailPage() {
                             onChange={e => updateSopStep.mutate({ stepId: step.id, data: { deadline_trigger: e.target.value } })}
                             className="w-full text-xs bg-transparent border rounded px-2 py-1.5 text-muted-foreground"
                           >
+                            <option value="no_dia">No dia</option>
                             <option value="apos_inicio">Após início</option>
                             <option value="apos_passo_anterior">Após passo anterior</option>
                             <option value="reuniao_inicial">Após reunião inicial</option>
