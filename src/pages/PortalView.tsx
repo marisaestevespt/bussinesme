@@ -348,7 +348,7 @@ export default function PortalViewPage() {
                 );
               })()}
               {portal.show_payments && (() => {
-                const paidStatuses = ['pago', 'pago_falta_fatura'];
+                const paidStatuses = ['pago', 'pago_falta_fatura', 'tudo_ok'];
                 const next = payments
                   .filter((p: any) => {
                     if (!p.payment_date) return false;
