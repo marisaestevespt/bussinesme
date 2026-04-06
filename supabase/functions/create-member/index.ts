@@ -1,5 +1,36 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// ─── Portuguese holidays (inline for edge function) ───
+function computeEaster(year: number): Date {
+  const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+  const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+function fmtDate(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function getHolidaySet(year: number): Set<string> {
+  const easter = computeEaster(year);
+  const addD = (base: Date, n: number) => { const r = new Date(base); r.setDate(r.getDate() + n); return r; };
+  const dates = [
+    new Date(year,0,1), new Date(year,3,25), new Date(year,4,1), new Date(year,5,10),
+    new Date(year,7,15), new Date(year,9,5), new Date(year,10,1), new Date(year,11,1),
+    new Date(year,11,8), new Date(year,11,25),
+    addD(easter, -47), addD(easter, -2), easter, addD(easter, 60),
+  ];
+  return new Set(dates.map(fmtDate));
+}
+function isPortugueseHoliday(d: Date): boolean {
+  return getHolidaySet(d.getFullYear()).has(fmtDate(d));
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
