@@ -239,9 +239,14 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
       <Card>
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
           <CardTitle className="text-sm">Perguntas Iniciais</CardTitle>
-          <Button size="sm" variant="outline" onClick={() => addQuestion.mutate({ portal_id: portalId!, question: '', sort_order: (questions.data?.length || 0), answer_type: 'text' })}>
-            <Plus className="h-3 w-3 mr-1" />Nova Pergunta
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => seedQuestionsFromProduct()}>
+              <RefreshCw className="h-3 w-3 mr-1" />Importar do Produto
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => addQuestion.mutate({ portal_id: portalId!, question: '', sort_order: (questions.data?.length || 0), answer_type: 'text' })}>
+              <Plus className="h-3 w-3 mr-1" />Nova Pergunta
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-2">
           {(questions.data || []).map(q => {
