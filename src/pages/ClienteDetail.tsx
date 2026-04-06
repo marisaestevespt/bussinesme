@@ -500,11 +500,11 @@ export default function ClienteDetailPage() {
                     answer_type: dq.answer_type || 'text',
                   }))
                 );
+              }
             }
           }
         }
       }
-
       // 6. Add history entry
       await supabase.from('client_history').insert({
         client_id: id,
