@@ -152,8 +152,20 @@ export function FloatingAiChat() {
     }
 
     try {
+      let extractedText: string | undefined;
+      
+      // For PDFs, extract text client-side
+      if (file.type === "application/pdf") {
+        toast.info("A extrair texto do PDF...");
+        extractedText = await extractPdfText(file);
+        if (!extractedText) {
+          toast.error("Não foi possível extrair texto do PDF. Tenta um PDF com texto selecionável.");
+          return;
+        }
+      }
+      
       const base64 = await fileToBase64(file);
-      setPendingFile({ name: file.name, type: file.type, base64, size: file.size });
+      setPendingFile({ name: file.name, type: file.type, base64, extractedText, size: file.size });
     } catch {
       toast.error("Erro ao ler o ficheiro.");
     }
