@@ -251,6 +251,22 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                       sort_order: i,
                     }))
                   );
+
+                  // Copy diagnostic questions to portal as initial questions
+                  const { data: diagQuestions } = await supabase
+                    .from('product_diagnostic_questions')
+                    .select('question, sort_order')
+                    .eq('product_id', matchedProduct.id!)
+                    .order('sort_order');
+                  if (diagQuestions?.length) {
+                    await supabase.from('portal_initial_questions').insert(
+                      diagQuestions.map((dq, i) => ({
+                        portal_id: portal.id,
+                        question: dq.question,
+                        sort_order: dq.sort_order ?? i,
+                      }))
+                    );
+                  }
                 }
               }
             }
