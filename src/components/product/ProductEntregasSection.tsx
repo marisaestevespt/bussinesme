@@ -210,7 +210,7 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
 
   // Group deliverables by phase
   const sortedPhases = [...phases].sort((a, b) => a.sort_order - b.sort_order);
-  const unassigned = deliverableTemplates.filter(d => !d.phase_id).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
@@ -228,7 +228,7 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
         )}
       </div>
 
-      {sortedPhases.length === 0 && unassigned.length === 0 && (
+      {sortedPhases.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center">
             <p className="text-sm text-muted-foreground italic">Nenhuma fase definida. Cria fases para organizar as entregas deste produto.</p>
@@ -250,24 +250,6 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
         );
       })}
 
-      {/* Unassigned deliverables */}
-      {unassigned.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm text-muted-foreground">Entregas sem fase</CardTitle>
-            {isOwner && (
-              <Button size="sm" variant="outline" onClick={onAdd}>
-                <Plus className="h-3 w-3 mr-1" /> Entrega
-              </Button>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {unassigned.map((t, i) => (
-              <DeliverableRow key={t.id} template={t} index={i} isOwner={isOwner} onUpdate={onUpdate} onDelete={onDelete} />
-            ))}
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
