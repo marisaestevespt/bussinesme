@@ -1025,11 +1025,11 @@ export default function SopDetailPage() {
                             value={step.responsible || '_none_'}
                             onValueChange={v => updateSopStep.mutate({ stepId: step.id, data: { responsible: v === '_none_' ? null : v } })}
                           >
-                            <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                            <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Nenhuma" /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="_none_">Nenhum</SelectItem>
+                              <SelectItem value="_none_">Nenhuma</SelectItem>
                               <SelectItem value="cliente">Cliente</SelectItem>
-                              {teamMembers.map((m: any) => <SelectItem key={m.id} value={m.full_name}>{m.full_name}</SelectItem>)}
+                              {teamRoles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>
