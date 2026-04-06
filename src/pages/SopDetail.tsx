@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Plus, Trash2, Save, ExternalLink, GripVertical, ListChecks, History } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, ExternalLink, GripVertical, ListChecks, History, FileText, Mail, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -24,16 +24,9 @@ import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
 
-const DEPARTMENTS = [
-  { value: 'administrativo', label: 'Administrativo' },
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'comercial', label: 'Comercial' },
-  { value: 'financeiro', label: 'Financeiro' },
-  { value: 'customer_success', label: 'Customer Success' },
-  { value: 'operacoes', label: 'Operações' },
-  { value: 'produto_servico', label: 'Produto' },
-  { value: 'recursos_humanos', label: 'Pessoas' },
-];
+import { DEPARTMENTS as SHARED_DEPARTMENTS } from '@/lib/departments';
+
+const DEPARTMENTS = SHARED_DEPARTMENTS.map(d => ({ value: d.value, label: d.label }));
 
 const SOP_STATUSES = [
   { value: 'para_criar', label: 'Para criar', color: 'bg-muted text-muted-foreground' },
@@ -88,7 +81,26 @@ export default function SopDetailPage() {
     },
   });
 
-  // ─── Local state ──────────────────────────────────────────────
+  // Fetch unique role titles from team members
+  const { data: teamRoles = [] } = useQuery({
+    queryKey: ['team-role-titles'],
+    queryFn: async () => {
+      const { data } = await supabase.from('team_members').select('role_title').eq('status', 'ativo').not('role_title', 'is', null);
+      const unique = [...new Set((data || []).map((d: any) => d.role_title).filter(Boolean))].sort();
+      return unique as string[];
+    },
+  });
+
+  // Fetch step documents
+  const { data: stepDocuments = [] } = useQuery({
+    queryKey: ['sop-step-documents', id],
+    queryFn: async () => {
+      const { data } = await supabase.from('sop_step_documents' as any).select('*').eq('sop_id', id!).order('step_index').order('sort_order');
+      return (data || []) as any[];
+    },
+    enabled: !!id,
+  });
+
   const [name, setName] = useState('');
   const [sopId, setSopId] = useState('');
   const [status, setStatus] = useState('para_criar');
@@ -517,6 +529,35 @@ export default function SopDetailPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-template-rows', templateTable, linkedProductId] }),
   });
 
+  // ─── Step Documents CRUD ──────────────────────────────────────
+  const addStepDoc = useMutation({
+    mutationFn: async (stepIndex: number) => {
+      await supabase.from('sop_step_documents' as any).insert({
+        sop_id: id,
+        step_index: stepIndex,
+        document_type: 'template',
+        title: '',
+        content: '',
+        sort_order: stepDocuments.filter((d: any) => d.step_index === stepIndex).length,
+      });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-step-documents', id] }),
+  });
+
+  const updateStepDoc = useMutation({
+    mutationFn: async ({ docId, data }: { docId: string; data: Record<string, any> }) => {
+      await supabase.from('sop_step_documents' as any).update(data).eq('id', docId);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-step-documents', id] }),
+  });
+
+  const deleteStepDoc = useMutation({
+    mutationFn: async (docId: string) => {
+      await supabase.from('sop_step_documents' as any).delete().eq('id', docId);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-step-documents', id] }),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from('sops').delete().eq('id', id!);
@@ -628,7 +669,13 @@ export default function SopDetailPage() {
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">Função associada</Label>
-            <Input value={sopRoleTitle} onChange={e => setSopRoleTitle(e.target.value)} placeholder="Ex: Designer, Psicóloga..." className="h-9" />
+            <Select value={sopRoleTitle || '_none_'} onValueChange={v => setSopRoleTitle(v === '_none_' ? '' : v)}>
+              <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_none_">Nenhuma</SelectItem>
+                {teamRoles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">Produto</Label>
@@ -641,6 +688,10 @@ export default function SopDetailPage() {
             </Select>
           </div>
           <div>
+            <Label className="text-xs text-muted-foreground">Tempo Estimado (horas)</Label>
+            <Input type="number" min="0" step="0.5" value={sopEstimatedTime} onChange={e => setSopEstimatedTime(e.target.value)} placeholder="Ex: 2.5" className="h-9" />
+          </div>
+          <div>
             <Label className="text-xs text-muted-foreground">Data de criação</Label>
             <Input type="date" value={createdAt} onChange={e => setCreatedAt(e.target.value)} className="h-9" />
           </div>
@@ -651,10 +702,6 @@ export default function SopDetailPage() {
           <div>
             <Label className="text-xs text-muted-foreground">Última atualização</Label>
             <p className="text-sm pt-2">{sop.updated_at ? format(new Date(sop.updated_at), "dd MMM yyyy, HH:mm", { locale: pt }) : '—'}</p>
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Tempo Estimado (horas)</Label>
-            <Input type="number" min="0" step="0.5" value={sopEstimatedTime} onChange={e => setSopEstimatedTime(e.target.value)} placeholder="Ex: 2.5" className="h-9" />
           </div>
         </div>
 
@@ -750,6 +797,58 @@ export default function SopDetailPage() {
         <section>
           <h3 className="text-lg font-semibold mb-2">4. Passos do Processo</h3>
           <EditableTextList items={passos} onChange={setPassos} placeholder="Descrever passo..." />
+
+          {/* Documents per step */}
+          <div className="mt-4 space-y-3">
+            <h4 className="text-sm font-semibold flex items-center gap-2">
+              <FileText className="h-4 w-4" /> Documentos e Templates por Passo
+            </h4>
+            {passos.map((passo, i) => {
+              if (!passo.trim()) return null;
+              const docs = stepDocuments.filter((d: any) => d.step_index === i);
+              return (
+                <div key={i} className="border rounded-lg p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">Passo {i + 1}: <span className="text-foreground">{passo.length > 60 ? passo.slice(0, 60) + '…' : passo}</span></span>
+                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => addStepDoc.mutate(i)}>
+                      <Plus className="h-3 w-3 mr-1" /> Template
+                    </Button>
+                  </div>
+                  {docs.map((doc: any) => (
+                    <div key={doc.id} className="bg-muted/30 rounded-md p-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={doc.document_type}
+                          onChange={e => updateStepDoc.mutate({ docId: doc.id, data: { document_type: e.target.value } })}
+                          className="text-xs bg-transparent border rounded px-2 py-1 text-muted-foreground"
+                        >
+                          <option value="email">📧 Email</option>
+                          <option value="mensagem">💬 Mensagem</option>
+                          <option value="documento">📄 Documento</option>
+                          <option value="template">📋 Template</option>
+                        </select>
+                        <Input
+                          defaultValue={doc.title}
+                          onBlur={e => updateStepDoc.mutate({ docId: doc.id, data: { title: e.target.value } })}
+                          placeholder="Título do template..."
+                          className="flex-1 h-7 text-xs"
+                        />
+                        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => deleteStepDoc.mutate(doc.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <Textarea
+                        defaultValue={doc.content || ''}
+                        onBlur={e => updateStepDoc.mutate({ docId: doc.id, data: { content: e.target.value } })}
+                        placeholder="Conteúdo do template (ex: texto do email, mensagem...)&#10;Usa {nome_cliente}, {produto}, {data} como variáveis..."
+                        className="min-h-[80px] text-xs"
+                      />
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
         </section>
 
         {/* Template de Onboarding/Offboarding (structured steps for client automation) */}

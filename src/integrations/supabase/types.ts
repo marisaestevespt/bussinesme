@@ -7428,6 +7428,53 @@ export type Database = {
           },
         ]
       }
+      sop_step_documents: {
+        Row: {
+          content: string | null
+          created_at: string
+          document_type: string
+          file_url: string | null
+          id: string
+          sop_id: string
+          sort_order: number | null
+          step_index: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          document_type?: string
+          file_url?: string | null
+          id?: string
+          sop_id: string
+          sort_order?: number | null
+          step_index: number
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          document_type?: string
+          file_url?: string | null
+          id?: string
+          sop_id?: string
+          sort_order?: number | null
+          step_index?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sop_step_documents_sop_id_fkey"
+            columns: ["sop_id"]
+            isOneToOne: false
+            referencedRelation: "sops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sops: {
         Row: {
           apply_to_all_active_clients: boolean
