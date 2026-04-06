@@ -537,155 +537,201 @@ export default function PortalViewPage() {
                     )}
                   </div>
 
-                  {/* Questions list */}
-                  {!allSubmitted && (
-                    <div className="bg-white divide-y divide-border/30">
-                      {questions.map((q: any, i: number) => {
-                        const isOpen = currentOpen === q.id;
-                        const hasAnswer = q.answer?.trim() || draftAnswers[q.id]?.trim() || (Array.isArray(q.file_urls) && q.file_urls.length > 0);
-                        return (
-                          <div key={q.id} className="transition-all">
-                            {/* Question row — clickable to toggle */}
-                            <button
-                              className="w-full px-6 py-3.5 flex items-center gap-3 text-left hover:bg-muted/30 transition-colors"
-                              onClick={() => setActiveQuestionId(isOpen ? null : q.id)}
-                            >
-                              <div
-                                className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all ${
-                                  hasAnswer ? 'text-white' : 'bg-muted text-muted-foreground'
-                                }`}
-                                style={hasAnswer ? { backgroundColor: pc } : undefined}
+                  {/* Questions grouped by section */}
+                  {!allSubmitted && (() => {
+                    // Group questions by question_group
+                    const groups: { group: string; items: any[] }[] = [];
+                    const seen = new Set<string>();
+                    for (const q of questions) {
+                      const g = q.question_group || 'Geral';
+                      if (!seen.has(g)) { seen.add(g); groups.push({ group: g, items: [] }); }
+                      groups.find(gr => gr.group === g)!.items.push(q);
+                    }
+
+                    return (
+                      <div className="bg-white">
+                        {groups.map((section) => {
+                          const sectionAnswered = section.items.filter(isQAnswered).length;
+                          const sectionComplete = sectionAnswered === section.items.length;
+                          const isSectionOpen = section.items.some(q => q.id === currentOpen) || (!sectionComplete && !section.items.every(isQAnswered));
+
+                          return (
+                            <div key={section.group} className="border-b border-border/20 last:border-b-0">
+                              {/* Section header — collapsible */}
+                              <button
+                                className="w-full px-6 py-3 flex items-center justify-between hover:bg-muted/20 transition-colors"
+                                onClick={() => {
+                                  // Toggle: if any question in this section is open, close all; otherwise open first unanswered
+                                  const openInSection = section.items.find(q => q.id === currentOpen);
+                                  if (openInSection) {
+                                    setActiveQuestionId(null);
+                                  } else {
+                                    const firstUn = section.items.find((q: any) => !isQAnswered(q));
+                                    setActiveQuestionId(firstUn?.id || section.items[0]?.id || null);
+                                  }
+                                }}
                               >
-                                {hasAnswer ? '✓' : i + 1}
-                              </div>
-                              <p className={`text-sm flex-1 ${hasAnswer ? 'text-muted-foreground' : 'font-medium'}`}>{q.question}</p>
-                              <ChevronRight className={`h-4 w-4 text-muted-foreground/40 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
-                            </button>
+                                <div className="flex items-center gap-2">
+                                  <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${isSectionOpen ? 'rotate-90' : ''}`} />
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{section.group}</p>
+                                </div>
+                                <Badge
+                                  variant="outline"
+                                  className={`text-[10px] ${sectionComplete ? 'text-emerald-600 border-emerald-200 bg-emerald-50' : ''}`}
+                                >
+                                  {sectionAnswered}/{section.items.length}
+                                </Badge>
+                              </button>
 
-                            {/* Answer area — only visible when open */}
-                            {isOpen && (
-                              <div className="px-6 pb-4 pl-[3.75rem]">
-                                {/* Show existing uploaded files */}
-                                {Array.isArray(q.file_urls) && q.file_urls.length > 0 && (
-                                  <div className="rounded-xl bg-emerald-50/50 border border-emerald-100 p-3 mb-2">
-                                    <div className="flex flex-wrap gap-2">
-                                      {(q.file_urls as string[]).map((url: string, fi: number) => {
-                                        const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
-                                        return isImg ? (
-                                          <a key={fi} href={url} target="_blank" rel="noopener noreferrer">
-                                            <img src={url} alt="" className="h-16 w-16 object-cover rounded-lg border" />
-                                          </a>
-                                        ) : (
-                                          <a key={fi} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline bg-white rounded-lg border px-2 py-1">
-                                            <FileText className="h-3 w-3" />{url.split('/').pop()?.substring(0, 25)}
-                                          </a>
-                                        );
-                                      })}
-                                    </div>
-                                    {q.answered_at && <p className="text-[10px] text-muted-foreground mt-2">Enviado {format(parseISO(q.answered_at), 'dd/MM/yyyy')}</p>}
-                                  </div>
-                                )}
+                              {/* Section questions */}
+                              {isSectionOpen && (
+                                <div className="divide-y divide-border/20">
+                                  {section.items.map((q: any, i: number) => {
+                                    const globalIdx = questions.indexOf(q);
+                                    const isOpen = currentOpen === q.id;
+                                    const hasAnswer = q.answer?.trim() || draftAnswers[q.id]?.trim() || (Array.isArray(q.file_urls) && q.file_urls.length > 0);
+                                    return (
+                                      <div key={q.id} className="transition-all">
+                                        <button
+                                          className="w-full px-6 py-3 flex items-center gap-3 text-left hover:bg-muted/30 transition-colors pl-10"
+                                          onClick={() => setActiveQuestionId(isOpen ? null : q.id)}
+                                        >
+                                          <div
+                                            className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all ${
+                                              hasAnswer ? 'text-white' : 'bg-muted text-muted-foreground'
+                                            }`}
+                                            style={hasAnswer ? { backgroundColor: pc } : undefined}
+                                          >
+                                            {hasAnswer ? '✓' : i + 1}
+                                          </div>
+                                          <p className={`text-sm flex-1 ${hasAnswer ? 'text-muted-foreground' : 'font-medium'}`}>{q.question}</p>
+                                          <ChevronRight className={`h-4 w-4 text-muted-foreground/40 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+                                        </button>
 
-                                {/* Text answer type */}
-                                {(q.answer_type || 'text') === 'text' && (
-                                  <>
-                                    {q.answer?.trim() ? (
-                                      <div className="space-y-2">
-                                        <div className="rounded-xl bg-emerald-50/50 border border-emerald-100 p-3">
-                                          <p className="text-sm">{q.answer}</p>
-                                          {q.answered_at && <p className="text-[10px] text-muted-foreground mt-1">Respondida {format(parseISO(q.answered_at), 'dd/MM/yyyy')}</p>}
-                                        </div>
-                                        <Textarea
-                                          className="text-sm rounded-xl border-border/40 bg-muted/10 focus-visible:ring-1"
-                                          placeholder="Editar resposta..."
-                                          defaultValue={q.answer}
-                                          onChange={e => setDraftAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
-                                          rows={2}
-                                          style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
-                                        />
+                                        {isOpen && (
+                                          <div className="px-6 pb-4 pl-[4.5rem]">
+                                            {Array.isArray(q.file_urls) && q.file_urls.length > 0 && (
+                                              <div className="rounded-xl bg-emerald-50/50 border border-emerald-100 p-3 mb-2">
+                                                <div className="flex flex-wrap gap-2">
+                                                  {(q.file_urls as string[]).map((url: string, fi: number) => {
+                                                    const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+                                                    return isImg ? (
+                                                      <a key={fi} href={url} target="_blank" rel="noopener noreferrer">
+                                                        <img src={url} alt="" className="h-16 w-16 object-cover rounded-lg border" />
+                                                      </a>
+                                                    ) : (
+                                                      <a key={fi} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline bg-white rounded-lg border px-2 py-1">
+                                                        <FileText className="h-3 w-3" />{url.split('/').pop()?.substring(0, 25)}
+                                                      </a>
+                                                    );
+                                                  })}
+                                                </div>
+                                                {q.answered_at && <p className="text-[10px] text-muted-foreground mt-2">Enviado {format(parseISO(q.answered_at), 'dd/MM/yyyy')}</p>}
+                                              </div>
+                                            )}
+
+                                            {(q.answer_type || 'text') === 'text' && (
+                                              <>
+                                                {q.answer?.trim() ? (
+                                                  <div className="space-y-2">
+                                                    <div className="rounded-xl bg-emerald-50/50 border border-emerald-100 p-3">
+                                                      <p className="text-sm">{q.answer}</p>
+                                                      {q.answered_at && <p className="text-[10px] text-muted-foreground mt-1">Respondida {format(parseISO(q.answered_at), 'dd/MM/yyyy')}</p>}
+                                                    </div>
+                                                    <Textarea
+                                                      className="text-sm rounded-xl border-border/40 bg-muted/10 focus-visible:ring-1"
+                                                      placeholder="Editar resposta..."
+                                                      defaultValue={q.answer}
+                                                      onChange={e => setDraftAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
+                                                      rows={2}
+                                                      style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
+                                                    />
+                                                  </div>
+                                                ) : (
+                                                  <Textarea
+                                                    className="text-sm rounded-xl border-border/40 bg-muted/10 focus-visible:ring-1"
+                                                    placeholder="A tua resposta..."
+                                                    value={draftAnswers[q.id] || ''}
+                                                    onChange={e => setDraftAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
+                                                    rows={3}
+                                                    style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
+                                                    autoFocus
+                                                  />
+                                                )}
+                                                {(draftAnswers[q.id]?.trim() && draftAnswers[q.id] !== q.answer) && (
+                                                  <Button
+                                                    size="sm"
+                                                    className="mt-2 rounded-lg text-white text-xs"
+                                                    style={{ backgroundColor: pc }}
+                                                    onClick={async () => {
+                                                      await answerQuestion(q.id, draftAnswers[q.id]);
+                                                      setDraftAnswers(prev => { const n = { ...prev }; delete n[q.id]; return n; });
+                                                      const nextUnanswered = questions.find((qq: any) => qq.id !== q.id && !qq.answer?.trim());
+                                                      setActiveQuestionId(nextUnanswered?.id || null);
+                                                    }}
+                                                  >
+                                                    ✓ Guardar resposta
+                                                  </Button>
+                                                )}
+                                              </>
+                                            )}
+
+                                            {((q.answer_type || 'text') === 'file' || (q.answer_type || 'text') === 'image') && (
+                                              <div className="space-y-2">
+                                                <label className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/40 bg-muted/10 p-4 cursor-pointer hover:bg-muted/20 transition-colors">
+                                                  <input
+                                                    type="file"
+                                                    className="hidden"
+                                                    multiple
+                                                    accept={q.answer_type === 'image' ? 'image/*' : '*'}
+                                                    onChange={e => {
+                                                      if (e.target.files?.length) {
+                                                        uploadQuestionFiles(q.id, e.target.files);
+                                                        const nextUnanswered = questions.find((qq: any) => qq.id !== q.id && !(qq.answer?.trim() || (Array.isArray(qq.file_urls) && qq.file_urls.length)));
+                                                        setTimeout(() => setActiveQuestionId(nextUnanswered?.id || null), 1500);
+                                                      }
+                                                    }}
+                                                    disabled={uploadingQuestionFiles[q.id]}
+                                                  />
+                                                  {uploadingQuestionFiles[q.id] ? (
+                                                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                                                  ) : (
+                                                    <>
+                                                      <Upload className="h-4 w-4 text-muted-foreground" />
+                                                      <span className="text-sm text-muted-foreground">
+                                                        {q.answer_type === 'image' ? 'Carregar imagem(ns)' : 'Carregar ficheiro(s)'}
+                                                      </span>
+                                                    </>
+                                                  )}
+                                                </label>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
                                       </div>
-                                    ) : (
-                                      <Textarea
-                                        className="text-sm rounded-xl border-border/40 bg-muted/10 focus-visible:ring-1"
-                                        placeholder="A tua resposta..."
-                                        value={draftAnswers[q.id] || ''}
-                                        onChange={e => setDraftAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
-                                        rows={3}
-                                        style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
-                                        autoFocus
-                                      />
-                                    )}
-                                    {(draftAnswers[q.id]?.trim() && draftAnswers[q.id] !== q.answer) && (
-                                      <Button
-                                        size="sm"
-                                        className="mt-2 rounded-lg text-white text-xs"
-                                        style={{ backgroundColor: pc }}
-                                        onClick={async () => {
-                                          await answerQuestion(q.id, draftAnswers[q.id]);
-                                          setDraftAnswers(prev => { const n = { ...prev }; delete n[q.id]; return n; });
-                                          const nextUnanswered = questions.find((qq: any) => qq.id !== q.id && !qq.answer?.trim());
-                                          setActiveQuestionId(nextUnanswered?.id || null);
-                                        }}
-                                      >
-                                        ✓ Guardar resposta
-                                      </Button>
-                                    )}
-                                  </>
-                                )}
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
 
-                                {/* File/Image upload type */}
-                                {((q.answer_type || 'text') === 'file' || (q.answer_type || 'text') === 'image') && (
-                                  <div className="space-y-2">
-                                    <label
-                                      className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/40 bg-muted/10 p-4 cursor-pointer hover:bg-muted/20 transition-colors"
-                                    >
-                                      <input
-                                        type="file"
-                                        className="hidden"
-                                        multiple
-                                        accept={q.answer_type === 'image' ? 'image/*' : '*'}
-                                        onChange={e => {
-                                          if (e.target.files?.length) {
-                                            uploadQuestionFiles(q.id, e.target.files);
-                                            const nextUnanswered = questions.find((qq: any) => qq.id !== q.id && !(qq.answer?.trim() || (Array.isArray(qq.file_urls) && qq.file_urls.length)));
-                                            setTimeout(() => setActiveQuestionId(nextUnanswered?.id || null), 1500);
-                                          }
-                                        }}
-                                        disabled={uploadingQuestionFiles[q.id]}
-                                      />
-                                      {uploadingQuestionFiles[q.id] ? (
-                                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                                      ) : (
-                                        <>
-                                          <Upload className="h-4 w-4 text-muted-foreground" />
-                                          <span className="text-sm text-muted-foreground">
-                                            {q.answer_type === 'image' ? 'Carregar imagem(ns)' : 'Carregar ficheiro(s)'}
-                                          </span>
-                                        </>
-                                      )}
-                                    </label>
-                                  </div>
-                                )}
-                              </div>
-                            )}
+                        {/* Submit all button */}
+                        {allAnswered && (
+                          <div className="px-6 py-4 border-t border-border/20">
+                            <Button
+                              className="w-full rounded-xl text-white font-semibold"
+                              style={{ backgroundColor: pc }}
+                              onClick={handleSubmitAll}
+                            >
+                              <Send className="h-4 w-4 mr-2" />Submeter Respostas
+                            </Button>
                           </div>
-                        );
-                      })}
-
-                      {/* Submit all button */}
-                      {allAnswered && (
-                        <div className="px-6 py-4">
-                          <Button
-                            className="w-full rounded-xl text-white font-semibold"
-                            style={{ backgroundColor: pc }}
-                            onClick={handleSubmitAll}
-                          >
-                            <Send className="h-4 w-4 mr-2" />Submeter Respostas
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             })()}

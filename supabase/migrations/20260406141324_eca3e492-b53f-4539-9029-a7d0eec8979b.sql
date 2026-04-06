@@ -1,0 +1,1 @@
+ALTER TABLE public.portal_initial_questions ADD COLUMN question_group text;

@@ -5606,6 +5606,7 @@ export type Database = {
           id: string
           portal_id: string
           question: string
+          question_group: string | null
           sort_order: number
         }
         Insert: {
@@ -5617,6 +5618,7 @@ export type Database = {
           id?: string
           portal_id: string
           question: string
+          question_group?: string | null
           sort_order?: number
         }
         Update: {
@@ -5628,6 +5630,7 @@ export type Database = {
           id?: string
           portal_id?: string
           question?: string
+          question_group?: string | null
           sort_order?: number
         }
         Relationships: [
