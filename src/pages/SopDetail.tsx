@@ -814,32 +814,54 @@ export default function SopDetailPage() {
           )}
         </div>
 
-        <section>
-          <h3 className="text-lg font-semibold mb-2">1. Objetivo</h3>
-          <Textarea value={objetivo} onChange={e => setObjetivo(e.target.value)} placeholder="Descrever o objetivo deste SOP..." rows={3} />
-        </section>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">1</span>
+              Objetivo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Textarea value={objetivo} onChange={e => setObjetivo(e.target.value)} placeholder="Descrever o objetivo deste SOP..." rows={3} />
+          </CardContent>
+        </Card>
 
-        {/* 2. Utilização */}
-        <section>
-          <h3 className="text-lg font-semibold mb-2">2. Utilização</h3>
-          <UtilizacaoTable usado={usado} naoUsado={naoUsado} onChangeUsado={setUsado} onChangeNaoUsado={setNaoUsado} />
-        </section>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">2</span>
+              Utilização
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <UtilizacaoTable usado={usado} naoUsado={naoUsado} onChangeUsado={setUsado} onChangeNaoUsado={setNaoUsado} />
+          </CardContent>
+        </Card>
 
-        {/* 3. Inputs Necessários */}
-        <section>
-          <h3 className="text-lg font-semibold mb-1">3. Inputs Necessários</h3>
-          <p className="text-sm text-amber-600 mb-3">⚠️ Se algum item estiver em falta, não iniciar.</p>
-          <EditableCheckList items={inputs} onChange={setInputs} />
-        </section>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">3</span>
+              Inputs Necessários
+            </CardTitle>
+            <p className="text-sm text-amber-600 mt-1">⚠️ Se algum item estiver em falta, não iniciar.</p>
+          </CardHeader>
+          <CardContent>
+            <EditableCheckList items={inputs} onChange={setInputs} />
+          </CardContent>
+        </Card>
 
-        {/* 4. Passos do Processo (unified with onboarding/offboarding) */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold">4. Passos do Processo</h3>
+        <Card>
+          <CardHeader className="pb-3 flex-row items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">4</span>
+              Passos do Processo
+            </CardTitle>
             <Button size="sm" variant="outline" onClick={() => addSopStep.mutate()}>
               <Plus className="h-3 w-3 mr-1" /> Passo
             </Button>
-          </div>
+          </CardHeader>
+          <CardContent>
           {(isOnboardingSop || isOffboardingSop) && (
             <p className="text-xs text-muted-foreground mb-3">
               Os passos marcados com 👁️ aparecerão no checklist do cliente no portal. Os restantes são apenas internos.
@@ -1008,7 +1030,8 @@ export default function SopDetailPage() {
               );
             })}
           </div>
-        </section>
+          </CardContent>
+        </Card>
 
         {/* Antecedência de Renovação (for Offboarding SOP) */}
         {isOffboardingSop && (
@@ -1372,23 +1395,42 @@ export default function SopDetailPage() {
           </section>
         )}
 
-        <section>
-          <h3 className="text-lg font-semibold mb-2">5. Decisões / Exceções</h3>
-          <EditableBulletList items={decisoes} onChange={setDecisoes} placeholder="(se acontecer X, fazer Y)" />
-        </section>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">5</span>
+              Decisões / Exceções
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EditableBulletList items={decisoes} onChange={setDecisoes} placeholder="(se acontecer X, fazer Y)" />
+          </CardContent>
+        </Card>
 
-        {/* 6. Outputs Finais */}
-        <section>
-          <h3 className="text-lg font-semibold mb-1">6. Outputs Finais</h3>
-          <p className="text-sm text-emerald-600 mb-3">✅ O processo considera-se concluído quando:</p>
-          <EditableCheckList items={outputs} onChange={setOutputs} />
-        </section>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">6</span>
+              Outputs Finais
+            </CardTitle>
+            <p className="text-sm text-emerald-600 mt-1">✅ O processo considera-se concluído quando:</p>
+          </CardHeader>
+          <CardContent>
+            <EditableCheckList items={outputs} onChange={setOutputs} />
+          </CardContent>
+        </Card>
 
-        {/* 7. Notas */}
-        <section>
-          <h3 className="text-lg font-semibold mb-2">7. Notas</h3>
-          <EditableBulletList items={notas} onChange={setNotas} placeholder="Nota..." />
-        </section>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">7</span>
+              Notas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EditableBulletList items={notas} onChange={setNotas} placeholder="Nota..." />
+          </CardContent>
+        </Card>
 
         {/* Delete */}
         <div className="border-t pt-6">
