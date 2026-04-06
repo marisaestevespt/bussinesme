@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { FileDown, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { addDays, parseISO } from 'date-fns';
+import { parseISO } from 'date-fns';
+import { addBusinessDays } from '@/lib/holidays';
+import { addDays } from 'date-fns';
 
 interface Props {
   projectId: string;
@@ -22,6 +24,12 @@ function parseRuleDays(rule: string | null): number | null {
   if (!rule) return null;
   const match = rule.match(/^\+?\s*(\d+)\s*dias?$/i);
   return match ? parseInt(match[1], 10) : null;
+}
+
+/** Calculate due date respecting rule_unit */
+function calcDueDate(base: Date, days: number, unit?: string): string {
+  const d = unit === 'dias_uteis' || !unit ? addBusinessDays(base, days) : addDays(base, days);
+  return d.toISOString().split('T')[0];
 }
 
 export function ApplyProductTemplate({ projectId, productId, clientId, projectStartDate }: Props) {
@@ -70,7 +78,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
                 documents_links: t.documents_links || null,
                 sort_order: i,
                 completed: false,
-                due_date: ruleDays != null ? addDays(baseDate, ruleDays).toISOString().split('T')[0] : null,
+                due_date: ruleDays != null ? calcDueDate(baseDate, ruleDays, t.rule_unit) : null,
               };
             });
             await supabase.from('client_onboarding').insert(rows);
@@ -106,7 +114,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
                 documents_links: t.documents_links || null,
                 sort_order: i,
                 completed: false,
-                due_date: ruleDays != null ? addDays(new Date(), ruleDays).toISOString().split('T')[0] : null,
+                due_date: ruleDays != null ? calcDueDate(new Date(), ruleDays, t.rule_unit) : null,
               };
             });
             await supabase.from('client_offboarding').insert(rows);
@@ -193,7 +201,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
         const responsibleKey = t.responsible?.toLowerCase().trim();
         const assignedTo = responsibleKey ? (membersByRole[responsibleKey] || null) : null;
         const ruleDays = parseRuleDays(t.rule);
-        const deadline = ruleDays ? addDays(baseDate, ruleDays).toISOString().split('T')[0] : null;
+        const deadline = ruleDays ? calcDueDate(baseDate, ruleDays) : null;
 
         const hist = historicalAvg[t.task_name];
         let estimatedTime: number | null = null;
@@ -237,7 +245,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
         const responsibleKey = t.responsible?.toLowerCase().trim();
         const assignedTo = responsibleKey ? (membersByRole[responsibleKey] || null) : null;
         const ruleDays = parseRuleDays(t.rule);
-        const deadline = ruleDays ? addDays(baseDate, ruleDays).toISOString().split('T')[0] : null;
+        const deadline = ruleDays ? calcDueDate(baseDate, ruleDays) : null;
 
         const histSub = historicalAvg[t.task_name];
         let estimatedTime: number | null = null;

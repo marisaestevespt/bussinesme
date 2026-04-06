@@ -117,3 +117,18 @@ export function adjustToBusinessDay(date: Date): Date {
   }
   return d;
 }
+
+/**
+ * Add N business days to a date, skipping weekends and Portuguese holidays.
+ * Negative values subtract business days.
+ */
+export function addBusinessDays(from: Date, days: number): Date {
+  let d = new Date(from);
+  const step = days >= 0 ? 1 : -1;
+  let remaining = Math.abs(days);
+  while (remaining > 0) {
+    d = addDaysToDate(d, step);
+    if (!isNonBusinessDay(d)) remaining--;
+  }
+  return d;
+}
