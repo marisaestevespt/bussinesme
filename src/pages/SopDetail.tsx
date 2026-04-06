@@ -495,10 +495,10 @@ export default function SopDetailPage() {
 
   const createTasksFromSop = useMutation({
     mutationFn: async () => {
-      const steps = parseJsonList((sop as any)?.passos).filter(s => s.trim());
+      const steps = sopSteps.filter((s: any) => s.description?.trim());
       if (steps.length === 0) throw new Error('Sem passos para criar tarefas');
-      const rows = steps.map((step, i) => ({
-        name: `[${sopId}] ${step}`,
+      const rows = steps.map((step: any) => ({
+        name: `[${sopId}] ${step.description}`,
         project_id: taskProjectId || null,
         department: taskDepartment || null,
         deadline: taskDeadline || null,
