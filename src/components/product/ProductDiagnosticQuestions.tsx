@@ -150,6 +150,7 @@ export function ProductDiagnosticQuestions({ productId, isOwner }: Props) {
         .from('product_diagnostic_questions')
         .select('*')
         .eq('product_id', productId)
+        .order('group_sort_order')
         .order('sort_order');
       if (error) throw error;
       return data as Question[];
@@ -159,12 +160,15 @@ export function ProductDiagnosticQuestions({ productId, isOwner }: Props) {
   const addQuestion = useMutation({
     mutationFn: async (group: string) => {
       const maxOrder = questions.filter(q => q.question_group === group).reduce((max, q) => Math.max(max, q.sort_order), -1);
+      const allGroups = [...DIAGNOSTIC_GROUPS, ...CONFIG_GROUPS];
+      const groupSortOrder = allGroups.indexOf(group);
       const { error } = await (supabase as any).from('product_diagnostic_questions').insert({
         product_id: productId,
         question_group: group,
         question: '',
         answer_type: 'text',
         sort_order: maxOrder + 1,
+        group_sort_order: groupSortOrder >= 0 ? groupSortOrder : 99,
       });
       if (error) throw error;
     },

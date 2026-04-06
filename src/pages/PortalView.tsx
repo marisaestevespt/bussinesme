@@ -93,7 +93,7 @@ export default function PortalViewPage() {
     const cid = portalData.client_id;
     const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, projPhasesR, historyR, materialsR, contractR] = await Promise.all([
       sb('portal_faqs').select('*').eq('portal_id', pid).order('sort_order'),
-      sb('portal_initial_questions').select('*').eq('portal_id', pid).order('sort_order'),
+      sb('portal_initial_questions').select('*').eq('portal_id', pid).order('group_sort_order').order('sort_order'),
       sb('portal_comments').select('*').eq('portal_id', pid).order('created_at', { ascending: true }),
       sb('portal_feedback').select('*').eq('portal_id', pid).order('submitted_at', { ascending: false }),
       (supabase as any).rpc('get_portal_meetings', { _token: token }),
