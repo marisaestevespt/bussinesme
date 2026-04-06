@@ -61,12 +61,39 @@ function fileToBase64(file: File): Promise<string> {
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
-      // Remove data:...;base64, prefix
       resolve(result.split(",")[1]);
     };
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+async function extractPdfText(file: File): Promise<string> {
+  try {
+    // Set worker source
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+    
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const textParts: string[] = [];
+    
+    const maxPages = Math.min(pdf.numPages, 20); // Limit to 20 pages
+    for (let i = 1; i <= maxPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const pageText = content.items
+        .map((item: any) => item.str)
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (pageText) textParts.push(`[Página ${i}]\n${pageText}`);
+    }
+    
+    return textParts.join("\n\n").slice(0, 30000); // Limit to 30k chars
+  } catch (err) {
+    console.error("PDF extraction error:", err);
+    return "";
+  }
 }
 
 function getFileIcon(type: string) {
