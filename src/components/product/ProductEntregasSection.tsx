@@ -159,7 +159,7 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
   const { data: phases = [] } = useQuery({
     queryKey: phaseKey,
     queryFn: async () => {
-      const { data } = await supabase.from('product_phases' as any).select('*').eq('product_id', productId).order('sort_order');
+      const { data } = await (supabase as any).from('product_phases').select('*').eq('product_id', productId).order('sort_order');
       return (data || []) as Phase[];
     },
   });
@@ -168,8 +168,8 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
   const { data: sops = [] } = useQuery({
     queryKey: ['sops-list-mini'],
     queryFn: async () => {
-      const { data } = await supabase.from('sops').select('id, title');
-      return (data || []) as Array<{ id: string; title: string }>;
+      const { data } = await supabase.from('sops').select('id, name');
+      return (data || []) as Array<{ id: string; name: string }>;
     },
   });
 
