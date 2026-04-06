@@ -851,14 +851,17 @@ export default function SopDetailPage() {
           </CardContent>
         </Card>
 
-        {/* 4. Passos do Processo (unified with onboarding/offboarding) */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold">4. Passos do Processo</h3>
+        <Card>
+          <CardHeader className="pb-3 flex-row items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">4</span>
+              Passos do Processo
+            </CardTitle>
             <Button size="sm" variant="outline" onClick={() => addSopStep.mutate()}>
               <Plus className="h-3 w-3 mr-1" /> Passo
             </Button>
-          </div>
+          </CardHeader>
+          <CardContent>
           {(isOnboardingSop || isOffboardingSop) && (
             <p className="text-xs text-muted-foreground mb-3">
               Os passos marcados com 👁️ aparecerão no checklist do cliente no portal. Os restantes são apenas internos.
