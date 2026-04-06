@@ -97,7 +97,7 @@ export default function PortalViewPage() {
       sb('portal_feedback').select('*').eq('portal_id', pid).order('submitted_at', { ascending: false }),
       (supabase as any).rpc('get_portal_meetings', { _token: token }),
       (supabase as any).rpc('get_portal_payments', { _token: token }),
-      sb('client_onboarding').select('*').eq('client_id', cid).order('sort_order'),
+      (supabase as any).rpc('get_portal_onboarding', { _token: token }),
       supabase.from('tasks').select('*').eq('visible_in_portal', true),
       sb('portal_timeline_phases').select('*').eq('portal_id', pid).order('sort_order'),
       (supabase as any).rpc('get_portal_project_history', { _token: token }),
