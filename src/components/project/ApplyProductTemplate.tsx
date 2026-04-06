@@ -93,13 +93,16 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
 
           if (!existing?.length) {
             const rows = offTemplates.map((t: any, i: number) => {
-              const ruleDays = parseRuleDays(t.rule);
+              const ruleDays = t.rule_days ?? parseRuleDays(t.rule);
               return {
                 client_id: clientId,
                 activity: t.activity || '',
                 phase: t.phase || null,
                 responsible: t.responsible || null,
                 rule: t.rule || null,
+                rule_days: t.rule_days ?? null,
+                rule_unit: t.rule_unit || 'dias_uteis',
+                rule_trigger: t.rule_trigger || 'inicio_cliente',
                 documents_links: t.documents_links || null,
                 sort_order: i,
                 completed: false,
