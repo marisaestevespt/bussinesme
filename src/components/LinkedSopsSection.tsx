@@ -143,10 +143,25 @@ export function LinkedSopsSection({ entityType, entityId, productId, clientId, p
         linked_entity_id: entityId,
       } as any).eq('id', sopId);
       if (error) throw error;
+
+      // When linking to a project with a client, copy portal-visible steps
+      if (entityType === 'projeto' && clientId) {
+        const copied = await copySopStepsToClient(sopId, clientId, projectStartDate);
+        if (copied) {
+          return copied; // 'client_onboarding' or 'client_offboarding'
+        }
+      }
+      return null;
     },
-    onSuccess: () => {
+    onSuccess: (copied) => {
       qc.invalidateQueries({ queryKey: ['linked-sops', entityType, entityId] });
-      toast.success('Processo associado');
+      if (copied) {
+        qc.invalidateQueries({ queryKey: [copied] });
+        const label = copied === 'client_onboarding' ? 'onboarding' : 'offboarding';
+        toast.success(`Processo associado — checklist de ${label} copiada para o cliente`);
+      } else {
+        toast.success('Processo associado');
+      }
     },
     onError: () => toast.error('Erro ao associar processo'),
   });
