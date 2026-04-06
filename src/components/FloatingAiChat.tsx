@@ -187,7 +187,12 @@ export function FloatingAiChat() {
 
     // Prepare body
     const body: Record<string, unknown> = {
-      messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
+      messages: newMessages.map((m) => ({
+        role: m.role,
+        content: m.content,
+        action_proposal: m.action_proposal,
+        confirmed: m.confirmed,
+      })),
     };
 
     // Attach file if present
