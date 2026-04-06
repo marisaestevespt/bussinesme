@@ -774,7 +774,8 @@ export default function SopDetailPage() {
                       <TableHead>Fase</TableHead>
                       <TableHead>Atividade</TableHead>
                       <TableHead>Responsável</TableHead>
-                      <TableHead>Regra</TableHead>
+                      <TableHead>Prazo</TableHead>
+                      <TableHead>Gatilho</TableHead>
                       <TableHead className="w-10" />
                     </TableRow>
                   </TableHeader>
