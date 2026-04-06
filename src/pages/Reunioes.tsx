@@ -16,7 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CalendarIcon, Plus, Users, Clock, Repeat, Video, FolderOpen, UserCheck } from 'lucide-react';
+import { CalendarIcon, Plus, Users, Clock, Repeat, Video, FolderOpen, UserCheck, Handshake } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO, addWeeks, addMonths, isBefore, startOfDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -41,6 +41,7 @@ const STATUSES: { value: MeetingStatus; label: string; color: string }[] = [
 ];
 
 const MEETING_TYPES: { value: MeetingType; label: string; icon: React.ReactNode; description: string }[] = [
+  { value: 'inicial', label: 'Reunião Inicial', icon: <Handshake className="h-5 w-5" />, description: 'Primeira reunião com o cliente (1 por cliente)' },
   { value: 'recorrente', label: 'Reunião Recorrente', icon: <Repeat className="h-5 w-5" />, description: 'Reunião periódica interna ou com cliente' },
   { value: 'projeto', label: 'Reunião de Projeto', icon: <FolderOpen className="h-5 w-5" />, description: 'Reunião associada a um projeto específico' },
   { value: 'cliente', label: 'Reunião com Cliente', icon: <UserCheck className="h-5 w-5" />, description: 'Reunião com cliente associado' },
