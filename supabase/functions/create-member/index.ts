@@ -140,8 +140,16 @@ Deno.serve(async (req) => {
               if (items && items.length > 0) {
                 const todayDate = new Date();
                 const onboardingRows = items.map((item) => {
-                  const deadlineDate = new Date(todayDate);
-                  deadlineDate.setDate(deadlineDate.getDate() + item.deadline_days);
+                  // Add business days (skip weekends + Portuguese holidays)
+                  let deadlineDate = new Date(todayDate);
+                  let remaining = item.deadline_days;
+                  while (remaining > 0) {
+                    deadlineDate.setDate(deadlineDate.getDate() + 1);
+                    const dow = deadlineDate.getDay();
+                    if (dow !== 0 && dow !== 6 && !isPortugueseHoliday(deadlineDate)) {
+                      remaining--;
+                    }
+                  }
                   return {
                     member_id: team_member_id,
                     task: item.task,
