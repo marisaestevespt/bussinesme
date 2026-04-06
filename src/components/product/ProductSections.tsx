@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { LinkedSopsSection } from '@/components/LinkedSopsSection';
+import { ProductDiagnosticQuestions } from '@/components/product/ProductDiagnosticQuestions';
 import { ProductPriceTiers } from '@/components/product/ProductPriceTiers';
 
 // ─── Processos Section ─────────────────────────────────────────
@@ -37,7 +38,7 @@ interface ProcessosSectionProps {
   onDeleteRow: (table: string, id: string) => void;
 }
 
-export function ProductProcessosSection({ productSops, projectTemplate, isOwner, onAddProjectTask, onUpdateRow, onDeleteRow }: ProcessosSectionProps) {
+export function ProductProcessosSection({ productSops, projectTemplate, isOwner, productId, onAddProjectTask, onUpdateRow, onDeleteRow }: ProcessosSectionProps) {
   const navigate = useNavigate();
 
   return (
@@ -156,6 +157,9 @@ export function ProductProcessosSection({ productSops, projectTemplate, isOwner,
           </div>
         </CardContent>
       </Card>
+
+      {/* Diagnostic Questions */}
+      <ProductDiagnosticQuestions productId={productId} isOwner={isOwner} />
     </div>
   );
 }
