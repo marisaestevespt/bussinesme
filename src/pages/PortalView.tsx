@@ -554,7 +554,7 @@ export default function PortalViewPage() {
                         {groups.map((section) => {
                           const sectionAnswered = section.items.filter(isQAnswered).length;
                           const sectionComplete = sectionAnswered === section.items.length;
-                          const isSectionOpen = !collapsedSections.has(section.group);
+                          const isSectionOpen = expandedSections.has(section.group);
 
                           return (
                             <div key={section.group} className="border-b border-border/20 last:border-b-0">
