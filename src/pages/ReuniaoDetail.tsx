@@ -36,7 +36,7 @@ import {
 // ─── Types ──────────────────────────────────────────────────────
 
 type MeetingStatus = 'por_confirmar' | 'marcada' | 'terminada';
-type MeetingType = 'recorrente' | 'projeto' | 'cliente' | 'diagnostico';
+type MeetingType = 'recorrente' | 'projeto' | 'cliente' | 'diagnostico' | 'inicial';
 
 const STATUSES: { value: MeetingStatus; label: string; color: string }[] = [
   { value: 'por_confirmar', label: 'Por confirmar', color: '#f59e0b' },
@@ -460,10 +460,10 @@ export default function ReuniaoDetailPage() {
   const ownerLabel = ownerName || settings?.business_name || 'Owner';
   const meetingType = m.meeting_type || 'recorrente';
   const showClientSection = true;
-  const showProjectField = meetingType === 'projeto' || meetingType === 'cliente';
+  const showProjectField = meetingType === 'projeto' || meetingType === 'cliente' || meetingType === 'inicial';
 
-  const typeLabels: Record<MeetingType, string> = { recorrente: 'Recorrente', projeto: 'Projeto', cliente: 'Cliente', diagnostico: 'Diagnóstico' };
-  const typeColors: Record<MeetingType, string> = { recorrente: '#6366f1', projeto: '#3b82f6', cliente: '#10b981', diagnostico: '#f59e0b' };
+  const typeLabels: Record<MeetingType, string> = { recorrente: 'Recorrente', projeto: 'Projeto', cliente: 'Cliente', diagnostico: 'Diagnóstico', inicial: 'Inicial' };
+  const typeColors: Record<MeetingType, string> = { recorrente: '#6366f1', projeto: '#3b82f6', cliente: '#10b981', diagnostico: '#f59e0b', inicial: '#ec4899' };
 
   return (
     <AppLayout>

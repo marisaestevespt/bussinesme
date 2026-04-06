@@ -16,7 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { CalendarIcon, Plus, Users, Clock, Repeat, Video, FolderOpen, UserCheck } from 'lucide-react';
+import { CalendarIcon, Plus, Users, Clock, Repeat, Video, FolderOpen, UserCheck, Handshake } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO, addWeeks, addMonths, isBefore, startOfDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -41,6 +41,7 @@ const STATUSES: { value: MeetingStatus; label: string; color: string }[] = [
 ];
 
 const MEETING_TYPES: { value: MeetingType; label: string; icon: React.ReactNode; description: string }[] = [
+  { value: 'inicial' as MeetingType, label: 'Reunião Inicial', icon: <Handshake className="h-5 w-5" />, description: 'Primeira reunião com o cliente (1 por cliente)' },
   { value: 'recorrente', label: 'Reunião Recorrente', icon: <Repeat className="h-5 w-5" />, description: 'Reunião periódica interna ou com cliente' },
   { value: 'projeto', label: 'Reunião de Projeto', icon: <FolderOpen className="h-5 w-5" />, description: 'Reunião associada a um projeto específico' },
   { value: 'cliente', label: 'Reunião com Cliente', icon: <UserCheck className="h-5 w-5" />, description: 'Reunião com cliente associado' },
@@ -369,8 +370,12 @@ export function MeetingFormDialog({
   const handleTypeSelect = (type: MeetingType) => {
     setMeetingType(type);
     setStep('form');
-    // Pre-set department for cliente type
-    if (type === 'cliente') setDepartment('clientes');
+    if (type === 'cliente' || type === ('inicial' as MeetingType)) setDepartment('clientes');
+    // Auto-set title for inicial meeting if client already selected
+    if (type === ('inicial' as MeetingType) && clientId) {
+      const c = clients.find((c: any) => c.id === clientId);
+      if (c) setTitle(`Reunião Inicial_${(c as any).full_name}`);
+    }
   };
 
   // Projects for selected client
@@ -386,6 +391,11 @@ export function MeetingFormDialog({
 
     if (actualId) {
       setDepartment('clientes');
+      // Auto-set title for inicial meeting
+      if (meetingType === ('inicial' as MeetingType)) {
+        const c = clients.find((c: any) => c.id === actualId);
+        if (c) setTitle(`Reunião Inicial_${(c as any).full_name}`);
+      }
       const cProjects = projects.filter(p => p.client_id === actualId);
       if (cProjects.length === 1) {
         setSelectedProjectIds([cProjects[0].id]);

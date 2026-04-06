@@ -1,0 +1,1 @@
+ALTER TYPE public.meeting_type ADD VALUE IF NOT EXISTS 'inicial';
