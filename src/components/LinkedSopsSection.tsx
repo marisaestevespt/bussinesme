@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { FileText, Plus, Link2, Unlink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { parseISO, addDays } from 'date-fns';
+import { addBusinessDays } from '@/lib/holidays';
 
 const SOP_STATUSES: Record<string, { label: string; color: string }> = {
   para_criar: { label: 'Para criar', color: 'bg-muted text-muted-foreground' },
@@ -23,10 +25,66 @@ interface LinkedSopsSectionProps {
   entityType: 'produto' | 'cliente' | 'projeto';
   entityId: string;
   productId?: string;
+  clientId?: string;
+  projectStartDate?: string | null;
   title?: string;
 }
 
-export function LinkedSopsSection({ entityType, entityId, productId, title = 'Processos' }: LinkedSopsSectionProps) {
+/** Copy SOP portal_visible steps → client_onboarding or client_offboarding */
+async function copySopStepsToClient(sopId: string, clientId: string, projectStartDate?: string | null) {
+  // Fetch SOP to determine type
+  const { data: sop } = await supabase.from('sops').select('sop_type, name').eq('id', sopId).single();
+  if (!sop) return;
+
+  const isOnboarding = (sop as any).sop_type === 'onboarding' || (sop.name?.toLowerCase().includes('onboarding') && !sop.name?.toLowerCase().includes('offboarding'));
+  const isOffboarding = (sop as any).sop_type === 'offboarding' || (sop.name?.toLowerCase().includes('offboarding'));
+
+  if (!isOnboarding && !isOffboarding) return;
+
+  const targetTable = isOnboarding ? 'client_onboarding' : 'client_offboarding';
+
+  // Check if client already has items from this SOP (avoid duplicates)
+  const { data: existing } = await supabase.from(targetTable).select('id').eq('client_id', clientId).limit(1) as any;
+  if (existing?.length) return; // already has checklist items
+
+  // Fetch portal-visible steps
+  const { data: steps } = await supabase
+    .from('sop_steps')
+    .select('*')
+    .eq('sop_id', sopId)
+    .eq('portal_visible', true)
+    .order('sort_order', { ascending: true });
+
+  if (!steps?.length) return;
+
+  const baseDate = projectStartDate ? parseISO(projectStartDate) : new Date();
+
+  const rows = steps.map((step: any, i: number) => {
+    let dueDate: string | null = null;
+    if (step.deadline_days != null) {
+      const d = step.deadline_unit === 'dias_corridos'
+        ? addDays(baseDate, step.deadline_days)
+        : addBusinessDays(baseDate, step.deadline_days);
+      dueDate = d.toISOString().split('T')[0];
+    }
+    return {
+      client_id: clientId,
+      activity: step.description || '',
+      responsible: step.responsible || null,
+      rule_days: step.deadline_days ?? null,
+      rule_unit: step.deadline_unit || 'dias_uteis',
+      rule_trigger: step.deadline_trigger || 'inicio_cliente',
+      due_date: dueDate,
+      sort_order: i,
+      completed: false,
+    };
+  });
+
+  await supabase.from(targetTable).insert(rows);
+  return targetTable;
+}
+
+export function LinkedSopsSection({ entityType, entityId, productId, clientId, projectStartDate, title = 'Processos' }: LinkedSopsSectionProps) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
