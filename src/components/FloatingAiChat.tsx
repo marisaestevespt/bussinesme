@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageCircle, X, Send, Loader2, Sparkles, Bot, RotateCcw, Check, XCircle } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, Sparkles, Bot, RotateCcw, Check, XCircle, Paperclip, FileText, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 type WorkflowStep = {
   step_label: string;
@@ -19,11 +20,19 @@ type ActionProposal = {
   steps?: WorkflowStep[];
 };
 
+type FileAttachment = {
+  name: string;
+  type: string;
+  base64: string;
+  size: number;
+};
+
 type Msg = {
   role: "user" | "assistant";
   content: string;
   action_proposal?: ActionProposal | null;
   confirmed?: boolean;
+  file?: { name: string; type: string } | null;
 };
 
 const ACTION_LABELS: Record<string, { label: string; icon: string; color: string }> = {
@@ -36,6 +45,7 @@ const ACTION_LABELS: Record<string, { label: string; icon: string; color: string
 
 const STORAGE_KEY_MESSAGES = "lirah-ai-messages";
 const STORAGE_KEY_OPEN = "lirah-ai-open";
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 function loadPersistedMessages(): Msg[] {
   try {
@@ -44,20 +54,38 @@ function loadPersistedMessages(): Msg[] {
   } catch { return []; }
 }
 
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      // Remove data:...;base64, prefix
+      resolve(result.split(",")[1]);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function getFileIcon(type: string) {
+  if (type.startsWith("image/")) return <ImageIcon className="h-3.5 w-3.5" />;
+  return <FileText className="h-3.5 w-3.5" />;
+}
+
 export function FloatingAiChat() {
   const [open, setOpen] = useState(() => sessionStorage.getItem(STORAGE_KEY_OPEN) === "true");
   const [messages, setMessages] = useState<Msg[]>(loadPersistedMessages);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pendingFile, setPendingFile] = useState<FileAttachment | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Persist messages to sessionStorage
   useEffect(() => {
     sessionStorage.setItem(STORAGE_KEY_MESSAGES, JSON.stringify(messages));
   }, [messages]);
 
-  // Persist open state
   useEffect(() => {
     sessionStorage.setItem(STORAGE_KEY_OPEN, String(open));
   }, [open]);
@@ -71,19 +99,68 @@ export function FloatingAiChat() {
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
   useEffect(() => { if (open && textareaRef.current) textareaRef.current.focus(); }, [open]);
 
-  const sendMessage = async (text: string, isConfirmation = false) => {
-    if (!text.trim() || loading) return;
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Reset input so same file can be selected again
+    e.target.value = "";
 
-    const userMsg: Msg = { role: "user", content: text.trim() };
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Ficheiro demasiado grande (máx. 10MB)");
+      return;
+    }
+
+    const supportedTypes = [
+      "application/pdf",
+      "image/png", "image/jpeg", "image/webp", "image/gif",
+      "text/plain", "text/csv",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ];
+
+    if (!supportedTypes.some(t => file.type.startsWith(t.split("/")[0]) || file.type === t)) {
+      toast.error("Tipo de ficheiro não suportado. Usa PDF, imagem, CSV ou texto.");
+      return;
+    }
+
+    try {
+      const base64 = await fileToBase64(file);
+      setPendingFile({ name: file.name, type: file.type, base64, size: file.size });
+    } catch {
+      toast.error("Erro ao ler o ficheiro.");
+    }
+  };
+
+  const sendMessage = async (text: string, isConfirmation = false) => {
+    if ((!text.trim() && !pendingFile) || loading) return;
+
+    const messageText = text.trim() || (pendingFile ? `Analisa este ficheiro: ${pendingFile.name}` : "");
+    const userMsg: Msg = {
+      role: "user",
+      content: messageText,
+      file: pendingFile ? { name: pendingFile.name, type: pendingFile.type } : null,
+    };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
 
+    // Prepare body
+    const body: Record<string, unknown> = {
+      messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
+    };
+
+    // Attach file if present
+    if (pendingFile) {
+      body.file = {
+        name: pendingFile.name,
+        type: pendingFile.type,
+        base64: pendingFile.base64,
+      };
+      setPendingFile(null);
+    }
+
     try {
-      const { data, error } = await supabase.functions.invoke("ai-assistant", {
-        body: { messages: newMessages.map((m) => ({ role: m.role, content: m.content })) },
-      });
+      const { data, error } = await supabase.functions.invoke("ai-assistant", { body });
 
       if (error) throw error;
 
@@ -106,9 +183,7 @@ export function FloatingAiChat() {
   };
 
   const handleConfirm = (msgIndex: number) => {
-    // Mark proposal as confirmed
     setMessages((prev) => prev.map((m, i) => i === msgIndex ? { ...m, confirmed: true } : m));
-    // Send confirmation message
     sendMessage("[AÇÃO CONFIRMADA] Sim, pode executar.", true);
   };
 
@@ -140,6 +215,13 @@ export function FloatingAiChat() {
       return <span key={i} className={cn("block", line === "" && "h-2")} dangerouslySetInnerHTML={{ __html: processed || "&nbsp;" }} />;
     });
   };
+
+  const renderFileAttachment = (file: { name: string; type: string }) => (
+    <div className="flex items-center gap-1.5 mt-1 text-[11px] opacity-80">
+      {getFileIcon(file.type)}
+      <span className="truncate max-w-[180px]">{file.name}</span>
+    </div>
+  );
 
   const renderActionProposal = (proposal: ActionProposal, msgIndex: number, confirmed?: boolean) => {
     const actionInfo = ACTION_LABELS[proposal.action_type] || { label: proposal.action_type, icon: "⚡", color: "text-foreground" };
@@ -225,7 +307,7 @@ export function FloatingAiChat() {
                 <div>
                   <p className="text-sm font-medium">Olá! Sou a Lirah AI 👋</p>
                   <p className="text-xs text-muted-foreground mt-1 max-w-[260px]">
-                    Posso consultar dados, criar, editar, eliminar registos e enviar emails.
+                    Posso consultar dados, criar registos, analisar ficheiros e muito mais.
                   </p>
                 </div>
                 <div className="w-full space-y-2 mt-2 text-left px-1">
@@ -233,14 +315,20 @@ export function FloatingAiChat() {
                   {[
                     { icon: "👥", text: "Quantos clientes ativos tenho?" },
                     { icon: "✅", text: "Cria uma tarefa para amanhã" },
-                    { icon: "💰", text: "Resumo financeiro deste mês" },
+                    { icon: "📎", text: "Analisa este PDF e cria o produto" },
                     { icon: "📅", text: "Marca a reunião de hoje como concluída" },
                     { icon: "📊", text: "Como estão as vendas este trimestre?" },
                     { icon: "📧", text: "Envia um email ao João" },
                   ].map((q) => (
                     <button
                       key={q.text}
-                      onClick={() => sendMessage(q.text)}
+                      onClick={() => {
+                        if (q.text.includes("PDF")) {
+                          fileInputRef.current?.click();
+                        } else {
+                          sendMessage(q.text);
+                        }
+                      }}
                       className="w-full flex items-center gap-2.5 text-[12px] px-3 py-2 rounded-xl border bg-muted/30 hover:bg-muted/70 transition-colors text-muted-foreground hover:text-foreground text-left"
                     >
                       <span className="text-sm">{q.icon}</span>
@@ -260,6 +348,7 @@ export function FloatingAiChat() {
                     : "bg-muted/70 text-foreground rounded-bl-md"
                 )}>
                   {msg.role === "assistant" ? renderContent(msg.content) : msg.content}
+                  {msg.file && renderFileAttachment(msg.file)}
                   {msg.action_proposal && renderActionProposal(msg.action_proposal, i, msg.confirmed)}
                 </div>
               </div>
@@ -269,25 +358,54 @@ export function FloatingAiChat() {
               <div className="flex justify-start">
                 <div className="bg-muted/70 rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-2">
                   <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-                  <span className="text-xs text-muted-foreground">A analisar...</span>
+                  <span className="text-xs text-muted-foreground">{pendingFile ? "A analisar ficheiro..." : "A analisar..."}</span>
                 </div>
               </div>
             )}
           </div>
 
+          {/* Pending file preview */}
+          {pendingFile && (
+            <div className="px-3 py-2 border-t bg-muted/20 flex items-center gap-2">
+              {getFileIcon(pendingFile.type)}
+              <span className="text-xs truncate flex-1">{pendingFile.name}</span>
+              <span className="text-[10px] text-muted-foreground">{(pendingFile.size / 1024).toFixed(0)} KB</span>
+              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setPendingFile(null)}>
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
+
           {/* Input */}
           <div className="p-3 border-t bg-background">
             <div className="flex gap-2 items-end">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-[38px] w-[38px] rounded-xl shrink-0"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={loading}
+                title="Anexar ficheiro"
+              >
+                <Paperclip className="h-4 w-4" />
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.csv,.txt,.xlsx"
+                onChange={handleFileSelect}
+              />
               <Textarea
                 ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Pergunta algo..."
+                placeholder={pendingFile ? "Descreve o que queres fazer com o ficheiro..." : "Pergunta algo..."}
                 className="min-h-[38px] max-h-[100px] resize-none text-sm rounded-xl border-muted-foreground/20"
                 rows={1}
               />
-              <Button size="icon" onClick={send} disabled={!input.trim() || loading} className="h-[38px] w-[38px] rounded-xl shrink-0">
+              <Button size="icon" onClick={send} disabled={(!input.trim() && !pendingFile) || loading} className="h-[38px] w-[38px] rounded-xl shrink-0">
                 <Send className="h-4 w-4" />
               </Button>
             </div>

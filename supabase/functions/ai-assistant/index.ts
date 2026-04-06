@@ -425,7 +425,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages } = await req.json();
+    const { messages, file } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -458,6 +458,7 @@ Tens acesso TOTAL à base de dados do sistema. Podes:
 - **Criar, editar, eliminar** registos
 - **Enviar emails**
 - **Executar workflows completos** com múltiplos passos encadeados
+- **Analisar ficheiros** (PDF, imagens, CSV) enviados pelo utilizador
 
 ⚠️ REGRAS CRÍTICAS:
 
@@ -467,6 +468,15 @@ Tens acesso TOTAL à base de dados do sistema. Podes:
 4. SEMPRE usa as ferramentas propose_action ou propose_workflow para confirmar. NUNCA peças confirmação apenas por texto — o frontend precisa do tool call para mostrar os botões de confirmação.
 5. Antes de propor criar/editar em tabelas que não conheces bem, usa list_tables para verificar colunas. Mas para tabelas listadas acima (tasks, clients, projects, etc.) já tens a informação — não precisas de verificar.
 6. NÃO faças perguntas desnecessárias. Se o utilizador não mencionou assigned_to, client_id, project_id, etc., deixa-os como null. Propõe a ação imediatamente com os dados fornecidos.
+
+📎 FICHEIROS:
+Quando o utilizador envia um ficheiro (PDF, imagem, etc.):
+- Analisa o conteúdo cuidadosamente
+- Extrai informações relevantes (nomes, preços, descrições, datas, etc.)
+- Se o utilizador pedir para criar um registo (produto, cliente, etc.) a partir do ficheiro, propõe a ação com os dados extraídos
+- Para produtos, preenche: name, category, base_price, status, description, e qualquer outro campo relevante
+- Para clientes, preenche: full_name, email, nif, etc.
+- Sê inteligente: mapeia a informação do documento para os campos corretos da tabela
 
 🔗 WORKFLOWS MULTI-PASSO:
 Quando o utilizador pede algo complexo (converter lead em cliente, criar produto com projeto, etc.), usa propose_workflow.
@@ -501,7 +511,7 @@ Tabelas principais (COLUNAS EXATAS — usa estes nomes):
 - financial_entries: entradas | financial_expenses: despesas
 - commercial_sales: vendas (sale_id, client, product, base_value, invoice_total, status, payment_date)
 - meetings: reuniões (title, date_time, status, client_id, project_id, department)
-- products: produtos (name, category, base_price, status)
+- products: produtos (name, category, base_price, status, description)
 - product_deliverable_templates: templates de entregáveis do produto
 - project_deliverables: entregáveis do projeto (project_id, name, status, deadline)
 - content_items: conteúdos | crm_leads: leads CRM (name, email, phone, status, source, potential_product)
@@ -521,7 +531,36 @@ Regras:
 - Se o utilizador diz "amanhã", calcula a data. Se diz "para hoje", usa a data de hoje. NÃO perguntes "qual é a data específica de amanhã".
 - Data de hoje: ${new Date().toISOString().split("T")[0]}`;
 
-    const allMessages = [{ role: "system", content: systemPrompt }, ...messages];
+    // Build messages array, handling multimodal file content
+    const allMessages: Array<Record<string, unknown>> = [{ role: "system", content: systemPrompt }];
+    
+    for (let i = 0; i < messages.length; i++) {
+      const msg = messages[i];
+      // If this is the last user message and there's a file, make it multimodal
+      if (i === messages.length - 1 && msg.role === "user" && file) {
+        const parts: Array<Record<string, unknown>> = [
+          { type: "text", text: msg.content },
+        ];
+        
+        if (file.type.startsWith("image/")) {
+          parts.push({
+            type: "image_url",
+            image_url: { url: `data:${file.type};base64,${file.base64}` },
+          });
+        } else {
+          // For PDFs and other documents, send as inline data
+          parts.push({
+            type: "image_url",
+            image_url: { url: `data:${file.type};base64,${file.base64}` },
+          });
+        }
+        
+        allMessages.push({ role: "user", content: parts });
+      } else {
+        allMessages.push({ role: msg.role, content: msg.content });
+      }
+    }
+    
     let currentMessages = [...allMessages];
     let maxIterations = 12;
 
