@@ -54,24 +54,24 @@ const TOOLS = [
     type: "function",
     function: {
       name: "propose_action",
-      description: `Propose a write action (create, update, delete, send_email) that requires user confirmation before executing. 
-ALWAYS use this tool before any write/delete/email action. The user must confirm before it runs.
+      description: `Propose a SINGLE write action (create, update, delete, send_email) that requires user confirmation.
+Use this for simple, single-step operations. For multi-step operations, use propose_workflow instead.
 The action will NOT be executed yet — the user will see a confirmation prompt.`,
       parameters: {
         type: "object",
         properties: {
           action_type: { type: "string", enum: ["create", "update", "delete", "send_email"], description: "Type of action" },
-          description: { type: "string", description: "Human-readable description in Portuguese of what will be done (e.g. 'Criar tarefa: Enviar relatório ao João')" },
+          description: { type: "string", description: "Human-readable description in Portuguese of what will be done" },
           details: {
             type: "object",
-            description: "Action details. For create/update/delete: {table, filters (for update/delete), data (for create/update)}. For send_email: {to, subject, body}.",
+            description: "Action details. For create/update/delete: {table, filters, data}. For send_email: {to, subject, body}.",
             properties: {
               table: { type: "string" },
               filters: { type: "array", items: { type: "object", properties: { column: { type: "string" }, operator: { type: "string" }, value: { type: "string" } } } },
               data: { type: "object", description: "Key-value pairs for insert/update" },
-              to: { type: "string", description: "Email recipient" },
-              subject: { type: "string", description: "Email subject" },
-              body: { type: "string", description: "Email body (plain text)" },
+              to: { type: "string" },
+              subject: { type: "string" },
+              body: { type: "string" },
             },
           },
         },
@@ -82,8 +82,49 @@ The action will NOT be executed yet — the user will see a confirmation prompt.
   {
     type: "function",
     function: {
+      name: "propose_workflow",
+      description: `Propose a MULTI-STEP workflow that chains multiple actions together with a single confirmation.
+Use this when the user's request requires multiple sequential database operations (e.g. convert lead to client, create project, apply template).
+Each step can reference results from previous steps using {{step_N.field}} syntax in its data values.
+For example: step 1 creates a client, step 2 creates a project with client_id = "{{step_1.id}}".
+The workflow will NOT execute yet — the user sees a summary and confirms once.`,
+      parameters: {
+        type: "object",
+        properties: {
+          description: { type: "string", description: "Overall description in Portuguese of what the workflow does" },
+          steps: {
+            type: "array",
+            description: "Ordered list of steps to execute sequentially",
+            items: {
+              type: "object",
+              properties: {
+                step_label: { type: "string", description: "Short label for this step (e.g. 'Criar cliente')" },
+                action_type: { type: "string", enum: ["create", "update", "delete", "send_email"] },
+                details: {
+                  type: "object",
+                  properties: {
+                    table: { type: "string" },
+                    filters: { type: "array", items: { type: "object", properties: { column: { type: "string" }, operator: { type: "string" }, value: { type: "string" } } } },
+                    data: { type: "object", description: "Key-value pairs. Use {{step_N.field}} to reference a field from step N's result." },
+                    to: { type: "string" },
+                    subject: { type: "string" },
+                    body: { type: "string" },
+                  },
+                },
+              },
+              required: ["step_label", "action_type", "details"],
+            },
+          },
+        },
+        required: ["description", "steps"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "execute_confirmed_action",
-      description: "Execute a previously proposed action that the user has confirmed. Only call this AFTER the user explicitly confirms a proposed action.",
+      description: "Execute a previously proposed single action that the user has confirmed. Only call after '[AÇÃO CONFIRMADA]'.",
       parameters: {
         type: "object",
         properties: {
@@ -104,10 +145,128 @@ The action will NOT be executed yet — the user will see a confirmation prompt.
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "execute_confirmed_workflow",
+      description: "Execute a previously proposed multi-step workflow that the user has confirmed. Only call after '[AÇÃO CONFIRMADA]'. Runs all steps sequentially, chaining results.",
+      parameters: {
+        type: "object",
+        properties: {
+          steps: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                step_label: { type: "string" },
+                action_type: { type: "string", enum: ["create", "update", "delete", "send_email"] },
+                details: {
+                  type: "object",
+                  properties: {
+                    table: { type: "string" },
+                    filters: { type: "array", items: { type: "object", properties: { column: { type: "string" }, operator: { type: "string" }, value: { type: "string" } } } },
+                    data: { type: "object" },
+                    to: { type: "string" },
+                    subject: { type: "string" },
+                    body: { type: "string" },
+                  },
+                },
+              },
+              required: ["step_label", "action_type", "details"],
+            },
+          },
+        },
+        required: ["steps"],
+      },
+    },
+  },
 ];
 
 const BLOCKED_TABLES = new Set(["audit_logs", "member_sensitive_access", "backups", "user_roles", "profiles"]);
 const READONLY_TABLES = new Set(["business_settings", "business_setup", "automation_settings", "system_config"]);
+
+// Resolve {{step_N.field}} references in a value using previous step results
+function resolveRefs(value: unknown, stepResults: Record<number, Record<string, unknown>>): unknown {
+  if (typeof value === "string") {
+    return value.replace(/\{\{step_(\d+)\.(\w+)\}\}/g, (_match, stepNum, field) => {
+      const result = stepResults[parseInt(stepNum)];
+      if (result && field in result) return String(result[field]);
+      return _match; // leave unresolved if not found
+    });
+  }
+  if (typeof value === "object" && value !== null) {
+    if (Array.isArray(value)) return value.map(v => resolveRefs(v, stepResults));
+    const resolved: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      resolved[k] = resolveRefs(v, stepResults);
+    }
+    return resolved;
+  }
+  return value;
+}
+
+async function executeSingleAction(
+  actionType: string,
+  details: Record<string, unknown>,
+  supabaseAdmin: ReturnType<typeof createClient>
+): Promise<Record<string, unknown>> {
+  const tableName = details.table as string;
+
+  if (actionType === "send_email") {
+    try {
+      const { error } = await supabaseAdmin.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "ai-assistant-email",
+          recipientEmail: details.to,
+          idempotencyKey: `ai-email-${Date.now()}`,
+          templateData: { subject: details.subject, body: details.body },
+        },
+      });
+      if (error) return { error: `Erro ao enviar email: ${error.message}` };
+      return { success: true, message: `Email enviado para ${details.to}` };
+    } catch (e) {
+      return { error: `Email não configurado ou erro: ${e instanceof Error ? e.message : "desconhecido"}` };
+    }
+  }
+
+  if (BLOCKED_TABLES.has(tableName)) return { error: "Acesso a esta tabela não é permitido." };
+  if (READONLY_TABLES.has(tableName) && actionType !== "create") return { error: "Esta tabela é apenas de leitura." };
+
+  const filters = (details.filters as Array<{ column: string; operator: string; value: string }>) || [];
+  const data = details.data as Record<string, unknown> || {};
+
+  switch (actionType) {
+    case "create": {
+      const { data: result, error } = await supabaseAdmin.from(tableName).insert(data).select().single();
+      if (error) return { error: error.message };
+      return { success: true, created: result, ...result };
+    }
+    case "update": {
+      if (filters.length === 0) return { error: "Update requer pelo menos um filtro para segurança." };
+      let query = supabaseAdmin.from(tableName).update(data);
+      for (const f of filters) {
+        if (f.operator === "eq") query = query.eq(f.column, f.value);
+        else if (f.operator === "in") query = query.in(f.column, f.value.split(","));
+      }
+      const { data: result, error } = await query.select();
+      if (error) return { error: error.message };
+      return { success: true, updated: result, count: result?.length || 0, ...(result?.[0] || {}) };
+    }
+    case "delete": {
+      if (filters.length === 0) return { error: "Delete requer pelo menos um filtro para segurança." };
+      let query = supabaseAdmin.from(tableName).delete();
+      for (const f of filters) {
+        if (f.operator === "eq") query = query.eq(f.column, f.value);
+        else if (f.operator === "in") query = query.in(f.column, f.value.split(","));
+      }
+      const { data: result, error } = await query.select();
+      if (error) return { error: error.message };
+      return { success: true, deleted: result?.length || 0 };
+    }
+    default:
+      return { error: `Tipo de ação desconhecido: ${actionType}` };
+  }
+}
 
 async function executeTool(toolName: string, args: Record<string, unknown>, supabaseAdmin: ReturnType<typeof createClient>) {
   switch (toolName) {
@@ -189,75 +348,72 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
     }
 
     case "propose_action": {
-      // This tool doesn't execute anything — it returns the proposal for the frontend to show
       return {
         pending_confirmation: true,
+        workflow: false,
         action_type: args.action_type,
         description: args.description,
         details: args.details,
       };
     }
 
+    case "propose_workflow": {
+      return {
+        pending_confirmation: true,
+        workflow: true,
+        description: args.description,
+        steps: args.steps,
+      };
+    }
+
     case "execute_confirmed_action": {
-      const actionType = args.action_type as string;
-      const details = args.details as Record<string, unknown>;
-      const tableName = details.table as string;
+      return await executeSingleAction(
+        args.action_type as string,
+        args.details as Record<string, unknown>,
+        supabaseAdmin
+      );
+    }
 
-      if (actionType === "send_email") {
-        // Use Supabase Edge Function for email sending
-        try {
-          const { error } = await supabaseAdmin.functions.invoke("send-transactional-email", {
-            body: {
-              templateName: "ai-assistant-email",
-              recipientEmail: details.to,
-              idempotencyKey: `ai-email-${Date.now()}`,
-              templateData: { subject: details.subject, body: details.body },
-            },
-          });
-          if (error) return { error: `Erro ao enviar email: ${error.message}` };
-          return { success: true, message: `Email enviado para ${details.to}` };
-        } catch (e) {
-          return { error: `Email não configurado ou erro: ${e instanceof Error ? e.message : "desconhecido"}` };
+    case "execute_confirmed_workflow": {
+      const steps = args.steps as Array<{
+        step_label: string;
+        action_type: string;
+        details: Record<string, unknown>;
+      }>;
+
+      const stepResults: Record<number, Record<string, unknown>> = {};
+      const results: Array<{ step: number; label: string; success: boolean; result: Record<string, unknown> }> = [];
+
+      for (let i = 0; i < steps.length; i++) {
+        const step = steps[i];
+        // Resolve references from previous steps
+        const resolvedDetails = resolveRefs(step.details, stepResults) as Record<string, unknown>;
+
+        console.log(`Workflow step ${i + 1}/${steps.length}: ${step.step_label}`, resolvedDetails);
+
+        const result = await executeSingleAction(step.action_type, resolvedDetails, supabaseAdmin);
+
+        if (result.error) {
+          return {
+            success: false,
+            completed_steps: i,
+            total_steps: steps.length,
+            failed_step: step.step_label,
+            error: result.error,
+            results,
+          };
         }
+
+        stepResults[i + 1] = result;
+        results.push({ step: i + 1, label: step.step_label, success: true, result });
       }
 
-      if (BLOCKED_TABLES.has(tableName)) return { error: "Acesso a esta tabela não é permitido." };
-      if (READONLY_TABLES.has(tableName) && actionType !== "create") return { error: "Esta tabela é apenas de leitura." };
-
-      const filters = (details.filters as Array<{ column: string; operator: string; value: string }>) || [];
-      const data = details.data as Record<string, unknown> || {};
-
-      switch (actionType) {
-        case "create": {
-          const { data: result, error } = await supabaseAdmin.from(tableName).insert(data).select().single();
-          if (error) return { error: error.message };
-          return { success: true, created: result };
-        }
-        case "update": {
-          if (filters.length === 0) return { error: "Update requer pelo menos um filtro para segurança." };
-          let query = supabaseAdmin.from(tableName).update(data);
-          for (const f of filters) {
-            if (f.operator === "eq") query = query.eq(f.column, f.value);
-            else if (f.operator === "in") query = query.in(f.column, f.value.split(","));
-          }
-          const { data: result, error } = await query.select();
-          if (error) return { error: error.message };
-          return { success: true, updated: result, count: result?.length || 0 };
-        }
-        case "delete": {
-          if (filters.length === 0) return { error: "Delete requer pelo menos um filtro para segurança." };
-          let query = supabaseAdmin.from(tableName).delete();
-          for (const f of filters) {
-            if (f.operator === "eq") query = query.eq(f.column, f.value);
-            else if (f.operator === "in") query = query.in(f.column, f.value.split(","));
-          }
-          const { data: result, error } = await query.select();
-          if (error) return { error: error.message };
-          return { success: true, deleted: result?.length || 0 };
-        }
-        default:
-          return { error: `Tipo de ação desconhecido: ${actionType}` };
-      }
+      return {
+        success: true,
+        completed_steps: steps.length,
+        total_steps: steps.length,
+        results,
+      };
     }
 
     default:
@@ -299,55 +455,67 @@ ${userName ? `O utilizador chama-se **${userName}**. Trata-o pelo primeiro nome.
 
 Tens acesso TOTAL à base de dados do sistema. Podes:
 - **Consultar** qualquer tabela (query_table, list_tables)
-- **Criar** registos em qualquer tabela
-- **Editar** registos existentes
-- **Eliminar** registos
+- **Criar, editar, eliminar** registos
 - **Enviar emails**
+- **Executar workflows completos** com múltiplos passos encadeados
 
-⚠️ REGRA CRÍTICA DE CONFIRMAÇÃO:
-Para QUALQUER ação de escrita (criar, editar, eliminar, enviar email), DEVES SEMPRE usar a ferramenta "propose_action" PRIMEIRO.
-Isto mostra ao utilizador exatamente o que vais fazer e pede confirmação.
-SÓ depois do utilizador confirmar (mensagem com "[AÇÃO CONFIRMADA]") é que usas "execute_confirmed_action" para executar.
-NUNCA executes uma ação sem propor primeiro.
+⚠️ REGRAS CRÍTICAS:
+
+1. **Ações simples** (1 operação): usa propose_action → utilizador confirma → execute_confirmed_action
+2. **Workflows multi-passo** (2+ operações encadeadas): usa propose_workflow → utilizador confirma → execute_confirmed_workflow
+3. NUNCA executes sem propor primeiro.
+
+🔗 WORKFLOWS MULTI-PASSO:
+Quando o utilizador pede algo complexo (converter lead em cliente, criar produto com projeto, etc.), usa propose_workflow.
+Cada passo pode referenciar resultados de passos anteriores com a sintaxe {{step_N.campo}}.
+Exemplo: step 1 cria cliente → step 2 cria projeto com client_id = "{{step_1.id}}"
 
 Ferramentas:
-- **list_tables**: Descobre tabelas e colunas disponíveis.
+- **list_tables**: Descobre tabelas e colunas disponíveis. Usa SEMPRE antes de criar/editar para verificar a estrutura.
 - **query_table**: Consulta qualquer tabela com filtros.
-- **propose_action**: Propõe uma ação (create/update/delete/send_email) para confirmação do utilizador.
-- **execute_confirmed_action**: Executa uma ação já confirmada pelo utilizador.
+- **propose_action**: Propõe 1 ação para confirmação.
+- **propose_workflow**: Propõe múltiplas ações encadeadas para confirmação única.
+- **execute_confirmed_action**: Executa 1 ação confirmada.
+- **execute_confirmed_workflow**: Executa workflow confirmado (todos os passos sequencialmente).
 
-Fluxo de ações:
-1. O utilizador pede algo (ex: "marca a tarefa X como concluída")
-2. Tu usas query_table para encontrar os dados relevantes
-3. Usas propose_action para descrever o que vais fazer
-4. O utilizador confirma → tu recebes mensagem com "[AÇÃO CONFIRMADA]"  
-5. Usas execute_confirmed_action para executar
+Fluxo:
+1. Utilizador pede algo
+2. Tu investigas os dados (query_table, list_tables) para entender o contexto
+3. Propões a ação/workflow com descrição clara
+4. Utilizador confirma → mensagem com "[AÇÃO CONFIRMADA]"
+5. Executas
 
-Para propose_action, o campo details deve ter:
-- create: { table, data: { campo1: valor1, ... } }
-- update: { table, filters: [{ column, operator: "eq", value }], data: { campo: novo_valor } }
-- delete: { table, filters: [{ column, operator: "eq", value }] }
-- send_email: { to, subject, body }
+Para propose_workflow, steps deve ter:
+- step_label: descrição curta do passo
+- action_type: create / update / delete / send_email
+- details: { table, data, filters } — usa {{step_N.campo}} para encadear
 
 Tabelas principais:
 - team_members: equipa (full_name, email, role_title, work_areas, work_schedule, expected_weekly_hours, status)
-- clients: clientes (full_name, email, status, current_product, start_date)
-- tasks: tarefas (title, status, priority, due_date/deadline, assigned_to)
-- projects: projetos (name, status, client_id, start_date, end_date, progress)
-- financial_entries: entradas financeiras | financial_expenses: despesas
+- clients: clientes (full_name, email, status, current_product, start_date, nif, whatsapp, payment_method)
+- tasks: tarefas (title, status, priority, due_date/deadline, assigned_to, department)
+- projects: projetos (name, status, client_id, product_id, start_date, deadline, progress)
+- financial_entries: entradas | financial_expenses: despesas
 - commercial_sales: vendas | meetings: reuniões
-- products: produtos | content_items: conteúdos | crm_leads: leads
+- products: produtos (name, category, base_price, status)
+- product_deliverable_templates: templates de entregáveis do produto
+- project_deliverables: entregáveis do projeto
+- content_items: conteúdos | crm_leads: leads CRM
+- crm_pipeline_leads: leads nos pipelines
+- client_onboarding: checklist onboarding do cliente
+- client_portals: portal do cliente
 - planning_goals: objetivos de planeamento
 
 Regras:
 - Sê conciso mas simpático. Usa emojis com moderação.
 - NUNCA inventes dados. Se não encontrares, diz.
-- Formata com markdown (listas, negrito, tabelas).
+- Formata com markdown (listas, negrito).
+- Quando o utilizador pede algo complexo, investiga PRIMEIRO (list_tables para ver colunas) e depois propõe o workflow completo.
 - Data de hoje: ${new Date().toISOString().split("T")[0]}`;
 
     const allMessages = [{ role: "system", content: systemPrompt }, ...messages];
     let currentMessages = [...allMessages];
-    let maxIterations = 10;
+    let maxIterations = 12;
 
     while (maxIterations-- > 0) {
       const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -379,32 +547,20 @@ Regras:
 
       if (!choice.message?.tool_calls || choice.message.tool_calls.length === 0) {
         const content = choice.message?.content || "";
-        // Check if any tool result had pending_confirmation
-        const hasPendingAction = currentMessages.some(m => {
-          if (m.role === "tool" && typeof m.content === "string") {
-            try { return JSON.parse(m.content).pending_confirmation; } catch { return false; }
-          }
-          return false;
-        });
-
-        return new Response(JSON.stringify({
-          content,
-          ...(hasPendingAction ? {} : {}),
-        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ content }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
       currentMessages.push(choice.message);
 
-      // Check if any tool call is propose_action — if so, we need to return to the user for confirmation
       let hasProposal = false;
-      const toolResults: Array<{role: string; tool_call_id: string; content: string}> = [];
+      const toolResults: Array<{ role: string; tool_call_id: string; content: string }> = [];
 
       for (const toolCall of choice.message.tool_calls) {
         const fnName = toolCall.function.name;
         let fnArgs: Record<string, unknown> = {};
         try { fnArgs = JSON.parse(toolCall.function.arguments || "{}"); } catch { /* empty */ }
 
-        console.log(`Executing tool: ${fnName}`, fnArgs);
+        console.log(`Executing tool: ${fnName}`, JSON.stringify(fnArgs).slice(0, 500));
         const toolResult = await executeTool(fnName, fnArgs, supabaseAdmin);
 
         toolResults.push({
@@ -413,14 +569,12 @@ Regras:
           content: JSON.stringify(toolResult),
         });
 
-        if (fnName === "propose_action") hasProposal = true;
+        if (fnName === "propose_action" || fnName === "propose_workflow") hasProposal = true;
       }
 
       currentMessages.push(...toolResults);
 
-      // If there's a proposal, we need one more AI iteration to format the confirmation message
       if (hasProposal) {
-        // Get the AI's confirmation message
         const confirmResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -438,13 +592,24 @@ Regras:
           const confirmResult = await confirmResponse.json();
           const confirmContent = confirmResult.choices?.[0]?.message?.content || "";
 
-          // Find the proposal details from tool results
+          // Find the proposal from tool results
           let actionProposal = null;
           for (const tr of toolResults) {
             try {
               const parsed = JSON.parse(tr.content);
               if (parsed.pending_confirmation) {
-                actionProposal = parsed;
+                if (parsed.workflow) {
+                  // Workflow proposal
+                  actionProposal = {
+                    action_type: "workflow",
+                    description: parsed.description,
+                    steps: parsed.steps,
+                    pending_confirmation: true,
+                    workflow: true,
+                  };
+                } else {
+                  actionProposal = parsed;
+                }
                 break;
               }
             } catch { /* skip */ }
