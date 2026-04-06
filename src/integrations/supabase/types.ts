@@ -8879,7 +8879,12 @@ export type Database = {
         | "debriefing_pos_fecho"
       launch_task_status: "por_comecar" | "em_curso" | "concluido" | "bloqueado"
       meeting_status: "por_confirmar" | "marcada" | "terminada" | "confirmada"
-      meeting_type: "recorrente" | "projeto" | "cliente" | "diagnostico"
+      meeting_type:
+        | "recorrente"
+        | "projeto"
+        | "cliente"
+        | "diagnostico"
+        | "inicial"
       portal_comment_author: "client" | "team"
       portal_type: "projeto_unico" | "servico_mensal"
     }
@@ -9021,7 +9026,13 @@ export const Constants = {
       ],
       launch_task_status: ["por_comecar", "em_curso", "concluido", "bloqueado"],
       meeting_status: ["por_confirmar", "marcada", "terminada", "confirmada"],
-      meeting_type: ["recorrente", "projeto", "cliente", "diagnostico"],
+      meeting_type: [
+        "recorrente",
+        "projeto",
+        "cliente",
+        "diagnostico",
+        "inicial",
+      ],
       portal_comment_author: ["client", "team"],
       portal_type: ["projeto_unico", "servico_mensal"],
     },
