@@ -5,10 +5,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-type ActionProposal = {
-  action_type: "create" | "update" | "delete" | "send_email";
-  description: string;
+type WorkflowStep = {
+  step_label: string;
+  action_type: string;
   details: Record<string, unknown>;
+};
+
+type ActionProposal = {
+  action_type: "create" | "update" | "delete" | "send_email" | "workflow";
+  description: string;
+  details?: Record<string, unknown>;
+  workflow?: boolean;
+  steps?: WorkflowStep[];
 };
 
 type Msg = {
