@@ -797,6 +797,58 @@ export default function SopDetailPage() {
         <section>
           <h3 className="text-lg font-semibold mb-2">4. Passos do Processo</h3>
           <EditableTextList items={passos} onChange={setPassos} placeholder="Descrever passo..." />
+
+          {/* Documents per step */}
+          <div className="mt-4 space-y-3">
+            <h4 className="text-sm font-semibold flex items-center gap-2">
+              <FileText className="h-4 w-4" /> Documentos e Templates por Passo
+            </h4>
+            {passos.map((passo, i) => {
+              if (!passo.trim()) return null;
+              const docs = stepDocuments.filter((d: any) => d.step_index === i);
+              return (
+                <div key={i} className="border rounded-lg p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">Passo {i + 1}: <span className="text-foreground">{passo.length > 60 ? passo.slice(0, 60) + '…' : passo}</span></span>
+                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => addStepDoc.mutate(i)}>
+                      <Plus className="h-3 w-3 mr-1" /> Template
+                    </Button>
+                  </div>
+                  {docs.map((doc: any) => (
+                    <div key={doc.id} className="bg-muted/30 rounded-md p-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={doc.document_type}
+                          onChange={e => updateStepDoc.mutate({ docId: doc.id, data: { document_type: e.target.value } })}
+                          className="text-xs bg-transparent border rounded px-2 py-1 text-muted-foreground"
+                        >
+                          <option value="email">📧 Email</option>
+                          <option value="mensagem">💬 Mensagem</option>
+                          <option value="documento">📄 Documento</option>
+                          <option value="template">📋 Template</option>
+                        </select>
+                        <Input
+                          defaultValue={doc.title}
+                          onBlur={e => updateStepDoc.mutate({ docId: doc.id, data: { title: e.target.value } })}
+                          placeholder="Título do template..."
+                          className="flex-1 h-7 text-xs"
+                        />
+                        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => deleteStepDoc.mutate(doc.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <Textarea
+                        defaultValue={doc.content || ''}
+                        onBlur={e => updateStepDoc.mutate({ docId: doc.id, data: { content: e.target.value } })}
+                        placeholder="Conteúdo do template (ex: texto do email, mensagem...)&#10;Usa {nome_cliente}, {produto}, {data} como variáveis..."
+                        className="min-h-[80px] text-xs"
+                      />
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
         </section>
 
         {/* Template de Onboarding/Offboarding (structured steps for client automation) */}
