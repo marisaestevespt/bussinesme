@@ -30,9 +30,14 @@ interface LinkedSopsSectionProps {
   title?: string;
 }
 
+/** Calculate a due date from a base date + days offset */
+function calcDate(base: Date, days: number, unit?: string): string {
+  const d = unit === 'dias_corridos' ? addDays(base, days) : addBusinessDays(base, days);
+  return d.toISOString().split('T')[0];
+}
+
 /** Copy SOP portal_visible steps → client_onboarding or client_offboarding */
 async function copySopStepsToClient(sopId: string, clientId: string, projectStartDate?: string | null) {
-  // Fetch SOP to determine type
   const { data: sop } = await supabase.from('sops').select('sop_type, name').eq('id', sopId).single();
   if (!sop) return;
 
@@ -43,11 +48,9 @@ async function copySopStepsToClient(sopId: string, clientId: string, projectStar
 
   const targetTable = isOnboarding ? 'client_onboarding' : 'client_offboarding';
 
-  // Check if client already has items from this SOP (avoid duplicates)
   const { data: existing } = await supabase.from(targetTable).select('id').eq('client_id', clientId).limit(1) as any;
-  if (existing?.length) return; // already has checklist items
+  if (existing?.length) return;
 
-  // Fetch portal-visible steps
   const { data: steps } = await supabase
     .from('sop_steps')
     .select('*')
@@ -59,15 +62,27 @@ async function copySopStepsToClient(sopId: string, clientId: string, projectStar
 
   const baseDate = projectStartDate ? parseISO(projectStartDate) : new Date();
 
-  const rows = steps.map((step: any, i: number) => {
+  // Build rows with cascading "apos_passo_anterior" support
+  const rows: any[] = [];
+  let prevDueDate: string | null = null;
+
+  for (let i = 0; i < steps.length; i++) {
+    const step = steps[i] as any;
     let dueDate: string | null = null;
+
     if (step.deadline_days != null) {
-      const d = step.deadline_unit === 'dias_corridos'
-        ? addDays(baseDate, step.deadline_days)
-        : addBusinessDays(baseDate, step.deadline_days);
-      dueDate = d.toISOString().split('T')[0];
+      if (step.deadline_trigger === 'apos_passo_anterior' && prevDueDate) {
+        // Base on previous step's due date
+        dueDate = calcDate(parseISO(prevDueDate), step.deadline_days, step.deadline_unit);
+      } else {
+        // Base on project start date
+        dueDate = calcDate(baseDate, step.deadline_days, step.deadline_unit);
+      }
     }
-    return {
+
+    prevDueDate = dueDate;
+
+    rows.push({
       client_id: clientId,
       activity: step.description || '',
       responsible: step.responsible || null,
@@ -77,11 +92,54 @@ async function copySopStepsToClient(sopId: string, clientId: string, projectStar
       due_date: dueDate,
       sort_order: i,
       completed: false,
-    };
-  });
+    });
+  }
 
   await supabase.from(targetTable).insert(rows);
   return targetTable;
+}
+
+/**
+ * Recalculate due dates for items with rule_trigger='apos_passo_anterior'
+ * after a step is completed. Uses the actual completion date (today) as base.
+ */
+export async function recalcCascadingDates(
+  table: 'client_onboarding' | 'client_offboarding',
+  clientId: string,
+  completedItemSortOrder: number,
+) {
+  // Fetch all items for this client, ordered
+  const { data: items } = await supabase
+    .from(table)
+    .select('*')
+    .eq('client_id', clientId)
+    .order('sort_order', { ascending: true }) as any;
+
+  if (!items?.length) return;
+
+  const today = new Date().toISOString().split('T')[0];
+
+  // Find items after the completed one that depend on previous step
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (item.sort_order <= completedItemSortOrder) continue;
+    if (item.rule_trigger !== 'apos_passo_anterior') continue;
+    if (item.completed) continue;
+    if (item.rule_days == null) continue;
+
+    // The previous item's due_date or completion date
+    const prevItem = items[i - 1];
+    const prevBase = prevItem?.completed ? (today) : prevItem?.due_date;
+    if (!prevBase) continue;
+
+    const newDueDate = calcDate(parseISO(prevBase), item.rule_days, item.rule_unit);
+
+    if (newDueDate !== item.due_date) {
+      await supabase.from(table).update({ due_date: newDueDate }).eq('id', item.id);
+      // Update in-memory for cascading
+      items[i] = { ...items[i], due_date: newDueDate };
+    }
+  }
 }
 
 export function LinkedSopsSection({ entityType, entityId, productId, clientId, projectStartDate, title = 'Processos' }: LinkedSopsSectionProps) {
