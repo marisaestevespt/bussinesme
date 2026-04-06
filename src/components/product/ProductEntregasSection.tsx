@@ -84,7 +84,7 @@ function PhaseCard({
   phase, deliverables, sops, isOwner, productId,
   onUpdatePhase, onDeletePhase, onAddDeliverable, onUpdateDeliverable, onDeleteDeliverable,
 }: {
-  phase: Phase; deliverables: Template[]; sops: Array<{ id: string; title: string }>;
+  phase: Phase; deliverables: Template[]; sops: Array<{ id: string; name: string }>;
   isOwner: boolean; productId: string;
   onUpdatePhase: (id: string, data: Record<string, unknown>) => void;
   onDeletePhase: (id: string) => void;
