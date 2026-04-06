@@ -499,7 +499,7 @@ export default function ClienteDetailPage() {
                     question_group: dq.question_group || null,
                     answer_type: dq.answer_type || 'text',
                   }))
-              }
+                );
             }
           }
         }
