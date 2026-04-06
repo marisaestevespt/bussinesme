@@ -1417,7 +1417,7 @@ export default function SopDetailPage() {
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Criar Tarefas a partir deste SOP</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Serão criadas {parseJsonList((sop as any)?.passos).filter(s => s.trim()).length} tarefas a partir dos passos do processo.
+            Serão criadas {sopSteps.filter((s: any) => s.description?.trim()).length} tarefas a partir dos passos do processo.
           </p>
           <div className="space-y-3">
             <div>
@@ -1445,7 +1445,7 @@ export default function SopDetailPage() {
               <Input type="date" value={taskDeadline} onChange={e => setTaskDeadline(e.target.value)} />
             </div>
             <Button className="w-full" onClick={() => createTasksFromSop.mutate()} disabled={createTasksFromSop.isPending}>
-              Criar {parseJsonList((sop as any)?.passos).filter(s => s.trim()).length} Tarefas
+              Criar {sopSteps.filter((s: any) => s.description?.trim()).length} Tarefas
             </Button>
           </div>
         </DialogContent>
