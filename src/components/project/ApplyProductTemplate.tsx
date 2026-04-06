@@ -306,6 +306,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
       qc.invalidateQueries({ queryKey: ['project-tasks'] });
       qc.invalidateQueries({ queryKey: ['client_onboarding'] });
       qc.invalidateQueries({ queryKey: ['client_offboarding'] });
+      qc.invalidateQueries({ queryKey: ['project-phases'] });
       setOpen(false);
     },
     onError: (err: any) => {
