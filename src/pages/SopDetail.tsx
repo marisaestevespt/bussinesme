@@ -24,16 +24,9 @@ import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BackNavigation } from '@/components/BackNavigation';
 
-const DEPARTMENTS = [
-  { value: 'administrativo', label: 'Administrativo' },
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'comercial', label: 'Comercial' },
-  { value: 'financeiro', label: 'Financeiro' },
-  { value: 'customer_success', label: 'Customer Success' },
-  { value: 'operacoes', label: 'Operações' },
-  { value: 'produto_servico', label: 'Produto' },
-  { value: 'recursos_humanos', label: 'Pessoas' },
-];
+import { DEPARTMENTS as SHARED_DEPARTMENTS } from '@/lib/departments';
+
+const DEPARTMENTS = SHARED_DEPARTMENTS.map(d => ({ value: d.value, label: d.label }));
 
 const SOP_STATUSES = [
   { value: 'para_criar', label: 'Para criar', color: 'bg-muted text-muted-foreground' },
