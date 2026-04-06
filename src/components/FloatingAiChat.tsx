@@ -31,6 +31,7 @@ const ACTION_LABELS: Record<string, { label: string; icon: string; color: string
   update: { label: "Editar", icon: "✏️", color: "text-blue-600" },
   delete: { label: "Eliminar", icon: "🗑️", color: "text-red-600" },
   send_email: { label: "Enviar email", icon: "📧", color: "text-purple-600" },
+  workflow: { label: "Workflow", icon: "⚡", color: "text-amber-600" },
 };
 
 const STORAGE_KEY_MESSAGES = "lirah-ai-messages";
