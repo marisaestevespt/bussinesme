@@ -781,7 +781,7 @@ export default function SopDetailPage() {
                   </TableHeader>
                   <TableBody>
                     {templateRows.length === 0 && (
-                      <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-4">Sem passos definidos</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-4">Sem passos definidos</TableCell></TableRow>
                     )}
                     {templateRows.map((row: any) => (
                       <TableRow key={row.id}>
