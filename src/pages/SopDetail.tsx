@@ -640,7 +640,13 @@ export default function SopDetailPage() {
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">Função associada</Label>
-            <Input value={sopRoleTitle} onChange={e => setSopRoleTitle(e.target.value)} placeholder="Ex: Designer, Psicóloga..." className="h-9" />
+            <Select value={sopRoleTitle || '_none_'} onValueChange={v => setSopRoleTitle(v === '_none_' ? '' : v)}>
+              <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_none_">Nenhuma</SelectItem>
+                {teamRoles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">Produto</Label>
@@ -653,6 +659,10 @@ export default function SopDetailPage() {
             </Select>
           </div>
           <div>
+            <Label className="text-xs text-muted-foreground">Tempo Estimado (horas)</Label>
+            <Input type="number" min="0" step="0.5" value={sopEstimatedTime} onChange={e => setSopEstimatedTime(e.target.value)} placeholder="Ex: 2.5" className="h-9" />
+          </div>
+          <div>
             <Label className="text-xs text-muted-foreground">Data de criação</Label>
             <Input type="date" value={createdAt} onChange={e => setCreatedAt(e.target.value)} className="h-9" />
           </div>
@@ -663,10 +673,6 @@ export default function SopDetailPage() {
           <div>
             <Label className="text-xs text-muted-foreground">Última atualização</Label>
             <p className="text-sm pt-2">{sop.updated_at ? format(new Date(sop.updated_at), "dd MMM yyyy, HH:mm", { locale: pt }) : '—'}</p>
-          </div>
-          <div>
-            <Label className="text-xs text-muted-foreground">Tempo Estimado (horas)</Label>
-            <Input type="number" min="0" step="0.5" value={sopEstimatedTime} onChange={e => setSopEstimatedTime(e.target.value)} placeholder="Ex: 2.5" className="h-9" />
           </div>
         </div>
 
