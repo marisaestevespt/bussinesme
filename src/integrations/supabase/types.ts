@@ -8820,6 +8820,19 @@ export type Database = {
           title: string
         }[]
       }
+      get_portal_onboarding: {
+        Args: { _token: string }
+        Returns: {
+          activity: string
+          completed: boolean
+          documents_links: string
+          due_date: string
+          id: string
+          phase: string
+          responsible: string
+          sort_order: number
+        }[]
+      }
       get_portal_payment_methods: { Args: { _token: string }; Returns: Json }
       get_portal_payments: {
         Args: { _token: string }
@@ -8864,6 +8877,10 @@ export type Database = {
       }
       portal_email_allowed: {
         Args: { _email: string; _token: string }
+        Returns: boolean
+      }
+      portal_toggle_onboarding_step: {
+        Args: { _completed: boolean; _step_id: string; _token: string }
         Returns: boolean
       }
     }
