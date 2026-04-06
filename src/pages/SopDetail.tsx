@@ -573,6 +573,18 @@ export default function SopDetailPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-steps', id] }),
   });
 
+  const moveStep = async (idx: number, direction: 'up' | 'down') => {
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= sopSteps.length) return;
+    const a = sopSteps[idx];
+    const b = sopSteps[swapIdx];
+    await Promise.all([
+      supabase.from('sop_steps' as any).update({ sort_order: b.sort_order }).eq('id', a.id),
+      supabase.from('sop_steps' as any).update({ sort_order: a.sort_order }).eq('id', b.id),
+    ]);
+    queryClient.invalidateQueries({ queryKey: ['sop-steps', id] });
+  };
+
   // ─── Step Documents CRUD ──────────────────────────────────────
   const addStepDoc = useMutation({
     mutationFn: async (stepId: string) => {
@@ -928,6 +940,14 @@ export default function SopDetailPage() {
                 <div key={step.id} className="border rounded-lg overflow-hidden">
                   {/* Main row */}
                   <div className="flex items-center gap-2 px-3 py-2">
+                    <div className="flex flex-col shrink-0">
+                      <Button variant="ghost" size="icon" className="h-5 w-5" disabled={idx === 0} onClick={() => moveStep(idx, 'up')}>
+                        <ChevronUp className="h-3 w-3" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-5 w-5" disabled={idx === sopSteps.length - 1} onClick={() => moveStep(idx, 'down')}>
+                        <ChevronDown className="h-3 w-3" />
+                      </Button>
+                    </div>
                     <span className="text-xs text-muted-foreground font-mono w-6 shrink-0">{idx + 1}.</span>
                     <Input
                       defaultValue={step.description}
