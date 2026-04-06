@@ -487,7 +487,7 @@ export default function ClienteDetailPage() {
             if (!existingQ?.length) {
               const { data: diagQuestions } = await supabase
                 .from('product_diagnostic_questions')
-                .select('question, sort_order')
+                .select('question, sort_order, question_group, answer_type')
                 .eq('product_id', matchedProduct.id)
                 .order('sort_order');
               if (diagQuestions?.length) {
@@ -495,6 +495,12 @@ export default function ClienteDetailPage() {
                   diagQuestions.map((dq, i) => ({
                     portal_id: portalId!,
                     question: dq.question,
+                    sort_order: dq.sort_order ?? i,
+                    question_group: dq.question_group || null,
+                    answer_type: dq.answer_type || 'text',
+                  }))
+                );
+              }
                     sort_order: dq.sort_order ?? i,
                   }))
                 );
