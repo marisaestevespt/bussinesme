@@ -5931,6 +5931,47 @@ export type Database = {
           },
         ]
       }
+      product_diagnostic_questions: {
+        Row: {
+          answer_type: string
+          created_at: string
+          id: string
+          internal_note: string | null
+          product_id: string
+          question: string
+          question_group: string
+          sort_order: number
+        }
+        Insert: {
+          answer_type?: string
+          created_at?: string
+          id?: string
+          internal_note?: string | null
+          product_id: string
+          question?: string
+          question_group?: string
+          sort_order?: number
+        }
+        Update: {
+          answer_type?: string
+          created_at?: string
+          id?: string
+          internal_note?: string | null
+          product_id?: string
+          question?: string
+          question_group?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_diagnostic_questions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_documents: {
         Row: {
           created_at: string
