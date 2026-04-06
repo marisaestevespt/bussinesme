@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Plus, Trash2, Save, ExternalLink, GripVertical, ListChecks, History, FileText, ChevronDown, ChevronUp, Eye, EyeOff, Paperclip } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, ExternalLink, GripVertical, ListChecks, History, FileText, ChevronDown, ChevronUp, Eye, EyeOff, Paperclip, Pencil } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -139,6 +139,12 @@ export default function SopDetailPage() {
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
   const [docExpandedSteps, setDocExpandedSteps] = useState<Set<string>>(new Set());
   const [sopEstimatedTime, setSopEstimatedTime] = useState('');
+  const [editingSections, setEditingSections] = useState<Set<string>>(new Set());
+  const toggleEdit = (section: string) => setEditingSections(prev => {
+    const next = new Set(prev);
+    next.has(section) ? next.delete(section) : next.add(section);
+    return next;
+  });
   const [taskProjectId, setTaskProjectId] = useState('');
   const [taskDepartment, setTaskDepartment] = useState('');
   const [taskDeadline, setTaskDeadline] = useState('');
@@ -815,39 +821,82 @@ export default function SopDetailPage() {
         </div>
 
         <Card>
-          <CardHeader className="pb-3">
+           <CardHeader className="pb-3 flex-row items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">1</span>
               Objetivo
             </CardTitle>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('objetivo')}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
           </CardHeader>
           <CardContent>
-            <Textarea value={objetivo} onChange={e => setObjetivo(e.target.value)} placeholder="Descrever o objetivo deste SOP..." rows={3} />
+            {editingSections.has('objetivo') ? (
+              <Textarea value={objetivo} onChange={e => setObjetivo(e.target.value)} placeholder="Descrever o objetivo deste SOP..." rows={3} />
+            ) : (
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{objetivo || <span className="italic">Sem objetivo definido</span>}</p>
+            )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 flex-row items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">2</span>
               Utilização
             </CardTitle>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('utilizacao')}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
           </CardHeader>
           <CardContent>
-            <UtilizacaoTable usado={usado} naoUsado={naoUsado} onChangeUsado={setUsado} onChangeNaoUsado={setNaoUsado} />
+            {editingSections.has('utilizacao') ? (
+              <UtilizacaoTable usado={usado} naoUsado={naoUsado} onChangeUsado={setUsado} onChangeNaoUsado={setNaoUsado} />
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Quando é usado</p>
+                  {usado.filter(u => u.trim()).length > 0 ? (
+                    <ul className="text-sm space-y-0.5">{usado.filter(u => u.trim()).map((u, i) => <li key={i}>• {u}</li>)}</ul>
+                  ) : <p className="text-sm text-muted-foreground italic">Não definido</p>}
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Quando NÃO é usado</p>
+                  {naoUsado.filter(u => u.trim()).length > 0 ? (
+                    <ul className="text-sm space-y-0.5">{naoUsado.filter(u => u.trim()).map((u, i) => <li key={i}>• {u}</li>)}</ul>
+                  ) : <p className="text-sm text-muted-foreground italic">Não definido</p>}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 flex-row items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">3</span>
               Inputs Necessários
             </CardTitle>
-            <p className="text-sm text-amber-600 mt-1">⚠️ Se algum item estiver em falta, não iniciar.</p>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('inputs')}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
           </CardHeader>
           <CardContent>
-            <EditableCheckList items={inputs} onChange={setInputs} />
+            {editingSections.has('inputs') ? (
+              <>
+                <p className="text-sm text-amber-600 mb-3">⚠️ Se algum item estiver em falta, não iniciar.</p>
+                <EditableCheckList items={inputs} onChange={setInputs} />
+              </>
+            ) : (
+              inputs.filter(i => i.text.trim()).length > 0 ? (
+                <ul className="text-sm space-y-1">{inputs.filter(i => i.text.trim()).map((i, idx) => (
+                  <li key={idx} className="flex items-center gap-2">
+                    <span className={i.checked ? 'text-primary' : 'text-muted-foreground'}>{i.checked ? '✅' : '⬜'}</span>
+                    <span className={i.checked ? 'line-through text-muted-foreground' : ''}>{i.text}</span>
+                  </li>
+                ))}</ul>
+              ) : <p className="text-sm text-muted-foreground italic">Sem inputs definidos</p>
+            )}
           </CardContent>
         </Card>
 
@@ -1396,39 +1445,73 @@ export default function SopDetailPage() {
         )}
 
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 flex-row items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">5</span>
               Decisões / Exceções
             </CardTitle>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('decisoes')}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
           </CardHeader>
           <CardContent>
-            <EditableBulletList items={decisoes} onChange={setDecisoes} placeholder="(se acontecer X, fazer Y)" />
+            {editingSections.has('decisoes') ? (
+              <EditableBulletList items={decisoes} onChange={setDecisoes} placeholder="(se acontecer X, fazer Y)" />
+            ) : (
+              decisoes.filter(d => d.trim()).length > 0 ? (
+                <ul className="text-sm space-y-0.5">{decisoes.filter(d => d.trim()).map((d, i) => <li key={i}>• {d}</li>)}</ul>
+              ) : <p className="text-sm text-muted-foreground italic">Sem decisões definidas</p>
+            )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 flex-row items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">6</span>
               Outputs Finais
             </CardTitle>
-            <p className="text-sm text-emerald-600 mt-1">✅ O processo considera-se concluído quando:</p>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('outputs')}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
           </CardHeader>
           <CardContent>
-            <EditableCheckList items={outputs} onChange={setOutputs} />
+            {editingSections.has('outputs') ? (
+              <>
+                <p className="text-sm text-emerald-600 mb-3">✅ O processo considera-se concluído quando:</p>
+                <EditableCheckList items={outputs} onChange={setOutputs} />
+              </>
+            ) : (
+              outputs.filter(o => o.text.trim()).length > 0 ? (
+                <ul className="text-sm space-y-1">{outputs.filter(o => o.text.trim()).map((o, i) => (
+                  <li key={i} className="flex items-center gap-2">
+                    <span className={o.checked ? 'text-primary' : 'text-muted-foreground'}>{o.checked ? '✅' : '⬜'}</span>
+                    <span className={o.checked ? 'line-through text-muted-foreground' : ''}>{o.text}</span>
+                  </li>
+                ))}</ul>
+              ) : <p className="text-sm text-muted-foreground italic">Sem outputs definidos</p>
+            )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 flex-row items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">7</span>
               Notas
             </CardTitle>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('notas')}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
           </CardHeader>
           <CardContent>
-            <EditableBulletList items={notas} onChange={setNotas} placeholder="Nota..." />
+            {editingSections.has('notas') ? (
+              <EditableBulletList items={notas} onChange={setNotas} placeholder="Nota..." />
+            ) : (
+              notas.filter(n => n.trim()).length > 0 ? (
+                <ul className="text-sm space-y-0.5">{notas.filter(n => n.trim()).map((n, i) => <li key={i}>• {n}</li>)}</ul>
+              ) : <p className="text-sm text-muted-foreground italic">Sem notas</p>
+            )}
           </CardContent>
         </Card>
 
