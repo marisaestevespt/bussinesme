@@ -25,6 +25,7 @@ type FileAttachment = {
   name: string;
   type: string;
   base64: string;
+  extractedText?: string; // For PDFs: extracted text content
   size: number;
 };
 
