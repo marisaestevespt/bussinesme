@@ -7,6 +7,7 @@ import { FileDown, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { parseISO } from 'date-fns';
 import { addBusinessDays } from '@/lib/holidays';
+import { addDays } from 'date-fns';
 
 interface Props {
   projectId: string;
@@ -23,6 +24,12 @@ function parseRuleDays(rule: string | null): number | null {
   if (!rule) return null;
   const match = rule.match(/^\+?\s*(\d+)\s*dias?$/i);
   return match ? parseInt(match[1], 10) : null;
+}
+
+/** Calculate due date respecting rule_unit */
+function calcDueDate(base: Date, days: number, unit?: string): string {
+  const d = unit === 'dias_uteis' || !unit ? addBusinessDays(base, days) : addDays(base, days);
+  return d.toISOString().split('T')[0];
 }
 
 export function ApplyProductTemplate({ projectId, productId, clientId, projectStartDate }: Props) {
