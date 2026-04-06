@@ -529,6 +529,35 @@ export default function SopDetailPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-template-rows', templateTable, linkedProductId] }),
   });
 
+  // ─── Step Documents CRUD ──────────────────────────────────────
+  const addStepDoc = useMutation({
+    mutationFn: async (stepIndex: number) => {
+      await supabase.from('sop_step_documents' as any).insert({
+        sop_id: id,
+        step_index: stepIndex,
+        document_type: 'template',
+        title: '',
+        content: '',
+        sort_order: stepDocuments.filter((d: any) => d.step_index === stepIndex).length,
+      });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-step-documents', id] }),
+  });
+
+  const updateStepDoc = useMutation({
+    mutationFn: async ({ docId, data }: { docId: string; data: Record<string, any> }) => {
+      await supabase.from('sop_step_documents' as any).update(data).eq('id', docId);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-step-documents', id] }),
+  });
+
+  const deleteStepDoc = useMutation({
+    mutationFn: async (docId: string) => {
+      await supabase.from('sop_step_documents' as any).delete().eq('id', docId);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sop-step-documents', id] }),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from('sops').delete().eq('id', id!);
