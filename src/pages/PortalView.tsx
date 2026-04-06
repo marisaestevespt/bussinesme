@@ -486,7 +486,7 @@ export default function PortalViewPage() {
               const answeredCount = questions.filter(isQAnswered).length;
               const allSubmitted = allAnswered && !activeQuestionId;
               const firstUnanswered = questions.find((q: any) => !isQAnswered(q));
-              const currentOpen = activeQuestionId || (allSubmitted ? null : firstUnanswered?.id || null);
+              const currentOpen = activeQuestionId;
 
               const handleSubmitAll = async () => {
                 // Save any remaining drafts
