@@ -81,7 +81,26 @@ export default function SopDetailPage() {
     },
   });
 
-  // ─── Local state ──────────────────────────────────────────────
+  // Fetch unique role titles from team members
+  const { data: teamRoles = [] } = useQuery({
+    queryKey: ['team-role-titles'],
+    queryFn: async () => {
+      const { data } = await supabase.from('team_members').select('role_title').eq('status', 'ativo').not('role_title', 'is', null);
+      const unique = [...new Set((data || []).map((d: any) => d.role_title).filter(Boolean))].sort();
+      return unique as string[];
+    },
+  });
+
+  // Fetch step documents
+  const { data: stepDocuments = [] } = useQuery({
+    queryKey: ['sop-step-documents', id],
+    queryFn: async () => {
+      const { data } = await supabase.from('sop_step_documents' as any).select('*').eq('sop_id', id!).order('step_index').order('sort_order');
+      return (data || []) as any[];
+    },
+    enabled: !!id,
+  });
+
   const [name, setName] = useState('');
   const [sopId, setSopId] = useState('');
   const [status, setStatus] = useState('para_criar');
