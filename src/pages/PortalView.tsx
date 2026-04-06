@@ -451,11 +451,10 @@ export default function PortalViewPage() {
                                       await sb('client_onboarding').update({ completed: !!v }).eq('id', o.id);
                                       setOnboarding(prev => prev.map(x => x.id === o.id ? { ...x, completed: !!v } : x));
                                       // Recalculate cascading dates when completing a step
-                                      if (v && clientId) {
+                                      if (v && client?.id) {
                                         const { recalcCascadingDates } = await import('@/components/LinkedSopsSection');
-                                        await recalcCascadingDates('client_onboarding', clientId, o.sort_order ?? i);
-                                        // Refresh onboarding data
-                                        const { data: refreshed } = await sb('client_onboarding').select('*').eq('client_id', clientId).order('sort_order');
+                                        await recalcCascadingDates('client_onboarding', client.id, o.sort_order ?? i);
+                                        const { data: refreshed } = await sb('client_onboarding').select('*').eq('client_id', client.id).order('sort_order');
                                         if (refreshed) setOnboarding(refreshed);
                                       }
                                     }}
@@ -1130,10 +1129,10 @@ export default function PortalViewPage() {
                                 onCheckedChange={async (v) => {
                                   await sb('client_onboarding').update({ completed: !!v }).eq('id', o.id);
                                   setOnboarding(prev => prev.map(x => x.id === o.id ? { ...x, completed: !!v } : x));
-                                  if (v && clientId) {
+                                  if (v && client?.id) {
                                     const { recalcCascadingDates } = await import('@/components/LinkedSopsSection');
-                                    await recalcCascadingDates('client_onboarding', clientId, o.sort_order ?? i);
-                                    const { data: refreshed } = await sb('client_onboarding').select('*').eq('client_id', clientId).order('sort_order');
+                                    await recalcCascadingDates('client_onboarding', client.id, o.sort_order ?? i);
+                                    const { data: refreshed } = await sb('client_onboarding').select('*').eq('client_id', client.id).order('sort_order');
                                     if (refreshed) setOnboarding(refreshed);
                                   }
                                 }}
