@@ -442,7 +442,7 @@ serve(async (req) => {
       });
       const { data: { user } } = await userClient.auth.getUser();
       if (user) {
-        const { data: profile } = await supabaseAdmin.from("profiles").select("full_name").eq("id", user.id).single();
+        const { data: profile } = await supabaseAdmin.from("profiles").select("full_name").eq("user_id", user.id).single();
         userName = profile?.full_name || user.email?.split("@")[0] || "";
       }
     }
