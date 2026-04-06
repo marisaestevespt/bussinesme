@@ -1632,6 +1632,51 @@ export default function SopDetailPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Document Content Dialog */}
+      <Dialog open={!!editingDoc} onOpenChange={open => { if (!open) setEditingDoc(null); }}>
+        <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {editingDoc?.document_type === 'email' && '📧'}
+              {editingDoc?.document_type === 'mensagem' && '💬'}
+              {editingDoc?.document_type === 'documento' && '📄'}
+              {editingDoc?.document_type === 'template' && '📋'}
+              {editingDoc?.title || 'Documento sem título'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 flex-1 overflow-auto">
+            <div>
+              <Label className="text-xs">Título</Label>
+              <Input
+                defaultValue={editingDoc?.title || ''}
+                onBlur={e => {
+                  if (editingDoc && e.target.value !== editingDoc.title) {
+                    updateStepDoc.mutate({ docId: editingDoc.id, data: { title: e.target.value } });
+                    setEditingDoc((prev: any) => prev ? { ...prev, title: e.target.value } : null);
+                  }
+                }}
+                placeholder="Título do documento..."
+              />
+            </div>
+            <div className="flex-1">
+              <Label className="text-xs">Conteúdo</Label>
+              <p className="text-[10px] text-muted-foreground mb-1">Variáveis disponíveis: {'{nome_cliente}'}, {'{produto}'}, {'{data}'}, {'{empresa}'}</p>
+              <Textarea
+                defaultValue={editingDoc?.content || ''}
+                onBlur={e => {
+                  if (editingDoc && e.target.value !== (editingDoc.content || '')) {
+                    updateStepDoc.mutate({ docId: editingDoc.id, data: { content: e.target.value } });
+                    setEditingDoc((prev: any) => prev ? { ...prev, content: e.target.value } : null);
+                  }
+                }}
+                placeholder="Escreve o conteúdo do documento/template aqui..."
+                className="min-h-[350px] text-sm font-mono"
+              />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
