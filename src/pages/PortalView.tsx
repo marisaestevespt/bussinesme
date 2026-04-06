@@ -562,18 +562,20 @@ export default function PortalViewPage() {
                               <button
                                 className="w-full px-6 py-3 flex items-center justify-between hover:bg-muted/20 transition-colors"
                                 onClick={() => {
-                                  setCollapsedSections(prev => {
+                                  setExpandedSections(prev => {
                                     const next = new Set(prev);
                                     if (next.has(section.group)) {
                                       next.delete(section.group);
                                     } else {
                                       next.add(section.group);
-                                      // Close any open question in this section
-                                      const openInSection = section.items.find(q => q.id === currentOpen);
-                                      if (openInSection) setActiveQuestionId(null);
                                     }
                                     return next;
                                   });
+                                  // Close any open question in this section when collapsing
+                                  if (isSectionOpen) {
+                                    const openInSection = section.items.find(q => q.id === currentOpen);
+                                    if (openInSection) setActiveQuestionId(null);
+                                  }
                                 }}
                               >
                                 <div className="flex items-center gap-2">
