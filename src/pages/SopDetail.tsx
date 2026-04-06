@@ -821,39 +821,82 @@ export default function SopDetailPage() {
         </div>
 
         <Card>
-          <CardHeader className="pb-3">
+           <CardHeader className="pb-3 flex-row items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">1</span>
               Objetivo
             </CardTitle>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('objetivo')}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
           </CardHeader>
           <CardContent>
-            <Textarea value={objetivo} onChange={e => setObjetivo(e.target.value)} placeholder="Descrever o objetivo deste SOP..." rows={3} />
+            {editingSections.has('objetivo') ? (
+              <Textarea value={objetivo} onChange={e => setObjetivo(e.target.value)} placeholder="Descrever o objetivo deste SOP..." rows={3} />
+            ) : (
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{objetivo || <span className="italic">Sem objetivo definido</span>}</p>
+            )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 flex-row items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">2</span>
               Utilização
             </CardTitle>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('utilizacao')}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
           </CardHeader>
           <CardContent>
-            <UtilizacaoTable usado={usado} naoUsado={naoUsado} onChangeUsado={setUsado} onChangeNaoUsado={setNaoUsado} />
+            {editingSections.has('utilizacao') ? (
+              <UtilizacaoTable usado={usado} naoUsado={naoUsado} onChangeUsado={setUsado} onChangeNaoUsado={setNaoUsado} />
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Quando é usado</p>
+                  {usado.filter(u => u.trim()).length > 0 ? (
+                    <ul className="text-sm space-y-0.5">{usado.filter(u => u.trim()).map((u, i) => <li key={i}>• {u}</li>)}</ul>
+                  ) : <p className="text-sm text-muted-foreground italic">Não definido</p>}
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Quando NÃO é usado</p>
+                  {naoUsado.filter(u => u.trim()).length > 0 ? (
+                    <ul className="text-sm space-y-0.5">{naoUsado.filter(u => u.trim()).map((u, i) => <li key={i}>• {u}</li>)}</ul>
+                  ) : <p className="text-sm text-muted-foreground italic">Não definido</p>}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 flex-row items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">3</span>
               Inputs Necessários
             </CardTitle>
-            <p className="text-sm text-amber-600 mt-1">⚠️ Se algum item estiver em falta, não iniciar.</p>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleEdit('inputs')}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
           </CardHeader>
           <CardContent>
-            <EditableCheckList items={inputs} onChange={setInputs} />
+            {editingSections.has('inputs') ? (
+              <>
+                <p className="text-sm text-amber-600 mb-3">⚠️ Se algum item estiver em falta, não iniciar.</p>
+                <EditableCheckList items={inputs} onChange={setInputs} />
+              </>
+            ) : (
+              inputs.filter(i => i.text.trim()).length > 0 ? (
+                <ul className="text-sm space-y-1">{inputs.filter(i => i.text.trim()).map((i, idx) => (
+                  <li key={idx} className="flex items-center gap-2">
+                    <span className={i.checked ? 'text-primary' : 'text-muted-foreground'}>{i.checked ? '✅' : '⬜'}</span>
+                    <span className={i.checked ? 'line-through text-muted-foreground' : ''}>{i.text}</span>
+                  </li>
+                ))}</ul>
+              ) : <p className="text-sm text-muted-foreground italic">Sem inputs definidos</p>
+            )}
           </CardContent>
         </Card>
 
