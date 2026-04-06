@@ -1067,10 +1067,11 @@ export default function SopDetailPage() {
                             onChange={e => updateStepDoc.mutate({ docId: doc.id, data: { document_type: e.target.value } })}
                             className="text-[10px] bg-transparent border rounded px-1 py-0.5 text-muted-foreground shrink-0 mt-0.5"
                           >
-                            <option value="email">📧</option>
-                            <option value="mensagem">💬</option>
-                            <option value="documento">📄</option>
-                            <option value="template">📋</option>
+                            <option value="email">📧 Email</option>
+                            <option value="mensagem">💬 Mensagem</option>
+                            <option value="documento">📄 Documento</option>
+                            <option value="template">📋 Template</option>
+                            <option value="link">🔗 Link</option>
                           </select>
                           <div className="flex-1 space-y-1">
                             <Input
@@ -1079,21 +1080,55 @@ export default function SopDetailPage() {
                               placeholder="Título..."
                               className="h-6 text-xs border-none shadow-none px-0 focus-visible:ring-0"
                             />
-                            <Textarea
-                              defaultValue={doc.content || ''}
-                              onBlur={e => updateStepDoc.mutate({ docId: doc.id, data: { content: e.target.value } })}
-                              placeholder="Conteúdo... ({nome_cliente}, {produto}, {data})"
-                              className="min-h-[50px] text-xs resize-none"
-                            />
+                            {doc.document_type === 'link' ? (
+                              <Input
+                                defaultValue={doc.url || ''}
+                                onBlur={e => updateStepDoc.mutate({ docId: doc.id, data: { url: e.target.value } })}
+                                placeholder="https://..."
+                                className="h-7 text-xs"
+                              />
+                            ) : (
+                              <div className="flex items-center gap-1">
+                                <div className="text-xs text-muted-foreground truncate flex-1">
+                                  {doc.content ? `${doc.content.substring(0, 60)}...` : 'Sem conteúdo'}
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-6 text-[10px] shrink-0"
+                                  onClick={() => setEditingDoc(doc)}
+                                >
+                                  <Pencil className="h-3 w-3 mr-1" /> Editar
+                                </Button>
+                              </div>
+                            )}
                           </div>
                           <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => deleteStepDoc.mutate(doc.id)}>
                             <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
                       ))}
-                      <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => addStepDoc.mutate(step.id)}>
-                        <Plus className="h-3 w-3 mr-1" /> Documento/Template
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => addStepDoc.mutate(step.id)}>
+                          <Plus className="h-3 w-3 mr-1" /> Documento/Template
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => {
+                          (async () => {
+                            await supabase.from('sop_step_documents' as any).insert({
+                              sop_id: id,
+                              step_id: step.id,
+                              step_index: 0,
+                              document_type: 'link',
+                              title: '',
+                              url: '',
+                              sort_order: docs.length,
+                            });
+                            queryClient.invalidateQueries({ queryKey: ['sop-step-documents', id] });
+                          })();
+                        }}>
+                          <ExternalLink className="h-3 w-3 mr-1" /> Link
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>
