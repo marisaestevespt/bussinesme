@@ -1395,23 +1395,42 @@ export default function SopDetailPage() {
           </section>
         )}
 
-        <section>
-          <h3 className="text-lg font-semibold mb-2">5. Decisões / Exceções</h3>
-          <EditableBulletList items={decisoes} onChange={setDecisoes} placeholder="(se acontecer X, fazer Y)" />
-        </section>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">5</span>
+              Decisões / Exceções
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EditableBulletList items={decisoes} onChange={setDecisoes} placeholder="(se acontecer X, fazer Y)" />
+          </CardContent>
+        </Card>
 
-        {/* 6. Outputs Finais */}
-        <section>
-          <h3 className="text-lg font-semibold mb-1">6. Outputs Finais</h3>
-          <p className="text-sm text-emerald-600 mb-3">✅ O processo considera-se concluído quando:</p>
-          <EditableCheckList items={outputs} onChange={setOutputs} />
-        </section>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">6</span>
+              Outputs Finais
+            </CardTitle>
+            <p className="text-sm text-emerald-600 mt-1">✅ O processo considera-se concluído quando:</p>
+          </CardHeader>
+          <CardContent>
+            <EditableCheckList items={outputs} onChange={setOutputs} />
+          </CardContent>
+        </Card>
 
-        {/* 7. Notas */}
-        <section>
-          <h3 className="text-lg font-semibold mb-2">7. Notas</h3>
-          <EditableBulletList items={notas} onChange={setNotas} placeholder="Nota..." />
-        </section>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">7</span>
+              Notas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EditableBulletList items={notas} onChange={setNotas} placeholder="Nota..." />
+          </CardContent>
+        </Card>
 
         {/* Delete */}
         <div className="border-t pt-6">
