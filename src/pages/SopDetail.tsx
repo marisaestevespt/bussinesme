@@ -1027,7 +1027,7 @@ export default function SopDetailPage() {
                         <div>
                           <Label className="text-[10px] text-muted-foreground">Gatilho</Label>
                           <select
-                            value={step.deadline_trigger || 'apos_inicio'}
+                            defaultValue={step.deadline_trigger || 'apos_inicio'}
                             onChange={e => updateSopStep.mutate({ stepId: step.id, data: { deadline_trigger: e.target.value } })}
                             className="w-full text-xs bg-transparent border rounded px-2 py-1.5 text-muted-foreground"
                           >
