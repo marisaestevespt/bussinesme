@@ -5603,6 +5603,7 @@ export type Database = {
           answered_at: string | null
           created_at: string
           file_urls: Json | null
+          group_sort_order: number
           id: string
           portal_id: string
           question: string
@@ -5615,6 +5616,7 @@ export type Database = {
           answered_at?: string | null
           created_at?: string
           file_urls?: Json | null
+          group_sort_order?: number
           id?: string
           portal_id: string
           question: string
@@ -5627,6 +5629,7 @@ export type Database = {
           answered_at?: string | null
           created_at?: string
           file_urls?: Json | null
+          group_sort_order?: number
           id?: string
           portal_id?: string
           question?: string
@@ -5948,6 +5951,7 @@ export type Database = {
         Row: {
           answer_type: string
           created_at: string
+          group_sort_order: number
           id: string
           internal_note: string | null
           product_id: string
@@ -5958,6 +5962,7 @@ export type Database = {
         Insert: {
           answer_type?: string
           created_at?: string
+          group_sort_order?: number
           id?: string
           internal_note?: string | null
           product_id: string
@@ -5968,6 +5973,7 @@ export type Database = {
         Update: {
           answer_type?: string
           created_at?: string
+          group_sort_order?: number
           id?: string
           internal_note?: string | null
           product_id?: string
