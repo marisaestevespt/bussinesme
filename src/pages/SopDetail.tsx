@@ -1030,7 +1030,8 @@ export default function SopDetailPage() {
               );
             })}
           </div>
-        </section>
+          </CardContent>
+        </Card>
 
         {/* Antecedência de Renovação (for Offboarding SOP) */}
         {isOffboardingSop && (
