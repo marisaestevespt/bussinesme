@@ -504,7 +504,7 @@ export default function ClienteDetailPage() {
             }
           }
         }
-
+      }
       // 6. Add history entry
       await supabase.from('client_history').insert({
         client_id: id,
