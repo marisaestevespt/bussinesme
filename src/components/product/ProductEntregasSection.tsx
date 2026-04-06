@@ -119,7 +119,7 @@ function PhaseCard({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Sem SOP</SelectItem>
-                {sops.map(s => <SelectItem key={s.id} value={s.id}>{s.title}</SelectItem>)}
+                {sops.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
               </SelectContent>
             </Select>
           )}
