@@ -1241,6 +1241,9 @@ export type Database = {
           phase: string | null
           responsible: string | null
           rule: string | null
+          rule_days: number | null
+          rule_trigger: string | null
+          rule_unit: string | null
           sort_order: number | null
         }
         Insert: {
@@ -1254,6 +1257,9 @@ export type Database = {
           phase?: string | null
           responsible?: string | null
           rule?: string | null
+          rule_days?: number | null
+          rule_trigger?: string | null
+          rule_unit?: string | null
           sort_order?: number | null
         }
         Update: {
@@ -1267,6 +1273,9 @@ export type Database = {
           phase?: string | null
           responsible?: string | null
           rule?: string | null
+          rule_days?: number | null
+          rule_trigger?: string | null
+          rule_unit?: string | null
           sort_order?: number | null
         }
         Relationships: [
@@ -1291,6 +1300,9 @@ export type Database = {
           phase: string | null
           responsible: string | null
           rule: string | null
+          rule_days: number | null
+          rule_trigger: string | null
+          rule_unit: string | null
           sort_order: number
         }
         Insert: {
@@ -1304,6 +1316,9 @@ export type Database = {
           phase?: string | null
           responsible?: string | null
           rule?: string | null
+          rule_days?: number | null
+          rule_trigger?: string | null
+          rule_unit?: string | null
           sort_order?: number
         }
         Update: {
@@ -1317,6 +1332,9 @@ export type Database = {
           phase?: string | null
           responsible?: string | null
           rule?: string | null
+          rule_days?: number | null
+          rule_trigger?: string | null
+          rule_unit?: string | null
           sort_order?: number
         }
         Relationships: [
@@ -6398,6 +6416,9 @@ export type Database = {
           product_id: string
           responsible: string | null
           rule: string | null
+          rule_days: number | null
+          rule_trigger: string | null
+          rule_unit: string | null
           sort_order: number | null
         }
         Insert: {
@@ -6409,6 +6430,9 @@ export type Database = {
           product_id: string
           responsible?: string | null
           rule?: string | null
+          rule_days?: number | null
+          rule_trigger?: string | null
+          rule_unit?: string | null
           sort_order?: number | null
         }
         Update: {
@@ -6420,6 +6444,9 @@ export type Database = {
           product_id?: string
           responsible?: string | null
           rule?: string | null
+          rule_days?: number | null
+          rule_trigger?: string | null
+          rule_unit?: string | null
           sort_order?: number | null
         }
         Relationships: [
@@ -6442,6 +6469,9 @@ export type Database = {
           product_id: string
           responsible: string | null
           rule: string | null
+          rule_days: number | null
+          rule_trigger: string | null
+          rule_unit: string | null
           sort_order: number
         }
         Insert: {
@@ -6453,6 +6483,9 @@ export type Database = {
           product_id: string
           responsible?: string | null
           rule?: string | null
+          rule_days?: number | null
+          rule_trigger?: string | null
+          rule_unit?: string | null
           sort_order?: number
         }
         Update: {
@@ -6464,6 +6497,9 @@ export type Database = {
           product_id?: string
           responsible?: string | null
           rule?: string | null
+          rule_days?: number | null
+          rule_trigger?: string | null
+          rule_unit?: string | null
           sort_order?: number
         }
         Relationships: [

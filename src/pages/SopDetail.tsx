@@ -774,13 +774,14 @@ export default function SopDetailPage() {
                       <TableHead>Fase</TableHead>
                       <TableHead>Atividade</TableHead>
                       <TableHead>Responsável</TableHead>
-                      <TableHead>Regra</TableHead>
+                      <TableHead>Prazo</TableHead>
+                      <TableHead>Gatilho</TableHead>
                       <TableHead className="w-10" />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {templateRows.length === 0 && (
-                      <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-4">Sem passos definidos</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-4">Sem passos definidos</TableCell></TableRow>
                     )}
                     {templateRows.map((row: any) => (
                       <TableRow key={row.id}>
@@ -794,7 +795,42 @@ export default function SopDetailPage() {
                           <Input defaultValue={row.responsible || ''} placeholder="Cliente / Função" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { responsible: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
                         </TableCell>
                         <TableCell>
-                          <Input defaultValue={row.rule || ''} placeholder="Regra" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { rule: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
+                          <div className="flex items-center gap-1.5">
+                            <Input
+                              type="number"
+                              min={0}
+                              defaultValue={row.rule_days ?? ''}
+                              placeholder="Nº"
+                              onBlur={e => {
+                                const val = e.target.value ? parseInt(e.target.value) : null;
+                                updateTemplateRow.mutate({ rowId: row.id, data: { rule_days: val, rule: val != null ? `+${val} ${row.rule_unit || 'dias_uteis'}` : null } });
+                              }}
+                              className="border-none shadow-none h-auto p-0 text-sm w-12"
+                            />
+                            <select
+                              value={row.rule_unit || 'dias_uteis'}
+                              onChange={e => updateTemplateRow.mutate({ rowId: row.id, data: { rule_unit: e.target.value } })}
+                              className="text-xs bg-transparent border-none p-0 text-muted-foreground focus:outline-none"
+                            >
+                              <option value="horas_uteis">h úteis</option>
+                              <option value="dias_uteis">dias úteis</option>
+                              <option value="dias_corridos">dias</option>
+                              <option value="semanas">semanas</option>
+                            </select>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <select
+                            value={row.rule_trigger || 'inicio_cliente'}
+                            onChange={e => updateTemplateRow.mutate({ rowId: row.id, data: { rule_trigger: e.target.value } })}
+                            className="text-xs bg-transparent border-none p-0 text-muted-foreground focus:outline-none"
+                          >
+                            <option value="inicio_cliente">Após início do cliente</option>
+                            <option value="reuniao_inicial">Após reunião inicial</option>
+                            <option value="assinatura_contrato">Após assinatura de contrato</option>
+                            <option value="onboarding_completo">Após onboarding completo</option>
+                            <option value="fim_ciclo">Antes do fim do ciclo</option>
+                          </select>
                         </TableCell>
                         <TableCell>
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteTemplateRow.mutate(row.id)}>
