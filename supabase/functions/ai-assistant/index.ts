@@ -377,7 +377,14 @@ async function executeSingleAction(
   if (READONLY_TABLES.has(tableName) && actionType !== "create") return { error: "Esta tabela é apenas de leitura." };
 
   const filters = (details.filters as Array<{ column: string; operator: string; value: string }>) || [];
-  const data = details.data as Record<string, unknown> || {};
+  let data = details.data as Record<string, unknown> || {};
+
+  if (tableName === "products" && (actionType === "create" || actionType === "update")) {
+    data = normalizeProductData(data, actionType === "create");
+    if (actionType === "create" && !data.name) {
+      return { error: "Criar produto requer pelo menos o nome." };
+    }
+  }
 
   switch (actionType) {
     case "create": {
