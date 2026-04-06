@@ -283,7 +283,7 @@ export function ProjectProcessosTab({ projectId, clientId, productId, projectSta
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <LinkedSopsSection entityType="projeto" entityId={projectId} productId={productId || undefined} />
+          <LinkedSopsSection entityType="projeto" entityId={projectId} productId={productId || undefined} clientId={clientId} projectStartDate={projectStartDate} />
         </div>
         <ApplyProductTemplate projectId={projectId} productId={productId} clientId={clientId} projectStartDate={projectStartDate} />
         <p className="text-sm text-muted-foreground text-center py-6">Associe um cliente a este projeto para ver Onboarding, Offboarding e Atividades.</p>
@@ -297,7 +297,7 @@ export function ProjectProcessosTab({ projectId, clientId, productId, projectSta
       <ApplyProductTemplate projectId={projectId} productId={productId} clientId={clientId} projectStartDate={projectStartDate} />
 
       {/* Processos e SOPs */}
-      <LinkedSopsSection entityType="projeto" entityId={projectId} productId={productId || undefined} />
+      <LinkedSopsSection entityType="projeto" entityId={projectId} productId={productId || undefined} clientId={clientId} projectStartDate={projectStartDate} />
 
       {/* Onboarding */}
       <ChecklistTable
