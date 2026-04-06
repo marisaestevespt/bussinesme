@@ -1,0 +1,1 @@
+ALTER TABLE public.sop_step_documents ADD COLUMN url TEXT;

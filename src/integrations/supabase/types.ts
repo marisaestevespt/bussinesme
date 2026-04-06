@@ -7482,6 +7482,7 @@ export type Database = {
           step_index: number
           title: string
           updated_at: string
+          url: string | null
         }
         Insert: {
           content?: string | null
@@ -7495,6 +7496,7 @@ export type Database = {
           step_index: number
           title?: string
           updated_at?: string
+          url?: string | null
         }
         Update: {
           content?: string | null
@@ -7508,6 +7510,7 @@ export type Database = {
           step_index?: number
           title?: string
           updated_at?: string
+          url?: string | null
         }
         Relationships: [
           {
