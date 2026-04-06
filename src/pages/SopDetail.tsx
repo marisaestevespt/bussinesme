@@ -1035,7 +1035,6 @@ export default function SopDetailPage() {
                             <option value="apos_inicio">Após início</option>
                             <option value="apos_passo_anterior">Após passo anterior</option>
                             <option value="reuniao_inicial">Após reunião inicial</option>
-                            <option value="assinatura_contrato">Após assinatura contrato</option>
                             <option value="onboarding_completo">Após onboarding completo</option>
                             <option value="fim_ciclo">Antes do fim do ciclo</option>
                           </select>
