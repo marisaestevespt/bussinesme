@@ -196,11 +196,11 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
     },
   });
 
-  // Fetch SOPs for linking
+  // Fetch SOPs linked to this product
   const { data: sops = [] } = useQuery({
-    queryKey: ['sops-list-mini'],
+    queryKey: ['sops-list-mini', productId],
     queryFn: async () => {
-      const { data } = await supabase.from('sops').select('id, name');
+      const { data } = await supabase.from('sops').select('id, name').eq('product_id', productId);
       return (data || []) as Array<{ id: string; name: string }>;
     },
   });
