@@ -814,23 +814,42 @@ export default function SopDetailPage() {
           )}
         </div>
 
-        <section>
-          <h3 className="text-lg font-semibold mb-2">1. Objetivo</h3>
-          <Textarea value={objetivo} onChange={e => setObjetivo(e.target.value)} placeholder="Descrever o objetivo deste SOP..." rows={3} />
-        </section>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">1</span>
+              Objetivo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Textarea value={objetivo} onChange={e => setObjetivo(e.target.value)} placeholder="Descrever o objetivo deste SOP..." rows={3} />
+          </CardContent>
+        </Card>
 
-        {/* 2. Utilização */}
-        <section>
-          <h3 className="text-lg font-semibold mb-2">2. Utilização</h3>
-          <UtilizacaoTable usado={usado} naoUsado={naoUsado} onChangeUsado={setUsado} onChangeNaoUsado={setNaoUsado} />
-        </section>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">2</span>
+              Utilização
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <UtilizacaoTable usado={usado} naoUsado={naoUsado} onChangeUsado={setUsado} onChangeNaoUsado={setNaoUsado} />
+          </CardContent>
+        </Card>
 
-        {/* 3. Inputs Necessários */}
-        <section>
-          <h3 className="text-lg font-semibold mb-1">3. Inputs Necessários</h3>
-          <p className="text-sm text-amber-600 mb-3">⚠️ Se algum item estiver em falta, não iniciar.</p>
-          <EditableCheckList items={inputs} onChange={setInputs} />
-        </section>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-xs font-bold">3</span>
+              Inputs Necessários
+            </CardTitle>
+            <p className="text-sm text-amber-600 mt-1">⚠️ Se algum item estiver em falta, não iniciar.</p>
+          </CardHeader>
+          <CardContent>
+            <EditableCheckList items={inputs} onChange={setInputs} />
+          </CardContent>
+        </Card>
 
         {/* 4. Passos do Processo (unified with onboarding/offboarding) */}
         <section>
