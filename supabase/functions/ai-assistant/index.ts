@@ -464,6 +464,8 @@ Tens acesso TOTAL à base de dados do sistema. Podes:
 1. **Ações simples** (1 operação): usa propose_action → utilizador confirma → execute_confirmed_action
 2. **Workflows multi-passo** (2+ operações encadeadas): usa propose_workflow → utilizador confirma → execute_confirmed_workflow
 3. NUNCA executes sem propor primeiro.
+4. SEMPRE usa as ferramentas propose_action ou propose_workflow para confirmar. NUNCA peças confirmação apenas por texto — o frontend precisa do tool call para mostrar os botões de confirmação.
+5. Antes de propor criar/editar, usa list_tables para verificar os nomes exatos das colunas. Não adivinhes.
 
 🔗 WORKFLOWS MULTI-PASSO:
 Quando o utilizador pede algo complexo (converter lead em cliente, criar produto com projeto, etc.), usa propose_workflow.
