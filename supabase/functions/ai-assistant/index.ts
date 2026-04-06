@@ -184,8 +184,152 @@ The workflow will NOT execute yet — the user sees a summary and confirms once.
 
 const BLOCKED_TABLES = new Set(["audit_logs", "member_sensitive_access", "backups", "user_roles", "profiles"]);
 const READONLY_TABLES = new Set(["business_settings", "business_setup", "automation_settings", "system_config"]);
+const PRODUCT_MUTABLE_FIELDS = new Set([
+  "name",
+  "description",
+  "status",
+  "sales_page_url",
+  "ticket",
+  "escada",
+  "product_type",
+  "sales_type",
+  "drive_url",
+  "important_dates",
+  "about_content",
+  "included_items",
+  "faqs",
+  "client_profile",
+  "competitors",
+  "improvements_content",
+  "brainstorming_content",
+  "logo_url",
+  "cover_url",
+  "vat_rate",
+  "invoice_denomination",
+  "accounting_notes",
+  "cycle_duration",
+  "monthly_hours_per_client",
+  "renewal_advance_days",
+  "archive_notes",
+  "max_simultaneous_clients",
+  "ticket_type",
+]);
 
-// Resolve {{step_N.field}} references in a value using previous step results
+function inferProductType(text: string): string | null {
+  const normalized = text.toLowerCase();
+  if (normalized.includes("subscri") || normalized.includes("mensal")) return "servico_mensal";
+  if (normalized.includes("grupo")) {
+    if (normalized.includes("consult")) return "consultoria_grupo";
+    if (normalized.includes("mentoria")) return "mentoria_grupo";
+  }
+  if (normalized.includes("mentoria")) return "mentoria_individual";
+  if (normalized.includes("consult")) return "consultoria_individual";
+  if (normalized.includes("curso")) return "curso";
+  if (normalized.includes("template")) return "template";
+  if (normalized.includes("projeto")) return "projeto_1_1";
+  return null;
+}
+
+function inferSalesType(text: string): string {
+  const normalized = text.toLowerCase();
+  if (normalized.includes("subscri")) return "subscricao";
+  if (normalized.includes("avenca") || normalized.includes("avença") || normalized.includes("mensal")) return "avenca_mensal";
+  if (normalized.includes("candidatura") || normalized.includes("aplicação") || normalized.includes("aplicacao")) return "candidatura";
+  if (normalized.includes("lançamento") || normalized.includes("lancamento")) return "lancamento";
+  if (normalized.includes("gratuito") || normalized.includes("grátis") || normalized.includes("gratis")) return "gratuito";
+  return "perpetuo";
+}
+
+function normalizeProductData(rawData: Record<string, unknown>, isCreate = false): Record<string, unknown> {
+  const data = { ...rawData };
+  const textForInference = [
+    data.name,
+    data.description,
+    data.category,
+    data.product_type,
+    data.sales_type,
+  ]
+    .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+    .join(" ");
+
+  if (data.base_price !== undefined && (data.ticket === undefined || data.ticket === null || data.ticket === "")) {
+    data.ticket = String(data.base_price);
+  }
+  delete data.base_price;
+
+  if (typeof data.ticket === "number") data.ticket = String(data.ticket);
+  if (typeof data.ticket === "string") data.ticket = data.ticket.trim();
+
+  const inferredProductType = inferProductType(
+    typeof data.category === "string" && data.category.trim().length > 0
+      ? data.category
+      : textForInference
+  );
+
+  if (!data.product_type && inferredProductType) {
+    data.product_type = inferredProductType;
+  }
+
+  if (!data.sales_type && textForInference) {
+    data.sales_type = inferSalesType(textForInference);
+  }
+
+  if (isCreate) {
+    if (!data.status) data.status = "em_ideia";
+    if (!data.ticket_type) data.ticket_type = "fixo";
+  }
+
+  delete data.category;
+
+  return Object.fromEntries(
+    Object.entries(data).filter(([key, value]) => PRODUCT_MUTABLE_FIELDS.has(key) && value !== undefined)
+  );
+}
+
+function parseConfirmedAction(content: unknown): Record<string, unknown> | null {
+  if (typeof content !== "string" || !content.includes("[AÇÃO CONFIRMADA]")) return null;
+  const marker = "Detalhes da ação a executar:";
+  const markerIndex = content.indexOf(marker);
+  if (markerIndex === -1) return null;
+
+  const rawPayload = content.slice(markerIndex + marker.length).trim();
+  try {
+    return JSON.parse(rawPayload);
+  } catch (error) {
+    console.warn("Could not parse confirmed action payload", error);
+    return null;
+  }
+}
+
+function formatExecutionSummary(confirmedAction: Record<string, unknown>, result: Record<string, unknown>): string {
+  if (confirmedAction.workflow) {
+    const completed = result.completed_steps ?? result.total_steps ?? 0;
+    const total = result.total_steps ?? completed;
+    return `✅ Feito! Executei o workflow com sucesso.\n- Passos concluídos: ${completed}/${total}`;
+  }
+
+  const actionType = confirmedAction.action_type;
+  const details = (confirmedAction.details as Record<string, unknown> | undefined) || {};
+  const tableName = typeof details.table === "string" ? details.table : "o registo";
+  const created = (result.created as Record<string, unknown> | undefined) || {};
+  const recordName = typeof created.name === "string" ? created.name : typeof result.name === "string" ? result.name : null;
+
+  switch (actionType) {
+    case "create":
+      return recordName
+        ? `✅ Feito! Criei "${recordName}" com sucesso.`
+        : `✅ Feito! Criei um novo registo em ${tableName}.`;
+    case "update":
+      return `✅ Feito! Atualizei ${tableName} com sucesso.`;
+    case "delete":
+      return `✅ Feito! Eliminei o registo em ${tableName}.`;
+    case "send_email":
+      return typeof result.message === "string" ? `✅ ${result.message}` : "✅ Email enviado com sucesso.";
+    default:
+      return "✅ A ação foi executada com sucesso.";
+  }
+}
+
 function resolveRefs(value: unknown, stepResults: Record<number, Record<string, unknown>>): unknown {
   if (typeof value === "string") {
     return value.replace(/\{\{step_(\d+)\.(\w+)\}\}/g, (_match, stepNum, field) => {
