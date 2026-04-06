@@ -538,7 +538,11 @@ Regras:
       const msg = messages[i];
       // If this is the last user message and there's a file, include the file content
       if (i === messages.length - 1 && msg.role === "user" && file) {
-        if (file.type.startsWith("image/")) {
+        if (file.extractedText) {
+          // Pre-extracted text (from PDF parsed client-side)
+          const enrichedContent = `${msg.content}\n\n📎 **Conteúdo do ficheiro "${file.name}":**\n\`\`\`\n${file.extractedText.slice(0, 30000)}\n\`\`\``;
+          allMessages.push({ role: "user", content: enrichedContent });
+        } else if (file.type?.startsWith("image/") && file.base64) {
           // Images: send as multimodal content
           allMessages.push({
             role: "user",
@@ -547,40 +551,19 @@ Regras:
               { type: "image_url", image_url: { url: `data:${file.type};base64,${file.base64}` } },
             ],
           });
-        } else {
-          // PDFs, text, CSV: decode base64 to text and inject into the message
+        } else if (file.base64) {
+          // Text, CSV: decode base64 to text
           let fileContent = "";
           try {
             const binaryStr = atob(file.base64);
-            // For PDF: extract readable text (strip binary headers, keep text between stream markers)
-            if (file.type === "application/pdf") {
-              // Extract text content from PDF binary - get readable ASCII portions
-              const textParts: string[] = [];
-              let current = "";
-              for (let j = 0; j < binaryStr.length; j++) {
-                const code = binaryStr.charCodeAt(j);
-                if (code >= 32 && code <= 126 || code === 10 || code === 13 || code === 9) {
-                  current += binaryStr[j];
-                } else {
-                  if (current.trim().length > 20) textParts.push(current.trim());
-                  current = "";
-                }
-              }
-              if (current.trim().length > 20) textParts.push(current.trim());
-              fileContent = textParts.join("\n").slice(0, 15000); // Limit to 15k chars
-              if (!fileContent || fileContent.length < 50) {
-                fileContent = "[O PDF parece ter conteúdo principalmente visual/escaneado. Não foi possível extrair texto legível.]";
-              }
-            } else {
-              // Plain text, CSV, etc.
-              fileContent = binaryStr.slice(0, 15000);
-            }
+            fileContent = binaryStr.slice(0, 15000);
           } catch {
             fileContent = "[Erro ao ler o conteúdo do ficheiro]";
           }
-          
           const enrichedContent = `${msg.content}\n\n📎 **Conteúdo do ficheiro "${file.name}":**\n\`\`\`\n${fileContent}\n\`\`\``;
           allMessages.push({ role: "user", content: enrichedContent });
+        } else {
+          allMessages.push({ role: msg.role, content: msg.content });
         }
       } else {
         allMessages.push({ role: msg.role, content: msg.content });

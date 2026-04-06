@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import * as pdfjsLib from "pdfjs-dist";
 
 type WorkflowStep = {
   step_label: string;
@@ -24,6 +25,7 @@ type FileAttachment = {
   name: string;
   type: string;
   base64: string;
+  extractedText?: string; // For PDFs: extracted text content
   size: number;
 };
 
@@ -59,12 +61,39 @@ function fileToBase64(file: File): Promise<string> {
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
-      // Remove data:...;base64, prefix
       resolve(result.split(",")[1]);
     };
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+async function extractPdfText(file: File): Promise<string> {
+  try {
+    // Set worker source
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+    
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const textParts: string[] = [];
+    
+    const maxPages = Math.min(pdf.numPages, 20); // Limit to 20 pages
+    for (let i = 1; i <= maxPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const pageText = content.items
+        .map((item: any) => item.str)
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (pageText) textParts.push(`[Página ${i}]\n${pageText}`);
+    }
+    
+    return textParts.join("\n\n").slice(0, 30000); // Limit to 30k chars
+  } catch (err) {
+    console.error("PDF extraction error:", err);
+    return "";
+  }
 }
 
 function getFileIcon(type: string) {
@@ -123,8 +152,20 @@ export function FloatingAiChat() {
     }
 
     try {
+      let extractedText: string | undefined;
+      
+      // For PDFs, extract text client-side
+      if (file.type === "application/pdf") {
+        toast.info("A extrair texto do PDF...");
+        extractedText = await extractPdfText(file);
+        if (!extractedText) {
+          toast.error("Não foi possível extrair texto do PDF. Tenta um PDF com texto selecionável.");
+          return;
+        }
+      }
+      
       const base64 = await fileToBase64(file);
-      setPendingFile({ name: file.name, type: file.type, base64, size: file.size });
+      setPendingFile({ name: file.name, type: file.type, base64, extractedText, size: file.size });
     } catch {
       toast.error("Erro ao ler o ficheiro.");
     }
@@ -151,11 +192,21 @@ export function FloatingAiChat() {
 
     // Attach file if present
     if (pendingFile) {
-      body.file = {
-        name: pendingFile.name,
-        type: pendingFile.type,
-        base64: pendingFile.base64,
-      };
+      if (pendingFile.extractedText) {
+        // For PDFs: send extracted text instead of binary
+        body.file = {
+          name: pendingFile.name,
+          type: "text/plain",
+          extractedText: pendingFile.extractedText,
+        };
+      } else {
+        // For images and other files: send base64
+        body.file = {
+          name: pendingFile.name,
+          type: pendingFile.type,
+          base64: pendingFile.base64,
+        };
+      }
       setPendingFile(null);
     }
 
