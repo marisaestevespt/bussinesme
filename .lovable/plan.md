@@ -1,52 +1,29 @@
 
-## Templates Avançados por Setor de Atividade
+## Fases do Produto → Projeto → Portal
 
-### Contexto
-O sistema atual adapta terminologia e visibilidade de módulos por setor. Vamos expandir para 4 níveis de personalização e adicionar o setor **Consultoria & Jurídico**.
+### 1. Nova tabela: `product_phases` (template no produto)
+- `product_id`, `name` (ex: "Onboarding", "Implementação"), `description`, `sort_order`, `linked_sop_id` (opcional — liga a um SOP)
+- Os entregáveis existentes (`product_deliverable_templates`) ganham uma coluna `phase_id` opcional para serem agrupados dentro de uma fase
 
----
+### 2. Nova tabela: `project_phases` (instância no projeto)
+- Cópia das fases do produto quando o template é aplicado ao projeto
+- `project_id`, `name`, `description`, `sort_order`, `status` (pendente/em_curso/concluida), `started_at`, `completed_at`, `linked_sop_id`
+- Os `project_deliverables` existentes ganham `phase_id` para agrupamento
 
-### Fase 1 — Novo Setor + Terminologia Reforçada
-- Adicionar setor `consultoria_juridico` ao `sector-config.ts`
-- Terminologia: Clientes→Clientes/Mandantes, Projetos→Processos/Casos, Vendas→Avenças, Reuniões→Consultas, Propostas→Pareceres
-- Definir módulos visíveis/ocultos para o setor (ex: esconder tráfego pago, marketing de conteúdos)
+### 3. UI no Produto (tab Entregas)
+- Secção de fases com drag & drop para ordenar
+- Cada fase pode ter entregáveis dentro e/ou link a um SOP
+- Botão para adicionar fase, editar nome, remover
 
-### Fase 2 — Campos e Layouts Diferenciados
-- Expandir `sectorSpecificFields` no config com campos únicos por setor:
-  - **Saúde**: Cédula profissional, especialidade, nº ordem
-  - **Educação**: Área de formação, certificação DGERT, plataforma e-learning
-  - **Criativo**: Portfolio URL, equipamento principal, estilo artístico
-  - **Consultoria/Jurídico**: Nº cédula OA, área de prática, tribunal competente, nº processo
-- Estes campos aparecem dinamicamente nos formulários de cliente, produto e projeto
+### 4. UI no Projeto (tab Processos ou nova tab Fases)
+- Timeline visual das fases com progresso
+- Dentro de cada fase: entregáveis, SOPs linkados, status
+- Fase atual destacada
 
-### Fase 3 — Workflows e Automações por Setor
-- Criar configuração `sectorWorkflows` no config com:
-  - Stages do pipeline CRM customizados por setor (ex: Jurídico: Consulta Inicial → Análise → Parecer → Proposta → Avença)
-  - Rotinas automáticas sugeridas por setor (ex: Saúde: follow-up pós-consulta a 48h)
-  - Tipos de reunião/evento por setor
-- A UI adapta os pipelines e sugestões de rotinas com base no setor
+### 5. UI no Portal do Cliente
+- Timeline simplificada mostrando as fases e qual é a atual
+- Dentro de cada fase: itens que o cliente precisa ver/fazer
+- Sem edição, apenas visualização + checkboxes do cliente
 
-### Fase 4 — Templates de Dados Pré-preenchidos (Seed por Setor)
-- Ao selecionar/alterar o setor nas definições, oferecer botão "Aplicar templates do setor"
-- Cada setor inclui templates para:
-  - **SOPs**: 3-5 SOPs típicos do setor
-  - **Categorias financeiras**: Categorias de despesa e receita relevantes
-  - **Processos departamentais**: Processos-tipo por área
-  - **Rotinas sugeridas**: Rotinas recorrentes comuns no setor
-- Os templates são **aditivos** (não apagam dados existentes) e marcados como "template" para fácil identificação
-- Dados dos templates definidos em ficheiro JSON/TS separado por setor
-
----
-
-### Arquitetura Técnica
-- `src/lib/sector-config.ts` → expande para incluir campos, workflows e referências aos templates
-- `src/lib/sector-templates/` → pasta com dados de seed por setor (SOPs, categorias, processos)
-- Componente `SectorTemplateApplier` → UI para preview e aplicação dos templates
-- Sem alterações de schema na DB (os dados usam as tabelas existentes)
-- Zero impacto na performance — tudo é config estática carregada on-demand
-
-### Ordem de Implementação
-1. Fase 1 (rápida, ~1 mensagem)
-2. Fase 2 (moderada, ~1-2 mensagens)
-3. Fase 3 (moderada, ~2 mensagens)
-4. Fase 4 (mais complexa, ~2-3 mensagens)
+### 6. RPC para portal
+- `get_portal_phases` — devolve fases e itens do projeto associado ao portal
