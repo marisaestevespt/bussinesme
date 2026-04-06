@@ -64,6 +64,7 @@ export default function PortalViewPage() {
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
   const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>({});
   const [expandedOnbStep, setExpandedOnbStep] = useState<string | null>(null);
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
 
   useEffect(() => { init(); }, [token]);
 
