@@ -450,6 +450,13 @@ export default function PortalViewPage() {
                                     onCheckedChange={async (v) => {
                                       await sb('client_onboarding').update({ completed: !!v }).eq('id', o.id);
                                       setOnboarding(prev => prev.map(x => x.id === o.id ? { ...x, completed: !!v } : x));
+                                      // Recalculate cascading dates when completing a step
+                                      if (v && client?.id) {
+                                        const { recalcCascadingDates } = await import('@/components/LinkedSopsSection');
+                                        await recalcCascadingDates('client_onboarding', client.id, o.sort_order ?? i);
+                                        const { data: refreshed } = await sb('client_onboarding').select('*').eq('client_id', client.id).order('sort_order');
+                                        if (refreshed) setOnboarding(refreshed);
+                                      }
                                     }}
                                   />
                                   <span className="text-[10px] text-muted-foreground">Marcar como {o.completed ? 'pendente' : 'concluído'}</span>
@@ -1122,6 +1129,12 @@ export default function PortalViewPage() {
                                 onCheckedChange={async (v) => {
                                   await sb('client_onboarding').update({ completed: !!v }).eq('id', o.id);
                                   setOnboarding(prev => prev.map(x => x.id === o.id ? { ...x, completed: !!v } : x));
+                                  if (v && client?.id) {
+                                    const { recalcCascadingDates } = await import('@/components/LinkedSopsSection');
+                                    await recalcCascadingDates('client_onboarding', client.id, o.sort_order ?? i);
+                                    const { data: refreshed } = await sb('client_onboarding').select('*').eq('client_id', client.id).order('sort_order');
+                                    if (refreshed) setOnboarding(refreshed);
+                                  }
                                 }}
                               />
                               <span className="text-xs text-muted-foreground">Marcar como {o.completed ? 'pendente' : 'concluído'}</span>

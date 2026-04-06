@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
-import { LinkedSopsSection } from '@/components/LinkedSopsSection';
+import { LinkedSopsSection, recalcCascadingDates } from '@/components/LinkedSopsSection';
 import { ApplyProductTemplate } from '@/components/project/ApplyProductTemplate';
 
 interface Props {
@@ -202,6 +202,11 @@ export function ProjectProcessosTab({ projectId, clientId, productId, projectSta
   const updateOnboarding = useMutation({
     mutationFn: async ({ id, ...fields }: any) => {
       await supabase.from('client_onboarding').update(fields).eq('id', id);
+      // Recalculate cascading dates when completing
+      if (fields.completed && clientId) {
+        const item = onboarding.find((i: any) => i.id === id);
+        if (item) await recalcCascadingDates('client_onboarding', clientId, item.sort_order ?? 0);
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: onbKey }),
   });
@@ -235,6 +240,10 @@ export function ProjectProcessosTab({ projectId, clientId, productId, projectSta
   const updateOffboarding = useMutation({
     mutationFn: async ({ id, ...fields }: any) => {
       await supabase.from('client_offboarding').update(fields).eq('id', id);
+      if (fields.completed && clientId) {
+        const item = offboarding.find((i: any) => i.id === id);
+        if (item) await recalcCascadingDates('client_offboarding', clientId, item.sort_order ?? 0);
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: offKey }),
   });
