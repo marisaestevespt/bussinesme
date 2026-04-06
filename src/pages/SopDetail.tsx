@@ -794,7 +794,29 @@ export default function SopDetailPage() {
                           <Input defaultValue={row.responsible || ''} placeholder="Cliente / Função" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { responsible: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
                         </TableCell>
                         <TableCell>
-                          <Input defaultValue={row.rule || ''} placeholder="Regra" onBlur={e => updateTemplateRow.mutate({ rowId: row.id, data: { rule: e.target.value } })} className="border-none shadow-none h-auto p-0 text-sm" />
+                          <div className="flex items-center gap-1.5">
+                            <Input
+                              type="number"
+                              min={0}
+                              defaultValue={row.rule_days ?? ''}
+                              placeholder="Nº"
+                              onBlur={e => {
+                                const val = e.target.value ? parseInt(e.target.value) : null;
+                                updateTemplateRow.mutate({ rowId: row.id, data: { rule_days: val, rule: val != null ? `+${val} ${row.rule_unit || 'dias_uteis'}` : null } });
+                              }}
+                              className="border-none shadow-none h-auto p-0 text-sm w-12"
+                            />
+                            <select
+                              value={row.rule_unit || 'dias_uteis'}
+                              onChange={e => updateTemplateRow.mutate({ rowId: row.id, data: { rule_unit: e.target.value } })}
+                              className="text-xs bg-transparent border-none p-0 text-muted-foreground focus:outline-none"
+                            >
+                              <option value="horas_uteis">h úteis</option>
+                              <option value="dias_uteis">dias úteis</option>
+                              <option value="dias_corridos">dias</option>
+                              <option value="semanas">semanas</option>
+                            </select>
+                          </div>
                         </TableCell>
                         <TableCell>
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteTemplateRow.mutate(row.id)}>
