@@ -370,8 +370,12 @@ export function MeetingFormDialog({
   const handleTypeSelect = (type: MeetingType) => {
     setMeetingType(type);
     setStep('form');
-    // Pre-set department for cliente type
-    if (type === 'cliente') setDepartment('clientes');
+    if (type === 'cliente' || type === ('inicial' as MeetingType)) setDepartment('clientes');
+    // Auto-set title for inicial meeting if client already selected
+    if (type === ('inicial' as MeetingType) && clientId) {
+      const c = clients.find((c: any) => c.id === clientId);
+      if (c) setTitle(`Reunião Inicial_${(c as any).full_name}`);
+    }
   };
 
   // Projects for selected client
@@ -387,6 +391,11 @@ export function MeetingFormDialog({
 
     if (actualId) {
       setDepartment('clientes');
+      // Auto-set title for inicial meeting
+      if (meetingType === ('inicial' as MeetingType)) {
+        const c = clients.find((c: any) => c.id === actualId);
+        if (c) setTitle(`Reunião Inicial_${(c as any).full_name}`);
+      }
       const cProjects = projects.filter(p => p.client_id === actualId);
       if (cProjects.length === 1) {
         setSelectedProjectIds([cProjects[0].id]);
