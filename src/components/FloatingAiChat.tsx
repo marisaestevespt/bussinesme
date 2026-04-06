@@ -144,14 +144,31 @@ export function FloatingAiChat() {
   const renderActionProposal = (proposal: ActionProposal, msgIndex: number, confirmed?: boolean) => {
     const actionInfo = ACTION_LABELS[proposal.action_type] || { label: proposal.action_type, icon: "⚡", color: "text-foreground" };
     const isDecided = confirmed !== undefined;
+    const isWorkflow = proposal.workflow && proposal.steps;
 
     return (
       <div className="mt-2 border rounded-xl p-3 bg-background/80 space-y-2">
         <div className="flex items-center gap-2">
           <span className="text-base">{actionInfo.icon}</span>
           <span className={cn("text-xs font-semibold uppercase tracking-wider", actionInfo.color)}>{actionInfo.label}</span>
+          {isWorkflow && <span className="text-[10px] text-muted-foreground">({proposal.steps!.length} passos)</span>}
         </div>
         <p className="text-xs text-foreground leading-relaxed">{proposal.description}</p>
+        
+        {isWorkflow && (
+          <div className="space-y-1 pl-1">
+            {proposal.steps!.map((step, idx) => {
+              const stepInfo = ACTION_LABELS[step.action_type] || { icon: "•", color: "text-foreground" };
+              return (
+                <div key={idx} className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <span className="text-[10px]">{stepInfo.icon}</span>
+                  <span className="font-medium">{idx + 1}.</span>
+                  <span>{step.step_label}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
         
         {!isDecided && (
           <div className="flex gap-2 pt-1">
