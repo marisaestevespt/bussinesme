@@ -60,10 +60,34 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
   const createPortal = async () => {
     if (!portalType) { toast.error('Este tipo de produto não gera portal'); return; }
     await upsertPortal.mutateAsync({ client_id: clientId, portal_type: portalType });
-    // After portal is created, seed FAQs from product
     toast.success('Portal criado');
-    // We need to wait for portal data to be available, so seed FAQs after invalidation
-    setTimeout(() => seedFaqsFromProduct(), 1500);
+    // Seed FAQs and diagnostic questions from product
+    setTimeout(async () => {
+      await seedFaqsFromProduct();
+      await seedQuestionsFromProduct();
+    }, 1500);
+  };
+
+  const seedQuestionsFromProduct = async () => {
+    const portalRes = await supabase.from('client_portals').select('id').eq('client_id', clientId).maybeSingle();
+    const pid = portalRes.data?.id;
+    if (!pid || !product) return;
+    // Fetch diagnostic questions from product
+    const { data: diagQuestions } = await (supabase as any)
+      .from('product_diagnostic_questions')
+      .select('*')
+      .eq('product_id', product.id)
+      .order('sort_order');
+    if (!diagQuestions || diagQuestions.length === 0) return;
+    const rows = diagQuestions.map((q: any, i: number) => ({
+      portal_id: pid,
+      question: q.question_group ? `[${q.question_group}] ${q.question}` : q.question,
+      answer_type: q.answer_type || 'text',
+      sort_order: i,
+    }));
+    await supabase.from('portal_initial_questions').insert(rows);
+    questions.refetch();
+    toast.success(`${diagQuestions.length} perguntas importadas do produto`);
   };
 
   const seedFaqsFromProduct = async () => {
@@ -215,9 +239,14 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
       <Card>
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
           <CardTitle className="text-sm">Perguntas Iniciais</CardTitle>
-          <Button size="sm" variant="outline" onClick={() => addQuestion.mutate({ portal_id: portalId!, question: '', sort_order: (questions.data?.length || 0), answer_type: 'text' })}>
-            <Plus className="h-3 w-3 mr-1" />Nova Pergunta
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => seedQuestionsFromProduct()}>
+              <RefreshCw className="h-3 w-3 mr-1" />Importar do Produto
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => addQuestion.mutate({ portal_id: portalId!, question: '', sort_order: (questions.data?.length || 0), answer_type: 'text' })}>
+              <Plus className="h-3 w-3 mr-1" />Nova Pergunta
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-2">
           {(questions.data || []).map(q => {
