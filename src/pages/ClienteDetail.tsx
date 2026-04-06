@@ -472,10 +472,34 @@ export default function ClienteDetailPage() {
 
         if (portalType) {
           const { data: existingPortal } = await supabase.from('client_portals').select('id').eq('client_id', id).maybeSingle();
+          let portalId: string | null = null;
           if (!existingPortal) {
-            await supabase.from('client_portals').insert({ client_id: id, portal_type: portalType, is_active: true });
+            const { data: newPortal } = await supabase.from('client_portals').insert({ client_id: id, portal_type: portalType, is_active: true }).select('id').single();
+            portalId = newPortal?.id || null;
           } else {
             await supabase.from('client_portals').update({ is_active: true, portal_type: portalType }).eq('id', existingPortal.id);
+            portalId = existingPortal.id;
+          }
+
+          // Copy diagnostic questions from product to portal
+          if (portalId && matchedProduct?.id) {
+            const { data: existingQ } = await supabase.from('portal_initial_questions').select('id').eq('portal_id', portalId).limit(1);
+            if (!existingQ?.length) {
+              const { data: diagQuestions } = await supabase
+                .from('product_diagnostic_questions')
+                .select('question, sort_order')
+                .eq('product_id', matchedProduct.id)
+                .order('sort_order');
+              if (diagQuestions?.length) {
+                await supabase.from('portal_initial_questions').insert(
+                  diagQuestions.map((dq, i) => ({
+                    portal_id: portalId!,
+                    question: dq.question,
+                    sort_order: dq.sort_order ?? i,
+                  }))
+                );
+              }
+            }
           }
         }
       }
