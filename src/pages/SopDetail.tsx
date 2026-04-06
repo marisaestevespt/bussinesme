@@ -820,6 +820,19 @@ export default function SopDetailPage() {
                           </div>
                         </TableCell>
                         <TableCell>
+                          <select
+                            value={row.rule_trigger || 'inicio_cliente'}
+                            onChange={e => updateTemplateRow.mutate({ rowId: row.id, data: { rule_trigger: e.target.value } })}
+                            className="text-xs bg-transparent border-none p-0 text-muted-foreground focus:outline-none"
+                          >
+                            <option value="inicio_cliente">Após início do cliente</option>
+                            <option value="reuniao_inicial">Após reunião inicial</option>
+                            <option value="assinatura_contrato">Após assinatura de contrato</option>
+                            <option value="onboarding_completo">Após onboarding completo</option>
+                            <option value="fim_ciclo">Antes do fim do ciclo</option>
+                          </select>
+                        </TableCell>
+                        <TableCell>
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteTemplateRow.mutate(row.id)}>
                             <Trash2 className="h-3 w-3" />
                           </Button>
