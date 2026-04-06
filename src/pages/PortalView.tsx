@@ -64,6 +64,7 @@ export default function PortalViewPage() {
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
   const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>({});
   const [expandedOnbStep, setExpandedOnbStep] = useState<string | null>(null);
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
 
   useEffect(() => { init(); }, [token]);
 
@@ -553,7 +554,7 @@ export default function PortalViewPage() {
                         {groups.map((section) => {
                           const sectionAnswered = section.items.filter(isQAnswered).length;
                           const sectionComplete = sectionAnswered === section.items.length;
-                          const isSectionOpen = section.items.some(q => q.id === currentOpen) || (!sectionComplete && !section.items.every(isQAnswered));
+                          const isSectionOpen = !collapsedSections.has(section.group);
 
                           return (
                             <div key={section.group} className="border-b border-border/20 last:border-b-0">
@@ -561,14 +562,18 @@ export default function PortalViewPage() {
                               <button
                                 className="w-full px-6 py-3 flex items-center justify-between hover:bg-muted/20 transition-colors"
                                 onClick={() => {
-                                  // Toggle: if any question in this section is open, close all; otherwise open first unanswered
-                                  const openInSection = section.items.find(q => q.id === currentOpen);
-                                  if (openInSection) {
-                                    setActiveQuestionId(null);
-                                  } else {
-                                    const firstUn = section.items.find((q: any) => !isQAnswered(q));
-                                    setActiveQuestionId(firstUn?.id || section.items[0]?.id || null);
-                                  }
+                                  setCollapsedSections(prev => {
+                                    const next = new Set(prev);
+                                    if (next.has(section.group)) {
+                                      next.delete(section.group);
+                                    } else {
+                                      next.add(section.group);
+                                      // Close any open question in this section
+                                      const openInSection = section.items.find(q => q.id === currentOpen);
+                                      if (openInSection) setActiveQuestionId(null);
+                                    }
+                                    return next;
+                                  });
                                 }}
                               >
                                 <div className="flex items-center gap-2">
