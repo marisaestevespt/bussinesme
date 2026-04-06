@@ -122,6 +122,25 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
         }
       }
 
+      // Copy product phases to project
+      const { data: productPhases } = await (supabase as any).from('product_phases').select('*').eq('product_id', productId).order('sort_order');
+      if (productPhases?.length) {
+        const { data: existingPhases } = await (supabase as any).from('project_phases').select('id').eq('project_id', projectId).limit(1);
+        if (!existingPhases?.length) {
+          for (const pp of productPhases) {
+            await (supabase as any).from('project_phases').insert({
+              project_id: projectId,
+              name: pp.name || '',
+              description: pp.description || null,
+              sort_order: pp.sort_order,
+              linked_sop_id: pp.linked_sop_id || null,
+              source_phase_id: pp.id,
+              status: 'pendente',
+            });
+          }
+        }
+      }
+
       // 4. If no template tasks, return 0 (onb/offb may have been copied)
       if (!templateTasks?.length) {
         return 0;
@@ -287,6 +306,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
       qc.invalidateQueries({ queryKey: ['project-tasks'] });
       qc.invalidateQueries({ queryKey: ['client_onboarding'] });
       qc.invalidateQueries({ queryKey: ['client_offboarding'] });
+      qc.invalidateQueries({ queryKey: ['project-phases'] });
       setOpen(false);
     },
     onError: (err: any) => {

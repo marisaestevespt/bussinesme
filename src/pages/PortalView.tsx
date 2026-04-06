@@ -52,6 +52,7 @@ export default function PortalViewPage() {
   const [onboarding, setOnboarding] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [phases, setPhases] = useState<any[]>([]);
+  const [projectPhases, setProjectPhases] = useState<any[]>([]);
   
   const [projectHistory, setProjectHistory] = useState<any[]>([]);
   const [portalMaterials, setPortalMaterials] = useState<any[]>([]);
@@ -90,7 +91,7 @@ export default function PortalViewPage() {
     setSettings(settingsRes.data);
     const pid = portalData.id;
     const cid = portalData.client_id;
-    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, historyR, materialsR, contractR] = await Promise.all([
+    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, projPhasesR, historyR, materialsR, contractR] = await Promise.all([
       sb('portal_faqs').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_initial_questions').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_comments').select('*').eq('portal_id', pid).order('created_at', { ascending: true }),
@@ -100,6 +101,7 @@ export default function PortalViewPage() {
       (supabase as any).rpc('get_portal_onboarding', { _token: token }),
       supabase.from('tasks').select('*').eq('visible_in_portal', true),
       sb('portal_timeline_phases').select('*').eq('portal_id', pid).order('sort_order'),
+      (supabase as any).rpc('get_portal_phases', { _token: token }),
       (supabase as any).rpc('get_portal_project_history', { _token: token }),
       sb('portal_materials').select('*').eq('portal_id', pid).order('created_at', { ascending: false }),
       (supabase as any).rpc('get_portal_contract_documents', { _token: token }),
@@ -113,6 +115,10 @@ export default function PortalViewPage() {
     setOnboarding(onbR.data || []);
     setTasks((tasksR as any).data || []);
     setPhases(phasesR.data || []);
+    const pp = (projPhasesR as any).data || [];
+    setProjectPhases(pp);
+    // If project phases exist, use them instead of manual portal_timeline_phases
+    if (pp.length > 0) setPhases(pp.map((p: any, i: number) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status })));
     setProjectHistory((historyR as any).data || []);
     setPortalMaterials(materialsR.data || []);
     setContractDocs((contractR as any).data || []);

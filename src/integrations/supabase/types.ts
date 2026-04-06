@@ -5900,6 +5900,7 @@ export type Database = {
           id: string
           is_recurring: boolean
           name: string
+          phase_id: string | null
           product_id: string
           sort_order: number
         }
@@ -5909,6 +5910,7 @@ export type Database = {
           id?: string
           is_recurring?: boolean
           name?: string
+          phase_id?: string | null
           product_id: string
           sort_order?: number
         }
@@ -5918,10 +5920,18 @@ export type Database = {
           id?: string
           is_recurring?: boolean
           name?: string
+          phase_id?: string | null
           product_id?: string
           sort_order?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "product_deliverable_templates_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "product_phases"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "product_deliverable_templates_product_id_fkey"
             columns: ["product_id"]
@@ -6582,6 +6592,51 @@ export type Database = {
           },
         ]
       }
+      product_phases: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          linked_sop_id: string | null
+          name: string
+          product_id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          linked_sop_id?: string | null
+          name?: string
+          product_id: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          linked_sop_id?: string | null
+          name?: string
+          product_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_phases_linked_sop_id_fkey"
+            columns: ["linked_sop_id"]
+            isOneToOne: false
+            referencedRelation: "sops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_phases_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_price_tiers: {
         Row: {
           created_at: string
@@ -6960,6 +7015,7 @@ export type Database = {
           id: string
           is_recurring: boolean
           name: string
+          phase_id: string | null
           project_id: string
           recurrence_label: string | null
           recurrence_week: number | null
@@ -6976,6 +7032,7 @@ export type Database = {
           id?: string
           is_recurring?: boolean
           name?: string
+          phase_id?: string | null
           project_id: string
           recurrence_label?: string | null
           recurrence_week?: number | null
@@ -6992,6 +7049,7 @@ export type Database = {
           id?: string
           is_recurring?: boolean
           name?: string
+          phase_id?: string | null
           project_id?: string
           recurrence_label?: string | null
           recurrence_week?: number | null
@@ -7006,6 +7064,13 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_deliverables_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "project_phases"
             referencedColumns: ["id"]
           },
           {
@@ -7049,6 +7114,73 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_phases: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          id: string
+          linked_sop_id: string | null
+          name: string
+          project_id: string
+          sort_order: number
+          source_phase_id: string | null
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          linked_sop_id?: string | null
+          name?: string
+          project_id: string
+          sort_order?: number
+          source_phase_id?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          linked_sop_id?: string | null
+          name?: string
+          project_id?: string
+          sort_order?: number
+          source_phase_id?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_phases_linked_sop_id_fkey"
+            columns: ["linked_sop_id"]
+            isOneToOne: false
+            referencedRelation: "sops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_phases_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_phases_source_phase_id_fkey"
+            columns: ["source_phase_id"]
+            isOneToOne: false
+            referencedRelation: "product_phases"
             referencedColumns: ["id"]
           },
         ]
@@ -8841,6 +8973,18 @@ export type Database = {
           id: string
           payment_date: string
           sale_month: number
+          status: string
+        }[]
+      }
+      get_portal_phases: {
+        Args: { _token: string }
+        Returns: {
+          completed_at: string
+          description: string
+          id: string
+          name: string
+          sort_order: number
+          started_at: string
           status: string
         }[]
       }
