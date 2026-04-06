@@ -179,7 +179,7 @@ export function FloatingAiChat() {
             </div>
             <div className="flex items-center gap-0.5">
               {messages.length > 0 && (
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setMessages([])} title="Nova conversa">
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setMessages([]); sessionStorage.removeItem(STORAGE_KEY_MESSAGES); }} title="Nova conversa">
                   <RotateCcw className="h-3.5 w-3.5" />
                 </Button>
               )}
