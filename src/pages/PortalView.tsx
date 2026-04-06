@@ -405,18 +405,19 @@ export default function PortalViewPage() {
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {onboarding.map((o: any, i: number) => {
-                      const isExpanded = expandedOnbStep === o.id;
+                      const isExpanded = o.completed ? expandedOnbStep === o.id : true;
                       return (
                         <div
                           key={o.id}
                           className="rounded-2xl border border-border/40 bg-white shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden"
-                          onClick={() => setExpandedOnbStep(isExpanded ? null : o.id)}
+                          onClick={() => o.completed ? setExpandedOnbStep(expandedOnbStep === o.id ? null : o.id) : undefined}
                         >
                           <div className="p-4 flex flex-col items-center text-center">
                             <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Passo</span>
                             <span className="text-3xl font-black mt-0.5" style={{ color: o.completed ? 'hsl(var(--muted-foreground))' : pc }}>
                               {i + 1}
                             </span>
+                            <p className="text-xs font-medium mt-1.5 line-clamp-3">{o.activity || 'Sem descrição'}</p>
                             <Badge
                               variant="outline"
                               className={`mt-2 text-[9px] font-semibold px-2 py-0.5 ${
@@ -440,7 +441,6 @@ export default function PortalViewPage() {
                           </div>
                           {isExpanded && (
                             <div className="px-4 pb-4 border-t border-border/20 pt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
-                              <p className="text-xs font-medium">{o.activity || 'Sem descrição'}</p>
                               {o.phase && <p className="text-[10px] text-muted-foreground">Fase: {o.phase}</p>}
                               {o.due_date && (
                                 <p className="text-[10px] text-muted-foreground flex items-center gap-1">
@@ -456,7 +456,6 @@ export default function PortalViewPage() {
                                     onCheckedChange={async (v) => {
                                       await (supabase as any).rpc('portal_toggle_onboarding_step', { _token: token, _step_id: o.id, _completed: !!v });
                                       setOnboarding(prev => prev.map(x => x.id === o.id ? { ...x, completed: !!v } : x));
-                                      // Recalculate cascading dates when completing a step
                                       if (v && client?.id) {
                                         const { recalcCascadingDates } = await import('@/components/LinkedSopsSection');
                                         await recalcCascadingDates('client_onboarding', client.id, o.sort_order ?? i);
@@ -1130,18 +1129,19 @@ export default function PortalViewPage() {
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {onboarding.map((o: any, i: number) => {
-                  const isExpanded = expandedOnbStep === o.id;
+                  const isExpanded = o.completed ? expandedOnbStep === o.id : true;
                   return (
                     <div
                       key={o.id}
                       className="rounded-2xl border border-border/40 bg-white shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden"
-                      onClick={() => setExpandedOnbStep(isExpanded ? null : o.id)}
+                      onClick={() => o.completed ? setExpandedOnbStep(expandedOnbStep === o.id ? null : o.id) : undefined}
                     >
                       <div className="p-5 flex flex-col items-center text-center">
                         <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Passo</span>
                         <span className="text-4xl font-black mt-0.5" style={{ color: o.completed ? 'hsl(var(--muted-foreground))' : pc }}>
                           {i + 1}
                         </span>
+                        <p className="text-xs font-medium mt-1.5 line-clamp-3">{o.activity || 'Sem descrição'}</p>
                         <Badge
                           variant="outline"
                           className={`mt-2 text-[9px] font-semibold px-2 py-0.5 ${
@@ -1165,7 +1165,6 @@ export default function PortalViewPage() {
                       </div>
                       {isExpanded && (
                         <div className="px-4 pb-4 border-t border-border/20 pt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
-                          <p className="text-sm font-medium">{o.activity || 'Sem descrição'}</p>
                           {o.phase && <p className="text-xs text-muted-foreground">Fase: {o.phase}</p>}
                           {o.due_date && (
                             <p className="text-xs text-muted-foreground flex items-center gap-1">
