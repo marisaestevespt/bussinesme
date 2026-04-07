@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
     const tablesToDelete = [
       // ── Portal children (deepest) ──
       "portal_comments",
-      "portal_timeline_phases",
+      "portal_comments",
       "portal_monthly_summaries",
       "portal_initial_questions",
       "portal_materials",
