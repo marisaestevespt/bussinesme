@@ -21,6 +21,12 @@ interface ProjectPhase {
   started_at: string | null;
   completed_at: string | null;
   linked_sop_id: string | null;
+  duration_days: number | null;
+  duration_unit: string;
+  offset_days: number;
+  offset_trigger: string;
+  planned_start: string | null;
+  planned_end: string | null;
 }
 
 interface ProjectDeliverable {
