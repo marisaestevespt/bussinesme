@@ -1094,6 +1094,7 @@ export default function PortalViewPage() {
                             <p className="font-semibold text-sm">{m.title}</p>
                             <p className="text-xs text-muted-foreground mt-0.5">
                               {m.date_time ? format(parseISO(m.date_time), "EEEE, d 'de' MMMM · HH:mm", { locale: pt }) : '—'}
+                              {m.duration_minutes ? ` · ${m.duration_minutes} min` : ''}
                             </p>
                           </div>
                         </div>
