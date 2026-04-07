@@ -205,7 +205,7 @@ export default function PortalViewPage() {
     ...(projectHistory.length > 0 ? [{ key: 'history', label: 'Histórico', icon: History }] : []),
   ];
 
-  const completedOnb = onboarding.filter((o: any) => o.completed).length;
+  const completedOnb = onboarding.filter((o: any) => o.status === 'concluido' || o.status === 'concluida').length;
   const totalOnb = onboarding.length;
   const onbPercent = totalOnb > 0 ? Math.round((completedOnb / totalOnb) * 100) : 0;
 
