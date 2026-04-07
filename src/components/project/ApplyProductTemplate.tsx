@@ -204,6 +204,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
                     linked_sop_id: dt.linked_sop_id || null,
                     portal_visible: dt.portal_visible ?? true,
                     status: 'pendente',
+                    source_template_id: dt.id,
                     duration_days: dt.duration_days ?? null,
                     duration_unit: dtUnit,
                     offset_days: dtOffsetDays,
