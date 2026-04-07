@@ -121,6 +121,7 @@ function DeliverableRow({
           <TooltipContent side="top" className="text-xs">
             {(template.responsible_type || 'equipa') === 'cliente' ? 'Responsável: Cliente' : 'Responsável: Equipa'}
           </TooltipContent>
+        </Tooltip>
         <label className="flex items-center gap-1.5 shrink-0 cursor-pointer text-xs text-muted-foreground">
           <Checkbox checked={!!template.is_recurring} onCheckedChange={(c) => onUpdate(template.id, { is_recurring: !!c })} disabled={!isOwner} />
           Recorrente
