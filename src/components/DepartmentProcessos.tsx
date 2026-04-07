@@ -89,6 +89,7 @@ export function DepartmentProcessos({ department }: DepartmentProcessosProps) {
       const { error } = await supabase.from('sops').insert({
         name: newSopName,
         department,
+        departments: [department],
         status: newSopStatus,
         created_by: user?.id,
       });
