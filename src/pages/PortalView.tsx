@@ -14,7 +14,7 @@ import { pt } from 'date-fns/locale';
 import {
   FileText, CalendarDays, CreditCard, HelpCircle, CheckSquare,
   MessageSquare, Star, Send, ClipboardList, Clock, History,
-  FolderOpen, Download, ChevronRight, Sparkles, Upload, Briefcase, CheckCircle2, Circle, Image as ImageIcon
+  FolderOpen, Download, ChevronRight, Sparkles, Upload, Briefcase, CheckCircle2, Circle, Image as ImageIcon, Pencil
 } from 'lucide-react';
 import type { Portal } from '@/hooks/usePortalData';
 
