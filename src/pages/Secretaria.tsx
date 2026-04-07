@@ -154,7 +154,7 @@ export default function SecretariaPage() {
             <Card
               key={s.value}
               className={cn(
-                'group cursor-pointer border bg-gradient-to-br transition-all duration-200 hover:shadow-md hover:-translate-y-0.5',
+                'group cursor-pointer border bg-gradient-to-br transition-all duration-200 shadow-sm hover:shadow-lg hover:-translate-y-0.5',
                 s.color,
                 activeTab === s.value && 'ring-2 ring-primary/50 shadow-md'
               )}
