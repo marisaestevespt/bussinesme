@@ -388,7 +388,7 @@ export default function ProdutoDetailPage() {
                 <Label className="text-xs text-muted-foreground">Tempo de Acesso</Label>
                 <div className="flex items-center gap-2">
                   <Input type="number" min={0} placeholder="Ex: 90" value={form.cycle_duration ?? ''} onChange={e => update('cycle_duration', e.target.value ? parseInt(e.target.value) : null)} className="h-9" readOnly={!isOwner} />
-                  <span className="text-xs text-muted-foreground shrink-0">dias</span>
+                  <span className="text-xs text-muted-foreground shrink-0">dias úteis</span>
                 </div>
               </div>
               <div className="space-y-1.5">
