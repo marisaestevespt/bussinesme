@@ -165,7 +165,24 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
               const { data: phaseDeliverables } = await (supabase as any).from('product_deliverable_templates')
                 .select('*').eq('phase_id', pp.id).order('sort_order');
               if (phaseDeliverables?.length) {
+                const phaseStartDate = phaseStart ? parseISO(phaseStart) : baseDate;
                 for (const dt of phaseDeliverables) {
+                  // Calculate deliverable planned dates
+                  let delStart: string | null = null;
+                  let delEnd: string | null = null;
+                  const dtOffsetDays = dt.offset_days ?? 0;
+                  const dtUnit = dt.duration_unit || 'dias_uteis';
+
+                  if (dtOffsetDays != null || dt.duration_days != null) {
+                    const refDate = phaseStartDate;
+                    const startD = dtUnit === 'dias_uteis' ? addBusinessDays(refDate, dtOffsetDays) : addDays(refDate, dtOffsetDays);
+                    delStart = startD.toISOString().split('T')[0];
+                    if (dt.duration_days != null) {
+                      const endD = dtUnit === 'dias_uteis' ? addBusinessDays(startD, dt.duration_days) : addDays(startD, dt.duration_days);
+                      delEnd = endD.toISOString().split('T')[0];
+                    }
+                  }
+
                   await (supabase as any).from('project_deliverables').insert({
                     project_id: projectId,
                     phase_id: insertedPhase.id,
@@ -176,6 +193,12 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
                     linked_sop_id: dt.linked_sop_id || null,
                     portal_visible: dt.portal_visible ?? true,
                     status: 'pendente',
+                    duration_days: dt.duration_days ?? null,
+                    duration_unit: dtUnit,
+                    offset_days: dtOffsetDays,
+                    offset_trigger: dt.offset_trigger || 'inicio_fase',
+                    planned_start: delStart,
+                    planned_end: delEnd,
                   });
                 }
               }

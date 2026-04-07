@@ -5903,10 +5903,14 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          duration_days: number | null
+          duration_unit: string
           id: string
           is_recurring: boolean
           linked_sop_id: string | null
           name: string
+          offset_days: number
+          offset_trigger: string
           phase_id: string | null
           portal_visible: boolean
           product_id: string
@@ -5915,10 +5919,14 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          duration_days?: number | null
+          duration_unit?: string
           id?: string
           is_recurring?: boolean
           linked_sop_id?: string | null
           name?: string
+          offset_days?: number
+          offset_trigger?: string
           phase_id?: string | null
           portal_visible?: boolean
           product_id: string
@@ -5927,10 +5935,14 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          duration_days?: number | null
+          duration_unit?: string
           id?: string
           is_recurring?: boolean
           linked_sop_id?: string | null
           name?: string
+          offset_days?: number
+          offset_trigger?: string
           phase_id?: string | null
           portal_visible?: boolean
           product_id?: string
@@ -7046,11 +7058,17 @@ export type Database = {
           created_at: string
           deadline: string | null
           description: string | null
+          duration_days: number | null
+          duration_unit: string
           id: string
           is_recurring: boolean
           linked_sop_id: string | null
           name: string
+          offset_days: number
+          offset_trigger: string
           phase_id: string | null
+          planned_end: string | null
+          planned_start: string | null
           portal_visible: boolean
           project_id: string
           recurrence_label: string | null
@@ -7065,11 +7083,17 @@ export type Database = {
           created_at?: string
           deadline?: string | null
           description?: string | null
+          duration_days?: number | null
+          duration_unit?: string
           id?: string
           is_recurring?: boolean
           linked_sop_id?: string | null
           name?: string
+          offset_days?: number
+          offset_trigger?: string
           phase_id?: string | null
+          planned_end?: string | null
+          planned_start?: string | null
           portal_visible?: boolean
           project_id: string
           recurrence_label?: string | null
@@ -7084,11 +7108,17 @@ export type Database = {
           created_at?: string
           deadline?: string | null
           description?: string | null
+          duration_days?: number | null
+          duration_unit?: string
           id?: string
           is_recurring?: boolean
           linked_sop_id?: string | null
           name?: string
+          offset_days?: number
+          offset_trigger?: string
           phase_id?: string | null
+          planned_end?: string | null
+          planned_start?: string | null
           portal_visible?: boolean
           project_id?: string
           recurrence_label?: string | null

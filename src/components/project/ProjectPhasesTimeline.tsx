@@ -37,6 +37,12 @@ interface ProjectDeliverable {
   sort_order: number;
   phase_id: string | null;
   portal_visible?: boolean;
+  duration_days: number | null;
+  duration_unit: string;
+  offset_days: number;
+  offset_trigger: string;
+  planned_start: string | null;
+  planned_end: string | null;
 }
 
 const PHASE_STATUS = [
@@ -352,53 +358,75 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
                       {phaseDeliverables.map((d, di) => {
                         const isEditingThis = editingDel === d.id;
                         return (
-                          <div key={d.id} className="flex items-center gap-2 group/del">
-                            {isEditingThis ? (
-                              <>
-                                <Input autoFocus value={editName} onChange={e => setEditName(e.target.value)} className="h-5 text-xs flex-1"
-                                  onKeyDown={e => e.key === 'Enter' && saveEditDel(d.id)} />
-                                <Button size="sm" className="h-5 px-1" onClick={() => saveEditDel(d.id)}><Check className="h-2.5 w-2.5" /></Button>
-                                <Button size="sm" variant="ghost" className="h-5 px-1" onClick={() => setEditingDel(null)}><X className="h-2.5 w-2.5" /></Button>
-                              </>
-                            ) : (
-                              <>
-                                {d.status === 'concluido' ? (
-                                  <CheckCircle2 className="h-3 w-3 text-success shrink-0" />
-                                ) : d.status === 'em_progresso' ? (
-                                  <Clock className="h-3 w-3 text-info shrink-0" />
-                                ) : (
-                                  <Circle className="h-3 w-3 text-muted-foreground/40 shrink-0" />
-                                )}
-                                <span className={cn('text-xs flex-1', d.status === 'concluido' && 'text-muted-foreground line-through')}>{d.name}</span>
-                                <Select value={d.status} onValueChange={(v) => updateDeliverable.mutate({ id: d.id, status: v })}>
-                                  <SelectTrigger className="h-5 text-[9px] w-20 border-none shadow-none p-0.5">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {DELIVERABLE_STATUS.map(s => (
-                                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <div className="opacity-0 group-hover/del:opacity-100 flex items-center gap-0.5 transition-opacity">
-                                  <Button variant="ghost" size="sm" className="h-4 w-4 p-0" onClick={() => startEditDel(d)}>
-                                    <Pencil className="h-2.5 w-2.5" />
-                                  </Button>
-                                  {di > 0 && (
-                                    <Button variant="ghost" size="sm" className="h-4 w-4 p-0" onClick={() => moveDel.mutate({ id: d.id, phaseId: phase.id, direction: 'up' })}>
-                                      <ChevronUp className="h-2.5 w-2.5" />
-                                    </Button>
+                          <div key={d.id} className="space-y-1 group/del">
+                            <div className="flex items-center gap-2">
+                              {isEditingThis ? (
+                                <>
+                                  <Input autoFocus value={editName} onChange={e => setEditName(e.target.value)} className="h-5 text-xs flex-1"
+                                    onKeyDown={e => e.key === 'Enter' && saveEditDel(d.id)} />
+                                  <Button size="sm" className="h-5 px-1" onClick={() => saveEditDel(d.id)}><Check className="h-2.5 w-2.5" /></Button>
+                                  <Button size="sm" variant="ghost" className="h-5 px-1" onClick={() => setEditingDel(null)}><X className="h-2.5 w-2.5" /></Button>
+                                </>
+                              ) : (
+                                <>
+                                  {d.status === 'concluido' ? (
+                                    <CheckCircle2 className="h-3 w-3 text-success shrink-0" />
+                                  ) : d.status === 'em_progresso' ? (
+                                    <Clock className="h-3 w-3 text-info shrink-0" />
+                                  ) : (
+                                    <Circle className="h-3 w-3 text-muted-foreground/40 shrink-0" />
                                   )}
-                                  {di < phaseDeliverables.length - 1 && (
-                                    <Button variant="ghost" size="sm" className="h-4 w-4 p-0" onClick={() => moveDel.mutate({ id: d.id, phaseId: phase.id, direction: 'down' })}>
-                                      <ChevronDown className="h-2.5 w-2.5" />
-                                    </Button>
+                                  <span className={cn('text-xs flex-1', d.status === 'concluido' && 'text-muted-foreground line-through')}>{d.name}</span>
+                                  {(d.planned_start || d.planned_end) && (
+                                    <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">
+                                      <CalendarDays className="h-2.5 w-2.5" />
+                                      {d.planned_start ? format(new Date(d.planned_start + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
+                                      {' → '}
+                                      {d.planned_end ? format(new Date(d.planned_end + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
+                                    </span>
                                   )}
-                                  <Button variant="ghost" size="sm" className="h-4 w-4 p-0 text-destructive" onClick={() => deleteDeliverable.mutate(d.id)}>
-                                    <Trash2 className="h-2.5 w-2.5" />
-                                  </Button>
-                                </div>
-                              </>
+                                  <Select value={d.status} onValueChange={(v) => updateDeliverable.mutate({ id: d.id, status: v })}>
+                                    <SelectTrigger className="h-5 text-[9px] w-20 border-none shadow-none p-0.5">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {DELIVERABLE_STATUS.map(s => (
+                                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <div className="opacity-0 group-hover/del:opacity-100 flex items-center gap-0.5 transition-opacity">
+                                    <Button variant="ghost" size="sm" className="h-4 w-4 p-0" onClick={() => startEditDel(d)}>
+                                      <Pencil className="h-2.5 w-2.5" />
+                                    </Button>
+                                    {di > 0 && (
+                                      <Button variant="ghost" size="sm" className="h-4 w-4 p-0" onClick={() => moveDel.mutate({ id: d.id, phaseId: phase.id, direction: 'up' })}>
+                                        <ChevronUp className="h-2.5 w-2.5" />
+                                      </Button>
+                                    )}
+                                    {di < phaseDeliverables.length - 1 && (
+                                      <Button variant="ghost" size="sm" className="h-4 w-4 p-0" onClick={() => moveDel.mutate({ id: d.id, phaseId: phase.id, direction: 'down' })}>
+                                        <ChevronDown className="h-2.5 w-2.5" />
+                                      </Button>
+                                    )}
+                                    <Button variant="ghost" size="sm" className="h-4 w-4 p-0 text-destructive" onClick={() => deleteDeliverable.mutate(d.id)}>
+                                      <Trash2 className="h-2.5 w-2.5" />
+                                    </Button>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                            {/* Inline date editing when in edit mode */}
+                            {isEditingThis && (
+                              <div className="flex items-center gap-2 ml-5 flex-wrap">
+                                <CalendarDays className="h-2.5 w-2.5 text-muted-foreground" />
+                                <span className="text-[9px] text-muted-foreground">Início:</span>
+                                <Input type="date" className="h-5 text-[9px] w-28" value={d.planned_start || ''}
+                                  onChange={e => updateDeliverable.mutate({ id: d.id, planned_start: e.target.value || null })} />
+                                <span className="text-[9px] text-muted-foreground">Fim:</span>
+                                <Input type="date" className="h-5 text-[9px] w-28" value={d.planned_end || ''}
+                                  onChange={e => updateDeliverable.mutate({ id: d.id, planned_end: e.target.value || null })} />
+                              </div>
                             )}
                           </div>
                         );
