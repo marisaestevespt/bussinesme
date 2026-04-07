@@ -217,7 +217,7 @@ function PhaseCard({
                     const v = e.target.value ? parseInt(e.target.value) : null;
                     onUpdatePhase(phase.id, { duration_days: v });
                   }} />
-                <span className="text-xs text-muted-foreground">dias</span>
+                <span className="text-xs text-muted-foreground">{(phase.duration_unit || 'dias_uteis') === 'dias_uteis' ? 'dias úteis' : 'dias corridos'}</span>
               </div>
             </div>
           )}
