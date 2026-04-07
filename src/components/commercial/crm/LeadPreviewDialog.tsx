@@ -76,10 +76,10 @@ export function LeadPreviewDialog({ leadId, onClose }: Props) {
             </div>
           )}
 
-          {lead.loss_reason && (
+          {lead.lost_reason && (
             <div>
               <span className="text-xs text-muted-foreground font-medium">Motivo de Perda</span>
-              <p className="mt-0.5">{lead.loss_reason}</p>
+              <p className="mt-0.5">{lead.lost_reason}</p>
             </div>
           )}
 
