@@ -1118,22 +1118,35 @@ export default function PortalViewPage() {
                         </div>
                       </div>
                       {/* Notes section for pending meetings */}
-                      {isPending && (
+                      {isPending && !m.portal_notes && (
                         <div className="mt-3 pt-3 border-t border-border/20">
                           <p className="text-[11px] text-muted-foreground mb-1.5">💡 Se este horário não te der jeito, sugere alternativas:</p>
                           <Textarea
+                            id={`notes-${m.id}`}
                             className="text-xs rounded-lg border-border/30 bg-muted/10 min-h-[60px]"
                             placeholder="Ex: Prefiro terça ou quinta da semana seguinte, à tarde..."
-                            defaultValue={m.portal_notes || ''}
-                            onBlur={async (e) => {
-                              const val = e.target.value;
-                              if (val !== (m.portal_notes || '')) {
-                                await (supabase as any).rpc('portal_add_meeting_notes', { _token: token, _meeting_id: m.id, _notes: val });
-                                setMeetings(prev => prev.map(x => x.id === m.id ? { ...x, portal_notes: val } : x));
-                                toast.success('Nota guardada ✓');
-                              }
-                            }}
+                            defaultValue=""
                           />
+                          <Button
+                            size="sm"
+                            className="mt-2 h-7 text-xs rounded-lg text-white"
+                            style={{ backgroundColor: pc }}
+                            onClick={async () => {
+                              const el = document.getElementById(`notes-${m.id}`) as HTMLTextAreaElement;
+                              const val = el?.value?.trim();
+                              if (!val) { toast.error('Escreve uma sugestão primeiro'); return; }
+                              await (supabase as any).rpc('portal_add_meeting_notes', { _token: token, _meeting_id: m.id, _notes: val });
+                              setMeetings(prev => prev.map(x => x.id === m.id ? { ...x, portal_notes: val } : x));
+                              toast.success('Sugestão enviada ✓');
+                            }}>
+                            <Send className="h-3 w-3 mr-1" />Enviar sugestão
+                          </Button>
+                        </div>
+                      )}
+                      {isPending && m.portal_notes && (
+                        <div className="mt-3 pt-3 border-t border-border/20">
+                          <p className="text-[11px] text-muted-foreground">✅ Sugestão enviada:</p>
+                          <p className="text-xs mt-1 bg-muted/20 rounded-lg p-2">{m.portal_notes}</p>
                         </div>
                       )}
                       {!isPending && m.portal_notes && (
