@@ -5,10 +5,12 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { NotificationBell } from '@/components/NotificationBell';
 import { FavoriteButton } from '@/components/FavoriteButton';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useSystemNotifications } from '@/hooks/useSystemNotifications';
 import { OnboardingTour } from '@/components/OnboardingTour';
 import { FloatingAiChat } from '@/components/FloatingAiChat';
 import { TabsBar } from '@/components/TabsBar';
+import { NewTabButton } from '@/components/TabsBar';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { settings } = useBusinessSettings();
@@ -26,6 +28,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 {settings?.business_name || 'Business ME'}
               </span>
               <div className="flex items-center gap-1">
+                <NewTabButton />
                 <FavoriteButton />
                 <NotificationBell />
               </div>
