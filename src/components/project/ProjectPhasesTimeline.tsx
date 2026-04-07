@@ -434,6 +434,9 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{progress}% concluído</span>
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={recalculateDates} disabled={recalculating || !projectStartDate}>
+            <RefreshCw className={cn("h-3 w-3 mr-1", recalculating && "animate-spin")} /> Recalcular datas
+          </Button>
           <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { setAddingPhase(true); setNewName(''); }}>
             <Plus className="h-3 w-3 mr-1" /> Fase
           </Button>
