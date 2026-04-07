@@ -1,29 +1,39 @@
 
-## Fases do Produto → Projeto → Portal
+## Arquitetura Simplificada: Fases & Entregas
 
-### 1. Nova tabela: `product_phases` (template no produto)
-- `product_id`, `name` (ex: "Onboarding", "Implementação"), `description`, `sort_order`, `linked_sop_id` (opcional — liga a um SOP)
-- Os entregáveis existentes (`product_deliverable_templates`) ganham uma coluna `phase_id` opcional para serem agrupados dentro de uma fase
+### Fluxo único
+**Produto (template)** → **Projeto (instância com status)** → **Portal (visualização automática)**
 
-### 2. Nova tabela: `project_phases` (instância no projeto)
-- Cópia das fases do produto quando o template é aplicado ao projeto
-- `project_id`, `name`, `description`, `sort_order`, `status` (pendente/em_curso/concluida), `started_at`, `completed_at`, `linked_sop_id`
-- Os `project_deliverables` existentes ganham `phase_id` para agrupamento
+### 1. Limpeza de legado
+- **Eliminar** `portal_timeline_phases` (0 registos, sem uso)
+- **Remover** `portal_visible` de `sop_steps` (SOPs são sempre internos)
+- **Migrar** conceito de `client_onboarding` → será uma Fase 0 dentro das fases do projeto
 
-### 3. UI no Produto (tab Entregas)
-- Secção de fases com drag & drop para ordenar
-- Cada fase pode ter entregáveis dentro e/ou link a um SOP
-- Botão para adicionar fase, editar nome, remover
+### 2. Schema — Adicionar `linked_sop_id` às entregas
+- `product_deliverable_templates` ganha `linked_sop_id` (associar SOP interno à entrega template)
+- `project_deliverables` ganha `linked_sop_id` (associar SOP interno à entrega do projeto)
 
-### 4. UI no Projeto (tab Processos ou nova tab Fases)
-- Timeline visual das fases com progresso
-- Dentro de cada fase: entregáveis, SOPs linkados, status
-- Fase atual destacada
+### 3. Produto (tab Entregas) — já existe, melhorar
+- Definir fases (Fase 1 - Diagnóstico, Fase 2 - Implementação, etc.)
+- Dentro de cada fase: entregas/marcos
+- Cada fase e entrega pode ter um SOP associado (visível só internamente)
+- Fase pode ter `is_onboarding = true` para marcar como Fase 0
 
-### 5. UI no Portal do Cliente
-- Timeline simplificada mostrando as fases e qual é a atual
-- Dentro de cada fase: itens que o cliente precisa ver/fazer
-- Sem edição, apenas visualização + checkboxes do cliente
+### 4. Projeto — propagação automática
+- Quando template é aplicado ao projeto, fases + entregas são copiadas
+- No projeto: gerir status de cada fase (pendente/em_curso/concluída) e cada entrega (pendente/em_progresso/concluído)
+- Mudanças de status refletem no portal automaticamente
 
-### 6. RPC para portal
-- `get_portal_phases` — devolve fases e itens do projeto associado ao portal
+### 5. Portal do Cliente
+- Timeline mostra fases com status visual (pendente/em curso/concluída)
+- Dentro de cada fase: lista de entregas/marcos com status
+- Sem SOPs, sem edição — apenas visualização
+- Atualizar RPC `get_portal_phases` para incluir entregas
+
+### 6. Código a alterar
+- `ProductEntregasSection.tsx` — adicionar SOP linking a entregas (já tem para fases)
+- `ProjectPhasesTimeline.tsx` — mostrar entregas dentro das fases
+- `ApplyProductTemplate.tsx` — copiar fases + entregas para projeto
+- Portal — usar `get_portal_phases` atualizado com entregas
+- Remover referências a `portal_timeline_phases`
+- Remover `portal_visible` toggle dos SOPs
