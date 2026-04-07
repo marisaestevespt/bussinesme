@@ -9074,6 +9074,7 @@ export type Database = {
           client_id: string
           date_time: string
           department: string
+          duration_minutes: number
           id: string
           meeting_url: string
           portal_notes: string
