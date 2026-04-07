@@ -257,6 +257,7 @@ function PhaseCard({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="inicio_projeto">início do projeto</SelectItem>
+                    <SelectItem value="data_conversao">data de conversão</SelectItem>
                     <SelectItem value="fase_anterior">fase anterior</SelectItem>
                   </SelectContent>
                 </Select>
