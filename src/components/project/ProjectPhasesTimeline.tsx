@@ -238,6 +238,13 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
   // --- Deliverable mutations ---
   const updateDeliverable = useMutation({
     mutationFn: async ({ id, ...fields }: { id: string } & Record<string, unknown>) => {
+      // Check for delay before saving
+      if (fields.planned_end && typeof fields.planned_end === 'string') {
+        const del = deliverables.find(d => d.id === id);
+        if (del?.planned_end && del.phase_id) {
+          checkForDelay('del_end', del.planned_end, fields.planned_end as string, del.phase_id, id);
+        }
+      }
       await (supabase as any).from('project_deliverables').update(fields).eq('id', id);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: delKey }),
