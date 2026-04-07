@@ -36,7 +36,7 @@ function calcDate(base: Date, days: number, unit?: string): string {
   return d.toISOString().split('T')[0];
 }
 
-/** Copy SOP portal_visible steps → client_onboarding or client_offboarding */
+/** Copy SOP steps → client_onboarding or client_offboarding */
 async function copySopStepsToClient(sopId: string, clientId: string, projectStartDate?: string | null) {
   const { data: sop } = await supabase.from('sops').select('sop_type, name').eq('id', sopId).single();
   if (!sop) return;
@@ -55,7 +55,6 @@ async function copySopStepsToClient(sopId: string, clientId: string, projectStar
     .from('sop_steps')
     .select('*')
     .eq('sop_id', sopId)
-    .eq('portal_visible', true)
     .order('sort_order', { ascending: true });
 
   if (!steps?.length) return;

@@ -956,16 +956,6 @@ export default function SopDetailPage() {
                       placeholder="Descrever passo..."
                       className="flex-1 border-none shadow-none h-8 px-1 text-sm focus-visible:ring-0"
                     />
-                    {/* Portal visibility toggle */}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={cn("h-7 w-7 shrink-0", step.portal_visible ? "text-primary" : "text-muted-foreground/30")}
-                      onClick={() => updateSopStep.mutate({ stepId: step.id, data: { portal_visible: !step.portal_visible } })}
-                      title={step.portal_visible ? 'Visível no portal' : 'Não visível no portal'}
-                    >
-                      {step.portal_visible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                    </Button>
                     {/* Doc toggle */}
                     <Button
                       variant="ghost"
