@@ -107,6 +107,7 @@ function PhaseCard({
   onDeleteDeliverable: (id: string) => void;
 }) {
   const [expanded, setExpanded] = useState(true);
+  const [sopExpanded, setSopExpanded] = useState(false);
   const [name, setName] = useState(phase.name);
 
   useEffect(() => setName(phase.name), [phase.name]);
@@ -161,19 +162,28 @@ function PhaseCard({
         <CardContent className="pb-3 pt-0 px-4 space-y-3">
           {/* SOP Steps */}
           {sopSteps.length > 0 && (
-            <div className="rounded-md border border-dashed border-primary/20 bg-primary/[0.02] p-3 space-y-1.5">
-              <p className="text-[10px] font-medium text-primary flex items-center gap-1.5">
-                <ListChecks className="h-3 w-3" /> Passos do SOP: {linkedSopName}
-              </p>
-              {sopSteps.map((step, i) => (
-                <div key={step.id} className="flex items-start gap-2 pl-1">
-                  <span className="text-[10px] text-muted-foreground font-mono w-4 text-right shrink-0 mt-0.5">{i + 1}.</span>
-                  <p className="text-xs text-muted-foreground leading-relaxed flex-1">{step.description}</p>
-                  {step.responsible && (
-                    <Badge variant="secondary" className="text-[9px] shrink-0">{step.responsible}</Badge>
-                  )}
+            <div className="rounded-md border border-dashed border-primary/20 bg-primary/[0.02] px-3 py-1.5">
+              <button
+                type="button"
+                className="flex items-center gap-1.5 text-[10px] font-medium text-primary w-full text-left"
+                onClick={() => setSopExpanded(!sopExpanded)}
+              >
+                {sopExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                <ListChecks className="h-3 w-3" /> SOP: {linkedSopName} ({sopSteps.length} passos)
+              </button>
+              {sopExpanded && (
+                <div className="mt-1.5 space-y-1.5">
+                  {sopSteps.map((step, i) => (
+                    <div key={step.id} className="flex items-start gap-2 pl-1">
+                      <span className="text-[10px] text-muted-foreground font-mono w-4 text-right shrink-0 mt-0.5">{i + 1}.</span>
+                      <p className="text-xs text-muted-foreground leading-relaxed flex-1">{step.description}</p>
+                      {step.responsible && (
+                        <Badge variant="secondary" className="text-[9px] shrink-0">{step.responsible}</Badge>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           )}
 
