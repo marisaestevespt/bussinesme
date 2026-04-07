@@ -87,7 +87,9 @@ export default function PortalAuthPage() {
     }
 
     setSubmitting(true);
-    await sb('client_portals').update({ last_visit_at: new Date().toISOString() }).eq('id', portal.id);
+    const now = new Date().toISOString();
+    await sb('client_portals').update({ last_visit_at: now }).eq('id', portal.id);
+    await sb('portal_visits').insert({ portal_id: portal.id, email: inputEmail, visited_at: now });
     localStorage.setItem(
       `portal_session_${portal.id}`,
       JSON.stringify({
