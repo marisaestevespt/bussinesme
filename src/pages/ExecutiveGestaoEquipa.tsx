@@ -368,7 +368,7 @@ export function TabEquipa({ team }: { team: ReturnType<typeof useTeamData> }) {
         expense_month: new Date().getMonth() + 1,
         expense_quarter: Math.ceil((new Date().getMonth() + 1) / 3),
         expense_year: new Date().getFullYear(),
-      });
+      } as any);
     }
 
     // 4. Terminate active contracts
