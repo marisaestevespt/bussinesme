@@ -8985,18 +8985,7 @@ export type Database = {
           status: string
         }[]
       }
-      get_portal_phases: {
-        Args: { _token: string }
-        Returns: {
-          completed_at: string
-          description: string
-          id: string
-          name: string
-          sort_order: number
-          started_at: string
-          status: string
-        }[]
-      }
+      get_portal_phases: { Args: { _token: string }; Returns: Json }
       get_portal_project_history: {
         Args: { _token: string }
         Returns: {
