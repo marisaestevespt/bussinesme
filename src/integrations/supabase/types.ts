@@ -7088,6 +7088,7 @@ export type Database = {
           recurrence_week: number | null
           recurrence_weekday: number | null
           sort_order: number
+          source_template_id: string | null
           status: string
           updated_at: string
         }
@@ -7113,6 +7114,7 @@ export type Database = {
           recurrence_week?: number | null
           recurrence_weekday?: number | null
           sort_order?: number
+          source_template_id?: string | null
           status?: string
           updated_at?: string
         }
@@ -7138,6 +7140,7 @@ export type Database = {
           recurrence_week?: number | null
           recurrence_weekday?: number | null
           sort_order?: number
+          source_template_id?: string | null
           status?: string
           updated_at?: string
         }
@@ -7168,6 +7171,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_deliverables_source_template_id_fkey"
+            columns: ["source_template_id"]
+            isOneToOne: false
+            referencedRelation: "product_deliverable_templates"
             referencedColumns: ["id"]
           },
         ]
