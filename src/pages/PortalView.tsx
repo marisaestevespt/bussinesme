@@ -215,17 +215,15 @@ export default function PortalViewPage() {
   const totalOnb = onboarding.length;
   const onbPercent = totalOnb > 0 ? Math.round((completedOnb / totalOnb) * 100) : 0;
 
-  // Find next pending deliverable per responsible type
-  const findNextByType = (type: string) => {
+  // Find next pending deliverable across all onboarding phases
+  const nextStep = (() => {
     for (const phase of onboarding) {
       const dels = phase.deliverables || [];
-      const pending = dels.find((d: any) => d.status !== 'concluido' && d.status !== 'concluida' && (d.responsible_type || 'equipa') === type);
+      const pending = dels.find((d: any) => d.status !== 'concluido' && d.status !== 'concluida');
       if (pending) return { ...pending, phase_name: phase.name };
     }
     return null;
-  };
-  const nextClientTask = findNextByType('cliente');
-  const nextTeamTask = findNextByType('equipa');
+  })();
 
   const statusLabel = (s: string) => {
     const map: Record<string, { text: string; cls: string }> = {
@@ -422,45 +420,25 @@ export default function PortalViewPage() {
                   </SectionCard>
                 ) : (
                   <div className="space-y-3">
-                    {/* Next task highlights */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {nextClientTask && (
-                        <SectionCard className="p-4 border-l-4" style={{ borderLeftColor: pc }}>
-                          <div className="flex items-center gap-2 mb-1">
-                            <Sparkles className="h-3.5 w-3.5" style={{ color: pc }} />
-                            <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: pc }}>A tua próxima tarefa</span>
-                          </div>
-                          <p className="text-sm font-semibold">{nextClientTask.name}</p>
-                          <div className="flex items-center gap-3 mt-1.5">
-                            <span className="text-[10px] text-muted-foreground">{nextClientTask.phase_name}</span>
-                            {nextClientTask.planned_end && (
-                              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {format(parseISO(nextClientTask.planned_end), "d 'de' MMMM", { locale: pt })}
-                              </span>
-                            )}
-                          </div>
-                        </SectionCard>
-                      )}
-                      {nextTeamTask && (
-                        <SectionCard className="p-4 border-l-4 border-l-muted-foreground/30">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Sparkles className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Próxima entrega da equipa</span>
-                          </div>
-                          <p className="text-sm font-semibold">{nextTeamTask.name}</p>
-                          <div className="flex items-center gap-3 mt-1.5">
-                            <span className="text-[10px] text-muted-foreground">{nextTeamTask.phase_name}</span>
-                            {nextTeamTask.planned_end && (
-                              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {format(parseISO(nextTeamTask.planned_end), "d 'de' MMMM", { locale: pt })}
-                              </span>
-                            )}
-                          </div>
-                        </SectionCard>
-                      )}
-                    </div>
+                    {/* Next step highlight */}
+                    {nextStep && (
+                      <SectionCard className="p-4 border-l-4" style={{ borderLeftColor: pc }}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Sparkles className="h-3.5 w-3.5" style={{ color: pc }} />
+                          <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: pc }}>Próximo passo</span>
+                        </div>
+                        <p className="text-sm font-semibold">{nextStep.name}</p>
+                        <div className="flex items-center gap-3 mt-1.5">
+                          <span className="text-[10px] text-muted-foreground">{nextStep.phase_name}</span>
+                          {nextStep.planned_end && (
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {format(parseISO(nextStep.planned_end), "d 'de' MMMM", { locale: pt })}
+                            </span>
+                          )}
+                        </div>
+                      </SectionCard>
+                    )}
 
                     {/* Phase cards */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -1244,45 +1222,25 @@ export default function PortalViewPage() {
               </SectionCard>
             ) : (
               <div className="space-y-4">
-                {/* Next task highlights */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {nextClientTask && (
-                    <SectionCard className="p-5 border-l-4" style={{ borderLeftColor: pc }}>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Sparkles className="h-4 w-4" style={{ color: pc }} />
-                        <span className="text-xs uppercase tracking-widest font-bold" style={{ color: pc }}>A tua próxima tarefa</span>
-                      </div>
-                      <p className="text-base font-semibold">{nextClientTask.name}</p>
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className="text-xs text-muted-foreground">{nextClientTask.phase_name}</span>
-                        {nextClientTask.planned_end && (
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {format(parseISO(nextClientTask.planned_end), "d 'de' MMMM", { locale: pt })}
-                          </span>
-                        )}
-                      </div>
-                    </SectionCard>
-                  )}
-                  {nextTeamTask && (
-                    <SectionCard className="p-5 border-l-4 border-l-muted-foreground/30">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Sparkles className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Próxima entrega da equipa</span>
-                      </div>
-                      <p className="text-base font-semibold">{nextTeamTask.name}</p>
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className="text-xs text-muted-foreground">{nextTeamTask.phase_name}</span>
-                        {nextTeamTask.planned_end && (
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {format(parseISO(nextTeamTask.planned_end), "d 'de' MMMM", { locale: pt })}
-                          </span>
-                        )}
-                      </div>
-                    </SectionCard>
-                  )}
-                </div>
+                {/* Next step highlight */}
+                {nextStep && (
+                  <SectionCard className="p-5 border-l-4" style={{ borderLeftColor: pc }}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Sparkles className="h-4 w-4" style={{ color: pc }} />
+                      <span className="text-xs uppercase tracking-widest font-bold" style={{ color: pc }}>Próximo passo</span>
+                    </div>
+                    <p className="text-base font-semibold">{nextStep.name}</p>
+                    <div className="flex items-center gap-3 mt-2">
+                      <span className="text-xs text-muted-foreground">{nextStep.phase_name}</span>
+                      {nextStep.planned_end && (
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {format(parseISO(nextStep.planned_end), "d 'de' MMMM", { locale: pt })}
+                        </span>
+                      )}
+                    </div>
+                  </SectionCard>
+                )}
 
                 {/* Phase cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
