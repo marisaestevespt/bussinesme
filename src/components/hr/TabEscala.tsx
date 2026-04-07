@@ -82,6 +82,14 @@ type Vacation = {
   notes: string | null;
 };
 
+type Absence = {
+  id: string;
+  member_id: string;
+  start_date: string;
+  end_date: string;
+  reason: string;
+};
+
 function useEscalaData() {
   const members = useQuery({
     queryKey: ['escala-members'],
@@ -106,16 +114,41 @@ function useEscalaData() {
     },
   });
 
-  return { members: members.data || [], vacations: vacations.data || [], isLoading: members.isLoading || vacations.isLoading };
+  const absences = useQuery({
+    queryKey: ['absence-coverage'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('absence_coverage')
+        .select('id, member_id, start_date, end_date, reason')
+        .order('start_date');
+      return (data || []) as Absence[];
+    },
+  });
+
+  return {
+    members: members.data || [],
+    vacations: vacations.data || [],
+    absences: absences.data || [],
+    isLoading: members.isLoading || vacations.isLoading || absences.isLoading,
+  };
 }
 
 function getAvailability(
   member: TeamMember,
   day: Date,
   vacations: Vacation[],
+  absences: Absence[],
   nationalHolidays: Date[]
-): 'available' | 'off' | 'vacation' | 'holiday' {
-  // Check vacation first
+): 'available' | 'off' | 'vacation' | 'holiday' | 'absence' {
+  // Check absence_coverage first
+  const memberAbsences = absences.filter(a => a.member_id === member.id);
+  for (const a of memberAbsences) {
+    if (isWithinInterval(day, { start: parseISO(a.start_date), end: parseISO(a.end_date) })) {
+      return 'absence';
+    }
+  }
+
+  // Check vacation
   const memberVacations = vacations.filter(v => v.member_id === member.id);
   for (const v of memberVacations) {
     if (isWithinInterval(day, { start: parseISO(v.start_date), end: parseISO(v.end_date) })) {
@@ -123,7 +156,7 @@ function getAvailability(
     }
   }
 
-  // Check custom_holidays (date ranges "start|end" or single dates used as off/vacation)
+  // Check custom_holidays
   const customDates: string[] = Array.isArray(member.custom_holidays) ? member.custom_holidays : [];
   for (const d of customDates) {
     try {
@@ -136,12 +169,9 @@ function getAvailability(
     } catch { /* skip invalid */ }
   }
 
-  // Check if it's a national holiday
+  // Check national holiday
   const isNational = nationalHolidays.some(h => isSameDay(h, day));
-
-  if (isNational) {
-    return 'holiday';
-  }
+  if (isNational) return 'holiday';
 
   // Check work schedule
   if (!member.work_schedule) return 'off';
@@ -162,6 +192,7 @@ const STATUS_COLORS: Record<string, string> = {
   available: 'bg-green-500',
   off: 'bg-muted',
   vacation: 'bg-blue-400',
+  absence: 'bg-orange-400',
   holiday: 'bg-amber-400',
 };
 
@@ -169,6 +200,7 @@ const STATUS_LABELS: Record<string, string> = {
   available: 'Disponível',
   off: 'Folga',
   vacation: 'Férias',
+  absence: 'Ausência',
   holiday: 'Feriado',
 };
 
@@ -291,7 +323,7 @@ function VacationPopoverContent({ member, vacations, onOpenDialog }: { member: T
 
 // ─── Main Escala Component ─────
 export function TabEscala() {
-  const { members, vacations, isLoading } = useEscalaData();
+  const { members, vacations, absences, isLoading } = useEscalaData();
   const [viewMonth, setViewMonth] = useState(() => new Date());
   const [vacationMember, setVacationMember] = useState<TeamMember | null>(null);
   const [absenceDialogOpen, setAbsenceDialogOpen] = useState(false);
@@ -381,7 +413,7 @@ export function TabEscala() {
                     </div>
                   </TableCell>
                   {days.map(d => {
-                    const status = getAvailability(m, d, vacations, nationalHolidays);
+                    const status = getAvailability(m, d, vacations, absences, nationalHolidays);
                     return (
                       <TableCell key={d.toISOString()} className="text-center p-1">
                         <div
