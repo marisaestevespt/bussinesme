@@ -92,8 +92,9 @@ export default function PortalViewPage() {
       }
     } catch { navigate(`/portal/${token}`, { replace: true }); return; }
     setPortal(portalData);
+    const realToken = portalData.token; // always use UUID token for RPCs
     const [clientCtxRes, settingsRes] = await Promise.all([
-      (supabase as any).rpc('get_portal_client_context', { _token: token }),
+      (supabase as any).rpc('get_portal_client_context', { _token: realToken }),
       supabase.from('business_settings').select('*').limit(1).maybeSingle(),
     ]);
     const clientData = Array.isArray(clientCtxRes.data) ? clientCtxRes.data[0] : null;
@@ -107,13 +108,13 @@ export default function PortalViewPage() {
       sb('portal_initial_questions').select('*').eq('portal_id', pid).order('group_sort_order').order('sort_order'),
       sb('portal_comments').select('*').eq('portal_id', pid).order('created_at', { ascending: true }),
       sb('portal_feedback').select('*').eq('portal_id', pid).order('submitted_at', { ascending: false }),
-      (supabase as any).rpc('get_portal_meetings', { _token: token }),
-      (supabase as any).rpc('get_portal_payments', { _token: token }),
+      (supabase as any).rpc('get_portal_meetings', { _token: realToken }),
+      (supabase as any).rpc('get_portal_payments', { _token: realToken }),
       supabase.from('tasks').select('*').eq('visible_in_portal', true),
-      (supabase as any).rpc('get_portal_phases', { _token: token }),
-      (supabase as any).rpc('get_portal_project_history', { _token: token }),
+      (supabase as any).rpc('get_portal_phases', { _token: realToken }),
+      (supabase as any).rpc('get_portal_project_history', { _token: realToken }),
       sb('portal_materials').select('*').eq('portal_id', pid).order('created_at', { ascending: false }),
-      (supabase as any).rpc('get_portal_contract_documents', { _token: token }),
+      (supabase as any).rpc('get_portal_contract_documents', { _token: realToken }),
     ]);
     setFaqs(faqsR.data || []);
     setQuestions(questionsR.data || []);
