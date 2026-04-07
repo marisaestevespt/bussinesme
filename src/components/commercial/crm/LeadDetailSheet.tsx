@@ -153,7 +153,8 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
         documents: form.documents || null,
         status: 'em_onboarding',
         start_date: format(new Date(), 'yyyy-MM-dd'),
-      }).select('id').single();
+        conversion_date: format(new Date(), 'yyyy-MM-dd'),
+      } as any).select('id').single();
       if (clientError) throw clientError;
 
       const addedDate = form.added_at ? parseISO(form.added_at) : new Date();

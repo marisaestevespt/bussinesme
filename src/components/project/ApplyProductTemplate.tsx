@@ -127,11 +127,12 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
       if (productPhases?.length) {
         const { data: existingPhases } = await (supabase as any).from('project_phases').select('id').eq('project_id', projectId).limit(1);
         if (!existingPhases?.length) {
-          // Fetch client start_date for data_conversao trigger
+          // Fetch client conversion_date for data_conversao trigger
           let conversionDate: Date | null = null;
           if (clientId) {
-            const { data: clientRow } = await supabase.from('clients').select('start_date').eq('id', clientId).single();
-            if (clientRow?.start_date) conversionDate = parseISO(clientRow.start_date);
+            const { data: clientRow } = await supabase.from('clients').select('conversion_date, start_date').eq('id', clientId).single();
+            const convDateStr = (clientRow as any)?.conversion_date || (clientRow as any)?.start_date;
+            if (convDateStr) conversionDate = parseISO(convDateStr);
           }
 
           for (const pp of productPhases) {
