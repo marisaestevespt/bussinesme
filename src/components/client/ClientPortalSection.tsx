@@ -24,13 +24,14 @@ interface Props {
   clientId: string;
   clientName: string;
   currentProduct: string | null;
+  productId?: string | null;
 }
 
-export function ClientPortalSection({ clientId, clientName, currentProduct }: Props) {
+export function ClientPortalSection({ clientId, clientName, currentProduct, productId }: Props) {
   const { products } = useProducts();
   const queryClient = useQueryClient();
   const productList = products.data || [];
-  const product = productList.find(p => p.name === currentProduct);
+  const product = productList.find(p => (productId && p.id === productId) || p.name === currentProduct);
   const portalType = getPortalTypeFromProduct(product?.product_type || null);
 
   const { portal, upsertPortal, updatePortal } = usePortal(clientId);
