@@ -49,7 +49,7 @@ export default function PortalViewPage() {
   const [feedback, setFeedback] = useState<any[]>([]);
   const [meetings, setMeetings] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
-  const [onboarding, setOnboarding] = useState<any[]>([]);
+  const [onboarding, setOnboarding] = useState<any[]>([]); // derived from phases
   const [tasks, setTasks] = useState<any[]>([]);
   const [phases, setPhases] = useState<any[]>([]);
   
@@ -91,14 +91,13 @@ export default function PortalViewPage() {
     setSettings(settingsRes.data);
     const pid = portalData.id;
     const cid = portalData.client_id;
-    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, projPhasesR, historyR, materialsR, contractR] = await Promise.all([
+    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, tasksR, projPhasesR, historyR, materialsR, contractR] = await Promise.all([
       sb('portal_faqs').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_initial_questions').select('*').eq('portal_id', pid).order('group_sort_order').order('sort_order'),
       sb('portal_comments').select('*').eq('portal_id', pid).order('created_at', { ascending: true }),
       sb('portal_feedback').select('*').eq('portal_id', pid).order('submitted_at', { ascending: false }),
       (supabase as any).rpc('get_portal_meetings', { _token: token }),
       (supabase as any).rpc('get_portal_payments', { _token: token }),
-      (supabase as any).rpc('get_portal_onboarding', { _token: token }),
       supabase.from('tasks').select('*').eq('visible_in_portal', true),
       (supabase as any).rpc('get_portal_phases', { _token: token }),
       (supabase as any).rpc('get_portal_project_history', { _token: token }),
@@ -111,12 +110,14 @@ export default function PortalViewPage() {
     setFeedback(feedbackR.data || []);
     setMeetings((meetingsR as any).data || []);
     setPayments((paymentsR as any).data || []);
-    setOnboarding(onbR.data || []);
     setTasks((tasksR as any).data || []);
     // get_portal_phases now returns jsonb with deliverables included
     const phasesData = (projPhasesR as any).data || [];
     const parsedPhases = Array.isArray(phasesData) ? phasesData : [];
-    setPhases(parsedPhases.map((p: any) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status })));
+    const allPhases = parsedPhases.map((p: any) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
+    setPhases(allPhases);
+    // Derive onboarding from phases marked as is_onboarding
+    setOnboarding(allPhases.filter((p: any) => p.is_onboarding));
     setProjectHistory((historyR as any).data || []);
     setPortalMaterials(materialsR.data || []);
     setContractDocs((contractR as any).data || []);
@@ -204,7 +205,7 @@ export default function PortalViewPage() {
     ...(projectHistory.length > 0 ? [{ key: 'history', label: 'Histórico', icon: History }] : []),
   ];
 
-  const completedOnb = onboarding.filter((o: any) => o.completed).length;
+  const completedOnb = onboarding.filter((o: any) => o.status === 'concluido' || o.status === 'concluida').length;
   const totalOnb = onboarding.length;
   const onbPercent = totalOnb > 0 ? Math.round((completedOnb / totalOnb) * 100) : 0;
 
@@ -404,66 +405,57 @@ export default function PortalViewPage() {
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {onboarding.map((o: any, i: number) => {
-                      const isExpanded = o.completed ? expandedOnbStep === o.id : true;
+                      const isDone = o.status === 'concluido' || o.status === 'concluida';
+                      const isExpanded = isDone ? expandedOnbStep === o.id : true;
+                      const deliverables = o.deliverables || [];
+                      const completedDels = deliverables.filter((d: any) => d.status === 'concluido' || d.status === 'concluida').length;
                       return (
                         <div
                           key={o.id}
                           className="rounded-2xl border border-border/40 bg-white shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden"
-                          onClick={() => o.completed ? setExpandedOnbStep(expandedOnbStep === o.id ? null : o.id) : undefined}
+                          onClick={() => isDone ? setExpandedOnbStep(expandedOnbStep === o.id ? null : o.id) : undefined}
                         >
                           <div className="p-4 flex flex-col items-center text-center">
-                            <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Passo</span>
-                            <span className="text-3xl font-black mt-0.5" style={{ color: o.completed ? 'hsl(var(--muted-foreground))' : pc }}>
+                            <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Fase</span>
+                            <span className="text-3xl font-black mt-0.5" style={{ color: isDone ? 'hsl(var(--muted-foreground))' : pc }}>
                               {i + 1}
                             </span>
-                            <p className="text-xs font-medium mt-1.5 line-clamp-3">{o.activity || 'Sem descrição'}</p>
-                            <Badge
-                              variant="outline"
-                              className={`mt-2 text-[9px] font-semibold px-2 py-0.5 ${
-                                isClientStep(o)
-                                  ? 'border-amber-300 bg-amber-50 text-amber-700'
-                                  : 'border-blue-200 bg-blue-50 text-blue-700'
-                              }`}
-                            >
-                              {isClientStep(o) ? '📋 A teu cargo' : '👥 Nossa equipa'}
-                            </Badge>
+                            <p className="text-xs font-medium mt-1.5 line-clamp-3">{o.name || 'Sem descrição'}</p>
+                            {deliverables.length > 0 && (
+                              <p className="text-[10px] text-muted-foreground mt-1">{completedDels}/{deliverables.length} entregas</p>
+                            )}
                             <div className="mt-2 flex items-center gap-1.5">
-                              {o.completed ? (
+                              {isDone ? (
                                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                              ) : o.status === 'em_progresso' ? (
+                                <Clock className="h-4 w-4 text-amber-500" />
                               ) : (
                                 <Circle className="h-4 w-4 text-muted-foreground/40" />
                               )}
-                              <span className={`text-xs font-medium ${o.completed ? 'text-emerald-600' : 'text-muted-foreground'}`}>
-                                {o.completed ? 'Concluído' : 'Pendente'}
+                              <span className={`text-xs font-medium ${isDone ? 'text-emerald-600' : o.status === 'em_progresso' ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                                {isDone ? 'Concluído' : o.status === 'em_progresso' ? 'Em progresso' : 'Pendente'}
                               </span>
                             </div>
                           </div>
                           {isExpanded && (
                             <div className="px-4 pb-4 border-t border-border/20 pt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
-                              {o.phase && <p className="text-[10px] text-muted-foreground">Fase: {o.phase}</p>}
-                              {o.due_date && (
+                              {o.description && <p className="text-[10px] text-muted-foreground">{o.description}</p>}
+                              {o.planned_end && (
                                 <p className="text-[10px] text-muted-foreground flex items-center gap-1">
                                   <Clock className="h-3 w-3" />
-                                  Prazo: {format(parseISO(o.due_date), "d 'de' MMMM", { locale: pt })}
+                                  Prazo: {format(parseISO(o.planned_end), "d 'de' MMMM", { locale: pt })}
                                 </p>
                               )}
-                              {!isClientStep(o) && o.responsible && <p className="text-[10px] text-muted-foreground">Responsável: {o.responsible}</p>}
-                              {isClientStep(o) && (
-                                <div className="flex items-center gap-2 mt-1">
-                                  <Checkbox
-                                    checked={!!o.completed}
-                                    onCheckedChange={async (v) => {
-                                      await (supabase as any).rpc('portal_toggle_onboarding_step', { _token: token, _step_id: o.id, _completed: !!v });
-                                      setOnboarding(prev => prev.map(x => x.id === o.id ? { ...x, completed: !!v } : x));
-                                      if (v && client?.id) {
-                                        const { recalcCascadingDates } = await import('@/components/LinkedSopsSection');
-                                        await recalcCascadingDates('client_onboarding', client.id, o.sort_order ?? i);
-                                        const { data: refreshed } = await (supabase as any).rpc('get_portal_onboarding', { _token: token });
-                                        if (refreshed) setOnboarding(refreshed);
-                                      }
-                                    }}
-                                  />
-                                  <span className="text-[10px] text-muted-foreground">Marcar como {o.completed ? 'pendente' : 'concluído'}</span>
+                              {deliverables.length > 0 && (
+                                <div className="space-y-1 mt-1">
+                                  {deliverables.map((d: any) => (
+                                    <div key={d.id} className="flex items-center gap-1.5">
+                                      {(d.status === 'concluido' || d.status === 'concluida')
+                                        ? <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
+                                        : <Circle className="h-3 w-3 text-muted-foreground/40 shrink-0" />}
+                                      <span className="text-[10px] text-muted-foreground">{d.name}</span>
+                                    </div>
+                                  ))}
                                 </div>
                               )}
                             </div>
@@ -1155,66 +1147,57 @@ export default function PortalViewPage() {
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {onboarding.map((o: any, i: number) => {
-                  const isExpanded = o.completed ? expandedOnbStep === o.id : true;
+                  const isDone = o.status === 'concluido' || o.status === 'concluida';
+                  const isExpanded = isDone ? expandedOnbStep === o.id : true;
+                  const deliverables = o.deliverables || [];
+                  const completedDels = deliverables.filter((d: any) => d.status === 'concluido' || d.status === 'concluida').length;
                   return (
                     <div
                       key={o.id}
                       className="rounded-2xl border border-border/40 bg-white shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden"
-                      onClick={() => o.completed ? setExpandedOnbStep(expandedOnbStep === o.id ? null : o.id) : undefined}
+                      onClick={() => isDone ? setExpandedOnbStep(expandedOnbStep === o.id ? null : o.id) : undefined}
                     >
                       <div className="p-5 flex flex-col items-center text-center">
-                        <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Passo</span>
-                        <span className="text-4xl font-black mt-0.5" style={{ color: o.completed ? 'hsl(var(--muted-foreground))' : pc }}>
+                        <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Fase</span>
+                        <span className="text-4xl font-black mt-0.5" style={{ color: isDone ? 'hsl(var(--muted-foreground))' : pc }}>
                           {i + 1}
                         </span>
-                        <p className="text-xs font-medium mt-1.5 line-clamp-3">{o.activity || 'Sem descrição'}</p>
-                        <Badge
-                          variant="outline"
-                          className={`mt-2 text-[9px] font-semibold px-2 py-0.5 ${
-                            isClientStep(o)
-                              ? 'border-amber-300 bg-amber-50 text-amber-700'
-                              : 'border-blue-200 bg-blue-50 text-blue-700'
-                          }`}
-                        >
-                          {isClientStep(o) ? '📋 A teu cargo' : '👥 Nossa equipa'}
-                        </Badge>
+                        <p className="text-xs font-medium mt-1.5 line-clamp-3">{o.name || 'Sem descrição'}</p>
+                        {deliverables.length > 0 && (
+                          <p className="text-[10px] text-muted-foreground mt-1">{completedDels}/{deliverables.length} entregas</p>
+                        )}
                         <div className="mt-2 flex items-center gap-1.5">
-                          {o.completed ? (
+                          {isDone ? (
                             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                          ) : o.status === 'em_progresso' ? (
+                            <Clock className="h-4 w-4 text-amber-500" />
                           ) : (
                             <Circle className="h-4 w-4 text-muted-foreground/40" />
                           )}
-                          <span className={`text-xs font-medium ${o.completed ? 'text-emerald-600' : 'text-muted-foreground'}`}>
-                            {o.completed ? 'Concluído' : 'Pendente'}
+                          <span className={`text-xs font-medium ${isDone ? 'text-emerald-600' : o.status === 'em_progresso' ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                            {isDone ? 'Concluído' : o.status === 'em_progresso' ? 'Em progresso' : 'Pendente'}
                           </span>
                         </div>
                       </div>
                       {isExpanded && (
                         <div className="px-4 pb-4 border-t border-border/20 pt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
-                          {o.phase && <p className="text-xs text-muted-foreground">Fase: {o.phase}</p>}
-                          {o.due_date && (
+                          {o.description && <p className="text-xs text-muted-foreground">{o.description}</p>}
+                          {o.planned_end && (
                             <p className="text-xs text-muted-foreground flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              Prazo: {format(parseISO(o.due_date), "d 'de' MMMM", { locale: pt })}
+                              Prazo: {format(parseISO(o.planned_end), "d 'de' MMMM", { locale: pt })}
                             </p>
                           )}
-                          {!isClientStep(o) && o.responsible && <p className="text-xs text-muted-foreground">Responsável: {o.responsible}</p>}
-                          {isClientStep(o) && (
-                            <div className="flex items-center gap-2 mt-1">
-                              <Checkbox
-                                checked={!!o.completed}
-                                onCheckedChange={async (v) => {
-                                  await (supabase as any).rpc('portal_toggle_onboarding_step', { _token: token, _step_id: o.id, _completed: !!v });
-                                  setOnboarding(prev => prev.map(x => x.id === o.id ? { ...x, completed: !!v } : x));
-                                  if (v && client?.id) {
-                                    const { recalcCascadingDates } = await import('@/components/LinkedSopsSection');
-                                    await recalcCascadingDates('client_onboarding', client.id, o.sort_order ?? i);
-                                    const { data: refreshed } = await (supabase as any).rpc('get_portal_onboarding', { _token: token });
-                                    if (refreshed) setOnboarding(refreshed);
-                                  }
-                                }}
-                              />
-                              <span className="text-xs text-muted-foreground">Marcar como {o.completed ? 'pendente' : 'concluído'}</span>
+                          {deliverables.length > 0 && (
+                            <div className="space-y-1 mt-1">
+                              {deliverables.map((d: any) => (
+                                <div key={d.id} className="flex items-center gap-1.5">
+                                  {(d.status === 'concluido' || d.status === 'concluida')
+                                    ? <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
+                                    : <Circle className="h-3 w-3 text-muted-foreground/40 shrink-0" />}
+                                  <span className="text-[10px] text-muted-foreground">{d.name}</span>
+                                </div>
+                              ))}
                             </div>
                           )}
                         </div>

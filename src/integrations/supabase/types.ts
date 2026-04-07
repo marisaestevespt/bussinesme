@@ -6646,6 +6646,7 @@ export type Database = {
           duration_days: number | null
           duration_unit: string
           id: string
+          is_onboarding: boolean
           linked_sop_id: string | null
           name: string
           offset_days: number | null
@@ -6659,6 +6660,7 @@ export type Database = {
           duration_days?: number | null
           duration_unit?: string
           id?: string
+          is_onboarding?: boolean
           linked_sop_id?: string | null
           name?: string
           offset_days?: number | null
@@ -6672,6 +6674,7 @@ export type Database = {
           duration_days?: number | null
           duration_unit?: string
           id?: string
+          is_onboarding?: boolean
           linked_sop_id?: string | null
           name?: string
           offset_days?: number | null
@@ -7226,6 +7229,7 @@ export type Database = {
           duration_days: number | null
           duration_unit: string
           id: string
+          is_onboarding: boolean
           linked_sop_id: string | null
           name: string
           offset_days: number | null
@@ -7246,6 +7250,7 @@ export type Database = {
           duration_days?: number | null
           duration_unit?: string
           id?: string
+          is_onboarding?: boolean
           linked_sop_id?: string | null
           name?: string
           offset_days?: number | null
@@ -7266,6 +7271,7 @@ export type Database = {
           duration_days?: number | null
           duration_unit?: string
           id?: string
+          is_onboarding?: boolean
           linked_sop_id?: string | null
           name?: string
           offset_days?: number | null

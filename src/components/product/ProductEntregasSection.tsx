@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 
@@ -36,6 +36,7 @@ interface Phase {
   duration_unit?: string;
   offset_days?: number | null;
   offset_trigger?: string;
+  is_onboarding?: boolean;
 }
 
 interface Props {
@@ -214,12 +215,25 @@ function PhaseCard({
             {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
           </Button>
           <Badge variant="outline" className="text-[10px] shrink-0">Fase {phase.sort_order + 1}</Badge>
+          {phase.is_onboarding && <Badge variant="secondary" className="text-[10px] shrink-0 bg-amber-100 text-amber-700 border-amber-200">Onboarding</Badge>}
           <Input value={name} onChange={e => setName(e.target.value)}
             onBlur={() => { const t = name.trim(); if (t !== phase.name) onUpdatePhase(phase.id, { name: t }); }}
             className="h-7 text-sm font-medium border-none shadow-none p-0 focus-visible:ring-0"
             placeholder="Nome da fase..." readOnly={!isOwner} />
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          {isOwner && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant={phase.is_onboarding ? "secondary" : "ghost"} size="sm"
+                  className={`h-7 text-xs ${phase.is_onboarding ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : ''}`}
+                  onClick={() => onUpdatePhase(phase.id, { is_onboarding: !phase.is_onboarding })}>
+                  <CheckSquare className="h-3 w-3 mr-1" /> Onboarding
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Marcar como fase de onboarding (visível no portal)</TooltipContent>
+            </Tooltip>
+          )}
           {sops.length > 0 && (
             <Select value={phase.linked_sop_id || 'none'}
               onValueChange={(v) => onUpdatePhase(phase.id, { linked_sop_id: v === 'none' ? null : v })}>
