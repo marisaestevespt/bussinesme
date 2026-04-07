@@ -742,6 +742,17 @@ export default function ReuniaoDetailPage() {
           </div>
         </div>
 
+        {/* Portal notes from client */}
+        {(m as any).portal_notes && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 p-4 space-y-1">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4 text-amber-600" />
+              <span className="text-sm font-semibold text-amber-800 dark:text-amber-400">Nota do cliente sobre horário</span>
+            </div>
+            <p className="text-sm text-amber-700 dark:text-amber-300">{(m as any).portal_notes}</p>
+          </div>
+        )}
+
         <Separator />
 
         {/* ATA DA REUNIÃO */}
