@@ -238,6 +238,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
               <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500 inline-block" /> Disponível</span>
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-500 inline-block" /> Férias</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-orange-500 inline-block" /> Ausência</span>
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-500 inline-block" /> Feriado</span>
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-muted-foreground/30 inline-block" /> Folga</span>
               </div>
