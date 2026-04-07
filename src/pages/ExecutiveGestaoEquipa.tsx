@@ -126,6 +126,14 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
     },
   });
 
+  const escalaAbsences = useQuery({
+    queryKey: ['absence-coverage'],
+    queryFn: async () => {
+      const { data } = await supabase.from('absence_coverage').select('id, member_id, start_date, end_date, reason').order('start_date');
+      return (data || []) as any[];
+    },
+  });
+
   const monthDays = useMemo(() => {
     return eachDayOfInterval({ start: startOfMonth(escalaMonth), end: endOfMonth(escalaMonth) }).filter(d => d.getDay() >= 1 && d.getDay() <= 5);
   }, [escalaMonth]);
@@ -133,6 +141,11 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
   const holidays = useMemo(() => getPortugueseHolidays(escalaMonth.getFullYear()), [escalaMonth]);
 
   const getAvail = (member: any, day: Date): string => {
+    // Check absence_coverage first
+    const abs = (escalaAbsences.data || []).filter((a: any) => a.member_id === member.id);
+    for (const a of abs) {
+      if (isWithinInterval(day, { start: parseISO(a.start_date), end: parseISO(a.end_date) })) return 'absence';
+    }
     const vacs = (escalaVacations.data || []).filter((v: any) => v.member_id === member.id);
     for (const v of vacs) {
       if (isWithinInterval(day, { start: parseISO(v.start_date), end: parseISO(v.end_date) })) return 'vacation';
@@ -166,6 +179,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
     available: 'bg-emerald-100 dark:bg-emerald-900/30',
     off: 'bg-muted',
     vacation: 'bg-amber-100 dark:bg-amber-900/30',
+    absence: 'bg-orange-100 dark:bg-orange-900/30',
     holiday: 'bg-blue-100 dark:bg-blue-900/30',
   };
   const availDots: Record<string, string> = {
@@ -224,6 +238,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
               <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500 inline-block" /> Disponível</span>
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-500 inline-block" /> Férias</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-orange-500 inline-block" /> Ausência</span>
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-500 inline-block" /> Feriado</span>
                 <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-muted-foreground/30 inline-block" /> Folga</span>
               </div>
