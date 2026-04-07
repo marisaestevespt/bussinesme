@@ -6,9 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { pt } from 'date-fns/locale';
 
 interface ProjectPhase {
   id: string;
@@ -19,6 +21,12 @@ interface ProjectPhase {
   started_at: string | null;
   completed_at: string | null;
   linked_sop_id: string | null;
+  duration_days: number | null;
+  duration_unit: string;
+  offset_days: number;
+  offset_trigger: string;
+  planned_start: string | null;
+  planned_end: string | null;
 }
 
 interface ProjectDeliverable {
@@ -275,6 +283,19 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
                         <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setEditingPhase(null)}><X className="h-3 w-3" /></Button>
                       </div>
                       <Input value={editDesc} onChange={e => setEditDesc(e.target.value)} placeholder="Descrição (opcional)" className="h-7 text-xs" />
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-1">
+                          <CalendarDays className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-[10px] text-muted-foreground">Início:</span>
+                          <Input type="date" className="h-6 text-[10px] w-32" value={phase.planned_start || ''}
+                            onChange={e => updatePhase.mutate({ id: phase.id, planned_start: e.target.value || null })} />
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[10px] text-muted-foreground">Fim:</span>
+                          <Input type="date" className="h-6 text-[10px] w-32" value={phase.planned_end || ''}
+                            onChange={e => updatePhase.mutate({ id: phase.id, planned_end: e.target.value || null })} />
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <>
@@ -290,6 +311,14 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
                             ))}
                           </SelectContent>
                         </Select>
+                        {(phase.planned_start || phase.planned_end) && (
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <CalendarDays className="h-3 w-3" />
+                            {phase.planned_start ? format(new Date(phase.planned_start + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
+                            {' → '}
+                            {phase.planned_end ? format(new Date(phase.planned_end + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
+                          </span>
+                        )}
                         <div className="opacity-0 group-hover/phase:opacity-100 flex items-center gap-0.5 transition-opacity">
                           <Button variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => startEditPhase(phase)}>
                             <Pencil className="h-3 w-3" />

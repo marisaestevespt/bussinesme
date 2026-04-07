@@ -6618,27 +6618,39 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          duration_days: number | null
+          duration_unit: string
           id: string
           linked_sop_id: string | null
           name: string
+          offset_days: number | null
+          offset_trigger: string
           product_id: string
           sort_order: number
         }
         Insert: {
           created_at?: string
           description?: string | null
+          duration_days?: number | null
+          duration_unit?: string
           id?: string
           linked_sop_id?: string | null
           name?: string
+          offset_days?: number | null
+          offset_trigger?: string
           product_id: string
           sort_order?: number
         }
         Update: {
           created_at?: string
           description?: string | null
+          duration_days?: number | null
+          duration_unit?: string
           id?: string
           linked_sop_id?: string | null
           name?: string
+          offset_days?: number | null
+          offset_trigger?: string
           product_id?: string
           sort_order?: number
         }
@@ -7158,9 +7170,15 @@ export type Database = {
           completed_at: string | null
           created_at: string
           description: string | null
+          duration_days: number | null
+          duration_unit: string
           id: string
           linked_sop_id: string | null
           name: string
+          offset_days: number | null
+          offset_trigger: string
+          planned_end: string | null
+          planned_start: string | null
           project_id: string
           sort_order: number
           source_phase_id: string | null
@@ -7172,9 +7190,15 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           description?: string | null
+          duration_days?: number | null
+          duration_unit?: string
           id?: string
           linked_sop_id?: string | null
           name?: string
+          offset_days?: number | null
+          offset_trigger?: string
+          planned_end?: string | null
+          planned_start?: string | null
           project_id: string
           sort_order?: number
           source_phase_id?: string | null
@@ -7186,9 +7210,15 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           description?: string | null
+          duration_days?: number | null
+          duration_unit?: string
           id?: string
           linked_sop_id?: string | null
           name?: string
+          offset_days?: number | null
+          offset_trigger?: string
+          planned_end?: string | null
+          planned_start?: string | null
           project_id?: string
           sort_order?: number
           source_phase_id?: string | null
