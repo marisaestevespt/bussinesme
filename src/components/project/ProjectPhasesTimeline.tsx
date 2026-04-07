@@ -419,8 +419,8 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
     );
   }
 
-  const completedCount = phases.filter(p => p.status === 'concluida').length;
-  const progress = phases.length > 0 ? Math.round((completedCount / phases.length) * 100) : 0;
+  const completedCount = deliverables.filter(d => d.status === 'concluido').length;
+  const progress = deliverables.length > 0 ? Math.round((completedCount / deliverables.length) * 100) : 0;
 
   return (
     <>
