@@ -127,9 +127,19 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
       if (productPhases?.length) {
         const { data: existingPhases } = await (supabase as any).from('project_phases').select('id').eq('project_id', projectId).limit(1);
         if (!existingPhases?.length) {
+          // Fetch client start_date for data_conversao trigger
+          let conversionDate: Date | null = null;
+          if (clientId) {
+            const { data: clientRow } = await supabase.from('clients').select('start_date').eq('id', clientId).single();
+            if (clientRow?.start_date) conversionDate = parseISO(clientRow.start_date);
+          }
+
           for (const pp of productPhases) {
             // Calculate planned dates from duration rules
-            const baseDate = projectStartDate ? parseISO(projectStartDate) : new Date();
+            const trigger = pp.offset_trigger || 'inicio_projeto';
+            const baseDate = trigger === 'data_conversao' && conversionDate
+              ? conversionDate
+              : (projectStartDate ? parseISO(projectStartDate) : new Date());
             let phaseStart: string | null = null;
             let phaseEnd: string | null = null;
 
