@@ -479,7 +479,7 @@ export default function PortalViewPage() {
 
                     {/* Phase detail dialog */}
                     <Dialog open={!!expandedOnbStep} onOpenChange={(open) => !open && setExpandedOnbStep(null)}>
-                      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+                      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                         {(() => {
                           const phase = onboarding.find((p: any) => p.id === expandedOnbStep);
                           if (!phase) return null;
