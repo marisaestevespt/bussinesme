@@ -425,7 +425,7 @@ export default function PortalViewPage() {
                     <div className="p-2 rounded-xl" style={{ backgroundColor: pcAlpha(0.1) }}>
                       <CheckSquare className="h-4 w-4" style={{ color: pc }} />
                     </div>
-                    <h3 className="text-sm font-bold">Onboarding</h3>
+                    <h3 className="text-sm font-bold">A nossa jornada</h3>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-24 h-1.5 bg-muted rounded-full overflow-hidden">
@@ -436,7 +436,7 @@ export default function PortalViewPage() {
                 </div>
                 {onboarding.length === 0 ? (
                   <SectionCard className="p-6 text-center">
-                    <p className="text-sm text-muted-foreground">Ainda sem passos de onboarding definidos.</p>
+                    <p className="text-sm text-muted-foreground">Ainda sem fases definidas.</p>
                   </SectionCard>
                 ) : (
                   <div className="space-y-3">
@@ -1272,7 +1272,7 @@ export default function PortalViewPage() {
         {/* ═══ ONBOARDING ═══ */}
         {activeSection === 'onboarding' && (
           <div className="space-y-5">
-            <SectionTitle icon={CheckSquare}>Onboarding</SectionTitle>
+            <SectionTitle icon={CheckSquare}>A nossa jornada</SectionTitle>
             <div className="flex items-center gap-3">
               <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                 <div className="h-full rounded-full transition-all" style={{ width: `${onbPercent}%`, backgroundColor: pc }} />
@@ -1281,7 +1281,7 @@ export default function PortalViewPage() {
             </div>
             {onboarding.length === 0 ? (
               <SectionCard className="p-8 text-center">
-                <p className="text-sm text-muted-foreground">Ainda sem passos de onboarding definidos.</p>
+                <p className="text-sm text-muted-foreground">Ainda sem fases definidas.</p>
               </SectionCard>
             ) : (
               <div className="space-y-4">
