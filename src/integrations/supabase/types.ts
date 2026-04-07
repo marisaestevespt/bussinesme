@@ -5833,6 +5833,35 @@ export type Database = {
           },
         ]
       }
+      portal_visits: {
+        Row: {
+          email: string
+          id: string
+          portal_id: string
+          visited_at: string
+        }
+        Insert: {
+          email: string
+          id?: string
+          portal_id: string
+          visited_at?: string
+        }
+        Update: {
+          email?: string
+          id?: string
+          portal_id?: string
+          visited_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_visits_portal_id_fkey"
+            columns: ["portal_id"]
+            isOneToOne: false
+            referencedRelation: "client_portals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_automations: {
         Row: {
           created_at: string

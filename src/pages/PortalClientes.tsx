@@ -1,18 +1,21 @@
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Copy, ExternalLink } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Copy, ExternalLink, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { useAllPortals } from '@/hooks/usePortalData';
 import { useClients } from '@/hooks/useClients';
 import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BackNavigation } from '@/components/BackNavigation';
+
+const sb = (t: string) => supabase.from(t as any) as any;
 
 export default function PortalClientesPage() {
   const navigate = useNavigate();
@@ -21,10 +24,43 @@ export default function PortalClientesPage() {
   const clientsList = clients.data || [];
   const qc = useQueryClient();
 
+  // Fetch latest visit per portal, grouped by whether it's a client email
+  const portalIds = portals.map(p => p.id);
+  const { data: visits = [] } = useQuery({
+    queryKey: ['portal_visits', portalIds],
+    queryFn: async () => {
+      if (!portalIds.length) return [];
+      const { data, error } = await sb('portal_visits')
+        .select('portal_id, email, visited_at')
+        .in('portal_id', portalIds)
+        .order('visited_at', { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      return (data || []) as { portal_id: string; email: string; visited_at: string }[];
+    },
+    enabled: portalIds.length > 0,
+  });
+
   const getClient = (clientId: string) => clientsList.find(c => c.id === clientId);
 
+  // Build a map: portalId -> { clientVisit, anyVisit }
+  const visitMap = new Map<string, { clientEmail: string | null; clientVisitAt: string | null; lastVisitAt: string | null; lastVisitEmail: string | null }>();
+  portals.forEach(p => {
+    const client = getClient(p.client_id);
+    const clientEmail = client?.email?.toLowerCase() || null;
+    const portalVisits = visits.filter(v => v.portal_id === p.id);
+    const lastVisit = portalVisits[0] || null;
+    const clientVisit = clientEmail ? portalVisits.find(v => v.email.toLowerCase() === clientEmail) : null;
+    visitMap.set(p.id, {
+      clientEmail,
+      clientVisitAt: clientVisit?.visited_at || null,
+      lastVisitAt: lastVisit?.visited_at || null,
+      lastVisitEmail: lastVisit?.email || null,
+    });
+  });
+
   const toggleActive = async (portalId: string, current: boolean) => {
-    await (supabase.from('client_portals' as any) as any).update({ is_active: !current }).eq('id', portalId);
+    await sb('client_portals').update({ is_active: !current }).eq('id', portalId);
     qc.invalidateQueries({ queryKey: ['all_portals'] });
   };
 
@@ -38,13 +74,14 @@ export default function PortalClientesPage() {
 
         <Card>
           <CardContent className="p-0">
-            <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-7 gap-2">
+            <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-8 gap-2">
               <span>Cliente</span>
               <span>Data de Início</span>
               <span>Fim de Ciclo</span>
               <span>Tipo</span>
               <span>Link</span>
               <span>Estado</span>
+              <span>Visita Cliente</span>
               <span>Última Visita</span>
             </div>
             {isLoading ? (
@@ -55,8 +92,9 @@ export default function PortalClientesPage() {
               portals.map(p => {
                 const client = getClient(p.client_id);
                 const portalUrl = `${window.location.origin}/portal/${p.token}`;
+                const vm = visitMap.get(p.id);
                 return (
-                  <div key={p.id} className="px-4 py-2.5 text-sm grid grid-cols-7 gap-2 border-b hover:bg-muted/50 items-center">
+                  <div key={p.id} className="px-4 py-2.5 text-sm grid grid-cols-8 gap-2 border-b hover:bg-muted/50 items-center">
                     <span
                       className="truncate font-medium cursor-pointer hover:underline"
                       onClick={() => navigate(`/hub/clientes/${p.client_id}`)}
@@ -81,8 +119,34 @@ export default function PortalClientesPage() {
                     <span>
                       <Switch checked={p.is_active} onCheckedChange={() => toggleActive(p.id, p.is_active)} />
                     </span>
+                    {/* Client-specific visit */}
+                    <span className="text-xs">
+                      {vm?.clientVisitAt ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="flex items-center gap-1 text-green-600">
+                              <Eye className="h-3 w-3" />
+                              {format(parseISO(vm.clientVisitAt), 'dd/MM/yyyy HH:mm')}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>{vm.clientEmail}</TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <span className="text-muted-foreground">Ainda não acedeu</span>
+                      )}
+                    </span>
+                    {/* Last visit (anyone) */}
                     <span className="text-xs text-muted-foreground">
-                      {p.last_visit_at ? format(parseISO(p.last_visit_at), 'dd/MM/yyyy HH:mm') : '—'}
+                      {vm?.lastVisitAt ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span>{format(parseISO(vm.lastVisitAt), 'dd/MM/yyyy HH:mm')}</span>
+                          </TooltipTrigger>
+                          <TooltipContent>{vm.lastVisitEmail}</TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        '—'
+                      )}
                     </span>
                   </div>
                 );
