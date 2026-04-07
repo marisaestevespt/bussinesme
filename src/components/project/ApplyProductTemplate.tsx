@@ -169,6 +169,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
               offset_trigger: pp.offset_trigger || 'inicio_projeto',
               planned_start: phaseStart,
               planned_end: phaseEnd,
+              is_onboarding: pp.is_onboarding ?? false,
             }).select('id').single();
 
             if (insertedPhase) {
