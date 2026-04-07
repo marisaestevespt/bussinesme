@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, X, ChevronDown, ChevronRight, Layers, ListChecks, Eye, EyeOff } from 'lucide-react';
+import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 
@@ -49,12 +49,14 @@ interface Props {
 
 // ─── Deliverable Row ─────────────────────────────────────────
 function DeliverableRow({
-  template, index, isOwner, sops, onUpdate, onDelete,
+  template, index, total, isOwner, sops, onUpdate, onDelete, onMoveUp, onMoveDown,
 }: {
-  template: Template; index: number; isOwner: boolean;
+  template: Template; index: number; total: number; isOwner: boolean;
   sops: Array<{ id: string; name: string }>;
   onUpdate: (id: string, data: Record<string, unknown>) => void;
   onDelete: (id: string) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
 }) {
   const [name, setName] = useState(template.name);
   const [desc, setDesc] = useState(template.description || '');
@@ -110,9 +112,17 @@ function DeliverableRow({
           Recorrente
         </label>
         {isOwner && (
-          <Button size="icon" variant="ghost" className="h-8 w-8 opacity-0 group-hover:opacity-100" onClick={() => onDelete(template.id)}>
-            <X className="h-3 w-3" />
-          </Button>
+          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onMoveUp} disabled={index === 0}>
+              <ArrowUp className="h-3 w-3" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={onMoveDown} disabled={index === total - 1}>
+              <ArrowDown className="h-3 w-3" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => onDelete(template.id)}>
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
         )}
       </div>
       {/* Timeline config for deliverable */}
@@ -166,7 +176,7 @@ function DeliverableRow({
 // ─── Phase Card ──────────────────────────────────────────────
 function PhaseCard({
   phase, deliverables, sops, isOwner, productId,
-  onUpdatePhase, onDeletePhase, onAddDeliverable, onUpdateDeliverable, onDeleteDeliverable,
+  onUpdatePhase, onDeletePhase, onAddDeliverable, onUpdateDeliverable, onDeleteDeliverable, onSwapDeliverables,
 }: {
   phase: Phase; deliverables: Template[]; sops: Array<{ id: string; name: string }>;
   isOwner: boolean; productId: string;
@@ -175,6 +185,7 @@ function PhaseCard({
   onAddDeliverable: (phaseId: string) => void;
   onUpdateDeliverable: (id: string, data: Record<string, unknown>) => void;
   onDeleteDeliverable: (id: string) => void;
+  onSwapDeliverables: (idA: string, orderA: number, idB: string, orderB: number) => void;
 }) {
   const [expanded, setExpanded] = useState(true);
   const [sopExpanded, setSopExpanded] = useState(false);
@@ -307,8 +318,11 @@ function PhaseCard({
             <p className="text-xs text-muted-foreground italic pl-6 py-2">Sem entregas nesta fase.</p>
           )}
           {deliverables.map((d, i) => (
-            <DeliverableRow key={d.id} template={d} index={i} isOwner={isOwner} sops={sops}
-              onUpdate={onUpdateDeliverable} onDelete={onDeleteDeliverable} />
+            <DeliverableRow key={d.id} template={d} index={i} total={deliverables.length} isOwner={isOwner} sops={sops}
+              onUpdate={onUpdateDeliverable} onDelete={onDeleteDeliverable}
+              onMoveUp={() => { if (i > 0) onSwapDeliverables(d.id, d.sort_order ?? i, deliverables[i - 1].id, deliverables[i - 1].sort_order ?? (i - 1)); }}
+              onMoveDown={() => { if (i < deliverables.length - 1) onSwapDeliverables(d.id, d.sort_order ?? i, deliverables[i + 1].id, deliverables[i + 1].sort_order ?? (i + 1)); }}
+            />
           ))}
           {isOwner && (
             <Button size="sm" variant="ghost" className="text-xs ml-6" onClick={() => onAddDeliverable(phase.id)}>
@@ -379,7 +393,14 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
     });
   };
 
-  // Group deliverables by phase
+  const swapDeliverables = async (idA: string, orderA: number, idB: string, orderB: number) => {
+    await Promise.all([
+      supabase.from('product_deliverable_templates' as any).update({ sort_order: orderB } as any).eq('id', idA),
+      supabase.from('product_deliverable_templates' as any).update({ sort_order: orderA } as any).eq('id', idB),
+    ]);
+    qc.invalidateQueries({ queryKey: ['product-deliverable-templates', productId] });
+  };
+
   const sortedPhases = [...phases].sort((a, b) => a.sort_order - b.sort_order);
   
 
@@ -417,7 +438,8 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
             onUpdatePhase={(id, data) => updatePhase.mutate({ id, ...data })}
             onDeletePhase={(id) => deletePhase.mutate(id)}
             onAddDeliverable={addDeliverableToPhase}
-            onUpdateDeliverable={onUpdate} onDeleteDeliverable={onDelete} />
+            onUpdateDeliverable={onUpdate} onDeleteDeliverable={onDelete}
+            onSwapDeliverables={swapDeliverables} />
         );
       })}
 
