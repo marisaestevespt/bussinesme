@@ -558,7 +558,26 @@ export default function PortalViewPage() {
               </div>
             )}
 
-
+            {/* Feedback inline at bottom */}
+            <div className="rounded-2xl border border-border/30 bg-muted/5 p-5 space-y-3">
+              <div className="flex items-center gap-2.5">
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm font-medium text-muted-foreground">Tens algum feedback para nós?</p>
+              </div>
+              <Textarea
+                className="rounded-xl border-border/40 bg-white focus-visible:ring-1 text-sm"
+                placeholder="Partilha a tua opinião... 💬"
+                value={feedbackText}
+                onChange={e => setFeedbackText(e.target.value)}
+                rows={3}
+                style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
+              />
+              <Button className="rounded-xl text-white text-sm" style={{ backgroundColor: pc }} disabled={!feedbackText.trim()} onClick={sendFeedback}>
+                <Send className="h-3.5 w-3.5 mr-1.5" />Enviar Feedback
+              </Button>
+            </div>
+          </>
+        )}
 
         {/* ═══ QUESTIONS ═══ */}
         {activeSection === 'questions' && questions.length > 0 && (() => {
@@ -566,7 +585,6 @@ export default function PortalViewPage() {
           const allAnswered = questions.every(isQAnswered);
           const answeredCount = questions.filter(isQAnswered).length;
           const allSubmitted = allAnswered && !activeQuestionId;
-          const firstUnanswered = questions.find((q: any) => !isQAnswered(q));
           const currentOpen = activeQuestionId;
 
           const handleSubmitAll = async () => {
@@ -584,7 +602,6 @@ export default function PortalViewPage() {
             }
           };
 
-          // Group questions by question_group
           const groups: { group: string; items: any[] }[] = [];
           const seen = new Set<string>();
           for (const q of questions) {
@@ -789,7 +806,6 @@ export default function PortalViewPage() {
                 })}
               </div>
 
-              {/* Submit all button */}
               {allAnswered && !allSubmitted && (
                 <Button
                   className="w-full rounded-xl text-white font-semibold py-3"
@@ -802,27 +818,6 @@ export default function PortalViewPage() {
             </div>
           );
         })()}
-
-            {/* Feedback inline at bottom */}
-            <div className="rounded-2xl border border-border/30 bg-muted/5 p-5 space-y-3">
-              <div className="flex items-center gap-2.5">
-                <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                <p className="text-sm font-medium text-muted-foreground">Tens algum feedback para nós?</p>
-              </div>
-              <Textarea
-                className="rounded-xl border-border/40 bg-white focus-visible:ring-1 text-sm"
-                placeholder="Partilha a tua opinião... 💬"
-                value={feedbackText}
-                onChange={e => setFeedbackText(e.target.value)}
-                rows={3}
-                style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
-              />
-              <Button className="rounded-xl text-white text-sm" style={{ backgroundColor: pc }} disabled={!feedbackText.trim()} onClick={sendFeedback}>
-                <Send className="h-3.5 w-3.5 mr-1.5" />Enviar Feedback
-              </Button>
-            </div>
-          </>
-        )}
 
         {/* ═══ WORKSPACE ═══ */}
         {activeSection === 'workspace' && (
