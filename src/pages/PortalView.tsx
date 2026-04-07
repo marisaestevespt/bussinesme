@@ -227,6 +227,11 @@ export default function PortalViewPage() {
     return null;
   })();
 
+  // Override next step if questions need filling
+  const effectiveNextStep = hasUnansweredQuestions
+    ? { name: 'Preencher perguntas iniciais', phase_name: 'Perguntas', planned_end: null, _isQuestions: true }
+    : nextStep;
+
   const statusLabel = (s: string) => {
     const map: Record<string, { text: string; cls: string }> = {
       pago: { text: 'Pago', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
