@@ -320,8 +320,8 @@ function PhaseCard({
           {deliverables.map((d, i) => (
             <DeliverableRow key={d.id} template={d} index={i} total={deliverables.length} isOwner={isOwner} sops={sops}
               onUpdate={onUpdateDeliverable} onDelete={onDeleteDeliverable}
-              onMoveUp={() => { if (i > 0) onSwapDeliverables(d.id, d.sort_order ?? i, deliverables[i - 1].id, deliverables[i - 1].sort_order ?? (i - 1)); }}
-              onMoveDown={() => { if (i < deliverables.length - 1) onSwapDeliverables(d.id, d.sort_order ?? i, deliverables[i + 1].id, deliverables[i + 1].sort_order ?? (i + 1)); }}
+              onMoveUp={() => { if (i > 0) onSwapDeliverables(d.id, i, deliverables[i - 1].id, i - 1); }}
+              onMoveDown={() => { if (i < deliverables.length - 1) onSwapDeliverables(d.id, i, deliverables[i + 1].id, i + 1); }}
             />
           ))}
           {isOwner && (
