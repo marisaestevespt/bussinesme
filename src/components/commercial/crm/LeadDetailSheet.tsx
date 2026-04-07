@@ -180,7 +180,8 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
         entry_date: format(new Date(), 'yyyy-MM-dd'),
         milestone: parts,
         observations: observations || null,
-      });
+        lead_id: lead.id,
+      } as any);
 
       let createdProjectId: string | null = null;
       if (productName) {

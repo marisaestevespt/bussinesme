@@ -35,6 +35,7 @@ import { BackNavigation } from '@/components/BackNavigation';
 import { ClientFeedbackSection } from '@/components/client/ClientFeedbackSection';
 import { CustomFieldsSection } from '@/components/CustomFieldsSection';
 import { MeetingFormDialog } from '@/pages/Reunioes';
+import { LeadPreviewDialog } from '@/components/commercial/crm/LeadPreviewDialog';
 
 // ─── Meetings query ─────────────────────────────────────────────
 function useFilteredMeetings(clientId: string | undefined) {
@@ -96,6 +97,7 @@ export default function ClienteDetailPage() {
   const [offboardingNps, setOffboardingNps] = useState(true);
   const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
   const [pendingPaymentsTotal, setPendingPaymentsTotal] = useState(0);
+  const [leadPreviewId, setLeadPreviewId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -753,14 +755,28 @@ export default function ClienteDetailPage() {
                 </div>
                 {(history.data || []).length === 0 ? (
                   <p className="text-center text-muted-foreground py-8 text-sm">Sem entradas</p>
-                ) : (history.data || []).map(h => (
-                  <div key={h.id} className="px-4 py-2 text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2 border-b items-center">
-                    <Input type="date" className="h-7 text-xs" defaultValue={h.entry_date} onBlur={e => updateHistory.mutate({ id: h.id, entry_date: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={h.milestone} placeholder="O que aconteceu..." onBlur={e => updateHistory.mutate({ id: h.id, milestone: e.target.value })} />
-                    <Input className="h-7 text-xs" defaultValue={h.observations || ''} placeholder="Observações" onBlur={e => updateHistory.mutate({ id: h.id, observations: e.target.value })} />
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteHistory.mutate(h.id)}><X className="h-3 w-3" /></Button>
-                  </div>
-                ))}
+                ) : (history.data || []).map(h => {
+                  const isCrm = !!(h as any).lead_id;
+                  return isCrm ? (
+                    <div
+                      key={h.id}
+                      className="px-4 py-2.5 text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2 border-b items-center cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => setLeadPreviewId((h as any).lead_id)}
+                    >
+                      <span>{h.entry_date ? format(parseISO(h.entry_date), 'dd/MM/yyyy') : '—'}</span>
+                      <span className="text-primary font-medium">{h.milestone}</span>
+                      <span className="text-muted-foreground">{h.observations || '—'}</span>
+                      <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <div key={h.id} className="px-4 py-2 text-xs grid grid-cols-[100px_1fr_1fr_32px] gap-2 border-b items-center">
+                      <Input type="date" className="h-7 text-xs" defaultValue={h.entry_date} onBlur={e => updateHistory.mutate({ id: h.id, entry_date: e.target.value })} />
+                      <Input className="h-7 text-xs" defaultValue={h.milestone} placeholder="O que aconteceu..." onBlur={e => updateHistory.mutate({ id: h.id, milestone: e.target.value })} />
+                      <Input className="h-7 text-xs" defaultValue={h.observations || ''} placeholder="Observações" onBlur={e => updateHistory.mutate({ id: h.id, observations: e.target.value })} />
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteHistory.mutate(h.id)}><X className="h-3 w-3" /></Button>
+                    </div>
+                  );
+                })}
               </CardContent>
             </Card>
           </TabsContent>
@@ -995,6 +1011,9 @@ export default function ClienteDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Lead CRM Preview Dialog */}
+      <LeadPreviewDialog leadId={leadPreviewId} onClose={() => setLeadPreviewId(null)} />
     </AppLayout>
   );
 }

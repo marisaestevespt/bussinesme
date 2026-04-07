@@ -1076,6 +1076,7 @@ export type Database = {
           created_at: string
           entry_date: string
           id: string
+          lead_id: string | null
           milestone: string
           observations: string | null
         }
@@ -1084,6 +1085,7 @@ export type Database = {
           created_at?: string
           entry_date?: string
           id?: string
+          lead_id?: string | null
           milestone?: string
           observations?: string | null
         }
@@ -1092,6 +1094,7 @@ export type Database = {
           created_at?: string
           entry_date?: string
           id?: string
+          lead_id?: string | null
           milestone?: string
           observations?: string | null
         }
@@ -1101,6 +1104,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_history_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
             referencedColumns: ["id"]
           },
         ]

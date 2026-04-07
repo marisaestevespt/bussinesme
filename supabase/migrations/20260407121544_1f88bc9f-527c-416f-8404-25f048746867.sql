@@ -1,0 +1,1 @@
+ALTER TABLE public.client_history ADD COLUMN lead_id uuid REFERENCES public.crm_leads(id) ON DELETE SET NULL;
