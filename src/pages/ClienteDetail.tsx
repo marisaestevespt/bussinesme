@@ -619,7 +619,7 @@ export default function ClienteDetailPage() {
                 <Label className="text-xs text-muted-foreground">Whatsapp</Label>
                 <Input value={form.whatsapp || ''} onChange={e => update('whatsapp', e.target.value)} />
               </div>
-              <DateField label="Data de Conversão" value={(form as any).conversion_date || null} onChange={v => update('conversion_date', v)} />
+              <DateField label="Data de Conversão" value={form.conversion_date || null} onChange={v => update('conversion_date', v)} />
               <DateField label="Data de Início" value={form.start_date || null} onChange={v => update('start_date', v)} />
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Fim de Ciclo</Label>
