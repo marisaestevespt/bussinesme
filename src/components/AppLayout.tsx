@@ -8,6 +8,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { useSystemNotifications } from '@/hooks/useSystemNotifications';
 import { OnboardingTour } from '@/components/OnboardingTour';
 import { FloatingAiChat } from '@/components/FloatingAiChat';
+import { TabsBar } from '@/components/TabsBar';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { settings } = useBusinessSettings();
@@ -29,6 +30,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 <NotificationBell />
               </div>
             </header>
+            <TabsBar />
             <main className="flex-1 p-3 sm:p-6 overflow-auto">
               {children}
             </main>
