@@ -131,7 +131,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
           let conversionDate: Date | null = null;
           if (clientId) {
             const { data: clientRow } = await supabase.from('clients').select('conversion_date, start_date').eq('id', clientId).single();
-            const convDateStr = (clientRow as any)?.conversion_date || (clientRow as any)?.start_date;
+            const convDateStr = clientRow?.conversion_date || clientRow?.start_date;
             if (convDateStr) conversionDate = parseISO(convDateStr);
           }
 
