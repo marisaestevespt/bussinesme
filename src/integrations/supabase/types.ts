@@ -9076,6 +9076,7 @@ export type Database = {
           department: string
           id: string
           meeting_url: string
+          portal_notes: string
           project_id: string
           project_name: string
           status: string
