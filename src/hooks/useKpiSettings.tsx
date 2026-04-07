@@ -78,6 +78,7 @@ export function KpiSettingsProvider({ children }: { children: ReactNode }) {
       return data || [];
     },
     enabled: !!businessId,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Build a map: "area:key" → enabled. Missing = true (default)

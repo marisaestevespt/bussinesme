@@ -97,6 +97,7 @@ export default function ProdutoDetailPage() {
       return data || [];
     },
     enabled: !!filterVal,
+    staleTime: 2 * 60 * 1000,
   });
 
   const { data: feedbacks = [] } = useQuery(subQueryOpts('product-feedbacks', 'product_feedbacks', 'product_id', isNew ? undefined : id));
@@ -119,6 +120,7 @@ export default function ProdutoDetailPage() {
       return (data || []) as Record<string, unknown>[];
     },
     enabled: !isNew && !!id,
+    staleTime: 2 * 60 * 1000,
   });
   const { data: improvements = [] } = useQuery(subQueryOpts('product-improvements', 'product_improvements', 'product_id', isNew ? undefined : id, 'sort_order'));
   const { data: productDocuments = [] } = useQuery(subQueryOpts('product-documents', 'product_documents', 'product_id', isNew ? undefined : id, 'sort_order'));
@@ -130,6 +132,7 @@ export default function ProdutoDetailPage() {
       return (data || []) as Record<string, unknown>[];
     },
     enabled: !isNew && !!id,
+    staleTime: 2 * 60 * 1000,
   });
   const { data: productEvents = [] } = useQuery({
     queryKey: ['product-events', form.name],
@@ -139,6 +142,7 @@ export default function ProdutoDetailPage() {
       return (data || []) as Record<string, unknown>[];
     },
     enabled: !!form.name,
+    staleTime: 2 * 60 * 1000,
   });
   const { data: productMeetings = [] } = useQuery({
     queryKey: ['product-meetings', id],
@@ -148,6 +152,7 @@ export default function ProdutoDetailPage() {
       return (data || []) as Record<string, unknown>[];
     },
     enabled: !!id,
+    staleTime: 2 * 60 * 1000,
   });
 
   // ─── Mutations ───────────────────────────────────────────────
@@ -191,8 +196,13 @@ export default function ProdutoDetailPage() {
   if (!isNew && isLoading) {
     return (
       <AppLayout>
-        <div className="flex min-h-[50vh] items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <div className="space-y-6 p-6">
+          <div className="h-8 w-48 animate-pulse rounded bg-muted" />
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="h-32 animate-pulse rounded-lg bg-muted" />
+            <div className="h-32 animate-pulse rounded-lg bg-muted" />
+          </div>
+          <div className="h-64 animate-pulse rounded-lg bg-muted" />
         </div>
       </AppLayout>
     );

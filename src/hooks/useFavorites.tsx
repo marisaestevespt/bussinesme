@@ -26,6 +26,7 @@ export function useFavorites() {
       return (data || []) as Favorite[];
     },
     enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
   });
 
   const isFavorite = (path: string) => favorites.some(f => f.page_path === path);
