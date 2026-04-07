@@ -185,6 +185,20 @@ export default function PortalViewPage() {
     }
   };
 
+  const removeQuestionFile = async (qId: string, fileIndex: number) => {
+    try {
+      const question = questions.find(q => q.id === qId);
+      const existing: string[] = Array.isArray(question?.file_urls) ? question.file_urls : [];
+      const updated = existing.filter((_, i) => i !== fileIndex);
+      await sb('portal_initial_questions').update({ file_urls: updated.length ? updated : null }).eq('id', qId);
+      setQuestions(prev => prev.map(q => q.id === qId ? { ...q, file_urls: updated } : q));
+      toast.success('Ficheiro removido');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao remover ficheiro');
+    }
+  };
+
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-[#fefcfa]">
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -736,14 +750,25 @@ export default function PortalViewPage() {
                                         <div className="flex flex-wrap gap-2">
                                           {(q.file_urls as string[]).map((url: string, fi: number) => {
                                             const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
-                                            return isImg ? (
-                                              <a key={fi} href={url} target="_blank" rel="noopener noreferrer">
-                                                <img src={url} alt="" className="h-16 w-16 object-cover rounded-lg border" />
-                                              </a>
-                                            ) : (
-                                              <a key={fi} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline bg-white rounded-lg border px-2 py-1">
-                                                <FileText className="h-3 w-3" />{url.split('/').pop()?.substring(0, 25)}
-                                              </a>
+                                            return (
+                                              <div key={fi} className="relative group/file">
+                                                {isImg ? (
+                                                  <a href={url} target="_blank" rel="noopener noreferrer">
+                                                    <img src={url} alt="" className="h-16 w-16 object-cover rounded-lg border" />
+                                                  </a>
+                                                ) : (
+                                                  <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline bg-white rounded-lg border px-2 py-1">
+                                                    <FileText className="h-3 w-3" />{url.split('/').pop()?.substring(0, 25)}
+                                                  </a>
+                                                )}
+                                                <button
+                                                  onClick={() => removeQuestionFile(q.id, fi)}
+                                                  className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-white flex items-center justify-center opacity-0 group-hover/file:opacity-100 transition-opacity text-[10px] font-bold"
+                                                  title="Remover ficheiro"
+                                                >
+                                                  ✕
+                                                </button>
+                                              </div>
                                             );
                                           })}
                                         </div>
