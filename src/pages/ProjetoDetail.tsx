@@ -927,6 +927,7 @@ export default function ProjetoDetailPage() {
                       clientId={resolvedClientId}
                       clientName={local.client_name}
                       currentProduct={local.product_name || null}
+                      productId={local.product_id}
                     />
                   )}
 
