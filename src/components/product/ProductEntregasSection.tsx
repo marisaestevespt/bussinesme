@@ -20,6 +20,10 @@ interface Template {
   phase_id?: string | null;
   linked_sop_id?: string | null;
   portal_visible?: boolean;
+  duration_days?: number | null;
+  duration_unit?: string;
+  offset_days?: number | null;
+  offset_trigger?: string;
 }
 
 interface Phase {
@@ -65,46 +69,95 @@ function DeliverableRow({
     if (d !== descRef.current) { descRef.current = d; setDesc(d); }
   }, [template.description]);
 
+  const unit = template.duration_unit || 'dias_uteis';
+  const unitLabel = unit === 'dias_uteis' ? 'dias úteis' : 'dias corridos';
+
   return (
-    <div className="flex items-center gap-3 group pl-6">
-      <span className="text-xs text-muted-foreground font-mono w-6 text-right shrink-0">{index + 1}.</span>
-      <Input value={name} onChange={e => setName(e.target.value)}
-        onBlur={() => { const t = name.trim(); if (t !== template.name) { nameRef.current = t; onUpdate(template.id, { name: t }); } }}
-        className="flex-1 h-9 text-sm" placeholder="Nome da entrega..." readOnly={!isOwner} />
-      <Input value={desc} onChange={e => setDesc(e.target.value)}
-        onBlur={() => { if (desc !== (template.description || '')) { descRef.current = desc; onUpdate(template.id, { description: desc }); } }}
-        className="flex-1 h-9 text-sm" placeholder="Descrição (opcional)" readOnly={!isOwner} />
-      {sops.length > 0 && (
-        <Select value={template.linked_sop_id || 'none'}
-          onValueChange={(v) => onUpdate(template.id, { linked_sop_id: v === 'none' ? null : v })}>
-          <SelectTrigger className="h-9 text-xs w-32">
-            <SelectValue placeholder="SOP..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">Sem SOP</SelectItem>
-            {sops.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      )}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0"
-            onClick={() => onUpdate(template.id, { portal_visible: !(template.portal_visible ?? true) })}>
-            {(template.portal_visible ?? true) ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
+    <div className="space-y-1 pl-6 group">
+      <div className="flex items-center gap-3">
+        <span className="text-xs text-muted-foreground font-mono w-6 text-right shrink-0">{index + 1}.</span>
+        <Input value={name} onChange={e => setName(e.target.value)}
+          onBlur={() => { const t = name.trim(); if (t !== template.name) { nameRef.current = t; onUpdate(template.id, { name: t }); } }}
+          className="flex-1 h-9 text-sm" placeholder="Nome da entrega..." readOnly={!isOwner} />
+        <Input value={desc} onChange={e => setDesc(e.target.value)}
+          onBlur={() => { if (desc !== (template.description || '')) { descRef.current = desc; onUpdate(template.id, { description: desc }); } }}
+          className="flex-1 h-9 text-sm" placeholder="Descrição (opcional)" readOnly={!isOwner} />
+        {sops.length > 0 && (
+          <Select value={template.linked_sop_id || 'none'}
+            onValueChange={(v) => onUpdate(template.id, { linked_sop_id: v === 'none' ? null : v })}>
+            <SelectTrigger className="h-9 text-xs w-32">
+              <SelectValue placeholder="SOP..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Sem SOP</SelectItem>
+              {sops.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0"
+              onClick={() => onUpdate(template.id, { portal_visible: !(template.portal_visible ?? true) })}>
+              {(template.portal_visible ?? true) ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">
+            {(template.portal_visible ?? true) ? 'Visível no portal' : 'Oculto no portal'}
+          </TooltipContent>
+        </Tooltip>
+        <label className="flex items-center gap-1.5 shrink-0 cursor-pointer text-xs text-muted-foreground">
+          <Checkbox checked={!!template.is_recurring} onCheckedChange={(c) => onUpdate(template.id, { is_recurring: !!c })} disabled={!isOwner} />
+          Recorrente
+        </label>
+        {isOwner && (
+          <Button size="icon" variant="ghost" className="h-8 w-8 opacity-0 group-hover:opacity-100" onClick={() => onDelete(template.id)}>
+            <X className="h-3 w-3" />
           </Button>
-        </TooltipTrigger>
-        <TooltipContent side="top" className="text-xs">
-          {(template.portal_visible ?? true) ? 'Visível no portal' : 'Oculto no portal'}
-        </TooltipContent>
-      </Tooltip>
-      <label className="flex items-center gap-1.5 shrink-0 cursor-pointer text-xs text-muted-foreground">
-        <Checkbox checked={!!template.is_recurring} onCheckedChange={(c) => onUpdate(template.id, { is_recurring: !!c })} disabled={!isOwner} />
-        Recorrente
-      </label>
+        )}
+      </div>
+      {/* Timeline config for deliverable */}
       {isOwner && (
-        <Button size="icon" variant="ghost" className="h-8 w-8 opacity-0 group-hover:opacity-100" onClick={() => onDelete(template.id)}>
-          <X className="h-3 w-3" />
-        </Button>
+        <div className="flex items-center gap-3 flex-wrap ml-8 rounded-md bg-muted/30 px-2.5 py-1.5">
+          <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider">Timeline:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-muted-foreground">Começa</span>
+            <Input type="number" min={0} className="h-5 w-12 text-[10px] text-center"
+              value={template.offset_days ?? 0}
+              onChange={e => onUpdate(template.id, { offset_days: parseInt(e.target.value) || 0 })} />
+            <Select value={unit}
+              onValueChange={v => onUpdate(template.id, { duration_unit: v })}>
+              <SelectTrigger className="h-5 text-[9px] w-20 border-none shadow-none">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="dias_uteis">dias úteis</SelectItem>
+                <SelectItem value="dias_corridos">dias corridos</SelectItem>
+              </SelectContent>
+            </Select>
+            <span className="text-[10px] text-muted-foreground">após</span>
+            <Select value={template.offset_trigger || 'inicio_fase'}
+              onValueChange={v => onUpdate(template.id, { offset_trigger: v })}>
+              <SelectTrigger className="h-5 text-[9px] w-28 border-none shadow-none">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="inicio_fase">início da fase</SelectItem>
+                <SelectItem value="entrega_anterior">entrega anterior</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-muted-foreground">Duração:</span>
+            <Input type="number" min={0} className="h-5 w-12 text-[10px] text-center"
+              value={template.duration_days ?? ''}
+              placeholder="—"
+              onChange={e => {
+                const v = e.target.value ? parseInt(e.target.value) : null;
+                onUpdate(template.id, { duration_days: v });
+              }} />
+            <span className="text-[10px] text-muted-foreground">{unitLabel}</span>
+          </div>
+        </div>
       )}
     </div>
   );
