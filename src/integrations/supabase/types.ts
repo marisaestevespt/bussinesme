@@ -1414,6 +1414,7 @@ export type Database = {
           birthday: string | null
           client_files: Json | null
           client_id: string
+          conversion_date: string | null
           created_at: string
           created_by: string | null
           current_product: string | null
@@ -1442,6 +1443,7 @@ export type Database = {
           birthday?: string | null
           client_files?: Json | null
           client_id?: string
+          conversion_date?: string | null
           created_at?: string
           created_by?: string | null
           current_product?: string | null
@@ -1470,6 +1472,7 @@ export type Database = {
           birthday?: string | null
           client_files?: Json | null
           client_id?: string
+          conversion_date?: string | null
           created_at?: string
           created_by?: string | null
           current_product?: string | null
