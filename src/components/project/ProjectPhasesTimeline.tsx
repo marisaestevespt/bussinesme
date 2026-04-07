@@ -153,9 +153,10 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
           .sort((a, b) => a.sort_order - b.sort_order);
 
         let prevDelEnd: Date = phaseStart;
-        for (const del of phaseDels) {
+        for (let di = 0; di < phaseDels.length; di++) {
+          const del = phaseDels[di];
           let delStart: Date;
-          if (del.offset_trigger === 'entrega_anterior' && del.sort_order > 0) {
+          if (del.offset_trigger === 'entrega_anterior' && di > 0) {
             delStart = del.duration_unit === 'dias_uteis'
               ? addBusinessDays(prevDelEnd, del.offset_days || 0)
               : addCalendarDays(prevDelEnd, del.offset_days || 0);
@@ -165,12 +166,10 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
               : addCalendarDays(phaseStart, del.offset_days || 0);
           }
 
-          const delDuration = del.duration_days || 0;
-          const delEnd = delDuration > 0
-            ? (del.duration_unit === 'dias_uteis'
-              ? addBusinessDays(delStart, delDuration)
-              : addCalendarDays(delStart, delDuration))
-            : delStart;
+          const delDuration = Math.max(del.duration_days || 1, 1);
+          const delEnd = del.duration_unit === 'dias_uteis'
+            ? addBusinessDays(delStart, delDuration)
+            : addCalendarDays(delStart, delDuration);
 
           await (supabase as any).from('project_deliverables').update({
             planned_start: format(delStart, 'yyyy-MM-dd'),
