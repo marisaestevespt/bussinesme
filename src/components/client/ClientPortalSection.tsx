@@ -203,6 +203,34 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
             </div>
           </div>
 
+          {/* Slug personalizado */}
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Slug personalizado (URL curta)</Label>
+            <div className="flex gap-2 items-center">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">{window.location.origin}/portal/</span>
+              <Input
+                className="h-7 text-xs w-48"
+                placeholder="ex: clever-counts"
+                defaultValue={slug || ''}
+                onBlur={async (e) => {
+                  const val = e.target.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+                  if (val === (slug || '')) return;
+                  if (!val) {
+                    await supabase.from('client_portals').update({ slug: null } as any).eq('id', portalId!);
+                    queryClient.invalidateQueries({ queryKey: ['portal', clientId] });
+                    toast.success('Slug removido');
+                    return;
+                  }
+                  const { error } = await supabase.from('client_portals').update({ slug: val } as any).eq('id', portalId!);
+                  if (error?.code === '23505') { toast.error('Este slug já está em uso'); return; }
+                  if (error) { toast.error('Erro ao guardar slug'); return; }
+                  queryClient.invalidateQueries({ queryKey: ['portal', clientId] });
+                  toast.success('Slug guardado');
+                }}
+              />
+            </div>
+          </div>
+
           {/* Tipo */}
           <div className="text-xs text-muted-foreground">
             Tipo: <Badge variant="outline">{portalData.portal_type === 'projeto_unico' ? 'Projeto Único' : 'Produto Mensal'}</Badge>
