@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { enrichQuestionsWithAutoFill } from '@/lib/portalAutoFill';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';

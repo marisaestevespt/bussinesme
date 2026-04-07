@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { enrichQuestionsWithAutoFill } from '@/lib/portalAutoFill';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { AppLayout } from '@/components/AppLayout';
