@@ -9139,6 +9139,10 @@ export type Database = {
         Args: { _email: string; _token: string }
         Returns: boolean
       }
+      portal_toggle_deliverable: {
+        Args: { _completed: boolean; _deliverable_id: string; _token: string }
+        Returns: boolean
+      }
       portal_toggle_onboarding_step: {
         Args: { _completed: boolean; _step_id: string; _token: string }
         Returns: boolean

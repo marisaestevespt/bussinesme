@@ -536,10 +536,25 @@ export default function PortalViewPage() {
                                     const dDone = d.status === 'concluido' || d.status === 'concluida';
                                     const isClient = (d.responsible_type || 'equipa') === 'cliente';
                                     return (
-                                      <div key={d.id} className={`flex items-start gap-3 p-3 rounded-lg border ${dDone ? 'bg-muted/30 border-border/20' : 'bg-background border-border/40'}`}>
+                                      <div key={d.id} className={`flex items-start gap-3 p-3 rounded-lg border ${dDone ? 'bg-muted/30 border-border/20' : 'bg-background border-border/40'} ${isClient && !dDone ? 'cursor-pointer hover:border-primary/40' : ''}`}
+                                        onClick={async () => {
+                                          if (!isClient) return;
+                                          const newCompleted = !dDone;
+                                          await (supabase as any).rpc('portal_toggle_deliverable', { _token: token, _deliverable_id: d.id, _completed: newCompleted });
+                                          // Refresh phases
+                                          const res = await (supabase as any).rpc('get_portal_phases', { _token: token });
+                                          const phasesData = res.data || [];
+                                          const parsed = Array.isArray(phasesData) ? phasesData : [];
+                                          const all = parsed.map((p: any) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
+                                          setPhases(all);
+                                          setOnboarding(all);
+                                        }}
+                                      >
                                         {dDone
                                           ? <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                                          : <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0 mt-0.5" />}
+                                          : isClient
+                                            ? <Circle className="h-4 w-4 text-primary/60 shrink-0 mt-0.5" />
+                                            : <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0 mt-0.5" />}
                                         <div className="flex-1 min-w-0">
                                           <p className={`text-sm ${dDone ? 'text-muted-foreground line-through' : 'font-medium'}`}>{d.name}</p>
                                           <div className="flex items-center gap-2 mt-1 flex-wrap">
