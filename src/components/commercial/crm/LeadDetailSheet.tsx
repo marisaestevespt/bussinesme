@@ -261,16 +261,18 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
                     .order('group_sort_order')
                     .order('sort_order');
                   if (diagQuestions?.length) {
-                    await supabase.from('portal_initial_questions').insert(
-                      diagQuestions.map((dq, i) => ({
+                    const { data: businessData } = await supabase.from('business_setup').select('*').limit(1).maybeSingle();
+                    const clientData = { email: lead.email, full_name: lead.name };
+                    const rows = diagQuestions.map((dq, i) => ({
                         portal_id: portal.id,
                         question: dq.question,
                         sort_order: dq.sort_order ?? i,
                         question_group: dq.question_group || null,
                         answer_type: dq.answer_type || 'text',
                         group_sort_order: dq.group_sort_order ?? 0,
-                      }))
-                    );
+                    }));
+                    const enrichedRows = enrichQuestionsWithAutoFill(rows, clientData, businessData || null);
+                    await supabase.from('portal_initial_questions').insert(enrichedRows as any);
                   }
                 }
               }
