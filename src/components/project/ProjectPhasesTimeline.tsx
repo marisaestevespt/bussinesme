@@ -581,5 +581,31 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
         </div>
       </CardContent>
     </Card>
+
+    {/* Cascade recalculation prompt */}
+    <AlertDialog open={!!cascadePrompt} onOpenChange={(open) => { if (!open) setCascadePrompt(null); }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            Atraso detetado
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {cascadePrompt?.type === 'phase_end'
+              ? `A data de fim desta fase foi adiada ${cascadePrompt.delayDays} dia(s).`
+              : `A data de fim desta entrega foi adiada ${cascadePrompt?.delayDays} dia(s).`
+            }
+            {' '}Queres recalcular as datas das entregas e fases seguintes?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Não, manter</AlertDialogCancel>
+          <AlertDialogAction onClick={() => cascadePrompt && applyCascade(cascadePrompt.delayDays, cascadePrompt.phaseIdx)}>
+            Sim, recalcular (+{cascadePrompt?.delayDays} dias)
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
