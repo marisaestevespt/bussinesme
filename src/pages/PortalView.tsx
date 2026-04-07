@@ -215,15 +215,17 @@ export default function PortalViewPage() {
   const totalOnb = onboarding.length;
   const onbPercent = totalOnb > 0 ? Math.round((completedOnb / totalOnb) * 100) : 0;
 
-  // Find next pending deliverable across all onboarding phases
-  const nextTask = (() => {
+  // Find next pending deliverable per responsible type
+  const findNextByType = (type: string) => {
     for (const phase of onboarding) {
       const dels = phase.deliverables || [];
-      const pending = dels.find((d: any) => d.status !== 'concluido' && d.status !== 'concluida');
+      const pending = dels.find((d: any) => d.status !== 'concluido' && d.status !== 'concluida' && (d.responsible_type || 'equipa') === type);
       if (pending) return { ...pending, phase_name: phase.name };
     }
     return null;
-  })();
+  };
+  const nextClientTask = findNextByType('cliente');
+  const nextTeamTask = findNextByType('equipa');
 
   const statusLabel = (s: string) => {
     const map: Record<string, { text: string; cls: string }> = {
