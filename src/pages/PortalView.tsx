@@ -436,7 +436,7 @@ export default function PortalViewPage() {
                 </div>
                 {onboarding.length === 0 ? (
                   <SectionCard className="p-6 text-center">
-                    <p className="text-sm text-muted-foreground">Ainda sem passos de onboarding definidos.</p>
+                    <p className="text-sm text-muted-foreground">Ainda sem fases definidas.</p>
                   </SectionCard>
                 ) : (
                   <div className="space-y-3">
@@ -1281,7 +1281,7 @@ export default function PortalViewPage() {
             </div>
             {onboarding.length === 0 ? (
               <SectionCard className="p-8 text-center">
-                <p className="text-sm text-muted-foreground">Ainda sem passos de onboarding definidos.</p>
+                <p className="text-sm text-muted-foreground">Ainda sem fases definidas.</p>
               </SectionCard>
             ) : (
               <div className="space-y-4">
