@@ -393,7 +393,14 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
     });
   };
 
-  // Group deliverables by phase
+  const swapDeliverables = async (idA: string, orderA: number, idB: string, orderB: number) => {
+    await Promise.all([
+      supabase.from('product_deliverable_templates' as any).update({ sort_order: orderB } as any).eq('id', idA),
+      supabase.from('product_deliverable_templates' as any).update({ sort_order: orderA } as any).eq('id', idB),
+    ]);
+    qc.invalidateQueries({ queryKey: ['product-deliverable-templates', productId] });
+  };
+
   const sortedPhases = [...phases].sort((a, b) => a.sort_order - b.sort_order);
   
 
@@ -431,7 +438,8 @@ export function ProductEntregasSection({ deliverableTemplates, isOwner, productI
             onUpdatePhase={(id, data) => updatePhase.mutate({ id, ...data })}
             onDeletePhase={(id) => deletePhase.mutate(id)}
             onAddDeliverable={addDeliverableToPhase}
-            onUpdateDeliverable={onUpdate} onDeleteDeliverable={onDelete} />
+            onUpdateDeliverable={onUpdate} onDeleteDeliverable={onDelete}
+            onSwapDeliverables={swapDeliverables} />
         );
       })}
 
