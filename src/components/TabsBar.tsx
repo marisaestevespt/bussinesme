@@ -86,3 +86,31 @@ export function TabsBar() {
     </div>
   );
 }
+
+/** Standalone "+" button for the header — always visible */
+export function NewTabButton() {
+  const { tabs, openTab } = useAppTabs();
+
+  if (tabs.length >= 10) return null;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Plus className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        {QUICK_PAGES.map(p => (
+          <DropdownMenuItem
+            key={p.path}
+            onClick={() => openTab(p.path, p.title)}
+            disabled={tabs.some(t => t.path === p.path)}
+          >
+            {p.title}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
