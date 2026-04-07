@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import {
   usePortal, usePortalFaqs, usePortalQuestions, usePortalFeedback,
-  usePortalComments, usePortalTimeline,
+  usePortalComments,
   getPortalTypeFromProduct, Portal
 } from '@/hooks/usePortalData';
 import { useProducts, Product } from '@/hooks/useProducts';
@@ -41,7 +41,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
   const { questions, addQuestion, updateQuestion, deleteQuestion } = usePortalQuestions(portalId);
   const { feedback } = usePortalFeedback(portalId);
   const { comments, addComment } = usePortalComments(portalId);
-  const { phases, addPhase, updatePhase, deletePhase } = usePortalTimeline(portalId);
+  
   
 
   const [replyText, setReplyText] = useState('');
@@ -330,31 +330,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
       </Card>
 
 
-      {/* Timeline phases (projeto_unico) */}
-      {portalData.show_timeline && (
-        <Card>
-          <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm">Timeline do Projeto</CardTitle>
-            <Button size="sm" variant="outline" onClick={() => addPhase.mutate({ portal_id: portalId!, title: '', sort_order: (phases.data?.length || 0) })}>
-              <Plus className="h-3 w-3 mr-1" />Nova Fase
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {(phases.data || []).map(p => (
-              <div key={p.id} className="flex gap-2 items-center">
-                <Input className="h-7 text-xs flex-1" defaultValue={p.title} placeholder="Título da fase" onBlur={e => updatePhase.mutate({ id: p.id, title: e.target.value })} />
-                <select className="h-7 text-xs border rounded px-2 bg-background" defaultValue={p.status} onChange={e => updatePhase.mutate({ id: p.id, status: e.target.value })}>
-                  <option value="por_comecar">Por começar</option>
-                  <option value="em_curso">Em curso</option>
-                  <option value="concluido">Concluído</option>
-                </select>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deletePhase.mutate(p.id)}><X className="h-3 w-3" /></Button>
-              </div>
-            ))}
-            {(phases.data || []).length === 0 && <p className="text-xs text-muted-foreground">Sem fases definidas</p>}
-          </CardContent>
-        </Card>
-      )}
+      {/* Timeline phases — now managed via project_phases, visible in portal automatically */}
 
 
       {/* Materials */}

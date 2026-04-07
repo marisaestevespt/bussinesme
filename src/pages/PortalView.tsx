@@ -52,7 +52,6 @@ export default function PortalViewPage() {
   const [onboarding, setOnboarding] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [phases, setPhases] = useState<any[]>([]);
-  const [projectPhases, setProjectPhases] = useState<any[]>([]);
   
   const [projectHistory, setProjectHistory] = useState<any[]>([]);
   const [portalMaterials, setPortalMaterials] = useState<any[]>([]);
@@ -92,7 +91,7 @@ export default function PortalViewPage() {
     setSettings(settingsRes.data);
     const pid = portalData.id;
     const cid = portalData.client_id;
-    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, phasesR, projPhasesR, historyR, materialsR, contractR] = await Promise.all([
+    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, projPhasesR, historyR, materialsR, contractR] = await Promise.all([
       sb('portal_faqs').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_initial_questions').select('*').eq('portal_id', pid).order('group_sort_order').order('sort_order'),
       sb('portal_comments').select('*').eq('portal_id', pid).order('created_at', { ascending: true }),
@@ -101,7 +100,6 @@ export default function PortalViewPage() {
       (supabase as any).rpc('get_portal_payments', { _token: token }),
       (supabase as any).rpc('get_portal_onboarding', { _token: token }),
       supabase.from('tasks').select('*').eq('visible_in_portal', true),
-      sb('portal_timeline_phases').select('*').eq('portal_id', pid).order('sort_order'),
       (supabase as any).rpc('get_portal_phases', { _token: token }),
       (supabase as any).rpc('get_portal_project_history', { _token: token }),
       sb('portal_materials').select('*').eq('portal_id', pid).order('created_at', { ascending: false }),
@@ -115,11 +113,10 @@ export default function PortalViewPage() {
     setPayments((paymentsR as any).data || []);
     setOnboarding(onbR.data || []);
     setTasks((tasksR as any).data || []);
-    setPhases(phasesR.data || []);
-    const pp = (projPhasesR as any).data || [];
-    setProjectPhases(pp);
-    // If project phases exist, use them instead of manual portal_timeline_phases
-    if (pp.length > 0) setPhases(pp.map((p: any, i: number) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status })));
+    // get_portal_phases now returns jsonb with deliverables included
+    const phasesData = (projPhasesR as any).data || [];
+    const parsedPhases = Array.isArray(phasesData) ? phasesData : [];
+    setPhases(parsedPhases.map((p: any) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status })));
     setProjectHistory((historyR as any).data || []);
     setPortalMaterials(materialsR.data || []);
     setContractDocs((contractR as any).data || []);
@@ -234,7 +231,7 @@ export default function PortalViewPage() {
 
   // Current active phase for status display
   const activePhase = phases.find((p: any) => p.status === 'em_curso');
-  const completedPhases = phases.filter((p: any) => p.status === 'concluido').length;
+  const completedPhases = phases.filter((p: any) => p.status === 'concluido' || p.status === 'concluida').length;
   const projectProgress = phases.length > 0 ? Math.round((completedPhases / phases.length) * 100) : 0;
 
   return (
@@ -773,7 +770,7 @@ export default function PortalViewPage() {
             {/* Project phases - Cards with progress bar */}
             {(() => {
               const total = phases.length;
-              const done = phases.filter((p: any) => p.status === 'concluido').length;
+              const done = phases.filter((p: any) => p.status === 'concluido' || p.status === 'concluida').length;
               const pct = total > 0 ? Math.round((done / total) * 100) : 0;
               return (
                 <SectionCard className="p-6">
@@ -787,37 +784,58 @@ export default function PortalViewPage() {
                       <div className="h-2.5 rounded-full bg-muted/40 mb-5 overflow-hidden">
                         <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: pc }} />
                       </div>
-                      {/* Phase cards grid */}
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {/* Phase timeline */}
+                      <div className="space-y-4">
                         {phases.map((p: any, i: number) => {
-                          const isDone = p.status === 'concluido';
+                          const isDone = p.status === 'concluido' || p.status === 'concluida';
                           const isActive = p.status === 'em_curso';
+                          const deliverables = Array.isArray(p.deliverables) ? p.deliverables : [];
                           return (
-                            <div
-                              key={p.id}
-                              className={`rounded-xl border p-4 text-center transition-all ${
-                                isDone ? 'border-emerald-200 bg-emerald-50/50' :
-                                isActive ? 'border-2 shadow-sm' : 'border-border/30 bg-muted/10'
-                              }`}
-                              style={isActive ? { borderColor: pc, backgroundColor: pcAlpha(0.04) } : undefined}
-                            >
-                              <div className="flex items-center justify-center mb-2">
+                            <div key={p.id} className={`rounded-xl border p-4 transition-all ${
+                              isDone ? 'border-emerald-200 bg-emerald-50/50' :
+                              isActive ? 'border-2 shadow-sm' : 'border-border/30 bg-muted/10'
+                            }`} style={isActive ? { borderColor: pc, backgroundColor: pcAlpha(0.04) } : undefined}>
+                              <div className="flex items-center gap-3">
                                 {isDone ? (
-                                  <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+                                  <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
                                 ) : isActive ? (
-                                  <div className="h-6 w-6 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: pc }}>
+                                  <div className="h-5 w-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0" style={{ backgroundColor: pc }}>
                                     {i + 1}
                                   </div>
                                 ) : (
-                                  <Circle className="h-6 w-6 text-muted-foreground/40" />
+                                  <Circle className="h-5 w-5 text-muted-foreground/40 shrink-0" />
                                 )}
+                                <div className="flex-1 min-w-0">
+                                  <p className={`text-sm font-medium ${isDone ? 'text-muted-foreground line-through' : ''}`}>{p.title || p.name}</p>
+                                  {p.description && <p className="text-xs text-muted-foreground mt-0.5">{p.description}</p>}
+                                </div>
+                                <span className={`text-[10px] font-medium shrink-0 ${
+                                  isDone ? 'text-emerald-600' : isActive ? '' : 'text-muted-foreground'
+                                }`} style={isActive ? { color: pc } : undefined}>
+                                  {isDone ? 'Concluído' : isActive ? 'Em curso' : 'Por começar'}
+                                </span>
                               </div>
-                              <p className={`text-xs font-medium leading-tight ${isDone ? 'text-muted-foreground line-through' : ''}`}>{p.title}</p>
-                              <p className={`text-[10px] mt-1 ${
-                                isDone ? 'text-emerald-600' : isActive ? 'font-medium' : 'text-muted-foreground'
-                              }`} style={isActive ? { color: pc } : undefined}>
-                                {isDone ? 'Concluído' : isActive ? 'Em curso' : 'Por começar'}
-                              </p>
+                              {/* Deliverables / Marcos */}
+                              {deliverables.length > 0 && (
+                                <div className="mt-3 pl-8 space-y-1.5">
+                                  {deliverables.map((d: any) => {
+                                    const dDone = d.status === 'concluido';
+                                    const dActive = d.status === 'em_progresso';
+                                    return (
+                                      <div key={d.id} className="flex items-center gap-2">
+                                        {dDone ? (
+                                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                                        ) : dActive ? (
+                                          <div className="h-3.5 w-3.5 rounded-full border-2 shrink-0" style={{ borderColor: pc }} />
+                                        ) : (
+                                          <Circle className="h-3.5 w-3.5 text-muted-foreground/30 shrink-0" />
+                                        )}
+                                        <span className={`text-xs ${dDone ? 'text-muted-foreground line-through' : ''}`}>{d.name}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
                           );
                         })}

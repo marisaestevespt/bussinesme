@@ -17,6 +17,7 @@ interface Template {
   is_recurring?: boolean;
   sort_order?: number;
   phase_id?: string | null;
+  linked_sop_id?: string | null;
 }
 
 interface Phase {
@@ -38,9 +39,10 @@ interface Props {
 
 // ─── Deliverable Row ─────────────────────────────────────────
 function DeliverableRow({
-  template, index, isOwner, onUpdate, onDelete,
+  template, index, isOwner, sops, onUpdate, onDelete,
 }: {
   template: Template; index: number; isOwner: boolean;
+  sops: Array<{ id: string; name: string }>;
   onUpdate: (id: string, data: Record<string, unknown>) => void;
   onDelete: (id: string) => void;
 }) {
@@ -66,6 +68,18 @@ function DeliverableRow({
       <Input value={desc} onChange={e => setDesc(e.target.value)}
         onBlur={() => { if (desc !== (template.description || '')) { descRef.current = desc; onUpdate(template.id, { description: desc }); } }}
         className="flex-1 h-9 text-sm" placeholder="Descrição (opcional)" readOnly={!isOwner} />
+      {sops.length > 0 && (
+        <Select value={template.linked_sop_id || 'none'}
+          onValueChange={(v) => onUpdate(template.id, { linked_sop_id: v === 'none' ? null : v })}>
+          <SelectTrigger className="h-9 text-xs w-32">
+            <SelectValue placeholder="SOP..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Sem SOP</SelectItem>
+            {sops.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      )}
       <label className="flex items-center gap-1.5 shrink-0 cursor-pointer text-xs text-muted-foreground">
         <Checkbox checked={!!template.is_recurring} onCheckedChange={(c) => onUpdate(template.id, { is_recurring: !!c })} disabled={!isOwner} />
         Recorrente
@@ -168,7 +182,7 @@ function PhaseCard({
             <p className="text-xs text-muted-foreground italic pl-6 py-2">Sem entregas nesta fase.</p>
           )}
           {deliverables.map((d, i) => (
-            <DeliverableRow key={d.id} template={d} index={i} isOwner={isOwner}
+            <DeliverableRow key={d.id} template={d} index={i} isOwner={isOwner} sops={sops}
               onUpdate={onUpdateDeliverable} onDelete={onDeleteDeliverable} />
           ))}
           {isOwner && (

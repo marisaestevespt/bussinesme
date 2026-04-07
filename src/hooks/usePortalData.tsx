@@ -8,7 +8,7 @@ export type PortalFaq = Tables<'portal_faqs'>;
 export type PortalInitialQuestion = Tables<'portal_initial_questions'>;
 export type PortalFeedback = Tables<'portal_feedback'>;
 export type PortalComment = Tables<'portal_comments'>;
-export type PortalTimelinePhase = Tables<'portal_timeline_phases'>;
+// portal_timeline_phases removed — phases now come from project_phases via get_portal_phases RPC
 export type PortalMonthlySummary = Tables<'portal_monthly_summaries'>;
 
 // Determine portal type from product type
@@ -212,48 +212,7 @@ export function usePortalComments(portalId: string | undefined) {
   return { comments, addComment };
 }
 
-// Portal Timeline Phases
-export function usePortalTimeline(portalId: string | undefined) {
-  const qc = useQueryClient();
-  const key = ['portal_timeline', portalId];
-
-  const phases = useQuery({
-    queryKey: key,
-    queryFn: async () => {
-      if (!portalId) return [];
-      const { data, error } = await supabase.from('portal_timeline_phases').select('*').eq('portal_id', portalId).order('sort_order');
-      if (error) throw error;
-      return (data || []) as PortalTimelinePhase[];
-    },
-    enabled: !!portalId,
-  });
-
-  const addPhase = useMutation({
-    mutationFn: async (entry: TablesInsert<'portal_timeline_phases'>) => {
-      const { error } = await supabase.from('portal_timeline_phases').insert(entry);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
-  });
-
-  const updatePhase = useMutation({
-    mutationFn: async ({ id, ...fields }: TablesUpdate<'portal_timeline_phases'> & { id: string }) => {
-      const { error } = await supabase.from('portal_timeline_phases').update(fields).eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
-  });
-
-  const deletePhase = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('portal_timeline_phases').delete().eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
-  });
-
-  return { phases, addPhase, updatePhase, deletePhase };
-}
+// Portal Timeline — now reads from project_phases via get_portal_phases RPC (legacy usePortalTimeline removed)
 
 // Portal Monthly Summaries
 export function usePortalSummaries(portalId: string | undefined) {

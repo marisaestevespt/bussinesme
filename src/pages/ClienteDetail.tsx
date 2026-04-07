@@ -397,10 +397,10 @@ export default function ClienteDetailPage() {
               .select('name, product_name, start_date, deadline, notes')
               .eq('id', proj.id).maybeSingle();
 
-            // Fetch timeline phases if any
-            const { data: projPhases } = await supabase.from('portal_timeline_phases' as any)
-              .select('title, status, sort_order')
-              .eq('portal_id', portalId)
+            // Fetch project phases from project_phases
+            const { data: projPhases } = await (supabase as any).from('project_phases')
+              .select('name, status, sort_order')
+              .eq('project_id', proj.id)
               .order('sort_order');
 
             // Fetch monthly summaries if any
@@ -418,13 +418,12 @@ export default function ClienteDetailPage() {
               start_date: projDetail?.start_date || null,
               end_date: format(new Date(), 'yyyy-MM-dd'),
               status: 'concluido',
-              timeline_phases: projPhases || [],
+              timeline_phases: (projPhases || []).map((p: any) => ({ title: p.name, status: p.status, sort_order: p.sort_order })),
               monthly_summaries: projSummaries || [],
               notes: projDetail?.notes || null,
             });
 
-            // Clear current timeline phases and summaries for the new cycle
-            await supabase.from('portal_timeline_phases' as any).delete().eq('portal_id', portalId);
+            // Clear current summaries for the new cycle
             await supabase.from('portal_monthly_summaries' as any).delete().eq('portal_id', portalId);
           }
         }

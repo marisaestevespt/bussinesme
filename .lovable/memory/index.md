@@ -50,6 +50,7 @@ comeca-aqui, agenda, reunioes, processos, projetos, tarefas, acessos, mural, adm
 - [Payment generator](mem://features/payment-generator.md) — Payment generator logic in ProjectGestaoTab
 - [Permissions system](mem://features/permissions-system.md) — Multi-dept, sensitive access, per-page grants
 - [Planning improvements](mem://features/planning-improvements.md) — Planning module improvements
+- [Phases flow](mem://features/phases-flow.md) — Product→Project→Portal phases/deliverables single source of truth
 - [Product deliverable templates](mem://features/product-deliverable-templates.md) — Product deliverable templates
 - [Products](mem://features/produtos.md) — Product detail page structure and tab organization
 - [Routines system](mem://features/routines-system.md) — Routines auto-generate tasks via daily cron; managed in Tarefas > Rotinas tab

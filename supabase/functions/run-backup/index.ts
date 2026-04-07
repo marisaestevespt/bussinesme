@@ -67,7 +67,7 @@ const TABLES_TO_BACKUP = [
   "executive_objectives", "executive_quarterly_analysis", "executive_weekly_routines",
   "time_entries", "notifications", "user_favorites", "recommendations",
   "absence_coverage", "suppliers", "audit_logs",
-  "portal_comments", "portal_timeline_phases", "portal_monthly_summaries",
+  "portal_comments", "portal_monthly_summaries",
   "portal_initial_questions", "portal_materials", "portal_feedback",
   "portal_faqs", "portal_project_history",
   "weekly_align_notes", "metric_history",

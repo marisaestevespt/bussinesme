@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CheckCircle2, Circle, Clock, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -18,14 +17,29 @@ interface ProjectPhase {
   linked_sop_id: string | null;
 }
 
-const STATUS_OPTIONS = [
+interface ProjectDeliverable {
+  id: string;
+  name: string;
+  description: string | null;
+  status: string;
+  sort_order: number;
+  phase_id: string | null;
+}
+
+const PHASE_STATUS = [
   { value: 'pendente', label: 'Pendente', icon: Circle, color: 'text-muted-foreground' },
   { value: 'em_curso', label: 'Em curso', icon: Clock, color: 'text-info' },
   { value: 'concluida', label: 'Concluída', icon: CheckCircle2, color: 'text-success' },
 ];
 
+const DELIVERABLE_STATUS = [
+  { value: 'pendente', label: 'Pendente' },
+  { value: 'em_progresso', label: 'Em progresso' },
+  { value: 'concluido', label: 'Concluído' },
+];
+
 function getStatusInfo(status: string) {
-  return STATUS_OPTIONS.find(s => s.value === status) || STATUS_OPTIONS[0];
+  return PHASE_STATUS.find(s => s.value === status) || PHASE_STATUS[0];
 }
 
 interface Props {
@@ -34,13 +48,22 @@ interface Props {
 
 export function ProjectPhasesTimeline({ projectId }: Props) {
   const qc = useQueryClient();
-  const key = ['project-phases', projectId];
+  const phaseKey = ['project-phases', projectId];
+  const delKey = ['project-deliverables', projectId];
 
   const { data: phases = [] } = useQuery({
-    queryKey: key,
+    queryKey: phaseKey,
     queryFn: async () => {
       const { data } = await (supabase as any).from('project_phases').select('*').eq('project_id', projectId).order('sort_order');
       return (data || []) as ProjectPhase[];
+    },
+  });
+
+  const { data: deliverables = [] } = useQuery({
+    queryKey: delKey,
+    queryFn: async () => {
+      const { data } = await (supabase as any).from('project_deliverables').select('*').eq('project_id', projectId).order('sort_order');
+      return (data || []) as ProjectDeliverable[];
     },
   });
 
@@ -59,12 +82,18 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
       }
       await (supabase as any).from('project_phases').update(updates).eq('id', id);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: phaseKey }),
+  });
+
+  const updateDeliverable = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      await (supabase as any).from('project_deliverables').update({ status }).eq('id', id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: delKey }),
   });
 
   if (phases.length === 0) return null;
 
-  const currentPhaseIdx = phases.findIndex(p => p.status === 'em_curso');
   const completedCount = phases.filter(p => p.status === 'concluida').length;
   const progress = Math.round((completedCount / phases.length) * 100);
 
@@ -84,6 +113,9 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
             const si = getStatusInfo(phase.status);
             const Icon = si.icon;
             const isLast = i === phases.length - 1;
+            const phaseDeliverables = deliverables
+              .filter(d => d.phase_id === phase.id)
+              .sort((a, b) => a.sort_order - b.sort_order);
 
             return (
               <div key={phase.id} className="flex gap-3 relative">
@@ -112,7 +144,7 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {STATUS_OPTIONS.map(s => (
+                        {PHASE_STATUS.map(s => (
                           <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                         ))}
                       </SelectContent>
@@ -120,6 +152,33 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
                   </div>
                   {phase.description && (
                     <p className="text-xs text-muted-foreground mt-0.5">{phase.description}</p>
+                  )}
+                  {/* Deliverables */}
+                  {phaseDeliverables.length > 0 && (
+                    <div className="mt-2 space-y-1 pl-1">
+                      {phaseDeliverables.map(d => (
+                        <div key={d.id} className="flex items-center gap-2">
+                          {d.status === 'concluido' ? (
+                            <CheckCircle2 className="h-3 w-3 text-success shrink-0" />
+                          ) : d.status === 'em_progresso' ? (
+                            <Clock className="h-3 w-3 text-info shrink-0" />
+                          ) : (
+                            <Circle className="h-3 w-3 text-muted-foreground/40 shrink-0" />
+                          )}
+                          <span className={cn('text-xs flex-1', d.status === 'concluido' && 'text-muted-foreground line-through')}>{d.name}</span>
+                          <Select value={d.status} onValueChange={(v) => updateDeliverable.mutate({ id: d.id, status: v })}>
+                            <SelectTrigger className="h-5 text-[9px] w-20 border-none shadow-none p-0.5">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {DELIVERABLE_STATUS.map(s => (
+                                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
