@@ -91,14 +91,13 @@ export default function PortalViewPage() {
     setSettings(settingsRes.data);
     const pid = portalData.id;
     const cid = portalData.client_id;
-    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, onbR, tasksR, projPhasesR, historyR, materialsR, contractR] = await Promise.all([
+    const [faqsR, questionsR, commentsR, feedbackR, meetingsR, paymentsR, tasksR, projPhasesR, historyR, materialsR, contractR] = await Promise.all([
       sb('portal_faqs').select('*').eq('portal_id', pid).order('sort_order'),
       sb('portal_initial_questions').select('*').eq('portal_id', pid).order('group_sort_order').order('sort_order'),
       sb('portal_comments').select('*').eq('portal_id', pid).order('created_at', { ascending: true }),
       sb('portal_feedback').select('*').eq('portal_id', pid).order('submitted_at', { ascending: false }),
       (supabase as any).rpc('get_portal_meetings', { _token: token }),
       (supabase as any).rpc('get_portal_payments', { _token: token }),
-      (supabase as any).rpc('get_portal_onboarding', { _token: token }),
       supabase.from('tasks').select('*').eq('visible_in_portal', true),
       (supabase as any).rpc('get_portal_phases', { _token: token }),
       (supabase as any).rpc('get_portal_project_history', { _token: token }),
@@ -111,7 +110,6 @@ export default function PortalViewPage() {
     setFeedback(feedbackR.data || []);
     setMeetings((meetingsR as any).data || []);
     setPayments((paymentsR as any).data || []);
-    setOnboarding(onbR.data || []);
     setTasks((tasksR as any).data || []);
     // get_portal_phases now returns jsonb with deliverables included
     const phasesData = (projPhasesR as any).data || [];
