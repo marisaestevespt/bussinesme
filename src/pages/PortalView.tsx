@@ -185,6 +185,20 @@ export default function PortalViewPage() {
     }
   };
 
+  const removeQuestionFile = async (qId: string, fileIndex: number) => {
+    try {
+      const question = questions.find(q => q.id === qId);
+      const existing: string[] = Array.isArray(question?.file_urls) ? question.file_urls : [];
+      const updated = existing.filter((_, i) => i !== fileIndex);
+      await sb('portal_initial_questions').update({ file_urls: updated.length ? updated : null }).eq('id', qId);
+      setQuestions(prev => prev.map(q => q.id === qId ? { ...q, file_urls: updated } : q));
+      toast.success('Ficheiro removido');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao remover ficheiro');
+    }
+  };
+
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-[#fefcfa]">
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
