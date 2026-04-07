@@ -57,7 +57,8 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
     },
   });
 
-  const portalUrl = portalData ? `${window.location.origin}/portal/${portalData.token}` : '';
+  const slug = (portalData as any)?.slug as string | null;
+  const portalUrl = portalData ? `${window.location.origin}/portal/${slug || portalData.token}` : '';
 
   const createPortal = async () => {
     if (!portalType) { toast.error('Este tipo de produto não gera portal'); return; }
