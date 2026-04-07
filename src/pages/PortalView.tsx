@@ -467,7 +467,7 @@ export default function PortalViewPage() {
                     )}
 
                     {/* Phase cards */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    <div className="flex flex-wrap gap-3">
                       {onboarding.map((phase: any, i: number) => {
                         const dels = phase.deliverables || [];
                         const done = isPhaseComplete(phase);
@@ -475,7 +475,7 @@ export default function PortalViewPage() {
                         return (
                           <div
                             key={phase.id}
-                            className={`rounded-2xl border shadow-sm transition-all cursor-pointer overflow-hidden ${
+                            className={`flex-1 min-w-[100px] rounded-2xl border shadow-sm transition-all cursor-pointer overflow-hidden ${
                               done ? 'border-border/20 bg-muted/40 opacity-60' : 'border-border/40 bg-white hover:shadow-md'
                             }`}
                             onClick={() => setExpandedOnbStep(phase.id)}
@@ -1244,7 +1244,7 @@ export default function PortalViewPage() {
                 )}
 
                 {/* Phase cards */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                <div className="flex flex-wrap gap-3">
                   {onboarding.map((phase: any, i: number) => {
                     const dels = phase.deliverables || [];
                     const done = isPhaseComplete(phase);
@@ -1252,7 +1252,7 @@ export default function PortalViewPage() {
                     return (
                       <div
                         key={phase.id}
-                        className={`rounded-2xl border shadow-sm transition-all cursor-pointer overflow-hidden ${
+                        className={`flex-1 min-w-[100px] rounded-2xl border shadow-sm transition-all cursor-pointer overflow-hidden ${
                           done ? 'border-border/20 bg-muted/40 opacity-60' : 'border-border/40 bg-white hover:shadow-md'
                         }`}
                         onClick={() => setExpandedOnbStep(phase.id)}
