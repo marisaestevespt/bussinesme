@@ -1117,6 +1117,31 @@ export default function PortalViewPage() {
                           )}
                         </div>
                       </div>
+                      {/* Notes section for pending meetings */}
+                      {isPending && (
+                        <div className="mt-3 pt-3 border-t border-border/20">
+                          <p className="text-[11px] text-muted-foreground mb-1.5">💡 Se este horário não te der jeito, sugere alternativas:</p>
+                          <Textarea
+                            className="text-xs rounded-lg border-border/30 bg-muted/10 min-h-[60px]"
+                            placeholder="Ex: Prefiro terça ou quinta da semana seguinte, à tarde..."
+                            defaultValue={m.portal_notes || ''}
+                            onBlur={async (e) => {
+                              const val = e.target.value;
+                              if (val !== (m.portal_notes || '')) {
+                                await (supabase as any).rpc('portal_add_meeting_notes', { _token: token, _meeting_id: m.id, _notes: val });
+                                setMeetings(prev => prev.map(x => x.id === m.id ? { ...x, portal_notes: val } : x));
+                                toast.success('Nota guardada ✓');
+                              }
+                            }}
+                          />
+                        </div>
+                      )}
+                      {!isPending && m.portal_notes && (
+                        <div className="mt-3 pt-3 border-t border-border/20">
+                          <p className="text-[11px] text-muted-foreground">📝 As tuas notas:</p>
+                          <p className="text-xs mt-1">{m.portal_notes}</p>
+                        </div>
+                      )}
                     </SectionCard>
                   );
                 })}
