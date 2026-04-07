@@ -20,6 +20,7 @@ export function useNotifications() {
       return data;
     },
     enabled: !!user,
+    staleTime: 60 * 1000,
   });
 
   // Realtime subscription
