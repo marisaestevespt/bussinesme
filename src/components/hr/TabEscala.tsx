@@ -82,6 +82,14 @@ type Vacation = {
   notes: string | null;
 };
 
+type Absence = {
+  id: string;
+  member_id: string;
+  start_date: string;
+  end_date: string;
+  reason: string;
+};
+
 function useEscalaData() {
   const members = useQuery({
     queryKey: ['escala-members'],
@@ -106,7 +114,23 @@ function useEscalaData() {
     },
   });
 
-  return { members: members.data || [], vacations: vacations.data || [], isLoading: members.isLoading || vacations.isLoading };
+  const absences = useQuery({
+    queryKey: ['absence-coverage'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('absence_coverage')
+        .select('id, member_id, start_date, end_date, reason')
+        .order('start_date');
+      return (data || []) as Absence[];
+    },
+  });
+
+  return {
+    members: members.data || [],
+    vacations: vacations.data || [],
+    absences: absences.data || [],
+    isLoading: members.isLoading || vacations.isLoading || absences.isLoading,
+  };
 }
 
 function getAvailability(
