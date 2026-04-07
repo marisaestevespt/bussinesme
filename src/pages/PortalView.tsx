@@ -751,86 +751,77 @@ export default function PortalViewPage() {
                                       </div>
                                     )}
 
-                                    {(q.answer_type || 'text') === 'text' && (
-                                      <>
-                                        {q.answer?.trim() && editingQuestionId !== q.id ? (
-                                          <div className="space-y-2">
-                                            <div className="rounded-xl bg-emerald-50/50 border border-emerald-100 p-3">
-                                              <p className="text-sm">{q.answer}</p>
-                                              {q.answered_at && <p className="text-[10px] text-muted-foreground mt-1">Respondida {format(parseISO(q.answered_at), 'dd/MM/yyyy')}</p>}
-                                            </div>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="text-xs text-muted-foreground"
-                                              onClick={() => {
-                                                setEditingQuestionId(q.id);
-                                                setDraftAnswers(prev => ({ ...prev, [q.id]: q.answer }));
-                                              }}
-                                            >
-                                              <Pencil className="h-3 w-3 mr-1" /> Editar resposta
-                                            </Button>
-                                          </div>
-                                        ) : (
-                                          <Textarea
-                                            className="text-sm rounded-xl border-border/40 bg-muted/10 focus-visible:ring-1"
-                                            placeholder="A tua resposta..."
-                                            value={draftAnswers[q.id] ?? q.answer ?? ''}
-                                            onChange={e => setDraftAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
-                                            rows={3}
-                                            style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
-                                            autoFocus
-                                          />
-                                        )}
-                                        {(draftAnswers[q.id]?.trim() && draftAnswers[q.id] !== q.answer) && (
-                                          <Button
-                                            size="sm"
-                                            className="mt-2 rounded-lg text-white text-xs"
-                                            style={{ backgroundColor: pc }}
-                                            onClick={async () => {
-                                              await answerQuestion(q.id, draftAnswers[q.id]);
-                                              setDraftAnswers(prev => { const n = { ...prev }; delete n[q.id]; return n; });
-                                              setEditingQuestionId(null);
-                                              const nextUnanswered = questions.find((qq: any) => qq.id !== q.id && !qq.answer?.trim());
-                                              setActiveQuestionId(nextUnanswered?.id || null);
-                                            }}
-                                          >
-                                            ✓ Guardar resposta
-                                          </Button>
-                                        )}
-                                      </>
+                                    {/* Text answer — always available */}
+                                    {q.answer?.trim() && editingQuestionId !== q.id ? (
+                                      <div className="space-y-2">
+                                        <div className="rounded-xl bg-emerald-50/50 border border-emerald-100 p-3">
+                                          <p className="text-sm">{q.answer}</p>
+                                          {q.answered_at && <p className="text-[10px] text-muted-foreground mt-1">Respondida {format(parseISO(q.answered_at), 'dd/MM/yyyy')}</p>}
+                                        </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="text-xs text-muted-foreground"
+                                          onClick={() => {
+                                            setEditingQuestionId(q.id);
+                                            setDraftAnswers(prev => ({ ...prev, [q.id]: q.answer }));
+                                          }}
+                                        >
+                                          <Pencil className="h-3 w-3 mr-1" /> Editar resposta
+                                        </Button>
+                                      </div>
+                                    ) : (
+                                      <Textarea
+                                        className="text-sm rounded-xl border-border/40 bg-muted/10 focus-visible:ring-1"
+                                        placeholder="A tua resposta..."
+                                        value={draftAnswers[q.id] ?? q.answer ?? ''}
+                                        onChange={e => setDraftAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
+                                        rows={3}
+                                        style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
+                                        autoFocus
+                                      />
+                                    )}
+                                    {(draftAnswers[q.id]?.trim() && draftAnswers[q.id] !== q.answer) && (
+                                      <Button
+                                        size="sm"
+                                        className="mt-2 rounded-lg text-white text-xs"
+                                        style={{ backgroundColor: pc }}
+                                        onClick={async () => {
+                                          await answerQuestion(q.id, draftAnswers[q.id]);
+                                          setDraftAnswers(prev => { const n = { ...prev }; delete n[q.id]; return n; });
+                                          setEditingQuestionId(null);
+                                          const nextUnanswered = questions.find((qq: any) => qq.id !== q.id && !qq.answer?.trim() && !(Array.isArray(qq.file_urls) && qq.file_urls.length));
+                                          setActiveQuestionId(nextUnanswered?.id || null);
+                                        }}
+                                      >
+                                        ✓ Guardar resposta
+                                      </Button>
                                     )}
 
-                                    {((q.answer_type || 'text') === 'file' || (q.answer_type || 'text') === 'image') && (
-                                      <div className="space-y-2">
-                                        <label className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/40 bg-muted/10 p-4 cursor-pointer hover:bg-muted/20 transition-colors">
-                                          <input
-                                            type="file"
-                                            className="hidden"
-                                            multiple
-                                            accept={q.answer_type === 'image' ? 'image/*' : '*'}
-                                            onChange={e => {
-                                              if (e.target.files?.length) {
-                                                uploadQuestionFiles(q.id, e.target.files);
-                                                const nextUnanswered = questions.find((qq: any) => qq.id !== q.id && !(qq.answer?.trim() || (Array.isArray(qq.file_urls) && qq.file_urls.length)));
-                                                setTimeout(() => setActiveQuestionId(nextUnanswered?.id || null), 1500);
-                                              }
-                                            }}
-                                            disabled={uploadingQuestionFiles[q.id]}
-                                          />
-                                          {uploadingQuestionFiles[q.id] ? (
-                                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                                          ) : (
-                                            <>
-                                              <Upload className="h-4 w-4 text-muted-foreground" />
-                                              <span className="text-sm text-muted-foreground">
-                                                {q.answer_type === 'image' ? 'Carregar imagem(ns)' : 'Carregar ficheiro(s)'}
-                                              </span>
-                                            </>
-                                          )}
-                                        </label>
-                                      </div>
-                                    )}
+                                    {/* File upload — always available */}
+                                    <div className="space-y-2 mt-3">
+                                      <label className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/40 bg-muted/10 p-4 cursor-pointer hover:bg-muted/20 transition-colors">
+                                        <input
+                                          type="file"
+                                          className="hidden"
+                                          multiple
+                                          onChange={e => {
+                                            if (e.target.files?.length) {
+                                              uploadQuestionFiles(q.id, e.target.files);
+                                            }
+                                          }}
+                                          disabled={uploadingQuestionFiles[q.id]}
+                                        />
+                                        {uploadingQuestionFiles[q.id] ? (
+                                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                                        ) : (
+                                          <>
+                                            <Upload className="h-4 w-4 text-muted-foreground" />
+                                            <span className="text-sm text-muted-foreground">Carregar ficheiro(s) ou imagem(ns)</span>
+                                          </>
+                                        )}
+                                      </label>
+                                    </div>
                                   </div>
                                 )}
                               </div>
