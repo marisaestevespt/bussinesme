@@ -248,8 +248,9 @@ export default function PortalViewPage() {
 
   // Current active phase for status display
   const activePhase = phases.find((p: any) => p.status === 'em_curso');
-  const completedPhases = phases.filter((p: any) => p.status === 'concluido' || p.status === 'concluida').length;
-  const projectProgress = phases.length > 0 ? Math.round((completedPhases / phases.length) * 100) : 0;
+  const allDeliverables = phases.flatMap((p: any) => p.deliverables || []);
+  const completedDeliverables = allDeliverables.filter((d: any) => d.status === 'concluido').length;
+  const projectProgress = allDeliverables.length > 0 ? Math.round((completedDeliverables / allDeliverables.length) * 100) : 0;
 
   return (
     <div className="min-h-screen" style={{ background: `linear-gradient(180deg, #fefcfa 0%, ${pcAlpha(0.04)} 100%)` }}>
