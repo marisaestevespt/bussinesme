@@ -49,7 +49,7 @@ export default function PortalViewPage() {
   const [feedback, setFeedback] = useState<any[]>([]);
   const [meetings, setMeetings] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
-  const [onboarding, setOnboarding] = useState<any[]>([]);
+  const [onboarding, setOnboarding] = useState<any[]>([]); // derived from phases
   const [tasks, setTasks] = useState<any[]>([]);
   const [phases, setPhases] = useState<any[]>([]);
   
@@ -114,7 +114,10 @@ export default function PortalViewPage() {
     // get_portal_phases now returns jsonb with deliverables included
     const phasesData = (projPhasesR as any).data || [];
     const parsedPhases = Array.isArray(phasesData) ? phasesData : [];
-    setPhases(parsedPhases.map((p: any) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status })));
+    const allPhases = parsedPhases.map((p: any) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
+    setPhases(allPhases);
+    // Derive onboarding from phases marked as is_onboarding
+    setOnboarding(allPhases.filter((p: any) => p.is_onboarding));
     setProjectHistory((historyR as any).data || []);
     setPortalMaterials(materialsR.data || []);
     setContractDocs((contractR as any).data || []);
