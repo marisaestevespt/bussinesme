@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays, AlertTriangle, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format, differenceInCalendarDays, addDays as addCalendarDays, parseISO } from 'date-fns';
@@ -65,9 +65,10 @@ function getStatusInfo(status: string) {
 
 interface Props {
   projectId: string;
+  projectStartDate?: string | null;
 }
 
-export function ProjectPhasesTimeline({ projectId }: Props) {
+export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
   const qc = useQueryClient();
   const phaseKey = ['project-phases', projectId];
   const delKey = ['project-deliverables', projectId];
