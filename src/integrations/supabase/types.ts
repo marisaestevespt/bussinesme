@@ -5908,6 +5908,7 @@ export type Database = {
           linked_sop_id: string | null
           name: string
           phase_id: string | null
+          portal_visible: boolean
           product_id: string
           sort_order: number
         }
@@ -5919,6 +5920,7 @@ export type Database = {
           linked_sop_id?: string | null
           name?: string
           phase_id?: string | null
+          portal_visible?: boolean
           product_id: string
           sort_order?: number
         }
@@ -5930,6 +5932,7 @@ export type Database = {
           linked_sop_id?: string | null
           name?: string
           phase_id?: string | null
+          portal_visible?: boolean
           product_id?: string
           sort_order?: number
         }
@@ -7036,6 +7039,7 @@ export type Database = {
           linked_sop_id: string | null
           name: string
           phase_id: string | null
+          portal_visible: boolean
           project_id: string
           recurrence_label: string | null
           recurrence_week: number | null
@@ -7054,6 +7058,7 @@ export type Database = {
           linked_sop_id?: string | null
           name?: string
           phase_id?: string | null
+          portal_visible?: boolean
           project_id: string
           recurrence_label?: string | null
           recurrence_week?: number | null
@@ -7072,6 +7077,7 @@ export type Database = {
           linked_sop_id?: string | null
           name?: string
           phase_id?: string | null
+          portal_visible?: boolean
           project_id?: string
           recurrence_label?: string | null
           recurrence_week?: number | null
