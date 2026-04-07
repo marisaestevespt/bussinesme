@@ -79,7 +79,13 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
   const [addingPhase, setAddingPhase] = useState(false);
   const [addingDelPhase, setAddingDelPhase] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
-
+  const [cascadePrompt, setCascadePrompt] = useState<{
+    delayDays: number;
+    phaseId: string;
+    phaseIdx: number;
+    type: 'phase_end' | 'del_end';
+    delId?: string;
+  } | null>(null);
   const { data: phases = [] } = useQuery({
     queryKey: phaseKey,
     queryFn: async () => {
