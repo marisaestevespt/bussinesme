@@ -116,17 +116,9 @@ export default function PortalViewPage() {
     const parsedPhases = Array.isArray(phasesData) ? phasesData : [];
     const allPhases = parsedPhases.map((p: any) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
     setPhases(allPhases);
-    // Derive onboarding steps: flatten deliverables from phases marked as is_onboarding
+    // Derive onboarding phases (each phase has deliverables array inside)
     const onbPhases = allPhases.filter((p: any) => p.is_onboarding);
-    const onbSteps = onbPhases.flatMap((p: any) =>
-      (p.deliverables || []).map((d: any, idx: number) => ({
-        ...d,
-        phase_name: p.name,
-        completed: d.status === 'concluido' || d.status === 'concluida',
-        activity: d.name,
-      }))
-    );
-    setOnboarding(onbSteps);
+    setOnboarding(onbPhases);
     setProjectHistory((historyR as any).data || []);
     setPortalMaterials(materialsR.data || []);
     setContractDocs((contractR as any).data || []);
@@ -214,9 +206,24 @@ export default function PortalViewPage() {
     ...(projectHistory.length > 0 ? [{ key: 'history', label: 'Histórico', icon: History }] : []),
   ];
 
-  const completedOnb = onboarding.filter((o: any) => o.completed).length;
+  // Onboarding progress: count phases where all deliverables are done
+  const isPhaseComplete = (p: any) => {
+    const dels = p.deliverables || [];
+    return dels.length > 0 && dels.every((d: any) => d.status === 'concluido' || d.status === 'concluida');
+  };
+  const completedOnb = onboarding.filter(isPhaseComplete).length;
   const totalOnb = onboarding.length;
   const onbPercent = totalOnb > 0 ? Math.round((completedOnb / totalOnb) * 100) : 0;
+
+  // Find next pending deliverable across all onboarding phases
+  const nextTask = (() => {
+    for (const phase of onboarding) {
+      const dels = phase.deliverables || [];
+      const pending = dels.find((d: any) => d.status !== 'concluido' && d.status !== 'concluida');
+      if (pending) return { ...pending, phase_name: phase.name };
+    }
+    return null;
+  })();
 
   const statusLabel = (s: string) => {
     const map: Record<string, { text: string; cls: string }> = {
@@ -412,47 +419,86 @@ export default function PortalViewPage() {
                     <p className="text-sm text-muted-foreground">Ainda sem passos de onboarding definidos.</p>
                   </SectionCard>
                 ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {onboarding.map((o: any, i: number) => {
-                      const isExpanded = o.completed ? expandedOnbStep === o.id : true;
-                      return (
-                        <div
-                          key={o.id}
-                          className="rounded-2xl border border-border/40 bg-white shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden"
-                          onClick={() => o.completed ? setExpandedOnbStep(expandedOnbStep === o.id ? null : o.id) : undefined}
-                        >
-                          <div className="p-4 flex flex-col items-center text-center">
-                            <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Passo</span>
-                            <span className="text-3xl font-black mt-0.5" style={{ color: o.completed ? 'hsl(var(--muted-foreground))' : pc }}>
-                              {i + 1}
+                  <div className="space-y-3">
+                    {/* Next task highlight */}
+                    {nextTask && (
+                      <SectionCard className="p-4 border-l-4" style={{ borderLeftColor: pc }}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Sparkles className="h-3.5 w-3.5" style={{ color: pc }} />
+                          <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: pc }}>Próxima tarefa</span>
+                        </div>
+                        <p className="text-sm font-semibold">{nextTask.name}</p>
+                        <div className="flex items-center gap-3 mt-1.5">
+                          <span className="text-[10px] text-muted-foreground">{nextTask.phase_name}</span>
+                          {nextTask.planned_end && (
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {format(parseISO(nextTask.planned_end), "d 'de' MMMM", { locale: pt })}
                             </span>
-                            <p className="text-xs font-medium mt-1.5 line-clamp-3">{o.activity || 'Sem descrição'}</p>
-                            <div className="mt-2 flex items-center gap-1.5">
-                              {o.completed ? (
-                                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                              ) : (
-                                <Circle className="h-4 w-4 text-muted-foreground/40" />
-                              )}
-                              <span className={`text-xs font-medium ${o.completed ? 'text-emerald-600' : 'text-muted-foreground'}`}>
-                                {o.completed ? 'Concluído' : 'Pendente'}
-                              </span>
-                            </div>
-                          </div>
-                          {isExpanded && (
-                            <div className="px-4 pb-4 border-t border-border/20 pt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
-                              {o.phase_name && <p className="text-[10px] text-muted-foreground">Fase: {o.phase_name}</p>}
-                              {o.planned_end && (
-                                <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  Prazo: {format(parseISO(o.planned_end), "d 'de' MMMM", { locale: pt })}
-                                </p>
-                              )}
-                              {o.description && <p className="text-[10px] text-muted-foreground">{o.description}</p>}
-                            </div>
                           )}
                         </div>
-                      );
-                    })}
+                      </SectionCard>
+                    )}
+
+                    {/* Phase cards */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {onboarding.map((phase: any, i: number) => {
+                        const dels = phase.deliverables || [];
+                        const done = isPhaseComplete(phase);
+                        const completedDels = dels.filter((d: any) => d.status === 'concluido' || d.status === 'concluida').length;
+                        const isExpanded = expandedOnbStep === phase.id;
+                        return (
+                          <div
+                            key={phase.id}
+                            className={`rounded-2xl border shadow-sm transition-all cursor-pointer overflow-hidden ${
+                              done ? 'border-border/20 bg-muted/40 opacity-60' : 'border-border/40 bg-white hover:shadow-md'
+                            }`}
+                            onClick={() => setExpandedOnbStep(isExpanded ? null : phase.id)}
+                          >
+                            <div className="p-4 flex flex-col items-center text-center">
+                              <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Fase</span>
+                              <span className="text-3xl font-black mt-0.5" style={{ color: done ? 'hsl(var(--muted-foreground))' : pc }}>
+                                {i + 1}
+                              </span>
+                              <p className={`text-xs font-medium mt-1.5 line-clamp-2 ${done ? 'text-muted-foreground' : ''}`}>{phase.name || 'Sem nome'}</p>
+                              <p className="text-[10px] text-muted-foreground mt-1">{completedDels}/{dels.length} entregas</p>
+                              <div className="mt-2 flex items-center gap-1.5">
+                                {done ? (
+                                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                                ) : (
+                                  <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                                    <div className="h-full rounded-full transition-all" style={{ width: `${dels.length ? (completedDels / dels.length) * 100 : 0}%`, backgroundColor: pc }} />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            {isExpanded && dels.length > 0 && (
+                              <div className="px-4 pb-4 border-t border-border/20 pt-3 space-y-1.5" onClick={(e) => e.stopPropagation()}>
+                                {dels.map((d: any) => {
+                                  const dDone = d.status === 'concluido' || d.status === 'concluida';
+                                  return (
+                                    <div key={d.id} className="flex items-start gap-2">
+                                      {dDone
+                                        ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                                        : <Circle className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0 mt-0.5" />}
+                                      <div className="flex-1 min-w-0">
+                                        <p className={`text-[11px] ${dDone ? 'text-muted-foreground line-through' : 'font-medium'}`}>{d.name}</p>
+                                        {d.planned_end && !dDone && (
+                                          <p className="text-[9px] text-muted-foreground flex items-center gap-0.5 mt-0.5">
+                                            <Clock className="h-2.5 w-2.5" />
+                                            {format(parseISO(d.planned_end), "d MMM", { locale: pt })}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
@@ -1135,47 +1181,86 @@ export default function PortalViewPage() {
                 <p className="text-sm text-muted-foreground">Ainda sem passos de onboarding definidos.</p>
               </SectionCard>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {onboarding.map((o: any, i: number) => {
-                  const isExpanded = o.completed ? expandedOnbStep === o.id : true;
-                  return (
-                    <div
-                      key={o.id}
-                      className="rounded-2xl border border-border/40 bg-white shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden"
-                      onClick={() => o.completed ? setExpandedOnbStep(expandedOnbStep === o.id ? null : o.id) : undefined}
-                    >
-                      <div className="p-5 flex flex-col items-center text-center">
-                        <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Passo</span>
-                        <span className="text-4xl font-black mt-0.5" style={{ color: o.completed ? 'hsl(var(--muted-foreground))' : pc }}>
-                          {i + 1}
+              <div className="space-y-4">
+                {/* Next task highlight */}
+                {nextTask && (
+                  <SectionCard className="p-5 border-l-4" style={{ borderLeftColor: pc }}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Sparkles className="h-4 w-4" style={{ color: pc }} />
+                      <span className="text-xs uppercase tracking-widest font-bold" style={{ color: pc }}>Próxima tarefa</span>
+                    </div>
+                    <p className="text-base font-semibold">{nextTask.name}</p>
+                    <div className="flex items-center gap-3 mt-2">
+                      <span className="text-xs text-muted-foreground">{nextTask.phase_name}</span>
+                      {nextTask.planned_end && (
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {format(parseISO(nextTask.planned_end), "d 'de' MMMM", { locale: pt })}
                         </span>
-                        <p className="text-xs font-medium mt-1.5 line-clamp-3">{o.activity || 'Sem descrição'}</p>
-                        <div className="mt-2 flex items-center gap-1.5">
-                          {o.completed ? (
-                            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                          ) : (
-                            <Circle className="h-4 w-4 text-muted-foreground/40" />
-                          )}
-                          <span className={`text-xs font-medium ${o.completed ? 'text-emerald-600' : 'text-muted-foreground'}`}>
-                            {o.completed ? 'Concluído' : 'Pendente'}
-                          </span>
-                        </div>
-                      </div>
-                      {isExpanded && (
-                        <div className="px-4 pb-4 border-t border-border/20 pt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
-                          {o.phase_name && <p className="text-xs text-muted-foreground">Fase: {o.phase_name}</p>}
-                          {o.planned_end && (
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              Prazo: {format(parseISO(o.planned_end), "d 'de' MMMM", { locale: pt })}
-                            </p>
-                          )}
-                          {o.description && <p className="text-xs text-muted-foreground">{o.description}</p>}
-                        </div>
                       )}
                     </div>
-                  );
-                })}
+                  </SectionCard>
+                )}
+
+                {/* Phase cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {onboarding.map((phase: any, i: number) => {
+                    const dels = phase.deliverables || [];
+                    const done = isPhaseComplete(phase);
+                    const completedDels = dels.filter((d: any) => d.status === 'concluido' || d.status === 'concluida').length;
+                    const isExpanded = expandedOnbStep === phase.id;
+                    return (
+                      <div
+                        key={phase.id}
+                        className={`rounded-2xl border shadow-sm transition-all cursor-pointer overflow-hidden ${
+                          done ? 'border-border/20 bg-muted/40 opacity-60' : 'border-border/40 bg-white hover:shadow-md'
+                        }`}
+                        onClick={() => setExpandedOnbStep(isExpanded ? null : phase.id)}
+                      >
+                        <div className="p-5 flex flex-col items-center text-center">
+                          <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Fase</span>
+                          <span className="text-4xl font-black mt-0.5" style={{ color: done ? 'hsl(var(--muted-foreground))' : pc }}>
+                            {i + 1}
+                          </span>
+                          <p className={`text-xs font-medium mt-1.5 line-clamp-2 ${done ? 'text-muted-foreground' : ''}`}>{phase.name || 'Sem nome'}</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">{completedDels}/{dels.length} entregas</p>
+                          <div className="mt-2 flex items-center gap-1.5">
+                            {done ? (
+                              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                            ) : (
+                              <div className="w-20 h-1.5 bg-muted rounded-full overflow-hidden">
+                                <div className="h-full rounded-full transition-all" style={{ width: `${dels.length ? (completedDels / dels.length) * 100 : 0}%`, backgroundColor: pc }} />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {isExpanded && dels.length > 0 && (
+                          <div className="px-4 pb-4 border-t border-border/20 pt-3 space-y-1.5" onClick={(e) => e.stopPropagation()}>
+                            {dels.map((d: any) => {
+                              const dDone = d.status === 'concluido' || d.status === 'concluida';
+                              return (
+                                <div key={d.id} className="flex items-start gap-2">
+                                  {dDone
+                                    ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                                    : <Circle className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0 mt-0.5" />}
+                                  <div className="flex-1 min-w-0">
+                                    <p className={`text-[11px] ${dDone ? 'text-muted-foreground line-through' : 'font-medium'}`}>{d.name}</p>
+                                    {d.planned_end && !dDone && (
+                                      <p className="text-[9px] text-muted-foreground flex items-center gap-0.5 mt-0.5">
+                                        <Clock className="h-2.5 w-2.5" />
+                                        {format(parseISO(d.planned_end), "d MMM", { locale: pt })}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
