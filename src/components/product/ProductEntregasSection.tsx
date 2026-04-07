@@ -177,6 +177,50 @@ function PhaseCard({
       </CardHeader>
       {expanded && (
         <CardContent className="pb-3 pt-0 px-4 space-y-3">
+          {/* Timeline config */}
+          {isOwner && (
+            <div className="flex items-center gap-3 flex-wrap rounded-md bg-muted/40 px-3 py-2">
+              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Timeline:</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-muted-foreground">Começa</span>
+                <Input type="number" min={0} className="h-6 w-14 text-xs text-center"
+                  value={phase.offset_days ?? 0}
+                  onChange={e => onUpdatePhase(phase.id, { offset_days: parseInt(e.target.value) || 0 })} />
+                <Select value={phase.duration_unit || 'dias_uteis'}
+                  onValueChange={v => onUpdatePhase(phase.id, { duration_unit: v })}>
+                  <SelectTrigger className="h-6 text-[10px] w-24 border-none shadow-none">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dias_uteis">dias úteis</SelectItem>
+                    <SelectItem value="dias_corridos">dias corridos</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-xs text-muted-foreground">após</span>
+                <Select value={phase.offset_trigger || 'inicio_projeto'}
+                  onValueChange={v => onUpdatePhase(phase.id, { offset_trigger: v })}>
+                  <SelectTrigger className="h-6 text-[10px] w-32 border-none shadow-none">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inicio_projeto">início do projeto</SelectItem>
+                    <SelectItem value="fase_anterior">fase anterior</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-muted-foreground">Duração:</span>
+                <Input type="number" min={0} className="h-6 w-14 text-xs text-center"
+                  value={phase.duration_days ?? ''}
+                  placeholder="—"
+                  onChange={e => {
+                    const v = e.target.value ? parseInt(e.target.value) : null;
+                    onUpdatePhase(phase.id, { duration_days: v });
+                  }} />
+                <span className="text-xs text-muted-foreground">dias</span>
+              </div>
+            </div>
+          )}
           {/* SOP Steps */}
           {sopSteps.length > 0 && (
             <div className="rounded-md border border-dashed border-primary/20 bg-primary/[0.02] px-3 py-1.5">
