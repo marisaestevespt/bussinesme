@@ -128,6 +128,22 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
         const { data: existingPhases } = await (supabase as any).from('project_phases').select('id').eq('project_id', projectId).limit(1);
         if (!existingPhases?.length) {
           for (const pp of productPhases) {
+            // Calculate planned dates from duration rules
+            const baseDate = projectStartDate ? parseISO(projectStartDate) : new Date();
+            let phaseStart: string | null = null;
+            let phaseEnd: string | null = null;
+
+            if (pp.offset_days != null || pp.duration_days != null) {
+              const offsetDays = pp.offset_days ?? 0;
+              const unit = pp.duration_unit || 'dias_uteis';
+              const startDate = unit === 'dias_uteis' ? addBusinessDays(baseDate, offsetDays) : addDays(baseDate, offsetDays);
+              phaseStart = startDate.toISOString().split('T')[0];
+              if (pp.duration_days != null) {
+                const endDate = unit === 'dias_uteis' ? addBusinessDays(startDate, pp.duration_days) : addDays(startDate, pp.duration_days);
+                phaseEnd = endDate.toISOString().split('T')[0];
+              }
+            }
+
             const { data: insertedPhase } = await (supabase as any).from('project_phases').insert({
               project_id: projectId,
               name: pp.name || '',
@@ -136,6 +152,12 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
               linked_sop_id: pp.linked_sop_id || null,
               source_phase_id: pp.id,
               status: 'pendente',
+              duration_days: pp.duration_days ?? null,
+              duration_unit: pp.duration_unit || 'dias_uteis',
+              offset_days: pp.offset_days ?? 0,
+              offset_trigger: pp.offset_trigger || 'inicio_projeto',
+              planned_start: phaseStart,
+              planned_end: phaseEnd,
             }).select('id').single();
 
             if (insertedPhase) {

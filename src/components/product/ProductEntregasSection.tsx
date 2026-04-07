@@ -28,6 +28,10 @@ interface Phase {
   description?: string;
   sort_order: number;
   linked_sop_id?: string | null;
+  duration_days?: number | null;
+  duration_unit?: string;
+  offset_days?: number | null;
+  offset_trigger?: string;
 }
 
 interface Props {
