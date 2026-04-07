@@ -338,6 +338,7 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
   const progress = phases.length > 0 ? Math.round((completedCount / phases.length) * 100) : 0;
 
   return (
+    <>
     <Card>
       <CardHeader className="pb-2 flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
