@@ -1373,6 +1373,7 @@ export type Database = {
           show_payments: boolean
           show_timeline: boolean
           show_workspace: boolean
+          slug: string | null
           token: string
         }
         Insert: {
@@ -1390,6 +1391,7 @@ export type Database = {
           show_payments?: boolean
           show_timeline?: boolean
           show_workspace?: boolean
+          slug?: string | null
           token?: string
         }
         Update: {
@@ -1407,6 +1409,7 @@ export type Database = {
           show_payments?: boolean
           show_timeline?: boolean
           show_workspace?: boolean
+          slug?: string | null
           token?: string
         }
         Relationships: [
@@ -9052,6 +9055,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_portal_by_slug: {
+        Args: { _slug: string }
+        Returns: {
+          id: string
+          token: string
+        }[]
+      }
       get_portal_client_context: {
         Args: { _token: string }
         Returns: {
