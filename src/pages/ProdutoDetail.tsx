@@ -120,6 +120,7 @@ export default function ProdutoDetailPage() {
       return (data || []) as Record<string, unknown>[];
     },
     enabled: !isNew && !!id,
+    staleTime: 2 * 60 * 1000,
   });
   const { data: improvements = [] } = useQuery(subQueryOpts('product-improvements', 'product_improvements', 'product_id', isNew ? undefined : id, 'sort_order'));
   const { data: productDocuments = [] } = useQuery(subQueryOpts('product-documents', 'product_documents', 'product_id', isNew ? undefined : id, 'sort_order'));
@@ -131,6 +132,7 @@ export default function ProdutoDetailPage() {
       return (data || []) as Record<string, unknown>[];
     },
     enabled: !isNew && !!id,
+    staleTime: 2 * 60 * 1000,
   });
   const { data: productEvents = [] } = useQuery({
     queryKey: ['product-events', form.name],
@@ -140,6 +142,7 @@ export default function ProdutoDetailPage() {
       return (data || []) as Record<string, unknown>[];
     },
     enabled: !!form.name,
+    staleTime: 2 * 60 * 1000,
   });
   const { data: productMeetings = [] } = useQuery({
     queryKey: ['product-meetings', id],
@@ -149,6 +152,7 @@ export default function ProdutoDetailPage() {
       return (data || []) as Record<string, unknown>[];
     },
     enabled: !!id,
+    staleTime: 2 * 60 * 1000,
   });
 
   // ─── Mutations ───────────────────────────────────────────────
