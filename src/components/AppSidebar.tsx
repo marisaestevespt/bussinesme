@@ -177,7 +177,7 @@ export function AppSidebar() {
           {!collapsed && (
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-bold tracking-tight truncate">
-                {settings?.business_name || 'Lirah'}
+                {settings?.business_name || 'Business ME'}
               </span>
               <span className="text-[10px] text-muted-foreground/60 font-medium">Sistema de Gestão</span>
             </div>
