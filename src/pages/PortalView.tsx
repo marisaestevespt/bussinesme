@@ -429,19 +429,25 @@ export default function PortalViewPage() {
                 ) : (
                   <div className="space-y-3">
                     {/* Next step highlight */}
-                    {nextStep && (
-                      <SectionCard className="p-4 border-l-4" style={{ borderLeftColor: pc }}>
+                    {effectiveNextStep && (
+                      <SectionCard
+                        className="p-4 border-l-4 cursor-pointer hover:shadow-md transition-all"
+                        style={{ borderLeftColor: pc }}
+                        onClick={() => {
+                          if ((effectiveNextStep as any)._isQuestions) setActiveSection('questions');
+                        }}
+                      >
                         <div className="flex items-center gap-2 mb-1">
                           <Sparkles className="h-3.5 w-3.5" style={{ color: pc }} />
                           <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: pc }}>Próximo passo</span>
                         </div>
-                        <p className="text-sm font-semibold">{nextStep.name}</p>
+                        <p className="text-sm font-semibold">{effectiveNextStep.name}</p>
                         <div className="flex items-center gap-3 mt-1.5">
-                          <span className="text-[10px] text-muted-foreground">{nextStep.phase_name}</span>
-                          {nextStep.planned_end && (
+                          <span className="text-[10px] text-muted-foreground">{effectiveNextStep.phase_name}</span>
+                          {effectiveNextStep.planned_end && (
                             <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              {format(parseISO(nextStep.planned_end), "d 'de' MMMM", { locale: pt })}
+                              {format(parseISO(effectiveNextStep.planned_end), "d 'de' MMMM", { locale: pt })}
                             </span>
                           )}
                         </div>
