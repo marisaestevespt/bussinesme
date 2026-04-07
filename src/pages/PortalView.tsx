@@ -890,7 +890,16 @@ export default function PortalViewPage() {
                                   <Circle className="h-5 w-5 text-muted-foreground/40 shrink-0" />
                                 )}
                                 <div className="flex-1 min-w-0">
-                                  <p className={`text-sm font-medium ${isDone ? 'text-muted-foreground line-through' : ''}`}>{p.title || p.name}</p>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <p className={`text-sm font-medium ${isDone ? 'text-muted-foreground line-through' : ''}`}>{p.title || p.name}</p>
+                                    {(p.planned_start || p.planned_end) && (
+                                      <span className="text-[10px] text-muted-foreground">
+                                        {p.planned_start ? format(parseISO(p.planned_start), "d MMM", { locale: pt }) : '?'}
+                                        {' — '}
+                                        {p.planned_end ? format(parseISO(p.planned_end), "d MMM", { locale: pt }) : '?'}
+                                      </span>
+                                    )}
+                                  </div>
                                   {p.description && <p className="text-xs text-muted-foreground mt-0.5">{p.description}</p>}
                                 </div>
                                 <span className={`text-[10px] font-medium shrink-0 ${
