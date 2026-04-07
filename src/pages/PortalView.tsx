@@ -116,17 +116,9 @@ export default function PortalViewPage() {
     const parsedPhases = Array.isArray(phasesData) ? phasesData : [];
     const allPhases = parsedPhases.map((p: any) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
     setPhases(allPhases);
-    // Derive onboarding steps: flatten deliverables from phases marked as is_onboarding
+    // Derive onboarding phases (each phase has deliverables array inside)
     const onbPhases = allPhases.filter((p: any) => p.is_onboarding);
-    const onbSteps = onbPhases.flatMap((p: any) =>
-      (p.deliverables || []).map((d: any, idx: number) => ({
-        ...d,
-        phase_name: p.name,
-        completed: d.status === 'concluido' || d.status === 'concluida',
-        activity: d.name,
-      }))
-    );
-    setOnboarding(onbSteps);
+    setOnboarding(onbPhases);
     setProjectHistory((historyR as any).data || []);
     setPortalMaterials(materialsR.data || []);
     setContractDocs((contractR as any).data || []);
