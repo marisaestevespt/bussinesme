@@ -41,7 +41,7 @@ export default function PortalViewPage() {
   const [client, setClient] = useState<any>(null);
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState('home');
+  const [activeSection, setActiveSection] = useState<string>('home');
 
   const [faqs, setFaqs] = useState<any[]>([]);
   const [questions, setQuestions] = useState<any[]>([]);
