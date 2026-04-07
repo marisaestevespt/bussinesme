@@ -1,0 +1,1 @@
+ALTER TABLE public.sop_steps DROP COLUMN IF EXISTS portal_visible;

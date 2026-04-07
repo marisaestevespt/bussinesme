@@ -7704,7 +7704,6 @@ export type Database = {
           deadline_unit: string | null
           description: string
           id: string
-          portal_visible: boolean
           responsible: string | null
           sop_id: string
           sort_order: number
@@ -7717,7 +7716,6 @@ export type Database = {
           deadline_unit?: string | null
           description?: string
           id?: string
-          portal_visible?: boolean
           responsible?: string | null
           sop_id: string
           sort_order?: number
@@ -7730,7 +7728,6 @@ export type Database = {
           deadline_unit?: string | null
           description?: string
           id?: string
-          portal_visible?: boolean
           responsible?: string | null
           sop_id?: string
           sort_order?: number
