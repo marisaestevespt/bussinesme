@@ -210,6 +210,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
                     duration_unit: dtUnit,
                     offset_days: dtOffsetDays,
                     offset_trigger: dt.offset_trigger || 'inicio_fase',
+                    responsible_type: dt.responsible_type || 'equipa',
                     planned_start: delStart,
                     planned_end: delEnd,
                   });

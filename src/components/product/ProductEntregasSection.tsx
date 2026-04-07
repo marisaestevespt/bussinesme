@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare } from 'lucide-react';
+import { Plus, X, ChevronDown, ChevronRight, ChevronUp, Layers, ListChecks, Eye, EyeOff, ArrowUp, ArrowDown, CheckSquare, Users, User } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 
@@ -24,6 +24,7 @@ interface Template {
   duration_unit?: string;
   offset_days?: number | null;
   offset_trigger?: string;
+  responsible_type?: string;
 }
 
 interface Phase {
@@ -106,6 +107,19 @@ function DeliverableRow({
           </TooltipTrigger>
           <TooltipContent side="top" className="text-xs">
             {(template.portal_visible ?? true) ? 'Visível no portal' : 'Oculto no portal'}
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0"
+              onClick={() => onUpdate(template.id, { responsible_type: (template.responsible_type || 'equipa') === 'equipa' ? 'cliente' : 'equipa' })}>
+              {(template.responsible_type || 'equipa') === 'cliente'
+                ? <User className="h-3.5 w-3.5 text-amber-600" />
+                : <Users className="h-3.5 w-3.5 text-muted-foreground" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">
+            {(template.responsible_type || 'equipa') === 'cliente' ? 'Responsável: Cliente' : 'Responsável: Equipa'}
           </TooltipContent>
         </Tooltip>
         <label className="flex items-center gap-1.5 shrink-0 cursor-pointer text-xs text-muted-foreground">
