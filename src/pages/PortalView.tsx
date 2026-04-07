@@ -741,6 +741,7 @@ export default function PortalViewPage() {
                                                     onClick={async () => {
                                                       await answerQuestion(q.id, draftAnswers[q.id]);
                                                       setDraftAnswers(prev => { const n = { ...prev }; delete n[q.id]; return n; });
+                                                      setEditingQuestionId(null);
                                                       const nextUnanswered = questions.find((qq: any) => qq.id !== q.id && !qq.answer?.trim());
                                                       setActiveQuestionId(nextUnanswered?.id || null);
                                                     }}
