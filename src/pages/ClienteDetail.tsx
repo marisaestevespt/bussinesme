@@ -1010,6 +1010,9 @@ export default function ClienteDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Lead CRM Preview Dialog */}
+      <LeadPreviewDialog leadId={leadPreviewId} onClose={() => setLeadPreviewId(null)} />
     </AppLayout>
   );
 }
