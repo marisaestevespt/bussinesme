@@ -1,0 +1,1 @@
+DELETE FROM portal_initial_questions WHERE id = '9d7df9e5-9a90-4b12-8da5-081d7d933082';
