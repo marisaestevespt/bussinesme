@@ -137,9 +137,18 @@ function getAvailability(
   member: TeamMember,
   day: Date,
   vacations: Vacation[],
+  absences: Absence[],
   nationalHolidays: Date[]
-): 'available' | 'off' | 'vacation' | 'holiday' {
-  // Check vacation first
+): 'available' | 'off' | 'vacation' | 'holiday' | 'absence' {
+  // Check absence_coverage first
+  const memberAbsences = absences.filter(a => a.member_id === member.id);
+  for (const a of memberAbsences) {
+    if (isWithinInterval(day, { start: parseISO(a.start_date), end: parseISO(a.end_date) })) {
+      return 'absence';
+    }
+  }
+
+  // Check vacation
   const memberVacations = vacations.filter(v => v.member_id === member.id);
   for (const v of memberVacations) {
     if (isWithinInterval(day, { start: parseISO(v.start_date), end: parseISO(v.end_date) })) {
@@ -147,7 +156,7 @@ function getAvailability(
     }
   }
 
-  // Check custom_holidays (date ranges "start|end" or single dates used as off/vacation)
+  // Check custom_holidays
   const customDates: string[] = Array.isArray(member.custom_holidays) ? member.custom_holidays : [];
   for (const d of customDates) {
     try {
@@ -160,12 +169,9 @@ function getAvailability(
     } catch { /* skip invalid */ }
   }
 
-  // Check if it's a national holiday
+  // Check national holiday
   const isNational = nationalHolidays.some(h => isSameDay(h, day));
-
-  if (isNational) {
-    return 'holiday';
-  }
+  if (isNational) return 'holiday';
 
   // Check work schedule
   if (!member.work_schedule) return 'off';
