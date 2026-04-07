@@ -6,11 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, differenceInCalendarDays, addDays as addCalendarDays, parseISO } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { addBusinessDays } from '@/lib/holidays';
 
 interface ProjectPhase {
   id: string;
@@ -77,7 +79,13 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
   const [addingPhase, setAddingPhase] = useState(false);
   const [addingDelPhase, setAddingDelPhase] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
-
+  const [cascadePrompt, setCascadePrompt] = useState<{
+    delayDays: number;
+    phaseId: string;
+    phaseIdx: number;
+    type: 'phase_end' | 'del_end';
+    delId?: string;
+  } | null>(null);
   const { data: phases = [] } = useQuery({
     queryKey: phaseKey,
     queryFn: async () => {
@@ -99,6 +107,83 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
     qc.invalidateQueries({ queryKey: delKey });
   };
 
+  // --- Cascade recalculation ---
+  const applyCascade = async (delayDays: number, fromPhaseIdx: number) => {
+    // Shift all subsequent phases and their deliverables by delayDays
+    const subsequentPhases = phases.filter(p => p.sort_order > phases[fromPhaseIdx].sort_order);
+    for (const sp of subsequentPhases) {
+      const updates: Record<string, unknown> = {};
+      if (sp.planned_start) {
+        const newStart = addCalendarDays(parseISO(sp.planned_start), delayDays);
+        updates.planned_start = format(newStart, 'yyyy-MM-dd');
+      }
+      if (sp.planned_end) {
+        const newEnd = addCalendarDays(parseISO(sp.planned_end), delayDays);
+        updates.planned_end = format(newEnd, 'yyyy-MM-dd');
+      }
+      if (Object.keys(updates).length > 0) {
+        await (supabase as any).from('project_phases').update(updates).eq('id', sp.id);
+      }
+      // Shift deliverables of this phase too
+      const phaseDels = deliverables.filter(d => d.phase_id === sp.id);
+      for (const pd of phaseDels) {
+        const delUpdates: Record<string, unknown> = {};
+        if (pd.planned_start) {
+          delUpdates.planned_start = format(addCalendarDays(parseISO(pd.planned_start), delayDays), 'yyyy-MM-dd');
+        }
+        if (pd.planned_end) {
+          delUpdates.planned_end = format(addCalendarDays(parseISO(pd.planned_end), delayDays), 'yyyy-MM-dd');
+        }
+        if (Object.keys(delUpdates).length > 0) {
+          await (supabase as any).from('project_deliverables').update(delUpdates).eq('id', pd.id);
+        }
+      }
+    }
+    // Also shift remaining deliverables in the SAME phase (after the edited one)
+    if (cascadePrompt?.type === 'del_end' && cascadePrompt.delId) {
+      const samePhaseDels = deliverables
+        .filter(d => d.phase_id === phases[fromPhaseIdx].id)
+        .sort((a, b) => a.sort_order - b.sort_order);
+      const editedIdx = samePhaseDels.findIndex(d => d.id === cascadePrompt.delId);
+      if (editedIdx >= 0) {
+        const after = samePhaseDels.slice(editedIdx + 1);
+        for (const pd of after) {
+          const delUpdates: Record<string, unknown> = {};
+          if (pd.planned_start) {
+            delUpdates.planned_start = format(addCalendarDays(parseISO(pd.planned_start), delayDays), 'yyyy-MM-dd');
+          }
+          if (pd.planned_end) {
+            delUpdates.planned_end = format(addCalendarDays(parseISO(pd.planned_end), delayDays), 'yyyy-MM-dd');
+          }
+          if (Object.keys(delUpdates).length > 0) {
+            await (supabase as any).from('project_deliverables').update(delUpdates).eq('id', pd.id);
+          }
+        }
+      }
+    }
+    invalidateAll();
+    toast.success(`Datas recalculadas (+${delayDays} dias)`);
+    setCascadePrompt(null);
+  };
+
+  /** Check if a date edit creates a delay and prompt cascade */
+  function checkForDelay(
+    type: 'phase_end' | 'del_end',
+    originalEnd: string | null,
+    newEnd: string,
+    phaseId: string,
+    delId?: string,
+  ) {
+    if (!originalEnd || !newEnd) return;
+    const diff = differenceInCalendarDays(parseISO(newEnd), parseISO(originalEnd));
+    if (diff > 0) {
+      const phaseIdx = phases.findIndex(p => p.id === phaseId);
+      if (phaseIdx >= 0) {
+        setCascadePrompt({ delayDays: diff, phaseId, phaseIdx, type, delId });
+      }
+    }
+  }
+
   // --- Phase mutations ---
   const updatePhase = useMutation({
     mutationFn: async ({ id, ...fields }: { id: string } & Record<string, unknown>) => {
@@ -106,6 +191,15 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
       if (fields.status === 'em_curso' && !fields.started_at) updates.started_at = new Date().toISOString();
       if (fields.status === 'concluida' && !fields.completed_at) updates.completed_at = new Date().toISOString();
       if (fields.status === 'pendente') { updates.started_at = null; updates.completed_at = null; }
+
+      // Check for delay before saving
+      if (fields.planned_end && typeof fields.planned_end === 'string') {
+        const phase = phases.find(p => p.id === id);
+        if (phase?.planned_end) {
+          checkForDelay('phase_end', phase.planned_end, fields.planned_end as string, id);
+        }
+      }
+
       await (supabase as any).from('project_phases').update(updates).eq('id', id);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: phaseKey }),
@@ -144,6 +238,13 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
   // --- Deliverable mutations ---
   const updateDeliverable = useMutation({
     mutationFn: async ({ id, ...fields }: { id: string } & Record<string, unknown>) => {
+      // Check for delay before saving
+      if (fields.planned_end && typeof fields.planned_end === 'string') {
+        const del = deliverables.find(d => d.id === id);
+        if (del?.planned_end && del.phase_id) {
+          checkForDelay('del_end', del.planned_end, fields.planned_end as string, del.phase_id, id);
+        }
+      }
       await (supabase as any).from('project_deliverables').update(fields).eq('id', id);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: delKey }),
@@ -237,6 +338,7 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
   const progress = phases.length > 0 ? Math.round((completedCount / phases.length) * 100) : 0;
 
   return (
+    <>
     <Card>
       <CardHeader className="pb-2 flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
@@ -480,5 +582,31 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
         </div>
       </CardContent>
     </Card>
+
+    {/* Cascade recalculation prompt */}
+    <AlertDialog open={!!cascadePrompt} onOpenChange={(open) => { if (!open) setCascadePrompt(null); }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            Atraso detetado
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {cascadePrompt?.type === 'phase_end'
+              ? `A data de fim desta fase foi adiada ${cascadePrompt.delayDays} dia(s).`
+              : `A data de fim desta entrega foi adiada ${cascadePrompt?.delayDays} dia(s).`
+            }
+            {' '}Queres recalcular as datas das entregas e fases seguintes?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Não, manter</AlertDialogCancel>
+          <AlertDialogAction onClick={() => cascadePrompt && applyCascade(cascadePrompt.delayDays, cascadePrompt.phaseIdx)}>
+            Sim, recalcular (+{cascadePrompt?.delayDays} dias)
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
