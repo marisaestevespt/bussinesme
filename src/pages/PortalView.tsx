@@ -1252,7 +1252,7 @@ export default function PortalViewPage() {
                     return (
                       <div
                         key={phase.id}
-                        className={`rounded-2xl border shadow-sm transition-all cursor-pointer overflow-hidden ${
+                        className={`flex-1 min-w-[100px] rounded-2xl border shadow-sm transition-all cursor-pointer overflow-hidden ${
                           done ? 'border-border/20 bg-muted/40 opacity-60' : 'border-border/40 bg-white hover:shadow-md'
                         }`}
                         onClick={() => setExpandedOnbStep(phase.id)}
