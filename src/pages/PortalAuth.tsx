@@ -31,6 +31,12 @@ export default function PortalAuthPage() {
           const parsed = JSON.parse(session);
           const elapsed = Date.now() - parsed.timestamp;
           if (elapsed < 24 * 60 * 60 * 1000) {
+            // Log the returning visit
+            const email = parsed.email || '';
+            if (email) {
+              sb('portal_visits').insert({ portal_id: portal.id, email }).then(() => {});
+              sb('client_portals').update({ last_visit_at: new Date().toISOString() }).eq('id', portal.id).then(() => {});
+            }
             navigate(`/portal/${token}/view`, { replace: true });
             return;
           }
