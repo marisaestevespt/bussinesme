@@ -18,6 +18,7 @@ interface Template {
   sort_order?: number;
   phase_id?: string | null;
   linked_sop_id?: string | null;
+  portal_visible?: boolean;
 }
 
 interface Phase {
