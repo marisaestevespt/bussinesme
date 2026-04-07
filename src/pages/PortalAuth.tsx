@@ -72,7 +72,7 @@ export default function PortalAuthPage() {
     const inputEmail = email.trim().toLowerCase();
 
     const { data: emailAllowed, error: emailCheckError } = await (supabase as any).rpc('portal_email_allowed', {
-      _token: token,
+      _token: portal.token,
       _email: inputEmail,
     });
 
