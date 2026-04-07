@@ -678,7 +678,7 @@ function ConteudoTab({ projectId, launchData, profiles, qc, initialSection, onCl
 
   const saveField = async (field: string, value: any) => {
     await ensureLaunchData();
-    await supabase.from('launch_data').update({ [field]: value }).eq('project_id', projectId);
+    await supabase.from('launch_data').update({ [field]: value } as any).eq('project_id', projectId);
     qc.invalidateQueries({ queryKey: ['launch-data', projectId] });
     toast.success('Guardado');
   };

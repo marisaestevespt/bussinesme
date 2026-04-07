@@ -324,7 +324,7 @@ function IdeasTable() {
 
   const updateField = useMutation({
     mutationFn: async ({ id, field, value }: { id: string; field: string; value: any }) => {
-      await supabase.from('innovation_ideas').update({ [field]: value }).eq('id', id);
+      await supabase.from('innovation_ideas').update({ [field]: value } as any).eq('id', id);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['innovation_ideas'] }),
   });

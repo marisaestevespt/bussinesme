@@ -70,7 +70,7 @@ export function ProductPriceTiers({ productId, readOnly }: Props) {
 
   const updateMut = useMutation({
     mutationFn: async ({ id, field, value }: { id: string; field: string; value: any }) => {
-      const { error } = await supabase.from('product_price_tiers').update({ [field]: value }).eq('id', id);
+      const { error } = await supabase.from('product_price_tiers').update({ [field]: value } as any).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => invalidate(),

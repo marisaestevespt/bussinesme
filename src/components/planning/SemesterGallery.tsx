@@ -251,7 +251,7 @@ function SemesterDetail({ sIdx, year, planning, onBack }: { sIdx: number; year: 
     mutationFn: async (fields: Record<string, string | null>) => {
       const existing = analysisQ.data;
       if (existing?.id) {
-        const { error } = await supabase.from('executive_quarterly_analysis').update(fields).eq('id', existing.id);
+        const { error } = await supabase.from('executive_quarterly_analysis').update(fields as any).eq('id', existing.id);
         if (error) throw error;
       } else {
         const { error } = await supabase.from('executive_quarterly_analysis').insert({ year, quarter: analysisQuarter, ...fields });
