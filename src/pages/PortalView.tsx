@@ -70,7 +70,17 @@ export default function PortalViewPage() {
 
   const init = async () => {
     if (!token) return;
-    const { data: portalData } = await sb('client_portals').select('*').eq('token', token).maybeSingle();
+    // Try as UUID token first, then as slug
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token);
+    let portalData: any = null;
+    if (isUUID) {
+      const { data } = await sb('client_portals').select('*').eq('token', token).maybeSingle();
+      portalData = data;
+    }
+    if (!portalData) {
+      const { data } = await sb('client_portals').select('*').eq('slug', token).eq('is_active', true).maybeSingle();
+      portalData = data;
+    }
     if (!portalData || !portalData.is_active) { navigate(`/portal/${token}`, { replace: true }); return; }
     const session = localStorage.getItem(`portal_session_${portalData.id}`);
     if (!session) { navigate(`/portal/${token}`, { replace: true }); return; }
