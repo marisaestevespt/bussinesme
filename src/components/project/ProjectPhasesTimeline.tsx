@@ -11,9 +11,6 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 
 interface ProjectPhase {
   id: string;
