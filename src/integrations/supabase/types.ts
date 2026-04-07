@@ -4478,6 +4478,7 @@ export type Database = {
           meeting_url: string | null
           owner_actions: Json | null
           parent_meeting_id: string | null
+          portal_notes: string | null
           priorities: Json | null
           product_id: string | null
           product_name: string | null
@@ -4508,6 +4509,7 @@ export type Database = {
           meeting_url?: string | null
           owner_actions?: Json | null
           parent_meeting_id?: string | null
+          portal_notes?: string | null
           priorities?: Json | null
           product_id?: string | null
           product_name?: string | null
@@ -4538,6 +4540,7 @@ export type Database = {
           meeting_url?: string | null
           owner_actions?: Json | null
           parent_meeting_id?: string | null
+          portal_notes?: string | null
           priorities?: Json | null
           product_id?: string | null
           product_name?: string | null
@@ -9073,6 +9076,7 @@ export type Database = {
           department: string
           id: string
           meeting_url: string
+          portal_notes: string
           project_id: string
           project_name: string
           status: string
@@ -9130,6 +9134,10 @@ export type Database = {
       notify_portal_questions_submitted: {
         Args: { _client_id: string; _client_name: string }
         Returns: undefined
+      }
+      portal_add_meeting_notes: {
+        Args: { _meeting_id: string; _notes: string; _token: string }
+        Returns: boolean
       }
       portal_confirm_meeting: {
         Args: { _meeting_id: string; _token: string }
