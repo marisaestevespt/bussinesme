@@ -206,9 +206,24 @@ export default function PortalViewPage() {
     ...(projectHistory.length > 0 ? [{ key: 'history', label: 'Histórico', icon: History }] : []),
   ];
 
-  const completedOnb = onboarding.filter((o: any) => o.completed).length;
+  // Onboarding progress: count phases where all deliverables are done
+  const isPhaseComplete = (p: any) => {
+    const dels = p.deliverables || [];
+    return dels.length > 0 && dels.every((d: any) => d.status === 'concluido' || d.status === 'concluida');
+  };
+  const completedOnb = onboarding.filter(isPhaseComplete).length;
   const totalOnb = onboarding.length;
   const onbPercent = totalOnb > 0 ? Math.round((completedOnb / totalOnb) * 100) : 0;
+
+  // Find next pending deliverable across all onboarding phases
+  const nextTask = (() => {
+    for (const phase of onboarding) {
+      const dels = phase.deliverables || [];
+      const pending = dels.find((d: any) => d.status !== 'concluido' && d.status !== 'concluida');
+      if (pending) return { ...pending, phase_name: phase.name };
+    }
+    return null;
+  })();
 
   const statusLabel = (s: string) => {
     const map: Record<string, { text: string; cls: string }> = {
