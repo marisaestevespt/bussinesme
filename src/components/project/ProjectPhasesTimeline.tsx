@@ -107,6 +107,83 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
     qc.invalidateQueries({ queryKey: delKey });
   };
 
+  // --- Cascade recalculation ---
+  const applyCascade = async (delayDays: number, fromPhaseIdx: number) => {
+    // Shift all subsequent phases and their deliverables by delayDays
+    const subsequentPhases = phases.filter(p => p.sort_order > phases[fromPhaseIdx].sort_order);
+    for (const sp of subsequentPhases) {
+      const updates: Record<string, unknown> = {};
+      if (sp.planned_start) {
+        const newStart = addCalendarDays(parseISO(sp.planned_start), delayDays);
+        updates.planned_start = format(newStart, 'yyyy-MM-dd');
+      }
+      if (sp.planned_end) {
+        const newEnd = addCalendarDays(parseISO(sp.planned_end), delayDays);
+        updates.planned_end = format(newEnd, 'yyyy-MM-dd');
+      }
+      if (Object.keys(updates).length > 0) {
+        await (supabase as any).from('project_phases').update(updates).eq('id', sp.id);
+      }
+      // Shift deliverables of this phase too
+      const phaseDels = deliverables.filter(d => d.phase_id === sp.id);
+      for (const pd of phaseDels) {
+        const delUpdates: Record<string, unknown> = {};
+        if (pd.planned_start) {
+          delUpdates.planned_start = format(addCalendarDays(parseISO(pd.planned_start), delayDays), 'yyyy-MM-dd');
+        }
+        if (pd.planned_end) {
+          delUpdates.planned_end = format(addCalendarDays(parseISO(pd.planned_end), delayDays), 'yyyy-MM-dd');
+        }
+        if (Object.keys(delUpdates).length > 0) {
+          await (supabase as any).from('project_deliverables').update(delUpdates).eq('id', pd.id);
+        }
+      }
+    }
+    // Also shift remaining deliverables in the SAME phase (after the edited one)
+    if (cascadePrompt?.type === 'del_end' && cascadePrompt.delId) {
+      const samePhaseDels = deliverables
+        .filter(d => d.phase_id === phases[fromPhaseIdx].id)
+        .sort((a, b) => a.sort_order - b.sort_order);
+      const editedIdx = samePhaseDels.findIndex(d => d.id === cascadePrompt.delId);
+      if (editedIdx >= 0) {
+        const after = samePhaseDels.slice(editedIdx + 1);
+        for (const pd of after) {
+          const delUpdates: Record<string, unknown> = {};
+          if (pd.planned_start) {
+            delUpdates.planned_start = format(addCalendarDays(parseISO(pd.planned_start), delayDays), 'yyyy-MM-dd');
+          }
+          if (pd.planned_end) {
+            delUpdates.planned_end = format(addCalendarDays(parseISO(pd.planned_end), delayDays), 'yyyy-MM-dd');
+          }
+          if (Object.keys(delUpdates).length > 0) {
+            await (supabase as any).from('project_deliverables').update(delUpdates).eq('id', pd.id);
+          }
+        }
+      }
+    }
+    invalidateAll();
+    toast.success(`Datas recalculadas (+${delayDays} dias)`);
+    setCascadePrompt(null);
+  };
+
+  /** Check if a date edit creates a delay and prompt cascade */
+  function checkForDelay(
+    type: 'phase_end' | 'del_end',
+    originalEnd: string | null,
+    newEnd: string,
+    phaseId: string,
+    delId?: string,
+  ) {
+    if (!originalEnd || !newEnd) return;
+    const diff = differenceInCalendarDays(parseISO(newEnd), parseISO(originalEnd));
+    if (diff > 0) {
+      const phaseIdx = phases.findIndex(p => p.id === phaseId);
+      if (phaseIdx >= 0) {
+        setCascadePrompt({ delayDays: diff, phaseId, phaseIdx, type, delId });
+      }
+    }
+  }
+
   // --- Phase mutations ---
   const updatePhase = useMutation({
     mutationFn: async ({ id, ...fields }: { id: string } & Record<string, unknown>) => {
@@ -114,6 +191,15 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
       if (fields.status === 'em_curso' && !fields.started_at) updates.started_at = new Date().toISOString();
       if (fields.status === 'concluida' && !fields.completed_at) updates.completed_at = new Date().toISOString();
       if (fields.status === 'pendente') { updates.started_at = null; updates.completed_at = null; }
+
+      // Check for delay before saving
+      if (fields.planned_end && typeof fields.planned_end === 'string') {
+        const phase = phases.find(p => p.id === id);
+        if (phase?.planned_end) {
+          checkForDelay('phase_end', phase.planned_end, fields.planned_end as string, id);
+        }
+      }
+
       await (supabase as any).from('project_phases').update(updates).eq('id', id);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: phaseKey }),
