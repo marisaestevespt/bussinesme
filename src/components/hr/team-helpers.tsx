@@ -131,6 +131,7 @@ export const PRESET_ROLES = [
   { label: 'Advogada', color: '#ef4444' },
   { label: 'Assistente Virtual', color: '#f97316' },
   { label: 'Assistente Administrativa', color: '#3b82f6' },
+  { label: 'Estagiário/a', color: '#06b6d4' },
 ];
 
 export const ROLE_COLORS = [
