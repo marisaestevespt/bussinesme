@@ -101,6 +101,7 @@ export default function PortalAuthPage() {
       JSON.stringify({
         portal_id: portal.id,
         client_id: portal.client_id,
+        email: inputEmail,
         timestamp: Date.now(),
       }),
     );
