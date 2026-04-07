@@ -1290,14 +1290,13 @@ export default function PortalViewPage() {
                     const dels = phase.deliverables || [];
                     const done = isPhaseComplete(phase);
                     const completedDels = dels.filter((d: any) => d.status === 'concluido' || d.status === 'concluida').length;
-                    const isExpanded = expandedOnbStep === phase.id;
                     return (
                       <div
                         key={phase.id}
                         className={`rounded-2xl border shadow-sm transition-all cursor-pointer overflow-hidden ${
                           done ? 'border-border/20 bg-muted/40 opacity-60' : 'border-border/40 bg-white hover:shadow-md'
                         }`}
-                        onClick={() => setExpandedOnbStep(isExpanded ? null : phase.id)}
+                        onClick={() => setExpandedOnbStep(phase.id)}
                       >
                         <div className="p-5 flex flex-col items-center text-center">
                           <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground">Fase</span>
@@ -1316,29 +1315,6 @@ export default function PortalViewPage() {
                             )}
                           </div>
                         </div>
-                        {isExpanded && dels.length > 0 && (
-                          <div className="px-4 pb-4 border-t border-border/20 pt-3 space-y-1.5" onClick={(e) => e.stopPropagation()}>
-                            {dels.map((d: any) => {
-                              const dDone = d.status === 'concluido' || d.status === 'concluida';
-                              return (
-                                <div key={d.id} className="flex items-start gap-2">
-                                  {dDone
-                                    ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                                    : <Circle className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0 mt-0.5" />}
-                                  <div className="flex-1 min-w-0">
-                                    <p className={`text-[11px] ${dDone ? 'text-muted-foreground line-through' : 'font-medium'}`}>{d.name}</p>
-                                    {d.planned_end && !dDone && (
-                                      <p className="text-[9px] text-muted-foreground flex items-center gap-0.5 mt-0.5">
-                                        <Clock className="h-2.5 w-2.5" />
-                                        {format(parseISO(d.planned_end), "d MMM", { locale: pt })}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
                       </div>
                     );
                   })}
