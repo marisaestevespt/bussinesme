@@ -704,26 +704,29 @@ export default function PortalViewPage() {
 
                                             {(q.answer_type || 'text') === 'text' && (
                                               <>
-                                                {q.answer?.trim() ? (
+                                                {q.answer?.trim() && editingQuestionId !== q.id ? (
                                                   <div className="space-y-2">
                                                     <div className="rounded-xl bg-emerald-50/50 border border-emerald-100 p-3">
                                                       <p className="text-sm">{q.answer}</p>
                                                       {q.answered_at && <p className="text-[10px] text-muted-foreground mt-1">Respondida {format(parseISO(q.answered_at), 'dd/MM/yyyy')}</p>}
                                                     </div>
-                                                    <Textarea
-                                                      className="text-sm rounded-xl border-border/40 bg-muted/10 focus-visible:ring-1"
-                                                      placeholder="Editar resposta..."
-                                                      defaultValue={q.answer}
-                                                      onChange={e => setDraftAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
-                                                      rows={2}
-                                                      style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
-                                                    />
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      className="text-xs text-muted-foreground"
+                                                      onClick={() => {
+                                                        setEditingQuestionId(q.id);
+                                                        setDraftAnswers(prev => ({ ...prev, [q.id]: q.answer }));
+                                                      }}
+                                                    >
+                                                      <Pencil className="h-3 w-3 mr-1" /> Editar resposta
+                                                    </Button>
                                                   </div>
                                                 ) : (
                                                   <Textarea
                                                     className="text-sm rounded-xl border-border/40 bg-muted/10 focus-visible:ring-1"
                                                     placeholder="A tua resposta..."
-                                                    value={draftAnswers[q.id] || ''}
+                                                    value={draftAnswers[q.id] ?? q.answer ?? ''}
                                                     onChange={e => setDraftAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
                                                     rows={3}
                                                     style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
