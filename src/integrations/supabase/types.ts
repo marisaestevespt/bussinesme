@@ -5905,6 +5905,7 @@ export type Database = {
           description: string | null
           id: string
           is_recurring: boolean
+          linked_sop_id: string | null
           name: string
           phase_id: string | null
           product_id: string
@@ -5915,6 +5916,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_recurring?: boolean
+          linked_sop_id?: string | null
           name?: string
           phase_id?: string | null
           product_id: string
@@ -5925,12 +5927,20 @@ export type Database = {
           description?: string | null
           id?: string
           is_recurring?: boolean
+          linked_sop_id?: string | null
           name?: string
           phase_id?: string | null
           product_id?: string
           sort_order?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "product_deliverable_templates_linked_sop_id_fkey"
+            columns: ["linked_sop_id"]
+            isOneToOne: false
+            referencedRelation: "sops"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "product_deliverable_templates_phase_id_fkey"
             columns: ["phase_id"]
@@ -7023,6 +7033,7 @@ export type Database = {
           description: string | null
           id: string
           is_recurring: boolean
+          linked_sop_id: string | null
           name: string
           phase_id: string | null
           project_id: string
@@ -7040,6 +7051,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_recurring?: boolean
+          linked_sop_id?: string | null
           name?: string
           phase_id?: string | null
           project_id: string
@@ -7057,6 +7069,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_recurring?: boolean
+          linked_sop_id?: string | null
           name?: string
           phase_id?: string | null
           project_id?: string
@@ -7073,6 +7086,13 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_deliverables_linked_sop_id_fkey"
+            columns: ["linked_sop_id"]
+            isOneToOne: false
+            referencedRelation: "sops"
             referencedColumns: ["id"]
           },
           {
