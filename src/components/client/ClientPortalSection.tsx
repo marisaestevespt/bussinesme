@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { enrichQuestionsWithAutoFill } from '@/lib/portalAutoFill';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -79,13 +80,22 @@ export function ClientPortalSection({ clientId, clientName, currentProduct }: Pr
       .eq('product_id', product.id)
       .order('sort_order');
     if (!diagQuestions || diagQuestions.length === 0) return;
+
+    // Fetch client + business data for auto-fill
+    const [clientRes, businessRes] = await Promise.all([
+      supabase.from('clients').select('email, nif, fiscal_address, full_name').eq('id', clientId).maybeSingle(),
+      supabase.from('business_setup').select('*').limit(1).maybeSingle(),
+    ]);
+
     const rows = diagQuestions.map((q: any, i: number) => ({
       portal_id: pid,
       question: q.question_group ? `[${q.question_group}] ${q.question}` : q.question,
       answer_type: q.answer_type || 'text',
       sort_order: i,
     }));
-    await supabase.from('portal_initial_questions').insert(rows);
+
+    const enrichedRows = enrichQuestionsWithAutoFill(rows, clientRes.data || {}, businessRes.data || null);
+    await supabase.from('portal_initial_questions').insert(enrichedRows as any);
     questions.refetch();
     toast.success(`${diagQuestions.length} perguntas importadas do produto`);
   };

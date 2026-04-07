@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { enrichQuestionsWithAutoFill } from '@/lib/portalAutoFill';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { AppLayout } from '@/components/AppLayout';
@@ -492,16 +493,19 @@ export default function ClienteDetailPage() {
                 .order('group_sort_order')
                 .order('sort_order');
               if (diagQuestions?.length) {
-                await supabase.from('portal_initial_questions').insert(
-                  diagQuestions.map((dq, i) => ({
+                // Fetch business data for auto-fill
+                const { data: businessData } = await supabase.from('business_setup').select('*').limit(1).maybeSingle();
+                const clientData = { email: form.email, nif: form.nif, fiscal_address: form.fiscal_address, full_name: form.full_name };
+                const rows = diagQuestions.map((dq, i) => ({
                     portal_id: portalId!,
                     question: dq.question,
                     sort_order: dq.sort_order ?? i,
                     question_group: dq.question_group || null,
                     answer_type: dq.answer_type || 'text',
                     group_sort_order: dq.group_sort_order ?? 0,
-                  }))
-                );
+                }));
+                const enrichedRows = enrichQuestionsWithAutoFill(rows, clientData, businessData || null);
+                await supabase.from('portal_initial_questions').insert(enrichedRows as any);
               }
             }
           }
