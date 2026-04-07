@@ -152,7 +152,6 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
         current_product: productName,
         documents: form.documents || null,
         status: 'em_onboarding',
-        start_date: format(new Date(), 'yyyy-MM-dd'),
         conversion_date: format(new Date(), 'yyyy-MM-dd'),
       } as any).select('id').single();
       if (clientError) throw clientError;
