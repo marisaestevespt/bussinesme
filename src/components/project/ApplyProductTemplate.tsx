@@ -152,6 +152,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
                     sort_order: dt.sort_order,
                     is_recurring: dt.is_recurring || false,
                     linked_sop_id: dt.linked_sop_id || null,
+                    portal_visible: dt.portal_visible ?? true,
                     status: 'pendente',
                   });
                 }

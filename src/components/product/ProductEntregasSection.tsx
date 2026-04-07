@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, X, ChevronDown, ChevronRight, Layers, ListChecks } from 'lucide-react';
+import { Plus, X, ChevronDown, ChevronRight, Layers, ListChecks, Eye, EyeOff } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 
 interface Template {
@@ -18,6 +19,7 @@ interface Template {
   sort_order?: number;
   phase_id?: string | null;
   linked_sop_id?: string | null;
+  portal_visible?: boolean;
 }
 
 interface Phase {
@@ -80,6 +82,17 @@ function DeliverableRow({
           </SelectContent>
         </Select>
       )}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0"
+            onClick={() => onUpdate(template.id, { portal_visible: !(template.portal_visible ?? true) })}>
+            {(template.portal_visible ?? true) ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="text-xs">
+          {(template.portal_visible ?? true) ? 'Visível no portal' : 'Oculto no portal'}
+        </TooltipContent>
+      </Tooltip>
       <label className="flex items-center gap-1.5 shrink-0 cursor-pointer text-xs text-muted-foreground">
         <Checkbox checked={!!template.is_recurring} onCheckedChange={(c) => onUpdate(template.id, { is_recurring: !!c })} disabled={!isOwner} />
         Recorrente
