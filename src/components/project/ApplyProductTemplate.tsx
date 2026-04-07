@@ -122,13 +122,13 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
         }
       }
 
-      // Copy product phases to project
+      // Copy product phases + deliverables to project
       const { data: productPhases } = await (supabase as any).from('product_phases').select('*').eq('product_id', productId).order('sort_order');
       if (productPhases?.length) {
         const { data: existingPhases } = await (supabase as any).from('project_phases').select('id').eq('project_id', projectId).limit(1);
         if (!existingPhases?.length) {
           for (const pp of productPhases) {
-            await (supabase as any).from('project_phases').insert({
+            const { data: insertedPhase } = await (supabase as any).from('project_phases').insert({
               project_id: projectId,
               name: pp.name || '',
               description: pp.description || null,
@@ -136,7 +136,27 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
               linked_sop_id: pp.linked_sop_id || null,
               source_phase_id: pp.id,
               status: 'pendente',
-            });
+            }).select('id').single();
+
+            if (insertedPhase) {
+              // Copy deliverable templates for this phase
+              const { data: phaseDeliverables } = await (supabase as any).from('product_deliverable_templates')
+                .select('*').eq('phase_id', pp.id).order('sort_order');
+              if (phaseDeliverables?.length) {
+                for (const dt of phaseDeliverables) {
+                  await (supabase as any).from('project_deliverables').insert({
+                    project_id: projectId,
+                    phase_id: insertedPhase.id,
+                    name: dt.name || '',
+                    description: dt.description || null,
+                    sort_order: dt.sort_order,
+                    is_recurring: dt.is_recurring || false,
+                    linked_sop_id: dt.linked_sop_id || null,
+                    status: 'pendente',
+                  });
+                }
+              }
+            }
           }
         }
       }
