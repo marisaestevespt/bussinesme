@@ -97,6 +97,7 @@ export default function ProdutoDetailPage() {
       return data || [];
     },
     enabled: !!filterVal,
+    staleTime: 2 * 60 * 1000,
   });
 
   const { data: feedbacks = [] } = useQuery(subQueryOpts('product-feedbacks', 'product_feedbacks', 'product_id', isNew ? undefined : id));
