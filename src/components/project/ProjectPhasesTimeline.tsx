@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, Layers, Plus, Pencil, Trash2, ChevronUp, ChevronDown, X, Check, CalendarDays, AlertTriangle, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format, differenceInCalendarDays, addDays as addCalendarDays, parseISO } from 'date-fns';
@@ -65,9 +65,10 @@ function getStatusInfo(status: string) {
 
 interface Props {
   projectId: string;
+  projectStartDate?: string | null;
 }
 
-export function ProjectPhasesTimeline({ projectId }: Props) {
+export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
   const qc = useQueryClient();
   const phaseKey = ['project-phases', projectId];
   const delKey = ['project-deliverables', projectId];
@@ -107,7 +108,92 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
     qc.invalidateQueries({ queryKey: delKey });
   };
 
-  // --- Cascade recalculation ---
+  // --- Recalculate all dates from project start ---
+  const [recalculating, setRecalculating] = useState(false);
+  const recalculateDates = async () => {
+    if (!projectStartDate) {
+      toast.error('Este projeto não tem data de início definida');
+      return;
+    }
+    setRecalculating(true);
+    try {
+      const startDate = parseISO(projectStartDate);
+      const sortedPhases = [...phases].sort((a, b) => a.sort_order - b.sort_order);
+      let prevPhaseEnd: Date = startDate;
+
+      for (const phase of sortedPhases) {
+        // Calculate phase start
+        let phaseStart: Date;
+        if (phase.offset_trigger === 'fase_anterior' && phase.sort_order > 0) {
+          phaseStart = phase.duration_unit === 'dias_uteis'
+            ? addBusinessDays(prevPhaseEnd, phase.offset_days || 0)
+            : addCalendarDays(prevPhaseEnd, phase.offset_days || 0);
+        } else {
+          phaseStart = phase.duration_unit === 'dias_uteis'
+            ? addBusinessDays(startDate, phase.offset_days || 0)
+            : addCalendarDays(startDate, phase.offset_days || 0);
+        }
+
+        // Calculate phase end
+        const phaseDuration = phase.duration_days || 0;
+        const phaseEnd = phaseDuration > 0
+          ? (phase.duration_unit === 'dias_uteis'
+            ? addBusinessDays(phaseStart, phaseDuration)
+            : addCalendarDays(phaseStart, phaseDuration))
+          : phaseStart;
+
+        await (supabase as any).from('project_phases').update({
+          planned_start: format(phaseStart, 'yyyy-MM-dd'),
+          planned_end: format(phaseEnd, 'yyyy-MM-dd'),
+        }).eq('id', phase.id);
+
+        // Calculate deliverable dates within phase
+        const phaseDels = deliverables
+          .filter(d => d.phase_id === phase.id)
+          .sort((a, b) => a.sort_order - b.sort_order);
+
+        let prevDelEnd: Date = phaseStart;
+        for (const del of phaseDels) {
+          let delStart: Date;
+          if (del.offset_trigger === 'entrega_anterior' && del.sort_order > 0) {
+            delStart = del.duration_unit === 'dias_uteis'
+              ? addBusinessDays(prevDelEnd, del.offset_days || 0)
+              : addCalendarDays(prevDelEnd, del.offset_days || 0);
+          } else {
+            delStart = del.duration_unit === 'dias_uteis'
+              ? addBusinessDays(phaseStart, del.offset_days || 0)
+              : addCalendarDays(phaseStart, del.offset_days || 0);
+          }
+
+          const delDuration = del.duration_days || 0;
+          const delEnd = delDuration > 0
+            ? (del.duration_unit === 'dias_uteis'
+              ? addBusinessDays(delStart, delDuration)
+              : addCalendarDays(delStart, delDuration))
+            : delStart;
+
+          await (supabase as any).from('project_deliverables').update({
+            planned_start: format(delStart, 'yyyy-MM-dd'),
+            planned_end: format(delEnd, 'yyyy-MM-dd'),
+          }).eq('id', del.id);
+
+          prevDelEnd = delEnd;
+        }
+
+        prevPhaseEnd = phaseEnd;
+      }
+
+      invalidateAll();
+      toast.success('Datas recalculadas com sucesso');
+    } catch (err) {
+      toast.error('Erro ao recalcular datas');
+      console.error(err);
+    } finally {
+      setRecalculating(false);
+    }
+  };
+
+
   const applyCascade = async (delayDays: number, fromPhaseIdx: number) => {
     // Shift all subsequent phases and their deliverables by delayDays
     const subsequentPhases = phases.filter(p => p.sort_order > phases[fromPhaseIdx].sort_order);
@@ -348,6 +434,9 @@ export function ProjectPhasesTimeline({ projectId }: Props) {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{progress}% concluído</span>
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={recalculateDates} disabled={recalculating || !projectStartDate}>
+            <RefreshCw className={cn("h-3 w-3 mr-1", recalculating && "animate-spin")} /> Recalcular datas
+          </Button>
           <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { setAddingPhase(true); setNewName(''); }}>
             <Plus className="h-3 w-3 mr-1" /> Fase
           </Button>

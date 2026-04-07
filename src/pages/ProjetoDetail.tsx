@@ -963,7 +963,7 @@ export default function ProjetoDetailPage() {
 
             {/* ─── TAB 2: PROCESSOS ────────────────────────── */}
             <TabsContent value="processos" className="mt-4 space-y-6">
-              <ProjectPhasesTimeline projectId={id!} />
+              <ProjectPhasesTimeline projectId={id!} projectStartDate={local.start_date} />
               <ProjectProcessosTab
                 projectId={id!}
                 clientId={resolvedClientId}
