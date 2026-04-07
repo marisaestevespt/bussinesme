@@ -560,6 +560,248 @@ export default function PortalViewPage() {
 
 
 
+        {/* ═══ QUESTIONS ═══ */}
+        {activeSection === 'questions' && questions.length > 0 && (() => {
+          const isQAnswered = (q: any) => q.answer?.trim() || (Array.isArray(q.file_urls) && q.file_urls.length > 0);
+          const allAnswered = questions.every(isQAnswered);
+          const answeredCount = questions.filter(isQAnswered).length;
+          const allSubmitted = allAnswered && !activeQuestionId;
+          const firstUnanswered = questions.find((q: any) => !isQAnswered(q));
+          const currentOpen = activeQuestionId;
+
+          const handleSubmitAll = async () => {
+            for (const [qId, text] of Object.entries(draftAnswers)) {
+              if (text.trim()) await answerQuestion(qId, text);
+            }
+            setDraftAnswers({});
+            setActiveQuestionId(null);
+            toast.success('Respostas submetidas!');
+            if (client?.id && client?.full_name) {
+              (supabase as any).rpc('notify_portal_questions_submitted', {
+                _client_name: client.full_name,
+                _client_id: client.id,
+              }).catch(() => {});
+            }
+          };
+
+          // Group questions by question_group
+          const groups: { group: string; items: any[] }[] = [];
+          const seen = new Set<string>();
+          for (const q of questions) {
+            const g = q.question_group || 'Geral';
+            if (!seen.has(g)) { seen.add(g); groups.push({ group: g, items: [] }); }
+            groups.find(gr => gr.group === g)!.items.push(q);
+          }
+
+          return (
+            <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                <SectionTitle icon={ClipboardList}>Perguntas Iniciais</SectionTitle>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-muted-foreground">{answeredCount}/{questions.length} respondidas</span>
+                  {allSubmitted ? (
+                    <Badge variant="outline" className="text-[10px] font-medium text-emerald-600 border-emerald-200 bg-emerald-50">
+                      ✓ Submetido
+                    </Badge>
+                  ) : (
+                    <Badge className="text-[10px] font-semibold text-white border-0 px-2.5 py-0.5" style={{ backgroundColor: pc }}>
+                      Por preencher
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {!allSubmitted && (
+                <p className="text-sm text-muted-foreground -mt-2">
+                  Responde a todas as perguntas para nos ajudar a conhecer melhor o teu negócio. Podes guardar e voltar mais tarde.
+                </p>
+              )}
+
+              <div className="space-y-3">
+                {groups.map((section) => {
+                  const sectionAnswered = section.items.filter(isQAnswered).length;
+                  const sectionComplete = sectionAnswered === section.items.length;
+                  const isSectionOpen = expandedSections.has(section.group);
+
+                  return (
+                    <SectionCard key={section.group} className="overflow-hidden">
+                      <button
+                        className="w-full px-5 py-3.5 flex items-center justify-between hover:bg-muted/20 transition-colors"
+                        onClick={() => {
+                          setExpandedSections(prev => {
+                            const next = new Set(prev);
+                            if (next.has(section.group)) next.delete(section.group);
+                            else next.add(section.group);
+                            return next;
+                          });
+                          if (isSectionOpen) {
+                            const openInSection = section.items.find((q: any) => q.id === currentOpen);
+                            if (openInSection) setActiveQuestionId(null);
+                          }
+                        }}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${isSectionOpen ? 'rotate-90' : ''}`} />
+                          <p className="text-sm font-semibold">{section.group}</p>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] ${sectionComplete ? 'text-emerald-600 border-emerald-200 bg-emerald-50' : ''}`}
+                        >
+                          {sectionAnswered}/{section.items.length}
+                        </Badge>
+                      </button>
+
+                      {isSectionOpen && (
+                        <div className="divide-y divide-border/20 border-t border-border/20">
+                          {section.items.map((q: any, i: number) => {
+                            const isOpen = currentOpen === q.id;
+                            const hasAnswer = q.answer?.trim() || draftAnswers[q.id]?.trim() || (Array.isArray(q.file_urls) && q.file_urls.length > 0);
+                            return (
+                              <div key={q.id} className="transition-all">
+                                <button
+                                  className="w-full px-5 py-3 flex items-center gap-3 text-left hover:bg-muted/30 transition-colors pl-10"
+                                  onClick={() => setActiveQuestionId(isOpen ? null : q.id)}
+                                >
+                                  <div
+                                    className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all ${
+                                      hasAnswer ? 'text-white' : 'bg-muted text-muted-foreground'
+                                    }`}
+                                    style={hasAnswer ? { backgroundColor: pc } : undefined}
+                                  >
+                                    {hasAnswer ? '✓' : i + 1}
+                                  </div>
+                                  <p className={`text-sm flex-1 ${hasAnswer ? 'text-muted-foreground' : 'font-medium'}`}>{q.question}</p>
+                                  <ChevronRight className={`h-4 w-4 text-muted-foreground/40 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+                                </button>
+
+                                {isOpen && (
+                                  <div className="px-5 pb-4 pl-[4.5rem]">
+                                    {Array.isArray(q.file_urls) && q.file_urls.length > 0 && (
+                                      <div className="rounded-xl bg-emerald-50/50 border border-emerald-100 p-3 mb-2">
+                                        <div className="flex flex-wrap gap-2">
+                                          {(q.file_urls as string[]).map((url: string, fi: number) => {
+                                            const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+                                            return isImg ? (
+                                              <a key={fi} href={url} target="_blank" rel="noopener noreferrer">
+                                                <img src={url} alt="" className="h-16 w-16 object-cover rounded-lg border" />
+                                              </a>
+                                            ) : (
+                                              <a key={fi} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline bg-white rounded-lg border px-2 py-1">
+                                                <FileText className="h-3 w-3" />{url.split('/').pop()?.substring(0, 25)}
+                                              </a>
+                                            );
+                                          })}
+                                        </div>
+                                        {q.answered_at && <p className="text-[10px] text-muted-foreground mt-2">Enviado {format(parseISO(q.answered_at), 'dd/MM/yyyy')}</p>}
+                                      </div>
+                                    )}
+
+                                    {(q.answer_type || 'text') === 'text' && (
+                                      <>
+                                        {q.answer?.trim() && editingQuestionId !== q.id ? (
+                                          <div className="space-y-2">
+                                            <div className="rounded-xl bg-emerald-50/50 border border-emerald-100 p-3">
+                                              <p className="text-sm">{q.answer}</p>
+                                              {q.answered_at && <p className="text-[10px] text-muted-foreground mt-1">Respondida {format(parseISO(q.answered_at), 'dd/MM/yyyy')}</p>}
+                                            </div>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="text-xs text-muted-foreground"
+                                              onClick={() => {
+                                                setEditingQuestionId(q.id);
+                                                setDraftAnswers(prev => ({ ...prev, [q.id]: q.answer }));
+                                              }}
+                                            >
+                                              <Pencil className="h-3 w-3 mr-1" /> Editar resposta
+                                            </Button>
+                                          </div>
+                                        ) : (
+                                          <Textarea
+                                            className="text-sm rounded-xl border-border/40 bg-muted/10 focus-visible:ring-1"
+                                            placeholder="A tua resposta..."
+                                            value={draftAnswers[q.id] ?? q.answer ?? ''}
+                                            onChange={e => setDraftAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
+                                            rows={3}
+                                            style={{ '--tw-ring-color': pcAlpha(0.25) } as any}
+                                            autoFocus
+                                          />
+                                        )}
+                                        {(draftAnswers[q.id]?.trim() && draftAnswers[q.id] !== q.answer) && (
+                                          <Button
+                                            size="sm"
+                                            className="mt-2 rounded-lg text-white text-xs"
+                                            style={{ backgroundColor: pc }}
+                                            onClick={async () => {
+                                              await answerQuestion(q.id, draftAnswers[q.id]);
+                                              setDraftAnswers(prev => { const n = { ...prev }; delete n[q.id]; return n; });
+                                              setEditingQuestionId(null);
+                                              const nextUnanswered = questions.find((qq: any) => qq.id !== q.id && !qq.answer?.trim());
+                                              setActiveQuestionId(nextUnanswered?.id || null);
+                                            }}
+                                          >
+                                            ✓ Guardar resposta
+                                          </Button>
+                                        )}
+                                      </>
+                                    )}
+
+                                    {((q.answer_type || 'text') === 'file' || (q.answer_type || 'text') === 'image') && (
+                                      <div className="space-y-2">
+                                        <label className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/40 bg-muted/10 p-4 cursor-pointer hover:bg-muted/20 transition-colors">
+                                          <input
+                                            type="file"
+                                            className="hidden"
+                                            multiple
+                                            accept={q.answer_type === 'image' ? 'image/*' : '*'}
+                                            onChange={e => {
+                                              if (e.target.files?.length) {
+                                                uploadQuestionFiles(q.id, e.target.files);
+                                                const nextUnanswered = questions.find((qq: any) => qq.id !== q.id && !(qq.answer?.trim() || (Array.isArray(qq.file_urls) && qq.file_urls.length)));
+                                                setTimeout(() => setActiveQuestionId(nextUnanswered?.id || null), 1500);
+                                              }
+                                            }}
+                                            disabled={uploadingQuestionFiles[q.id]}
+                                          />
+                                          {uploadingQuestionFiles[q.id] ? (
+                                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                                          ) : (
+                                            <>
+                                              <Upload className="h-4 w-4 text-muted-foreground" />
+                                              <span className="text-sm text-muted-foreground">
+                                                {q.answer_type === 'image' ? 'Carregar imagem(ns)' : 'Carregar ficheiro(s)'}
+                                              </span>
+                                            </>
+                                          )}
+                                        </label>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </SectionCard>
+                  );
+                })}
+              </div>
+
+              {/* Submit all button */}
+              {allAnswered && !allSubmitted && (
+                <Button
+                  className="w-full rounded-xl text-white font-semibold py-3"
+                  style={{ backgroundColor: pc }}
+                  onClick={handleSubmitAll}
+                >
+                  <Send className="h-4 w-4 mr-2" />Submeter Todas as Respostas
+                </Button>
+              )}
+            </div>
+          );
+        })()}
 
             {/* Feedback inline at bottom */}
             <div className="rounded-2xl border border-border/30 bg-muted/5 p-5 space-y-3">
