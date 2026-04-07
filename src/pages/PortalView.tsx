@@ -279,6 +279,18 @@ export default function PortalViewPage() {
                 {firstName.charAt(0).toUpperCase()}
               </div>
               <span className="text-sm font-medium text-foreground hidden sm:inline">{firstName}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                title="Terminar sessão"
+                onClick={() => {
+                  if (portal) localStorage.removeItem(`portal_session_${portal.id}`);
+                  navigate(`/portal/${token}`, { replace: true });
+                }}
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
             </div>
           </div>
           <div className="-mb-px flex gap-1 overflow-x-auto scrollbar-none pb-0">
