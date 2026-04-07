@@ -96,6 +96,7 @@ export default function ClienteDetailPage() {
   const [offboardingNps, setOffboardingNps] = useState(true);
   const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
   const [pendingPaymentsTotal, setPendingPaymentsTotal] = useState(0);
+  const [leadPreviewId, setLeadPreviewId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
