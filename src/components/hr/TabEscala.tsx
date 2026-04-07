@@ -192,6 +192,7 @@ const STATUS_COLORS: Record<string, string> = {
   available: 'bg-green-500',
   off: 'bg-muted',
   vacation: 'bg-blue-400',
+  absence: 'bg-orange-400',
   holiday: 'bg-amber-400',
 };
 
@@ -199,6 +200,7 @@ const STATUS_LABELS: Record<string, string> = {
   available: 'Disponível',
   off: 'Folga',
   vacation: 'Férias',
+  absence: 'Ausência',
   holiday: 'Feriado',
 };
 
@@ -321,7 +323,7 @@ function VacationPopoverContent({ member, vacations, onOpenDialog }: { member: T
 
 // ─── Main Escala Component ─────
 export function TabEscala() {
-  const { members, vacations, isLoading } = useEscalaData();
+  const { members, vacations, absences, isLoading } = useEscalaData();
   const [viewMonth, setViewMonth] = useState(() => new Date());
   const [vacationMember, setVacationMember] = useState<TeamMember | null>(null);
   const [absenceDialogOpen, setAbsenceDialogOpen] = useState(false);
@@ -411,7 +413,7 @@ export function TabEscala() {
                     </div>
                   </TableCell>
                   {days.map(d => {
-                    const status = getAvailability(m, d, vacations, nationalHolidays);
+                    const status = getAvailability(m, d, vacations, absences, nationalHolidays);
                     return (
                       <TableCell key={d.toISOString()} className="text-center p-1">
                         <div
