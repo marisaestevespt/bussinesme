@@ -135,25 +135,40 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
             if (convDateStr) conversionDate = parseISO(convDateStr);
           }
 
+          const projectBase = projectStartDate ? parseISO(projectStartDate) : new Date();
+          let prevPhaseEnd: Date = projectBase;
+
           for (const pp of productPhases) {
             // Calculate planned dates from duration rules
             const trigger = pp.offset_trigger || 'inicio_projeto';
-            const baseDate = trigger === 'data_conversao' && conversionDate
-              ? conversionDate
-              : (projectStartDate ? parseISO(projectStartDate) : new Date());
-            let phaseStart: string | null = null;
+            const unit = pp.duration_unit || 'dias_uteis';
+            const offsetDays = pp.offset_days ?? 0;
+
+            // Determine base date for this phase
+            let phaseBaseDate: Date;
+            if (trigger === 'data_conversao' && conversionDate) {
+              phaseBaseDate = conversionDate;
+            } else if (trigger === 'fase_anterior') {
+              phaseBaseDate = prevPhaseEnd;
+            } else {
+              phaseBaseDate = projectBase;
+            }
+
+            let phaseStartDate: Date = unit === 'dias_uteis'
+              ? addBusinessDays(phaseBaseDate, offsetDays)
+              : addDays(phaseBaseDate, offsetDays);
+            let phaseStart: string = phaseStartDate.toISOString().split('T')[0];
+            let phaseEndDate: Date = phaseStartDate;
             let phaseEnd: string | null = null;
 
-            if (pp.offset_days != null || pp.duration_days != null) {
-              const offsetDays = pp.offset_days ?? 0;
-              const unit = pp.duration_unit || 'dias_uteis';
-              const startDate = unit === 'dias_uteis' ? addBusinessDays(baseDate, offsetDays) : addDays(baseDate, offsetDays);
-              phaseStart = startDate.toISOString().split('T')[0];
-              if (pp.duration_days != null) {
-                const endDate = unit === 'dias_uteis' ? addBusinessDays(startDate, pp.duration_days) : addDays(startDate, pp.duration_days);
-                phaseEnd = endDate.toISOString().split('T')[0];
-              }
+            if (pp.duration_days != null) {
+              phaseEndDate = unit === 'dias_uteis'
+                ? addBusinessDays(phaseStartDate, pp.duration_days)
+                : addDays(phaseStartDate, pp.duration_days);
+              phaseEnd = phaseEndDate.toISOString().split('T')[0];
             }
+
+            prevPhaseEnd = phaseEndDate;
 
             const { data: insertedPhase } = await (supabase as any).from('project_phases').insert({
               project_id: projectId,
@@ -164,9 +179,9 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
               source_phase_id: pp.id,
               status: 'pendente',
               duration_days: pp.duration_days ?? null,
-              duration_unit: pp.duration_unit || 'dias_uteis',
-              offset_days: pp.offset_days ?? 0,
-              offset_trigger: pp.offset_trigger || 'inicio_projeto',
+              duration_unit: unit,
+              offset_days: offsetDays,
+              offset_trigger: trigger,
               planned_start: phaseStart,
               planned_end: phaseEnd,
               is_onboarding: pp.is_onboarding ?? false,
@@ -177,23 +192,27 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
               const { data: phaseDeliverables } = await (supabase as any).from('product_deliverable_templates')
                 .select('*').eq('phase_id', pp.id).order('sort_order');
               if (phaseDeliverables?.length) {
-                const phaseStartDate = phaseStart ? parseISO(phaseStart) : baseDate;
+                let prevDelEnd: Date = phaseStartDate;
+
                 for (const dt of phaseDeliverables) {
-                  // Calculate deliverable planned dates
                   let delStart: string | null = null;
                   let delEnd: string | null = null;
                   const dtOffsetDays = dt.offset_days ?? 0;
                   const dtUnit = dt.duration_unit || 'dias_uteis';
+                  const dtTrigger = dt.offset_trigger || 'inicio_fase';
 
-                  if (dtOffsetDays != null || dt.duration_days != null) {
-                    const refDate = phaseStartDate;
-                    const startD = dtUnit === 'dias_uteis' ? addBusinessDays(refDate, dtOffsetDays) : addDays(refDate, dtOffsetDays);
-                    delStart = startD.toISOString().split('T')[0];
-                    if (dt.duration_days != null) {
-                      const endD = dtUnit === 'dias_uteis' ? addBusinessDays(startD, dt.duration_days) : addDays(startD, dt.duration_days);
-                      delEnd = endD.toISOString().split('T')[0];
-                    }
+                  // Choose reference date based on trigger
+                  const refDate = dtTrigger === 'entrega_anterior' ? prevDelEnd : phaseStartDate;
+                  const startD = dtUnit === 'dias_uteis' ? addBusinessDays(refDate, dtOffsetDays) : addDays(refDate, dtOffsetDays);
+                  delStart = startD.toISOString().split('T')[0];
+
+                  let endD = startD;
+                  if (dt.duration_days != null) {
+                    endD = dtUnit === 'dias_uteis' ? addBusinessDays(startD, dt.duration_days) : addDays(startD, dt.duration_days);
+                    delEnd = endD.toISOString().split('T')[0];
                   }
+
+                  prevDelEnd = endD;
 
                   await (supabase as any).from('project_deliverables').insert({
                     project_id: projectId,
@@ -209,7 +228,7 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
                     duration_days: dt.duration_days ?? null,
                     duration_unit: dtUnit,
                     offset_days: dtOffsetDays,
-                    offset_trigger: dt.offset_trigger || 'inicio_fase',
+                    offset_trigger: dtTrigger,
                     responsible_type: dt.responsible_type || 'equipa',
                     planned_start: delStart,
                     planned_end: delEnd,
