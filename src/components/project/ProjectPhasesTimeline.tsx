@@ -108,6 +108,90 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
     qc.invalidateQueries({ queryKey: delKey });
   };
 
+  // --- Shared: recalculate a phase's deliverables, return last anchor date ---
+  const recalcPhaseDeliverables = async (
+    phaseDels: ProjectDeliverable[],
+    phaseStart: Date,
+  ): Promise<Date> => {
+    let prevDelEnd: Date = phaseStart;
+    for (let di = 0; di < phaseDels.length; di++) {
+      const del = phaseDels[di];
+      let delStart: Date;
+      if (del.offset_trigger === 'entrega_anterior' && di > 0) {
+        delStart = del.duration_unit === 'dias_uteis'
+          ? addBusinessDays(prevDelEnd, del.offset_days || 0)
+          : addCalendarDays(prevDelEnd, del.offset_days || 0);
+      } else {
+        delStart = del.duration_unit === 'dias_uteis'
+          ? addBusinessDays(phaseStart, del.offset_days || 0)
+          : addCalendarDays(phaseStart, del.offset_days || 0);
+      }
+
+      let delEnd: Date | null = null;
+      if (del.duration_days != null && del.duration_days > 0) {
+        delEnd = del.duration_unit === 'dias_uteis'
+          ? addBusinessDays(delStart, del.duration_days)
+          : addCalendarDays(delStart, del.duration_days);
+      }
+
+      await (supabase as any).from('project_deliverables').update({
+        planned_start: format(delStart, 'yyyy-MM-dd'),
+        planned_end: delEnd ? format(delEnd, 'yyyy-MM-dd') : null,
+      }).eq('id', del.id);
+
+      prevDelEnd = delEnd || delStart;
+    }
+    return prevDelEnd;
+  };
+
+  // --- Shared: recalculate phases from a given index, chaining from prevEnd ---
+  const recalcPhasesFrom = async (
+    sortedPhases: ProjectPhase[],
+    allDels: ProjectDeliverable[],
+    fromIdx: number,
+    startAnchor: Date,
+    projectStart: Date,
+  ) => {
+    let prevPhaseEnd = startAnchor;
+    for (let pi = fromIdx; pi < sortedPhases.length; pi++) {
+      const phase = sortedPhases[pi];
+      let phaseStart: Date;
+      if (phase.offset_trigger === 'fase_anterior' && pi > 0) {
+        phaseStart = phase.duration_unit === 'dias_uteis'
+          ? addBusinessDays(prevPhaseEnd, phase.offset_days || 0)
+          : addCalendarDays(prevPhaseEnd, phase.offset_days || 0);
+      } else {
+        phaseStart = phase.duration_unit === 'dias_uteis'
+          ? addBusinessDays(projectStart, phase.offset_days || 0)
+          : addCalendarDays(projectStart, phase.offset_days || 0);
+      }
+
+      const phaseDuration = phase.duration_days || 0;
+      let phaseEnd = phaseDuration > 0
+        ? (phase.duration_unit === 'dias_uteis'
+          ? addBusinessDays(phaseStart, phaseDuration)
+          : addCalendarDays(phaseStart, phaseDuration))
+        : phaseStart;
+
+      // Recalculate deliverables
+      const phaseDels = allDels
+        .filter(d => d.phase_id === phase.id)
+        .sort((a, b) => a.sort_order - b.sort_order);
+
+      const lastDelEnd = await recalcPhaseDeliverables(phaseDels, phaseStart);
+
+      // Phase end = max of nominal end and last deliverable end
+      if (lastDelEnd > phaseEnd) phaseEnd = lastDelEnd;
+
+      await (supabase as any).from('project_phases').update({
+        planned_start: format(phaseStart, 'yyyy-MM-dd'),
+        planned_end: format(phaseEnd, 'yyyy-MM-dd'),
+      }).eq('id', phase.id);
+
+      prevPhaseEnd = phaseEnd;
+    }
+  };
+
   // --- Recalculate all dates from project start ---
   const [recalculating, setRecalculating] = useState(false);
   const recalculateDates = async () => {
@@ -118,69 +202,20 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
     setRecalculating(true);
     try {
       const startDate = parseISO(projectStartDate);
-      const sortedPhases = [...phases].sort((a, b) => a.sort_order - b.sort_order);
-      let prevPhaseEnd: Date = startDate;
+      const { data: latestPhases } = await (supabase as any).from('project_phases')
+        .select('*').eq('project_id', projectId).order('sort_order');
+      const { data: latestDels } = await (supabase as any).from('project_deliverables')
+        .select('*').eq('project_id', projectId).order('sort_order');
 
-      for (const phase of sortedPhases) {
-        // Calculate phase start
-        let phaseStart: Date;
-        if (phase.offset_trigger === 'fase_anterior' && phase.sort_order > 0) {
-          phaseStart = phase.duration_unit === 'dias_uteis'
-            ? addBusinessDays(prevPhaseEnd, phase.offset_days || 0)
-            : addCalendarDays(prevPhaseEnd, phase.offset_days || 0);
-        } else {
-          phaseStart = phase.duration_unit === 'dias_uteis'
-            ? addBusinessDays(startDate, phase.offset_days || 0)
-            : addCalendarDays(startDate, phase.offset_days || 0);
-        }
+      if (!latestPhases || !latestDels) throw new Error('Sem dados');
 
-        // Calculate phase end
-        const phaseDuration = phase.duration_days || 0;
-        const phaseEnd = phaseDuration > 0
-          ? (phase.duration_unit === 'dias_uteis'
-            ? addBusinessDays(phaseStart, phaseDuration)
-            : addCalendarDays(phaseStart, phaseDuration))
-          : phaseStart;
-
-        await (supabase as any).from('project_phases').update({
-          planned_start: format(phaseStart, 'yyyy-MM-dd'),
-          planned_end: format(phaseEnd, 'yyyy-MM-dd'),
-        }).eq('id', phase.id);
-
-        // Calculate deliverable dates within phase
-        const phaseDels = deliverables
-          .filter(d => d.phase_id === phase.id)
-          .sort((a, b) => a.sort_order - b.sort_order);
-
-        let prevDelEnd: Date = phaseStart;
-        for (let di = 0; di < phaseDels.length; di++) {
-          const del = phaseDels[di];
-          let delStart: Date;
-          if (del.offset_trigger === 'entrega_anterior' && di > 0) {
-            delStart = del.duration_unit === 'dias_uteis'
-              ? addBusinessDays(prevDelEnd, del.offset_days || 0)
-              : addCalendarDays(prevDelEnd, del.offset_days || 0);
-          } else {
-            delStart = del.duration_unit === 'dias_uteis'
-              ? addBusinessDays(phaseStart, del.offset_days || 0)
-              : addCalendarDays(phaseStart, del.offset_days || 0);
-          }
-
-          const delDuration = Math.max(del.duration_days || 1, 1);
-          const delEnd = del.duration_unit === 'dias_uteis'
-            ? addBusinessDays(delStart, delDuration)
-            : addCalendarDays(delStart, delDuration);
-
-          await (supabase as any).from('project_deliverables').update({
-            planned_start: format(delStart, 'yyyy-MM-dd'),
-            planned_end: format(delEnd, 'yyyy-MM-dd'),
-          }).eq('id', del.id);
-
-          prevDelEnd = delEnd;
-        }
-
-        prevPhaseEnd = phaseEnd;
-      }
+      await recalcPhasesFrom(
+        (latestPhases as ProjectPhase[]).sort((a, b) => a.sort_order - b.sort_order),
+        latestDels as ProjectDeliverable[],
+        0,
+        startDate,
+        startDate,
+      );
 
       invalidateAll();
       toast.success('Datas recalculadas com sucesso');
@@ -192,62 +227,97 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
     }
   };
 
+  const applyCascade = async (_delayDays: number, fromPhaseIdx: number) => {
+    try {
+      // Fetch latest data from DB
+      const { data: latestPhases } = await (supabase as any).from('project_phases')
+        .select('*').eq('project_id', projectId).order('sort_order');
+      const { data: latestDels } = await (supabase as any).from('project_deliverables')
+        .select('*').eq('project_id', projectId).order('sort_order');
 
-  const applyCascade = async (delayDays: number, fromPhaseIdx: number) => {
-    // Shift all subsequent phases and their deliverables by delayDays
-    const subsequentPhases = phases.filter(p => p.sort_order > phases[fromPhaseIdx].sort_order);
-    for (const sp of subsequentPhases) {
-      const updates: Record<string, unknown> = {};
-      if (sp.planned_start) {
-        const newStart = addCalendarDays(parseISO(sp.planned_start), delayDays);
-        updates.planned_start = format(newStart, 'yyyy-MM-dd');
-      }
-      if (sp.planned_end) {
-        const newEnd = addCalendarDays(parseISO(sp.planned_end), delayDays);
-        updates.planned_end = format(newEnd, 'yyyy-MM-dd');
-      }
-      if (Object.keys(updates).length > 0) {
-        await (supabase as any).from('project_phases').update(updates).eq('id', sp.id);
-      }
-      // Shift deliverables of this phase too
-      const phaseDels = deliverables.filter(d => d.phase_id === sp.id);
-      for (const pd of phaseDels) {
-        const delUpdates: Record<string, unknown> = {};
-        if (pd.planned_start) {
-          delUpdates.planned_start = format(addCalendarDays(parseISO(pd.planned_start), delayDays), 'yyyy-MM-dd');
+      if (!latestPhases || !latestDels) return;
+
+      const sortedPhases = (latestPhases as ProjectPhase[]).sort((a, b) => a.sort_order - b.sort_order);
+      const currentPhase = sortedPhases[fromPhaseIdx];
+      if (!currentPhase) return;
+
+      const projectStart = projectStartDate ? parseISO(projectStartDate) : new Date();
+
+      // If cascade from deliverable edit, first recalculate same-phase deliverables after the edited one
+      if (cascadePrompt?.type === 'del_end' && cascadePrompt.delId) {
+        const samePhaseDels = (latestDels as ProjectDeliverable[])
+          .filter(d => d.phase_id === currentPhase.id)
+          .sort((a, b) => a.sort_order - b.sort_order);
+        const editedIdx = samePhaseDels.findIndex(d => d.id === cascadePrompt.delId);
+
+        if (editedIdx >= 0) {
+          const editedDel = samePhaseDels[editedIdx];
+          let prevEnd = editedDel.planned_end ? parseISO(editedDel.planned_end) : parseISO(editedDel.planned_start || currentPhase.planned_start || projectStartDate || '');
+          const phaseStartDate = currentPhase.planned_start ? parseISO(currentPhase.planned_start) : projectStart;
+
+          for (let di = editedIdx + 1; di < samePhaseDels.length; di++) {
+            const del = samePhaseDels[di];
+            let delStart: Date;
+            if (del.offset_trigger === 'entrega_anterior') {
+              delStart = del.duration_unit === 'dias_uteis'
+                ? addBusinessDays(prevEnd, del.offset_days || 0)
+                : addCalendarDays(prevEnd, del.offset_days || 0);
+            } else {
+              delStart = del.duration_unit === 'dias_uteis'
+                ? addBusinessDays(phaseStartDate, del.offset_days || 0)
+                : addCalendarDays(phaseStartDate, del.offset_days || 0);
+            }
+
+            let delEnd: Date | null = null;
+            if (del.duration_days != null && del.duration_days > 0) {
+              delEnd = del.duration_unit === 'dias_uteis'
+                ? addBusinessDays(delStart, del.duration_days)
+                : addCalendarDays(delStart, del.duration_days);
+            }
+
+            await (supabase as any).from('project_deliverables').update({
+              planned_start: format(delStart, 'yyyy-MM-dd'),
+              planned_end: delEnd ? format(delEnd, 'yyyy-MM-dd') : null,
+            }).eq('id', del.id);
+
+            prevEnd = delEnd || delStart;
+          }
         }
-        if (pd.planned_end) {
-          delUpdates.planned_end = format(addCalendarDays(parseISO(pd.planned_end), delayDays), 'yyyy-MM-dd');
+
+        // Update current phase end = max of nominal end and all deliverable ends
+        const allCurrentDels = (latestDels as ProjectDeliverable[])
+          .filter(d => d.phase_id === currentPhase.id);
+        let maxEnd = currentPhase.planned_end || '';
+        for (const d of allCurrentDels) {
+          if (d.planned_end && d.planned_end > maxEnd) maxEnd = d.planned_end;
         }
-        if (Object.keys(delUpdates).length > 0) {
-          await (supabase as any).from('project_deliverables').update(delUpdates).eq('id', pd.id);
+        if (maxEnd && maxEnd !== currentPhase.planned_end) {
+          await (supabase as any).from('project_phases').update({ planned_end: maxEnd }).eq('id', currentPhase.id);
+          currentPhase.planned_end = maxEnd;
         }
       }
+
+      // Recalculate all subsequent phases using their rules
+      const anchor = currentPhase.planned_end ? parseISO(currentPhase.planned_end) : projectStart;
+
+      // Re-fetch deliverables after same-phase updates
+      const { data: freshDels } = await (supabase as any).from('project_deliverables')
+        .select('*').eq('project_id', projectId).order('sort_order');
+
+      await recalcPhasesFrom(
+        sortedPhases,
+        (freshDels || latestDels) as ProjectDeliverable[],
+        fromPhaseIdx + 1,
+        anchor,
+        projectStart,
+      );
+
+      invalidateAll();
+      toast.success('Datas recalculadas com sucesso');
+    } catch (err) {
+      toast.error('Erro ao recalcular datas');
+      console.error(err);
     }
-    // Also shift remaining deliverables in the SAME phase (after the edited one)
-    if (cascadePrompt?.type === 'del_end' && cascadePrompt.delId) {
-      const samePhaseDels = deliverables
-        .filter(d => d.phase_id === phases[fromPhaseIdx].id)
-        .sort((a, b) => a.sort_order - b.sort_order);
-      const editedIdx = samePhaseDels.findIndex(d => d.id === cascadePrompt.delId);
-      if (editedIdx >= 0) {
-        const after = samePhaseDels.slice(editedIdx + 1);
-        for (const pd of after) {
-          const delUpdates: Record<string, unknown> = {};
-          if (pd.planned_start) {
-            delUpdates.planned_start = format(addCalendarDays(parseISO(pd.planned_start), delayDays), 'yyyy-MM-dd');
-          }
-          if (pd.planned_end) {
-            delUpdates.planned_end = format(addCalendarDays(parseISO(pd.planned_end), delayDays), 'yyyy-MM-dd');
-          }
-          if (Object.keys(delUpdates).length > 0) {
-            await (supabase as any).from('project_deliverables').update(delUpdates).eq('id', pd.id);
-          }
-        }
-      }
-    }
-    invalidateAll();
-    toast.success(`Datas recalculadas (+${delayDays} dias)`);
     setCascadePrompt(null);
   };
 
