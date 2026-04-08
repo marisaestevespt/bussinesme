@@ -1108,7 +1108,7 @@ export default function PortalViewPage() {
             ) : (
               <div className="space-y-3">
                 {meetings.map((m: any) => {
-                  const isPending = m.status === 'marcada' || m.status === 'por_confirmar';
+                  const isPending = m.status === 'marcada' || m.status === 'por_confirmar' || m.status === 'agendada';
                   const ms = meetingStatus(m.status);
                   return (
                     <SectionCard key={m.id} className="p-5">
