@@ -251,24 +251,6 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
     setCascadePrompt(null);
   };
 
-  /** Check if a date edit creates a delay and prompt cascade */
-  function checkForDelay(
-    type: 'phase_end' | 'del_end',
-    originalEnd: string | null,
-    newEnd: string,
-    phaseId: string,
-    delId?: string,
-  ) {
-    if (!originalEnd || !newEnd) return;
-    const diff = differenceInCalendarDays(parseISO(newEnd), parseISO(originalEnd));
-    if (diff > 0) {
-      const phaseIdx = phases.findIndex(p => p.id === phaseId);
-      if (phaseIdx >= 0) {
-        setCascadePrompt({ delayDays: diff, phaseId, phaseIdx, type, delId });
-      }
-    }
-  }
-
   // --- Phase mutations ---
   const updatePhase = useMutation({
     mutationFn: async ({ id, ...fields }: { id: string } & Record<string, unknown>) => {
@@ -277,17 +259,29 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
       if (fields.status === 'concluida' && !fields.completed_at) updates.completed_at = new Date().toISOString();
       if (fields.status === 'pendente') { updates.started_at = null; updates.completed_at = null; }
 
-      // Check for delay before saving
+      await (supabase as any).from('project_phases').update(updates).eq('id', id);
+
+      // Check for delay AFTER saving — return info for cascade prompt
       if (fields.planned_end && typeof fields.planned_end === 'string') {
         const phase = phases.find(p => p.id === id);
         if (phase?.planned_end) {
-          checkForDelay('phase_end', phase.planned_end, fields.planned_end as string, id);
+          return { type: 'phase_end' as const, originalEnd: phase.planned_end, newEnd: fields.planned_end as string, entityId: id };
         }
       }
-
-      await (supabase as any).from('project_phases').update(updates).eq('id', id);
+      return null;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: phaseKey }),
+    onSuccess: (delayInfo) => {
+      qc.invalidateQueries({ queryKey: phaseKey });
+      if (delayInfo) {
+        const diff = differenceInCalendarDays(parseISO(delayInfo.newEnd), parseISO(delayInfo.originalEnd));
+        if (diff > 0) {
+          const phaseIdx = phases.findIndex(p => p.id === delayInfo.entityId);
+          if (phaseIdx >= 0) {
+            setCascadePrompt({ delayDays: diff, phaseId: delayInfo.entityId, phaseIdx, type: 'phase_end' });
+          }
+        }
+      }
+    },
   });
 
   const addPhase = useMutation({
@@ -323,16 +317,29 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
   // --- Deliverable mutations ---
   const updateDeliverable = useMutation({
     mutationFn: async ({ id, ...fields }: { id: string } & Record<string, unknown>) => {
-      // Check for delay before saving
+      await (supabase as any).from('project_deliverables').update(fields).eq('id', id);
+
+      // Check for delay AFTER saving
       if (fields.planned_end && typeof fields.planned_end === 'string') {
         const del = deliverables.find(d => d.id === id);
         if (del?.planned_end && del.phase_id) {
-          checkForDelay('del_end', del.planned_end, fields.planned_end as string, del.phase_id, id);
+          return { type: 'del_end' as const, originalEnd: del.planned_end, newEnd: fields.planned_end as string, phaseId: del.phase_id, delId: id };
         }
       }
-      await (supabase as any).from('project_deliverables').update(fields).eq('id', id);
+      return null;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: delKey }),
+    onSuccess: (delayInfo) => {
+      qc.invalidateQueries({ queryKey: delKey });
+      if (delayInfo) {
+        const diff = differenceInCalendarDays(parseISO(delayInfo.newEnd), parseISO(delayInfo.originalEnd));
+        if (diff > 0) {
+          const phaseIdx = phases.findIndex(p => p.id === delayInfo.phaseId);
+          if (phaseIdx >= 0) {
+            setCascadePrompt({ delayDays: diff, phaseId: delayInfo.phaseId, phaseIdx, type: 'del_end', delId: delayInfo.delId });
+          }
+        }
+      }
+    },
   });
 
   const addDeliverable = useMutation({
@@ -483,13 +490,13 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                         <div className="flex items-center gap-1">
                           <CalendarDays className="h-3 w-3 text-muted-foreground" />
                           <span className="text-[10px] text-muted-foreground">Início:</span>
-                          <Input type="date" className="h-6 text-[10px] w-32" value={phase.planned_start || ''}
-                            onChange={e => updatePhase.mutate({ id: phase.id, planned_start: e.target.value || null })} />
+                          <Input type="date" className="h-6 text-[10px] w-32" defaultValue={phase.planned_start || ''}
+                            onBlur={e => { const v = e.target.value || null; if (v !== (phase.planned_start || null)) updatePhase.mutate({ id: phase.id, planned_start: v }); }} />
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="text-[10px] text-muted-foreground">Fim:</span>
-                          <Input type="date" className="h-6 text-[10px] w-32" value={phase.planned_end || ''}
-                            onChange={e => updatePhase.mutate({ id: phase.id, planned_end: e.target.value || null })} />
+                          <Input type="date" className="h-6 text-[10px] w-32" defaultValue={phase.planned_end || ''}
+                            onBlur={e => { const v = e.target.value || null; if (v !== (phase.planned_end || null)) updatePhase.mutate({ id: phase.id, planned_end: v }); }} />
                         </div>
                       </div>
                     </div>
@@ -611,11 +618,11 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                               <div className="flex items-center gap-2 ml-5 flex-wrap">
                                 <CalendarDays className="h-2.5 w-2.5 text-muted-foreground" />
                                 <span className="text-[9px] text-muted-foreground">Início:</span>
-                                <Input type="date" className="h-5 text-[9px] w-28" value={d.planned_start || ''}
-                                  onChange={e => updateDeliverable.mutate({ id: d.id, planned_start: e.target.value || null })} />
+                                <Input type="date" className="h-5 text-[9px] w-28" defaultValue={d.planned_start || ''}
+                                  onBlur={e => { const v = e.target.value || null; if (v !== (d.planned_start || null)) updateDeliverable.mutate({ id: d.id, planned_start: v }); }} />
                                 <span className="text-[9px] text-muted-foreground">Fim:</span>
-                                <Input type="date" className="h-5 text-[9px] w-28" value={d.planned_end || ''}
-                                  onChange={e => updateDeliverable.mutate({ id: d.id, planned_end: e.target.value || null })} />
+                                <Input type="date" className="h-5 text-[9px] w-28" defaultValue={d.planned_end || ''}
+                                  onBlur={e => { const v = e.target.value || null; if (v !== (d.planned_end || null)) updateDeliverable.mutate({ id: d.id, planned_end: v }); }} />
                               </div>
                             )}
                           </div>
