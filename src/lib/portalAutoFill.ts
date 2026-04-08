@@ -60,10 +60,6 @@ const MATCH_RULES: MatchRule[] = [
     getValue: (_c, b) => b.cae_principal || null,
   },
   {
-    patterns: ['capital social'],
-    getValue: (_c, b) => b.capital_social || null,
-  },
-  {
     patterns: ['regime de iva', 'regime iva', 'mensal ou trimestral'],
     getValue: (_c, b) => b.regime_iva || null,
   },
