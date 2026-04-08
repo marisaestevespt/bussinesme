@@ -1136,10 +1136,9 @@ export default function PortalViewPage() {
                               onClick={async (e) => {
                                 e.stopPropagation();
                                 const { data, error } = await (supabase as any).rpc('portal_confirm_meeting', { _token: token, _meeting_id: m.id });
-                                console.log('[portal_confirm_meeting]', { data, error, token, meetingId: m.id });
                                 if (error) { toast.error('Erro ao confirmar: ' + error.message); return; }
                                 if (data) { setMeetings(prev => prev.map(x => x.id === m.id ? { ...x, status: 'confirmada' } : x)); toast.success('Presença confirmada ✨'); }
-                                else toast.error('Não foi possível confirmar — verifique o estado da reunião');
+                                else toast.error('Não foi possível confirmar');
                               }}>
                               Confirmar
                             </Button>
