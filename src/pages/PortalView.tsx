@@ -218,6 +218,7 @@ export default function PortalViewPage() {
   const rawColor = settings?.primary_color || '12 76% 52%';
   const pc = `hsl(${rawColor})`;
   const pcAlpha = (a: number) => `hsl(${rawColor} / ${a})`;
+  const portalToken = portal.token;
   const logoUrl = settings?.logo_url;
   const firstName = client.full_name?.split(' ')[0] || '';
 
@@ -565,9 +566,9 @@ export default function PortalViewPage() {
                                         onClick={async () => {
                                           if (!isClient) return;
                                           const newCompleted = !dDone;
-                                          await (supabase as any).rpc('portal_toggle_deliverable', { _token: token, _deliverable_id: d.id, _completed: newCompleted });
+                                          await (supabase as any).rpc('portal_toggle_deliverable', { _token: portalToken, _deliverable_id: d.id, _completed: newCompleted });
                                           // Refresh phases
-                                          const res = await (supabase as any).rpc('get_portal_phases', { _token: token });
+                                          const res = await (supabase as any).rpc('get_portal_phases', { _token: portalToken });
                                           const phasesData = res.data || [];
                                           const parsed = Array.isArray(phasesData) ? phasesData : [];
                                           const all = parsed.map((p: any) => ({ ...p, title: p.name, status: p.status === 'concluida' ? 'concluido' : p.status }));
@@ -1135,7 +1136,7 @@ export default function PortalViewPage() {
                             <Button size="sm" className="h-8 text-xs rounded-lg text-white" style={{ backgroundColor: pc }}
                               onClick={async (e) => {
                                 e.stopPropagation();
-                                const { data, error } = await (supabase as any).rpc('portal_confirm_meeting', { _token: token, _meeting_id: m.id });
+                                const { data, error } = await (supabase as any).rpc('portal_confirm_meeting', { _token: portalToken, _meeting_id: m.id });
                                 if (error) { toast.error('Erro ao confirmar: ' + error.message); return; }
                                 if (data) { setMeetings(prev => prev.map(x => x.id === m.id ? { ...x, status: 'confirmada' } : x)); toast.success('Presença confirmada ✨'); }
                                 else toast.error('Não foi possível confirmar');
@@ -1165,7 +1166,7 @@ export default function PortalViewPage() {
                               const el = document.getElementById(`notes-${m.id}`) as HTMLTextAreaElement;
                               const val = el?.value?.trim();
                               if (!val) { toast.error('Escreve uma sugestão primeiro'); return; }
-                              await (supabase as any).rpc('portal_add_meeting_notes', { _token: token, _meeting_id: m.id, _notes: val });
+                              await (supabase as any).rpc('portal_add_meeting_notes', { _token: portalToken, _meeting_id: m.id, _notes: val });
                               setMeetings(prev => prev.map(x => x.id === m.id ? { ...x, portal_notes: val } : x));
                               toast.success('Sugestão enviada ✓');
                             }}>
