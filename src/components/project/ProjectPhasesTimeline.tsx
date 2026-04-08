@@ -251,24 +251,6 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
     setCascadePrompt(null);
   };
 
-  /** Check if a date edit creates a delay and prompt cascade */
-  function checkForDelay(
-    type: 'phase_end' | 'del_end',
-    originalEnd: string | null,
-    newEnd: string,
-    phaseId: string,
-    delId?: string,
-  ) {
-    if (!originalEnd || !newEnd) return;
-    const diff = differenceInCalendarDays(parseISO(newEnd), parseISO(originalEnd));
-    if (diff > 0) {
-      const phaseIdx = phases.findIndex(p => p.id === phaseId);
-      if (phaseIdx >= 0) {
-        setCascadePrompt({ delayDays: diff, phaseId, phaseIdx, type, delId });
-      }
-    }
-  }
-
   // --- Phase mutations ---
   const updatePhase = useMutation({
     mutationFn: async ({ id, ...fields }: { id: string } & Record<string, unknown>) => {
@@ -277,17 +259,29 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
       if (fields.status === 'concluida' && !fields.completed_at) updates.completed_at = new Date().toISOString();
       if (fields.status === 'pendente') { updates.started_at = null; updates.completed_at = null; }
 
-      // Check for delay before saving
+      await (supabase as any).from('project_phases').update(updates).eq('id', id);
+
+      // Check for delay AFTER saving — return info for cascade prompt
       if (fields.planned_end && typeof fields.planned_end === 'string') {
         const phase = phases.find(p => p.id === id);
         if (phase?.planned_end) {
-          checkForDelay('phase_end', phase.planned_end, fields.planned_end as string, id);
+          return { type: 'phase_end' as const, originalEnd: phase.planned_end, newEnd: fields.planned_end as string, entityId: id };
         }
       }
-
-      await (supabase as any).from('project_phases').update(updates).eq('id', id);
+      return null;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: phaseKey }),
+    onSuccess: (delayInfo) => {
+      qc.invalidateQueries({ queryKey: phaseKey });
+      if (delayInfo) {
+        const diff = differenceInCalendarDays(parseISO(delayInfo.newEnd), parseISO(delayInfo.originalEnd));
+        if (diff > 0) {
+          const phaseIdx = phases.findIndex(p => p.id === delayInfo.entityId);
+          if (phaseIdx >= 0) {
+            setCascadePrompt({ delayDays: diff, phaseId: delayInfo.entityId, phaseIdx, type: 'phase_end' });
+          }
+        }
+      }
+    },
   });
 
   const addPhase = useMutation({
