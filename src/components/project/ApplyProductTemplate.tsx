@@ -377,16 +377,27 @@ export function ApplyProductTemplate({ projectId, productId, clientId, projectSt
 
       return templateTasks.length;
     },
-    onSuccess: (count) => {
+    onSuccess: async (count) => {
       if (count > 0) {
         toast.success(`${count} tarefas criadas a partir do template do produto.`);
       } else {
         toast.success('Checklists de onboarding/offboarding copiadas do produto.');
       }
-      qc.invalidateQueries({ queryKey: ['project-tasks'] });
-      qc.invalidateQueries({ queryKey: ['client_onboarding'] });
-      qc.invalidateQueries({ queryKey: ['client_offboarding'] });
-      qc.invalidateQueries({ queryKey: ['project-phases'] });
+
+      const refreshPromises = [
+        qc.invalidateQueries({ queryKey: ['project-tasks', projectId] }),
+        qc.invalidateQueries({ queryKey: ['project-phases', projectId] }),
+        qc.invalidateQueries({ queryKey: ['project-deliverables', projectId] }),
+      ];
+
+      if (clientId) {
+        refreshPromises.push(
+          qc.invalidateQueries({ queryKey: ['client_onboarding', clientId] }),
+          qc.invalidateQueries({ queryKey: ['client_offboarding', clientId] }),
+        );
+      }
+
+      await Promise.all(refreshPromises);
       setOpen(false);
     },
     onError: (err: any) => {
