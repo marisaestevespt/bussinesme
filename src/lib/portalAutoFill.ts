@@ -44,8 +44,8 @@ const MATCH_RULES: MatchRule[] = [
     getValue: (c, b) => b.business_email || c.email || null,
   },
   {
-    patterns: ['nome legal', 'nome da empresa', 'firma do negócio', 'designação social'],
-    getValue: (_c, b) => b.business_legal_name || null,
+    patterns: ['nome legal', 'nome da empresa', 'firma do negócio', 'designação social', 'nome comercial'],
+    getValue: (c, b) => b.business_legal_name || c.full_name || null,
   },
   {
     patterns: ['nif', 'número de identificação fiscal', 'numero de identificação fiscal'],
