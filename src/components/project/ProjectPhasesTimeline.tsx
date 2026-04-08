@@ -317,16 +317,29 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
   // --- Deliverable mutations ---
   const updateDeliverable = useMutation({
     mutationFn: async ({ id, ...fields }: { id: string } & Record<string, unknown>) => {
-      // Check for delay before saving
+      await (supabase as any).from('project_deliverables').update(fields).eq('id', id);
+
+      // Check for delay AFTER saving
       if (fields.planned_end && typeof fields.planned_end === 'string') {
         const del = deliverables.find(d => d.id === id);
         if (del?.planned_end && del.phase_id) {
-          checkForDelay('del_end', del.planned_end, fields.planned_end as string, del.phase_id, id);
+          return { type: 'del_end' as const, originalEnd: del.planned_end, newEnd: fields.planned_end as string, phaseId: del.phase_id, delId: id };
         }
       }
-      await (supabase as any).from('project_deliverables').update(fields).eq('id', id);
+      return null;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: delKey }),
+    onSuccess: (delayInfo) => {
+      qc.invalidateQueries({ queryKey: delKey });
+      if (delayInfo) {
+        const diff = differenceInCalendarDays(parseISO(delayInfo.newEnd), parseISO(delayInfo.originalEnd));
+        if (diff > 0) {
+          const phaseIdx = phases.findIndex(p => p.id === delayInfo.phaseId);
+          if (phaseIdx >= 0) {
+            setCascadePrompt({ delayDays: diff, phaseId: delayInfo.phaseId, phaseIdx, type: 'del_end', delId: delayInfo.delId });
+          }
+        }
+      }
+    },
   });
 
   const addDeliverable = useMutation({
