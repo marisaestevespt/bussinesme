@@ -618,11 +618,11 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                               <div className="flex items-center gap-2 ml-5 flex-wrap">
                                 <CalendarDays className="h-2.5 w-2.5 text-muted-foreground" />
                                 <span className="text-[9px] text-muted-foreground">Início:</span>
-                                <Input type="date" className="h-5 text-[9px] w-28" value={d.planned_start || ''}
-                                  onChange={e => updateDeliverable.mutate({ id: d.id, planned_start: e.target.value || null })} />
+                                <Input type="date" className="h-5 text-[9px] w-28" defaultValue={d.planned_start || ''}
+                                  onBlur={e => { const v = e.target.value || null; if (v !== (d.planned_start || null)) updateDeliverable.mutate({ id: d.id, planned_start: v }); }} />
                                 <span className="text-[9px] text-muted-foreground">Fim:</span>
-                                <Input type="date" className="h-5 text-[9px] w-28" value={d.planned_end || ''}
-                                  onChange={e => updateDeliverable.mutate({ id: d.id, planned_end: e.target.value || null })} />
+                                <Input type="date" className="h-5 text-[9px] w-28" defaultValue={d.planned_end || ''}
+                                  onBlur={e => { const v = e.target.value || null; if (v !== (d.planned_end || null)) updateDeliverable.mutate({ id: d.id, planned_end: v }); }} />
                               </div>
                             )}
                           </div>
