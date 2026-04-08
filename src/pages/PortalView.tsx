@@ -1108,7 +1108,7 @@ export default function PortalViewPage() {
             ) : (
               <div className="space-y-3">
                 {meetings.map((m: any) => {
-                  const isPending = m.status === 'marcada' || m.status === 'por_confirmar';
+                  const isPending = m.status === 'marcada' || m.status === 'por_confirmar' || m.status === 'agendada';
                   const ms = meetingStatus(m.status);
                   return (
                     <SectionCard key={m.id} className="p-5">
@@ -1133,10 +1133,13 @@ export default function PortalViewPage() {
                           )}
                           {isPending ? (
                             <Button size="sm" className="h-8 text-xs rounded-lg text-white" style={{ backgroundColor: pc }}
-                              onClick={async () => {
-                                const { data } = await (supabase as any).rpc('portal_confirm_meeting', { _token: token, _meeting_id: m.id });
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                const { data, error } = await (supabase as any).rpc('portal_confirm_meeting', { _token: token, _meeting_id: m.id });
+                                console.log('[portal_confirm_meeting]', { data, error, token, meetingId: m.id });
+                                if (error) { toast.error('Erro ao confirmar: ' + error.message); return; }
                                 if (data) { setMeetings(prev => prev.map(x => x.id === m.id ? { ...x, status: 'confirmada' } : x)); toast.success('Presença confirmada ✨'); }
-                                else toast.error('Não foi possível confirmar');
+                                else toast.error('Não foi possível confirmar — verifique o estado da reunião');
                               }}>
                               Confirmar
                             </Button>
