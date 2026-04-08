@@ -490,13 +490,13 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                         <div className="flex items-center gap-1">
                           <CalendarDays className="h-3 w-3 text-muted-foreground" />
                           <span className="text-[10px] text-muted-foreground">Início:</span>
-                          <Input type="date" className="h-6 text-[10px] w-32" value={phase.planned_start || ''}
-                            onChange={e => updatePhase.mutate({ id: phase.id, planned_start: e.target.value || null })} />
+                          <Input type="date" className="h-6 text-[10px] w-32" defaultValue={phase.planned_start || ''}
+                            onBlur={e => { const v = e.target.value || null; if (v !== (phase.planned_start || null)) updatePhase.mutate({ id: phase.id, planned_start: v }); }} />
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="text-[10px] text-muted-foreground">Fim:</span>
-                          <Input type="date" className="h-6 text-[10px] w-32" value={phase.planned_end || ''}
-                            onChange={e => updatePhase.mutate({ id: phase.id, planned_end: e.target.value || null })} />
+                          <Input type="date" className="h-6 text-[10px] w-32" defaultValue={phase.planned_end || ''}
+                            onBlur={e => { const v = e.target.value || null; if (v !== (phase.planned_end || null)) updatePhase.mutate({ id: phase.id, planned_end: v }); }} />
                         </div>
                       </div>
                     </div>
