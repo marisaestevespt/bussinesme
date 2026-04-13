@@ -34,14 +34,19 @@ export function QuestionsCollapsible({
   const questionsList = questions.data || [];
   const answeredCount = questionsList.filter((q: any) => q.answer || (Array.isArray(q.file_urls) && q.file_urls.length > 0)).length;
 
-  const startEdit = (q: any) => {
+  const startEdit = (q: any, field: 'question' | 'type') => {
     setEditingId(q.id);
-    setEditValue(q.question || '');
+    setEditField(field);
+    setEditValue(field === 'question' ? (q.question || '') : (q.answer_type || 'text'));
   };
 
   const saveEdit = (id: string, original: string) => {
     if (editValue !== original) {
-      updateQuestion.mutate({ id, question: editValue });
+      if (editField === 'question') {
+        updateQuestion.mutate({ id, question: editValue });
+      } else {
+        updateQuestion.mutate({ id, answer_type: editValue } as any);
+      }
     }
     setEditingId(null);
   };
