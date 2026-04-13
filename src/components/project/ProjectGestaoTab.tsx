@@ -80,6 +80,8 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   const [paymentMethodType, setPaymentMethodType] = useState(projectPaymentConfig?.paymentMethodType || '');
   const [entradaPaymentMethod, setEntradaPaymentMethod] = useState(projectPaymentConfig?.entradaPaymentMethod || '');
   const [prestacoesPaymentMethod, setPrestacoesPaymentMethod] = useState(projectPaymentConfig?.prestacoesPaymentMethod || '');
+  // Lock state: start locked if a payment method is already configured
+  const [paymentLocked, setPaymentLocked] = useState(!!projectPaymentMethod);
 
   // ─── Client data (start_date) ─────────────────────────────────
   const { data: clientData } = useQuery({
