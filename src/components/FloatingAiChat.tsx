@@ -241,9 +241,9 @@ export function FloatingAiChat() {
   const handleConfirm = (msgIndex: number) => {
     const proposal = messages[msgIndex]?.action_proposal;
     setMessages((prev) => prev.map((m, i) => i === msgIndex ? { ...m, confirmed: true } : m));
-    // Include proposal details so the AI knows exactly what to execute
+    // Build full message with details for the AI backend, but show clean text to user
     const proposalSummary = proposal
-      ? `\n\nDetalhes da ação a executar:\n${JSON.stringify({
+      ? ` Detalhes da ação a executar:${JSON.stringify({
           action_type: proposal.action_type,
           workflow: proposal.workflow || false,
           steps: proposal.steps,
@@ -251,7 +251,44 @@ export function FloatingAiChat() {
           description: proposal.description,
         })}`
       : "";
-    sendMessage(`[AÇÃO CONFIRMADA] Sim, pode executar.${proposalSummary}`, true);
+    const fullMessage = `[AÇÃO CONFIRMADA] Sim, pode executar.${proposalSummary}`;
+    // Show clean message to user, send full details to AI
+    const userMsg: Msg = { role: "user", content: "✅ Confirmado. Pode executar." };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+    setLoading(true);
+    // Send the full message with details but don't add it again to messages visually
+    const body: Record<string, unknown> = {
+      messages: [...messages.filter((_, i) => i !== msgIndex || true), userMsg].map((m) => ({
+        role: m.role,
+        content: m.content,
+        action_proposal: m.action_proposal,
+        confirmed: m.confirmed,
+      })),
+    };
+    // Override last user message content with full details for the backend
+    const msgArray = body.messages as Array<{ role: string; content: string }>;
+    msgArray[msgArray.length - 1].content = fullMessage;
+
+    const invokeConfirmation = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("ai-assistant", { body });
+        if (error) throw error;
+        const parsed = typeof data === "string" ? JSON.parse(data) : data;
+        const assistantMsg: Msg = {
+          role: "assistant",
+          content: parsed.reply || parsed.error || "Sem resposta.",
+          action_proposal: parsed.action_proposal || null,
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
+      } catch (err) {
+        console.error("AI chat error:", err);
+        setMessages((prev) => [...prev, { role: "assistant", content: "❌ Erro ao comunicar com o assistente." }]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    invokeConfirmation();
   };
 
   const handleReject = (msgIndex: number) => {
