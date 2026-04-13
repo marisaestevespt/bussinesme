@@ -514,6 +514,9 @@ export function FloatingAiChat() {
         )}
       >
         {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
+        {!open && messages.length > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-accent border-2 border-background" />
+        )}
       </button>
     </>
   );
