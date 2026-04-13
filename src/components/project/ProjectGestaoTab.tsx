@@ -244,12 +244,12 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     new Date(b.date_time).getTime() - new Date(a.date_time).getTime()
   );
 
-  const MEETING_STATUSES: Record<string, { label: string; color: string }> = {
-    por_organizar: { label: 'Por organizar', color: 'hsl(var(--primary))' },
-    por_confirmar: { label: 'Por confirmar', color: 'hsl(var(--warning))' },
-    confirmada: { label: 'Confirmada', color: 'hsl(var(--success))' },
-    terminada: { label: 'Terminada', color: 'hsl(var(--muted-foreground))' },
-    cancelada: { label: 'Cancelada', color: 'hsl(var(--destructive))' },
+  const MEETING_STATUSES: Record<string, { label: string; badgeColor: string; color: string }> = {
+    por_organizar: { label: 'Por organizar', badgeColor: 'bg-blue-100 text-blue-700 border-blue-300', color: 'hsl(var(--primary))' },
+    por_confirmar: { label: 'Por confirmar', badgeColor: 'bg-amber-100 text-amber-700 border-amber-300', color: 'hsl(var(--warning))' },
+    confirmada: { label: 'Confirmada', badgeColor: 'bg-emerald-100 text-emerald-700 border-emerald-300', color: 'hsl(var(--success))' },
+    terminada: { label: 'Terminada', badgeColor: 'bg-muted text-muted-foreground border-muted', color: 'hsl(var(--muted-foreground))' },
+    cancelada: { label: 'Cancelada', badgeColor: 'bg-red-100 text-red-700 border-red-300', color: 'hsl(var(--destructive))' },
   };
 
   // ─── Helper: resolve payment method for a generated entry ─────
