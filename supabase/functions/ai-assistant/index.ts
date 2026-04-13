@@ -703,27 +703,55 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
       // DESTAQUES — resumo numérico explícito que o AI DEVE reportar
       // ═══════════════════════════════════════════════════════════════
       const destaques = {
-        _instrucao: "OBRIGATÓRIO: Menciona TODOS estes pontos no resumo. Se o valor for 0, diz que não houve atividade nessa área.",
+        _instrucao: "OBRIGATÓRIO: Menciona TODOS estes pontos no resumo. Se o valor for 0, diz 'Sem atividade'. Organiza por secções.",
+        // Tarefas
         tarefas_concluidas: (tasksRes.data || []).length,
         tarefas_criadas: newTasksCreated.length,
         tarefas_atrasadas: overdueTasks.length,
+        // Reuniões
         reunioes_no_periodo: (meetingsRes.data || []).length,
         reunioes_confirmadas: (meetingsRes.data || []).filter((m: any) => m.status === "confirmada").length,
         reunioes_por_confirmar: (meetingsRes.data || []).filter((m: any) => m.status === "por_confirmar").length,
         reunioes_com_pedido_alteracao: meetingsWithPortalNotes.length,
+        // Vendas & Financeiro
         vendas_novas: (salesRes.data || []).length,
         vendas_valor_total: (salesRes.data || []).reduce((s: number, v: any) => s + (Number(v.invoice_total) || Number(v.base_value) || 0), 0),
+        entradas_financeiras: (financialEntriesRes.data || []).length,
+        entradas_valor_total: (financialEntriesRes.data || []).reduce((s: number, e: any) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
         despesas_total: (expensesRes.data || []).length,
         despesas_valor_total: (expensesRes.data || []).reduce((s: number, e: any) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
-        clientes_novos: (clientsRes.data || []).length,
-        leads_novos: (leadsRes.data || []).length,
-        conteudos_publicados: (contentRes.data || []).filter((c: any) => c.status === "publicado").length,
-        conteudos_agendados: (contentRes.data || []).filter((c: any) => c.status === "agendado").length,
+        documentos_financeiros_carregados: (financialDocsRes.data || []).length,
+        pagamentos_equipa: (memberPaymentsRes.data || []).length,
+        // Portal dos Clientes
         portais_visitados: portalVisitsSummary.length,
         clientes_que_visitaram_portal: portalVisitsSummary.map((v) => v.cliente),
         clientes_que_responderam_perguntas: portalQuestionsSummary.filter(q => q.respondidas > 0).map(q => `${q.cliente} (${q.respondidas}/${q.total})`),
+        feedback_portal: (portalFeedbackRes.data || []).length,
+        comentarios_portal: (portalCommentsRes.data || []).length,
         notificacoes_portal: portalActivity.length,
-        onboarding_steps_concluidos: (onboardingRes.data || []).length,
+        // Clientes
+        clientes_novos: (clientsRes.data || []).length,
+        onboarding_cliente_steps: (onboardingRes.data || []).length,
+        offboarding_cliente_steps: (clientOffbRes.data || []).length,
+        // Leads & Comercial
+        leads_novos: (leadsRes.data || []).length,
+        // Projetos & Entregáveis
+        projetos_atualizados: (projectsRes.data || []).length,
+        entregaveis_concluidos: (deliverableRes.data || []).length,
+        // Equipa
+        onboarding_colaborador_steps: (memberOnbRes.data || []).length,
+        contratos_carregados: (memberContractsRes.data || []).length,
+        ausencias_registadas: (absencesRes.data || []).length,
+        horas_registadas: (timeEntriesRes.data || []).reduce((s: number, t: any) => s + (Number(t.hours) || 0), 0),
+        // Conteúdos & Marketing
+        conteudos_publicados: (contentRes.data || []).filter((c: any) => c.status === "publicado").length,
+        conteudos_agendados: (contentRes.data || []).filter((c: any) => c.status === "agendado").length,
+        // Mural
+        publicacoes_mural: (muralRes.data || []).length,
+        // SOPs & Processos
+        sops_atualizados: (sopsRes.data || []).length,
+        // Planeamento
+        objetivos_atualizados: (planGoalsRes.data || []).length,
       };
 
       return {
@@ -757,22 +785,49 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
           valor_total: (salesRes.data || []).reduce((s: number, v: any) => s + (Number(v.invoice_total) || Number(v.base_value) || 0), 0),
           lista: (salesRes.data || []).map((s: any) => ({ id: s.sale_id, cliente: s.client, produto: s.product, valor: Number(s.invoice_total) || Number(s.base_value) || 0, status: s.status, data_pagamento: s.payment_date })),
         },
-        despesas: {
-          total: (expensesRes.data || []).length,
-          valor_total: (expensesRes.data || []).reduce((s: number, e: any) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
-          lista: (expensesRes.data || []).map((e: any) => ({ id: e.expense_id, descricao: e.description, valor: Number(e.total_with_vat) || Number(e.base_value) || 0, categoria: e.category, status: e.status })),
+        financeiro: {
+          entradas: {
+            total: (financialEntriesRes.data || []).length,
+            valor: (financialEntriesRes.data || []).reduce((s: number, e: any) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
+            lista: (financialEntriesRes.data || []).map((e: any) => ({ id: e.entry_id, descricao: e.description, valor: Number(e.total_with_vat) || Number(e.base_value) || 0, categoria: e.category, status: e.status })),
+          },
+          despesas: {
+            total: (expensesRes.data || []).length,
+            valor: (expensesRes.data || []).reduce((s: number, e: any) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
+            lista: (expensesRes.data || []).map((e: any) => ({ id: e.expense_id, descricao: e.description, valor: Number(e.total_with_vat) || Number(e.base_value) || 0, categoria: e.category, status: e.status })),
+          },
+          documentos_carregados: (financialDocsRes.data || []).map((d: any) => ({ ficheiro: d.file_name, tipo: d.document_type })),
+          pagamentos_equipa: (memberPaymentsRes.data || []).map((p: any) => ({ membro: p.member_id, valor: p.amount, status: p.status })),
         },
         atividade_portal_clientes: {
-          _instrucao: "IMPORTANTE: Reporta TODA a atividade dos portais. Se um cliente visitou o portal, menciona-o. Se respondeu a perguntas, menciona quantas.",
-          notificacoes: portalActivity.map((n: any) => ({
-            titulo: n.title, mensagem: n.message, quando: n.created_at,
-          })),
+          _instrucao: "IMPORTANTE: Reporta TODA a atividade dos portais.",
+          notificacoes: portalActivity.map((n: any) => ({ titulo: n.title, mensagem: n.message, quando: n.created_at })),
           visitas: portalVisitsSummary,
           respostas_diagnostico: portalQuestionsSummary,
+          feedback: (portalFeedbackRes.data || []).map((f: any) => ({ rating: f.rating, comentario: f.comment })),
+          comentarios: (portalCommentsRes.data || []).map((c: any) => ({ conteudo: c.content, quando: c.created_at })),
+        },
+        projetos: {
+          atualizados: (projectsRes.data || []).map((p: any) => ({ nome: p.name, status: p.status, progresso: p.progress })),
+          entregaveis_concluidos: (deliverableRes.data || []).map((d: any) => ({ nome: d.name, projeto: d.project_id })),
+        },
+        equipa: {
+          onboarding_colaborador: (memberOnbRes.data || []).map((o: any) => ({ membro: o.member_id, passo: o.step, concluido: o.completed })),
+          contratos_carregados: (memberContractsRes.data || []).map((c: any) => ({ membro: c.member_id, tipo: c.contract_type, ficheiro: c.file_name })),
+          ausencias: (absencesRes.data || []).map((a: any) => ({ membro: a.member_id, motivo: a.reason, de: a.start_date, ate: a.end_date, status: a.status })),
+          horas_registadas: {
+            total_horas: (timeEntriesRes.data || []).reduce((s: number, t: any) => s + (Number(t.hours) || 0), 0),
+            total_entradas: (timeEntriesRes.data || []).length,
+          },
         },
         novos_clientes: (clientsRes.data || []).map((c: any) => ({ nome: c.full_name, status: c.status, produto: c.current_product, inicio: c.start_date })),
+        onboarding_clientes: (onboardingRes.data || []).map((o: any) => ({ cliente: o.client_id, atividade: o.activity })),
+        offboarding_clientes: (clientOffbRes.data || []).map((o: any) => ({ cliente: o.client_id, atividade: o.activity, concluido: o.completed })),
         novos_leads: (leadsRes.data || []).map((l: any) => ({ nome: l.name, status: l.status, fonte: l.source, produto: l.potential_product, valor: l.estimated_value })),
         conteudos: (contentRes.data || []).map((c: any) => ({ titulo: c.title, status: c.status, formato: c.format })),
+        mural: (muralRes.data || []).map((m: any) => ({ autor: m.author_name, conteudo: (m.content || "").slice(0, 200) })),
+        sops: (sopsRes.data || []).map((s: any) => ({ id: s.sop_id, titulo: s.title, departamento: s.department, status: s.status })),
+        planeamento: (planGoalsRes.data || []).map((g: any) => ({ titulo: g.title, status: g.status, departamento: g.department })),
       };
     }
 
