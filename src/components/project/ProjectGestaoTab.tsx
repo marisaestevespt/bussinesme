@@ -244,12 +244,12 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     new Date(b.date_time).getTime() - new Date(a.date_time).getTime()
   );
 
-  const MEETING_STATUSES: Record<string, { label: string; color: string }> = {
-    por_organizar: { label: 'Por organizar', color: 'hsl(var(--primary))' },
-    por_confirmar: { label: 'Por confirmar', color: 'hsl(var(--warning))' },
-    confirmada: { label: 'Confirmada', color: 'hsl(var(--success))' },
-    terminada: { label: 'Terminada', color: 'hsl(var(--muted-foreground))' },
-    cancelada: { label: 'Cancelada', color: 'hsl(var(--destructive))' },
+  const MEETING_STATUSES: Record<string, { label: string; badgeColor: string; color: string }> = {
+    por_organizar: { label: 'Por organizar', badgeColor: 'bg-blue-100 text-blue-700 border-blue-300', color: 'hsl(var(--primary))' },
+    por_confirmar: { label: 'Por confirmar', badgeColor: 'bg-amber-100 text-amber-700 border-amber-300', color: 'hsl(var(--warning))' },
+    confirmada: { label: 'Confirmada', badgeColor: 'bg-emerald-100 text-emerald-700 border-emerald-300', color: 'hsl(var(--success))' },
+    terminada: { label: 'Terminada', badgeColor: 'bg-muted text-muted-foreground border-muted', color: 'hsl(var(--muted-foreground))' },
+    cancelada: { label: 'Cancelada', badgeColor: 'bg-red-100 text-red-700 border-red-300', color: 'hsl(var(--destructive))' },
   };
 
   // ─── Helper: resolve payment method for a generated entry ─────
@@ -792,7 +792,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             <p className="text-center text-muted-foreground py-6 text-sm">Sem reuniões associadas</p>
           ) : (
             allMeetings.map((m: any) => {
-              const ms = MEETING_STATUSES[m.status] || { label: m.status, color: 'hsl(var(--muted-foreground))' };
+              const ms = MEETING_STATUSES[m.status] || { label: m.status, badgeColor: 'bg-muted text-muted-foreground border-muted', color: 'hsl(var(--muted-foreground))' };
               return (
                 <div
                   key={m.id}
@@ -800,12 +800,9 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
                   onClick={() => navigate(`/hub/reunioes/${m.id}`)}
                 >
                   <span>
-                    <span
-                      className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap"
-                      style={{ backgroundColor: `${ms.color}20`, color: ms.color }}
-                    >
+                    <Badge className={`text-[11px] font-semibold px-2.5 py-0.5 ${ms.badgeColor}`}>
                       {ms.label}
-                    </span>
+                    </Badge>
                   </span>
                   <span>{m.date_time ? format(parseISO(m.date_time), "dd MMM yyyy 'às' HH:mm", { locale: pt }) : '—'}</span>
                   <span className="font-medium truncate">{m.title}</span>
