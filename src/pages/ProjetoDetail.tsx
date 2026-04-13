@@ -779,7 +779,7 @@ export default function ProjetoDetailPage() {
           <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-4xl font-bold border-none px-0 focus-visible:ring-0 h-auto" />
 
           {/* Notion-style property rows */}
-          <div className="space-y-1">
+          <div className="space-y-1.5 rounded-xl border-2 border-border/60 bg-card p-1.5">
             {/* Status */}
             <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> Status</span>
@@ -948,22 +948,25 @@ export default function ProjetoDetailPage() {
 
 
           {/* ─── 3 Tabs ──────────────────────────────────────── */}
-          <div className="mt-[200px]">
+          <div className="mt-6">
           <Tabs defaultValue="projeto" className="w-full">
-            <TabsList className="bg-transparent w-full gap-2">
-              <TabsTrigger value="projeto" className="flex-1">Projeto</TabsTrigger>
-              <TabsTrigger value="processos" className="flex-1">Processos</TabsTrigger>
-              <TabsTrigger value="gestao" className="flex-1">Gestão</TabsTrigger>
+            <TabsList className="bg-transparent w-full gap-2 border-b rounded-none pb-0 h-auto">
+              <TabsTrigger value="projeto" className="flex-1 rounded-b-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">Projeto</TabsTrigger>
+              <TabsTrigger value="processos" className="flex-1 rounded-b-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">Processos</TabsTrigger>
+              <TabsTrigger value="gestao" className="flex-1 rounded-b-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none">Gestão</TabsTrigger>
             </TabsList>
 
             {/* ─── TAB 1: PROJETO ──────────────────────────── */}
-            <TabsContent value="projeto" className="space-y-6 mt-4">
+            <TabsContent value="projeto" className="space-y-8 mt-6">
               {/* Deliverables (only for recorrente) */}
               {isRecorrente && <ProjectDeliverables projectId={id!} profiles={profiles} />}
 
-              {/* Menu Inicial */}
-              <div>
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Menu Inicial</h3>
+              {/* ── Section: Menu Inicial ─────────────────── */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-primary/10 border border-primary/20">
+                  <Target className="h-4.5 w-4.5 text-primary" />
+                  <h3 className="text-sm font-bold text-primary uppercase tracking-wide">Menu Inicial</h3>
+                </div>
                 <div className={cn("grid gap-3", local.type === 'cliente_servico_mensal' ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-2 lg:grid-cols-4")}>
                   {(local.type === 'cliente_servico_mensal' ? [
                     { key: 'diretrizes' as SubPage, icon: BookOpen, label: 'Diretrizes Iniciais' },
@@ -975,109 +978,130 @@ export default function ProjetoDetailPage() {
                     { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral' },
                     { key: 'dependencias' as SubPage, icon: Link2, label: 'Dependências' },
                   ]).map(({ key, icon: Icon, label }) => (
-                    <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border overflow-hidden h-32 transition-all hover:shadow-md text-center">
-                      <div className="absolute inset-0 bg-primary opacity-[0.07] group-hover:opacity-[0.12] transition-opacity" />
-                      <Icon className="h-7 w-7 text-primary relative z-10" />
-                      <span className="text-sm font-semibold text-primary relative z-10 px-3">{label}</span>
+                    <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-border/60 overflow-hidden h-36 transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/30 text-center bg-card">
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 group-hover:from-primary/10 group-hover:to-primary/15 transition-all" />
+                      <div className="rounded-full bg-primary/15 p-3 relative z-10">
+                        <Icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <span className="text-sm font-semibold text-foreground relative z-10 px-3">{label}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Tarefas */}
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{isRecorrente ? 'Tarefas do Ciclo' : 'Estado e Prioridades'}</h3>
-                        <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
+              {/* ── Section: Desenvolvimento ──────────────── */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-accent/15 border border-accent/25">
+                  <FileText className="h-4.5 w-4.5 text-accent" />
+                  <h3 className="text-sm font-bold text-accent uppercase tracking-wide">Desenvolvimento</h3>
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  {[
+                    { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis' },
+                    { key: 'reunioes' as SubPage, icon: Users, label: `Reuniões (${meetings.length})` },
+                    { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos' },
+                    { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
+                  ].map(({ key, icon: Icon, label }) => (
+                    <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-border/60 overflow-hidden h-36 transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-accent/30 text-center bg-card">
+                      <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-accent/10 group-hover:from-accent/10 group-hover:to-accent/15 transition-all" />
+                      <div className="rounded-full bg-accent/15 p-3 relative z-10">
+                        <Icon className="h-5 w-5 text-accent" />
                       </div>
-                      <Button size="sm" variant="outline" className="gap-1.5 h-8" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
-                    </div>
-                    {tasks.length === 0 ? (
-                      <p className="text-sm text-muted-foreground py-4">{isRecorrente ? 'As tarefas serão geradas automaticamente a partir das entregas recorrentes.' : 'Nenhuma tarefa ligada a este projeto'}</p>
-                    ) : (
-                      <div className="rounded-lg border">
-                        <Table>
-                          <TableHeader><TableRow>
-                            <TableHead>Status</TableHead><TableHead>Prioridade</TableHead><TableHead>Tarefa</TableHead><TableHead>Data final</TableHead><TableHead>Responsável</TableHead>
-                          </TableRow></TableHeader>
-                          <TableBody>
-                            {tasks.map(t => {
-                              const si = getTaskStatusInfo(t.status);
-                              const pi = getPriorityInfo(t.priority);
-                              const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
-                              return (
-                                <TableRow key={t.id}>
-                                  <TableCell><Badge className={`${si.color} border-0 text-[10px]`}>{si.label}</Badge></TableCell>
-                                  <TableCell><Badge className={`${pi.color} border-0 text-[10px]`}>{pi.label}</Badge></TableCell>
-                                  <TableCell className="font-medium text-sm">{t.name}</TableCell>
-                                  <TableCell className="text-sm text-muted-foreground">{t.deadline ? format(new Date(t.deadline), 'd MMM', { locale: pt }) : '—'}</TableCell>
-                                  <TableCell>{assignee ? <div className="flex items-center gap-1.5"><Avatar className="h-5 w-5"><AvatarImage src={assignee.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar><span className="text-xs">{assignee.full_name}</span></div> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
-                                </TableRow>
-                              );
-                            })}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
-                  </div>
+                      <span className="text-sm font-semibold text-foreground relative z-10 px-3">{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-                  {/* Desenvolvimento */}
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Desenvolvimento</h3>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                      {[
-                        { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis' },
-                        { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos' },
-                        { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
-                      ].map(({ key, icon: Icon, label }) => (
-                        <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border overflow-hidden h-32 transition-all hover:shadow-md text-center">
-                          <div className="absolute inset-0 bg-primary opacity-[0.07] group-hover:opacity-[0.12] transition-opacity" />
-                          <Icon className="h-7 w-7 text-primary relative z-10" />
-                          <span className="text-sm font-semibold text-primary relative z-10 px-3">{label}</span>
+              {/* ── Section: Estado e Prioridades (moved after Desenvolvimento) ── */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-info/10 border border-info/20 flex-1">
+                    <CheckSquare className="h-4.5 w-4.5 text-info" />
+                    <h3 className="text-sm font-bold text-info uppercase tracking-wide">{isRecorrente ? 'Tarefas do Ciclo' : 'Estado e Prioridades'}</h3>
+                    <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
+                  </div>
+                  <Button size="sm" variant="outline" className="gap-1.5 h-9 ml-3" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
+                </div>
+                {tasks.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl">
+                    <CheckSquare className="h-10 w-10 text-muted-foreground/30 mb-3" />
+                    <p className="text-sm text-muted-foreground">{isRecorrente ? 'As tarefas serão geradas automaticamente a partir das entregas recorrentes.' : 'Nenhuma tarefa ligada a este projeto'}</p>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border overflow-hidden">
+                    <Table>
+                      <TableHeader><TableRow className="bg-muted/60">
+                        <TableHead className="font-semibold">Status</TableHead><TableHead className="font-semibold">Prioridade</TableHead><TableHead className="font-semibold">Tarefa</TableHead><TableHead className="font-semibold">Data final</TableHead><TableHead className="font-semibold">Responsável</TableHead>
+                      </TableRow></TableHeader>
+                      <TableBody>
+                        {tasks.map(t => {
+                          const si = getTaskStatusInfo(t.status);
+                          const pi = getPriorityInfo(t.priority);
+                          const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
+                          return (
+                            <TableRow key={t.id} className="hover:bg-muted/30">
+                              <TableCell><Badge className={`${si.color} border-0 text-[10px]`}>{si.label}</Badge></TableCell>
+                              <TableCell><Badge className={`${pi.color} border-0 text-[10px]`}>{pi.label}</Badge></TableCell>
+                              <TableCell className="font-medium text-sm">{t.name}</TableCell>
+                              <TableCell className="text-sm text-muted-foreground">{t.deadline ? format(new Date(t.deadline), 'd MMM', { locale: pt }) : '—'}</TableCell>
+                              <TableCell>{assignee ? <div className="flex items-center gap-1.5"><Avatar className="h-5 w-5"><AvatarImage src={assignee.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar><span className="text-xs">{assignee.full_name}</span></div> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Section: Portal de Cliente ────────────── */}
+              {resolvedClientId && local.client_name && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-success/10 border border-success/20">
+                    <Users className="h-4.5 w-4.5 text-success" />
+                    <h3 className="text-sm font-bold text-success uppercase tracking-wide">Portal do Cliente</h3>
+                  </div>
+                  <ClientPortalSection
+                    clientId={resolvedClientId}
+                    clientName={local.client_name}
+                    currentProduct={local.product_name || null}
+                    productId={local.product_id}
+                  />
+                </div>
+              )}
+
+              {/* ── Section: Fecho de Projeto ────────────── */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-muted border border-border">
+                  <Target className="h-4.5 w-4.5 text-muted-foreground" />
+                  <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide">Fecho de Projeto</h3>
+                </div>
+                <div className="space-y-2">
+                  {[
+                    { field: 'closure_good' as keyof ProjectFull, label: '✅ O que funcionou bem' },
+                    { field: 'closure_bad' as keyof ProjectFull, label: '❌ O que não voltaria a fazer' },
+                    { field: 'closure_lessons' as keyof ProjectFull, label: '💡 Lições finais' },
+                  ].map(({ field, label }) => (
+                    <Collapsible key={field}>
+                      <CollapsibleTrigger asChild>
+                        <button className="flex items-center justify-between w-full p-3.5 rounded-xl border-2 border-border/60 bg-card hover:bg-muted/40 transition-colors">
+                          <span className="text-sm font-medium">{label}</span>
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
                         </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Portal de Cliente */}
-                  {resolvedClientId && local.client_name && (
-                    <ClientPortalSection
-                      clientId={resolvedClientId}
-                      clientName={local.client_name}
-                      currentProduct={local.product_name || null}
-                      productId={local.product_id}
-                    />
-                  )}
-
-                  {/* Fecho de Projeto */}
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Fecho de Projeto</h3>
-                    <div className="space-y-2">
-                      {[
-                        { field: 'closure_good' as keyof ProjectFull, label: '✅ O que funcionou bem' },
-                        { field: 'closure_bad' as keyof ProjectFull, label: '❌ O que não voltaria a fazer' },
-                        { field: 'closure_lessons' as keyof ProjectFull, label: '💡 Lições finais' },
-                      ].map(({ field, label }) => (
-                        <Collapsible key={field}>
-                          <CollapsibleTrigger asChild>
-                            <button className="flex items-center justify-between w-full p-3 rounded-lg border bg-card hover:bg-muted/60 border border-border/50 transition-colors">
-                              <span className="text-sm font-medium">{label}</span>
-                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                            </button>
-                          </CollapsibleTrigger>
-                          <CollapsibleContent className="px-3 pb-3 pt-2">
-                            <MentionTextarea
-                              value={(local[field] as string) || ''}
-                              onChange={v => updateField(field, v)}
-                              rows={4}
-                              placeholder="Escreve aqui..."
-                            />
-                          </CollapsibleContent>
-                        </Collapsible>
-                      ))}
-                    </div>
-                  </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="px-3 pb-3 pt-2">
+                        <MentionTextarea
+                          value={(local[field] as string) || ''}
+                          onChange={v => updateField(field, v)}
+                          rows={4}
+                          placeholder="Escreve aqui..."
+                        />
+                      </CollapsibleContent>
+                    </Collapsible>
+                  ))}
+                </div>
+              </div>
             </TabsContent>
 
             {/* ─── TAB 2: PROCESSOS ────────────────────────── */}
@@ -1250,8 +1274,11 @@ export default function ProjetoDetailPage() {
         )}
 
         {/* Section 1: Menu Inicial */}
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Menu Inicial</h3>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-primary/10 border border-primary/20">
+              <Target className="h-4.5 w-4.5 text-primary" />
+              <h3 className="text-sm font-bold text-primary uppercase tracking-wide">Menu Inicial</h3>
+            </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {[
                 { key: 'objetivo' as SubPage, icon: Target, label: 'Objetivo e Definição' },
@@ -1259,34 +1286,64 @@ export default function ProjetoDetailPage() {
                 { key: 'cronograma' as SubPage, icon: CalendarIcon, label: 'Cronograma Geral' },
                 { key: 'dependencias' as SubPage, icon: Link2, label: 'Dependências' },
               ].map(({ key, icon: Icon, label }) => (
-                <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border overflow-hidden h-32 transition-all hover:shadow-md text-center">
-                  <div className="absolute inset-0 bg-primary opacity-[0.07] group-hover:opacity-[0.12] transition-opacity" />
-                  <Icon className="h-7 w-7 text-primary relative z-10" />
-                  <span className="text-sm font-semibold text-primary relative z-10 px-3">{label}</span>
+                <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-border/60 overflow-hidden h-36 transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/30 text-center bg-card">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 group-hover:from-primary/10 group-hover:to-primary/15 transition-all" />
+                  <div className="rounded-full bg-primary/15 p-3 relative z-10">
+                    <Icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <span className="text-sm font-semibold text-foreground relative z-10 px-3">{label}</span>
                 </button>
               ))}
             </div>
           </div>
 
-        {/* Section 2: Estado e Prioridades (Tarefas) */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{isRecorrente ? 'Tarefas do Ciclo' : 'Estado e Prioridades'}</h3>
+        {/* Section 2: Desenvolvimento */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-accent/15 border border-accent/25">
+              <FileText className="h-4.5 w-4.5 text-accent" />
+              <h3 className="text-sm font-bold text-accent uppercase tracking-wide">Desenvolvimento</h3>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {[
+                { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis' },
+                { key: 'reunioes' as SubPage, icon: Users, label: `Reuniões (${meetings.length})` },
+                { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos' },
+                { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
+              ].map(({ key, icon: Icon, label }) => (
+                <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-border/60 overflow-hidden h-36 transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-accent/30 text-center bg-card">
+                  <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-accent/10 group-hover:from-accent/10 group-hover:to-accent/15 transition-all" />
+                  <div className="rounded-full bg-accent/15 p-3 relative z-10">
+                    <Icon className="h-5 w-5 text-accent" />
+                  </div>
+                  <span className="text-sm font-semibold text-foreground relative z-10 px-3">{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+        {/* Section 3: Estado e Prioridades */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-info/10 border border-info/20 flex-1">
+              <CheckSquare className="h-4.5 w-4.5 text-info" />
+              <h3 className="text-sm font-bold text-info uppercase tracking-wide">{isRecorrente ? 'Tarefas do Ciclo' : 'Estado e Prioridades'}</h3>
               <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
             </div>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" className="gap-1.5 h-8" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
-              <Button size="sm" variant="outline" className="gap-1.5 h-8" onClick={() => setMeetingDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Reunião</Button>
+            <div className="flex gap-2 ml-3">
+              <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
+              <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => setMeetingDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Reunião</Button>
             </div>
           </div>
           {tasks.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4">{isRecorrente ? 'As tarefas serão geradas automaticamente a partir das entregas recorrentes.' : 'Nenhuma tarefa ligada a este projeto'}</p>
+            <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl">
+              <CheckSquare className="h-10 w-10 text-muted-foreground/30 mb-3" />
+              <p className="text-sm text-muted-foreground">{isRecorrente ? 'As tarefas serão geradas automaticamente a partir das entregas recorrentes.' : 'Nenhuma tarefa ligada a este projeto'}</p>
+            </div>
           ) : (
-            <div className="rounded-lg border">
+            <div className="rounded-xl border overflow-hidden">
               <Table>
-                <TableHeader><TableRow>
-                  <TableHead>Status</TableHead><TableHead>Prioridade</TableHead><TableHead>Tarefa</TableHead><TableHead>Data final</TableHead><TableHead>Responsável</TableHead>
+                <TableHeader><TableRow className="bg-muted/60">
+                  <TableHead className="font-semibold">Status</TableHead><TableHead className="font-semibold">Prioridade</TableHead><TableHead className="font-semibold">Tarefa</TableHead><TableHead className="font-semibold">Data final</TableHead><TableHead className="font-semibold">Responsável</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
                   {tasks.map(t => {
@@ -1294,7 +1351,7 @@ export default function ProjetoDetailPage() {
                     const pi = getPriorityInfo(t.priority);
                     const assignee = t.assigned_to ? profileMap.get(t.assigned_to) : null;
                     return (
-                      <TableRow key={t.id}>
+                      <TableRow key={t.id} className="hover:bg-muted/30">
                         <TableCell><Badge className={`${si.color} border-0 text-[10px]`}>{si.label}</Badge></TableCell>
                         <TableCell><Badge className={`${pi.color} border-0 text-[10px]`}>{pi.label}</Badge></TableCell>
                         <TableCell className="font-medium text-sm">{t.name}</TableCell>
@@ -1309,31 +1366,15 @@ export default function ProjetoDetailPage() {
           )}
         </div>
 
-        {/* Section 3: Desenvolvimento */}
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Desenvolvimento</h3>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              {[
-                { key: 'entregaveis' as SubPage, icon: FileText, label: 'Entregáveis' },
-                { key: 'reunioes' as SubPage, icon: Users, label: `Reuniões (${meetings.length})` },
-                { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos' },
-                { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
-              ].map(({ key, icon: Icon, label }) => (
-                <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border overflow-hidden h-32 transition-all hover:shadow-md text-center">
-                  <div className="absolute inset-0 bg-primary opacity-[0.07] group-hover:opacity-[0.12] transition-opacity" />
-                  <Icon className="h-7 w-7 text-primary relative z-10" />
-                  <span className="text-sm font-semibold text-primary relative z-10 px-3">{label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
         {/* Linked SOPs */}
         {id && <LinkedSopsSection entityType="projeto" entityId={id} />}
 
         {/* Section 4: Fecho de Projeto */}
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Fecho de Projeto</h3>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-muted border border-border">
+              <Target className="h-4.5 w-4.5 text-muted-foreground" />
+              <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide">Fecho de Projeto</h3>
+            </div>
             <div className="space-y-2">
               {[
                 { field: 'closure_good' as keyof ProjectFull, label: '✅ O que funcionou bem' },
@@ -1342,7 +1383,7 @@ export default function ProjetoDetailPage() {
               ].map(({ field, label }) => (
                 <Collapsible key={field}>
                   <CollapsibleTrigger asChild>
-                    <button className="flex items-center justify-between w-full p-3 rounded-lg border bg-card hover:bg-muted/60 border border-border/50 transition-colors">
+                    <button className="flex items-center justify-between w-full p-3.5 rounded-xl border-2 border-border/60 bg-card hover:bg-muted/40 transition-colors">
                       <span className="text-sm font-medium">{label}</span>
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     </button>
