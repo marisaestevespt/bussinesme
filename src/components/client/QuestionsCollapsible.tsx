@@ -29,18 +29,24 @@ export function QuestionsCollapsible({
 }: Props) {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editField, setEditField] = useState<'question' | 'type'>('question');
   const [editValue, setEditValue] = useState('');
   const questionsList = questions.data || [];
   const answeredCount = questionsList.filter((q: any) => q.answer || (Array.isArray(q.file_urls) && q.file_urls.length > 0)).length;
 
-  const startEdit = (q: any) => {
+  const startEdit = (q: any, field: 'question' | 'type') => {
     setEditingId(q.id);
-    setEditValue(q.question || '');
+    setEditField(field);
+    setEditValue(field === 'question' ? (q.question || '') : (q.answer_type || 'text'));
   };
 
   const saveEdit = (id: string, original: string) => {
     if (editValue !== original) {
-      updateQuestion.mutate({ id, question: editValue });
+      if (editField === 'question') {
+        updateQuestion.mutate({ id, question: editValue });
+      } else {
+        updateQuestion.mutate({ id, answer_type: editValue } as any);
+      }
     }
     setEditingId(null);
   };
@@ -73,8 +79,8 @@ export function QuestionsCollapsible({
                   <TableRow>
                     <TableHead className="w-[35%]">Pergunta</TableHead>
                     <TableHead>Resposta</TableHead>
-                    <TableHead className="w-[140px]">Data da Resposta</TableHead>
-                    <TableHead className="w-[100px]">Tipo</TableHead>
+                    <TableHead className="w-[160px] whitespace-nowrap">Data da Resposta</TableHead>
+                    <TableHead className="w-[110px]">Tipo</TableHead>
                     <TableHead className="w-[40px]" />
                   </TableRow>
                 </TableHeader>
@@ -86,23 +92,23 @@ export function QuestionsCollapsible({
                     return (
                       <TableRow key={q.id}>
                         <TableCell className="align-top py-2">
-                          {isEditing ? (
+                          {isEditing && editField === 'question' ? (
                             <div className="flex items-center gap-1">
                               <Input
-                                className="h-7 text-xs flex-1"
+                                className="h-8 text-sm flex-1"
                                 value={editValue}
                                 onChange={e => setEditValue(e.target.value)}
                                 onKeyDown={e => { if (e.key === 'Enter') saveEdit(q.id, q.question); }}
                                 autoFocus
                               />
                               <Button variant="ghost" size="icon" className="h-7 w-7 text-primary shrink-0" onClick={() => saveEdit(q.id, q.question)}>
-                                <Check className="h-3 w-3" />
+                                <Check className="h-3.5 w-3.5" />
                               </Button>
                             </div>
                           ) : (
                             <div className="flex items-center gap-1 group">
-                              <span className="text-xs">{q.question || <span className="text-muted-foreground italic">Sem pergunta</span>}</span>
-                              <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={() => startEdit(q)}>
+                              <span className="text-sm">{q.question || <span className="text-muted-foreground italic">Sem pergunta</span>}</span>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={() => startEdit(q, 'question')}>
                                 <Pencil className="h-3 w-3 text-muted-foreground" />
                               </Button>
                             </div>
@@ -110,7 +116,7 @@ export function QuestionsCollapsible({
                         </TableCell>
                         <TableCell className="align-top py-2">
                           {q.answer ? (
-                            <span className="text-xs">{q.answer}</span>
+                            <span className="text-sm">{q.answer}</span>
                           ) : fileUrls.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
                               {fileUrls.map((url: string, i: number) => {
@@ -120,38 +126,52 @@ export function QuestionsCollapsible({
                                     <img src={url} alt="" className="h-10 w-10 object-cover rounded border" />
                                   </a>
                                 ) : (
-                                  <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary hover:underline">
-                                    <FileText className="h-3 w-3" />{url.split('/').pop()}
+                                  <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-primary hover:underline">
+                                    <FileText className="h-3.5 w-3.5" />{url.split('/').pop()}
                                   </a>
                                 );
                               })}
                             </div>
                           ) : (
-                            <span className="text-xs text-muted-foreground italic">Aguardando resposta</span>
+                            <span className="text-sm text-muted-foreground italic">Aguardando resposta</span>
                           )}
                         </TableCell>
-                        <TableCell className="align-top py-2">
+                        <TableCell className="align-top py-2 whitespace-nowrap">
                           {q.answered_at ? (
-                            <span className="text-xs text-muted-foreground">{format(parseISO(q.answered_at), 'dd/MM/yyyy HH:mm')}</span>
+                            <span className="text-sm text-muted-foreground">{format(parseISO(q.answered_at), 'dd/MM/yyyy HH:mm')}</span>
                           ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
+                            <span className="text-sm text-muted-foreground">—</span>
                           )}
                         </TableCell>
                         <TableCell className="align-top py-2">
-                          <Select value={answerType} onValueChange={v => updateQuestion.mutate({ id: q.id, answer_type: v } as any)}>
-                            <SelectTrigger className="h-7 w-[90px] text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="text"><span className="flex items-center gap-1"><FileText className="h-3 w-3" /> Texto</span></SelectItem>
-                              <SelectItem value="file"><span className="flex items-center gap-1"><Upload className="h-3 w-3" /> Ficheiro</span></SelectItem>
-                              <SelectItem value="image"><span className="flex items-center gap-1"><ImageIcon className="h-3 w-3" /> Imagem</span></SelectItem>
-                            </SelectContent>
-                          </Select>
+                          {isEditing && editField === 'type' ? (
+                            <div className="flex items-center gap-1">
+                              <Select value={editValue} onValueChange={v => { setEditValue(v); }}>
+                                <SelectTrigger className="h-8 w-[100px] text-sm">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="text">Texto</SelectItem>
+                                  <SelectItem value="file">Ficheiro</SelectItem>
+                                  <SelectItem value="image">Imagem</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-primary shrink-0" onClick={() => saveEdit(q.id, answerType)}>
+                                <Check className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1 group">
+                              <span className="text-sm">{answerType === 'text' ? 'Texto' : answerType === 'file' ? 'Ficheiro' : 'Imagem'}</span>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={() => startEdit(q, 'type')}>
+                                <Pencil className="h-3 w-3 text-muted-foreground" />
+                              </Button>
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell className="align-top py-2">
                           <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteQuestion.mutate(q.id)}>
-                            <X className="h-3 w-3" />
+                            <X className="h-3.5 w-3.5" />
                           </Button>
                         </TableCell>
                       </TableRow>
