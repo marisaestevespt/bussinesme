@@ -56,10 +56,11 @@ const SUBSCRIPTION_PERIODICITIES = [
 ];
 
 const SALE_STATUSES: Record<string, { label: string; color: string }> = {
-  aguarda_pagamento: { label: 'Aguarda Pagamento', color: 'bg-warning/10 text-warning' },
-  pago: { label: 'Pago', color: 'bg-success/10 text-success' },
-  em_atraso: { label: 'Em Atraso', color: 'bg-destructive/10 text-destructive' },
-  cancelado: { label: 'Cancelado', color: 'bg-muted text-muted-foreground' },
+  aguarda_pagamento: { label: 'Aguarda Pagamento', color: 'bg-amber-100 text-amber-700 border-amber-300' },
+  pago: { label: 'Pago', color: 'bg-emerald-100 text-emerald-700 border-emerald-300' },
+  tudo_ok: { label: 'Tudo OK', color: 'bg-emerald-100 text-emerald-700 border-emerald-300' },
+  em_atraso: { label: 'Em Atraso', color: 'bg-red-100 text-red-700 border-red-300' },
+  cancelado: { label: 'Cancelado', color: 'bg-muted text-muted-foreground border-muted' },
 };
 
 export function ProjectGestaoTab({ projectId, projectName, clientName, clientId, productName, startDate, deadline, projectPaymentMethod, projectPaymentConfig, onNewMeeting, onUpdateProject }: Props) {
