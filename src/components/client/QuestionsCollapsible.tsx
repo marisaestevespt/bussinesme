@@ -93,17 +93,21 @@ export function QuestionsCollapsible({
                     </div>
                     <div className="rounded-lg border overflow-hidden">
                       <Table>
-                        {groupIdx === 0 && (
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="w-[35%]">Pergunta</TableHead>
-                              <TableHead>Resposta</TableHead>
-                              <TableHead className="w-[150px] whitespace-nowrap">Data da Resposta</TableHead>
-                              <TableHead className="w-[100px]">Tipo</TableHead>
-                              <TableHead className="w-[44px]" />
-                            </TableRow>
-                          </TableHeader>
-                        )}
+                        <TableHeader>
+                          <TableRow className="bg-muted/60">
+                            <TableHead colSpan={5} className="py-2">
+                              <span className="text-sm font-semibold text-foreground">{group.replace('Config. Sistema — ', '')}</span>
+                              <span className="text-xs text-muted-foreground ml-2">({items.length})</span>
+                            </TableHead>
+                          </TableRow>
+                          <TableRow>
+                            <TableHead className="w-[35%]">Pergunta</TableHead>
+                            <TableHead>Resposta</TableHead>
+                            <TableHead className="w-[150px] whitespace-nowrap">Data da Resposta</TableHead>
+                            <TableHead className="w-[100px]">Tipo</TableHead>
+                            <TableHead className="w-[44px]" />
+                          </TableRow>
+                        </TableHeader>
                         <TableBody>
                           {items.map((q: any) => {
                             const answerType = q.answer_type || 'text';
