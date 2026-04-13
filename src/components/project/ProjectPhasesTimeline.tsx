@@ -638,12 +638,17 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
 
                   {/* Deliverables */}
                   {phaseDeliverables.length > 0 && (
-                    <div className="mt-3 space-y-1.5 pl-2">
+                    <div className="mt-3 space-y-1 pl-2">
                       {phaseDeliverables.map((d, di) => {
                         const isEditingThis = editingDel === d.id;
+                        const delStatusConfig = d.status === 'concluido'
+                          ? { bg: 'bg-emerald-100 text-emerald-700 border-emerald-300', label: 'Concluído' }
+                          : d.status === 'em_progresso'
+                          ? { bg: 'bg-blue-100 text-blue-700 border-blue-300', label: 'Em progresso' }
+                          : { bg: 'bg-muted text-muted-foreground border-muted', label: 'Pendente' };
                         return (
-                          <div key={d.id} className="space-y-1 group/del">
-                            <div className="flex items-center gap-2">
+                          <div key={d.id} className="group/del rounded-lg border bg-card/50 px-3 py-2">
+                            <div className="flex items-center gap-2.5">
                               {isEditingThis ? (
                                 <>
                                   <Input autoFocus value={editName} onChange={e => setEditName(e.target.value)} className="h-5 text-xs flex-1"
@@ -654,24 +659,27 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                               ) : (
                                 <>
                                   {d.status === 'concluido' ? (
-                                    <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                                   ) : d.status === 'em_progresso' ? (
-                                    <Clock className="h-4 w-4 text-info shrink-0" />
+                                    <Clock className="h-4 w-4 text-blue-600 shrink-0" />
                                   ) : (
                                     <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0" />
                                   )}
-                                  <span className={cn('text-sm flex-1', d.status === 'concluido' && 'text-muted-foreground line-through')}>{d.name}</span>
+                                  <span className={cn('text-sm flex-1 font-medium', d.status === 'concluido' && 'text-muted-foreground line-through')}>{d.name}</span>
                                   {(d.planned_start || d.planned_end) && (
-                                    <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                    <span className="text-[11px] text-muted-foreground flex items-center gap-1 bg-muted/50 rounded px-1.5 py-0.5">
                                       <CalendarDays className="h-3 w-3" />
                                       {d.planned_start ? format(new Date(d.planned_start + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
                                       {' → '}
                                       {d.planned_end ? format(new Date(d.planned_end + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
                                     </span>
                                   )}
+                                  <Badge className={`text-[10px] font-semibold px-2 py-0.5 ${delStatusConfig.bg}`}>
+                                    {delStatusConfig.label}
+                                  </Badge>
                                   <Select value={d.status} onValueChange={(v) => updateDeliverable.mutate({ id: d.id, status: v })}>
-                                    <SelectTrigger className="h-6 text-[10px] w-24 border-none shadow-none px-1">
-                                      <SelectValue />
+                                    <SelectTrigger className="h-6 text-[10px] w-6 border-none shadow-none px-0 [&>svg]:hidden">
+                                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
                                     </SelectTrigger>
                                     <SelectContent>
                                       {DELIVERABLE_STATUS.map(s => (
@@ -702,7 +710,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                             </div>
                             {/* Inline date editing when in edit mode */}
                             {isEditingThis && (
-                              <div className="flex items-center gap-2 ml-5 flex-wrap">
+                              <div className="flex items-center gap-2 mt-1.5 ml-6 flex-wrap">
                                 <CalendarDays className="h-2.5 w-2.5 text-muted-foreground" />
                                 <span className="text-[9px] text-muted-foreground">Início:</span>
                                 <Input type="date" className="h-5 text-[9px] w-28" defaultValue={d.planned_start || ''}
