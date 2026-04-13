@@ -697,21 +697,18 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
                 </div>
               )}
 
-              {hasExistingProjectSales && payMethod && (
-                <Button variant="outline" onClick={() => regenerateSales.mutate()} disabled={regenerateSales.isPending || generateSales.isPending} className="gap-1.5">
-                  {regenerateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-                  Regenerar Pagamentos
-                </Button>
-              )}
-
-              {!billingStartDate && payMethod && (
-                <p className="text-xs text-destructive">⚠️ O projeto não tem data de início definida. Defina-a na ficha do projeto para gerar pagamentos.</p>
-              )}
-
               {payMethod && (
-                <Button onClick={handleSavePaymentConfig} className="gap-1.5">
-                  <Save className="h-4 w-4" /> Guardar Configuração
-                </Button>
+                <div className="flex items-center gap-3 pt-2">
+                  <Button onClick={handleSavePaymentConfig} className="gap-1.5">
+                    <Save className="h-4 w-4" /> Guardar Configuração
+                  </Button>
+                  {hasExistingProjectSales && (
+                    <Button variant="outline" onClick={() => regenerateSales.mutate()} disabled={regenerateSales.isPending || generateSales.isPending} className="gap-1.5">
+                      {regenerateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+                      Regenerar Pagamentos
+                    </Button>
+                  )}
+                </div>
               )}
             </>
           )}
