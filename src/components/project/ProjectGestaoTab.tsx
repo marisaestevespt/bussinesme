@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ExternalLink, Plus, CreditCard, Loader2, Gift, Calendar, Video } from 'lucide-react';
+import { ExternalLink, Plus, CreditCard, Loader2, Gift, Calendar, Video, Pencil, Check, Save } from 'lucide-react';
 import { format, parseISO, addMonths, setDate } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { SaleDetailDialog } from '@/components/commercial/SaleDetailDialog';
@@ -80,6 +80,8 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   const [paymentMethodType, setPaymentMethodType] = useState(projectPaymentConfig?.paymentMethodType || '');
   const [entradaPaymentMethod, setEntradaPaymentMethod] = useState(projectPaymentConfig?.entradaPaymentMethod || '');
   const [prestacoesPaymentMethod, setPrestacoesPaymentMethod] = useState(projectPaymentConfig?.prestacoesPaymentMethod || '');
+  // Lock state: start locked if a payment method is already configured
+  const [paymentLocked, setPaymentLocked] = useState(!!projectPaymentMethod);
 
   // ─── Client data (start_date) ─────────────────────────────────
   const { data: clientData } = useQuery({
@@ -465,15 +467,57 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     <div className="space-y-6">
       {/* Forma de Pagamento + Gerador */}
       <Card className="overflow-hidden">
-        <CardHeader className="pb-3 bg-muted/30 border-b">
+        <CardHeader className="pb-3 bg-muted/30 border-b flex flex-row items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
               <CreditCard className="h-4 w-4 text-primary" />
             </div>
             <CardTitle className="text-base">Forma de Pagamento</CardTitle>
           </div>
+          {payMethod && paymentLocked && (
+            <Button size="sm" variant="outline" onClick={() => setPaymentLocked(false)} className="gap-1.5">
+              <Pencil className="h-3.5 w-3.5" /> Editar
+            </Button>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* ─── LOCKED: read-only summary ─── */}
+          {paymentLocked && payMethod ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">{PAYMENT_FORMS.find(f => f.value === payMethod)?.label || payMethod}</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1 text-sm">
+                {payMethod !== 'entrada_prestacoes' && paymentMethodType && (
+                  <div><span className="text-muted-foreground">Método:</span> {PAYMENT_METHOD_OPTIONS.find(m => m.value === paymentMethodType)?.label}</div>
+                )}
+                {payMethod === 'entrada_prestacoes' && entradaPaymentMethod && (
+                  <div><span className="text-muted-foreground">Método entrada:</span> {PAYMENT_METHOD_OPTIONS.find(m => m.value === entradaPaymentMethod)?.label}</div>
+                )}
+                {payMethod === 'entrada_prestacoes' && prestacoesPaymentMethod && (
+                  <div><span className="text-muted-foreground">Método prestações:</span> {PAYMENT_METHOD_OPTIONS.find(m => m.value === prestacoesPaymentMethod)?.label}</div>
+                )}
+                {totalValue && <div><span className="text-muted-foreground">Valor total:</span> {parseFloat(totalValue).toFixed(2)}€</div>}
+                {entradaValue && payMethod === 'entrada_prestacoes' && <div><span className="text-muted-foreground">Entrada:</span> {parseFloat(entradaValue).toFixed(2)}€</div>}
+                {numPrestacoes && (payMethod === 'entrada_prestacoes' || payMethod === 'prestacoes') && <div><span className="text-muted-foreground">Prestações:</span> {numPrestacoes}x</div>}
+                {payDay && <div><span className="text-muted-foreground">Dia pagamento:</span> {payDay}</div>}
+                {numMeses && payMethod === 'avenca_mensal' && <div><span className="text-muted-foreground">Meses:</span> {numMeses}</div>}
+                {avencaValue && payMethod === 'avenca_mensal' && <div><span className="text-muted-foreground">Valor mensal:</span> {parseFloat(avencaValue).toFixed(2)}€</div>}
+                {subscricaoValue && payMethod === 'subscricao' && <div><span className="text-muted-foreground">Subscrição:</span> {parseFloat(subscricaoValue).toFixed(2)}€</div>}
+                {payMethod === 'subscricao' && <div><span className="text-muted-foreground">Periodicidade:</span> {SUBSCRIPTION_PERIODICITIES.find(p => p.value === subscricaoPeriodicity)?.label}</div>}
+              </div>
+
+              {hasExistingProjectSales && (
+                <Button variant="outline" size="sm" onClick={() => regenerateSales.mutate()} disabled={regenerateSales.isPending || generateSales.isPending} className="gap-1.5 mt-2">
+                  {regenerateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+                  Regenerar Pagamentos
+                </Button>
+              )}
+            </div>
+          ) : (
+            /* ─── UNLOCKED: editable form ─── */
+            <>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">Forma de Pagamento</Label>
@@ -648,6 +692,14 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
 
           {!billingStartDate && payMethod && (
             <p className="text-xs text-destructive">⚠️ O projeto não tem data de início definida. Defina-a na ficha do projeto para gerar pagamentos.</p>
+          )}
+
+          {payMethod && (
+            <Button onClick={() => setPaymentLocked(true)} className="gap-1.5">
+              <Save className="h-4 w-4" /> Guardar Configuração
+            </Button>
+          )}
+            </>
           )}
         </CardContent>
       </Card>
