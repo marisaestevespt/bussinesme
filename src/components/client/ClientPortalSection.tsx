@@ -161,7 +161,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
   };
 
   const toggleItems = [
-    { label: 'Activo', field: 'is_active' as keyof Portal },
+    { label: 'Ativo', field: 'is_active' as keyof Portal },
     { label: 'Espaço de Trabalho', field: 'show_workspace' as keyof Portal },
     { label: 'Reuniões', field: 'show_meetings' as keyof Portal },
     { label: 'Pagamentos', field: 'show_payments' as keyof Portal },
@@ -187,7 +187,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
               </div>
             </div>
             <Badge variant={portalData.is_active ? 'default' : 'secondary'} className="text-xs px-3 py-1">
-              {portalData.is_active ? 'Activo' : 'Inactivo'}
+              {portalData.is_active ? 'Ativo' : 'Inativo'}
             </Badge>
           </div>
         </CardHeader>
