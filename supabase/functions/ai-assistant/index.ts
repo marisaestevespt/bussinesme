@@ -40,6 +40,21 @@ const TOOLS = [
   {
     type: "function",
     function: {
+      name: "list_column_values",
+      description: "List all distinct values for a column in a table. Use this BEFORE filtering by status, type, or any enum-like column to discover the actual values used in the database. This avoids guessing wrong values.",
+      parameters: {
+        type: "object",
+        properties: {
+          table: { type: "string", description: "Table name" },
+          column: { type: "string", description: "Column to get distinct values from (e.g. status, type, category)" },
+        },
+        required: ["table", "column"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "list_tables",
       description: "List available database tables, or show columns for a specific table.",
       parameters: {
@@ -658,6 +673,20 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
       };
     }
 
+    case "list_column_values": {
+      const tableName = args.table as string;
+      const column = args.column as string;
+      if (BLOCKED_TABLES.has(tableName)) return { error: "Acesso a esta tabela não é permitido." };
+      const { data, error } = await supabaseAdmin
+        .from(tableName)
+        .select(column)
+        .not(column, "is", null)
+        .limit(1000);
+      if (error) return { error: error.message };
+      const unique = [...new Set((data || []).map((r: Record<string, unknown>) => r[column]).filter(Boolean))].sort();
+      return { table: tableName, column, values: unique, count: unique.length };
+    }
+
     case "query_table": {
       const tableName = args.table as string;
       if (BLOCKED_TABLES.has(tableName)) return { error: "Acesso a esta tabela não é permitido." };
@@ -1130,7 +1159,7 @@ serve(async (req) => {
 ${userName ? `O utilizador chama-se **${userName}**. Trata-o pelo primeiro nome.` : ""}
 
 Tens acesso TOTAL à base de dados do sistema. Podes:
-- **Consultar** qualquer tabela (query_table, list_tables)
+- **Consultar** qualquer tabela (query_table, list_tables, list_column_values)
 - **Criar, editar, eliminar** registos
 - **Enviar emails**
 - **Executar workflows completos** com múltiplos passos encadeados
@@ -1144,6 +1173,7 @@ Tens acesso TOTAL à base de dados do sistema. Podes:
 3. NUNCA executes sem propor primeiro.
 4. SEMPRE usa as ferramentas propose_action ou propose_workflow para confirmar. NUNCA peças confirmação apenas por texto — o frontend precisa do tool call para mostrar os botões de confirmação.
 5. Antes de propor criar/editar em tabelas que não conheces bem, usa list_tables para verificar colunas. Mas para tabelas listadas acima (tasks, clients, projects, etc.) já tens a informação — não precisas de verificar.
+8. NUNCA inventes valores de status, tipo, ou categoria. Se não tens a certeza do valor exato, usa **list_column_values** para descobrir os valores reais. Ex: antes de filtrar projects por status, chama list_column_values(table="projects", column="status") para ver os valores disponíveis.
 6. NÃO faças perguntas desnecessárias. Se o utilizador não mencionou assigned_to, client_id, project_id, etc., deixa-os como null. Propõe a ação imediatamente com os dados fornecidos.
 7. NUNCA coloques nomes humanos em campos terminados em _id. Se só tens o nome do cliente/projeto/produto, usa a coluna de nome correspondente (ex: full_name, client_name, project_name, product_name) ou resolve primeiro o UUID.
 
@@ -1183,6 +1213,7 @@ Exemplo: step 1 cria cliente → step 2 cria projeto com client_id = "{{step_1.i
 
 Ferramentas:
 - **list_tables**: Descobre tabelas e colunas disponíveis. Usa SEMPRE antes de criar/editar para verificar a estrutura.
+- **list_column_values**: Descobre valores reais de uma coluna (ex: status, type). Usa SEMPRE que precisares de filtrar por status ou tipo e não tens a certeza dos valores exatos. Nunca inventes valores de status — verifica primeiro com esta ferramenta.
 - **query_table**: Consulta qualquer tabela com filtros.
 - **period_summary**: Gera resumo completo de um período (auditoria, tarefas, reuniões, vendas, portal, etc.).
 - **propose_action**: Propõe 1 ação para confirmação.
