@@ -353,6 +353,17 @@ export default function ProjetoDetailPage() {
     enabled: !!id,
   });
 
+  const { data: clientForProject } = useQuery({
+    queryKey: ['client-by-name', project?.client_id, project?.client_name],
+    queryFn: async () => {
+      if (project!.client_id) return { id: project!.client_id };
+      const { data } = await supabase.from('clients').select('id').eq('full_name', project!.client_name!).maybeSingle();
+      return data as { id: string } | null;
+    },
+    enabled: !!(project?.client_id || project?.client_name),
+  });
+  const resolvedClientId = clientForProject?.id;
+
   const { data: projectPhases = [] } = useQuery({
     queryKey: ['project-phases', id],
     queryFn: async () => {
