@@ -559,7 +559,6 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
         // Meetings whose status changed in the period (updated_at within range)
         supabaseAdmin.from("meetings").select("title, date_time, status, client_name, updated_at, portal_notes")
           .gte("updated_at", startDate).lt("updated_at", endExcl)
-          .in("status", ["confirmada", "por_confirmar", "cancelada", "reagendada"])
           .limit(100),
       ]);
 
