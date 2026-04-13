@@ -865,10 +865,9 @@ export default function ReuniaoDetailPage() {
             </div>
           </CardHeader>
           <CardContent className="pt-5">
-            <EditableChecklist
-              items={m.discussion_points}
-              onChange={items => update({ discussion_points: items })}
-              label=""
+            <RichTextEditor
+              content={m.discussion_notes || ''}
+              onChange={html => update({ discussion_notes: html })}
             />
           </CardContent>
         </Card>
