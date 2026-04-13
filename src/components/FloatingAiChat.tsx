@@ -397,9 +397,9 @@ export function FloatingAiChat() {
                   <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-1">Experimenta perguntar</p>
                   {[
                     { icon: "👥", text: "Quantos clientes ativos tenho?" },
+                    { icon: "📅", text: "Resumo de 1 a 13 de abril" },
                     { icon: "✅", text: "Cria uma tarefa para amanhã" },
                     { icon: "📎", text: "Analisa este PDF e cria o produto" },
-                    { icon: "📅", text: "Marca a reunião de hoje como concluída" },
                     { icon: "📊", text: "Como estão as vendas este trimestre?" },
                     { icon: "📧", text: "Envia um email ao João" },
                   ].map((q) => (
