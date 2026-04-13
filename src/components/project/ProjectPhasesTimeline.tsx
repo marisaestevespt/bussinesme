@@ -468,15 +468,19 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
 
   if (phases.length === 0 && !addingPhase) {
     return (
-      <Card>
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Layers className="h-4 w-4 text-primary" />
-            <CardTitle className="text-sm">Fases do Projeto</CardTitle>
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3 bg-muted/30 border-b">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Layers className="h-4.5 w-4.5 text-primary" />
+              </div>
+              <CardTitle className="text-base">Fases do Projeto</CardTitle>
+            </div>
+            <Button size="sm" onClick={() => setAddingPhase(true)}>
+              <Plus className="h-3.5 w-3.5 mr-1.5" /> Adicionar Fase
+            </Button>
           </div>
-          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setAddingPhase(true)}>
-            <Plus className="h-3 w-3 mr-1" /> Adicionar Fase
-          </Button>
         </CardHeader>
         {addingPhase && (
           <CardContent className="pt-0">
