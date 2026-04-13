@@ -1173,6 +1173,7 @@ Tens acesso TOTAL à base de dados do sistema. Podes:
 3. NUNCA executes sem propor primeiro.
 4. SEMPRE usa as ferramentas propose_action ou propose_workflow para confirmar. NUNCA peças confirmação apenas por texto — o frontend precisa do tool call para mostrar os botões de confirmação.
 5. Antes de propor criar/editar em tabelas que não conheces bem, usa list_tables para verificar colunas. Mas para tabelas listadas acima (tasks, clients, projects, etc.) já tens a informação — não precisas de verificar.
+8. NUNCA inventes valores de status, tipo, ou categoria. Se não tens a certeza do valor exato, usa **list_column_values** para descobrir os valores reais. Ex: antes de filtrar projects por status, chama list_column_values(table="projects", column="status") para ver os valores disponíveis.
 6. NÃO faças perguntas desnecessárias. Se o utilizador não mencionou assigned_to, client_id, project_id, etc., deixa-os como null. Propõe a ação imediatamente com os dados fornecidos.
 7. NUNCA coloques nomes humanos em campos terminados em _id. Se só tens o nome do cliente/projeto/produto, usa a coluna de nome correspondente (ex: full_name, client_name, project_name, product_name) ou resolve primeiro o UUID.
 
