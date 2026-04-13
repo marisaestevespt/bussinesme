@@ -708,9 +708,11 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
         tarefas_concluidas: (tasksRes.data || []).length,
         tarefas_criadas: newTasksCreated.length,
         tarefas_atrasadas: overdueTasks.length,
-        // Reuniões
-        reunioes_no_periodo: (meetingsRes.data || []).length,
-        reunioes_confirmadas: (meetingsRes.data || []).filter((m: any) => m.status === "confirmada").length,
+        // Reuniões agendadas no período (por date_time)
+        reunioes_agendadas_no_periodo: (meetingsRes.data || []).length,
+        // Reuniões cujo STATUS mudou no período (confirmadas, reagendadas, etc - por updated_at)
+        reunioes_atualizadas_no_periodo: meetingStatusChanges.length,
+        reunioes_confirmadas_no_periodo: meetingStatusChanges.filter((m: any) => m.status === "confirmada").map((m: any) => `${m.cliente} — "${m.titulo}" (atualizado ${m.atualizado_em})`),
         reunioes_por_confirmar: (meetingsRes.data || []).filter((m: any) => m.status === "por_confirmar").length,
         reunioes_com_pedido_alteracao: meetingsWithPortalNotes.length,
         // Vendas & Financeiro
