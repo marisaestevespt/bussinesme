@@ -951,9 +951,9 @@ export default function ProjetoDetailPage() {
           <div className="pt-16">
           <Tabs defaultValue="projeto" className="w-full">
             <TabsList className="bg-transparent w-full gap-2">
-              <TabsTrigger value="projeto" className="flex-1 py-3 text-base">Projeto</TabsTrigger>
-              <TabsTrigger value="processos" className="flex-1 py-3 text-base">Processos</TabsTrigger>
-              <TabsTrigger value="gestao" className="flex-1 py-3 text-base">Gestão</TabsTrigger>
+              <TabsTrigger value="projeto" className="flex-1">Projeto</TabsTrigger>
+              <TabsTrigger value="processos" className="flex-1">Processos</TabsTrigger>
+              <TabsTrigger value="gestao" className="flex-1">Gestão</TabsTrigger>
             </TabsList>
 
             {/* ─── TAB 1: PROJETO ──────────────────────────── */}
