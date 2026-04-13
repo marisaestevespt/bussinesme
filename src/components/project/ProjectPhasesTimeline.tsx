@@ -543,23 +543,23 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
             const isEditing = editingPhase === phase.id;
 
             return (
-              <div key={phase.id} className="flex gap-3 relative group/phase">
+              <div key={phase.id} className="flex gap-4 relative group/phase">
                 <div className="flex flex-col items-center">
-                  <div className={cn('h-6 w-6 rounded-full flex items-center justify-center shrink-0 border-2',
+                  <div className={cn('h-8 w-8 rounded-full flex items-center justify-center shrink-0 border-2',
                     phase.status === 'concluida' ? 'border-success bg-success/10' :
                     phase.status === 'em_curso' ? 'border-info bg-info/10' :
                     'border-muted bg-muted/30'
                   )}>
-                    <Icon className={cn('h-3.5 w-3.5', si.color)} />
+                    <Icon className={cn('h-4 w-4', si.color)} />
                   </div>
                   {!isLast && (
-                    <div className={cn('w-0.5 flex-1 min-h-[24px]',
+                    <div className={cn('w-0.5 flex-1 min-h-[32px]',
                       phase.status === 'concluida' ? 'bg-success/40' : 'bg-border'
                     )} />
                   )}
                 </div>
 
-                <div className={cn('pb-4 flex-1 min-w-0', isLast && 'pb-0')}>
+                <div className={cn('pb-5 flex-1 min-w-0', isLast && 'pb-0')}>
                   {isEditing ? (
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-1.5">
