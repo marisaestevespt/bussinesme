@@ -783,10 +783,7 @@ export default function ProjetoDetailPage() {
             {/* Status */}
             <div className="flex items-center gap-3 py-2.5">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> Status</span>
-              <div className="flex items-center gap-2">
-                <Badge className={`${statusI.color} border-0`}>{statusI.label}</Badge>
-                <Select value={local.status} onValueChange={v => updateField('status', v)}><SelectTrigger className="w-32 h-7 text-xs border-dashed"><SelectValue /></SelectTrigger><SelectContent>{PROJECT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent></Select>
-              </div>
+              <Select value={local.status} onValueChange={v => updateField('status', v)}><SelectTrigger className="w-40 h-8"><SelectValue /></SelectTrigger><SelectContent>{PROJECT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent></Select>
             </div>
             {/* Tipo */}
             <div className="flex items-center gap-3 py-2.5">
