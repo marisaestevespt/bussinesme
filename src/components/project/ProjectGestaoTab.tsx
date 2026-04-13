@@ -667,7 +667,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
           </Button>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-7 gap-2">
+          <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-7 gap-2">
             <span>Status</span>
             <span>Data</span>
             <span>Descrição</span>
@@ -731,7 +731,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
           </Button>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-4 gap-2">
+          <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-4 gap-2">
             <span>Status</span>
             <span>Data & Hora</span>
             <span>Reunião</span>
