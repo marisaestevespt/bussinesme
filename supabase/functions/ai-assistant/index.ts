@@ -1077,6 +1077,65 @@ Regras:
         allMessages.push({ role: msg.role, content: msg.content });
       }
     }
+
+    // === AUTO-EXECUTE confirmed actions without relying on the AI model ===
+    const lastUserMsg = messages[messages.length - 1];
+    if (lastUserMsg?.role === "user") {
+      const confirmedAction = parseConfirmedAction(lastUserMsg.content);
+      if (confirmedAction) {
+        console.log("Auto-executing confirmed action:", JSON.stringify(confirmedAction).slice(0, 500));
+        try {
+          let result: Record<string, unknown>;
+          if (confirmedAction.workflow && Array.isArray(confirmedAction.steps)) {
+            // Execute workflow
+            const steps = confirmedAction.steps as Array<{
+              step_label: string;
+              action_type: string;
+              details: Record<string, unknown>;
+            }>;
+            const stepResults: Record<number, Record<string, unknown>> = {};
+            const results: Array<{ step: number; label: string; success: boolean; result: Record<string, unknown> }> = [];
+            for (let i = 0; i < steps.length; i++) {
+              const step = steps[i];
+              const resolvedDetails = resolveRefs(step.details, stepResults) as Record<string, unknown>;
+              console.log(`Auto-workflow step ${i + 1}/${steps.length}: ${step.step_label}`);
+              const stepResult = await executeSingleAction(step.action_type, resolvedDetails, supabaseAdmin);
+              if (stepResult.error) {
+                return new Response(JSON.stringify({
+                  content: `❌ Erro no passo ${i + 1} (${step.step_label}): ${stepResult.error}`,
+                }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+              }
+              stepResults[i + 1] = stepResult;
+              results.push({ step: i + 1, label: step.step_label, success: true, result: stepResult });
+            }
+            result = { success: true, completed_steps: steps.length, total_steps: steps.length, results };
+          } else {
+            // Execute single action
+            result = await executeSingleAction(
+              confirmedAction.action_type as string,
+              (confirmedAction.details as Record<string, unknown>) || {},
+              supabaseAdmin
+            );
+          }
+
+          if (result.error) {
+            return new Response(JSON.stringify({
+              content: `❌ Erro ao executar: ${result.error}`,
+            }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+
+          const summary = formatExecutionSummary(confirmedAction, result);
+          return new Response(JSON.stringify({ content: summary }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        } catch (e) {
+          console.error("Auto-execute error:", e);
+          return new Response(JSON.stringify({
+            content: `❌ Erro ao executar a ação: ${e instanceof Error ? e.message : "desconhecido"}`,
+          }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      }
+    }
     
     let currentMessages = [...allMessages];
     let maxIterations = 12;
