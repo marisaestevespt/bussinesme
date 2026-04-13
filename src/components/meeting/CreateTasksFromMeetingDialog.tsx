@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -98,9 +98,15 @@ export function CreateTasksFromMeetingDialog({
   const [drafts, setDrafts] = useState<TaskDraft[]>([]);
   const [saving, setSaving] = useState(false);
 
-  // Reset drafts when dialog opens
+  // Reset drafts whenever dialog opens — use useEffect to guarantee latest props
+  useEffect(() => {
+    if (open) {
+      setDrafts(buildDrafts());
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   const handleOpenChange = (v: boolean) => {
-    if (v) setDrafts(buildDrafts());
     onOpenChange(v);
   };
 
