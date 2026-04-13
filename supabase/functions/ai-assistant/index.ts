@@ -514,6 +514,103 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
       return { data, total: count };
     }
 
+    case "period_summary": {
+      const startDate = args.start_date as string;
+      const endDate = args.end_date as string;
+      // Add one day to end_date to make it inclusive
+      const endDateExclusive = new Date(endDate);
+      endDateExclusive.setDate(endDateExclusive.getDate() + 1);
+      const endExcl = endDateExclusive.toISOString().split("T")[0];
+
+      const [auditRes, tasksRes, meetingsRes, salesRes, expensesRes, notifRes, clientsRes, leadsRes, contentRes] = await Promise.all([
+        // Audit logs - all actions in the period
+        supabaseAdmin.from("audit_logs").select("action, entity_type, entity_id, user_name, created_at, metadata")
+          .gte("created_at", startDate).lt("created_at", endExcl).order("created_at", { ascending: false }).limit(200),
+        // Tasks completed in period
+        supabaseAdmin.from("tasks").select("name, status, assigned_to, deadline, department, updated_at")
+          .eq("status", "concluida").gte("updated_at", startDate).lt("updated_at", endExcl).limit(100),
+        // Meetings in period
+        supabaseAdmin.from("meetings").select("title, date_time, status, client_name, department, portal_notes, duration_minutes")
+          .gte("date_time", startDate).lt("date_time", endExcl).order("date_time").limit(100),
+        // Sales created/updated in period
+        supabaseAdmin.from("commercial_sales").select("sale_id, client, product, invoice_total, status, payment_date, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // Expenses in period
+        supabaseAdmin.from("financial_expenses").select("expense_id, description, total_with_vat, category, status, expense_date")
+          .gte("expense_date", startDate).lt("expense_date", endExcl).limit(50),
+        // Notifications (includes portal activity)
+        supabaseAdmin.from("notifications").select("type, title, message, link, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).order("created_at", { ascending: false }).limit(100),
+        // New clients in period
+        supabaseAdmin.from("clients").select("full_name, status, created_at, start_date")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // New leads in period
+        supabaseAdmin.from("crm_leads").select("name, status, source, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // Content published in period
+        supabaseAdmin.from("content_items").select("title, status, format, scheduled_at")
+          .gte("scheduled_at", startDate).lt("scheduled_at", endExcl).limit(50),
+      ]);
+
+      // Group audit logs by entity_type and action
+      const auditSummary: Record<string, number> = {};
+      for (const log of auditRes.data || []) {
+        const key = `${log.action}:${log.entity_type}`;
+        auditSummary[key] = (auditSummary[key] || 0) + 1;
+      }
+
+      // Portal-specific activity from notifications
+      const portalActivity = (notifRes.data || []).filter((n: any) =>
+        n.title?.includes("portal") || n.title?.includes("Portal") ||
+        n.title?.includes("submeteu") || n.title?.includes("Respostas") ||
+        n.title?.includes("confirmou") || n.title?.includes("horário alternativo") ||
+        n.message?.includes("portal") || n.message?.includes("submeteu")
+      );
+
+      // Meeting status breakdown
+      const meetingsByStatus: Record<string, number> = {};
+      for (const m of meetingsRes.data || []) {
+        meetingsByStatus[m.status] = (meetingsByStatus[m.status] || 0) + 1;
+      }
+
+      // Meetings with portal notes (client requested changes)
+      const meetingsWithPortalNotes = (meetingsRes.data || []).filter((m: any) => m.portal_notes);
+
+      return {
+        periodo: `${startDate} a ${endDate}`,
+        resumo_acoes: auditSummary,
+        acoes_detalhadas: (auditRes.data || []).slice(0, 50).map((l: any) => ({
+          acao: l.action, tipo: l.entity_type, por: l.user_name, quando: l.created_at, detalhes: l.metadata,
+        })),
+        tarefas_concluidas: {
+          total: (tasksRes.data || []).length,
+          lista: (tasksRes.data || []).map((t: any) => ({ nome: t.name, responsavel: t.assigned_to, departamento: t.department })),
+        },
+        reunioes: {
+          total: (meetingsRes.data || []).length,
+          por_status: meetingsByStatus,
+          lista: (meetingsRes.data || []).map((m: any) => ({ titulo: m.title, data: m.date_time, status: m.status, cliente: m.client_name })),
+          com_notas_portal: meetingsWithPortalNotes.map((m: any) => ({ titulo: m.title, notas_cliente: m.portal_notes })),
+        },
+        vendas: {
+          total: (salesRes.data || []).length,
+          valor_total: (salesRes.data || []).reduce((s: number, v: any) => s + (Number(v.invoice_total) || 0), 0),
+          lista: salesRes.data || [],
+        },
+        despesas: {
+          total: (expensesRes.data || []).length,
+          valor_total: (expensesRes.data || []).reduce((s: number, e: any) => s + (Number(e.total_with_vat) || 0), 0),
+          lista: expensesRes.data || [],
+        },
+        atividade_portal_clientes: portalActivity.map((n: any) => ({
+          titulo: n.title, mensagem: n.message, quando: n.created_at,
+        })),
+        novos_clientes: clientsRes.data || [],
+        novos_leads: leadsRes.data || [],
+        conteudos: (contentRes.data || []).map((c: any) => ({ titulo: c.title, status: c.status, formato: c.format })),
+      };
+    }
+
     case "propose_action": {
       return {
         pending_confirmation: true,
