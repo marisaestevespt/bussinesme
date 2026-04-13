@@ -464,6 +464,7 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
           marca: ["brand_competitors", "brand_differentials", "brand_swot_items", "brand_visual_cards"],
           configuracoes: ["business_settings", "business_setup", "automation_settings", "kpi_settings", "departments"],
           conteudo: ["content_items", "content_attachments", "sops", "internal_documents", "mural_posts"],
+          sistema: ["audit_logs (somente leitura)", "notifications"],
         },
       };
     }
