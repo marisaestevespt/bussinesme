@@ -948,7 +948,7 @@ export default function ProjetoDetailPage() {
 
 
           {/* ─── 3 Tabs ──────────────────────────────────────── */}
-          <div className="mt-8">
+          <div className="mt-14">
           <Tabs defaultValue="projeto" className="w-full">
             <TabsList className="bg-transparent w-full gap-2">
               <TabsTrigger value="projeto" className="flex-1">Projeto</TabsTrigger>
