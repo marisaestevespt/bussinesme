@@ -131,15 +131,14 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     }
   }, [projectPaymentMethod]);
 
-  // Persist payment config to project whenever it changes (skip initial mount)
-  const hasMountedRef = useRef(false);
+  // Persist payment config to project whenever it changes (skip if unchanged)
+  const prevConfigRef = useRef<string>(JSON.stringify(projectPaymentConfig || {}));
   useEffect(() => {
-    if (!hasMountedRef.current) {
-      hasMountedRef.current = true;
-      return;
-    }
     if (!onUpdateProject) return;
     const config = { totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity, paymentMethodType, entradaPaymentMethod, prestacoesPaymentMethod };
+    const configStr = JSON.stringify(config);
+    if (configStr === prevConfigRef.current) return;
+    prevConfigRef.current = configStr;
     const timer = setTimeout(() => {
       onUpdateProject('payment_config', config);
     }, 800);
