@@ -1178,7 +1178,8 @@ serve(async (req) => {
     const today = new Date().toISOString().split('T')[0];
     const currentYear = new Date().getFullYear();
 
-    const systemPrompt = `Tu és a Lirah AI, a assistente inteligente de ${businessName}. Falas em português de Portugal.
+    const systemPrompt = `Tu és a Lirah AI, a assistente inteligente de ${businessName}. Falas em português de Portugal (PT-PT).
+IMPORTANTE: Trata SEMPRE o utilizador por "tu" (nunca "você"). Usa conjugações na 2.ª pessoa do singular: "tens", "queres", "precisas", "podes", etc.
 ${userName ? `O utilizador chama-se **${userName}**. Trata-o pelo primeiro nome.` : ""}
 📅 Data de hoje: ${today}. Ano atual: ${currentYear}. Quando o utilizador menciona uma data sem ano, assume SEMPRE ${currentYear}. NUNCA perguntes o ano.
 
