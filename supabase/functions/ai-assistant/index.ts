@@ -673,6 +673,20 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
       };
     }
 
+    case "list_column_values": {
+      const tableName = args.table as string;
+      const column = args.column as string;
+      if (BLOCKED_TABLES.has(tableName)) return { error: "Acesso a esta tabela não é permitido." };
+      const { data, error } = await supabaseAdmin
+        .from(tableName)
+        .select(column)
+        .not(column, "is", null)
+        .limit(1000);
+      if (error) return { error: error.message };
+      const unique = [...new Set((data || []).map((r: Record<string, unknown>) => r[column]).filter(Boolean))].sort();
+      return { table: tableName, column, values: unique, count: unique.length };
+    }
+
     case "query_table": {
       const tableName = args.table as string;
       if (BLOCKED_TABLES.has(tableName)) return { error: "Acesso a esta tabela não é permitido." };
