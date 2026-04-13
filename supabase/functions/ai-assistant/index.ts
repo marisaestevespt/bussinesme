@@ -53,6 +53,22 @@ const TOOLS = [
   {
     type: "function",
     function: {
+      name: "period_summary",
+      description: `Generate a comprehensive business summary for a date range. Use when the user asks things like "o que aconteceu de X a Y", "resumo da semana", "resumo das férias", "o que foi feito ontem", etc.
+Gathers data from: audit_logs (all actions), tasks (completed), meetings (held/confirmed), sales, expenses, notifications (portal activity from clients), client_onboarding changes, and more.`,
+      parameters: {
+        type: "object",
+        properties: {
+          start_date: { type: "string", description: "Start date in YYYY-MM-DD format" },
+          end_date: { type: "string", description: "End date in YYYY-MM-DD format" },
+        },
+        required: ["start_date", "end_date"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "propose_action",
       description: `Propose a SINGLE write action (create, update, delete, send_email) that requires user confirmation.
 Use this for simple, single-step operations. For multi-step operations, use propose_workflow instead.
@@ -181,7 +197,6 @@ The workflow will NOT execute yet — the user sees a summary and confirms once.
     },
   },
 ];
-
 const BLOCKED_TABLES = new Set(["member_sensitive_access", "backups", "user_roles", "profiles"]);
 const READONLY_TABLES = new Set(["business_settings", "business_setup", "automation_settings", "system_config", "audit_logs"]);
 const PRODUCT_MUTABLE_FIELDS = new Set([
