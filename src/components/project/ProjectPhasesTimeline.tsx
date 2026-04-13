@@ -496,8 +496,16 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
     );
   }
 
-  const completedCount = deliverables.filter(d => d.status === 'concluido').length;
-  const progress = deliverables.length > 0 ? Math.round((completedCount / deliverables.length) * 100) : 0;
+  const completedDeliverables = deliverables.filter(d => d.status === 'concluido').length;
+  const completedPhases = phases.filter(p => p.status === 'concluida').length;
+  const progress = deliverables.length > 0
+    ? Math.round((completedDeliverables / deliverables.length) * 100)
+    : phases.length > 0
+      ? Math.round((completedPhases / phases.length) * 100)
+      : 0;
+  const progressLabel = deliverables.length > 0
+    ? `${completedDeliverables}/${deliverables.length} points`
+    : `${completedPhases}/${phases.length} fases`;
 
   return (
     <>
@@ -506,7 +514,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
         <div className="flex items-center gap-2">
           <Layers className="h-4 w-4 text-primary" />
           <CardTitle className="text-sm">Fases do Projeto</CardTitle>
-          <Badge variant="secondary" className="text-[10px]">{completedCount}/{phases.length}</Badge>
+          <Badge variant="secondary" className="text-[10px]">{progressLabel}</Badge>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{progress}% concluído</span>
