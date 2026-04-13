@@ -626,8 +626,7 @@ async function executeSingleAction(
       if (filters.length === 0) return { error: "Delete requer pelo menos um filtro para segurança." };
       let query = supabaseAdmin.from(tableName).delete();
       for (const f of filters) {
-        if (f.operator === "eq") query = query.eq(f.column, f.value);
-        else if (f.operator === "in") query = query.in(f.column, f.value.split(","));
+        query = applyFilter(query, f);
       }
       const { data: result, error } = await query.select();
       if (error) return { error: error.message };
