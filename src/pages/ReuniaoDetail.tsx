@@ -778,6 +778,7 @@ export default function ReuniaoDetailPage() {
               )}
             </div>
           </div>
+          </div>
         </div>
 
         {/* Action buttons — subtle, outside card */}
