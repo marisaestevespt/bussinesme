@@ -274,6 +274,9 @@ export default function ProjetoDetailPage() {
   // Meeting dialog
   const [meetingDialogOpen, setMeetingDialogOpen] = useState(false);
 
+  // Members dialog
+  const [membersDialogOpen, setMembersDialogOpen] = useState(false);
+
   // Projects list for MeetingFormDialog
   const { data: allProjectsForMeeting = [] } = useQuery({
     queryKey: ['projects-for-meetings'],
