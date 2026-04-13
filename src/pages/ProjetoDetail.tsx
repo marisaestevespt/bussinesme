@@ -495,6 +495,19 @@ export default function ProjetoDetailPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const toggleMember = useMutation({
+    mutationFn: async (profileId: string) => {
+      const isMember = projectMembers.includes(profileId);
+      if (isMember) {
+        await supabase.from('project_members').delete().eq('project_id', id!).eq('profile_id', profileId);
+      } else {
+        await supabase.from('project_members').insert({ project_id: id!, profile_id: profileId } as any);
+      }
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['project-members', id] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from('projects').delete().eq('id', id!);
