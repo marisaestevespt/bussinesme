@@ -918,9 +918,9 @@ export default function ReuniaoDetailPage() {
           <CardContent className="pt-5">
             <div className="space-y-2">
               {m.priorities.map((p, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-primary bg-primary/10 rounded-full h-6 w-6 flex items-center justify-center shrink-0">{i + 1}</span>
-                  <Input
+                <div key={i} className="flex items-start gap-2">
+                  <span className="text-xs font-semibold text-primary bg-primary/10 rounded-full h-6 w-6 flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                  <textarea
                     value={p}
                     onChange={e => {
                       const next = [...m.priorities];
@@ -928,7 +928,9 @@ export default function ReuniaoDetailPage() {
                       update({ priorities: next });
                     }}
                     placeholder={`Decisão ${i + 1}`}
-                    className="h-8 text-sm"
+                    rows={1}
+                    onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
+                    className="flex-1 bg-transparent text-sm border-none outline-none resize-none leading-relaxed rounded px-2 py-1 hover:bg-muted/30 focus:bg-muted/30 transition-colors"
                   />
                 </div>
               ))}
