@@ -1,3 +1,8 @@
+---
+name: Products
+description: Product detail page structure, type options, and section organization
+type: feature
+---
 Product detail page structure and section organization
 
 ## Main page (no tabs)
@@ -18,10 +23,18 @@ Product detail page structure and section organization
 - Métricas: ProductMetricsTab (gallery of months with year nav)
 - Arquivo: Brainstorming
 
-## content_items.product_id
-- Added product_id (uuid FK → products) to content_items table
-- ConteudoDetail uses Select dropdown to pick product (sets both product_id and product_name)
-- ProdutoDetail Marketing section queries content_items by product_id
+## Tipo de Produto options
+Consultoria Individual, Consultoria em Grupo, Mentoria Individual, Mentoria em Grupo, Curso Gravado, Workshop, Serviço Pontual, Serviço Mensal, Template, E-book
+
+## Escada options
+Lead Magnet, Qualificação, Produto de Entrada, Produto Intermédio, Produto Premium, Produto de Recorrência, Serviço
+
+## Project types
+Interno, Interno - Lançamento, Cliente - Projeto Único, Cliente - Serviço Mensal
+
+## Portal type mapping
+- servico_pontual, consultoria_*, mentoria_*, workshop, projeto_1_1 → projeto_unico portal
+- servico_mensal → servico_mensal portal
 
 ## Auto-created SOPs on new product
 When a product is created, 6 default SOPs are auto-inserted:
@@ -31,21 +44,3 @@ When a product is created, 6 default SOPs are auto-inserted:
 4. Acompanhamento de Cliente
 5. KPIs de Produto
 6. Fecho/Offboarding de Clientes
-
-## SOP-specific embedded UIs (inside SOP detail page)
-- Onboarding SOP → Template de Onboarding table (product_onboarding_templates)
-- Offboarding SOP → Template de Offboarding table + Antecedência de Renovação
-- Pagamentos SOP → Formas de Pagamento checkboxes
-- NPS/Feedbacks SOP → NPS config (cadence, responsible, message, form URL)
-- Acompanhamento SOP → Marcos de Acompanhamento table (product_milestones)
-- KPIs SOP → KPIs config (create/toggle/delete KPIs with type, source, goals)
-
-## Removed/moved
-- Standalone "Processos" card from main page → Processos section
-- Standalone Onboarding/Offboarding cards → inside SOP detail
-- KPIs do Produto tab → inside KPIs de Produto SOP
-- Custos do Produto standalone card → merged into Calculadora de Oferta
-- Antecedência de Renovação → inside Offboarding SOP
-- Tabs UI replaced by toggle buttons that expand sections below
-- "Comercial & Mkt" split into separate "Comercial" and "Marketing" sections
-- Cliente do Produto moved from Backoffice to Comercial
