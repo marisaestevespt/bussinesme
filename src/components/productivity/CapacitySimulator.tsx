@@ -229,7 +229,7 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
   const addPhantom = () => {
     setPhantoms(prev => [...prev, {
       id: crypto.randomUUID(),
-      name: `Novo membro ${prev.length + 1}`,
+      name: `Membro ${prev.length + 1}`,
       department: departments[0] || '__none__',
       weeklyHours: 40,
       clientPct: 70,
