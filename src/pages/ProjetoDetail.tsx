@@ -1112,53 +1112,52 @@ export default function ProjetoDetailPage() {
           </Alert>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-4 max-w-2xl">
+          <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-xl font-bold border-none px-0 focus-visible:ring-0" />
           <div className="flex items-center gap-3 flex-wrap">
             <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
             {isRecorrente && <Badge variant="outline" className="text-xs">🔄 Recorrente</Badge>}
             <Select value={local.status} onValueChange={v => updateField('status', v)}><SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger><SelectContent>{PROJECT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent></Select>
-            {local.department && <span className="text-sm text-muted-foreground">{getDeptLabel(local.department)}</span>}
           </div>
-          <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-xl font-bold border-none px-0 focus-visible:ring-0" />
-          <div className="flex items-center gap-4 flex-wrap">
+          <div className="space-y-4">
+            {local.department && <div><Label className="text-xs">Departamento</Label><p className="text-sm mt-1">{getDeptLabel(local.department)}</p></div>}
             {!isRecorrente && (
-              <div className="flex items-center gap-2">
-                <Label className="text-xs text-muted-foreground">Prazo:</Label>
-                <Popover><PopoverTrigger asChild><Button variant="outline" size="sm" className={cn("h-7 text-xs", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-1 h-3 w-3" />{local.deadline ? format(new Date(local.deadline), 'd MMM yyyy', { locale: pt }) : '—'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+              <div>
+                <Label className="text-xs">Prazo</Label>
+                <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal mt-1", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{local.deadline ? format(new Date(local.deadline), 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
               </div>
             )}
             {!isRecorrente && (
-              <div className="flex items-center gap-2 min-w-[160px]">
-                <Progress value={getProjectProgress()} className="h-2 flex-1" />
-                <span className="text-xs text-muted-foreground">{getProjectProgress()}%</span>
+              <div>
+                <Label className="text-xs">Progresso ({getProjectProgress()}%)</Label>
+                <Progress value={getProjectProgress()} className="h-2 mt-2" />
+                <p className="text-[10px] text-muted-foreground mt-1">{getProjectProgressSummary()}</p>
               </div>
             )}
-            <div className="flex -space-x-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-6 w-6 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div>
-            <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
-            {projectCost > 0 && (
-              <Badge variant="outline" className="gap-1 text-xs">
-                <DollarSign className="h-3 w-3" /> {formatCost(projectCost)}
-              </Badge>
-            )}
+            <div>
+              <Label className="text-xs">Equipa</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="flex -space-x-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div>
+                <button type="button" onClick={() => setMembersDialogOpen(true)} className="h-7 w-7 rounded-full border-2 border-dashed border-muted-foreground/40 flex items-center justify-center hover:opacity-80">
+                  <Plus className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+                <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
+                {projectCost > 0 && <Badge variant="outline" className="gap-1 text-xs"><DollarSign className="h-3 w-3" /> {formatCost(projectCost)}</Badge>}
+              </div>
+            </div>
             {local.status === 'concluido' && local.total_time_minutes != null && local.total_time_minutes > 0 && (
-              <Badge variant="outline" className="gap-1 text-xs">
-                <Clock className="h-3 w-3" /> Tempo total: {formatDuration(local.total_time_minutes)}
-              </Badge>
+              <Badge variant="outline" className="gap-1 text-xs"><Clock className="h-3 w-3" /> Tempo total: {formatDuration(local.total_time_minutes)}</Badge>
             )}
-          </div>
-          {/* WhatsApp group link */}
-          {((local as any).whatsapp_group_url || true) && (
-            <div className="flex items-center gap-2">
-              <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
-              <Label className="text-xs text-muted-foreground shrink-0">Grupo WhatsApp:</Label>
-              <Input value={(local as any).whatsapp_group_url || ''} onChange={e => updateField('whatsapp_group_url', e.target.value)} placeholder="https://chat.whatsapp.com/..." className="h-7 text-xs max-w-sm" />
+            <div>
+              <Label className="text-xs flex items-center gap-1.5"><MessageSquare className="h-3 w-3" /> Grupo WhatsApp</Label>
+              <Input value={(local as any).whatsapp_group_url || ''} onChange={e => updateField('whatsapp_group_url', e.target.value)} placeholder="https://chat.whatsapp.com/..." className="mt-1" />
               {(local as any).whatsapp_group_url && (
-                <a href={(local as any).whatsapp_group_url} target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-700 hover:underline flex items-center gap-1 shrink-0">
-                  Abrir <ExternalLink className="h-3 w-3" />
+                <a href={(local as any).whatsapp_group_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
+                  Abrir grupo <ExternalLink className="h-3 w-3" />
                 </a>
               )}
             </div>
-          )}
+          </div>
         </div>
 
         <Separator />
