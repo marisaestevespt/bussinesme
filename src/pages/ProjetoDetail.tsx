@@ -225,7 +225,7 @@ function EntregaveisSubPage({ projectId, entregaveisText, onTextChange, onSave, 
             <>
               <div className={cn("border rounded-lg divide-y divide-border mb-3", dragging && "ring-2 ring-primary")}>
               {files.map(f => (
-                <div key={f.name} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors">
+                <div key={f.name} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/60 border border-border/50 transition-colors">
                   <span className="text-lg">{getFileIcon(f.name)}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{displayName(f.name)}</p>
@@ -758,7 +758,7 @@ export default function ProjetoDetailPage() {
               </div>
             </div>
           ) : (
-            <label className="flex items-center justify-center h-32 border-2 border-dashed rounded-xl cursor-pointer hover:bg-muted/30 transition-colors">
+            <label className="flex items-center justify-center h-32 border-2 border-dashed rounded-xl cursor-pointer hover:bg-muted/60 border border-border/50 transition-colors">
               <input type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" />
               <div className="flex items-center gap-2 text-muted-foreground"><ImageIcon className="h-5 w-5" /><span className="text-sm">Adicionar capa</span></div>
             </label>
@@ -781,12 +781,12 @@ export default function ProjetoDetailPage() {
           {/* Notion-style property rows */}
           <div className="space-y-1">
             {/* Status */}
-            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
+            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> Status</span>
               <Select value={local.status} onValueChange={v => updateField('status', v)}><SelectTrigger className="w-40 h-8"><SelectValue /></SelectTrigger><SelectContent>{PROJECT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent></Select>
             </div>
             {/* Tipo */}
-            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
+            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><FileText className="h-4 w-4" /> Tipo</span>
               <div className="flex items-center gap-2">
                 <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
@@ -795,7 +795,7 @@ export default function ProjetoDetailPage() {
             </div>
             {/* Progresso */}
             {!isRecorrente && (
-              <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
+              <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
                 <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> Progresso</span>
                 <div className="flex items-center gap-3 flex-1">
                   <Progress value={getProjectProgress()} className="h-2 max-w-xs" />
@@ -805,7 +805,7 @@ export default function ProjetoDetailPage() {
               </div>
             )}
             {/* Cliente */}
-            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
+            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Users className="h-4 w-4" /> Cliente</span>
               <Select value={local.client_id || ''} onValueChange={v => {
                 const selected = clientsList.find((c: any) => c.id === v);
@@ -821,7 +821,7 @@ export default function ProjetoDetailPage() {
               </Select>
             </div>
             {/* Departamentos */}
-            <div className="flex items-start gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
+            <div className="flex items-start gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0 pt-0.5"><BookOpen className="h-4 w-4" /> Departamentos</span>
               <div className="flex flex-wrap gap-1.5">
                 {DEPARTMENTS.map(d => {
@@ -849,7 +849,7 @@ export default function ProjetoDetailPage() {
               </div>
             </div>
             {/* Membros */}
-            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
+            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Users className="h-4 w-4" /> Membros</span>
               <button type="button" onClick={() => setMembersDialogOpen(true)} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
                 <div className="flex -space-x-1">
@@ -862,13 +862,13 @@ export default function ProjetoDetailPage() {
             </div>
             {/* Produto */}
             {local.product_name && (
-              <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
+              <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
                 <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Lightbulb className="h-4 w-4" /> Produto</span>
                 <Badge className="bg-accent text-accent-foreground border-0">{local.product_name}</Badge>
               </div>
             )}
             {/* Datas */}
-            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
+            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><CalendarIcon className="h-4 w-4" /> Datas</span>
               <div className="flex items-center gap-2">
                 <Popover><PopoverTrigger asChild><Button variant="ghost" size="sm" className={cn("h-7 text-xs px-2", !local.start_date && "text-muted-foreground")}>{local.start_date ? format(new Date(local.start_date), 'd MMM yyyy', { locale: pt }) : 'Início'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.start_date ? new Date(local.start_date) : undefined} onSelect={d => updateField('start_date', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
@@ -877,7 +877,7 @@ export default function ProjetoDetailPage() {
               </div>
             </div>
             {/* WhatsApp */}
-            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
+            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><MessageSquare className="h-4 w-4" /> WhatsApp</span>
               <div className="flex items-center gap-2 flex-1">
                 <Input value={(local as any).whatsapp_group_url || ''} onChange={e => updateField('whatsapp_group_url', e.target.value)} placeholder="https://chat.whatsapp.com/..." className="h-8 text-sm max-w-sm" />
@@ -889,14 +889,14 @@ export default function ProjetoDetailPage() {
               </div>
             </div>
             {/* Contrato */}
-            <div className="flex items-start gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
+            <div className="flex items-start gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0 pt-1"><FileText className="h-4 w-4" /> Contrato</span>
               <div className="flex items-center gap-3 flex-wrap flex-1">
                 {((local.contract_documents as DocEntry[]) || []).map((doc, i) => {
                   const isPdf = doc.name?.toLowerCase().endsWith('.pdf');
                   const isImage = /\.(jpg|jpeg|png|webp)$/i.test(doc.name || '');
                   return (
-                    <div key={i} className="group relative rounded-lg border bg-muted/30 hover:bg-muted/60 transition-colors w-48 overflow-hidden">
+                    <div key={i} className="group relative rounded-lg border bg-muted/60 border border-border/50 hover:bg-muted/60 transition-colors w-48 overflow-hidden">
                       {isImage ? (
                         <a href={doc.url} target="_blank" rel="noopener noreferrer" className="block h-28 overflow-hidden">
                           <img src={doc.url} alt={doc.name} className="w-full h-full object-cover" />
@@ -939,7 +939,7 @@ export default function ProjetoDetailPage() {
             </div>
             {/* Custo */}
             {projectCost > 0 && (
-              <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
+              <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
                 <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><DollarSign className="h-4 w-4" /> Custo</span>
                 <span className="text-sm font-medium">{formatCost(projectCost)}</span>
               </div>
@@ -1061,7 +1061,7 @@ export default function ProjetoDetailPage() {
                       ].map(({ field, label }) => (
                         <Collapsible key={field}>
                           <CollapsibleTrigger asChild>
-                            <button className="flex items-center justify-between w-full p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
+                            <button className="flex items-center justify-between w-full p-3 rounded-lg border bg-card hover:bg-muted/60 border border-border/50 transition-colors">
                               <span className="text-sm font-medium">{label}</span>
                               <ChevronDown className="h-4 w-4 text-muted-foreground" />
                             </button>
@@ -1174,7 +1174,7 @@ export default function ProjetoDetailPage() {
             </div>
           </div>
         ) : (
-          <label className="flex items-center justify-center h-24 border-2 border-dashed rounded-xl cursor-pointer hover:bg-muted/30 transition-colors">
+          <label className="flex items-center justify-center h-24 border-2 border-dashed rounded-xl cursor-pointer hover:bg-muted/60 border border-border/50 transition-colors">
             <input type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" />
             <div className="flex items-center gap-2 text-muted-foreground"><ImageIcon className="h-5 w-5" /><span className="text-sm">Adicionar capa</span></div>
           </label>
@@ -1341,7 +1341,7 @@ export default function ProjetoDetailPage() {
               ].map(({ field, label }) => (
                 <Collapsible key={field}>
                   <CollapsibleTrigger asChild>
-                    <button className="flex items-center justify-between w-full p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
+                    <button className="flex items-center justify-between w-full p-3 rounded-lg border bg-card hover:bg-muted/60 border border-border/50 transition-colors">
                       <span className="text-sm font-medium">{label}</span>
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     </button>
