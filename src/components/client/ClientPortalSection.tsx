@@ -262,47 +262,6 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
         </CardContent>
       </Card>
 
-      {/* FAQs */}
-      <Card className="overflow-hidden">
-        <CardHeader className="pb-3 bg-muted/30 border-b">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-lg bg-accent/15 flex items-center justify-center">
-                <HelpCircle className="h-4.5 w-4.5 text-accent-foreground" />
-              </div>
-              <CardTitle className="text-base">FAQ's do Portal</CardTitle>
-            </div>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={importFaqsFromProduct}>
-                <RefreshCw className="h-3 w-3 mr-1.5" />Importar do Produto
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => addFaq.mutate({ portal_id: portalId!, question: '', sort_order: (faqs.data?.length || 0) })}>
-                <Plus className="h-3 w-3 mr-1.5" />Nova FAQ
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-4 space-y-3">
-          {(faqs.data || []).map(f => (
-            <div key={f.id} className="flex gap-3 items-start group rounded-lg border p-3 bg-background hover:bg-muted/20 transition-colors">
-              <div className="flex-1 space-y-2">
-                <Input className="h-8 text-sm font-medium" defaultValue={f.question} placeholder="Pergunta" onBlur={e => updateFaq.mutate({ id: f.id, question: e.target.value })} />
-                <Textarea className="text-sm min-h-[48px] resize-none" defaultValue={f.answer || ''} placeholder="Resposta" onBlur={e => updateFaq.mutate({ id: f.id, answer: e.target.value })} rows={2} />
-              </div>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-0.5" onClick={() => deleteFaq.mutate(f.id)}>
-                <X className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          ))}
-          {(faqs.data || []).length === 0 && (
-            <div className="text-center py-6">
-              <HelpCircle className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
-              <p className="text-sm text-muted-foreground">Sem FAQ's definidas</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
       {/* Initial Questions */}
       <QuestionsCollapsible
         portalId={portalId}
