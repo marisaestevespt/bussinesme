@@ -522,53 +522,90 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
       endDateExclusive.setDate(endDateExclusive.getDate() + 1);
       const endExcl = endDateExclusive.toISOString().split("T")[0];
 
-      const [auditRes, tasksRes, tasksOverdueRes, meetingsRes, salesRes, expensesRes, notifRes, clientsRes, leadsRes, contentRes, portalVisitsRes, portalQuestionsRes, meetingsUpdatedRes, onboardingRes, routinesRes] = await Promise.all([
-        // Audit logs - all actions in the period
+      // ═══ BATCH 1: Core business data ═══
+      const [auditRes, tasksRes, tasksOverdueRes, meetingsRes, salesRes, expensesRes, notifRes, clientsRes, leadsRes, contentRes] = await Promise.all([
         supabaseAdmin.from("audit_logs").select("action, entity_type, entity_id, user_name, created_at, metadata")
           .gte("created_at", startDate).lt("created_at", endExcl).order("created_at", { ascending: false }).limit(200),
-        // Tasks completed in period
         supabaseAdmin.from("tasks").select("name, status, assigned_to, deadline, department, updated_at")
           .eq("status", "concluida").gte("updated_at", startDate).lt("updated_at", endExcl).limit(100),
-        // Overdue tasks (deadline passed and not done)
         supabaseAdmin.from("tasks").select("name, status, assigned_to, deadline, department")
           .not("status", "in", '("concluida","cancelada")').lt("deadline", endExcl).limit(100),
-        // Meetings in period (by date_time)
         supabaseAdmin.from("meetings").select("title, date_time, status, client_name, department, portal_notes, duration_minutes")
           .gte("date_time", startDate).lt("date_time", endExcl).order("date_time").limit(100),
-        // Sales created/updated in period
         supabaseAdmin.from("commercial_sales").select("sale_id, client, product, invoice_total, base_value, status, payment_date, created_at")
           .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
-        // Expenses in period
         supabaseAdmin.from("financial_expenses").select("expense_id, description, total_with_vat, base_value, category, status, expense_date")
           .gte("expense_date", startDate).lt("expense_date", endExcl).limit(50),
-        // Notifications (includes portal activity)
         supabaseAdmin.from("notifications").select("type, title, message, link, created_at")
           .gte("created_at", startDate).lt("created_at", endExcl).order("created_at", { ascending: false }).limit(100),
-        // New clients in period
         supabaseAdmin.from("clients").select("full_name, status, created_at, start_date, current_product")
           .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
-        // New leads in period
         supabaseAdmin.from("crm_leads").select("name, status, source, potential_product, estimated_value, created_at")
           .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
-        // Content published in period
         supabaseAdmin.from("content_items").select("title, status, format, scheduled_at")
           .gte("scheduled_at", startDate).lt("scheduled_at", endExcl).limit(50),
-        // Portal visits in period
+      ]);
+
+      // ═══ BATCH 2: Portal, team, projects, financials ═══
+      const [portalVisitsRes, portalQuestionsRes, meetingsUpdatedRes, onboardingRes, routinesRes,
+             projectsRes, deliverableRes, memberOnbRes, memberContractsRes, financialEntriesRes,
+             financialDocsRes, timeEntriesRes, absencesRes, muralRes, sopsRes, planGoalsRes,
+             portalFeedbackRes, portalCommentsRes, clientOffbRes, memberPaymentsRes] = await Promise.all([
         supabaseAdmin.from("client_portals").select("client_id, last_visit_at")
           .gte("last_visit_at", startDate).lt("last_visit_at", endExcl).limit(50),
-        // Portal initial questions answered in period
         supabaseAdmin.from("portal_initial_questions").select("portal_id, question, answer, file_urls, answered_at")
           .not("answered_at", "is", null).gte("answered_at", startDate).lt("answered_at", endExcl).limit(200),
-        // Meetings whose status changed in the period (updated_at within range)
         supabaseAdmin.from("meetings").select("title, date_time, status, client_name, updated_at, portal_notes")
-          .gte("updated_at", startDate).lt("updated_at", endExcl)
-          .limit(100),
-        // Client onboarding steps completed in period
+          .gte("updated_at", startDate).lt("updated_at", endExcl).limit(100),
         supabaseAdmin.from("client_onboarding").select("client_id, activity, completed, created_at")
           .eq("completed", true).gte("created_at", startDate).lt("created_at", endExcl).limit(100),
-        // Routines/tasks created in period
         supabaseAdmin.from("tasks").select("name, status, assigned_to, deadline, department, created_at")
           .gte("created_at", startDate).lt("created_at", endExcl).limit(100),
+        // Projects created or updated
+        supabaseAdmin.from("projects").select("name, status, client_id, product_id, start_date, deadline, progress, created_at, updated_at")
+          .or(`created_at.gte.${startDate},updated_at.gte.${startDate}`).lt("created_at", endExcl).limit(50),
+        // Deliverables completed in period
+        supabaseAdmin.from("project_deliverables").select("name, status, phase_id, project_id, updated_at")
+          .eq("status", "concluido").gte("updated_at", startDate).lt("updated_at", endExcl).limit(50),
+        // Team member onboarding steps
+        supabaseAdmin.from("member_onboarding").select("member_id, step, completed, updated_at")
+          .gte("updated_at", startDate).lt("updated_at", endExcl).limit(100),
+        // Member contracts uploaded
+        supabaseAdmin.from("member_contracts").select("member_id, contract_type, file_name, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // Financial entries (income)
+        supabaseAdmin.from("financial_entries").select("entry_id, description, total_with_vat, base_value, category, status, entry_date")
+          .gte("entry_date", startDate).lt("entry_date", endExcl).limit(50),
+        // Financial documents uploaded
+        supabaseAdmin.from("financial_documents").select("file_name, document_type, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // Time entries tracked
+        supabaseAdmin.from("time_entries").select("entry_id, member_id, description, hours, entry_date, client_id, project_id")
+          .gte("entry_date", startDate).lt("entry_date", endExcl).limit(100),
+        // Absences created
+        supabaseAdmin.from("absence_coverage").select("member_id, reason, start_date, end_date, status, substitute_id, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // Mural posts
+        supabaseAdmin.from("mural_posts").select("author_name, content, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(30),
+        // SOPs created/updated
+        supabaseAdmin.from("sops").select("sop_id, title, department, status, created_at, updated_at")
+          .or(`created_at.gte.${startDate},updated_at.gte.${startDate}`).lt("created_at", endExcl).limit(30),
+        // Planning goals updated
+        supabaseAdmin.from("planning_goals").select("title, status, department, updated_at")
+          .gte("updated_at", startDate).lt("updated_at", endExcl).limit(30),
+        // Portal feedback from clients
+        supabaseAdmin.from("portal_feedback").select("portal_id, rating, comment, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // Portal comments from clients
+        supabaseAdmin.from("portal_comments").select("portal_id, content, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // Client offboarding
+        supabaseAdmin.from("client_offboarding").select("client_id, activity, completed, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // Member payments
+        supabaseAdmin.from("member_payments").select("member_id, amount, payment_date, status, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
       ]);
 
       // Group audit logs by entity_type and action
@@ -666,27 +703,55 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
       // DESTAQUES — resumo numérico explícito que o AI DEVE reportar
       // ═══════════════════════════════════════════════════════════════
       const destaques = {
-        _instrucao: "OBRIGATÓRIO: Menciona TODOS estes pontos no resumo. Se o valor for 0, diz que não houve atividade nessa área.",
+        _instrucao: "OBRIGATÓRIO: Menciona TODOS estes pontos no resumo. Se o valor for 0, diz 'Sem atividade'. Organiza por secções.",
+        // Tarefas
         tarefas_concluidas: (tasksRes.data || []).length,
         tarefas_criadas: newTasksCreated.length,
         tarefas_atrasadas: overdueTasks.length,
+        // Reuniões
         reunioes_no_periodo: (meetingsRes.data || []).length,
         reunioes_confirmadas: (meetingsRes.data || []).filter((m: any) => m.status === "confirmada").length,
         reunioes_por_confirmar: (meetingsRes.data || []).filter((m: any) => m.status === "por_confirmar").length,
         reunioes_com_pedido_alteracao: meetingsWithPortalNotes.length,
+        // Vendas & Financeiro
         vendas_novas: (salesRes.data || []).length,
         vendas_valor_total: (salesRes.data || []).reduce((s: number, v: any) => s + (Number(v.invoice_total) || Number(v.base_value) || 0), 0),
+        entradas_financeiras: (financialEntriesRes.data || []).length,
+        entradas_valor_total: (financialEntriesRes.data || []).reduce((s: number, e: any) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
         despesas_total: (expensesRes.data || []).length,
         despesas_valor_total: (expensesRes.data || []).reduce((s: number, e: any) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
-        clientes_novos: (clientsRes.data || []).length,
-        leads_novos: (leadsRes.data || []).length,
-        conteudos_publicados: (contentRes.data || []).filter((c: any) => c.status === "publicado").length,
-        conteudos_agendados: (contentRes.data || []).filter((c: any) => c.status === "agendado").length,
+        documentos_financeiros_carregados: (financialDocsRes.data || []).length,
+        pagamentos_equipa: (memberPaymentsRes.data || []).length,
+        // Portal dos Clientes
         portais_visitados: portalVisitsSummary.length,
         clientes_que_visitaram_portal: portalVisitsSummary.map((v) => v.cliente),
         clientes_que_responderam_perguntas: portalQuestionsSummary.filter(q => q.respondidas > 0).map(q => `${q.cliente} (${q.respondidas}/${q.total})`),
+        feedback_portal: (portalFeedbackRes.data || []).length,
+        comentarios_portal: (portalCommentsRes.data || []).length,
         notificacoes_portal: portalActivity.length,
-        onboarding_steps_concluidos: (onboardingRes.data || []).length,
+        // Clientes
+        clientes_novos: (clientsRes.data || []).length,
+        onboarding_cliente_steps: (onboardingRes.data || []).length,
+        offboarding_cliente_steps: (clientOffbRes.data || []).length,
+        // Leads & Comercial
+        leads_novos: (leadsRes.data || []).length,
+        // Projetos & Entregáveis
+        projetos_atualizados: (projectsRes.data || []).length,
+        entregaveis_concluidos: (deliverableRes.data || []).length,
+        // Equipa
+        onboarding_colaborador_steps: (memberOnbRes.data || []).length,
+        contratos_carregados: (memberContractsRes.data || []).length,
+        ausencias_registadas: (absencesRes.data || []).length,
+        horas_registadas: (timeEntriesRes.data || []).reduce((s: number, t: any) => s + (Number(t.hours) || 0), 0),
+        // Conteúdos & Marketing
+        conteudos_publicados: (contentRes.data || []).filter((c: any) => c.status === "publicado").length,
+        conteudos_agendados: (contentRes.data || []).filter((c: any) => c.status === "agendado").length,
+        // Mural
+        publicacoes_mural: (muralRes.data || []).length,
+        // SOPs & Processos
+        sops_atualizados: (sopsRes.data || []).length,
+        // Planeamento
+        objetivos_atualizados: (planGoalsRes.data || []).length,
       };
 
       return {
@@ -720,22 +785,49 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
           valor_total: (salesRes.data || []).reduce((s: number, v: any) => s + (Number(v.invoice_total) || Number(v.base_value) || 0), 0),
           lista: (salesRes.data || []).map((s: any) => ({ id: s.sale_id, cliente: s.client, produto: s.product, valor: Number(s.invoice_total) || Number(s.base_value) || 0, status: s.status, data_pagamento: s.payment_date })),
         },
-        despesas: {
-          total: (expensesRes.data || []).length,
-          valor_total: (expensesRes.data || []).reduce((s: number, e: any) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
-          lista: (expensesRes.data || []).map((e: any) => ({ id: e.expense_id, descricao: e.description, valor: Number(e.total_with_vat) || Number(e.base_value) || 0, categoria: e.category, status: e.status })),
+        financeiro: {
+          entradas: {
+            total: (financialEntriesRes.data || []).length,
+            valor: (financialEntriesRes.data || []).reduce((s: number, e: any) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
+            lista: (financialEntriesRes.data || []).map((e: any) => ({ id: e.entry_id, descricao: e.description, valor: Number(e.total_with_vat) || Number(e.base_value) || 0, categoria: e.category, status: e.status })),
+          },
+          despesas: {
+            total: (expensesRes.data || []).length,
+            valor: (expensesRes.data || []).reduce((s: number, e: any) => s + (Number(e.total_with_vat) || Number(e.base_value) || 0), 0),
+            lista: (expensesRes.data || []).map((e: any) => ({ id: e.expense_id, descricao: e.description, valor: Number(e.total_with_vat) || Number(e.base_value) || 0, categoria: e.category, status: e.status })),
+          },
+          documentos_carregados: (financialDocsRes.data || []).map((d: any) => ({ ficheiro: d.file_name, tipo: d.document_type })),
+          pagamentos_equipa: (memberPaymentsRes.data || []).map((p: any) => ({ membro: p.member_id, valor: p.amount, status: p.status })),
         },
         atividade_portal_clientes: {
-          _instrucao: "IMPORTANTE: Reporta TODA a atividade dos portais. Se um cliente visitou o portal, menciona-o. Se respondeu a perguntas, menciona quantas.",
-          notificacoes: portalActivity.map((n: any) => ({
-            titulo: n.title, mensagem: n.message, quando: n.created_at,
-          })),
+          _instrucao: "IMPORTANTE: Reporta TODA a atividade dos portais.",
+          notificacoes: portalActivity.map((n: any) => ({ titulo: n.title, mensagem: n.message, quando: n.created_at })),
           visitas: portalVisitsSummary,
           respostas_diagnostico: portalQuestionsSummary,
+          feedback: (portalFeedbackRes.data || []).map((f: any) => ({ rating: f.rating, comentario: f.comment })),
+          comentarios: (portalCommentsRes.data || []).map((c: any) => ({ conteudo: c.content, quando: c.created_at })),
+        },
+        projetos: {
+          atualizados: (projectsRes.data || []).map((p: any) => ({ nome: p.name, status: p.status, progresso: p.progress })),
+          entregaveis_concluidos: (deliverableRes.data || []).map((d: any) => ({ nome: d.name, projeto: d.project_id })),
+        },
+        equipa: {
+          onboarding_colaborador: (memberOnbRes.data || []).map((o: any) => ({ membro: o.member_id, passo: o.step, concluido: o.completed })),
+          contratos_carregados: (memberContractsRes.data || []).map((c: any) => ({ membro: c.member_id, tipo: c.contract_type, ficheiro: c.file_name })),
+          ausencias: (absencesRes.data || []).map((a: any) => ({ membro: a.member_id, motivo: a.reason, de: a.start_date, ate: a.end_date, status: a.status })),
+          horas_registadas: {
+            total_horas: (timeEntriesRes.data || []).reduce((s: number, t: any) => s + (Number(t.hours) || 0), 0),
+            total_entradas: (timeEntriesRes.data || []).length,
+          },
         },
         novos_clientes: (clientsRes.data || []).map((c: any) => ({ nome: c.full_name, status: c.status, produto: c.current_product, inicio: c.start_date })),
+        onboarding_clientes: (onboardingRes.data || []).map((o: any) => ({ cliente: o.client_id, atividade: o.activity })),
+        offboarding_clientes: (clientOffbRes.data || []).map((o: any) => ({ cliente: o.client_id, atividade: o.activity, concluido: o.completed })),
         novos_leads: (leadsRes.data || []).map((l: any) => ({ nome: l.name, status: l.status, fonte: l.source, produto: l.potential_product, valor: l.estimated_value })),
         conteudos: (contentRes.data || []).map((c: any) => ({ titulo: c.title, status: c.status, formato: c.format })),
+        mural: (muralRes.data || []).map((m: any) => ({ autor: m.author_name, conteudo: (m.content || "").slice(0, 200) })),
+        sops: (sopsRes.data || []).map((s: any) => ({ id: s.sop_id, titulo: s.title, departamento: s.department, status: s.status })),
+        planeamento: (planGoalsRes.data || []).map((g: any) => ({ titulo: g.title, status: g.status, departamento: g.department })),
       };
     }
 
@@ -866,14 +958,19 @@ Tens acesso TOTAL à base de dados do sistema. Podes:
 Quando o utilizador pedir "o que aconteceu de X a Y", "resumo das férias", "o que foi feito na última semana", etc.:
 - Usa a ferramenta **period_summary** com as datas
 - O resultado inclui um campo **DESTAQUES_OBRIGATORIOS** com contadores numéricos explícitos — DEVES mencionar TODOS no resumo, mesmo que o valor seja 0
-- Estrutura OBRIGATÓRIA do resumo:
+- Estrutura OBRIGATÓRIA do resumo (TODAS as secções):
   1. **Tarefas**: concluídas, criadas, atrasadas (com nomes se houver)
   2. **Reuniões**: total, confirmadas, por confirmar, com pedidos de alteração do portal
-  3. **Vendas**: total e valor
-  4. **Despesas**: total e valor
-  5. **Portal dos Clientes**: quem visitou, quem respondeu a perguntas (com contagem X/Y), pedidos de alteração
-  6. **Novos clientes e leads**
-  7. **Conteúdos**: publicados e agendados
+  3. **Vendas & Financeiro**: vendas, entradas, despesas, documentos financeiros carregados, pagamentos de equipa
+  4. **Projetos & Entregáveis**: projetos atualizados, entregáveis concluídos
+  5. **Portal dos Clientes**: quem visitou, quem respondeu a perguntas (com contagem X/Y), feedback, comentários
+  6. **Clientes**: novos, onboarding, offboarding
+  7. **Leads & Comercial**: novos leads
+  8. **Equipa**: onboarding de colaboradores, contratos carregados, ausências, horas registadas
+  9. **Conteúdos & Marketing**: publicados, agendados
+  10. **Mural**: publicações
+  11. **SOPs & Processos**: criados ou atualizados
+  12. **Planeamento**: objetivos atualizados
 - NUNCA omitas uma secção. Se não houve atividade, escreve "Sem atividade neste período."
 - Se houver muitos dados dentro de cada secção, agrupa e resume em vez de listar tudo
 
