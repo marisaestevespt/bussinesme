@@ -220,8 +220,8 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   );
 
   const MEETING_STATUSES: Record<string, { label: string; color: string }> = {
+    por_organizar: { label: 'Por organizar', color: 'hsl(var(--primary))' },
     por_confirmar: { label: 'Por confirmar', color: 'hsl(var(--warning))' },
-    marcada: { label: 'Marcada', color: 'hsl(var(--primary))' },
     confirmada: { label: 'Confirmada', color: 'hsl(var(--success))' },
     terminada: { label: 'Terminada', color: 'hsl(var(--muted-foreground))' },
     cancelada: { label: 'Cancelada', color: 'hsl(var(--destructive))' },

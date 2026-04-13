@@ -591,8 +591,8 @@ export default function ProjetoDetailPage() {
   // ─── Reuniões sub-page (table view like Reunioes page) ────────
   if (subPage === 'reunioes') {
     const MEETING_STATUSES = [
+      { value: 'por_organizar', label: 'Por organizar', color: '#3b82f6' },
       { value: 'por_confirmar', label: 'Por confirmar', color: '#f59e0b' },
-      { value: 'marcada', label: 'Marcada', color: '#10b981' },
       { value: 'terminada', label: 'Terminada', color: '#6b7280' },
     ];
     const getMeetingStatusInfo = (s: string) => MEETING_STATUSES.find(x => x.value === s) || MEETING_STATUSES[0];
