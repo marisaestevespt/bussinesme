@@ -775,7 +775,7 @@ export default function ProjetoDetailPage() {
           )}
 
           {/* Header - Name first, then tags, then fields in single column */}
-          <div className="space-y-4 max-w-2xl">
+          <div className="space-y-4">
             <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-xl font-bold border-none px-0 focus-visible:ring-0" />
             <div className="flex items-center gap-3">
               <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
@@ -1112,7 +1112,7 @@ export default function ProjetoDetailPage() {
           </Alert>
         )}
 
-        <div className="space-y-4 max-w-2xl">
+        <div className="space-y-4">
           <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-xl font-bold border-none px-0 focus-visible:ring-0" />
           <div className="flex items-center gap-3 flex-wrap">
             <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
