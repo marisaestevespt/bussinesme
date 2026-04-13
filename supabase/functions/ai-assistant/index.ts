@@ -512,7 +512,10 @@ function inferProductType(text: string): string | null {
   if (normalized.includes("consult")) return "consultoria_individual";
   if (normalized.includes("curso")) return "curso";
   if (normalized.includes("template")) return "template";
-  if (normalized.includes("projeto")) return "projeto_1_1";
+  if (normalized.includes("serviço pontual") || normalized.includes("servico pontual")) return "servico_pontual";
+  if (normalized.includes("serviço mensal") || normalized.includes("servico mensal")) return "servico_mensal";
+  if (normalized.includes("workshop")) return "workshop";
+  if (normalized.includes("ebook") || normalized.includes("e-book")) return "ebook";
   return null;
 }
 

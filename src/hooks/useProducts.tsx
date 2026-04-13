@@ -19,17 +19,20 @@ export const ESCADA_OPTIONS = [
   { value: 'produto_intermedio', label: 'Produto Intermédio' },
   { value: 'servico_premium', label: 'Produto Premium' },
   { value: 'produto_recorrencia', label: 'Produto de Recorrência' },
+  { value: 'servico', label: 'Serviço' },
 ] as const;
 
 export const PRODUCT_TYPE_OPTIONS = [
-  { value: 'curso', label: 'Curso' },
-  { value: 'projeto_1_1', label: 'Projeto 1:1' },
-  { value: 'consultoria_individual', label: 'Consultoria individual' },
-  { value: 'consultoria_grupo', label: 'Consultoria em grupo' },
-  { value: 'mentoria_individual', label: 'Mentoria individual' },
-  { value: 'mentoria_grupo', label: 'Mentoria em grupo' },
-  { value: 'servico_mensal', label: 'Produto Mensal' },
+  { value: 'consultoria_individual', label: 'Consultoria Individual' },
+  { value: 'consultoria_grupo', label: 'Consultoria em Grupo' },
+  { value: 'mentoria_individual', label: 'Mentoria Individual' },
+  { value: 'mentoria_grupo', label: 'Mentoria em Grupo' },
+  { value: 'curso', label: 'Curso Gravado' },
+  { value: 'workshop', label: 'Workshop' },
+  { value: 'servico_pontual', label: 'Serviço Pontual' },
+  { value: 'servico_mensal', label: 'Serviço Mensal' },
   { value: 'template', label: 'Template' },
+  { value: 'ebook', label: 'E-book' },
 ] as const;
 
 export const SALES_TYPE_OPTIONS = [
