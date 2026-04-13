@@ -265,6 +265,22 @@ export function FloatingAiChat() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
   };
 
+  const downloadResponse = (content: string) => {
+    // Strip markdown for cleaner text file
+    const cleaned = content
+      .replace(/\*\*(.+?)\*\*/g, '$1')
+      .replace(/`(.+?)`/g, '$1')
+      .replace(/^#{1,3}\s/gm, '')
+      .replace(/^[-•]\s/gm, '- ');
+    const blob = new Blob([cleaned], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `lirah-resumo-${new Date().toISOString().split('T')[0]}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const renderContent = (text: string) => {
     const lines = text.split("\n");
     return lines.map((line, i) => {
