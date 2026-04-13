@@ -800,12 +800,9 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
                   onClick={() => navigate(`/hub/reunioes/${m.id}`)}
                 >
                   <span>
-                    <span
-                      className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap"
-                      style={{ backgroundColor: `${ms.color}20`, color: ms.color }}
-                    >
+                    <Badge className={`text-[11px] font-semibold px-2.5 py-0.5 ${ms.badgeColor}`}>
                       {ms.label}
-                    </span>
+                    </Badge>
                   </span>
                   <span>{m.date_time ? format(parseISO(m.date_time), "dd MMM yyyy 'às' HH:mm", { locale: pt }) : '—'}</span>
                   <span className="font-medium truncate">{m.title}</span>
