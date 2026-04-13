@@ -445,7 +445,7 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
                             updatePhantom(p.id, 'department', v);
                             updatePhantom(p.id, 'delegatedTaskIds', []);
                           }}>
-                            <SelectTrigger className="h-7 text-sm w-32"><SelectValue /></SelectTrigger>
+                            <SelectTrigger className="h-7 text-sm w-44"><SelectValue /></SelectTrigger>
                             <SelectContent>
                               {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                               <SelectItem value="__none__">Sem departamento</SelectItem>
@@ -459,7 +459,7 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
                               if (v === 'colaborador') updatePhantom(p.id, 'contractDurationMonths', null);
                               else if (!p.contractDurationMonths) updatePhantom(p.id, 'contractDurationMonths', 12);
                             }}>
-                              <SelectTrigger className="h-7 text-sm w-28"><SelectValue /></SelectTrigger>
+                              <SelectTrigger className="h-7 text-sm w-32"><SelectValue /></SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="colaborador">Colaborador</SelectItem>
                                 <SelectItem value="prestador">Prestador</SelectItem>
