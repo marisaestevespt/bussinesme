@@ -605,12 +605,6 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
               {payMethod === 'pagamento_total' && (
                 <div className="grid grid-cols-2 gap-3">
                   <div><Label className="text-xs">Valor Total s/ IVA (€)</Label><Input type="number" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="0.00" /></div>
-                  <div className="flex items-end">
-                    <Button onClick={() => generateSales.mutate()} disabled={generateSales.isPending || !totalValue || hasExistingProjectSales} className="gap-1.5">
-                      {generateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                      Gerar Pagamento
-                    </Button>
-                  </div>
                 </div>
               )}
 
@@ -629,10 +623,6 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
                       Entrada: {parseFloat(entradaValue).toFixed(2)}€ + {numPrestacoes}x de {((parseFloat(totalValue) - parseFloat(entradaValue)) / parseInt(numPrestacoes)).toFixed(2)}€
                     </p>
                   )}
-                  <Button onClick={() => generateSales.mutate()} disabled={generateSales.isPending || !totalValue || !entradaValue || !numPrestacoes || !payDay || hasExistingProjectSales} className="gap-1.5">
-                    {generateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                    Gerar Pagamentos
-                  </Button>
                 </div>
               )}
 
@@ -648,10 +638,6 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
                       {numPrestacoes}x de {(parseFloat(totalValue) / parseInt(numPrestacoes)).toFixed(2)}€
                     </p>
                   )}
-                  <Button onClick={() => generateSales.mutate()} disabled={generateSales.isPending || !totalValue || !numPrestacoes || !payDay || hasExistingProjectSales} className="gap-1.5">
-                    {generateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                    Gerar Pagamentos
-                  </Button>
                 </div>
               )}
 
@@ -667,10 +653,6 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
                       {numMeses}x de {parseFloat(avencaValue).toFixed(2)}€ = Total: {(parseInt(numMeses) * parseFloat(avencaValue)).toFixed(2)}€
                     </p>
                   )}
-                  <Button onClick={() => generateSales.mutate()} disabled={generateSales.isPending || !numMeses || !payDay || !avencaValue || hasExistingProjectSales} className="gap-1.5">
-                    {generateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                    Gerar Pagamentos
-                  </Button>
                 </div>
               )}
 
