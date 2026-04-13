@@ -712,7 +712,7 @@ export default function ProjetoDetailPage() {
               <Select value={local.status} onValueChange={v => updateField('status', v)}><SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger><SelectContent>{PROJECT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent></Select>
               {local.department && <span className="text-sm text-muted-foreground">{getDeptLabel(local.department)}</span>}
             </div>
-            <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-xl font-bold border-none px-0 focus-visible:ring-0" />
+            <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-3xl font-bold border-none px-0 focus-visible:ring-0" />
             <div className="flex items-center gap-4 flex-wrap">
               <div className="flex items-center gap-2">
                 <Label className="text-xs text-muted-foreground">Prazo:</Label>
@@ -776,7 +776,7 @@ export default function ProjetoDetailPage() {
 
           {/* Header - Name first, then tags, then fields in single column */}
           {/* Project title */}
-          <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-2xl font-bold border-none px-0 focus-visible:ring-0" />
+          <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-3xl font-bold border-none px-0 focus-visible:ring-0" />
 
           {/* Notion-style property rows */}
           <div className="divide-y divide-border/50">
@@ -1191,7 +1191,7 @@ export default function ProjetoDetailPage() {
         )}
 
         <div className="space-y-4">
-          <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-xl font-bold border-none px-0 focus-visible:ring-0" />
+          <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-3xl font-bold border-none px-0 focus-visible:ring-0" />
           <div className="flex items-center gap-3 flex-wrap">
             <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
             {isRecorrente && <Badge variant="outline" className="text-xs">🔄 Recorrente</Badge>}
