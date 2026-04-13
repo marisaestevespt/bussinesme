@@ -774,15 +774,16 @@ export default function ProjetoDetailPage() {
             </Alert>
           )}
 
-          {/* Header */}
-          <div className="space-y-4">
+          {/* Header - Name first, then tags, then fields in single column */}
+          <div className="space-y-4 max-w-2xl">
+            <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-xl font-bold border-none px-0 focus-visible:ring-0" />
             <div className="flex items-center gap-3">
               <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
               {isRecorrente && <Badge variant="outline" className="text-xs">🔄 Recorrente</Badge>}
               <Select value={local.status} onValueChange={v => updateField('status', v)}><SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger><SelectContent>{PROJECT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent></Select>
             </div>
-            <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-xl font-bold border-none px-0 focus-visible:ring-0" />
-            <div className="grid grid-cols-2 gap-4">
+
+            <div className="space-y-4">
               <div>
                 <Label className="text-xs">Cliente</Label>
                 <Select value={local.client_id || ''} onValueChange={v => {
@@ -825,47 +826,45 @@ export default function ProjetoDetailPage() {
                   })}
                 </div>
               </div>
-            </div>
-            {local.product_name && (
-              <div><Label className="text-xs">Produto</Label><Input value={local.product_name || ''} readOnly className="bg-muted/50" /></div>
-            )}
-            <div>
-              <Label className="text-xs flex items-center gap-1.5"><MessageSquare className="h-3 w-3" /> Grupo WhatsApp</Label>
-              <Input value={(local as any).whatsapp_group_url || ''} onChange={e => updateField('whatsapp_group_url', e.target.value)} placeholder="https://chat.whatsapp.com/..." className="mt-1" />
-              {(local as any).whatsapp_group_url && (
-                <a href={(local as any).whatsapp_group_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
-                  Abrir grupo <ExternalLink className="h-3 w-3" />
-                </a>
+              {local.product_name && (
+                <div><Label className="text-xs">Produto</Label><Input value={local.product_name || ''} readOnly className="bg-muted/50" /></div>
               )}
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs flex items-center gap-1.5"><MessageSquare className="h-3 w-3" /> Grupo WhatsApp</Label>
+                <Input value={(local as any).whatsapp_group_url || ''} onChange={e => updateField('whatsapp_group_url', e.target.value)} placeholder="https://chat.whatsapp.com/..." className="mt-1" />
+                {(local as any).whatsapp_group_url && (
+                  <a href={(local as any).whatsapp_group_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
+                    Abrir grupo <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+              </div>
               <div><Label className="text-xs">Data de Início</Label>
                 <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !local.start_date && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{local.start_date ? format(new Date(local.start_date), 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.start_date ? new Date(local.start_date) : undefined} onSelect={d => updateField('start_date', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
               </div>
               <div><Label className="text-xs">Data de Fim / Prazo</Label>
                 <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{local.deadline ? format(new Date(local.deadline), 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
               </div>
-            </div>
-            {!isRecorrente && (
+              {!isRecorrente && (
+                <div>
+                  <Label className="text-xs">Progresso ({getProjectProgress()}%)</Label><Progress value={getProjectProgress()} className="h-2 mt-3" /><p className="text-[10px] text-muted-foreground mt-1">{getProjectProgressSummary()}{projectCost > 0 ? ` • Custo: ${formatCost(projectCost)}` : ''}</p>
+                </div>
+              )}
+              <InvoiceUpload
+                label="Contrato"
+                documents={(local.contract_documents as DocEntry[]) || []}
+                onChange={docs => updateField('contract_documents', docs)}
+              />
               <div>
-                <Label className="text-xs">Progresso ({getProjectProgress()}%)</Label><Progress value={getProjectProgress()} className="h-2 mt-3" /><p className="text-[10px] text-muted-foreground mt-1">{getProjectProgressSummary()}{projectCost > 0 ? ` • Custo: ${formatCost(projectCost)}` : ''}</p>
+                <Label className="text-xs">Equipa</Label>
+                <button type="button" onClick={() => setMembersDialogOpen(true)} className="flex items-center gap-1.5 mt-1 hover:opacity-80 transition-opacity">
+                  <div className="flex -space-x-1">
+                    {projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}
+                  </div>
+                  <div className="h-7 w-7 rounded-full border-2 border-dashed border-muted-foreground/40 flex items-center justify-center">
+                    <Plus className="h-3.5 w-3.5 text-muted-foreground" />
+                  </div>
+                </button>
               </div>
-            )}
-            <InvoiceUpload
-              label="Contrato"
-              documents={(local.contract_documents as DocEntry[]) || []}
-              onChange={docs => updateField('contract_documents', docs)}
-            />
-            <div>
-              <Label className="text-xs">Equipa</Label>
-              <button type="button" onClick={() => setMembersDialogOpen(true)} className="flex items-center gap-1.5 mt-1 hover:opacity-80 transition-opacity">
-                <div className="flex -space-x-1">
-                  {projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}
-                </div>
-                <div className="h-7 w-7 rounded-full border-2 border-dashed border-muted-foreground/40 flex items-center justify-center">
-                  <Plus className="h-3.5 w-3.5 text-muted-foreground" />
-                </div>
-              </button>
             </div>
           </div>
 
