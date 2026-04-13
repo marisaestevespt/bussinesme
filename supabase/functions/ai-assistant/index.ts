@@ -522,14 +522,14 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
       endDateExclusive.setDate(endDateExclusive.getDate() + 1);
       const endExcl = endDateExclusive.toISOString().split("T")[0];
 
-      const [auditRes, tasksRes, meetingsRes, salesRes, expensesRes, notifRes, clientsRes, leadsRes, contentRes] = await Promise.all([
+      const [auditRes, tasksRes, meetingsRes, salesRes, expensesRes, notifRes, clientsRes, leadsRes, contentRes, portalVisitsRes, portalQuestionsRes, meetingsUpdatedRes] = await Promise.all([
         // Audit logs - all actions in the period
         supabaseAdmin.from("audit_logs").select("action, entity_type, entity_id, user_name, created_at, metadata")
           .gte("created_at", startDate).lt("created_at", endExcl).order("created_at", { ascending: false }).limit(200),
         // Tasks completed in period
         supabaseAdmin.from("tasks").select("name, status, assigned_to, deadline, department, updated_at")
           .eq("status", "concluida").gte("updated_at", startDate).lt("updated_at", endExcl).limit(100),
-        // Meetings in period
+        // Meetings in period (by date_time)
         supabaseAdmin.from("meetings").select("title, date_time, status, client_name, department, portal_notes, duration_minutes")
           .gte("date_time", startDate).lt("date_time", endExcl).order("date_time").limit(100),
         // Sales created/updated in period
@@ -550,6 +550,16 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
         // Content published in period
         supabaseAdmin.from("content_items").select("title, status, format, scheduled_at")
           .gte("scheduled_at", startDate).lt("scheduled_at", endExcl).limit(50),
+        // Portal visits in period
+        supabaseAdmin.from("client_portals").select("client_id, last_visit_at")
+          .gte("last_visit_at", startDate).lt("last_visit_at", endExcl).limit(50),
+        // Portal initial questions answered in period
+        supabaseAdmin.from("portal_initial_questions").select("portal_id, question, answer, file_urls, answered_at")
+          .not("answered_at", "is", null).gte("answered_at", startDate).lt("answered_at", endExcl).limit(200),
+        // Meetings whose status changed in the period (updated_at within range)
+        supabaseAdmin.from("meetings").select("title, date_time, status, client_name, updated_at, portal_notes")
+          .gte("updated_at", startDate).lt("updated_at", endExcl)
+          .limit(100),
       ]);
 
       // Group audit logs by entity_type and action
@@ -561,6 +571,7 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
 
       // Portal-specific activity from notifications
       const portalActivity = (notifRes.data || []).filter((n: any) =>
+        n.type?.includes("portal") ||
         n.title?.includes("portal") || n.title?.includes("Portal") ||
         n.title?.includes("submeteu") || n.title?.includes("Respostas") ||
         n.title?.includes("confirmou") || n.title?.includes("horário alternativo") ||
@@ -575,6 +586,68 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
 
       // Meetings with portal notes (client requested changes)
       const meetingsWithPortalNotes = (meetingsRes.data || []).filter((m: any) => m.portal_notes);
+
+      // Meetings confirmed/changed during the period (from updated_at query)
+      const meetingStatusChanges = (meetingsUpdatedRes.data || []).map((m: any) => ({
+        titulo: m.title,
+        status: m.status,
+        cliente: m.client_name,
+        atualizado_em: m.updated_at,
+        notas_portal: m.portal_notes || null,
+      }));
+
+      // Portal questions answered - group by portal_id
+      const portalQuestionsData = portalQuestionsRes.data || [];
+      const questionsByPortal: Record<string, { total: number; answered: number }> = {};
+      for (const q of portalQuestionsData) {
+        const pid = q.portal_id;
+        if (!questionsByPortal[pid]) questionsByPortal[pid] = { total: 0, answered: 0 };
+        questionsByPortal[pid].total++;
+        if ((q.answer && q.answer.trim()) || (q.file_urls && Array.isArray(q.file_urls) && q.file_urls.length > 0)) {
+          questionsByPortal[pid].answered++;
+        }
+      }
+
+      // Enrich portal questions with client names
+      const portalIds = Object.keys(questionsByPortal);
+      let portalQuestionsSummary: Array<{ portal_id: string; cliente: string; respondidas: number; total: number }> = [];
+      if (portalIds.length > 0) {
+        const { data: portalClients } = await supabaseAdmin
+          .from("client_portals")
+          .select("id, client_id")
+          .in("id", portalIds);
+        if (portalClients && portalClients.length > 0) {
+          const clientIds = portalClients.map((p: any) => p.client_id);
+          const { data: clients } = await supabaseAdmin
+            .from("clients")
+            .select("id, full_name")
+            .in("id", clientIds);
+          const clientMap = Object.fromEntries((clients || []).map((c: any) => [c.id, c.full_name]));
+          const portalClientMap = Object.fromEntries((portalClients || []).map((p: any) => [p.id, p.client_id]));
+          portalQuestionsSummary = portalIds.map(pid => ({
+            portal_id: pid,
+            cliente: clientMap[portalClientMap[pid]] || "Desconhecido",
+            respondidas: questionsByPortal[pid].answered,
+            total: questionsByPortal[pid].total,
+          }));
+        }
+      }
+
+      // Portal visits enriched with client names
+      const portalVisits = portalVisitsRes.data || [];
+      let portalVisitsSummary: Array<{ cliente: string; ultima_visita: string }> = [];
+      if (portalVisits.length > 0) {
+        const visitClientIds = portalVisits.map((v: any) => v.client_id);
+        const { data: visitClients } = await supabaseAdmin
+          .from("clients")
+          .select("id, full_name")
+          .in("id", visitClientIds);
+        const visitClientMap = Object.fromEntries((visitClients || []).map((c: any) => [c.id, c.full_name]));
+        portalVisitsSummary = portalVisits.map((v: any) => ({
+          cliente: visitClientMap[v.client_id] || "Desconhecido",
+          ultima_visita: v.last_visit_at,
+        }));
+      }
 
       return {
         periodo: `${startDate} a ${endDate}`,
@@ -591,6 +664,7 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
           por_status: meetingsByStatus,
           lista: (meetingsRes.data || []).map((m: any) => ({ titulo: m.title, data: m.date_time, status: m.status, cliente: m.client_name })),
           com_notas_portal: meetingsWithPortalNotes.map((m: any) => ({ titulo: m.title, notas_cliente: m.portal_notes })),
+          mudancas_status_no_periodo: meetingStatusChanges,
         },
         vendas: {
           total: (salesRes.data || []).length,
@@ -602,9 +676,13 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
           valor_total: (expensesRes.data || []).reduce((s: number, e: any) => s + (Number(e.total_with_vat) || 0), 0),
           lista: expensesRes.data || [],
         },
-        atividade_portal_clientes: portalActivity.map((n: any) => ({
-          titulo: n.title, mensagem: n.message, quando: n.created_at,
-        })),
+        atividade_portal_clientes: {
+          notificacoes: portalActivity.map((n: any) => ({
+            titulo: n.title, mensagem: n.message, quando: n.created_at,
+          })),
+          visitas: portalVisitsSummary,
+          respostas_diagnostico: portalQuestionsSummary,
+        },
         novos_clientes: clientsRes.data || [],
         novos_leads: leadsRes.data || [],
         conteudos: (contentRes.data || []).map((c: any) => ({ titulo: c.title, status: c.status, formato: c.format })),

@@ -11,8 +11,14 @@ type: feature
 - Blocked tables: member_sensitive_access, backups, user_roles, profiles
 - Read-only tables: business_settings, business_setup, automation_settings, system_config, audit_logs
 - audit_logs is READ-ONLY (not blocked) — used for period summaries
-- period_summary tool: gathers audit_logs, tasks, meetings, sales, expenses, notifications (portal activity), clients, leads, content for a date range
-- Portal activity tracked via notifications table (client submitted answers, confirmed meeting, requested meeting change)
+- period_summary tool gathers:
+  - audit_logs, tasks, meetings (by date_time AND by updated_at for status changes)
+  - sales, expenses, notifications (portal activity)
+  - clients, leads, content
+  - portal_initial_questions (answered_at in range) — grouped by portal with client names
+  - client_portals (last_visit_at in range) — enriched with client names
+  - meetings with portal_notes (client change requests)
+- Portal activity tracked via notifications table AND direct queries to portal tables
 - Download button on long assistant responses (>200 chars) — downloads as .txt
 - Confirmation flow: AI proposes → frontend shows confirm/cancel buttons → user decides → AI executes or cancels
 - Email sending uses send-transactional-email edge function (if configured)
