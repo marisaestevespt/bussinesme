@@ -399,7 +399,7 @@ export default function PortalViewPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {portal.show_meetings && (() => {
                 const next = meetings
-                  .filter((m: any) => ['marcada', 'confirmada', 'por_confirmar'].includes(m.status) && m.date_time)
+                  .filter((m: any) => ['por_organizar', 'confirmada', 'por_confirmar'].includes(m.status) && m.date_time)
                   .sort((a: any, b: any) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
                 return (
                   <div
@@ -1122,7 +1122,7 @@ export default function PortalViewPage() {
             ) : (
               <div className="space-y-3">
                 {meetings.map((m: any) => {
-                  const isPending = m.status === 'marcada' || m.status === 'por_confirmar';
+                  const isPending = m.status === 'por_organizar' || m.status === 'por_confirmar';
                   const ms = meetingStatus(m.status);
                   return (
                     <SectionCard key={m.id} className="p-5">
