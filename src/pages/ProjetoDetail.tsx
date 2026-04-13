@@ -891,12 +891,50 @@ export default function ProjetoDetailPage() {
             {/* Contrato */}
             <div className="flex items-start gap-3 py-2.5">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0 pt-1"><FileText className="h-4 w-4" /> Contrato</span>
-              <div className="flex-1">
-                <InvoiceUpload
-                  label=""
-                  documents={(local.contract_documents as DocEntry[]) || []}
-                  onChange={docs => updateField('contract_documents', docs)}
-                />
+              <div className="flex items-center gap-3 flex-wrap flex-1">
+                {((local.contract_documents as DocEntry[]) || []).map((doc, i) => {
+                  const isPdf = doc.name?.toLowerCase().endsWith('.pdf');
+                  const isImage = /\.(jpg|jpeg|png|webp)$/i.test(doc.name || '');
+                  return (
+                    <div key={i} className="group relative rounded-lg border bg-muted/30 hover:bg-muted/60 transition-colors w-48 overflow-hidden">
+                      {isImage ? (
+                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="block h-28 overflow-hidden">
+                          <img src={doc.url} alt={doc.name} className="w-full h-full object-cover" />
+                        </a>
+                      ) : (
+                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center h-28 bg-muted/50">
+                          <span className="text-4xl">{isPdf ? '📄' : '📎'}</span>
+                        </a>
+                      )}
+                      <div className="px-2.5 py-2 flex items-center gap-1.5">
+                        <span className="text-xs truncate flex-1 font-medium">{doc.name}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); const docs = ((local.contract_documents as DocEntry[]) || []).filter((_, j) => j !== i); updateField('contract_documents', docs); }}
+                          className="text-destructive/60 hover:text-destructive shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+                {/* Small upload button */}
+                <label className="flex flex-col items-center justify-center w-48 h-[148px] rounded-lg border-2 border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 cursor-pointer transition-colors">
+                  <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const ext = file.name.split('.').pop();
+                    const path = `invoices/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+                    const { error } = await supabase.storage.from('financial-files').upload(path, file);
+                    if (error) { toast.error('Erro ao carregar'); return; }
+                    const { data: urlData } = supabase.storage.from('financial-files').getPublicUrl(path);
+                    updateField('contract_documents', [...((local.contract_documents as DocEntry[]) || []), { name: file.name, url: urlData.publicUrl }]);
+                    e.target.value = '';
+                  }} />
+                  <Upload className="h-5 w-5 text-muted-foreground mb-1.5" />
+                  <span className="text-xs text-muted-foreground">Carregar</span>
+                </label>
               </div>
             </div>
             {/* Custo */}
