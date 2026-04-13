@@ -718,9 +718,14 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
       />
 
       {/* Reuniões */}
-      <Card>
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-sm">Reuniões</CardTitle>
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3 bg-muted/30 border-b flex flex-row items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Video className="h-4 w-4 text-primary" />
+            </div>
+            <CardTitle className="text-base">Reuniões</CardTitle>
+          </div>
           <Button size="sm" variant="outline" onClick={onNewMeeting}>
             <Plus className="h-3 w-3 mr-1" />Nova Reunião
           </Button>
