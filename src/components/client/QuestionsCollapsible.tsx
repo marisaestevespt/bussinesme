@@ -74,18 +74,32 @@ export function QuestionsCollapsible({
             {questionsList.length === 0 ? (
               <p className="text-xs text-muted-foreground">Sem perguntas definidas</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[35%]">Pergunta</TableHead>
-                    <TableHead>Resposta</TableHead>
-                    <TableHead className="w-[160px] whitespace-nowrap">Data da Resposta</TableHead>
-                    <TableHead className="w-[110px]">Tipo</TableHead>
-                    <TableHead className="w-[40px]" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {questionsList.map((q: any) => {
+              (() => {
+                // Group questions by question_group
+                const grouped: { group: string; items: any[] }[] = [];
+                const groupMap = new Map<string, any[]>();
+                for (const q of questionsList) {
+                  const g = q.question_group || 'Outras';
+                  if (!groupMap.has(g)) { groupMap.set(g, []); grouped.push({ group: g, items: groupMap.get(g)! }); }
+                  groupMap.get(g)!.push(q);
+                }
+                return (
+                  <div className="space-y-4">
+                    {grouped.map(({ group, items }) => (
+                      <div key={group}>
+                        <h4 className="text-sm font-semibold text-muted-foreground mb-1">{group.replace('Config. Sistema — ', '')}</h4>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-[35%]">Pergunta</TableHead>
+                              <TableHead>Resposta</TableHead>
+                              <TableHead className="w-[160px] whitespace-nowrap">Data da Resposta</TableHead>
+                              <TableHead className="w-[110px]">Tipo</TableHead>
+                              <TableHead className="w-[40px]" />
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                  {items.map((q: any) => {
                     const answerType = q.answer_type || 'text';
                     const fileUrls: string[] = Array.isArray(q.file_urls) ? q.file_urls : [];
                     const isEditing = editingId === q.id;
