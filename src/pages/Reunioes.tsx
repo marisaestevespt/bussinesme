@@ -31,12 +31,13 @@ import { logAudit } from '@/lib/auditLog';
 
 // ─── Types ──────────────────────────────────────────────────────
 
-type MeetingStatus = 'por_confirmar' | 'marcada' | 'terminada';
+type MeetingStatus = 'por_confirmar' | 'marcada' | 'confirmada' | 'terminada';
 type MeetingType = 'recorrente' | 'projeto' | 'cliente' | 'diagnostico';
 
 const STATUSES: { value: MeetingStatus; label: string; color: string }[] = [
   { value: 'por_confirmar', label: 'Por confirmar', color: '#f59e0b' },
-  { value: 'marcada', label: 'Marcada', color: '#10b981' },
+  { value: 'marcada', label: 'Marcada', color: '#3b82f6' },
+  { value: 'confirmada', label: 'Confirmada', color: '#10b981' },
   { value: 'terminada', label: 'Terminada', color: '#6b7280' },
 ];
 
@@ -720,7 +721,7 @@ export default function ReunioesPage() {
   const { data: clients = [] } = useClientsList();
 
   const filteredMeetings = view === 'proximas'
-    ? meetings.filter(m => m.status === 'por_confirmar' || m.status === 'marcada')
+    ? meetings.filter(m => m.status === 'por_confirmar' || m.status === 'marcada' || m.status === 'confirmada')
     : meetings;
 
   return (
