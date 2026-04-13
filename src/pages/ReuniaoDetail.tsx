@@ -235,9 +235,9 @@ function EditableChecklist({ items, onChange, label }: { items: CheckItem[]; onC
             <textarea
               value={item.text}
               onChange={e => updateText(i, e.target.value)}
-              rows={1}
+              rows={2}
               onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
-              className={cn('flex-1 bg-transparent text-sm border-none outline-none resize-none leading-relaxed', item.checked && 'line-through text-muted-foreground')}
+              className={cn('flex-1 bg-transparent text-sm border-none outline-none resize-none leading-relaxed min-h-[36px] rounded px-2 py-1 hover:bg-muted/30 focus:bg-muted/30 transition-colors', item.checked && 'line-through text-muted-foreground')}
             />
             <button onClick={() => removeItem(i)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all mt-1">
               <X className="h-3 w-3" />
@@ -246,8 +246,8 @@ function EditableChecklist({ items, onChange, label }: { items: CheckItem[]; onC
         ))}
       </div>
       <div className="flex gap-2">
-        <MentionTextarea value={newText} onChange={setNewText} placeholder="Adicionar ponto... usa @ para mencionar" singleLine rows={1} className="h-7 text-xs" onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addItem(); }}} />
-        <Button size="sm" variant="ghost" className="h-7 px-2" onClick={addItem}><Plus className="h-3 w-3" /></Button>
+        <MentionTextarea value={newText} onChange={setNewText} placeholder="Adicionar ponto... usa @ para mencionar" rows={2} className="text-sm min-h-[60px]" onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addItem(); }}} />
+        <Button size="sm" variant="ghost" className="h-9 px-2 self-end" onClick={addItem}><Plus className="h-3.5 w-3.5" /></Button>
       </div>
     </div>
   );
@@ -272,25 +272,25 @@ function EditableBulletList({ items, onChange, label }: { items: string[]; onCha
 
   return (
     <div className="space-y-2">
-      <Label className="flex items-center gap-1.5 text-xs font-semibold text-foreground"><StickyNote className="h-3.5 w-3.5" /> {label}</Label>
+      {label && <Label className="flex items-center gap-1.5 text-xs font-semibold text-foreground"><StickyNote className="h-3.5 w-3.5" /> {label}</Label>}
       <div className="space-y-1.5">
         {items.map((item, i) => (
           <div key={i} className="flex items-start gap-2 group">
-            <span className="text-muted-foreground text-xs mt-1">•</span>
+            <span className="text-muted-foreground text-xs mt-1.5">•</span>
             <textarea
               value={item}
               onChange={e => updateItem(i, e.target.value)}
-              rows={1}
+              rows={2}
               onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
-              className="flex-1 bg-transparent text-sm border-none outline-none resize-none leading-relaxed"
+              className="flex-1 bg-transparent text-sm border-none outline-none resize-none leading-relaxed min-h-[36px] rounded px-2 py-1 hover:bg-muted/30 focus:bg-muted/30 transition-colors"
             />
             <button onClick={() => removeItem(i)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all mt-1"><X className="h-3 w-3" /></button>
           </div>
         ))}
       </div>
       <div className="flex gap-2">
-        <MentionTextarea value={newText} onChange={setNewText} placeholder="Adicionar nota... usa @ para mencionar" singleLine rows={1} className="h-7 text-xs" onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addItem(); }}} />
-        <Button size="sm" variant="ghost" className="h-7 px-2" onClick={addItem}><Plus className="h-3 w-3" /></Button>
+        <MentionTextarea value={newText} onChange={setNewText} placeholder="Adicionar nota... usa @ para mencionar" rows={2} className="text-sm min-h-[60px]" onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addItem(); }}} />
+        <Button size="sm" variant="ghost" className="h-9 px-2 self-end" onClick={addItem}><Plus className="h-3.5 w-3.5" /></Button>
       </div>
     </div>
   );
@@ -483,7 +483,7 @@ export default function ReuniaoDetailPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8 space-y-6">
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <BackNavigation parentRoute="/hub/reunioes" parentLabel="Reuniões" />
@@ -549,7 +549,7 @@ export default function ReuniaoDetailPage() {
         <div className="rounded-lg border divide-y">
           {/* Data e hora */}
           <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-            <div className="flex items-center gap-2 w-[160px] shrink-0 px-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
               <CalendarIcon className="h-3.5 w-3.5" /> Data e hora
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 flex-1">
@@ -591,8 +591,8 @@ export default function ReuniaoDetailPage() {
 
           {/* Status */}
           <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-            <div className="flex items-center gap-2 w-[160px] shrink-0 px-3 text-xs text-muted-foreground">
-              Status
+            <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
+              <div className="h-4 w-4 rounded bg-muted flex items-center justify-center"><div className="h-2 w-2 rounded-full bg-muted-foreground/50" /></div> Status
             </div>
             <div className="px-3 py-1.5 flex-1">
               <Select value={m.status} onValueChange={v => update({ status: v as MeetingStatus })}>
@@ -615,7 +615,7 @@ export default function ReuniaoDetailPage() {
 
           {/* Duração */}
           <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-            <div className="flex items-center gap-2 w-[160px] shrink-0 px-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
               <Clock className="h-3.5 w-3.5" /> Duração
             </div>
             <div className="px-3 py-1.5 flex-1">
@@ -636,7 +636,7 @@ export default function ReuniaoDetailPage() {
           {/* Cliente */}
           {showClientSection && (
             <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-              <div className="flex items-center gap-2 w-[160px] shrink-0 px-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
                 <Users className="h-3.5 w-3.5" /> Cliente
               </div>
               <div className="px-3 py-1.5 flex-1">
@@ -660,8 +660,8 @@ export default function ReuniaoDetailPage() {
           {/* Departamento (when no client section) */}
           {!showClientSection && (
             <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-              <div className="flex items-center gap-2 w-[160px] shrink-0 px-3 text-xs text-muted-foreground">
-                Departamento
+              <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
+                <FolderOpen className="h-3.5 w-3.5" /> Departamento
               </div>
               <div className="px-3 py-1.5 flex-1">
                 <Select value={m.department ?? ''} onValueChange={v => {
@@ -685,8 +685,8 @@ export default function ReuniaoDetailPage() {
           {/* Produto */}
           {m.department === 'produtos' && !showClientSection && (
             <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-              <div className="flex items-center gap-2 w-[160px] shrink-0 px-3 text-xs text-muted-foreground">
-                Produto
+              <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
+                <FileText className="h-3.5 w-3.5" /> Produto
               </div>
               <div className="px-3 py-1.5 flex-1">
                 <Select value={m.product_id ?? ''} onValueChange={v => {
@@ -709,8 +709,8 @@ export default function ReuniaoDetailPage() {
           {/* Projeto */}
           {showProjectField && (
             <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-              <div className="flex items-center gap-2 w-[160px] shrink-0 px-3 text-xs text-muted-foreground">
-                Projeto
+              <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
+                <FolderOpen className="h-3.5 w-3.5" /> Projeto
               </div>
               <div className="px-3 py-1.5 flex-1">
                 <Select value={m.project_id ?? ''} onValueChange={v => {
@@ -733,7 +733,7 @@ export default function ReuniaoDetailPage() {
           {/* Participantes */}
           {participantProfiles.length > 0 && (
             <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-              <div className="flex items-center gap-2 w-[160px] shrink-0 px-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
                 <Users className="h-3.5 w-3.5" /> Participantes
               </div>
               <div className="px-3 py-1.5 flex-1">
@@ -751,7 +751,7 @@ export default function ReuniaoDetailPage() {
 
           {/* Link de acesso */}
           <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
-            <div className="flex items-center gap-2 w-[160px] shrink-0 px-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
               <Link2 className="h-3.5 w-3.5" /> Link de acesso
             </div>
             <div className="px-3 py-1.5 flex-1">
