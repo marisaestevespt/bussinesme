@@ -6,10 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, GripVertical } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Plus, Trash2, GripVertical, ChevronDown, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { LinkedSopsSection, recalcCascadingDates } from '@/components/LinkedSopsSection';
 import { ApplyProductTemplate } from '@/components/project/ApplyProductTemplate';
+import { cn } from '@/lib/utils';
 
 interface Props {
   projectId: string;
@@ -312,33 +314,58 @@ export function ProjectProcessosTab({ projectId, clientId, productId, projectSta
       {/* Processos e SOPs */}
       <LinkedSopsSection entityType="projeto" entityId={projectId} productId={productId || undefined} clientId={clientId} projectStartDate={projectStartDate} />
 
-      {/* Onboarding */}
-      <ChecklistTable
-        title="Onboarding"
-        items={onboarding}
-        onAdd={() => addOnboarding.mutate()}
-        onUpdate={(id, fields) => updateOnboarding.mutate({ id, ...fields })}
-        onDelete={(id) => deleteOnboarding.mutate(id)}
-        emptyText="Sem checklist de onboarding"
-      />
+      {/* Processos do Cliente — collapsible group */}
+      <Collapsible defaultOpen={false}>
+        <Card className="overflow-hidden">
+          <CollapsibleTrigger asChild>
+            <CardHeader className="pb-3 bg-muted/30 border-b cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Users className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Processos do Cliente</CardTitle>
+                    <p className="text-xs text-muted-foreground mt-0.5">Onboarding, offboarding e atividades base</p>
+                  </div>
+                </div>
+                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="p-4 space-y-4">
+              {/* Onboarding */}
+              <ChecklistTable
+                title="Onboarding"
+                items={onboarding}
+                onAdd={() => addOnboarding.mutate()}
+                onUpdate={(id, fields) => updateOnboarding.mutate({ id, ...fields })}
+                onDelete={(id) => deleteOnboarding.mutate(id)}
+                emptyText="Sem checklist de onboarding"
+              />
 
-      {/* Offboarding */}
-      <ChecklistTable
-        title="Offboarding"
-        items={offboarding}
-        onAdd={() => addOffboarding.mutate()}
-        onUpdate={(id, fields) => updateOffboarding.mutate({ id, ...fields })}
-        onDelete={(id) => deleteOffboarding.mutate(id)}
-        emptyText="Sem checklist de offboarding"
-      />
+              {/* Offboarding */}
+              <ChecklistTable
+                title="Offboarding"
+                items={offboarding}
+                onAdd={() => addOffboarding.mutate()}
+                onUpdate={(id, fields) => updateOffboarding.mutate({ id, ...fields })}
+                onDelete={(id) => deleteOffboarding.mutate(id)}
+                emptyText="Sem checklist de offboarding"
+              />
 
-      {/* Mapa de Atividades Base */}
-      <ActivitiesTable
-        items={activities}
-        onAdd={() => addActivity.mutate()}
-        onUpdate={(id, fields) => updateActivity.mutate({ id, ...fields })}
-        onDelete={(id) => deleteActivity.mutate(id)}
-      />
+              {/* Mapa de Atividades Base */}
+              <ActivitiesTable
+                items={activities}
+                onAdd={() => addActivity.mutate()}
+                onUpdate={(id, fields) => updateActivity.mutate({ id, ...fields })}
+                onDelete={(id) => deleteActivity.mutate(id)}
+              />
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
     </div>
   );
 }
