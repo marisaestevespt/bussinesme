@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageCircle, X, Send, Loader2, Sparkles, Bot, RotateCcw, Check, XCircle, Paperclip, FileText, Image as ImageIcon, Download } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, Sparkles, Bot, RotateCcw, Check, XCircle, Paperclip, FileText, Image as ImageIcon, Download, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
@@ -374,8 +374,8 @@ export function FloatingAiChat() {
                   <RotateCcw className="h-3.5 w-3.5" />
                 </Button>
               )}
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setOpen(false)}>
-                <X className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setOpen(false)} title="Minimizar">
+                <Minus className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -514,6 +514,9 @@ export function FloatingAiChat() {
         )}
       >
         {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
+        {!open && messages.length > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-accent border-2 border-background" />
+        )}
       </button>
     </>
   );
