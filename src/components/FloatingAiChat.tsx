@@ -374,8 +374,8 @@ export function FloatingAiChat() {
                   <RotateCcw className="h-3.5 w-3.5" />
                 </Button>
               )}
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setOpen(false)}>
-                <X className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setOpen(false)} title="Minimizar">
+                <Minus className="h-4 w-4" />
               </Button>
             </div>
           </div>
