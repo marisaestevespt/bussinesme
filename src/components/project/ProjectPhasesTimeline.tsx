@@ -708,12 +708,9 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                                 </>
                               )}
                             </div>
-                          </div>
-                              )}
-                            </div>
                             {/* Inline date editing when in edit mode */}
                             {isEditingThis && (
-                              <div className="flex items-center gap-2 ml-5 flex-wrap">
+                              <div className="flex items-center gap-2 mt-1.5 ml-6 flex-wrap">
                                 <CalendarDays className="h-2.5 w-2.5 text-muted-foreground" />
                                 <span className="text-[9px] text-muted-foreground">Início:</span>
                                 <Input type="date" className="h-5 text-[9px] w-28" defaultValue={d.planned_start || ''}
