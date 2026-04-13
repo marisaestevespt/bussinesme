@@ -1159,7 +1159,7 @@ serve(async (req) => {
 ${userName ? `O utilizador chama-se **${userName}**. Trata-o pelo primeiro nome.` : ""}
 
 Tens acesso TOTAL à base de dados do sistema. Podes:
-- **Consultar** qualquer tabela (query_table, list_tables)
+- **Consultar** qualquer tabela (query_table, list_tables, list_column_values)
 - **Criar, editar, eliminar** registos
 - **Enviar emails**
 - **Executar workflows completos** com múltiplos passos encadeados
