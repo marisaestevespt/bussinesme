@@ -739,7 +739,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
                   className="px-4 py-2.5 text-sm grid grid-cols-7 gap-2 border-b items-center cursor-pointer hover:bg-muted/50"
                   onClick={() => setSelectedSaleId(s.id)}
                 >
-                  <span><Badge variant="outline" className={`text-[10px] ${si.color}`}>{si.label}</Badge></span>
+                  <span><Badge className={`text-[11px] font-semibold px-2.5 py-0.5 ${si.color}`}>{si.label}</Badge></span>
                   <span>{s.payment_date ? format(parseISO(s.payment_date), 'dd/MM/yyyy') : '—'}</span>
                   <span className="truncate">{s.description || '—'}{s.is_special_offer && <Gift className="inline h-3 w-3 ml-1 text-amber-500" />}</span>
                   <span>{Number(s.base_value).toFixed(2)}€</span>
