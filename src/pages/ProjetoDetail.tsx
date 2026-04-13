@@ -856,7 +856,17 @@ export default function ProjetoDetailPage() {
               documents={(local.contract_documents as DocEntry[]) || []}
               onChange={docs => updateField('contract_documents', docs)}
             />
-            <div><Label className="text-xs">Equipa</Label><div className="flex gap-1 mt-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div></div>
+            <div>
+              <Label className="text-xs">Equipa</Label>
+              <button type="button" onClick={() => setMembersDialogOpen(true)} className="flex items-center gap-1.5 mt-1 hover:opacity-80 transition-opacity">
+                <div className="flex -space-x-1">
+                  {projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}
+                </div>
+                <div className="h-7 w-7 rounded-full border-2 border-dashed border-muted-foreground/40 flex items-center justify-center">
+                  <Plus className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+              </button>
+            </div>
           </div>
 
           <Separator />
