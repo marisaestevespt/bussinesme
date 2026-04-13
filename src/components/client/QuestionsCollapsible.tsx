@@ -89,9 +89,9 @@ export function QuestionsCollapsible({
                     <div className="rounded-lg border overflow-hidden">
                       <Table>
                         <TableHeader>
-                          <TableRow className="bg-primary/10 hover:bg-primary/10">
-                            <TableHead colSpan={5} className="py-2">
-                              <span className="text-sm font-semibold text-foreground">{group.replace('Config. Sistema — ', '')}</span>
+                          <TableRow className="!bg-primary/10 hover:!bg-primary/10 border-b-0">
+                            <TableHead colSpan={5} className="py-2.5 border-b">
+                              <span className="text-sm font-semibold text-primary">{group.replace('Config. Sistema — ', '')}</span>
                               <span className="text-xs text-muted-foreground ml-2">({items.length})</span>
                             </TableHead>
                           </TableRow>
