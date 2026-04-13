@@ -4471,6 +4471,7 @@ export type Database = {
           created_by: string | null
           date_time: string
           department: string | null
+          discussion_notes: string | null
           discussion_points: Json | null
           documents: Json | null
           duration_minutes: number | null
@@ -4502,6 +4503,7 @@ export type Database = {
           created_by?: string | null
           date_time: string
           department?: string | null
+          discussion_notes?: string | null
           discussion_points?: Json | null
           documents?: Json | null
           duration_minutes?: number | null
@@ -4533,6 +4535,7 @@ export type Database = {
           created_by?: string | null
           date_time?: string
           department?: string | null
+          discussion_notes?: string | null
           discussion_points?: Json | null
           documents?: Json | null
           duration_minutes?: number | null

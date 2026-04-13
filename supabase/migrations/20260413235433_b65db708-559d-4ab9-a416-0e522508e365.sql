@@ -1,0 +1,1 @@
+ALTER TABLE public.meetings ADD COLUMN IF NOT EXISTS discussion_notes text DEFAULT '';
