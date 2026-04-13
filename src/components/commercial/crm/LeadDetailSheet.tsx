@@ -216,7 +216,7 @@ export function LeadDetailSheet({ open, onOpenChange, lead, products, profiles, 
         createdProjectId = newProject?.id || null;
 
         if (matchedProduct?.product_type) {
-          const projetoTypes = ['projeto_1_1', 'consultoria_individual', 'consultoria_grupo', 'mentoria_individual', 'mentoria_grupo'];
+          const projetoTypes = ['projeto_1_1', 'servico_pontual', 'consultoria_individual', 'consultoria_grupo', 'mentoria_individual', 'mentoria_grupo', 'workshop'];
           let portalType: 'projeto_unico' | 'servico_mensal' | null = null;
           if (projetoTypes.includes(matchedProduct.product_type)) portalType = 'projeto_unico';
           else if (matchedProduct.product_type === 'servico_mensal') portalType = 'servico_mensal';

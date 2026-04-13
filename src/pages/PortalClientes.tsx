@@ -105,7 +105,7 @@ export default function PortalClientesPage() {
                     <span className="text-xs">{client?.end_of_cycle ? format(parseISO(client.end_of_cycle), 'dd/MM/yyyy') : '—'}</span>
                     <span>
                       <Badge variant="outline" className="text-[10px]">
-                        {p.portal_type === 'projeto_unico' ? 'Projeto Único' : 'Produto Mensal'}
+                        {p.portal_type === 'projeto_unico' ? 'Projeto Único' : 'Serviço Mensal'}
                       </Badge>
                     </span>
                     <span className="flex items-center gap-1">

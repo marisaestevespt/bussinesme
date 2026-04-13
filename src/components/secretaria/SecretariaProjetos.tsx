@@ -36,7 +36,7 @@ export default function SecretariaProjetos() {
             return (
               <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50" onClick={() => window.open(`/hub/projetos/${p.id}`, '_self')}>
                 <TableCell className="font-medium">{p.name}</TableCell>
-                <TableCell><Badge variant="outline" className="text-[10px]">{p.type === 'clientes' || p.type === 'cliente_projeto_unico' || p.type === 'cliente_servico_mensal' ? 'Cliente' : p.type === 'lancamento' ? 'Lançamento' : 'Interno'}</Badge></TableCell>
+                <TableCell><Badge variant="outline" className="text-[10px]">{p.type === 'clientes' || p.type === 'cliente_projeto_unico' ? 'Cliente - Projeto Único' : p.type === 'cliente_servico_mensal' ? 'Cliente - Serviço Mensal' : p.type === 'lancamento' ? 'Interno - Lançamento' : 'Interno'}</Badge></TableCell>
                 <TableCell><Badge className={cn('text-[10px]', si.color)}>{si.label}</Badge></TableCell>
                 <TableCell><div className="flex items-center gap-2"><Progress value={p.progress || 0} className="h-1.5 w-16" /><span className="text-xs">{p.progress || 0}%</span></div></TableCell>
                 <TableCell className="text-sm">{p.deadline ? format(parseISO(p.deadline), 'dd/MM/yyyy') : '—'}</TableCell>
