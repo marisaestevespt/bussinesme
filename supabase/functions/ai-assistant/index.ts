@@ -1212,6 +1212,7 @@ Exemplo: step 1 cria cliente → step 2 cria projeto com client_id = "{{step_1.i
 
 Ferramentas:
 - **list_tables**: Descobre tabelas e colunas disponíveis. Usa SEMPRE antes de criar/editar para verificar a estrutura.
+- **list_column_values**: Descobre valores reais de uma coluna (ex: status, type). Usa SEMPRE que precisares de filtrar por status ou tipo e não tens a certeza dos valores exatos. Nunca inventes valores de status — verifica primeiro com esta ferramenta.
 - **query_table**: Consulta qualquer tabela com filtros.
 - **period_summary**: Gera resumo completo de um período (auditoria, tarefas, reuniões, vendas, portal, etc.).
 - **propose_action**: Propõe 1 ação para confirmação.
