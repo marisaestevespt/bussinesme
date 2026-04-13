@@ -634,7 +634,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
 
                   {/* Deliverables */}
                   {phaseDeliverables.length > 0 && (
-                    <div className="mt-2 space-y-1 pl-1">
+                    <div className="mt-3 space-y-1.5 pl-2">
                       {phaseDeliverables.map((d, di) => {
                         const isEditingThis = editingDel === d.id;
                         return (
@@ -650,23 +650,23 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                               ) : (
                                 <>
                                   {d.status === 'concluido' ? (
-                                    <CheckCircle2 className="h-3 w-3 text-success shrink-0" />
+                                    <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                                   ) : d.status === 'em_progresso' ? (
-                                    <Clock className="h-3 w-3 text-info shrink-0" />
+                                    <Clock className="h-4 w-4 text-info shrink-0" />
                                   ) : (
-                                    <Circle className="h-3 w-3 text-muted-foreground/40 shrink-0" />
+                                    <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0" />
                                   )}
-                                  <span className={cn('text-xs flex-1', d.status === 'concluido' && 'text-muted-foreground line-through')}>{d.name}</span>
+                                  <span className={cn('text-sm flex-1', d.status === 'concluido' && 'text-muted-foreground line-through')}>{d.name}</span>
                                   {(d.planned_start || d.planned_end) && (
-                                    <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">
-                                      <CalendarDays className="h-2.5 w-2.5" />
+                                    <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                      <CalendarDays className="h-3 w-3" />
                                       {d.planned_start ? format(new Date(d.planned_start + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
                                       {' → '}
                                       {d.planned_end ? format(new Date(d.planned_end + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
                                     </span>
                                   )}
                                   <Select value={d.status} onValueChange={(v) => updateDeliverable.mutate({ id: d.id, status: v })}>
-                                    <SelectTrigger className="h-5 text-[9px] w-20 border-none shadow-none p-0.5">
+                                    <SelectTrigger className="h-6 text-[10px] w-24 border-none shadow-none px-1">
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
