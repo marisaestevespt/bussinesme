@@ -779,14 +779,14 @@ export default function ProjetoDetailPage() {
           <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-4xl font-bold border-none px-0 focus-visible:ring-0 h-auto" />
 
           {/* Notion-style property rows */}
-          <div className="divide-y divide-border/50">
+          <div className="space-y-1">
             {/* Status */}
-            <div className="flex items-center gap-3 py-2.5">
+            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> Status</span>
               <Select value={local.status} onValueChange={v => updateField('status', v)}><SelectTrigger className="w-40 h-8"><SelectValue /></SelectTrigger><SelectContent>{PROJECT_STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent></Select>
             </div>
             {/* Tipo */}
-            <div className="flex items-center gap-3 py-2.5">
+            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><FileText className="h-4 w-4" /> Tipo</span>
               <div className="flex items-center gap-2">
                 <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
@@ -795,7 +795,7 @@ export default function ProjetoDetailPage() {
             </div>
             {/* Progresso */}
             {!isRecorrente && (
-              <div className="flex items-center gap-3 py-2.5">
+              <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
                 <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> Progresso</span>
                 <div className="flex items-center gap-3 flex-1">
                   <Progress value={getProjectProgress()} className="h-2 max-w-xs" />
@@ -805,7 +805,7 @@ export default function ProjetoDetailPage() {
               </div>
             )}
             {/* Cliente */}
-            <div className="flex items-center gap-3 py-2.5">
+            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Users className="h-4 w-4" /> Cliente</span>
               <Select value={local.client_id || ''} onValueChange={v => {
                 const selected = clientsList.find((c: any) => c.id === v);
@@ -821,7 +821,7 @@ export default function ProjetoDetailPage() {
               </Select>
             </div>
             {/* Departamentos */}
-            <div className="flex items-start gap-3 py-2.5">
+            <div className="flex items-start gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0 pt-0.5"><BookOpen className="h-4 w-4" /> Departamentos</span>
               <div className="flex flex-wrap gap-1.5">
                 {DEPARTMENTS.map(d => {
@@ -849,7 +849,7 @@ export default function ProjetoDetailPage() {
               </div>
             </div>
             {/* Membros */}
-            <div className="flex items-center gap-3 py-2.5">
+            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Users className="h-4 w-4" /> Membros</span>
               <button type="button" onClick={() => setMembersDialogOpen(true)} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
                 <div className="flex -space-x-1">
@@ -862,13 +862,13 @@ export default function ProjetoDetailPage() {
             </div>
             {/* Produto */}
             {local.product_name && (
-              <div className="flex items-center gap-3 py-2.5">
+              <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
                 <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Lightbulb className="h-4 w-4" /> Produto</span>
                 <Badge className="bg-accent text-accent-foreground border-0">{local.product_name}</Badge>
               </div>
             )}
             {/* Datas */}
-            <div className="flex items-center gap-3 py-2.5">
+            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><CalendarIcon className="h-4 w-4" /> Datas</span>
               <div className="flex items-center gap-2">
                 <Popover><PopoverTrigger asChild><Button variant="ghost" size="sm" className={cn("h-7 text-xs px-2", !local.start_date && "text-muted-foreground")}>{local.start_date ? format(new Date(local.start_date), 'd MMM yyyy', { locale: pt }) : 'Início'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.start_date ? new Date(local.start_date) : undefined} onSelect={d => updateField('start_date', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
@@ -877,7 +877,7 @@ export default function ProjetoDetailPage() {
               </div>
             </div>
             {/* WhatsApp */}
-            <div className="flex items-center gap-3 py-2.5">
+            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><MessageSquare className="h-4 w-4" /> WhatsApp</span>
               <div className="flex items-center gap-2 flex-1">
                 <Input value={(local as any).whatsapp_group_url || ''} onChange={e => updateField('whatsapp_group_url', e.target.value)} placeholder="https://chat.whatsapp.com/..." className="h-8 text-sm max-w-sm" />
@@ -889,7 +889,7 @@ export default function ProjetoDetailPage() {
               </div>
             </div>
             {/* Contrato */}
-            <div className="flex items-start gap-3 py-2.5">
+            <div className="flex items-start gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0 pt-1"><FileText className="h-4 w-4" /> Contrato</span>
               <div className="flex items-center gap-3 flex-wrap flex-1">
                 {((local.contract_documents as DocEntry[]) || []).map((doc, i) => {
@@ -939,7 +939,7 @@ export default function ProjetoDetailPage() {
             </div>
             {/* Custo */}
             {projectCost > 0 && (
-              <div className="flex items-center gap-3 py-2.5">
+              <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/30">
                 <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><DollarSign className="h-4 w-4" /> Custo</span>
                 <span className="text-sm font-medium">{formatCost(projectCost)}</span>
               </div>
