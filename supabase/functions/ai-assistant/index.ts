@@ -1268,7 +1268,7 @@ Tabelas principais (COLUNAS EXATAS — usa estes nomes):
 - projects: projetos (id, name, client_name, client_id, product_name, product_id, status, start_date, deadline, progress). Status válidos: em_curso, concluido, cancelado, pausado
 - financial_entries: entradas | financial_expenses: despesas
 - commercial_sales: vendas (sale_id, client, product, base_value, invoice_total, status, payment_date). Status válidos: pendente, pago, cancelado, atrasado
-- meetings: reuniões (id, title, date_time, status, client_name, client_id, project_name, project_id, product_name, product_id, department, portal_notes). Status válidos: marcada, por_confirmar, confirmada, realizada, cancelada, remarcada
+- meetings: reuniões (id, title, date_time, status, client_name, client_id, project_name, project_id, product_name, product_id, department, portal_notes). Status válidos: por_organizar, por_confirmar, confirmada, terminada
 - products: produtos (name, category, base_price, status, description)
 - product_deliverable_templates: templates de entregáveis do produto
 - project_deliverables: entregáveis do projeto (project_id, name, status, deadline)
