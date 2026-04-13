@@ -551,7 +551,7 @@ export default function ReuniaoDetailPage() {
 
         {/* ═══ Notion-style metadata properties ═══ */}
         <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-          <div className="px-4 py-2.5 bg-muted/40 border-b">
+          <div className="px-4 py-2.5 bg-primary/10 border-b">
             <span className="text-xs font-semibold text-primary uppercase tracking-wider">Detalhes da Reunião</span>
           </div>
           <div className="divide-y">
