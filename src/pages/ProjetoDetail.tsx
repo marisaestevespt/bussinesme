@@ -1401,6 +1401,31 @@ export default function ProjetoDetailPage() {
             </div>
           </div>
 
+        <Separator />
+        <AlertDialog>
+          <AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="text-destructive hover:text-destructive gap-1.5"><Trash2 className="h-4 w-4" /> Eliminar projeto</Button></AlertDialogTrigger>
+          <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar projeto?</AlertDialogTitle><AlertDialogDescription>Esta ação é irreversível. Todos os dados do projeto serão eliminados.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+        </AlertDialog>
+      </div>
+
+      {/* Task dialog */}
+      <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader><DialogTitle>Nova Tarefa</DialogTitle></DialogHeader>
+          <div className="grid gap-3 py-2">
+            <div className="space-y-1.5"><Label>Nome da tarefa *</Label><Input value={taskName} onChange={e => setTaskName(e.target.value)} /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5"><Label>Prioridade</Label><Select value={taskPriority} onValueChange={setTaskPriority}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{TASK_PRIORITIES.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}</SelectContent></Select></div>
+              <div className="space-y-1.5"><Label>Data final</Label>
+                <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal", !taskDeadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{taskDeadline ? format(taskDeadline, 'd MMM', { locale: pt }) : '—'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={taskDeadline} onSelect={setTaskDeadline} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">Projeto: {local.name} {local.department ? `• ${getDeptLabel(local.department)}` : ''}</p>
+            <Button onClick={() => { if (!taskName.trim()) { toast.error('Nome obrigatório'); return; } createTaskMutation.mutate(); }} disabled={createTaskMutation.isPending}>{createTaskMutation.isPending ? 'A criar...' : 'Criar Tarefa'}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Meeting dialog — full form */}
       <MeetingFormDialog
         open={meetingDialogOpen}
