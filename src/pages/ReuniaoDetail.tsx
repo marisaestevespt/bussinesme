@@ -228,16 +228,18 @@ function EditableChecklist({ items, onChange, label }: { items: CheckItem[]; onC
   return (
     <div className="space-y-2">
       {label && <Label className="text-xs font-semibold text-foreground">{label}</Label>}
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         {items.map((item, i) => (
-          <div key={i} className="flex items-center gap-2 group">
-            <Checkbox checked={item.checked} onCheckedChange={() => toggleItem(i)} />
-            <input
+          <div key={i} className="flex items-start gap-2 group">
+            <Checkbox checked={item.checked} onCheckedChange={() => toggleItem(i)} className="mt-1" />
+            <textarea
               value={item.text}
               onChange={e => updateText(i, e.target.value)}
-              className={cn('flex-1 bg-transparent text-sm border-none outline-none', item.checked && 'line-through text-muted-foreground')}
+              rows={1}
+              onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
+              className={cn('flex-1 bg-transparent text-sm border-none outline-none resize-none leading-relaxed', item.checked && 'line-through text-muted-foreground')}
             />
-            <button onClick={() => removeItem(i)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all">
+            <button onClick={() => removeItem(i)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all mt-1">
               <X className="h-3 w-3" />
             </button>
           </div>
@@ -271,12 +273,18 @@ function EditableBulletList({ items, onChange, label }: { items: string[]; onCha
   return (
     <div className="space-y-2">
       <Label className="flex items-center gap-1.5 text-xs font-semibold text-foreground"><StickyNote className="h-3.5 w-3.5" /> {label}</Label>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         {items.map((item, i) => (
-          <div key={i} className="flex items-center gap-2 group">
-            <span className="text-muted-foreground text-xs">•</span>
-            <input value={item} onChange={e => updateItem(i, e.target.value)} className="flex-1 bg-transparent text-sm border-none outline-none" />
-            <button onClick={() => removeItem(i)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"><X className="h-3 w-3" /></button>
+          <div key={i} className="flex items-start gap-2 group">
+            <span className="text-muted-foreground text-xs mt-1">•</span>
+            <textarea
+              value={item}
+              onChange={e => updateItem(i, e.target.value)}
+              rows={1}
+              onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
+              className="flex-1 bg-transparent text-sm border-none outline-none resize-none leading-relaxed"
+            />
+            <button onClick={() => removeItem(i)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all mt-1"><X className="h-3 w-3" /></button>
           </div>
         ))}
       </div>
