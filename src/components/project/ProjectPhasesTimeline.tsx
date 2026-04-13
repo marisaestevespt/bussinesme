@@ -674,12 +674,11 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                                       {d.planned_end ? format(new Date(d.planned_end + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
                                     </span>
                                   )}
-                                  <Badge className={`text-[10px] font-semibold px-2 py-0.5 ${delStatusConfig.bg}`}>
-                                    {delStatusConfig.label}
-                                  </Badge>
                                   <Select value={d.status} onValueChange={(v) => updateDeliverable.mutate({ id: d.id, status: v })}>
-                                    <SelectTrigger className="h-6 text-[10px] w-6 border-none shadow-none px-0 [&>svg]:hidden">
-                                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                                    <SelectTrigger className="h-auto border-none shadow-none p-0 w-auto [&>svg]:hidden focus:ring-0">
+                                      <Badge className={`text-[10px] font-semibold px-2 py-0.5 cursor-pointer hover:opacity-80 transition-opacity ${delStatusConfig.bg}`}>
+                                        {delStatusConfig.label}
+                                      </Badge>
                                     </SelectTrigger>
                                     <SelectContent>
                                       {DELIVERABLE_STATUS.map(s => (
