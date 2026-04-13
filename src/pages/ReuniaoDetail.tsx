@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { RichTextEditor } from '@/components/RichTextEditor';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -69,6 +70,7 @@ interface MeetingFull {
   transcript_url: string | null;
   meeting_url: string | null;
   discussion_points: CheckItem[];
+  discussion_notes: string;
   priorities: string[];
   owner_actions: CheckItem[];
   client_actions: CheckItem[];
@@ -104,6 +106,7 @@ function useMeeting(id: string) {
         ...raw,
         meeting_type: raw.meeting_type || 'recorrente',
         discussion_points: Array.isArray(raw.discussion_points) ? raw.discussion_points as CheckItem[] : [],
+        discussion_notes: raw.discussion_notes || '',
         priorities: Array.isArray(raw.priorities) ? raw.priorities as string[] : ['', '', '', '', ''],
         owner_actions: Array.isArray(raw.owner_actions) ? raw.owner_actions as CheckItem[] : [],
         client_actions: Array.isArray(raw.client_actions) ? raw.client_actions as CheckItem[] : [],
