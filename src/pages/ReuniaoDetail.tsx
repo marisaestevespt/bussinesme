@@ -342,7 +342,7 @@ export default function ReuniaoDetailPage() {
       const { error } = await supabase.from('meetings').update({
         title: m.title,
         date_time: m.date_time,
-        status: m.status,
+        status: m.status as any,
         meeting_type: m.meeting_type as any,
         client_id: m.client_id,
         client_name: m.client_name,
