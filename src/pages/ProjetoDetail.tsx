@@ -1108,6 +1108,7 @@ export default function ProjetoDetailPage() {
               />
             </TabsContent>
           </Tabs>
+          </div>
 
           {dirty && <div className="sticky bottom-4"><Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending} className="gap-2 shadow-lg"><Save className="h-4 w-4" /> Guardar</Button></div>}
           <Separator />
