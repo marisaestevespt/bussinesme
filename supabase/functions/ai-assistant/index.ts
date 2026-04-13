@@ -230,6 +230,194 @@ const PRODUCT_MUTABLE_FIELDS = new Set([
   "ticket_type",
 ]);
 
+type QueryFilter = {
+  column: string;
+  operator: string;
+  value: string;
+};
+
+type FilterResolution = {
+  from_column: string;
+  to_column: string;
+  original_value: string;
+  resolved_value: string;
+};
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isUuid(value: unknown): value is string {
+  return typeof value === "string" && UUID_REGEX.test(value.trim());
+}
+
+function toSearchPattern(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return trimmed;
+  return trimmed.includes("%") ? trimmed : `%${trimmed}%`;
+}
+
+async function resolveRecordIdByName(
+  targetTable: "clients" | "projects" | "products",
+  rawValue: string,
+  supabaseAdmin: ReturnType<typeof createClient>
+): Promise<string | null> {
+  const value = rawValue.trim();
+  if (!value) return null;
+
+  if (targetTable === "clients") {
+    const { data: exactClient } = await supabaseAdmin
+      .from("clients")
+      .select("id")
+      .eq("full_name", value)
+      .limit(1);
+    if (exactClient?.[0]?.id) return exactClient[0].id;
+
+    const { data: exactClientCode } = await supabaseAdmin
+      .from("clients")
+      .select("id")
+      .eq("client_id", value)
+      .limit(1);
+    if (exactClientCode?.[0]?.id) return exactClientCode[0].id;
+
+    const { data: fuzzyClient } = await supabaseAdmin
+      .from("clients")
+      .select("id")
+      .ilike("full_name", toSearchPattern(value))
+      .limit(1);
+    return fuzzyClient?.[0]?.id ?? null;
+  }
+
+  if (targetTable === "projects") {
+    const { data: exactProject } = await supabaseAdmin
+      .from("projects")
+      .select("id")
+      .eq("name", value)
+      .limit(1);
+    if (exactProject?.[0]?.id) return exactProject[0].id;
+
+    const { data: fuzzyProject } = await supabaseAdmin
+      .from("projects")
+      .select("id")
+      .ilike("name", toSearchPattern(value))
+      .limit(1);
+    return fuzzyProject?.[0]?.id ?? null;
+  }
+
+  const { data: exactProduct } = await supabaseAdmin
+    .from("products")
+    .select("id")
+    .eq("name", value)
+    .limit(1);
+  if (exactProduct?.[0]?.id) return exactProduct[0].id;
+
+  const { data: fuzzyProduct } = await supabaseAdmin
+    .from("products")
+    .select("id")
+    .ilike("name", toSearchPattern(value))
+    .limit(1);
+  return fuzzyProduct?.[0]?.id ?? null;
+}
+
+async function normalizeFilters(
+  tableName: string,
+  filters: QueryFilter[],
+  supabaseAdmin: ReturnType<typeof createClient>,
+  mode: "read" | "write"
+): Promise<{ filters: QueryFilter[]; resolutions: FilterResolution[] }> {
+  const normalized: QueryFilter[] = [];
+  const resolutions: FilterResolution[] = [];
+
+  for (const filter of filters) {
+    if (!filter?.column) continue;
+
+    const nextFilter: QueryFilter = {
+      column: filter.column,
+      operator: filter.operator,
+      value: String(filter.value ?? ""),
+    };
+
+    if (nextFilter.column === "client_id" && !isUuid(nextFilter.value)) {
+      const resolvedId = await resolveRecordIdByName("clients", nextFilter.value, supabaseAdmin);
+      if (resolvedId) {
+        resolutions.push({
+          from_column: "client_id",
+          to_column: "client_id",
+          original_value: nextFilter.value,
+          resolved_value: resolvedId,
+        });
+        nextFilter.value = resolvedId;
+      } else if (tableName === "meetings" || tableName === "projects") {
+        const fallbackColumn = tableName === "meetings" ? "client_name" : "client_name";
+        resolutions.push({
+          from_column: "client_id",
+          to_column: fallbackColumn,
+          original_value: nextFilter.value,
+          resolved_value: nextFilter.value,
+        });
+        nextFilter.column = fallbackColumn;
+        if (mode === "read" && nextFilter.operator === "eq") {
+          nextFilter.operator = "ilike";
+          nextFilter.value = toSearchPattern(nextFilter.value);
+        }
+      }
+    }
+
+    if (nextFilter.column === "project_id" && !isUuid(nextFilter.value)) {
+      const resolvedId = await resolveRecordIdByName("projects", nextFilter.value, supabaseAdmin);
+      if (resolvedId) {
+        resolutions.push({
+          from_column: "project_id",
+          to_column: "project_id",
+          original_value: nextFilter.value,
+          resolved_value: resolvedId,
+        });
+        nextFilter.value = resolvedId;
+      } else if (tableName === "meetings") {
+        resolutions.push({
+          from_column: "project_id",
+          to_column: "project_name",
+          original_value: nextFilter.value,
+          resolved_value: nextFilter.value,
+        });
+        nextFilter.column = "project_name";
+        if (mode === "read" && nextFilter.operator === "eq") {
+          nextFilter.operator = "ilike";
+          nextFilter.value = toSearchPattern(nextFilter.value);
+        }
+      }
+    }
+
+    if (nextFilter.column === "product_id" && !isUuid(nextFilter.value)) {
+      const resolvedId = await resolveRecordIdByName("products", nextFilter.value, supabaseAdmin);
+      if (resolvedId) {
+        resolutions.push({
+          from_column: "product_id",
+          to_column: "product_id",
+          original_value: nextFilter.value,
+          resolved_value: resolvedId,
+        });
+        nextFilter.value = resolvedId;
+      } else if (tableName === "meetings" || tableName === "projects") {
+        const fallbackColumn = "product_name";
+        resolutions.push({
+          from_column: "product_id",
+          to_column: fallbackColumn,
+          original_value: nextFilter.value,
+          resolved_value: nextFilter.value,
+        });
+        nextFilter.column = fallbackColumn;
+        if (mode === "read" && nextFilter.operator === "eq") {
+          nextFilter.operator = "ilike";
+          nextFilter.value = toSearchPattern(nextFilter.value);
+        }
+      }
+    }
+
+    normalized.push(nextFilter);
+  }
+
+  return { filters: normalized, resolutions };
+}
+
 function inferProductType(text: string): string | null {
   const normalized = text.toLowerCase();
   if (normalized.includes("subscri") || normalized.includes("mensal")) return "servico_mensal";
@@ -391,7 +579,8 @@ async function executeSingleAction(
   if (BLOCKED_TABLES.has(tableName)) return { error: "Acesso a esta tabela não é permitido." };
   if (READONLY_TABLES.has(tableName) && actionType !== "create") return { error: "Esta tabela é apenas de leitura." };
 
-  const filters = (details.filters as Array<{ column: string; operator: string; value: string }>) || [];
+  const rawFilters = (details.filters as QueryFilter[]) || [];
+  const { filters } = await normalizeFilters(tableName, rawFilters, supabaseAdmin, "write");
   let data = details.data as Record<string, unknown> || {};
 
   if (tableName === "products" && (actionType === "create" || actionType === "update")) {
@@ -482,7 +671,8 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
         countOnly ? { count: "exact", head: true } : { count: "exact" }
       );
 
-      const filters = (args.filters as Array<{ column: string; operator: string; value: string }>) || [];
+      const rawFilters = (args.filters as QueryFilter[]) || [];
+      const { filters, resolutions } = await normalizeFilters(tableName, rawFilters, supabaseAdmin, "read");
       for (const f of filters) {
         switch (f.operator) {
           case "eq": query = query.eq(f.column, f.value); break;
@@ -510,8 +700,8 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
 
       const { data, count, error } = await query;
       if (error) return { error: error.message };
-      if (countOnly) return { total: count };
-      return { data, total: count };
+      if (countOnly) return { total: count, normalized_filters: filters, filter_resolutions: resolutions };
+      return { data, total: count, normalized_filters: filters, filter_resolutions: resolutions };
     }
 
     case "period_summary": {
@@ -955,6 +1145,7 @@ Tens acesso TOTAL à base de dados do sistema. Podes:
 4. SEMPRE usa as ferramentas propose_action ou propose_workflow para confirmar. NUNCA peças confirmação apenas por texto — o frontend precisa do tool call para mostrar os botões de confirmação.
 5. Antes de propor criar/editar em tabelas que não conheces bem, usa list_tables para verificar colunas. Mas para tabelas listadas acima (tasks, clients, projects, etc.) já tens a informação — não precisas de verificar.
 6. NÃO faças perguntas desnecessárias. Se o utilizador não mencionou assigned_to, client_id, project_id, etc., deixa-os como null. Propõe a ação imediatamente com os dados fornecidos.
+7. NUNCA coloques nomes humanos em campos terminados em _id. Se só tens o nome do cliente/projeto/produto, usa a coluna de nome correspondente (ex: full_name, client_name, project_name, product_name) ou resolve primeiro o UUID.
 
 📅 RESUMO DE PERÍODO:
 Quando o utilizador pedir "o que aconteceu de X a Y", "resumo das férias", "o que foi feito na última semana", etc.:
@@ -1013,12 +1204,12 @@ Para propose_workflow, steps deve ter:
 
 Tabelas principais (COLUNAS EXATAS — usa estes nomes):
 - team_members: equipa (full_name, email, role_title, work_areas, work_schedule, expected_weekly_hours, status)
-- clients: clientes (full_name, email, status, current_product, start_date, nif, whatsapp, payment_method)
+- clients: clientes (id, full_name, client_id, email, status, current_product, start_date, nif, whatsapp, payment_method)
 - tasks: tarefas (name, status, priority, deadline, assigned_to, department, project_id, client_id, notes, tag, scheduled_time)
-- projects: projetos (name, status, client_id, product_id, start_date, deadline, progress)
+- projects: projetos (id, name, client_name, client_id, product_name, product_id, status, start_date, deadline, progress)
 - financial_entries: entradas | financial_expenses: despesas
 - commercial_sales: vendas (sale_id, client, product, base_value, invoice_total, status, payment_date)
-- meetings: reuniões (title, date_time, status, client_id, project_id, department)
+- meetings: reuniões (id, title, date_time, status, client_name, client_id, project_name, project_id, product_name, product_id, department, portal_notes)
 - products: produtos (name, category, base_price, status, description)
 - product_deliverable_templates: templates de entregáveis do produto
 - project_deliverables: entregáveis do projeto (project_id, name, status, deadline)
