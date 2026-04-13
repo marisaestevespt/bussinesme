@@ -1204,12 +1204,12 @@ Para propose_workflow, steps deve ter:
 
 Tabelas principais (COLUNAS EXATAS — usa estes nomes):
 - team_members: equipa (full_name, email, role_title, work_areas, work_schedule, expected_weekly_hours, status)
-- clients: clientes (id, full_name, client_id, email, status, current_product, start_date, nif, whatsapp, payment_method)
-- tasks: tarefas (name, status, priority, deadline, assigned_to, department, project_id, client_id, notes, tag, scheduled_time)
-- projects: projetos (id, name, client_name, client_id, product_name, product_id, status, start_date, deadline, progress)
+- clients: clientes (id, full_name, client_id, email, status, current_product, start_date, nif, whatsapp, payment_method). Status válidos: ativo, em_onboarding, pausado, cancelado, concluido
+- tasks: tarefas (name, status, priority, deadline, assigned_to, department, project_id, client_id, notes, tag, scheduled_time). Status válidos: pendente, em_progresso, concluida
+- projects: projetos (id, name, client_name, client_id, product_name, product_id, status, start_date, deadline, progress). Status válidos: em_curso, concluido, cancelado, pausado
 - financial_entries: entradas | financial_expenses: despesas
-- commercial_sales: vendas (sale_id, client, product, base_value, invoice_total, status, payment_date)
-- meetings: reuniões (id, title, date_time, status, client_name, client_id, project_name, project_id, product_name, product_id, department, portal_notes)
+- commercial_sales: vendas (sale_id, client, product, base_value, invoice_total, status, payment_date). Status válidos: pendente, pago, cancelado, atrasado
+- meetings: reuniões (id, title, date_time, status, client_name, client_id, project_name, project_id, product_name, product_id, department, portal_notes). Status válidos: marcada, por_confirmar, confirmada, realizada, cancelada, remarcada
 - products: produtos (name, category, base_price, status, description)
 - product_deliverable_templates: templates de entregáveis do produto
 - project_deliverables: entregáveis do projeto (project_id, name, status, deadline)
