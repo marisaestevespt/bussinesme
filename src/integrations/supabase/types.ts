@@ -9171,6 +9171,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      notify_portal_meeting_confirmed: {
+        Args: {
+          _client_name: string
+          _meeting_id: string
+          _meeting_title: string
+        }
+        Returns: undefined
+      }
       notify_portal_questions_submitted: {
         Args: { _client_id: string; _client_name: string }
         Returns: undefined
@@ -9185,6 +9193,10 @@ export type Database = {
       }
       portal_email_allowed: {
         Args: { _email: string; _token: string }
+        Returns: boolean
+      }
+      portal_submit_initial_questions: {
+        Args: { _token: string }
         Returns: boolean
       }
       portal_toggle_deliverable: {

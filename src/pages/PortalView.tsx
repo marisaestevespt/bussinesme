@@ -150,9 +150,20 @@ export default function PortalViewPage() {
     setFeedbackText('');
   };
 
+  const maybeNotifyQuestionsSubmitted = async () => {
+    if (!portal?.token) return;
+    try {
+      await (supabase as any).rpc('portal_submit_initial_questions', { _token: portal.token });
+    } catch (err) {
+      console.error('Erro ao validar submissão das perguntas do portal:', err);
+    }
+  };
+
   const answerQuestion = async (qId: string, answer: string) => {
-    await sb('portal_initial_questions').update({ answer, answered_at: new Date().toISOString() }).eq('id', qId);
-    setQuestions(prev => prev.map(q => q.id === qId ? { ...q, answer, answered_at: new Date().toISOString() } : q));
+    const answeredAt = new Date().toISOString();
+    await sb('portal_initial_questions').update({ answer, answered_at: answeredAt }).eq('id', qId);
+    setQuestions(prev => prev.map(q => q.id === qId ? { ...q, answer, answered_at: answeredAt } : q));
+    await maybeNotifyQuestionsSubmitted();
     toast.success('Resposta guardada ✨');
   };
 
@@ -175,8 +186,10 @@ export default function PortalViewPage() {
       const question = questions.find(q => q.id === qId);
       const existing: string[] = Array.isArray(question?.file_urls) ? question.file_urls : [];
       const allUrls = [...existing, ...urls];
-      await sb('portal_initial_questions').update({ file_urls: allUrls, answered_at: new Date().toISOString() }).eq('id', qId);
-      setQuestions(prev => prev.map(q => q.id === qId ? { ...q, file_urls: allUrls, answered_at: new Date().toISOString() } : q));
+      const answeredAt = new Date().toISOString();
+      await sb('portal_initial_questions').update({ file_urls: allUrls, answered_at: answeredAt }).eq('id', qId);
+      setQuestions(prev => prev.map(q => q.id === qId ? { ...q, file_urls: allUrls, answered_at: answeredAt } : q));
+      await maybeNotifyQuestionsSubmitted();
       toast.success(`${urls.length} ficheiro(s) enviado(s) ✨`);
     } catch (err) {
       console.error(err);
