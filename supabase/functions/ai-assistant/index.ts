@@ -40,6 +40,21 @@ const TOOLS = [
   {
     type: "function",
     function: {
+      name: "list_column_values",
+      description: "List all distinct values for a column in a table. Use this BEFORE filtering by status, type, or any enum-like column to discover the actual values used in the database. This avoids guessing wrong values.",
+      parameters: {
+        type: "object",
+        properties: {
+          table: { type: "string", description: "Table name" },
+          column: { type: "string", description: "Column to get distinct values from (e.g. status, type, category)" },
+        },
+        required: ["table", "column"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "list_tables",
       description: "List available database tables, or show columns for a specific table.",
       parameters: {
