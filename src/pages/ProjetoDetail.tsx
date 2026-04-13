@@ -779,7 +779,7 @@ export default function ProjetoDetailPage() {
           <Input value={local.name} onChange={e => updateField('name', e.target.value)} className="text-4xl font-bold border-none px-0 focus-visible:ring-0 h-auto" />
 
           {/* Notion-style property rows */}
-          <div className="space-y-1.5 rounded-xl border-2 border-border/60 bg-card p-1.5">
+          <div className="space-y-1">
             {/* Status */}
             <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> Status</span>
