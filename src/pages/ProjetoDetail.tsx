@@ -950,10 +950,10 @@ export default function ProjetoDetailPage() {
 
           {/* ─── 3 Tabs ──────────────────────────────────────── */}
           <Tabs defaultValue="projeto" className="w-full">
-            <TabsList className="bg-transparent gap-2">
-              <TabsTrigger value="projeto">Projeto</TabsTrigger>
-              <TabsTrigger value="processos">Processos</TabsTrigger>
-              <TabsTrigger value="gestao">Gestão</TabsTrigger>
+            <TabsList className="bg-transparent w-full gap-2">
+              <TabsTrigger value="projeto" className="flex-1">Projeto</TabsTrigger>
+              <TabsTrigger value="processos" className="flex-1">Processos</TabsTrigger>
+              <TabsTrigger value="gestao" className="flex-1">Gestão</TabsTrigger>
             </TabsList>
 
             {/* ─── TAB 1: PROJETO ──────────────────────────── */}
