@@ -615,11 +615,11 @@ async function executeSingleAction(
       if (filters.length === 0) return { error: "Update requer pelo menos um filtro para segurança." };
       let query = supabaseAdmin.from(tableName).update(data);
       for (const f of filters) {
-        if (f.operator === "eq") query = query.eq(f.column, f.value);
-        else if (f.operator === "in") query = query.in(f.column, f.value.split(","));
+        query = applyFilter(query, f);
       }
       const { data: result, error } = await query.select();
       if (error) return { error: error.message };
+      if (!result || result.length === 0) return { error: "Nenhum registo encontrado com os filtros especificados. Verifica se os valores estão corretos (nomes completos, IDs, etc.)." };
       return { success: true, updated: result, count: result?.length || 0, ...(result?.[0] || {}) };
     }
     case "delete": {
