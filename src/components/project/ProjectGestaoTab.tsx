@@ -465,9 +465,14 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
   return (
     <div className="space-y-6">
       {/* Forma de Pagamento + Gerador */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2"><CreditCard className="h-4 w-4" /> Forma de Pagamento</CardTitle>
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3 bg-muted/30 border-b">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <CreditCard className="h-4 w-4 text-primary" />
+            </div>
+            <CardTitle className="text-base">Forma de Pagamento</CardTitle>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
