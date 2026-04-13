@@ -522,53 +522,90 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
       endDateExclusive.setDate(endDateExclusive.getDate() + 1);
       const endExcl = endDateExclusive.toISOString().split("T")[0];
 
-      const [auditRes, tasksRes, tasksOverdueRes, meetingsRes, salesRes, expensesRes, notifRes, clientsRes, leadsRes, contentRes, portalVisitsRes, portalQuestionsRes, meetingsUpdatedRes, onboardingRes, routinesRes] = await Promise.all([
-        // Audit logs - all actions in the period
+      // ═══ BATCH 1: Core business data ═══
+      const [auditRes, tasksRes, tasksOverdueRes, meetingsRes, salesRes, expensesRes, notifRes, clientsRes, leadsRes, contentRes] = await Promise.all([
         supabaseAdmin.from("audit_logs").select("action, entity_type, entity_id, user_name, created_at, metadata")
           .gte("created_at", startDate).lt("created_at", endExcl).order("created_at", { ascending: false }).limit(200),
-        // Tasks completed in period
         supabaseAdmin.from("tasks").select("name, status, assigned_to, deadline, department, updated_at")
           .eq("status", "concluida").gte("updated_at", startDate).lt("updated_at", endExcl).limit(100),
-        // Overdue tasks (deadline passed and not done)
         supabaseAdmin.from("tasks").select("name, status, assigned_to, deadline, department")
           .not("status", "in", '("concluida","cancelada")').lt("deadline", endExcl).limit(100),
-        // Meetings in period (by date_time)
         supabaseAdmin.from("meetings").select("title, date_time, status, client_name, department, portal_notes, duration_minutes")
           .gte("date_time", startDate).lt("date_time", endExcl).order("date_time").limit(100),
-        // Sales created/updated in period
         supabaseAdmin.from("commercial_sales").select("sale_id, client, product, invoice_total, base_value, status, payment_date, created_at")
           .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
-        // Expenses in period
         supabaseAdmin.from("financial_expenses").select("expense_id, description, total_with_vat, base_value, category, status, expense_date")
           .gte("expense_date", startDate).lt("expense_date", endExcl).limit(50),
-        // Notifications (includes portal activity)
         supabaseAdmin.from("notifications").select("type, title, message, link, created_at")
           .gte("created_at", startDate).lt("created_at", endExcl).order("created_at", { ascending: false }).limit(100),
-        // New clients in period
         supabaseAdmin.from("clients").select("full_name, status, created_at, start_date, current_product")
           .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
-        // New leads in period
         supabaseAdmin.from("crm_leads").select("name, status, source, potential_product, estimated_value, created_at")
           .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
-        // Content published in period
         supabaseAdmin.from("content_items").select("title, status, format, scheduled_at")
           .gte("scheduled_at", startDate).lt("scheduled_at", endExcl).limit(50),
-        // Portal visits in period
+      ]);
+
+      // ═══ BATCH 2: Portal, team, projects, financials ═══
+      const [portalVisitsRes, portalQuestionsRes, meetingsUpdatedRes, onboardingRes, routinesRes,
+             projectsRes, deliverableRes, memberOnbRes, memberContractsRes, financialEntriesRes,
+             financialDocsRes, timeEntriesRes, absencesRes, muralRes, sopsRes, planGoalsRes,
+             portalFeedbackRes, portalCommentsRes, clientOffbRes, memberPaymentsRes] = await Promise.all([
         supabaseAdmin.from("client_portals").select("client_id, last_visit_at")
           .gte("last_visit_at", startDate).lt("last_visit_at", endExcl).limit(50),
-        // Portal initial questions answered in period
         supabaseAdmin.from("portal_initial_questions").select("portal_id, question, answer, file_urls, answered_at")
           .not("answered_at", "is", null).gte("answered_at", startDate).lt("answered_at", endExcl).limit(200),
-        // Meetings whose status changed in the period (updated_at within range)
         supabaseAdmin.from("meetings").select("title, date_time, status, client_name, updated_at, portal_notes")
-          .gte("updated_at", startDate).lt("updated_at", endExcl)
-          .limit(100),
-        // Client onboarding steps completed in period
+          .gte("updated_at", startDate).lt("updated_at", endExcl).limit(100),
         supabaseAdmin.from("client_onboarding").select("client_id, activity, completed, created_at")
           .eq("completed", true).gte("created_at", startDate).lt("created_at", endExcl).limit(100),
-        // Routines/tasks created in period
         supabaseAdmin.from("tasks").select("name, status, assigned_to, deadline, department, created_at")
           .gte("created_at", startDate).lt("created_at", endExcl).limit(100),
+        // Projects created or updated
+        supabaseAdmin.from("projects").select("name, status, client_id, product_id, start_date, deadline, progress, created_at, updated_at")
+          .or(`created_at.gte.${startDate},updated_at.gte.${startDate}`).lt("created_at", endExcl).limit(50),
+        // Deliverables completed in period
+        supabaseAdmin.from("project_deliverables").select("name, status, phase_id, project_id, updated_at")
+          .eq("status", "concluido").gte("updated_at", startDate).lt("updated_at", endExcl).limit(50),
+        // Team member onboarding steps
+        supabaseAdmin.from("member_onboarding").select("member_id, step, completed, updated_at")
+          .gte("updated_at", startDate).lt("updated_at", endExcl).limit(100),
+        // Member contracts uploaded
+        supabaseAdmin.from("member_contracts").select("member_id, contract_type, file_name, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // Financial entries (income)
+        supabaseAdmin.from("financial_entries").select("entry_id, description, total_with_vat, base_value, category, status, entry_date")
+          .gte("entry_date", startDate).lt("entry_date", endExcl).limit(50),
+        // Financial documents uploaded
+        supabaseAdmin.from("financial_documents").select("file_name, document_type, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // Time entries tracked
+        supabaseAdmin.from("time_entries").select("entry_id, member_id, description, hours, entry_date, client_id, project_id")
+          .gte("entry_date", startDate).lt("entry_date", endExcl).limit(100),
+        // Absences created
+        supabaseAdmin.from("absence_coverage").select("member_id, reason, start_date, end_date, status, substitute_id, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // Mural posts
+        supabaseAdmin.from("mural_posts").select("author_name, content, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(30),
+        // SOPs created/updated
+        supabaseAdmin.from("sops").select("sop_id, title, department, status, created_at, updated_at")
+          .or(`created_at.gte.${startDate},updated_at.gte.${startDate}`).lt("created_at", endExcl).limit(30),
+        // Planning goals updated
+        supabaseAdmin.from("planning_goals").select("title, status, department, updated_at")
+          .gte("updated_at", startDate).lt("updated_at", endExcl).limit(30),
+        // Portal feedback from clients
+        supabaseAdmin.from("portal_feedback").select("portal_id, rating, comment, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // Portal comments from clients
+        supabaseAdmin.from("portal_comments").select("portal_id, content, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // Client offboarding
+        supabaseAdmin.from("client_offboarding").select("client_id, activity, completed, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // Member payments
+        supabaseAdmin.from("member_payments").select("member_id, amount, payment_date, status, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
       ]);
 
       // Group audit logs by entity_type and action
