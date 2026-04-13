@@ -245,11 +245,9 @@ function EditableChecklist({ items, onChange, label }: { items: CheckItem[]; onC
           </div>
         ))}
       </div>
-      <div className="flex gap-2 items-end mt-3 border-t pt-3">
-        <div className="flex-1">
-          <MentionTextarea value={newText} onChange={setNewText} placeholder="Escreve um novo ponto aqui... usa @ para mencionar alguém" rows={3} className="text-sm min-h-[80px] w-full" onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addItem(); }}} />
-        </div>
-        <Button size="sm" variant="outline" className="h-9 px-3 shrink-0" onClick={addItem}><Plus className="h-3.5 w-3.5 mr-1" /> Adicionar</Button>
+      <div className="mt-3 border-t pt-3 space-y-2">
+        <MentionTextarea value={newText} onChange={setNewText} placeholder="Escreve um novo ponto aqui... usa @ para mencionar alguém" rows={3} className="text-sm min-h-[80px] w-full" onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addItem(); }}} />
+        <Button size="sm" variant="outline" className="h-9 px-3" onClick={addItem}><Plus className="h-3.5 w-3.5 mr-1" /> Adicionar</Button>
       </div>
     </div>
   );
@@ -290,11 +288,9 @@ function EditableBulletList({ items, onChange, label }: { items: string[]; onCha
           </div>
         ))}
       </div>
-      <div className="flex gap-2 items-end mt-3 border-t pt-3">
-        <div className="flex-1">
-          <MentionTextarea value={newText} onChange={setNewText} placeholder="Escreve uma nota aqui... usa @ para mencionar alguém" rows={3} className="text-sm min-h-[80px] w-full" onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addItem(); }}} />
-        </div>
-        <Button size="sm" variant="outline" className="h-9 px-3 shrink-0" onClick={addItem}><Plus className="h-3.5 w-3.5 mr-1" /> Adicionar</Button>
+      <div className="mt-3 border-t pt-3 space-y-2">
+        <MentionTextarea value={newText} onChange={setNewText} placeholder="Escreve uma nota aqui... usa @ para mencionar alguém" rows={3} className="text-sm min-h-[80px] w-full" onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addItem(); }}} />
+        <Button size="sm" variant="outline" className="h-9 px-3" onClick={addItem}><Plus className="h-3.5 w-3.5 mr-1" /> Adicionar</Button>
       </div>
     </div>
   );
