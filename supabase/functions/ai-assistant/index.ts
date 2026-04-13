@@ -554,8 +554,8 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
         supabaseAdmin.from("client_portals").select("client_id, last_visit_at")
           .gte("last_visit_at", startDate).lt("last_visit_at", endExcl).limit(50),
         // Portal initial questions answered in period
-        supabaseAdmin.from("portal_initial_questions").select("portal_id, question, answer, file_urls, updated_at")
-          .gte("updated_at", startDate).lt("updated_at", endExcl).limit(200),
+        supabaseAdmin.from("portal_initial_questions").select("portal_id, question, answer, file_urls, answered_at")
+          .not("answered_at", "is", null).gte("answered_at", startDate).lt("answered_at", endExcl).limit(200),
         // Meetings whose status changed in the period (updated_at within range)
         supabaseAdmin.from("meetings").select("title, date_time, status, client_name, updated_at, portal_notes")
           .gte("updated_at", startDate).lt("updated_at", endExcl)
