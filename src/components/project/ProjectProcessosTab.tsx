@@ -35,22 +35,24 @@ function ChecklistTable({
   emptyText: string;
 }) {
   return (
-    <Card>
-      <CardHeader className="pb-2 flex flex-row items-center justify-between">
-        <div className="flex items-center gap-2">
-          <CardTitle className="text-sm">{title}</CardTitle>
-          {items.length > 0 && (
-            <Badge variant="secondary" className="text-[10px]">
-              {items.filter((i: any) => i.completed).length}/{items.length}
-            </Badge>
-          )}
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-3 bg-muted/30 border-b">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <CardTitle className="text-base">{title}</CardTitle>
+            {items.length > 0 && (
+              <Badge variant="secondary" className="text-xs">
+                {items.filter((i: any) => i.completed).length}/{items.length}
+              </Badge>
+            )}
+          </div>
+          <Button size="sm" variant="outline" onClick={onAdd}>
+            <Plus className="h-3.5 w-3.5 mr-1.5" />Adicionar
+          </Button>
         </div>
-        <Button size="sm" variant="outline" onClick={onAdd}>
-          <Plus className="h-3 w-3 mr-1" />Adicionar
-        </Button>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[32px_1fr_100px_100px_100px_100px_32px] gap-2">
+        <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-[32px_1fr_100px_100px_100px_100px_32px] gap-2">
           <span>✓</span>
           <span>Atividade</span>
           <span>Fase</span>
@@ -122,15 +124,17 @@ function ActivitiesTable({
   onDelete: (id: string) => void;
 }) {
   return (
-    <Card>
-      <CardHeader className="pb-2 flex flex-row items-center justify-between">
-        <CardTitle className="text-sm">Mapa de Atividades Base</CardTitle>
-        <Button size="sm" variant="outline" onClick={onAdd}>
-          <Plus className="h-3 w-3 mr-1" />Adicionar
-        </Button>
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-3 bg-muted/30 border-b">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base">Mapa de Atividades Base</CardTitle>
+          <Button size="sm" variant="outline" onClick={onAdd}>
+            <Plus className="h-3.5 w-3.5 mr-1.5" />Adicionar
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="bg-primary text-primary-foreground px-4 py-2 font-medium text-xs grid grid-cols-[1fr_120px_120px_120px_32px] gap-2">
+        <div className="bg-primary text-primary-foreground px-4 py-2.5 font-medium text-xs grid grid-cols-[1fr_120px_120px_120px_32px] gap-2">
           <span>Atividade</span>
           <span>Fase</span>
           <span>Responsável</span>

@@ -468,15 +468,19 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
 
   if (phases.length === 0 && !addingPhase) {
     return (
-      <Card>
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Layers className="h-4 w-4 text-primary" />
-            <CardTitle className="text-sm">Fases do Projeto</CardTitle>
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3 bg-muted/30 border-b">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Layers className="h-4.5 w-4.5 text-primary" />
+              </div>
+              <CardTitle className="text-base">Fases do Projeto</CardTitle>
+            </div>
+            <Button size="sm" onClick={() => setAddingPhase(true)}>
+              <Plus className="h-3.5 w-3.5 mr-1.5" /> Adicionar Fase
+            </Button>
           </div>
-          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setAddingPhase(true)}>
-            <Plus className="h-3 w-3 mr-1" /> Adicionar Fase
-          </Button>
         </CardHeader>
         {addingPhase && (
           <CardContent className="pt-0">
@@ -509,21 +513,26 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
 
   return (
     <>
-    <Card>
-      <CardHeader className="pb-2 flex flex-row items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Layers className="h-4 w-4 text-primary" />
-          <CardTitle className="text-sm">Fases do Projeto</CardTitle>
-          <Badge variant="secondary" className="text-[10px]">{progressLabel}</Badge>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">{progress}% concluído</span>
-          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={recalculateDates} disabled={recalculating || !projectStartDate}>
-            <RefreshCw className={cn("h-3 w-3 mr-1", recalculating && "animate-spin")} /> Recalcular datas
-          </Button>
-          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { setAddingPhase(true); setNewName(''); }}>
-            <Plus className="h-3 w-3 mr-1" /> Fase
-          </Button>
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-3 bg-muted/30 border-b">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Layers className="h-4.5 w-4.5 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-base">Fases do Projeto</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">{progress}% concluído · {progressLabel}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={recalculateDates} disabled={recalculating || !projectStartDate}>
+              <RefreshCw className={cn("h-3.5 w-3.5 mr-1.5", recalculating && "animate-spin")} /> Recalcular datas
+            </Button>
+            <Button size="sm" onClick={() => { setAddingPhase(true); setNewName(''); }}>
+              <Plus className="h-3.5 w-3.5 mr-1.5" /> Fase
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="pt-2">
@@ -538,23 +547,23 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
             const isEditing = editingPhase === phase.id;
 
             return (
-              <div key={phase.id} className="flex gap-3 relative group/phase">
+              <div key={phase.id} className="flex gap-4 relative group/phase">
                 <div className="flex flex-col items-center">
-                  <div className={cn('h-6 w-6 rounded-full flex items-center justify-center shrink-0 border-2',
+                  <div className={cn('h-8 w-8 rounded-full flex items-center justify-center shrink-0 border-2',
                     phase.status === 'concluida' ? 'border-success bg-success/10' :
                     phase.status === 'em_curso' ? 'border-info bg-info/10' :
                     'border-muted bg-muted/30'
                   )}>
-                    <Icon className={cn('h-3.5 w-3.5', si.color)} />
+                    <Icon className={cn('h-4 w-4', si.color)} />
                   </div>
                   {!isLast && (
-                    <div className={cn('w-0.5 flex-1 min-h-[24px]',
+                    <div className={cn('w-0.5 flex-1 min-h-[32px]',
                       phase.status === 'concluida' ? 'bg-success/40' : 'bg-border'
                     )} />
                   )}
                 </div>
 
-                <div className={cn('pb-4 flex-1 min-w-0', isLast && 'pb-0')}>
+                <div className={cn('pb-5 flex-1 min-w-0', isLast && 'pb-0')}>
                   {isEditing ? (
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-1.5">
@@ -580,10 +589,10 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-sm font-medium">{phase.name || `Fase ${phase.sort_order + 1}`}</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-base font-semibold">{phase.name || `Fase ${phase.sort_order + 1}`}</span>
                         <Select value={phase.status} onValueChange={(v) => updatePhase.mutate({ id: phase.id, status: v })}>
-                          <SelectTrigger className="h-6 text-[10px] w-24 border-none shadow-none p-1">
+                          <SelectTrigger className="h-7 text-xs w-28 border-none shadow-none px-2">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -593,8 +602,8 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                           </SelectContent>
                         </Select>
                         {(phase.planned_start || phase.planned_end) && (
-                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                            <CalendarDays className="h-3 w-3" />
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <CalendarDays className="h-3.5 w-3.5" />
                             {phase.planned_start ? format(new Date(phase.planned_start + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
                             {' → '}
                             {phase.planned_end ? format(new Date(phase.planned_end + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
@@ -629,7 +638,7 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
 
                   {/* Deliverables */}
                   {phaseDeliverables.length > 0 && (
-                    <div className="mt-2 space-y-1 pl-1">
+                    <div className="mt-3 space-y-1.5 pl-2">
                       {phaseDeliverables.map((d, di) => {
                         const isEditingThis = editingDel === d.id;
                         return (
@@ -645,23 +654,23 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                               ) : (
                                 <>
                                   {d.status === 'concluido' ? (
-                                    <CheckCircle2 className="h-3 w-3 text-success shrink-0" />
+                                    <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                                   ) : d.status === 'em_progresso' ? (
-                                    <Clock className="h-3 w-3 text-info shrink-0" />
+                                    <Clock className="h-4 w-4 text-info shrink-0" />
                                   ) : (
-                                    <Circle className="h-3 w-3 text-muted-foreground/40 shrink-0" />
+                                    <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0" />
                                   )}
-                                  <span className={cn('text-xs flex-1', d.status === 'concluido' && 'text-muted-foreground line-through')}>{d.name}</span>
+                                  <span className={cn('text-sm flex-1', d.status === 'concluido' && 'text-muted-foreground line-through')}>{d.name}</span>
                                   {(d.planned_start || d.planned_end) && (
-                                    <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">
-                                      <CalendarDays className="h-2.5 w-2.5" />
+                                    <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                      <CalendarDays className="h-3 w-3" />
                                       {d.planned_start ? format(new Date(d.planned_start + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
                                       {' → '}
                                       {d.planned_end ? format(new Date(d.planned_end + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
                                     </span>
                                   )}
                                   <Select value={d.status} onValueChange={(v) => updateDeliverable.mutate({ id: d.id, status: v })}>
-                                    <SelectTrigger className="h-5 text-[9px] w-20 border-none shadow-none p-0.5">
+                                    <SelectTrigger className="h-6 text-[10px] w-24 border-none shadow-none px-1">
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
