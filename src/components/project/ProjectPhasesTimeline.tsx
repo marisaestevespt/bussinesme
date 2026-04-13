@@ -585,10 +585,10 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-sm font-medium">{phase.name || `Fase ${phase.sort_order + 1}`}</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-base font-semibold">{phase.name || `Fase ${phase.sort_order + 1}`}</span>
                         <Select value={phase.status} onValueChange={(v) => updatePhase.mutate({ id: phase.id, status: v })}>
-                          <SelectTrigger className="h-6 text-[10px] w-24 border-none shadow-none p-1">
+                          <SelectTrigger className="h-7 text-xs w-28 border-none shadow-none px-2">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -598,8 +598,8 @@ export function ProjectPhasesTimeline({ projectId, projectStartDate }: Props) {
                           </SelectContent>
                         </Select>
                         {(phase.planned_start || phase.planned_end) && (
-                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                            <CalendarDays className="h-3 w-3" />
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <CalendarDays className="h-3.5 w-3.5" />
                             {phase.planned_start ? format(new Date(phase.planned_start + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
                             {' → '}
                             {phase.planned_end ? format(new Date(phase.planned_end + 'T00:00:00'), 'd MMM', { locale: pt }) : '?'}
