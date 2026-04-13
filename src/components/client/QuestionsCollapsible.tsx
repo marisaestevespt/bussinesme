@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronRight, Plus, RefreshCw, X, FileText, Upload, Image as ImageIcon } from 'lucide-react';
+import { ChevronRight, Plus, RefreshCw, X, FileText, Upload, Image as ImageIcon, Pencil, Check } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -28,8 +28,22 @@ export function QuestionsCollapsible({
   seedQuestionsFromProduct,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
   const questionsList = questions.data || [];
   const answeredCount = questionsList.filter((q: any) => q.answer || (Array.isArray(q.file_urls) && q.file_urls.length > 0)).length;
+
+  const startEdit = (q: any) => {
+    setEditingId(q.id);
+    setEditValue(q.question || '');
+  };
+
+  const saveEdit = (id: string, original: string) => {
+    if (editValue !== original) {
+      updateQuestion.mutate({ id, question: editValue });
+    }
+    setEditingId(null);
+  };
 
   return (
     <Card>
@@ -57,8 +71,9 @@ export function QuestionsCollapsible({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[40%]">Pergunta</TableHead>
+                    <TableHead className="w-[35%]">Pergunta</TableHead>
                     <TableHead>Resposta</TableHead>
+                    <TableHead className="w-[140px]">Data da Resposta</TableHead>
                     <TableHead className="w-[100px]">Tipo</TableHead>
                     <TableHead className="w-[40px]" />
                   </TableRow>
@@ -67,24 +82,35 @@ export function QuestionsCollapsible({
                   {questionsList.map((q: any) => {
                     const answerType = q.answer_type || 'text';
                     const fileUrls: string[] = Array.isArray(q.file_urls) ? q.file_urls : [];
+                    const isEditing = editingId === q.id;
                     return (
                       <TableRow key={q.id}>
                         <TableCell className="align-top py-2">
-                          <Input
-                            className="h-7 text-xs"
-                            defaultValue={q.question}
-                            placeholder="Pergunta"
-                            onBlur={e => {
-                              if (e.target.value !== q.question) updateQuestion.mutate({ id: q.id, question: e.target.value });
-                            }}
-                          />
+                          {isEditing ? (
+                            <div className="flex items-center gap-1">
+                              <Input
+                                className="h-7 text-xs flex-1"
+                                value={editValue}
+                                onChange={e => setEditValue(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter') saveEdit(q.id, q.question); }}
+                                autoFocus
+                              />
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-primary shrink-0" onClick={() => saveEdit(q.id, q.question)}>
+                                <Check className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1 group">
+                              <span className="text-xs">{q.question || <span className="text-muted-foreground italic">Sem pergunta</span>}</span>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={() => startEdit(q)}>
+                                <Pencil className="h-3 w-3 text-muted-foreground" />
+                              </Button>
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell className="align-top py-2">
                           {q.answer ? (
-                            <div className="text-xs">
-                              <span>{q.answer}</span>
-                              {q.answered_at && <span className="text-muted-foreground ml-2">({format(parseISO(q.answered_at), 'dd/MM/yyyy HH:mm')})</span>}
-                            </div>
+                            <span className="text-xs">{q.answer}</span>
                           ) : fileUrls.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
                               {fileUrls.map((url: string, i: number) => {
@@ -102,6 +128,13 @@ export function QuestionsCollapsible({
                             </div>
                           ) : (
                             <span className="text-xs text-muted-foreground italic">Aguardando resposta</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="align-top py-2">
+                          {q.answered_at ? (
+                            <span className="text-xs text-muted-foreground">{format(parseISO(q.answered_at), 'dd/MM/yyyy HH:mm')}</span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
                           )}
                         </TableCell>
                         <TableCell className="align-top py-2">
