@@ -420,7 +420,6 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
           <CardContent className="p-0">
             <Table>
               <TableHeader><TableRow>
-                <TableHead>Nome</TableHead>
                 <TableHead>Departamento</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead className="text-right">Valor mensal (€)</TableHead>
@@ -441,9 +440,6 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
                   return (
                     <Fragment key={p.id}>
                       <TableRow>
-                        <TableCell>
-                          <Input value={p.name} onChange={e => updatePhantom(p.id, 'name', e.target.value)} className="h-7 text-sm w-36" />
-                        </TableCell>
                         <TableCell>
                           <Select value={p.department} onValueChange={v => {
                             updatePhantom(p.id, 'department', v);
@@ -506,7 +502,7 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
                       </TableRow>
                       {/* Delegable tasks row */}
                       <TableRow className="border-0 hover:bg-transparent">
-                        <TableCell colSpan={8} className="py-0 px-2">
+                        <TableCell colSpan={7} className="py-0 px-2">
                           <Collapsible open={isExpanded} onOpenChange={open => setExpandedPhantom(open ? p.id : null)}>
                             <CollapsibleTrigger asChild>
                               <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-1.5 transition-colors w-full">
