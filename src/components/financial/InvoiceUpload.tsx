@@ -38,29 +38,27 @@ export function InvoiceUpload({ documents, onChange, label = 'Fatura / Documento
   const remove = (idx: number) => onChange(documents.filter((_, i) => i !== idx));
 
   return (
-    <div className="space-y-2">
-      <Label className="text-xs">{label}</Label>
-      {documents.length > 0 && (
-        <div className="space-y-1">
-          {documents.map((doc, i) => (
-            <div key={i} className="flex items-center gap-2 text-xs bg-muted/50 rounded px-2 py-1.5">
-              <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              <span className="truncate flex-1">{doc.name}</span>
-              <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline shrink-0">
-                <ExternalLink className="h-3 w-3" />
-              </a>
-              <button type="button" onClick={() => remove(i)} className="text-destructive hover:text-destructive/80 shrink-0">
-                <Trash2 className="h-3 w-3" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-      <input ref={inputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" className="hidden" onChange={handleUpload} />
-      <Button type="button" variant="outline" size="sm" className="w-full" disabled={uploading} onClick={() => inputRef.current?.click()}>
-        <Upload className="h-3.5 w-3.5 mr-1" />
-        {uploading ? 'A carregar...' : 'Carregar ficheiro'}
-      </Button>
+    <div className="space-y-1.5">
+      {label && <Label className="text-xs">{label}</Label>}
+      <div className="flex items-center gap-2 flex-wrap">
+        {documents.map((doc, i) => (
+          <div key={i} className="flex items-center gap-2 text-xs bg-muted/50 rounded px-2 py-1.5">
+            <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <span className="truncate max-w-[200px]">{doc.name}</span>
+            <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline shrink-0">
+              <ExternalLink className="h-3 w-3" />
+            </a>
+            <button type="button" onClick={() => remove(i)} className="text-destructive hover:text-destructive/80 shrink-0">
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </div>
+        ))}
+        <input ref={inputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" className="hidden" onChange={handleUpload} />
+        <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground" disabled={uploading} onClick={() => inputRef.current?.click()}>
+          <Upload className="h-3 w-3 mr-1" />
+          {uploading ? 'A carregar...' : 'Carregar'}
+        </Button>
+      </div>
     </div>
   );
 }
