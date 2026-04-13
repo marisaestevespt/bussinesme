@@ -320,10 +320,11 @@ function CapacitySimulatorView({ members: teamMembers, entries, clients: allClie
     mutationFn: async (product: Product) => {
       let scenarioId = scenario.data?.id;
       if (!scenarioId) scenarioId = await ensureScenario.mutateAsync();
+      const ticketVal = parseFloat(String((product as any).ticket ?? '0').replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
       const { error } = await supabase.from('capacity_scenario_products').insert({
         scenario_id: scenarioId, product_id: product.id, product_name: product.name,
         hours_per_client_month: product.monthly_hours_per_client || 0, current_clients: 0,
-        price_per_client: parseFloat(String(product.ticket || '0').replace(/[^\d.,]/g, '').replace(',', '.')) || 0,
+        price_per_client: ticketVal,
       } as any);
       if (error) throw error;
     },
@@ -682,7 +683,14 @@ function CapacitySimulatorView({ members: teamMembers, entries, clients: allClie
           const finData = items.map(item => {
             const realCount = realClientCounts[item.product_name] || 0;
             const simExtra = Number(item.current_clients);
-            const price = Number(item.price_per_client) || 0;
+            let price = Number(item.price_per_client) || 0;
+            // Fallback: if price is 0, try to get it from the live product
+            if (price === 0 && item.product_id) {
+              const sourceP = allProducts.find((p: Product) => p.id === item.product_id);
+              if (sourceP) {
+                price = parseFloat(String((sourceP as any).ticket || '0').replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
+              }
+            }
             const currentRevenue = realCount * price;
             const simRevenue = (realCount + simExtra) * price;
             return {
