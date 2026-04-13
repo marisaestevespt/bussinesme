@@ -245,9 +245,11 @@ function EditableChecklist({ items, onChange, label }: { items: CheckItem[]; onC
           </div>
         ))}
       </div>
-      <div className="flex gap-2">
-        <MentionTextarea value={newText} onChange={setNewText} placeholder="Adicionar ponto... usa @ para mencionar" rows={2} className="text-sm min-h-[60px]" onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addItem(); }}} />
-        <Button size="sm" variant="ghost" className="h-9 px-2 self-end" onClick={addItem}><Plus className="h-3.5 w-3.5" /></Button>
+      <div className="flex gap-2 items-end mt-3 border-t pt-3">
+        <div className="flex-1">
+          <MentionTextarea value={newText} onChange={setNewText} placeholder="Escreve um novo ponto aqui... usa @ para mencionar alguém" rows={3} className="text-sm min-h-[80px] w-full" onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addItem(); }}} />
+        </div>
+        <Button size="sm" variant="outline" className="h-9 px-3 shrink-0" onClick={addItem}><Plus className="h-3.5 w-3.5 mr-1" /> Adicionar</Button>
       </div>
     </div>
   );
@@ -288,9 +290,11 @@ function EditableBulletList({ items, onChange, label }: { items: string[]; onCha
           </div>
         ))}
       </div>
-      <div className="flex gap-2">
-        <MentionTextarea value={newText} onChange={setNewText} placeholder="Adicionar nota... usa @ para mencionar" rows={2} className="text-sm min-h-[60px]" onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addItem(); }}} />
-        <Button size="sm" variant="ghost" className="h-9 px-2 self-end" onClick={addItem}><Plus className="h-3.5 w-3.5" /></Button>
+      <div className="flex gap-2 items-end mt-3 border-t pt-3">
+        <div className="flex-1">
+          <MentionTextarea value={newText} onChange={setNewText} placeholder="Escreve uma nota aqui... usa @ para mencionar alguém" rows={3} className="text-sm min-h-[80px] w-full" onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addItem(); }}} />
+        </div>
+        <Button size="sm" variant="outline" className="h-9 px-3 shrink-0" onClick={addItem}><Plus className="h-3.5 w-3.5 mr-1" /> Adicionar</Button>
       </div>
     </div>
   );
@@ -928,9 +932,9 @@ export default function ReuniaoDetailPage() {
                       update({ priorities: next });
                     }}
                     placeholder={`Decisão ${i + 1}`}
-                    rows={1}
+                    rows={2}
                     onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; }}
-                    className="flex-1 bg-transparent text-sm border-none outline-none resize-none leading-relaxed rounded px-2 py-1 hover:bg-muted/30 focus:bg-muted/30 transition-colors"
+                    className="flex-1 bg-transparent text-sm border-none outline-none resize-none leading-relaxed rounded px-2 py-1.5 min-h-[44px] hover:bg-muted/30 focus:bg-muted/30 transition-colors"
                   />
                 </div>
               ))}
