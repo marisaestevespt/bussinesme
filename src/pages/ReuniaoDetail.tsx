@@ -554,6 +554,7 @@ export default function ReuniaoDetailPage() {
           <div className="px-4 py-2.5 bg-muted/40 border-b">
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Detalhes da Reunião</span>
           </div>
+          <div className="divide-y">
           {/* Data e hora */}
           <div className="flex items-center min-h-[40px] hover:bg-muted/30 transition-colors">
             <div className="flex items-center gap-2 w-[180px] shrink-0 px-4 text-xs font-medium text-muted-foreground">
