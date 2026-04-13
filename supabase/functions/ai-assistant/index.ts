@@ -958,14 +958,19 @@ Tens acesso TOTAL à base de dados do sistema. Podes:
 Quando o utilizador pedir "o que aconteceu de X a Y", "resumo das férias", "o que foi feito na última semana", etc.:
 - Usa a ferramenta **period_summary** com as datas
 - O resultado inclui um campo **DESTAQUES_OBRIGATORIOS** com contadores numéricos explícitos — DEVES mencionar TODOS no resumo, mesmo que o valor seja 0
-- Estrutura OBRIGATÓRIA do resumo:
+- Estrutura OBRIGATÓRIA do resumo (TODAS as secções):
   1. **Tarefas**: concluídas, criadas, atrasadas (com nomes se houver)
   2. **Reuniões**: total, confirmadas, por confirmar, com pedidos de alteração do portal
-  3. **Vendas**: total e valor
-  4. **Despesas**: total e valor
-  5. **Portal dos Clientes**: quem visitou, quem respondeu a perguntas (com contagem X/Y), pedidos de alteração
-  6. **Novos clientes e leads**
-  7. **Conteúdos**: publicados e agendados
+  3. **Vendas & Financeiro**: vendas, entradas, despesas, documentos financeiros carregados, pagamentos de equipa
+  4. **Projetos & Entregáveis**: projetos atualizados, entregáveis concluídos
+  5. **Portal dos Clientes**: quem visitou, quem respondeu a perguntas (com contagem X/Y), feedback, comentários
+  6. **Clientes**: novos, onboarding, offboarding
+  7. **Leads & Comercial**: novos leads
+  8. **Equipa**: onboarding de colaboradores, contratos carregados, ausências, horas registadas
+  9. **Conteúdos & Marketing**: publicados, agendados
+  10. **Mural**: publicações
+  11. **SOPs & Processos**: criados ou atualizados
+  12. **Planeamento**: objetivos atualizados
 - NUNCA omitas uma secção. Se não houve atividade, escreve "Sem atividade neste período."
 - Se houver muitos dados dentro de cada secção, agrupa e resume em vez de listar tudo
 
