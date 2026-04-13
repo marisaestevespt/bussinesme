@@ -946,7 +946,6 @@ export default function ProjetoDetailPage() {
             )}
           </div>
 
-          <Separator />
 
           {/* ─── 3 Tabs ──────────────────────────────────────── */}
           <Tabs defaultValue="projeto" className="w-full">
