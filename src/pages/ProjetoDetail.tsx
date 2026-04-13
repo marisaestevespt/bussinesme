@@ -1320,6 +1320,36 @@ export default function ProjetoDetailPage() {
         defaultProjectId={id}
         defaultProjectName={local.name}
       />
+
+      {/* Members dialog */}
+      <Dialog open={membersDialogOpen} onOpenChange={setMembersDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Equipa do Projeto</DialogTitle></DialogHeader>
+          <div className="space-y-1 max-h-80 overflow-y-auto">
+            {profiles.map(p => {
+              const isMember = projectMembers.includes(p.id);
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => toggleMember.mutate(p.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
+                    isMember ? "bg-primary/10 text-foreground" : "hover:bg-muted text-muted-foreground"
+                  )}
+                >
+                  <Avatar className="h-7 w-7">
+                    <AvatarImage src={p.avatar_url || ''} />
+                    <AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback>
+                  </Avatar>
+                  <span className="flex-1 text-left">{p.full_name || 'Sem nome'}</span>
+                  {isMember && <CheckSquare className="h-4 w-4 text-primary" />}
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
