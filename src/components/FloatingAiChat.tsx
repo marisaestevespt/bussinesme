@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageCircle, X, Send, Loader2, Sparkles, Bot, RotateCcw, Check, XCircle, Paperclip, FileText, Image as ImageIcon } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, Sparkles, Bot, RotateCcw, Check, XCircle, Paperclip, FileText, Image as ImageIcon, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
@@ -265,6 +265,22 @@ export function FloatingAiChat() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
   };
 
+  const downloadResponse = (content: string) => {
+    // Strip markdown for cleaner text file
+    const cleaned = content
+      .replace(/\*\*(.+?)\*\*/g, '$1')
+      .replace(/`(.+?)`/g, '$1')
+      .replace(/^#{1,3}\s/gm, '')
+      .replace(/^[-•]\s/gm, '- ');
+    const blob = new Blob([cleaned], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `lirah-resumo-${new Date().toISOString().split('T')[0]}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const renderContent = (text: string) => {
     const lines = text.split("\n");
     return lines.map((line, i) => {
@@ -381,9 +397,9 @@ export function FloatingAiChat() {
                   <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-1">Experimenta perguntar</p>
                   {[
                     { icon: "👥", text: "Quantos clientes ativos tenho?" },
+                    { icon: "📅", text: "Resumo de 1 a 13 de abril" },
                     { icon: "✅", text: "Cria uma tarefa para amanhã" },
                     { icon: "📎", text: "Analisa este PDF e cria o produto" },
-                    { icon: "📅", text: "Marca a reunião de hoje como concluída" },
                     { icon: "📊", text: "Como estão as vendas este trimestre?" },
                     { icon: "📧", text: "Envia um email ao João" },
                   ].map((q) => (
@@ -417,6 +433,16 @@ export function FloatingAiChat() {
                   {msg.role === "assistant" ? renderContent(msg.content) : msg.content}
                   {msg.file && renderFileAttachment(msg.file)}
                   {msg.action_proposal && renderActionProposal(msg.action_proposal, i, msg.confirmed)}
+                  {msg.role === "assistant" && msg.content.length > 200 && !msg.action_proposal && (
+                    <button
+                      onClick={() => downloadResponse(msg.content)}
+                      className="flex items-center gap-1 mt-2 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                      title="Descarregar resumo"
+                    >
+                      <Download className="h-3 w-3" />
+                      <span>Descarregar</span>
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

@@ -53,6 +53,22 @@ const TOOLS = [
   {
     type: "function",
     function: {
+      name: "period_summary",
+      description: `Generate a comprehensive business summary for a date range. Use when the user asks things like "o que aconteceu de X a Y", "resumo da semana", "resumo das férias", "o que foi feito ontem", etc.
+Gathers data from: audit_logs (all actions), tasks (completed), meetings (held/confirmed), sales, expenses, notifications (portal activity from clients), client_onboarding changes, and more.`,
+      parameters: {
+        type: "object",
+        properties: {
+          start_date: { type: "string", description: "Start date in YYYY-MM-DD format" },
+          end_date: { type: "string", description: "End date in YYYY-MM-DD format" },
+        },
+        required: ["start_date", "end_date"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "propose_action",
       description: `Propose a SINGLE write action (create, update, delete, send_email) that requires user confirmation.
 Use this for simple, single-step operations. For multi-step operations, use propose_workflow instead.
@@ -181,9 +197,8 @@ The workflow will NOT execute yet — the user sees a summary and confirms once.
     },
   },
 ];
-
-const BLOCKED_TABLES = new Set(["audit_logs", "member_sensitive_access", "backups", "user_roles", "profiles"]);
-const READONLY_TABLES = new Set(["business_settings", "business_setup", "automation_settings", "system_config"]);
+const BLOCKED_TABLES = new Set(["member_sensitive_access", "backups", "user_roles", "profiles"]);
+const READONLY_TABLES = new Set(["business_settings", "business_setup", "automation_settings", "system_config", "audit_logs"]);
 const PRODUCT_MUTABLE_FIELDS = new Set([
   "name",
   "description",
@@ -449,6 +464,7 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
           marca: ["brand_competitors", "brand_differentials", "brand_swot_items", "brand_visual_cards"],
           configuracoes: ["business_settings", "business_setup", "automation_settings", "kpi_settings", "departments"],
           conteudo: ["content_items", "content_attachments", "sops", "internal_documents", "mural_posts"],
+          sistema: ["audit_logs (somente leitura)", "notifications"],
         },
       };
     }
@@ -496,6 +512,103 @@ async function executeTool(toolName: string, args: Record<string, unknown>, supa
       if (error) return { error: error.message };
       if (countOnly) return { total: count };
       return { data, total: count };
+    }
+
+    case "period_summary": {
+      const startDate = args.start_date as string;
+      const endDate = args.end_date as string;
+      // Add one day to end_date to make it inclusive
+      const endDateExclusive = new Date(endDate);
+      endDateExclusive.setDate(endDateExclusive.getDate() + 1);
+      const endExcl = endDateExclusive.toISOString().split("T")[0];
+
+      const [auditRes, tasksRes, meetingsRes, salesRes, expensesRes, notifRes, clientsRes, leadsRes, contentRes] = await Promise.all([
+        // Audit logs - all actions in the period
+        supabaseAdmin.from("audit_logs").select("action, entity_type, entity_id, user_name, created_at, metadata")
+          .gte("created_at", startDate).lt("created_at", endExcl).order("created_at", { ascending: false }).limit(200),
+        // Tasks completed in period
+        supabaseAdmin.from("tasks").select("name, status, assigned_to, deadline, department, updated_at")
+          .eq("status", "concluida").gte("updated_at", startDate).lt("updated_at", endExcl).limit(100),
+        // Meetings in period
+        supabaseAdmin.from("meetings").select("title, date_time, status, client_name, department, portal_notes, duration_minutes")
+          .gte("date_time", startDate).lt("date_time", endExcl).order("date_time").limit(100),
+        // Sales created/updated in period
+        supabaseAdmin.from("commercial_sales").select("sale_id, client, product, invoice_total, status, payment_date, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // Expenses in period
+        supabaseAdmin.from("financial_expenses").select("expense_id, description, total_with_vat, category, status, expense_date")
+          .gte("expense_date", startDate).lt("expense_date", endExcl).limit(50),
+        // Notifications (includes portal activity)
+        supabaseAdmin.from("notifications").select("type, title, message, link, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).order("created_at", { ascending: false }).limit(100),
+        // New clients in period
+        supabaseAdmin.from("clients").select("full_name, status, created_at, start_date")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // New leads in period
+        supabaseAdmin.from("crm_leads").select("name, status, source, created_at")
+          .gte("created_at", startDate).lt("created_at", endExcl).limit(50),
+        // Content published in period
+        supabaseAdmin.from("content_items").select("title, status, format, scheduled_at")
+          .gte("scheduled_at", startDate).lt("scheduled_at", endExcl).limit(50),
+      ]);
+
+      // Group audit logs by entity_type and action
+      const auditSummary: Record<string, number> = {};
+      for (const log of auditRes.data || []) {
+        const key = `${log.action}:${log.entity_type}`;
+        auditSummary[key] = (auditSummary[key] || 0) + 1;
+      }
+
+      // Portal-specific activity from notifications
+      const portalActivity = (notifRes.data || []).filter((n: any) =>
+        n.title?.includes("portal") || n.title?.includes("Portal") ||
+        n.title?.includes("submeteu") || n.title?.includes("Respostas") ||
+        n.title?.includes("confirmou") || n.title?.includes("horário alternativo") ||
+        n.message?.includes("portal") || n.message?.includes("submeteu")
+      );
+
+      // Meeting status breakdown
+      const meetingsByStatus: Record<string, number> = {};
+      for (const m of meetingsRes.data || []) {
+        meetingsByStatus[m.status] = (meetingsByStatus[m.status] || 0) + 1;
+      }
+
+      // Meetings with portal notes (client requested changes)
+      const meetingsWithPortalNotes = (meetingsRes.data || []).filter((m: any) => m.portal_notes);
+
+      return {
+        periodo: `${startDate} a ${endDate}`,
+        resumo_acoes: auditSummary,
+        acoes_detalhadas: (auditRes.data || []).slice(0, 50).map((l: any) => ({
+          acao: l.action, tipo: l.entity_type, por: l.user_name, quando: l.created_at, detalhes: l.metadata,
+        })),
+        tarefas_concluidas: {
+          total: (tasksRes.data || []).length,
+          lista: (tasksRes.data || []).map((t: any) => ({ nome: t.name, responsavel: t.assigned_to, departamento: t.department })),
+        },
+        reunioes: {
+          total: (meetingsRes.data || []).length,
+          por_status: meetingsByStatus,
+          lista: (meetingsRes.data || []).map((m: any) => ({ titulo: m.title, data: m.date_time, status: m.status, cliente: m.client_name })),
+          com_notas_portal: meetingsWithPortalNotes.map((m: any) => ({ titulo: m.title, notas_cliente: m.portal_notes })),
+        },
+        vendas: {
+          total: (salesRes.data || []).length,
+          valor_total: (salesRes.data || []).reduce((s: number, v: any) => s + (Number(v.invoice_total) || 0), 0),
+          lista: salesRes.data || [],
+        },
+        despesas: {
+          total: (expensesRes.data || []).length,
+          valor_total: (expensesRes.data || []).reduce((s: number, e: any) => s + (Number(e.total_with_vat) || 0), 0),
+          lista: expensesRes.data || [],
+        },
+        atividade_portal_clientes: portalActivity.map((n: any) => ({
+          titulo: n.title, mensagem: n.message, quando: n.created_at,
+        })),
+        novos_clientes: clientsRes.data || [],
+        novos_leads: leadsRes.data || [],
+        conteudos: (contentRes.data || []).map((c: any) => ({ titulo: c.title, status: c.status, formato: c.format })),
+      };
     }
 
     case "propose_action": {
@@ -610,6 +723,7 @@ Tens acesso TOTAL à base de dados do sistema. Podes:
 - **Enviar emails**
 - **Executar workflows completos** com múltiplos passos encadeados
 - **Analisar ficheiros** (PDF, imagens, CSV) enviados pelo utilizador
+- **Gerar resumos de período** com period_summary — ideal para quando o utilizador esteve de férias ou quer saber o que aconteceu num período
 
 ⚠️ REGRAS CRÍTICAS:
 
@@ -619,6 +733,14 @@ Tens acesso TOTAL à base de dados do sistema. Podes:
 4. SEMPRE usa as ferramentas propose_action ou propose_workflow para confirmar. NUNCA peças confirmação apenas por texto — o frontend precisa do tool call para mostrar os botões de confirmação.
 5. Antes de propor criar/editar em tabelas que não conheces bem, usa list_tables para verificar colunas. Mas para tabelas listadas acima (tasks, clients, projects, etc.) já tens a informação — não precisas de verificar.
 6. NÃO faças perguntas desnecessárias. Se o utilizador não mencionou assigned_to, client_id, project_id, etc., deixa-os como null. Propõe a ação imediatamente com os dados fornecidos.
+
+📅 RESUMO DE PERÍODO:
+Quando o utilizador pedir "o que aconteceu de X a Y", "resumo das férias", "o que foi feito na última semana", etc.:
+- Usa a ferramenta **period_summary** com as datas
+- O resultado inclui: log de auditoria (todas as ações), tarefas concluídas, reuniões, vendas, despesas, atividade do portal dos clientes (respostas submetidas, confirmações de reunião, pedidos de alteração), novos clientes, novos leads, e conteúdos
+- Apresenta o resumo de forma organizada com secções claras, emojis e destaques
+- Destaca especialmente a **atividade dos clientes no portal** (confirmações, submissões de respostas, pedidos de alteração de reuniões)
+- Se houver muitos dados, agrupa e resume em vez de listar tudo
 
 📎 FICHEIROS:
 Quando o utilizador envia um ficheiro (PDF, imagem, etc.):
@@ -637,6 +759,7 @@ Exemplo: step 1 cria cliente → step 2 cria projeto com client_id = "{{step_1.i
 Ferramentas:
 - **list_tables**: Descobre tabelas e colunas disponíveis. Usa SEMPRE antes de criar/editar para verificar a estrutura.
 - **query_table**: Consulta qualquer tabela com filtros.
+- **period_summary**: Gera resumo completo de um período (auditoria, tarefas, reuniões, vendas, portal, etc.).
 - **propose_action**: Propõe 1 ação para confirmação.
 - **propose_workflow**: Propõe múltiplas ações encadeadas para confirmação única.
 - **execute_confirmed_action**: Executa 1 ação confirmada.
