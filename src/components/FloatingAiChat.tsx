@@ -433,6 +433,16 @@ export function FloatingAiChat() {
                   {msg.role === "assistant" ? renderContent(msg.content) : msg.content}
                   {msg.file && renderFileAttachment(msg.file)}
                   {msg.action_proposal && renderActionProposal(msg.action_proposal, i, msg.confirmed)}
+                  {msg.role === "assistant" && msg.content.length > 200 && !msg.action_proposal && (
+                    <button
+                      onClick={() => downloadResponse(msg.content)}
+                      className="flex items-center gap-1 mt-2 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                      title="Descarregar resumo"
+                    >
+                      <Download className="h-3 w-3" />
+                      <span>Descarregar</span>
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
