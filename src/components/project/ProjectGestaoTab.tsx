@@ -684,7 +684,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
               return (
                 <div
                   key={s.id}
-                  className="px-4 py-2 text-xs grid grid-cols-7 gap-2 border-b items-center cursor-pointer hover:bg-muted/50"
+                  className="px-4 py-2.5 text-sm grid grid-cols-7 gap-2 border-b items-center cursor-pointer hover:bg-muted/50"
                   onClick={() => setSelectedSaleId(s.id)}
                 >
                   <span><Badge variant="outline" className={`text-[10px] ${si.color}`}>{si.label}</Badge></span>
@@ -744,7 +744,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
               return (
                 <div
                   key={m.id}
-                  className="px-4 py-2 text-xs grid grid-cols-4 gap-2 border-b items-center cursor-pointer hover:bg-muted/50"
+                  className="px-4 py-2.5 text-sm grid grid-cols-4 gap-2 border-b items-center cursor-pointer hover:bg-muted/50"
                   onClick={() => navigate(`/hub/reunioes/${m.id}`)}
                 >
                   <span>
