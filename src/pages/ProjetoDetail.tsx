@@ -353,53 +353,58 @@ export default function ProjetoDetailPage() {
     enabled: !!id,
   });
 
-  // Fetch onboarding/offboarding for client projects
-  const { data: clientForProject } = useQuery({
-    queryKey: ['client-by-name', project?.client_id, project?.client_name],
+  const { data: projectPhases = [] } = useQuery({
+    queryKey: ['project-phases', id],
     queryFn: async () => {
-      // Use client_id directly if available, otherwise lookup by name
-      if (project!.client_id) {
-        return { id: project!.client_id };
-      }
-      const { data } = await supabase.from('clients').select('id').eq('full_name', project!.client_name!).maybeSingle();
-      return data as { id: string } | null;
+      const { data } = await (supabase as any).from('project_phases').select('*').eq('project_id', id!).order('sort_order');
+      return (data || []) as { status: string }[];
     },
-    enabled: !!(project?.client_id || project?.client_name),
+    enabled: !!id,
   });
-  const resolvedClientId = clientForProject?.id;
-  const { data: clientOnboardingItems = [] } = useQuery({
-    queryKey: ['client-onboarding-project', resolvedClientId],
+
+  const { data: projectDeliverables = [] } = useQuery({
+    queryKey: ['project-deliverables', id],
     queryFn: async () => {
-      const { data } = await supabase.from('client_onboarding' as any).select('completed').eq('client_id', resolvedClientId!);
-      return (data || []) as unknown as { completed: boolean }[];
+      const { data } = await (supabase as any).from('project_deliverables').select('*').eq('project_id', id!).order('sort_order');
+      return (data || []) as { status: string }[];
     },
-    enabled: !!resolvedClientId,
-  });
-  const { data: clientOffboardingItems = [] } = useQuery({
-    queryKey: ['client-offboarding-project', resolvedClientId],
-    queryFn: async () => {
-      const { data } = await supabase.from('client_offboarding' as any).select('completed').eq('client_id', resolvedClientId!);
-      return (data || []) as unknown as { completed: boolean }[];
-    },
-    enabled: !!resolvedClientId,
+    enabled: !!id,
   });
 
   function getProjectProgress() {
-    const tasksDone = tasks.filter(t => t.status === 'concluida').length;
-    const boardingTotal = clientOnboardingItems.length + clientOffboardingItems.length;
-    const boardingDone = clientOnboardingItems.filter(i => i.completed).length + clientOffboardingItems.filter(i => i.completed).length;
-    const total = tasks.length + boardingTotal;
-    if (total === 0) return 0;
-    return Math.round(((tasksDone + boardingDone) / total) * 100);
+    if (projectDeliverables.length > 0) {
+      const completed = projectDeliverables.filter((d: any) => d.status === 'concluido').length;
+      return Math.round((completed / projectDeliverables.length) * 100);
+    }
+
+    if (projectPhases.length > 0) {
+      const completed = projectPhases.filter((p: any) => p.status === 'concluida').length;
+      return Math.round((completed / projectPhases.length) * 100);
+    }
+
+    return 0;
   }
 
-  // Auto-save progress when it changes
+  function getProjectProgressSummary() {
+    if (projectDeliverables.length > 0) {
+      const completed = projectDeliverables.filter((d: any) => d.status === 'concluido').length;
+      return `${completed}/${projectDeliverables.length} points concluídos`;
+    }
+
+    if (projectPhases.length > 0) {
+      const completed = projectPhases.filter((p: any) => p.status === 'concluida').length;
+      return `${completed}/${projectPhases.length} fases concluídas`;
+    }
+
+    return 'Sem fases ou points definidos';
+  }
+
   const autoProgress = getProjectProgress();
   useEffect(() => {
     if (local && autoProgress !== local.progress) {
       supabase.from('projects').update({ progress: autoProgress }).eq('id', local.id);
     }
-  }, [autoProgress, local?.id]);
+  }, [autoProgress, local?.id, local?.progress]);
 
   // Deadline overdue check
   const isOverdue = local?.deadline && local.status !== 'concluido' && local.status !== 'cancelado' && new Date(local.deadline) < new Date();
@@ -458,7 +463,7 @@ export default function ProjetoDetailPage() {
         departments: local.departments,
         client_name: local.client_name, client_id: local.client_id,
         product_id: local.product_id, product_name: local.product_name,
-        start_date: local.start_date, deadline: local.deadline, progress: local.progress, notes: local.notes,
+        start_date: local.start_date, deadline: local.deadline, notes: local.notes,
         objetivo: local.objetivo, diretrizes: local.diretrizes, cronograma: local.cronograma, dependencias: local.dependencias,
         entregaveis: local.entregaveis, recursos: local.recursos, project_notes: local.project_notes,
         closure_good: local.closure_good, closure_bad: local.closure_bad, closure_lessons: local.closure_lessons,
@@ -816,7 +821,7 @@ export default function ProjetoDetailPage() {
             </div>
             {!isRecorrente && (
               <div>
-                <Label className="text-xs">Progresso ({getProjectProgress()}%)</Label><Progress value={getProjectProgress()} className="h-2 mt-3" /><p className="text-[10px] text-muted-foreground mt-1">{tasks.filter(t => t.status === 'concluida').length}/{tasks.length} tarefas{clientOnboardingItems.length + clientOffboardingItems.length > 0 ? ` + ${clientOnboardingItems.filter(i => i.completed).length + clientOffboardingItems.filter(i => i.completed).length}/${clientOnboardingItems.length + clientOffboardingItems.length} boarding` : ''}{projectCost > 0 ? ` • Custo: ${formatCost(projectCost)}` : ''}</p>
+                <Label className="text-xs">Progresso ({getProjectProgress()}%)</Label><Progress value={getProjectProgress()} className="h-2 mt-3" /><p className="text-[10px] text-muted-foreground mt-1">{getProjectProgressSummary()}{projectCost > 0 ? ` • Custo: ${formatCost(projectCost)}` : ''}</p>
               </div>
             )}
             <InvoiceUpload
