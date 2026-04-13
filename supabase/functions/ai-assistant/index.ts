@@ -567,7 +567,27 @@ function resolveRefs(value: unknown, stepResults: Record<number, Record<string, 
   return value;
 }
 
-async function executeSingleAction(
+// Apply a single filter to a Supabase query, supporting all common operators
+function applyFilter(query: any, f: { column: string; operator: string; value: string }): any {
+  switch (f.operator) {
+    case "eq": return query.eq(f.column, f.value);
+    case "neq": case "not.eq": return query.neq(f.column, f.value);
+    case "gt": return query.gt(f.column, f.value);
+    case "gte": return query.gte(f.column, f.value);
+    case "lt": return query.lt(f.column, f.value);
+    case "lte": return query.lte(f.column, f.value);
+    case "like": return query.like(f.column, `%${f.value}%`);
+    case "ilike": return query.ilike(f.column, `%${f.value}%`);
+    case "is": return query.is(f.column, f.value === "null" ? null : f.value);
+    case "not.is": return query.not(f.column, "is", f.value === "null" ? null : f.value);
+    case "in": return query.in(f.column, f.value.split(",").map((v: string) => v.trim()));
+    default:
+      console.warn(`Unknown filter operator: ${f.operator}, falling back to eq`);
+      return query.eq(f.column, f.value);
+  }
+}
+
+
   actionType: string,
   details: Record<string, unknown>,
   supabaseAdmin: ReturnType<typeof createClient>
@@ -615,19 +635,18 @@ async function executeSingleAction(
       if (filters.length === 0) return { error: "Update requer pelo menos um filtro para segurança." };
       let query = supabaseAdmin.from(tableName).update(data);
       for (const f of filters) {
-        if (f.operator === "eq") query = query.eq(f.column, f.value);
-        else if (f.operator === "in") query = query.in(f.column, f.value.split(","));
+        query = applyFilter(query, f);
       }
       const { data: result, error } = await query.select();
       if (error) return { error: error.message };
+      if (!result || result.length === 0) return { error: "Nenhum registo encontrado com os filtros especificados. Verifica se os valores estão corretos (nomes completos, IDs, etc.)." };
       return { success: true, updated: result, count: result?.length || 0, ...(result?.[0] || {}) };
     }
     case "delete": {
       if (filters.length === 0) return { error: "Delete requer pelo menos um filtro para segurança." };
       let query = supabaseAdmin.from(tableName).delete();
       for (const f of filters) {
-        if (f.operator === "eq") query = query.eq(f.column, f.value);
-        else if (f.operator === "in") query = query.in(f.column, f.value.split(","));
+        query = applyFilter(query, f);
       }
       const { data: result, error } = await query.select();
       if (error) return { error: error.message };
@@ -1176,6 +1195,10 @@ Tens acesso TOTAL à base de dados do sistema. Podes:
 8. NUNCA inventes valores de status, tipo, ou categoria. Se não tens a certeza do valor exato, usa **list_column_values** para descobrir os valores reais. Ex: antes de filtrar projects por status, chama list_column_values(table="projects", column="status") para ver os valores disponíveis.
 6. NÃO faças perguntas desnecessárias. Se o utilizador não mencionou assigned_to, client_id, project_id, etc., deixa-os como null. Propõe a ação imediatamente com os dados fornecidos.
 7. NUNCA coloques nomes humanos em campos terminados em _id. Se só tens o nome do cliente/projeto/produto, usa a coluna de nome correspondente (ex: full_name, client_name, project_name, product_name) ou resolve primeiro o UUID.
+8. **FILTROS EM AÇÕES DE UPDATE/DELETE**: Para garantir que o filtro encontra o registo correto:
+   - SEMPRE que possível, resolve o **UUID** primeiro com query_table e usa filtro por **id** com operador **eq**
+   - Se usares nomes em filtros, usa operador **ilike** (não eq) para correspondência parcial — ex: client_name com ilike "orlando" em vez de eq "orlando"
+   - Se a execução retornar "Nenhum registo encontrado", informa o utilizador em vez de dizer que foi feito
 
 📅 RESUMO DE PERÍODO:
 Quando o utilizador pedir "o que aconteceu de X a Y", "resumo das férias", "o que foi feito na última semana", etc.:
