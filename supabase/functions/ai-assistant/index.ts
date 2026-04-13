@@ -588,6 +588,7 @@ function applyFilter(query: any, f: { column: string; operator: string; value: s
 }
 
 
+async function executeSingleAction(
   actionType: string,
   details: Record<string, unknown>,
   supabaseAdmin: ReturnType<typeof createClient>
