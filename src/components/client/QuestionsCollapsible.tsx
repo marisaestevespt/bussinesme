@@ -191,8 +191,13 @@ export function QuestionsCollapsible({
                       </TableRow>
                     );
                   })}
-                </TableBody>
-              </Table>
+                          </TableBody>
+                        </Table>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()
             )}
           </CardContent>
         </CollapsibleContent>
