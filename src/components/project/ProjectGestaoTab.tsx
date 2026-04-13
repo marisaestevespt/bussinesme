@@ -792,7 +792,7 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
             <p className="text-center text-muted-foreground py-6 text-sm">Sem reuniões associadas</p>
           ) : (
             allMeetings.map((m: any) => {
-              const ms = MEETING_STATUSES[m.status] || { label: m.status, color: 'hsl(var(--muted-foreground))' };
+              const ms = MEETING_STATUSES[m.status] || { label: m.status, badgeColor: 'bg-muted text-muted-foreground border-muted', color: 'hsl(var(--muted-foreground))' };
               return (
                 <div
                   key={m.id}
