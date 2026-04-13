@@ -131,21 +131,44 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
     if (projectPaymentMethod && !payMethod) {
       setPayMethod(projectPaymentMethod);
     }
-  }, [projectPaymentMethod]);
+  }, [projectPaymentMethod, payMethod]);
 
-  // Persist payment config to project whenever it changes (skip if unchanged)
-  const prevConfigRef = useRef<string>(JSON.stringify(projectPaymentConfig || {}));
-  useEffect(() => {
-    if (!onUpdateProject) return;
-    const config = { totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity, paymentMethodType, entradaPaymentMethod, prestacoesPaymentMethod };
-    const configStr = JSON.stringify(config);
-    if (configStr === prevConfigRef.current) return;
-    prevConfigRef.current = configStr;
-    const timer = setTimeout(() => {
-      onUpdateProject('payment_config', config);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, [totalValue, entradaValue, numPrestacoes, payDay, numMeses, avencaValue, subscricaoValue, subscricaoPeriodicity, paymentMethodType, entradaPaymentMethod, prestacoesPaymentMethod]);
+  const paymentConfig = useMemo(
+    () => ({
+      totalValue,
+      entradaValue,
+      numPrestacoes,
+      payDay,
+      numMeses,
+      avencaValue,
+      subscricaoValue,
+      subscricaoPeriodicity,
+      paymentMethodType,
+      entradaPaymentMethod,
+      prestacoesPaymentMethod,
+    }),
+    [
+      totalValue,
+      entradaValue,
+      numPrestacoes,
+      payDay,
+      numMeses,
+      avencaValue,
+      subscricaoValue,
+      subscricaoPeriodicity,
+      paymentMethodType,
+      entradaPaymentMethod,
+      prestacoesPaymentMethod,
+    ],
+  );
+
+  const handleSavePaymentConfig = () => {
+    if (onUpdateProject) {
+      onUpdateProject('payment_method', payMethod || null);
+      onUpdateProject('payment_config', paymentConfig);
+    }
+    setPaymentLocked(true);
+  };
 
   // ─── Project sales ────────────────────────────────────────────
   const qc = useQueryClient();
@@ -508,191 +531,188 @@ export function ProjectGestaoTab({ projectId, projectName, clientName, clientId,
                 {payMethod === 'subscricao' && <div><span className="text-muted-foreground">Periodicidade:</span> {SUBSCRIPTION_PERIODICITIES.find(p => p.value === subscricaoPeriodicity)?.label}</div>}
               </div>
 
-              {hasExistingProjectSales && (
-                <Button variant="outline" size="sm" onClick={() => regenerateSales.mutate()} disabled={regenerateSales.isPending || generateSales.isPending} className="gap-1.5 mt-2">
-                  {regenerateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-                  Regenerar Pagamentos
-                </Button>
-              )}
             </div>
           ) : (
             /* ─── UNLOCKED: editable form ─── */
             <>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs">Forma de Pagamento</Label>
-              <Select
-                value={payMethod}
-                onValueChange={v => {
-                  setPayMethod(v);
-                  if (onUpdateProject) onUpdateProject('payment_method', v);
-                }}
-                disabled={!resolvedClientId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={resolvedClientId ? 'Selecionar forma...' : 'Associe um cliente ao projeto'} />
-                </SelectTrigger>
-                <SelectContent>
-                  {PAYMENT_FORMS.map(m => (
-                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {payMethod && payMethod !== 'entrada_prestacoes' && (
-              <div>
-                <Label className="text-xs">Método de Pagamento</Label>
-                <Select value={paymentMethodType} onValueChange={setPaymentMethodType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecionar método..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PAYMENT_METHOD_OPTIONS.map(m => (
-                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-
-          {payMethod === 'entrada_prestacoes' && (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs">Método — Entrada</Label>
-                <Select value={entradaPaymentMethod} onValueChange={setEntradaPaymentMethod}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecionar método..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PAYMENT_METHOD_OPTIONS.map(m => (
-                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Método — Prestações</Label>
-                <Select value={prestacoesPaymentMethod} onValueChange={setPrestacoesPaymentMethod}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecionar método..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PAYMENT_METHOD_OPTIONS.map(m => (
-                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
-
-          {/* Dynamic fields per method */}
-          {payMethod === 'pagamento_total' && (
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label className="text-xs">Valor Total s/ IVA (€)</Label><Input type="number" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="0.00" /></div>
-              <div className="flex items-end">
-                <Button onClick={() => generateSales.mutate()} disabled={generateSales.isPending || !totalValue || hasExistingProjectSales} className="gap-1.5">
-                  {generateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                  Gerar Pagamento
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {payMethod === 'entrada_prestacoes' && (
-            <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <div><Label className="text-xs">Valor Total s/ IVA (€)</Label><Input type="number" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="0.00" /></div>
-                <div><Label className="text-xs">Valor da Entrada (€)</Label><Input type="number" value={entradaValue} onChange={e => setEntradaValue(e.target.value)} placeholder="0.00" /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div><Label className="text-xs">Nº de Prestações</Label><Input type="number" value={numPrestacoes} onChange={e => setNumPrestacoes(e.target.value)} placeholder="3" /></div>
-                <div><Label className="text-xs">Dia de Pagamento</Label><Input type="number" value={payDay} onChange={e => setPayDay(e.target.value)} placeholder="1" min="1" max="28" /></div>
-              </div>
-              {totalValue && entradaValue && numPrestacoes && (
-                <p className="text-xs text-muted-foreground">
-                  Entrada: {parseFloat(entradaValue).toFixed(2)}€ + {numPrestacoes}x de {((parseFloat(totalValue) - parseFloat(entradaValue)) / parseInt(numPrestacoes)).toFixed(2)}€
-                </p>
-              )}
-              <Button onClick={() => generateSales.mutate()} disabled={generateSales.isPending || !totalValue || !entradaValue || !numPrestacoes || !payDay || hasExistingProjectSales} className="gap-1.5">
-                {generateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                Gerar Pagamentos
-              </Button>
-            </div>
-          )}
-
-          {payMethod === 'prestacoes' && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-3">
-                <div><Label className="text-xs">Valor Total s/ IVA (€)</Label><Input type="number" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="0.00" /></div>
-                <div><Label className="text-xs">Nº de Prestações</Label><Input type="number" value={numPrestacoes} onChange={e => setNumPrestacoes(e.target.value)} placeholder="3" /></div>
-                <div><Label className="text-xs">Dia de Pagamento</Label><Input type="number" value={payDay} onChange={e => setPayDay(e.target.value)} placeholder="1" min="1" max="28" /></div>
-              </div>
-              {totalValue && numPrestacoes && (
-                <p className="text-xs text-muted-foreground">
-                  {numPrestacoes}x de {(parseFloat(totalValue) / parseInt(numPrestacoes)).toFixed(2)}€
-                </p>
-              )}
-              <Button onClick={() => generateSales.mutate()} disabled={generateSales.isPending || !totalValue || !numPrestacoes || !payDay || hasExistingProjectSales} className="gap-1.5">
-                {generateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                Gerar Pagamentos
-              </Button>
-            </div>
-          )}
-
-          {payMethod === 'avenca_mensal' && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-3">
-                <div><Label className="text-xs">Nº de Meses</Label><Input type="number" value={numMeses} onChange={e => setNumMeses(e.target.value)} placeholder="12" /></div>
-                <div><Label className="text-xs">Dia de Pagamento</Label><Input type="number" value={payDay} onChange={e => setPayDay(e.target.value)} placeholder="1" min="1" max="28" /></div>
-                <div><Label className="text-xs">Valor Mensal s/ IVA (€)</Label><Input type="number" value={avencaValue} onChange={e => setAvencaValue(e.target.value)} placeholder="0.00" /></div>
-              </div>
-              {numMeses && avencaValue && (
-                <p className="text-xs text-muted-foreground">
-                  {numMeses}x de {parseFloat(avencaValue).toFixed(2)}€ = Total: {(parseInt(numMeses) * parseFloat(avencaValue)).toFixed(2)}€
-                </p>
-              )}
-              <Button onClick={() => generateSales.mutate()} disabled={generateSales.isPending || !numMeses || !payDay || !avencaValue || hasExistingProjectSales} className="gap-1.5">
-                {generateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                Gerar Pagamentos
-              </Button>
-            </div>
-          )}
-
-          {payMethod === 'subscricao' && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div><Label className="text-xs">Valor da Subscrição s/ IVA (€)</Label><Input type="number" value={subscricaoValue} onChange={e => setSubscricaoValue(e.target.value)} placeholder="0.00" /></div>
-                <div><Label className="text-xs">Periodicidade</Label>
-                  <Select value={subscricaoPeriodicity} onValueChange={setSubscricaoPeriodicity}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                <div>
+                  <Label className="text-xs">Forma de Pagamento</Label>
+                  <Select
+                    value={payMethod}
+                    onValueChange={setPayMethod}
+                    disabled={!resolvedClientId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={resolvedClientId ? 'Selecionar forma...' : 'Associe um cliente ao projeto'} />
+                    </SelectTrigger>
                     <SelectContent>
-                      {SUBSCRIPTION_PERIODICITIES.map(p => (
-                        <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                      {PAYMENT_FORMS.map(m => (
+                        <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
+                {payMethod && payMethod !== 'entrada_prestacoes' && (
+                  <div>
+                    <Label className="text-xs">Método de Pagamento</Label>
+                    <Select value={paymentMethodType} onValueChange={setPaymentMethodType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar método..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PAYMENT_METHOD_OPTIONS.map(m => (
+                          <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
-              {subscricaoValue && parseFloat(subscricaoValue) > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  {SUBSCRIPTION_PERIODICITIES.find(p => p.value === subscricaoPeriodicity)?.label}: {parseFloat(subscricaoValue).toFixed(2)}€
-                </p>
+
+              {payMethod === 'entrada_prestacoes' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Método — Entrada</Label>
+                    <Select value={entradaPaymentMethod} onValueChange={setEntradaPaymentMethod}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar método..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PAYMENT_METHOD_OPTIONS.map(m => (
+                          <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Método — Prestações</Label>
+                    <Select value={prestacoesPaymentMethod} onValueChange={setPrestacoesPaymentMethod}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar método..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PAYMENT_METHOD_OPTIONS.map(m => (
+                          <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               )}
-            </div>
-          )}
 
+              {/* Dynamic fields per method */}
+              {payMethod === 'pagamento_total' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label className="text-xs">Valor Total s/ IVA (€)</Label><Input type="number" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="0.00" /></div>
+                  <div className="flex items-end">
+                    <Button onClick={() => generateSales.mutate()} disabled={generateSales.isPending || !totalValue || hasExistingProjectSales} className="gap-1.5">
+                      {generateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                      Gerar Pagamento
+                    </Button>
+                  </div>
+                </div>
+              )}
 
-          {!billingStartDate && payMethod && (
-            <p className="text-xs text-destructive">⚠️ O projeto não tem data de início definida. Defina-a na ficha do projeto para gerar pagamentos.</p>
-          )}
+              {payMethod === 'entrada_prestacoes' && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label className="text-xs">Valor Total s/ IVA (€)</Label><Input type="number" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="0.00" /></div>
+                    <div><Label className="text-xs">Valor da Entrada (€)</Label><Input type="number" value={entradaValue} onChange={e => setEntradaValue(e.target.value)} placeholder="0.00" /></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label className="text-xs">Nº de Prestações</Label><Input type="number" value={numPrestacoes} onChange={e => setNumPrestacoes(e.target.value)} placeholder="3" /></div>
+                    <div><Label className="text-xs">Dia de Pagamento</Label><Input type="number" value={payDay} onChange={e => setPayDay(e.target.value)} placeholder="1" min="1" max="28" /></div>
+                  </div>
+                  {totalValue && entradaValue && numPrestacoes && (
+                    <p className="text-xs text-muted-foreground">
+                      Entrada: {parseFloat(entradaValue).toFixed(2)}€ + {numPrestacoes}x de {((parseFloat(totalValue) - parseFloat(entradaValue)) / parseInt(numPrestacoes)).toFixed(2)}€
+                    </p>
+                  )}
+                  <Button onClick={() => generateSales.mutate()} disabled={generateSales.isPending || !totalValue || !entradaValue || !numPrestacoes || !payDay || hasExistingProjectSales} className="gap-1.5">
+                    {generateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                    Gerar Pagamentos
+                  </Button>
+                </div>
+              )}
 
-          {payMethod && (
-            <Button onClick={() => setPaymentLocked(true)} className="gap-1.5">
-              <Save className="h-4 w-4" /> Guardar Configuração
-            </Button>
-          )}
+              {payMethod === 'prestacoes' && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div><Label className="text-xs">Valor Total s/ IVA (€)</Label><Input type="number" value={totalValue} onChange={e => setTotalValue(e.target.value)} placeholder="0.00" /></div>
+                    <div><Label className="text-xs">Nº de Prestações</Label><Input type="number" value={numPrestacoes} onChange={e => setNumPrestacoes(e.target.value)} placeholder="3" /></div>
+                    <div><Label className="text-xs">Dia de Pagamento</Label><Input type="number" value={payDay} onChange={e => setPayDay(e.target.value)} placeholder="1" min="1" max="28" /></div>
+                  </div>
+                  {totalValue && numPrestacoes && (
+                    <p className="text-xs text-muted-foreground">
+                      {numPrestacoes}x de {(parseFloat(totalValue) / parseInt(numPrestacoes)).toFixed(2)}€
+                    </p>
+                  )}
+                  <Button onClick={() => generateSales.mutate()} disabled={generateSales.isPending || !totalValue || !numPrestacoes || !payDay || hasExistingProjectSales} className="gap-1.5">
+                    {generateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                    Gerar Pagamentos
+                  </Button>
+                </div>
+              )}
+
+              {payMethod === 'avenca_mensal' && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div><Label className="text-xs">Nº de Meses</Label><Input type="number" value={numMeses} onChange={e => setNumMeses(e.target.value)} placeholder="12" /></div>
+                    <div><Label className="text-xs">Dia de Pagamento</Label><Input type="number" value={payDay} onChange={e => setPayDay(e.target.value)} placeholder="1" min="1" max="28" /></div>
+                    <div><Label className="text-xs">Valor Mensal s/ IVA (€)</Label><Input type="number" value={avencaValue} onChange={e => setAvencaValue(e.target.value)} placeholder="0.00" /></div>
+                  </div>
+                  {numMeses && avencaValue && (
+                    <p className="text-xs text-muted-foreground">
+                      {numMeses}x de {parseFloat(avencaValue).toFixed(2)}€ = Total: {(parseInt(numMeses) * parseFloat(avencaValue)).toFixed(2)}€
+                    </p>
+                  )}
+                  <Button onClick={() => generateSales.mutate()} disabled={generateSales.isPending || !numMeses || !payDay || !avencaValue || hasExistingProjectSales} className="gap-1.5">
+                    {generateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                    Gerar Pagamentos
+                  </Button>
+                </div>
+              )}
+
+              {payMethod === 'subscricao' && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label className="text-xs">Valor da Subscrição s/ IVA (€)</Label><Input type="number" value={subscricaoValue} onChange={e => setSubscricaoValue(e.target.value)} placeholder="0.00" /></div>
+                    <div><Label className="text-xs">Periodicidade</Label>
+                      <Select value={subscricaoPeriodicity} onValueChange={setSubscricaoPeriodicity}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {SUBSCRIPTION_PERIODICITIES.map(p => (
+                            <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  {subscricaoValue && parseFloat(subscricaoValue) > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {SUBSCRIPTION_PERIODICITIES.find(p => p.value === subscricaoPeriodicity)?.label}: {parseFloat(subscricaoValue).toFixed(2)}€
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {hasExistingProjectSales && payMethod && (
+                <Button variant="outline" onClick={() => regenerateSales.mutate()} disabled={regenerateSales.isPending || generateSales.isPending} className="gap-1.5">
+                  {regenerateSales.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+                  Regenerar Pagamentos
+                </Button>
+              )}
+
+              {!billingStartDate && payMethod && (
+                <p className="text-xs text-destructive">⚠️ O projeto não tem data de início definida. Defina-a na ficha do projeto para gerar pagamentos.</p>
+              )}
+
+              {payMethod && (
+                <Button onClick={handleSavePaymentConfig} className="gap-1.5">
+                  <Save className="h-4 w-4" /> Guardar Configuração
+                </Button>
+              )}
             </>
           )}
         </CardContent>
