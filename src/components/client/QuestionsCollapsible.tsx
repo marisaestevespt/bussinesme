@@ -79,8 +79,8 @@ export function QuestionsCollapsible({
                   <TableRow>
                     <TableHead className="w-[35%]">Pergunta</TableHead>
                     <TableHead>Resposta</TableHead>
-                    <TableHead className="w-[140px]">Data da Resposta</TableHead>
-                    <TableHead className="w-[100px]">Tipo</TableHead>
+                    <TableHead className="w-[160px] whitespace-nowrap">Data da Resposta</TableHead>
+                    <TableHead className="w-[110px]">Tipo</TableHead>
                     <TableHead className="w-[40px]" />
                   </TableRow>
                 </TableHeader>
