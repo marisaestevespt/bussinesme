@@ -10,8 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Copy, ExternalLink, Plus, Trash2, X, MessageSquare, RefreshCw, Upload, FileText, Image as ImageIcon } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Copy, ExternalLink, Plus, X, RefreshCw, Upload, FileText, Globe, Settings2, MessageCircle, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import {
@@ -19,7 +18,7 @@ import {
   usePortalComments,
   getPortalTypeFromProduct, Portal
 } from '@/hooks/usePortalData';
-import { useProducts, Product } from '@/hooks/useProducts';
+import { useProducts } from '@/hooks/useProducts';
 
 interface Props {
   clientId: string;
@@ -43,10 +42,7 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
   const { questions, addQuestion, updateQuestion, deleteQuestion } = usePortalQuestions(portalId);
   const { feedback } = usePortalFeedback(portalId);
   const { comments, addComment } = usePortalComments(portalId);
-  
-  
 
-  const [replyText, setReplyText] = useState('');
   const [uploadingMaterial, setUploadingMaterial] = useState(false);
 
   const { data: portalMaterials = [], refetch: refetchMaterials } = useQuery({
@@ -65,7 +61,6 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
     if (!portalType) { toast.error('Este tipo de produto não gera portal'); return; }
     await upsertPortal.mutateAsync({ client_id: clientId, portal_type: portalType });
     toast.success('Portal criado');
-    // Seed FAQs and diagnostic questions from product
     setTimeout(async () => {
       await seedFaqsFromProduct();
       await seedQuestionsFromProduct();
@@ -76,7 +71,6 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
     const portalRes = await supabase.from('client_portals').select('id').eq('client_id', clientId).maybeSingle();
     const pid = portalRes.data?.id;
     if (!pid || !product) return;
-    // Fetch diagnostic questions from product
     const { data: diagQuestions } = await (supabase as any)
       .from('product_diagnostic_questions')
       .select('*')
@@ -84,7 +78,6 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
       .order('sort_order');
     if (!diagQuestions || diagQuestions.length === 0) return;
 
-    // Fetch client + business data for auto-fill
     const [clientRes, businessRes] = await Promise.all([
       supabase.from('clients').select('email, nif, fiscal_address, full_name').eq('id', clientId).maybeSingle(),
       supabase.from('business_setup').select('*').limit(1).maybeSingle(),
@@ -139,12 +132,12 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
 
   if (!portalType) {
     return (
-      <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Portal de Cliente</CardTitle></CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-             O tipo de produto atual ({currentProduct || 'nenhum'}) não gera portal de cliente.
-            Apenas produtos do tipo Serviço Pontual, Consultoria, Mentoria, Workshop ou Serviço Mensal criam portal.
+      <Card className="border-dashed">
+        <CardContent className="py-8 text-center">
+          <Globe className="h-8 w-8 mx-auto text-muted-foreground/40 mb-3" />
+          <p className="text-sm font-medium text-muted-foreground">Portal de Cliente</p>
+          <p className="text-xs text-muted-foreground/70 mt-1">
+            O tipo de produto atual ({currentProduct || 'nenhum'}) não gera portal de cliente.
           </p>
         </CardContent>
       </Card>
@@ -153,11 +146,11 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
 
   if (!portalData) {
     return (
-      <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Portal de Cliente</CardTitle></CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground mb-3">Este cliente ainda não tem portal criado.</p>
-          <Button size="sm" onClick={createPortal}>Criar Portal</Button>
+      <Card className="border-dashed">
+        <CardContent className="py-8 text-center">
+          <Globe className="h-8 w-8 mx-auto text-muted-foreground/40 mb-3" />
+          <p className="text-sm font-medium text-muted-foreground">Este cliente ainda não tem portal criado.</p>
+          <Button size="sm" className="mt-4" onClick={createPortal}>Criar Portal</Button>
         </CardContent>
       </Card>
     );
@@ -167,31 +160,50 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
     updatePortal.mutate({ [field]: !portalData[field] } as any);
   };
 
+  const toggleItems = [
+    { label: 'Activo', field: 'is_active' as keyof Portal },
+    { label: 'Espaço de Trabalho', field: 'show_workspace' as keyof Portal },
+    { label: 'Reuniões', field: 'show_meetings' as keyof Portal },
+    { label: 'Pagamentos', field: 'show_payments' as keyof Portal },
+    { label: 'Onboarding', field: 'show_onboarding' as keyof Portal },
+    { label: 'Fases / Timeline', field: 'show_timeline' as keyof Portal },
+  ];
+
   return (
-    <div className="space-y-4">
-      {/* Portal settings */}
-      <Card>
-        <CardHeader className="pb-2">
+    <div className="space-y-5">
+      {/* Portal Settings Card */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-4 bg-muted/30 border-b">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm">Portal de Cliente</CardTitle>
-            <Badge variant={portalData.is_active ? 'default' : 'secondary'}>
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Globe className="h-4.5 w-4.5 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-base">Portal de Cliente</CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Tipo: {portalData.portal_type === 'projeto_unico' ? 'Projeto Único' : 'Serviço Mensal'}
+                </p>
+              </div>
+            </div>
+            <Badge variant={portalData.is_active ? 'default' : 'secondary'} className="text-xs px-3 py-1">
               {portalData.is_active ? 'Activo' : 'Inactivo'}
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* URL */}
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">URL do Portal</Label>
-            <div className="flex gap-2">
-              <Input value={portalUrl} readOnly className="text-xs font-mono" />
-              <Button variant="outline" size="icon" onClick={() => { navigator.clipboard.writeText(portalUrl); toast.success('Link copiado'); }}>
+        <CardContent className="pt-5 space-y-5">
+          {/* URL Section */}
+          <div className="space-y-2">
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">URL do Portal</Label>
+            <div className="flex gap-2 items-center">
+              <Input value={portalUrl} readOnly className="text-xs font-mono bg-muted/30 flex-1" />
+              <Button variant="outline" size="icon" className="shrink-0" onClick={() => { navigator.clipboard.writeText(portalUrl); toast.success('Link copiado'); }}>
                 <Copy className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" asChild>
+              <Button variant="outline" size="icon" className="shrink-0" asChild>
                 <a href={portalUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
               </Button>
-              <Button size="sm" onClick={() => {
+              <Button size="sm" className="shrink-0" onClick={() => {
                 localStorage.setItem(`portal_session_${portalData.id}`, JSON.stringify({
                   portal_id: portalData.id,
                   client_id: clientId,
@@ -199,18 +211,18 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
                 }));
                 window.open(`${window.location.origin}/portal/${portalData.token}/view`, '_blank');
               }}>
-                <ExternalLink className="h-3 w-3 mr-1" />Editar Portal
+                <ExternalLink className="h-3 w-3 mr-1.5" />Editar Portal
               </Button>
             </div>
           </div>
 
-          {/* Slug personalizado */}
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Slug personalizado (URL curta)</Label>
+          {/* Slug */}
+          <div className="space-y-2">
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Slug personalizado</Label>
             <div className="flex gap-2 items-center">
               <span className="text-xs text-muted-foreground whitespace-nowrap">{window.location.origin}/portal/</span>
               <Input
-                className="h-7 text-xs w-48"
+                className="h-8 text-xs w-48"
                 placeholder="ex: clever-counts"
                 defaultValue={slug || ''}
                 onBlur={async (e) => {
@@ -232,47 +244,62 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
             </div>
           </div>
 
-          {/* Tipo */}
-          <div className="text-xs text-muted-foreground">
-            Tipo: <Badge variant="outline">{portalData.portal_type === 'projeto_unico' ? 'Projeto Único' : 'Serviço Mensal'}</Badge>
-          </div>
-
           {/* Toggles */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <ToggleRow label="Activo" checked={portalData.is_active} onChange={() => toggleField('is_active')} />
-            <ToggleRow label="Espaço de Trabalho" checked={portalData.show_workspace} onChange={() => toggleField('show_workspace')} />
-            <ToggleRow label="Reuniões" checked={portalData.show_meetings} onChange={() => toggleField('show_meetings')} />
-            <ToggleRow label="Pagamentos" checked={portalData.show_payments} onChange={() => toggleField('show_payments')} />
-            <ToggleRow label="Onboarding" checked={portalData.show_onboarding} onChange={() => toggleField('show_onboarding')} />
-            <ToggleRow label="Fases / Timeline" checked={portalData.show_timeline} onChange={() => toggleField('show_timeline')} />
+          <div className="space-y-2">
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <Settings2 className="h-3.5 w-3.5" />
+              Secções visíveis
+            </Label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 rounded-lg border bg-muted/20 p-4">
+              {toggleItems.map(item => (
+                <div key={item.field} className="flex items-center justify-between gap-3">
+                  <Label className="text-sm font-normal">{item.label}</Label>
+                  <Switch checked={portalData[item.field] as boolean} onCheckedChange={() => toggleField(item.field)} />
+                </div>
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* FAQs management */}
-      <Card>
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-sm">FAQ's do Portal</CardTitle>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={importFaqsFromProduct}>
-              <RefreshCw className="h-3 w-3 mr-1" />Importar do Produto
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => addFaq.mutate({ portal_id: portalId!, question: '', sort_order: (faqs.data?.length || 0) })}>
-              <Plus className="h-3 w-3 mr-1" />Nova FAQ
-            </Button>
+      {/* FAQs */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3 bg-muted/30 border-b">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-lg bg-accent/15 flex items-center justify-center">
+                <HelpCircle className="h-4.5 w-4.5 text-accent-foreground" />
+              </div>
+              <CardTitle className="text-base">FAQ's do Portal</CardTitle>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={importFaqsFromProduct}>
+                <RefreshCw className="h-3 w-3 mr-1.5" />Importar do Produto
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => addFaq.mutate({ portal_id: portalId!, question: '', sort_order: (faqs.data?.length || 0) })}>
+                <Plus className="h-3 w-3 mr-1.5" />Nova FAQ
+              </Button>
+            </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="pt-4 space-y-3">
           {(faqs.data || []).map(f => (
-            <div key={f.id} className="flex gap-2 items-start">
-              <div className="flex-1 space-y-1">
-                <Input className="h-7 text-xs" defaultValue={f.question} placeholder="Pergunta" onBlur={e => updateFaq.mutate({ id: f.id, question: e.target.value })} />
-                <Textarea className="text-xs min-h-[40px]" defaultValue={f.answer || ''} placeholder="Resposta" onBlur={e => updateFaq.mutate({ id: f.id, answer: e.target.value })} rows={2} />
+            <div key={f.id} className="flex gap-3 items-start group rounded-lg border p-3 bg-background hover:bg-muted/20 transition-colors">
+              <div className="flex-1 space-y-2">
+                <Input className="h-8 text-sm font-medium" defaultValue={f.question} placeholder="Pergunta" onBlur={e => updateFaq.mutate({ id: f.id, question: e.target.value })} />
+                <Textarea className="text-sm min-h-[48px] resize-none" defaultValue={f.answer || ''} placeholder="Resposta" onBlur={e => updateFaq.mutate({ id: f.id, answer: e.target.value })} rows={2} />
               </div>
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteFaq.mutate(f.id)}><X className="h-3 w-3" /></Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-0.5" onClick={() => deleteFaq.mutate(f.id)}>
+                <X className="h-3.5 w-3.5" />
+              </Button>
             </div>
           ))}
-          {(faqs.data || []).length === 0 && <p className="text-xs text-muted-foreground">Sem FAQ's definidas</p>}
+          {(faqs.data || []).length === 0 && (
+            <div className="text-center py-6">
+              <HelpCircle className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
+              <p className="text-sm text-muted-foreground">Sem FAQ's definidas</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -286,88 +313,101 @@ export function ClientPortalSection({ clientId, clientName, currentProduct, prod
         seedQuestionsFromProduct={seedQuestionsFromProduct}
       />
 
-      {/* Feedback received */}
-      <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Feedback Recebido</CardTitle></CardHeader>
-        <CardContent className="space-y-2">
+      {/* Feedback */}
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3 bg-muted/30 border-b">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-info/10 flex items-center justify-center">
+              <MessageCircle className="h-4.5 w-4.5 text-info" />
+            </div>
+            <CardTitle className="text-base">Feedback Recebido</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-4 space-y-2">
           {(feedback.data || []).map(f => (
-            <div key={f.id} className="border rounded-md p-2 text-xs">
-              <p>{f.content}</p>
-              <p className="text-muted-foreground mt-1">{format(parseISO(f.submitted_at), 'dd/MM/yyyy HH:mm')}</p>
+            <div key={f.id} className="rounded-lg border p-3 bg-background">
+              <p className="text-sm leading-relaxed">{f.content}</p>
+              <p className="text-xs text-muted-foreground mt-2">{format(parseISO(f.submitted_at), 'dd/MM/yyyy HH:mm')}</p>
             </div>
           ))}
-          {(feedback.data || []).length === 0 && <p className="text-xs text-muted-foreground">Sem feedback recebido</p>}
+          {(feedback.data || []).length === 0 && (
+            <div className="text-center py-6">
+              <MessageCircle className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
+              <p className="text-sm text-muted-foreground">Sem feedback recebido</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-
-      {/* Timeline phases — now managed via project_phases, visible in portal automatically */}
-
-
       {/* Materials */}
       {(portalData as any).show_materials && (
-        <Card>
-          <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm">Entregáveis</CardTitle>
-            <label>
-              <input
-                type="file"
-                className="hidden"
-                multiple
-                onChange={async (e) => {
-                  if (!e.target.files?.length || !portalId) return;
-                  setUploadingMaterial(true);
-                  for (const file of Array.from(e.target.files)) {
-                    const path = `${portalId}/${Date.now()}-${file.name}`;
-                    const { error } = await supabase.storage.from('project-files').upload(path, file);
-                    if (error) { toast.error(`Erro: ${file.name}`); continue; }
-                    const { data: { publicUrl } } = supabase.storage.from('project-files').getPublicUrl(path);
-                    await supabase.from('portal_materials').insert({
-                      portal_id: portalId,
-                      file_url: publicUrl,
-                      file_name: file.name,
-                      file_type: file.type.startsWith('image') ? 'image' : 'file',
-                    } as any);
-                  }
-                  refetchMaterials();
-                  setUploadingMaterial(false);
-                  toast.success('Ficheiro(s) carregado(s)');
-                  e.target.value = '';
-                }}
-              />
-              <Button size="sm" variant="outline" asChild disabled={uploadingMaterial}>
-                <span className="cursor-pointer"><Upload className="h-3 w-3 mr-1" />{uploadingMaterial ? 'A carregar...' : 'Carregar'}</span>
-              </Button>
-            </label>
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3 bg-muted/30 border-b">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-success/10 flex items-center justify-center">
+                  <FileText className="h-4.5 w-4.5 text-success" />
+                </div>
+                <CardTitle className="text-base">Entregáveis</CardTitle>
+              </div>
+              <label>
+                <input
+                  type="file"
+                  className="hidden"
+                  multiple
+                  onChange={async (e) => {
+                    if (!e.target.files?.length || !portalId) return;
+                    setUploadingMaterial(true);
+                    for (const file of Array.from(e.target.files)) {
+                      const path = `${portalId}/${Date.now()}-${file.name}`;
+                      const { error } = await supabase.storage.from('project-files').upload(path, file);
+                      if (error) { toast.error(`Erro: ${file.name}`); continue; }
+                      const { data: { publicUrl } } = supabase.storage.from('project-files').getPublicUrl(path);
+                      await supabase.from('portal_materials').insert({
+                        portal_id: portalId,
+                        file_url: publicUrl,
+                        file_name: file.name,
+                        file_type: file.type.startsWith('image') ? 'image' : 'file',
+                      } as any);
+                    }
+                    refetchMaterials();
+                    setUploadingMaterial(false);
+                    toast.success('Ficheiro(s) carregado(s)');
+                    e.target.value = '';
+                  }}
+                />
+                <Button size="sm" variant="outline" asChild disabled={uploadingMaterial}>
+                  <span className="cursor-pointer"><Upload className="h-3 w-3 mr-1.5" />{uploadingMaterial ? 'A carregar...' : 'Carregar'}</span>
+                </Button>
+              </label>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="pt-4 space-y-2">
             {portalMaterials.map((m: any) => (
-              <div key={m.id} className="flex items-center justify-between gap-2 border rounded-md p-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <div key={m.id} className="flex items-center justify-between gap-3 rounded-lg border p-3 bg-background group hover:bg-muted/20 transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-8 w-8 rounded bg-muted/50 flex items-center justify-center shrink-0">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                  </div>
                   <a href={m.file_url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline truncate">{m.file_name}</a>
                 </div>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive shrink-0" onClick={async () => {
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={async () => {
                   await supabase.from('portal_materials').delete().eq('id', m.id);
                   refetchMaterials();
                 }}>
-                  <X className="h-3 w-3" />
+                  <X className="h-3.5 w-3.5" />
                 </Button>
               </div>
             ))}
-            {portalMaterials.length === 0 && <p className="text-xs text-muted-foreground">Sem entregáveis. Carrega ficheiros para partilhar com o cliente.</p>}
+            {portalMaterials.length === 0 && (
+              <div className="text-center py-6">
+                <FileText className="h-6 w-6 mx-auto text-muted-foreground/30 mb-2" />
+                <p className="text-sm text-muted-foreground">Sem entregáveis. Carrega ficheiros para partilhar com o cliente.</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
-    </div>
-  );
-}
-
-function ToggleRow({ label, checked, onChange }: { label: string; checked: boolean; onChange: () => void }) {
-  return (
-    <div className="flex items-center justify-between gap-2">
-      <Label className="text-xs">{label}</Label>
-      <Switch checked={checked} onCheckedChange={onChange} />
     </div>
   );
 }
