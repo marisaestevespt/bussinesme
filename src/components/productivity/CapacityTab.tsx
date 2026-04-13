@@ -682,7 +682,14 @@ function CapacitySimulatorView({ members: teamMembers, entries, clients: allClie
           const finData = items.map(item => {
             const realCount = realClientCounts[item.product_name] || 0;
             const simExtra = Number(item.current_clients);
-            const price = Number(item.price_per_client) || 0;
+            let price = Number(item.price_per_client) || 0;
+            // Fallback: if price is 0, try to get it from the live product
+            if (price === 0 && item.product_id) {
+              const sourceP = allProducts.find((p: Product) => p.id === item.product_id);
+              if (sourceP) {
+                price = parseFloat(String((sourceP as any).ticket || '0').replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
+              }
+            }
             const currentRevenue = realCount * price;
             const simRevenue = (realCount + simExtra) * price;
             return {
