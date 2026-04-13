@@ -10,12 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import {
-  CalendarIcon, ArrowLeft, Trash2, Upload, FileText, Users, Plus, X, ExternalLink, StickyNote, Repeat, ListTodo, MessageSquare,
+  CalendarIcon, ArrowLeft, Trash2, Upload, FileText, Users, Plus, X, ExternalLink, StickyNote, Repeat, ListTodo, MessageSquare, Clock, Video, Link2, FolderOpen, CheckSquare, Lightbulb,
 } from 'lucide-react';
 import { CreateTasksFromMeetingDialog } from '@/components/meeting/CreateTasksFromMeetingDialog';
 import { cn } from '@/lib/utils';
@@ -466,9 +466,16 @@ export default function ReuniaoDetailPage() {
   const typeLabels: Record<MeetingType, string> = { recorrente: 'Recorrente', projeto: 'Projeto', cliente: 'Cliente', diagnostico: 'Diagnóstico', inicial: 'Inicial' };
   const typeColors: Record<MeetingType, string> = { recorrente: '#6366f1', projeto: '#3b82f6', cliente: '#10b981', diagnostico: '#f59e0b', inicial: '#ec4899' };
 
+  const statusBadgeColors: Record<string, string> = {
+    por_organizar: 'bg-blue-100 text-blue-700 border-blue-300',
+    por_confirmar: 'bg-amber-100 text-amber-700 border-amber-300',
+    confirmada: 'bg-emerald-100 text-emerald-700 border-emerald-300',
+    terminada: 'bg-muted text-muted-foreground border-muted',
+  };
+
   return (
     <AppLayout>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <BackNavigation parentRoute="/hub/reunioes" parentLabel="Reuniões" />
@@ -513,235 +520,265 @@ export default function ReuniaoDetailPage() {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Header */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <input
-              value={m.title}
-              onChange={e => update({ title: e.target.value })}
-              className="text-2xl font-bold text-foreground bg-transparent border-none outline-none flex-1"
-            />
-            <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium" style={{ backgroundColor: `${typeColors[meetingType]}20`, color: typeColors[meetingType] }}>
-              {typeLabels[meetingType]}
-            </span>
-            {(isSeriesParent || isSeriesChild) && (
-              <Badge variant="outline" className="text-[10px] gap-1">
-                <Repeat className="h-3 w-3" /> Série
-              </Badge>
-            )}
-          </div>
+        {/* Title */}
+        <div className="flex items-center gap-3">
+          <input
+            value={m.title}
+            onChange={e => update({ title: e.target.value })}
+            className="text-2xl font-bold text-foreground bg-transparent border-none outline-none flex-1"
+          />
+          <Badge className={`text-[11px] font-semibold px-2.5 py-0.5`} style={{ backgroundColor: `${typeColors[meetingType]}20`, color: typeColors[meetingType], border: `1px solid ${typeColors[meetingType]}40` }}>
+            {typeLabels[meetingType]}
+          </Badge>
+          {(isSeriesParent || isSeriesChild) && (
+            <Badge variant="outline" className="text-[10px] gap-1">
+              <Repeat className="h-3 w-3" /> Série
+            </Badge>
+          )}
+        </div>
 
-          <div className="flex flex-wrap items-start gap-4 text-sm">
-            {/* Date/time */}
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Data e hora</Label>
-              <div className="flex items-center gap-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-7 text-xs">
-                      <CalendarIcon className="mr-1.5 h-3 w-3" />
-                      {format(parseISO(m.date_time), 'dd/MM/yyyy')}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={parseISO(m.date_time)}
-                      onSelect={day => {
-                        if (!day) return;
-                        const prev = parseISO(m.date_time);
-                        day.setHours(prev.getHours(), prev.getMinutes());
-                        update({ date_time: day.toISOString() });
-                      }}
-                      initialFocus
-                      className="p-3 pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
+        {/* ═══ CARD: Detalhes da Reunião ═══ */}
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3 bg-muted/30 border-b">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Video className="h-4 w-4 text-primary" />
+              </div>
+              <CardTitle className="text-base">Detalhes da Reunião</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-5 space-y-4">
+            {/* Row 1: Date, Status, Duration */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Data e hora</Label>
+                <div className="flex items-center gap-2">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-8 text-xs">
+                        <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                        {format(parseISO(m.date_time), 'dd/MM/yyyy')}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={parseISO(m.date_time)}
+                        onSelect={day => {
+                          if (!day) return;
+                          const prev = parseISO(m.date_time);
+                          day.setHours(prev.getHours(), prev.getMinutes());
+                          update({ date_time: day.toISOString() });
+                        }}
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <Input
+                    type="time"
+                    value={format(parseISO(m.date_time), 'HH:mm')}
+                    onChange={e => {
+                      const [h, min] = e.target.value.split(':').map(Number);
+                      const d = parseISO(m.date_time);
+                      d.setHours(h, min);
+                      update({ date_time: d.toISOString() });
+                    }}
+                    className="h-8 w-24 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Status</Label>
+                <Select value={m.status} onValueChange={v => update({ status: v as MeetingStatus })}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUSES.map(s => (
+                      <SelectItem key={s.value} value={s.value}>
+                        <span className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
+                          {s.label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" /> Duração (min)</Label>
                 <Input
-                  type="time"
-                  value={format(parseISO(m.date_time), 'HH:mm')}
-                  onChange={e => {
-                    const [h, min] = e.target.value.split(':').map(Number);
-                    const d = parseISO(m.date_time);
-                    d.setHours(h, min);
-                    update({ date_time: d.toISOString() });
-                  }}
-                  className="h-7 w-24 text-xs"
+                  type="number"
+                  min={0}
+                  value={m.duration_minutes || ''}
+                  onChange={e => update({ duration_minutes: parseInt(e.target.value) || 0 })}
+                  placeholder="Ex: 60"
+                  className="h-8 text-xs"
                 />
               </div>
             </div>
-            <Select value={m.status} onValueChange={v => update({ status: v as MeetingStatus })}>
-              <SelectTrigger className="w-auto h-7 text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {STATUSES.map(s => (
-                  <SelectItem key={s.value} value={s.value}>
-                    <span className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
-                      {s.label}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Duração (min)</Label>
-              <Input
-                type="number"
-                min={0}
-                value={m.duration_minutes || ''}
-                onChange={e => update({ duration_minutes: parseInt(e.target.value) || 0 })}
-                placeholder="Ex: 60"
-                className="h-7 w-24 text-xs"
-              />
+
+            {/* Row 2: Client, Project, Participants */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {showClientSection && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Cliente</Label>
+                  <Select value={m.client_id ?? ''} onValueChange={v => {
+                    const selected = clientsList.find((c: any) => c.id === v);
+                    update({ client_id: v || null, client_name: selected?.full_name || null });
+                  }}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Sem cliente" /></SelectTrigger>
+                    <SelectContent>
+                      {clientsList.map((c: any) => (
+                        <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {!showClientSection && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Departamento</Label>
+                  <Select value={m.department ?? ''} onValueChange={v => {
+                    const patch: Partial<MeetingFull> = { department: v || null };
+                    if (v !== 'produtos') { patch.product_id = null; patch.product_name = null; }
+                    update(patch);
+                  }}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(MODULES).filter(([, v]) => v.section === 'departamentos').map(([key, v]) => (
+                        <SelectItem key={key} value={key}>{v.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {m.department === 'produtos' && !showClientSection && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Produto</Label>
+                  <Select value={m.product_id ?? ''} onValueChange={v => {
+                    const prod = productsList.find(p => p.id === v);
+                    update({ product_id: v || null, product_name: prod?.name || null });
+                  }}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Sem produto" /></SelectTrigger>
+                    <SelectContent>
+                      {productsList.map(p => (
+                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {showProjectField && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Projeto</Label>
+                  <Select value={m.project_id ?? ''} onValueChange={v => {
+                    const proj = projectsList.find(p => p.id === v);
+                    update({ project_id: v || null, project_name: proj?.name || null });
+                  }}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Sem projeto" /></SelectTrigger>
+                    <SelectContent>
+                      {projectsList.map(p => (
+                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {participantProfiles.length > 0 && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> Participantes</Label>
+                  <div className="flex -space-x-1 pt-1">
+                    {participantProfiles.map(p => (
+                      <Avatar key={p.id} className="h-8 w-8 border-2 border-background">
+                        <AvatarImage src={p.avatar_url ?? undefined} />
+                        <AvatarFallback className="text-[10px]">{initials(p.full_name)}</AvatarFallback>
+                      </Avatar>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
 
-          {/* Meta info */}
-          <div className="flex flex-wrap gap-6 text-sm">
-            {/* Link de acesso */}
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Link de acesso</Label>
-              <Input
-                value={m.meeting_url || ''}
-                onChange={e => update({ meeting_url: e.target.value || null })}
-                placeholder="https://meet.google.com/..."
-                className="h-7 text-xs w-64"
-              />
+            {/* Row 3: Link, Calendar */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1"><Link2 className="h-3 w-3" /> Link de acesso</Label>
+                <Input
+                  value={m.meeting_url || ''}
+                  onChange={e => update({ meeting_url: e.target.value || null })}
+                  placeholder="https://meet.google.com/..."
+                  className="h-8 text-xs"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Adicionar ao calendário</Label>
+                <AddToCalendarButtons event={{ title: m.title, startDate: m.date_time, meetingUrl: m.meeting_url }} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ═══ CARD: Documentos & Transcrição ═══ */}
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3 bg-muted/30 border-b">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <FolderOpen className="h-4 w-4 text-primary" />
+              </div>
+              <CardTitle className="text-base">Documentos</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-5 space-y-4">
+            {/* Transcript */}
+            <div className="flex items-center gap-3">
+              <Label className="text-xs text-muted-foreground min-w-[80px]">Transcrição</Label>
+              {m.transcript_url ? (
+                <a href={m.transcript_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
+                  <FileText className="h-3.5 w-3.5" /> Ver transcrição <ExternalLink className="h-2.5 w-2.5" />
+                </a>
+              ) : (
+                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => fileRef.current?.click()} disabled={uploadTranscript.isPending}>
+                  <Upload className="h-3 w-3 mr-1" /> {uploadTranscript.isPending ? 'A carregar...' : 'Carregar PDF'}
+                </Button>
+              )}
+              <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={e => { if (e.target.files?.[0]) uploadTranscript.mutate(e.target.files[0]); e.target.value = ''; }} />
             </div>
 
-            {/* Add to Calendar */}
-            <AddToCalendarButtons event={{ title: m.title, startDate: m.date_time, meetingUrl: m.meeting_url }} />
-
-
-            {participantProfiles.length > 0 && (
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> Participantes</Label>
-                <div className="flex -space-x-1">
-                  {participantProfiles.map(p => (
-                    <Avatar key={p.id} className="h-7 w-7 border-2 border-background">
-                      <AvatarImage src={p.avatar_url ?? undefined} />
-                      <AvatarFallback className="text-[10px]">{initials(p.full_name)}</AvatarFallback>
-                    </Avatar>
+            {/* Ficheiros */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <Label className="text-xs text-muted-foreground min-w-[80px]">Ficheiros</Label>
+                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => docsRef.current?.click()} disabled={uploadDocument.isPending}>
+                  <Upload className="h-3 w-3 mr-1" /> {uploadDocument.isPending ? 'A carregar...' : 'Adicionar ficheiro'}
+                </Button>
+                <input ref={docsRef} type="file" className="hidden" onChange={e => { if (e.target.files?.[0]) uploadDocument.mutate(e.target.files[0]); e.target.value = ''; }} />
+              </div>
+              {m.documents.length > 0 && (
+                <div className="flex flex-wrap gap-2 ml-[92px]">
+                  {m.documents.map((doc, idx) => (
+                    <div key={idx} className="flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs bg-muted/30">
+                      <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate max-w-[200px]">
+                        {doc.name}
+                      </a>
+                      <button onClick={() => removeDocument(idx)} className="text-muted-foreground hover:text-destructive ml-1">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* Client — only for 'cliente' type */}
-            {showClientSection && (
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Cliente</Label>
-                <Select value={m.client_id ?? ''} onValueChange={v => {
-                  const selected = clientsList.find((c: any) => c.id === v);
-                  update({ client_id: v || null, client_name: selected?.full_name || null });
-                }}>
-                  <SelectTrigger className="h-7 text-xs w-44"><SelectValue placeholder="Sem cliente" /></SelectTrigger>
-                  <SelectContent>
-                    {clientsList.map((c: any) => (
-                      <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Department — for non-client types */}
-            {!showClientSection && (
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Departamento</Label>
-                <Select value={m.department ?? ''} onValueChange={v => {
-                  const patch: Partial<MeetingFull> = { department: v || null };
-                  if (v !== 'produtos') { patch.product_id = null; patch.product_name = null; }
-                  update(patch);
-                }}>
-                  <SelectTrigger className="h-7 text-xs w-44"><SelectValue placeholder="Nenhum" /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(MODULES).filter(([, v]) => v.section === 'departamentos').map(([key, v]) => (
-                      <SelectItem key={key} value={key}>{v.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {m.department === 'produtos' && !showClientSection && (
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Produto</Label>
-                <Select value={m.product_id ?? ''} onValueChange={v => {
-                  const prod = productsList.find(p => p.id === v);
-                  update({ product_id: v || null, product_name: prod?.name || null });
-                }}>
-                  <SelectTrigger className="h-7 text-xs w-48"><SelectValue placeholder="Sem produto" /></SelectTrigger>
-                  <SelectContent>
-                    {productsList.map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Project — for projeto and cliente types */}
-            {showProjectField && (
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Projeto</Label>
-                <Select value={m.project_id ?? ''} onValueChange={v => {
-                  const proj = projectsList.find(p => p.id === v);
-                  update({ project_id: v || null, project_name: proj?.name || null });
-                }}>
-                  <SelectTrigger className="h-7 text-xs w-48"><SelectValue placeholder="Sem projeto" /></SelectTrigger>
-                  <SelectContent>
-                    {projectsList.map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-
-          {/* Transcript */}
-          <div className="flex items-center gap-3">
-            <Label className="text-xs text-muted-foreground">Transcrição</Label>
-            {m.transcript_url ? (
-              <a href={m.transcript_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
-                <FileText className="h-3.5 w-3.5" /> Ver transcrição <ExternalLink className="h-2.5 w-2.5" />
-              </a>
-            ) : (
-              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => fileRef.current?.click()} disabled={uploadTranscript.isPending}>
-                <Upload className="h-3 w-3 mr-1" /> {uploadTranscript.isPending ? 'A carregar...' : 'Carregar PDF'}
-              </Button>
-            )}
-            <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={e => { if (e.target.files?.[0]) uploadTranscript.mutate(e.target.files[0]); e.target.value = ''; }} />
-          </div>
-
-          {/* Documents */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <Label className="text-xs text-muted-foreground">Documentos</Label>
-              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => docsRef.current?.click()} disabled={uploadDocument.isPending}>
-                <Upload className="h-3 w-3 mr-1" /> {uploadDocument.isPending ? 'A carregar...' : 'Adicionar ficheiro'}
-              </Button>
-              <input ref={docsRef} type="file" className="hidden" onChange={e => { if (e.target.files?.[0]) uploadDocument.mutate(e.target.files[0]); e.target.value = ''; }} />
+              )}
             </div>
-            {m.documents.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {m.documents.map((doc, idx) => (
-                  <div key={idx} className="flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs bg-muted/30">
-                    <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate max-w-[200px]">
-                      {doc.name}
-                    </a>
-                    <button onClick={() => removeDocument(idx)} className="text-muted-foreground hover:text-destructive ml-1">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Portal notes from client */}
         {(m as any).portal_notes && (
@@ -754,32 +791,41 @@ export default function ReuniaoDetailPage() {
           </div>
         )}
 
-        <Separator />
-
-        {/* ATA DA REUNIÃO */}
-        <div className="space-y-6">
-          <h2 className="text-lg font-bold text-foreground">Ata da Reunião</h2>
-
-          {/* Pontos discutidos / Notas */}
-          <EditableChecklist
-            items={m.discussion_points}
-            onChange={items => update({ discussion_points: items })}
-            label="Pontos discutidos"
-          />
-
-          <Separator />
-
-          {/* Próximos passos */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-semibold text-foreground">→ Próximos Passos</Label>
-              <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5" onClick={() => setCreateTasksOpen(true)}>
-                <ListTodo className="h-3.5 w-3.5" /> Criar Tarefas
-              </Button>
+        {/* ═══ CARD: Ata da Reunião — Pontos discutidos ═══ */}
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3 bg-muted/30 border-b">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <CheckSquare className="h-4 w-4 text-primary" />
+              </div>
+              <CardTitle className="text-base">Pontos Discutidos</CardTitle>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Owner actions */}
-              <div className="rounded-lg border border-border p-4 space-y-3">
+          </CardHeader>
+          <CardContent className="pt-5">
+            <EditableChecklist
+              items={m.discussion_points}
+              onChange={items => update({ discussion_points: items })}
+              label=""
+            />
+          </CardContent>
+        </Card>
+
+        {/* ═══ CARD: Próximos Passos ═══ */}
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3 bg-muted/30 border-b flex flex-row items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <ListTodo className="h-4 w-4 text-primary" />
+              </div>
+              <CardTitle className="text-base">Próximos Passos</CardTitle>
+            </div>
+            <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5" onClick={() => setCreateTasksOpen(true)}>
+              <ListTodo className="h-3.5 w-3.5" /> Criar Tarefas
+            </Button>
+          </CardHeader>
+          <CardContent className="pt-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="rounded-lg border bg-card/50 p-4 space-y-3">
                 <h4 className="text-sm font-semibold text-foreground">{ownerLabel}</h4>
                 <EditableChecklist
                   items={m.owner_actions}
@@ -787,9 +833,8 @@ export default function ReuniaoDetailPage() {
                   label=""
                 />
               </div>
-              {/* Client actions — only for cliente type */}
               {showClientSection && (
-                <div className="rounded-lg border border-border p-4 space-y-3">
+                <div className="rounded-lg border bg-card/50 p-4 space-y-3">
                   <h4 className="text-sm font-semibold text-foreground">{clientLabel}</h4>
                   <EditableChecklist
                     items={m.client_actions}
@@ -799,17 +844,24 @@ export default function ReuniaoDetailPage() {
                 </div>
               )}
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          <Separator />
-
-          {/* Decisões tomadas */}
-          <div className="space-y-3">
-            <Label className="text-xs font-semibold text-foreground">→ Decisões Tomadas</Label>
+        {/* ═══ CARD: Decisões Tomadas ═══ */}
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3 bg-muted/30 border-b">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Lightbulb className="h-4 w-4 text-primary" />
+              </div>
+              <CardTitle className="text-base">Decisões Tomadas</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-5">
             <div className="space-y-2">
               {m.priorities.map((p, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-muted-foreground w-5">{i + 1}.</span>
+                  <span className="text-xs font-semibold text-primary bg-primary/10 rounded-full h-6 w-6 flex items-center justify-center shrink-0">{i + 1}</span>
                   <Input
                     value={p}
                     onChange={e => {
@@ -823,17 +875,27 @@ export default function ReuniaoDetailPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          <Separator />
-
-          {/* Notas finais */}
-          <EditableBulletList
-            items={m.final_notes}
-            onChange={items => update({ final_notes: items })}
-            label="📝 Notas finais"
-          />
-        </div>
+        {/* ═══ CARD: Notas finais ═══ */}
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-3 bg-muted/30 border-b">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <StickyNote className="h-4 w-4 text-primary" />
+              </div>
+              <CardTitle className="text-base">Notas Finais</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-5">
+            <EditableBulletList
+              items={m.final_notes}
+              onChange={items => update({ final_notes: items })}
+              label=""
+            />
+          </CardContent>
+        </Card>
 
         {/* Create tasks dialog */}
         <CreateTasksFromMeetingDialog
