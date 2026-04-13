@@ -29,6 +29,7 @@ export function QuestionsCollapsible({
 }: Props) {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editField, setEditField] = useState<'question' | 'type'>('question');
   const [editValue, setEditValue] = useState('');
   const questionsList = questions.data || [];
   const answeredCount = questionsList.filter((q: any) => q.answer || (Array.isArray(q.file_urls) && q.file_urls.length > 0)).length;
