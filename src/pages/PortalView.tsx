@@ -285,7 +285,11 @@ export default function PortalViewPage() {
 
   const meetingStatus = (s: string) => {
     const map: Record<string, { text: string; cls: string }> = {
+      por_confirmar: { text: 'Por confirmar', cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+      por_organizar: { text: 'Por organizar', cls: 'bg-sky-50 text-sky-700 border-sky-200' },
       confirmada: { text: 'Confirmada', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+      marcada: { text: 'Confirmada', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+      terminada: { text: 'Terminada', cls: 'bg-slate-100 text-slate-700 border-slate-200' },
       realizada: { text: 'Realizada', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
       cancelada: { text: 'Cancelada', cls: 'bg-red-50 text-red-600 border-red-200' },
     };
@@ -399,7 +403,7 @@ export default function PortalViewPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {portal.show_meetings && (() => {
                 const next = meetings
-                  .filter((m: any) => ['por_organizar', 'confirmada', 'por_confirmar'].includes(m.status) && m.date_time)
+                  .filter((m: any) => ['por_organizar', 'confirmada', 'por_confirmar', 'marcada'].includes(m.status) && m.date_time)
                   .sort((a: any, b: any) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime())[0];
                 return (
                   <div

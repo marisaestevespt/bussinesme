@@ -258,10 +258,65 @@ type FilterResolution = {
   resolved_value: string;
 };
 
+type ChatMessage = {
+  role: "user" | "assistant" | "system" | "tool";
+  content: string;
+  action_proposal?: Record<string, unknown> | null;
+  confirmed?: boolean;
+};
+
+const MEETING_STATUS_ALIASES: Record<string, "por_confirmar" | "por_organizar" | "confirmada" | "terminada"> = {
+  por_confirmar: "por_confirmar",
+  por_organizar: "por_organizar",
+  confirmada: "confirmada",
+  marcada: "confirmada",
+  agendada: "confirmada",
+  terminada: "terminada",
+  realizada: "terminada",
+  concluida: "terminada",
+};
+
+const MEETING_TEXT_FILTER_COLUMNS = new Set(["client_name", "project_name", "product_name", "title"]);
+
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function isUuid(value: unknown): value is string {
   return typeof value === "string" && UUID_REGEX.test(value.trim());
+}
+
+function normalizeLooseText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function normalizeMeetingStatusValue(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  const normalized = normalizeLooseText(value).replace(/\s+/g, "_");
+  return MEETING_STATUS_ALIASES[normalized] ?? value.trim();
+}
+
+function isTextualConfirmation(content: unknown): boolean {
+  if (typeof content !== "string") return false;
+  const normalized = normalizeLooseText(content)
+    .replace(/[!?.,;:]+/g, " ")
+    .replace(/\s+/g, " ");
+
+  return /^(confirmo|sim|ok|okay|esta bem|podes avancar|pode avancar|avanca|forca|segue|pode ser)\b/.test(normalized);
+}
+
+function getLastPendingProposal(messages: ChatMessage[]): Record<string, unknown> | null {
+  for (let i = messages.length - 2; i >= 0; i--) {
+    const message = messages[i];
+    if (message?.role !== "assistant") continue;
+    if (!message.action_proposal || typeof message.action_proposal !== "object") continue;
+    if (message.confirmed === false) continue;
+    return message.action_proposal;
+  }
+
+  return null;
 }
 
 function toSearchPattern(value: string): string {
@@ -349,6 +404,19 @@ async function normalizeFilters(
       operator: filter.operator,
       value: String(filter.value ?? ""),
     };
+
+    if (tableName === "meetings") {
+      if (nextFilter.column === "status") {
+        nextFilter.value = String(normalizeMeetingStatusValue(nextFilter.value));
+      }
+
+      if (MEETING_TEXT_FILTER_COLUMNS.has(nextFilter.column) && nextFilter.operator === "eq") {
+        nextFilter.operator = "ilike";
+        if (mode === "read") {
+          nextFilter.value = toSearchPattern(nextFilter.value);
+        }
+      }
+    }
 
     if (nextFilter.column === "client_id" && !isUuid(nextFilter.value)) {
       const resolvedId = await resolveRecordIdByName("clients", nextFilter.value, supabaseAdmin);
@@ -587,6 +655,38 @@ function applyFilter(query: any, f: { column: string; operator: string; value: s
   }
 }
 
+async function resolveMeetingWriteTarget(
+  filters: QueryFilter[],
+  supabaseAdmin: ReturnType<typeof createClient>
+): Promise<{ filters: QueryFilter[]; error?: string }> {
+  if (filters.length === 0 || filters.some((filter) => filter.column === "id" && isUuid(filter.value))) {
+    return { filters };
+  }
+
+  let query = supabaseAdmin.from("meetings").select("id, title, client_name, date_time").limit(2);
+  for (const filter of filters) {
+    query = applyFilter(query, filter);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.warn("Could not pre-resolve meeting target", error.message);
+    return { filters };
+  }
+
+  if (!data || data.length === 0) {
+    return { filters, error: "Não encontrei nenhuma reunião com esses critérios. Usa o nome completo do cliente, o título da reunião ou a data." };
+  }
+
+  if (data.length > 1) {
+    return { filters, error: "Encontrei várias reuniões com esses critérios. Indica o cliente completo, o título completo ou a data exata." };
+  }
+
+  return {
+    filters: [{ column: "id", operator: "eq", value: data[0].id }],
+  };
+}
+
 
 async function executeSingleAction(
   actionType: string,
@@ -616,8 +716,22 @@ async function executeSingleAction(
   if (READONLY_TABLES.has(tableName) && actionType !== "create") return { error: "Esta tabela é apenas de leitura." };
 
   const rawFilters = (details.filters as QueryFilter[]) || [];
-  const { filters } = await normalizeFilters(tableName, rawFilters, supabaseAdmin, "write");
+  const normalized = await normalizeFilters(tableName, rawFilters, supabaseAdmin, "write");
+  let filters = normalized.filters;
   let data = details.data as Record<string, unknown> || {};
+
+  if (tableName === "meetings" && (actionType === "create" || actionType === "update")) {
+    data = {
+      ...data,
+      ...(data.status !== undefined ? { status: normalizeMeetingStatusValue(data.status) } : {}),
+    };
+  }
+
+  if (tableName === "meetings" && (actionType === "update" || actionType === "delete")) {
+    const resolvedMeetingTarget = await resolveMeetingWriteTarget(filters, supabaseAdmin);
+    if (resolvedMeetingTarget.error) return { error: resolvedMeetingTarget.error };
+    filters = resolvedMeetingTarget.filters;
+  }
 
   if (tableName === "products" && (actionType === "create" || actionType === "update")) {
     data = normalizeProductData(data, actionType === "create");
@@ -1150,7 +1264,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, file } = await req.json();
+    const rawBody = await req.json() as { messages?: ChatMessage[]; file?: Record<string, unknown> };
+    const { messages = [], file } = rawBody;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -1269,7 +1384,7 @@ Tabelas principais (COLUNAS EXATAS — usa estes nomes):
 - projects: projetos (id, name, client_name, client_id, product_name, product_id, status, start_date, deadline, progress). Status válidos: em_curso, concluido, cancelado, pausado
 - financial_entries: entradas | financial_expenses: despesas
 - commercial_sales: vendas (sale_id, client, product, base_value, invoice_total, status, payment_date). Status válidos: pendente, pago, cancelado, atrasado
-- meetings: reuniões (id, title, date_time, status, client_name, client_id, project_name, project_id, product_name, product_id, department, portal_notes). Status válidos: por_organizar, por_confirmar, confirmada, terminada
+- meetings: reuniões (id, title, date_time, status, client_name, client_id, project_name, project_id, product_name, product_id, department, portal_notes). Status de negócio a usar: por_organizar, por_confirmar, confirmada, terminada. Se o utilizador disser "marcada" ou "agendada", guarda como "confirmada".
 - products: produtos (name, category, base_price, status, description)
 - product_deliverable_templates: templates de entregáveis do produto
 - project_deliverables: entregáveis do projeto (project_id, name, status, deadline)
@@ -1332,7 +1447,8 @@ Regras:
     // === AUTO-EXECUTE confirmed actions without relying on the AI model ===
     const lastUserMsg = messages[messages.length - 1];
     if (lastUserMsg?.role === "user") {
-      const confirmedAction = parseConfirmedAction(lastUserMsg.content);
+      const confirmedAction = parseConfirmedAction(lastUserMsg.content)
+        ?? (isTextualConfirmation(lastUserMsg.content) ? getLastPendingProposal(messages) : null);
       if (confirmedAction) {
         console.log("Auto-executing confirmed action:", JSON.stringify(confirmedAction).slice(0, 500));
         try {
