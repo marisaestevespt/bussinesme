@@ -274,6 +274,9 @@ export default function ProjetoDetailPage() {
   // Meeting dialog
   const [meetingDialogOpen, setMeetingDialogOpen] = useState(false);
 
+  // Members dialog
+  const [membersDialogOpen, setMembersDialogOpen] = useState(false);
+
   // Projects list for MeetingFormDialog
   const { data: allProjectsForMeeting = [] } = useQuery({
     queryKey: ['projects-for-meetings'],
@@ -489,6 +492,19 @@ export default function ProjetoDetailPage() {
       if (error) throw error;
     },
     onSuccess: () => { setDirty(false); queryClient.invalidateQueries({ queryKey: ['project', id] }); toast.success('Guardado'); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const toggleMember = useMutation({
+    mutationFn: async (profileId: string) => {
+      const isMember = projectMembers.includes(profileId);
+      if (isMember) {
+        await supabase.from('project_members').delete().eq('project_id', id!).eq('profile_id', profileId);
+      } else {
+        await supabase.from('project_members').insert({ project_id: id!, profile_id: profileId } as any);
+      }
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['project-members', id] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -840,7 +856,17 @@ export default function ProjetoDetailPage() {
               documents={(local.contract_documents as DocEntry[]) || []}
               onChange={docs => updateField('contract_documents', docs)}
             />
-            <div><Label className="text-xs">Equipa</Label><div className="flex gap-1 mt-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div></div>
+            <div>
+              <Label className="text-xs">Equipa</Label>
+              <button type="button" onClick={() => setMembersDialogOpen(true)} className="flex items-center gap-1.5 mt-1 hover:opacity-80 transition-opacity">
+                <div className="flex -space-x-1">
+                  {projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}
+                </div>
+                <div className="h-7 w-7 rounded-full border-2 border-dashed border-muted-foreground/40 flex items-center justify-center">
+                  <Plus className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+              </button>
+            </div>
           </div>
 
           <Separator />
@@ -1294,6 +1320,36 @@ export default function ProjetoDetailPage() {
         defaultProjectId={id}
         defaultProjectName={local.name}
       />
+
+      {/* Members dialog */}
+      <Dialog open={membersDialogOpen} onOpenChange={setMembersDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Equipa do Projeto</DialogTitle></DialogHeader>
+          <div className="space-y-1 max-h-80 overflow-y-auto">
+            {profiles.map(p => {
+              const isMember = projectMembers.includes(p.id);
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => toggleMember.mutate(p.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
+                    isMember ? "bg-primary/10 text-foreground" : "hover:bg-muted text-muted-foreground"
+                  )}
+                >
+                  <Avatar className="h-7 w-7">
+                    <AvatarImage src={p.avatar_url || ''} />
+                    <AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback>
+                  </Avatar>
+                  <span className="flex-1 text-left">{p.full_name || 'Sem nome'}</span>
+                  {isMember && <CheckSquare className="h-4 w-4 text-primary" />}
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
