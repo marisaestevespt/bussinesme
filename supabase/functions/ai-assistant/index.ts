@@ -567,7 +567,27 @@ function resolveRefs(value: unknown, stepResults: Record<number, Record<string, 
   return value;
 }
 
-async function executeSingleAction(
+// Apply a single filter to a Supabase query, supporting all common operators
+function applyFilter(query: any, f: { column: string; operator: string; value: string }): any {
+  switch (f.operator) {
+    case "eq": return query.eq(f.column, f.value);
+    case "neq": case "not.eq": return query.neq(f.column, f.value);
+    case "gt": return query.gt(f.column, f.value);
+    case "gte": return query.gte(f.column, f.value);
+    case "lt": return query.lt(f.column, f.value);
+    case "lte": return query.lte(f.column, f.value);
+    case "like": return query.like(f.column, `%${f.value}%`);
+    case "ilike": return query.ilike(f.column, `%${f.value}%`);
+    case "is": return query.is(f.column, f.value === "null" ? null : f.value);
+    case "not.is": return query.not(f.column, "is", f.value === "null" ? null : f.value);
+    case "in": return query.in(f.column, f.value.split(",").map((v: string) => v.trim()));
+    default:
+      console.warn(`Unknown filter operator: ${f.operator}, falling back to eq`);
+      return query.eq(f.column, f.value);
+  }
+}
+
+
   actionType: string,
   details: Record<string, unknown>,
   supabaseAdmin: ReturnType<typeof createClient>
