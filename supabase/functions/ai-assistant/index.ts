@@ -1174,8 +1174,12 @@ serve(async (req) => {
     const { data: settings } = await supabaseAdmin.from("business_settings").select("business_name, business_type, team_type").limit(1).single();
     const businessName = settings?.business_name || "o negócio";
 
+    const today = new Date().toISOString().split('T')[0];
+    const currentYear = new Date().getFullYear();
+
     const systemPrompt = `Tu és a Lirah AI, a assistente inteligente de ${businessName}. Falas em português de Portugal.
 ${userName ? `O utilizador chama-se **${userName}**. Trata-o pelo primeiro nome.` : ""}
+📅 Data de hoje: ${today}. Ano atual: ${currentYear}. Quando o utilizador menciona uma data sem ano, assume SEMPRE ${currentYear}. NUNCA perguntes o ano.
 
 Tens acesso TOTAL à base de dados do sistema. Podes:
 - **Consultar** qualquer tabela (query_table, list_tables, list_column_values)
