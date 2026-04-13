@@ -6,10 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, GripVertical } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Plus, Trash2, GripVertical, ChevronDown, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { LinkedSopsSection, recalcCascadingDates } from '@/components/LinkedSopsSection';
 import { ApplyProductTemplate } from '@/components/project/ApplyProductTemplate';
+import { cn } from '@/lib/utils';
 
 interface Props {
   projectId: string;
