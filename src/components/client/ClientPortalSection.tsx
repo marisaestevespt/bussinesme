@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { QuestionsCollapsible } from './QuestionsCollapsible';
 import { enrichQuestionsWithAutoFill } from '@/lib/portalAutoFill';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
