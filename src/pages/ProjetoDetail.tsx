@@ -436,8 +436,7 @@ export default function ProjetoDetailPage() {
   useEffect(() => { if (project && !local) setLocal(project); }, [project]);
 
   const updateField = (field: keyof ProjectFull, value: any) => {
-    if (!local) return;
-    setLocal({ ...local, [field]: value });
+    setLocal(prev => (prev ? { ...prev, [field]: value } : prev));
     setDirty(true);
   };
 
