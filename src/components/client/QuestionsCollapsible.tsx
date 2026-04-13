@@ -86,11 +86,6 @@ export function QuestionsCollapsible({
               <div className="space-y-6">
                 {grouped.map(({ group, items }, groupIdx) => (
                   <div key={group}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="h-5 w-1 rounded-full bg-primary/60" />
-                      <h4 className="text-sm font-semibold">{group.replace('Config. Sistema — ', '')}</h4>
-                      <span className="text-xs text-muted-foreground">({items.length})</span>
-                    </div>
                     <div className="rounded-lg border overflow-hidden">
                       <Table>
                         <TableHeader>
