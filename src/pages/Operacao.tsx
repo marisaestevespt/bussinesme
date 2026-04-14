@@ -751,7 +751,7 @@ export default function OperacaoPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {projectHealth.map(p => {
                 const healthColor = {
                   green: { bg: 'bg-emerald-500/10', ring: 'ring-emerald-500/30', text: 'text-emerald-700 dark:text-emerald-400', dot: 'bg-emerald-500' },
@@ -762,11 +762,11 @@ export default function OperacaoPage() {
                   <Link
                     key={p.id}
                     to={`/hub/projetos/${p.id}`}
-                    className={`group rounded-xl p-3 ring-1 ${healthColor.ring} ${healthColor.bg} hover:shadow-md transition-all hover-scale`}
+                    className={`group rounded-xl p-4 ring-1 ${healthColor.ring} ${healthColor.bg} hover:shadow-md transition-all hover-scale`}
                   >
                     <div className="flex items-start gap-2 mb-2">
                       <span className={`h-2 w-2 rounded-full mt-1 shrink-0 ${healthColor.dot}`} />
-                      <p className="text-xs font-semibold truncate group-hover:text-primary transition-colors leading-tight">{p.name}</p>
+                      <p className="text-xs font-semibold group-hover:text-primary transition-colors leading-tight">{p.name}</p>
                     </div>
                     {p.client_name && <p className="text-[10px] text-muted-foreground truncate mb-2 pl-4">{p.client_name}</p>}
                     {!p.isTarefasLivres && (
