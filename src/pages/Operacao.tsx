@@ -201,7 +201,7 @@ export default function OperacaoPage() {
   const [clientFilters, setClientFilters] = useState<TaskFilters>(EMPTY_FILTERS);
   const [internoFilters, setInternoFilters] = useState<TaskFilters>(EMPTY_FILTERS);
   const [expandedStatus, setExpandedStatus] = useState<string | null>(null);
-  const [alertsOpen, setAlertsOpen] = useState(false);
+  const [healthDetailProjectId, setHealthDetailProjectId] = useState<string | null>(null);
 
   // ── Queries ─────────────────────────────────────────────────
   const { data: projects = [] } = useQuery({
