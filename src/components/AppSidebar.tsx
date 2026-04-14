@@ -130,8 +130,8 @@ function NavSection({
                       <NavLink
                         to={item.url}
                         end
-                        className="group/nav rounded-lg px-3 py-2 transition-all duration-200 hover:bg-primary/8 hover:translate-x-0.5"
-                        activeClassName="bg-primary text-primary-foreground font-medium shadow-sm hover:bg-primary/90 hover:translate-x-0"
+                        className="group/nav rounded-xl px-3 py-2 transition-all duration-200 hover:bg-primary/10 hover:translate-x-0.5"
+                        activeClassName="bg-accent text-accent-foreground font-medium shadow-sm hover:bg-accent/90 hover:translate-x-0"
                       >
                         <div className="flex items-center gap-3">
                           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/8 group-[.bg-primary]/nav:bg-primary-foreground/15 transition-colors">

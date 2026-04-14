@@ -11,10 +11,9 @@ export function PageHeader({ title, subtitle, showAccessButton = true }: PageHea
   const location = useLocation();
 
   return (
-    <div className="relative -mx-4 sm:-mx-8 bg-muted/60 px-4 sm:px-8 py-8 overflow-hidden rounded-b-2xl">
-      {/* Decorative shapes */}
-      <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-primary/[0.03] -translate-y-1/2 translate-x-1/4" />
-      <div className="absolute bottom-0 left-1/3 w-32 h-32 rounded-full bg-accent/[0.03] translate-y-1/2" />
+    <div className="relative -mx-4 sm:-mx-8 px-4 sm:px-8 py-8 overflow-hidden rounded-b-2xl" style={{ background: 'linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-end)))' }}>
+      {/* Decorative warm glow */}
+      <div className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full -translate-y-1/2 opacity-30 blur-3xl" style={{ background: 'hsl(var(--primary) / 0.15)' }} />
 
       <div className="relative flex items-start justify-between">
         <div>
