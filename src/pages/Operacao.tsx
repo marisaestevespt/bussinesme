@@ -397,16 +397,7 @@ export default function OperacaoPage() {
     return memberIds.size;
   }, [projectMembers, allActiveProjects]);
 
-  // ── Alerts data ─────────────────────────────────────────────
-  const stalledProjects = useMemo(() => {
-    return allActiveProjects.filter(p => {
-      // Projects in "tarefas_livres" mode don't track progress via deliverables
-      if ((p as any).task_mode === 'tarefas_livres') return false;
-      const prog = projectProgress.get(p.id) ?? p.progress;
-      return prog === 0;
-    });
-  }, [allActiveProjects, projectProgress]);
-
+   // ── Alerts data ─────────────────────────────────────────────
   const clientsNearEndOfCycle = useMemo(() => {
     return clients.filter(c => {
       if (c.status === 'terminado' || !c.end_of_cycle) return false;
@@ -415,24 +406,10 @@ export default function OperacaoPage() {
     });
   }, [clients, today]);
 
-  const unassignedTasks = useMemo(() =>
-    tasks.filter(t => !t.assigned_to && t.status !== 'concluida'),
-    [tasks]
-  );
-
   const overdueDeliverables = useMemo(() =>
     deliverables.filter(d => d.deadline && isBefore(new Date(d.deadline), today) && d.status !== 'entregue'),
     [deliverables, today]
   );
-
-  const recurrentesWithoutDeliverables = useMemo(() => {
-    const projectIdsWithDeliverables = new Set(deliverables.map(d => d.project_id));
-    const phasesSet = new Set(projectsWithPhases);
-    // Only alert recurrentes that have phases (use deliverables system) but no deliverables defined
-    return [...activeClientRecorrentes, ...activeInternoRecorrentes].filter(p => phasesSet.has(p.id) && !projectIdsWithDeliverables.has(p.id));
-  }, [activeClientRecorrentes, activeInternoRecorrentes, deliverables, projectsWithPhases]);
-
-  const totalAlerts = stalledProjects.length + clientsNearEndOfCycle.length + unassignedTasks.length + overdueDeliverables.length + recurrentesWithoutDeliverables.length;
 
   // ── Countdown — next delivery (deliverables first, then project deadlines) ──
   const nextDelivery = useMemo(() => {
