@@ -550,6 +550,7 @@ export default function ProjetoDetailPage() {
         cover_url: local.cover_url, contract_documents: local.contract_documents || [],
         payment_method: local.payment_method || null, payment_config: local.payment_config || null,
         project_mode: (local as any).project_mode || 'pontual',
+        task_mode: (local as any).task_mode || 'fases',
       };
       // Auto-calculate total time when marking as concluded
       if (local.status === 'concluido' && project?.status !== 'concluido') {
