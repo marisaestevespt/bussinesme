@@ -37,6 +37,7 @@ export default function ConteudoDetailPage() {
     title: '', scheduled_at: null as string | null, status: 'por_planear',
     funnel_stage: '', content_type: '', format: '', objective: '',
     product_name: '', product_id: '', project_id: '', assigned_to: '', copy_content: '',
+    body_template: null as Record<string, any> | null,
   });
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
