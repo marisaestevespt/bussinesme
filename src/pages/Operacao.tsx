@@ -19,7 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { format, isToday, isBefore, startOfToday, isAfter, endOfWeek, startOfWeek, subDays, differenceInDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-import { OperacaoKpis, OperacaoAlertsSummary } from '@/components/operacao/OperacaoKpis';
+import { OperacaoKpis } from '@/components/operacao/OperacaoKpis';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -201,7 +201,7 @@ export default function OperacaoPage() {
   const [clientFilters, setClientFilters] = useState<TaskFilters>(EMPTY_FILTERS);
   const [internoFilters, setInternoFilters] = useState<TaskFilters>(EMPTY_FILTERS);
   const [expandedStatus, setExpandedStatus] = useState<string | null>(null);
-  const [alertsOpen, setAlertsOpen] = useState(false);
+  const [healthDetailProjectId, setHealthDetailProjectId] = useState<string | null>(null);
 
   // ── Queries ─────────────────────────────────────────────────
   const { data: projects = [] } = useQuery({
@@ -265,16 +265,6 @@ export default function OperacaoPage() {
     queryFn: async () => {
       const { data } = await supabase.from('project_deliverables').select('id,name,deadline,status,project_id,assigned_to').neq('status', 'entregue').order('deadline', { ascending: true });
       return (data || []) as { id: string; name: string; deadline: string | null; status: string; project_id: string; assigned_to: string | null }[];
-    },
-  });
-
-  // Fetch which projects have phases (i.e. use the deliverables system)
-  const { data: projectsWithPhases = [] } = useQuery({
-    queryKey: ['op-projects-with-phases'],
-    queryFn: async () => {
-      const { data } = await supabase.from('project_phases').select('project_id');
-      const ids = new Set((data || []).map((r: any) => r.project_id));
-      return [...ids];
     },
   });
 
@@ -397,16 +387,7 @@ export default function OperacaoPage() {
     return memberIds.size;
   }, [projectMembers, allActiveProjects]);
 
-  // ── Alerts data ─────────────────────────────────────────────
-  const stalledProjects = useMemo(() => {
-    return allActiveProjects.filter(p => {
-      // Projects in "tarefas_livres" mode don't track progress via deliverables
-      if ((p as any).task_mode === 'tarefas_livres') return false;
-      const prog = projectProgress.get(p.id) ?? p.progress;
-      return prog === 0;
-    });
-  }, [allActiveProjects, projectProgress]);
-
+   // ── Alerts data ─────────────────────────────────────────────
   const clientsNearEndOfCycle = useMemo(() => {
     return clients.filter(c => {
       if (c.status === 'terminado' || !c.end_of_cycle) return false;
@@ -415,24 +396,10 @@ export default function OperacaoPage() {
     });
   }, [clients, today]);
 
-  const unassignedTasks = useMemo(() =>
-    tasks.filter(t => !t.assigned_to && t.status !== 'concluida'),
-    [tasks]
-  );
-
   const overdueDeliverables = useMemo(() =>
     deliverables.filter(d => d.deadline && isBefore(new Date(d.deadline), today) && d.status !== 'entregue'),
     [deliverables, today]
   );
-
-  const recurrentesWithoutDeliverables = useMemo(() => {
-    const projectIdsWithDeliverables = new Set(deliverables.map(d => d.project_id));
-    const phasesSet = new Set(projectsWithPhases);
-    // Only alert recurrentes that have phases (use deliverables system) but no deliverables defined
-    return [...activeClientRecorrentes, ...activeInternoRecorrentes].filter(p => phasesSet.has(p.id) && !projectIdsWithDeliverables.has(p.id));
-  }, [activeClientRecorrentes, activeInternoRecorrentes, deliverables, projectsWithPhases]);
-
-  const totalAlerts = stalledProjects.length + clientsNearEndOfCycle.length + unassignedTasks.length + overdueDeliverables.length + recurrentesWithoutDeliverables.length;
 
   // ── Countdown — next delivery (deliverables first, then project deadlines) ──
   const nextDelivery = useMemo(() => {
@@ -565,109 +532,123 @@ export default function OperacaoPage() {
           allocatedMembers={allocatedMembers}
         />
 
-        <OperacaoAlertsSummary
-          stalledCount={stalledProjects.length}
-          nearEndCount={clientsNearEndOfCycle.length}
-          unassignedCount={unassignedTasks.length}
-          overdueDeliverablesCount={overdueDeliverables.length}
-          recurrentesWithoutDeliverablesCount={recurrentesWithoutDeliverables.length}
-          totalAlerts={totalAlerts}
-          onViewDetails={() => setAlertsOpen(true)}
-        />
+        {/* Clients near end of cycle — kept as small alert */}
+        {clientsNearEndOfCycle.length > 0 && (
+          <Card className="border border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-950/20">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <CalendarClock className="h-4 w-4 text-amber-600" />
+                <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-400">Clientes perto do fim de ciclo</h3>
+                <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-[10px]">{clientsNearEndOfCycle.length}</Badge>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {clientsNearEndOfCycle.map(c => {
+                  const daysLeft = differenceInDays(new Date(c.end_of_cycle!), today);
+                  return (
+                    <Link key={c.id} to={`/clientes/${c.id}`} className="flex items-center gap-2 text-sm hover:underline">
+                      <span className="font-medium text-amber-800 dark:text-amber-300">{c.full_name}</span>
+                      <Badge variant={daysLeft <= 7 ? 'destructive' : 'outline'} className="text-[10px]">{daysLeft}d</Badge>
+                    </Link>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Alerts detail dialog */}
-        <Dialog open={alertsOpen} onOpenChange={setAlertsOpen}>
-          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-            <DialogHeader><DialogTitle className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-amber-600" /> Alertas Operacionais</DialogTitle></DialogHeader>
-            <div className="space-y-6">
-              {stalledProjects.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-semibold flex items-center gap-2 mb-2"><Clock className="h-4 w-4 text-muted-foreground" /> Projetos sem progresso</h4>
-                  <div className="space-y-1">
-                    {stalledProjects.map(p => (
-                      <Link key={p.id} to={`/hub/projetos/${p.id}`} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors" onClick={() => setAlertsOpen(false)}>
-                        <div>
-                          <p className="text-sm font-medium">{p.name}</p>
-                          <p className="text-xs text-muted-foreground">{p.client_name || p.department || '—'}</p>
-                        </div>
-                        <Badge variant="outline" className="text-[10px]">0%</Badge>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {clientsNearEndOfCycle.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-semibold flex items-center gap-2 mb-2"><CalendarClock className="h-4 w-4 text-muted-foreground" /> Clientes perto do fim de ciclo</h4>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs">Cliente</TableHead>
-                        <TableHead className="text-xs">Fim de Ciclo</TableHead>
-                        <TableHead className="text-xs">Dias restantes</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {clientsNearEndOfCycle.map(c => {
-                        const daysLeft = differenceInDays(new Date(c.end_of_cycle!), today);
-                        return (
-                          <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setAlertsOpen(false); window.location.href = `/hub/clientes/${c.id}`; }}>
-                            <TableCell className="text-sm font-medium">{c.full_name}</TableCell>
-                            <TableCell className="text-xs">{format(new Date(c.end_of_cycle!), 'dd/MM/yyyy')}</TableCell>
-                            <TableCell><Badge variant={daysLeft <= 7 ? 'destructive' : 'outline'} className="text-[10px]">{daysLeft}d</Badge></TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-              {unassignedTasks.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-semibold flex items-center gap-2 mb-2"><UserX className="h-4 w-4 text-muted-foreground" /> Tarefas sem responsável</h4>
-                  <div className="space-y-0.5 max-h-[250px] overflow-y-auto">
-                    {unassignedTasks.slice(0, 20).map(t => (
-                      <div key={t.id} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 text-sm">
-                        <PriorityDot priority={t.priority} />
-                        <span className="flex-1 truncate">{t.name}</span>
-                        {t.project_id && <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">{projectNameMap.get(t.project_id)}</span>}
-                        {t.deadline && <span className="text-[10px] text-muted-foreground">{format(new Date(t.deadline), 'dd/MM')}</span>}
+        {/* Health detail dialog */}
+        <Dialog open={!!healthDetailProjectId} onOpenChange={open => !open && setHealthDetailProjectId(null)}>
+          <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+            {(() => {
+              const p = allActiveProjects.find(proj => proj.id === healthDetailProjectId);
+              if (!p) return null;
+              const pTasks = tasks.filter(t => t.project_id === p.id && t.status !== 'concluida');
+              const pOverdueTasks = pTasks.filter(t => t.deadline && isBefore(new Date(t.deadline), today));
+              const pOverdueDeliverables = deliverables.filter(d => d.project_id === p.id && d.deadline && isBefore(new Date(d.deadline), today) && d.status !== 'entregue');
+              const pUnassigned = pTasks.filter(t => !t.assigned_to);
+              const hp = projectHealth.find(h => h.id === p.id);
+              const healthLabel = hp?.health === 'red' ? 'Em risco' : hp?.health === 'yellow' ? 'Atenção' : 'Em dia';
+              const healthColor = hp?.health === 'red' ? 'text-red-600' : hp?.health === 'yellow' ? 'text-amber-600' : 'text-emerald-600';
+              const hasIssues = pOverdueTasks.length > 0 || pOverdueDeliverables.length > 0 || pUnassigned.length > 0;
+
+              return (
+                <>
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2 text-base">
+                      <span className={healthColor}>●</span> {p.name}
+                    </DialogTitle>
+                    <p className="text-xs text-muted-foreground">{p.client_name || p.department || ''} · <span className={healthColor}>{healthLabel}</span></p>
+                  </DialogHeader>
+
+                  {!hasIssues && (
+                    <div className="py-6 text-center">
+                      <CheckCircle2 className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
+                      <p className="text-sm font-medium text-emerald-700">Tudo em dia!</p>
+                      <p className="text-xs text-muted-foreground mt-1">Este projeto não tem alertas pendentes.</p>
+                    </div>
+                  )}
+
+                  {pOverdueTasks.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold flex items-center gap-2 mb-2">
+                        <Clock className="h-4 w-4 text-destructive" /> Tarefas atrasadas
+                        <Badge variant="destructive" className="text-[10px]">{pOverdueTasks.length}</Badge>
+                      </h4>
+                      <div className="space-y-1 max-h-[200px] overflow-y-auto">
+                        {pOverdueTasks.map(t => (
+                          <div key={t.id} className="flex items-center gap-2 py-1.5 px-3 rounded-md bg-destructive/5 text-sm">
+                            <PriorityDot priority={t.priority} />
+                            <span className="flex-1 truncate">{t.name}</span>
+                            <span className="text-[10px] text-destructive shrink-0">{format(new Date(t.deadline!), 'dd/MM')}</span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                    {unassignedTasks.length > 20 && <p className="text-xs text-muted-foreground px-3 py-1">+{unassignedTasks.length - 20} mais</p>}
+                    </div>
+                  )}
+
+                  {pOverdueDeliverables.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold flex items-center gap-2 mb-2">
+                        <AlertTriangle className="h-4 w-4 text-destructive" /> Entregas atrasadas
+                        <Badge variant="destructive" className="text-[10px]">{pOverdueDeliverables.length}</Badge>
+                      </h4>
+                      <div className="space-y-1 max-h-[200px] overflow-y-auto">
+                        {pOverdueDeliverables.map(d => (
+                          <div key={d.id} className="flex items-center gap-2 py-1.5 px-3 rounded-md bg-destructive/5 text-sm">
+                            <span className="h-2 w-2 rounded-full bg-destructive shrink-0" />
+                            <span className="flex-1 truncate">{d.name}</span>
+                            <span className="text-[10px] text-destructive shrink-0">{format(new Date(d.deadline!), 'dd/MM')}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {pUnassigned.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold flex items-center gap-2 mb-2">
+                        <UserX className="h-4 w-4 text-amber-600" /> Tarefas sem responsável
+                        <Badge variant="outline" className="text-[10px]">{pUnassigned.length}</Badge>
+                      </h4>
+                      <div className="space-y-1 max-h-[200px] overflow-y-auto">
+                        {pUnassigned.map(t => (
+                          <div key={t.id} className="flex items-center gap-2 py-1.5 px-3 rounded-md bg-muted/50 text-sm">
+                            <span className="flex-1 truncate">{t.name}</span>
+                            {t.deadline && <span className="text-[10px] text-muted-foreground">{format(new Date(t.deadline), 'dd/MM')}</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-2 border-t">
+                    <Link to={`/hub/projetos/${p.id}`} className="text-sm text-primary hover:underline font-medium" onClick={() => setHealthDetailProjectId(null)}>
+                      Ver projeto →
+                    </Link>
                   </div>
-                </div>
-              )}
-              {overdueDeliverables.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-semibold flex items-center gap-2 mb-2"><AlertTriangle className="h-4 w-4 text-muted-foreground" /> Entregas atrasadas</h4>
-                  <div className="space-y-0.5 max-h-[250px] overflow-y-auto">
-                    {overdueDeliverables.map(d => (
-                      <Link key={d.id} to={`/hub/projetos/${d.project_id}`} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 text-sm" onClick={() => setAlertsOpen(false)}>
-                        <span className="h-2 w-2 rounded-full bg-destructive shrink-0" />
-                        <span className="flex-1 truncate">{d.name}</span>
-                        <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">{projectNameMap.get(d.project_id)}</span>
-                        {d.deadline && <span className="text-[10px] text-destructive shrink-0">{format(new Date(d.deadline), 'dd/MM')}</span>}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {recurrentesWithoutDeliverables.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-semibold flex items-center gap-2 mb-2"><Rocket className="h-4 w-4 text-muted-foreground" /> Recorrentes sem entregas definidas</h4>
-                  <div className="space-y-0.5 max-h-[250px] overflow-y-auto">
-                    {recurrentesWithoutDeliverables.map(p => (
-                      <Link key={p.id} to={`/hub/projetos/${p.id}`} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-muted/40 text-sm" onClick={() => setAlertsOpen(false)}>
-                        <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />
-                        <span className="flex-1 truncate font-medium">{p.name}</span>
-                        {p.client_name && <span className="text-[10px] text-muted-foreground">{p.client_name}</span>}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+                </>
+              );
+            })()}
           </DialogContent>
         </Dialog>
 
@@ -771,10 +752,10 @@ export default function OperacaoPage() {
                   red: { bg: 'bg-red-500/10', ring: 'ring-red-500/30', text: 'text-red-700 dark:text-red-400', dot: 'bg-red-500 animate-pulse' },
                 }[p.health];
                 return (
-                  <Link
+                  <div
                     key={p.id}
-                    to={`/hub/projetos/${p.id}`}
-                    className={`group rounded-xl p-4 ring-1 ${healthColor.ring} ${healthColor.bg} hover:shadow-md transition-all hover-scale`}
+                    onClick={() => setHealthDetailProjectId(p.id)}
+                    className={`group rounded-xl p-4 ring-1 cursor-pointer ${healthColor.ring} ${healthColor.bg} hover:shadow-md transition-all hover-scale`}
                   >
                     <div className="flex items-start gap-2 mb-2">
                       <span className={`h-2 w-2 rounded-full mt-1 shrink-0 ${healthColor.dot}`} />
@@ -795,7 +776,7 @@ export default function OperacaoPage() {
                         {format(new Date(p.deadline), 'dd MMM', { locale: pt })}
                       </p>
                     )}
-                  </Link>
+                  </div>
                 );
               })}
             </div>
