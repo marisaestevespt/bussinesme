@@ -19,7 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { format, isToday, isBefore, startOfToday, isAfter, endOfWeek, startOfWeek, subDays, differenceInDays } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-import { OperacaoKpis, OperacaoAlertsSummary } from '@/components/operacao/OperacaoKpis';
+import { OperacaoKpis } from '@/components/operacao/OperacaoKpis';
 
 // ─── Types ──────────────────────────────────────────────────────
 
