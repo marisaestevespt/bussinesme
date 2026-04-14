@@ -1248,6 +1248,7 @@ export default function ProjetoDetailPage() {
             <DialogHeader><DialogTitle>Equipa do Projeto</DialogTitle></DialogHeader>
             <div className="space-y-1 max-h-80 overflow-y-auto">
               {profiles.map(p => {
+                const resolvedProfile = profileMap.get(p.id) ?? p;
                 const isMember = projectMembers.includes(p.id);
                 return (
                   <button
@@ -1260,10 +1261,10 @@ export default function ProjetoDetailPage() {
                     )}
                   >
                     <Avatar className="h-7 w-7">
-                      <AvatarImage src={p.avatar_url || ''} />
-                      <AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback>
+                      <AvatarImage src={resolvedProfile.avatar_url || ''} />
+                      <AvatarFallback className="text-[9px]">{getInitials(resolvedProfile.full_name)}</AvatarFallback>
                     </Avatar>
-                    <span className="flex-1 text-left">{p.full_name || 'Sem nome'}</span>
+                    <span className="flex-1 text-left">{resolvedProfile.full_name || 'Sem nome'}</span>
                     {isMember && <CheckSquare className="h-4 w-4 text-primary" />}
                   </button>
                 );
@@ -1542,6 +1543,7 @@ export default function ProjetoDetailPage() {
           <DialogHeader><DialogTitle>Equipa do Projeto</DialogTitle></DialogHeader>
           <div className="space-y-1 max-h-80 overflow-y-auto">
             {profiles.map(p => {
+              const resolvedProfile = profileMap.get(p.id) ?? p;
               const isMember = projectMembers.includes(p.id);
               return (
                 <button
@@ -1554,10 +1556,10 @@ export default function ProjetoDetailPage() {
                   )}
                 >
                   <Avatar className="h-7 w-7">
-                    <AvatarImage src={p.avatar_url || ''} />
-                    <AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback>
+                    <AvatarImage src={resolvedProfile.avatar_url || ''} />
+                    <AvatarFallback className="text-[9px]">{getInitials(resolvedProfile.full_name)}</AvatarFallback>
                   </Avatar>
-                  <span className="flex-1 text-left">{p.full_name || 'Sem nome'}</span>
+                  <span className="flex-1 text-left">{resolvedProfile.full_name || 'Sem nome'}</span>
                   {isMember && <CheckSquare className="h-4 w-4 text-primary" />}
                 </button>
               );
