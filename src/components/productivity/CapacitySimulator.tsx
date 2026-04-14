@@ -1,4 +1,5 @@
 import { useState, useMemo, Fragment } from 'react';
+import DOMPurify from 'dompurify';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -782,12 +783,12 @@ export function HiringSimulator({ members, entries }: { members: any[]; entries:
                     return (
                       <div key={i} className="flex gap-2 items-start">
                         <span className="text-primary mt-0.5">•</span>
-                        <span dangerouslySetInnerHTML={{ __html: content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                        <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')) }} />
                       </div>
                     );
                   }
                   // Regular text with bold support
-                  return <p key={i} dangerouslySetInnerHTML={{ __html: line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />;
+                  return <p key={i} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')) }} />;
                 })}
               </div>
             )}
