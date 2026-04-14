@@ -550,9 +550,9 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Status</TableHead>
             <TableHead>Nome</TableHead>
             <TableHead>Tipo</TableHead>
-            <TableHead>Status</TableHead>
             <TableHead>Departamento</TableHead>
             <TableHead>Data Início</TableHead>
             <TableHead>Data Fim</TableHead>
@@ -566,8 +566,6 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
             const members = getMembersForProject(p.id);
             return (
               <TableRow key={p.id} className="cursor-pointer" onClick={() => onOpen(p.id)}>
-                <TableCell className="font-medium whitespace-nowrap">{p.name}</TableCell>
-                <TableCell className="whitespace-nowrap"><Badge className={`${typeI.color} border font-medium`}>{typeI.label}</Badge></TableCell>
                 <TableCell className="whitespace-nowrap" onClick={e => e.stopPropagation()}>
                   <Select value={p.status} onValueChange={s => onStatusChange(p.id, s)}>
                     <SelectTrigger className="h-auto border-0 bg-transparent p-0 shadow-none w-auto">
@@ -585,6 +583,8 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
                     </SelectContent>
                   </Select>
                 </TableCell>
+                <TableCell className="font-medium whitespace-nowrap">{p.name}</TableCell>
+                <TableCell className="whitespace-nowrap"><Badge className={`${typeI.color} border font-medium`}>{typeI.label}</Badge></TableCell>
                 <TableCell>{p.department ? <DeptBadge dept={p.department} /> : <span className="text-muted-foreground">—</span>}</TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{p.start_date ? format(new Date(p.start_date), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{p.deadline ? format(new Date(p.deadline), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
