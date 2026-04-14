@@ -11,7 +11,7 @@ import React, { useState, forwardRef } from 'react';
 
 const COLOR_BG: Record<string, string> = {
   coral: 'bg-primary', primary: 'bg-primary', info: 'bg-info', success: 'bg-success',
-  warning: 'bg-warning', accent: 'bg-accent', muted: 'bg-muted-foreground',
+  warning: 'bg-warning', accent: 'bg-accent-foreground', muted: 'bg-muted-foreground',
   destructive: 'bg-destructive',
 };
 
