@@ -1130,7 +1130,10 @@ export default function ProjetoDetailPage() {
                     <h3 className="text-sm font-bold text-info uppercase tracking-wide">{taskMode === 'tarefas_fixas' ? 'Tarefas do Mês' : taskMode === 'tarefas_livres' ? 'Tarefas' : 'Estado e Prioridades'}</h3>
                     <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
                   </div>
-                  <Button size="sm" variant="outline" className="gap-1.5 h-9 ml-3" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
+                  <div className="flex gap-2 ml-3">
+                    {taskMode === 'tarefas_fixas' && <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => generateMonthlyTasksMutation.mutate()}>📋 Gerar tarefas do mês</Button>}
+                    <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
+                  </div>
                 </div>
                 {tasks.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl">
