@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { SYSTEM_FONT_DISPLAY, SYSTEM_FONT_BODY } from '@/lib/modules';
 import type { Tables } from '@/integrations/supabase/types';
 
 type BusinessSettings = Tables<'business_settings'>;
@@ -55,8 +56,13 @@ function applyTheme(settings: BusinessSettings) {
     root.style.setProperty('--sidebar-primary-foreground', contrastForeground(settings.primary_color));
   }
 
-  root.style.setProperty('--font-display', `'${settings.font_display}'`);
-  root.style.setProperty('--font-body', `'${settings.font_body}'`);
+  if (useSystem) {
+    root.style.setProperty('--font-display', `'${SYSTEM_FONT_DISPLAY}'`);
+    root.style.setProperty('--font-body', `'${SYSTEM_FONT_BODY}'`);
+  } else {
+    root.style.setProperty('--font-display', `'${settings.font_display}'`);
+    root.style.setProperty('--font-body', `'${settings.font_body}'`);
+  }
 }
 
 export function BusinessSettingsProvider({ children }: { children: ReactNode }) {
