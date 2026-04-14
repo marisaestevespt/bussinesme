@@ -615,6 +615,38 @@ export default function ProjetoDetailPage() {
     },
   });
 
+  const generateMonthlyTasksMutation = useMutation({
+    mutationFn: async () => {
+      if (!local?.product_id) { toast.error('Sem produto associado — não é possível gerar tarefas.'); throw new Error('no product'); }
+      const now = new Date();
+      const monthLabel = format(now, 'MMMM yyyy', { locale: pt });
+      // Get product deliverable templates
+      const { data: templates } = await (supabase as any).from('product_deliverables').select('name, description, sort_order').eq('product_id', local.product_id).order('sort_order');
+      if (!templates || templates.length === 0) { toast.error('Sem entregáveis configurados no produto.'); throw new Error('no templates'); }
+      // Check if already generated this month
+      const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
+      const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
+      const { data: existing } = await supabase.from('tasks').select('id').eq('project_id', id!).gte('deadline', monthStart).lte('deadline', monthEnd);
+      if (existing && existing.length > 0) { toast.info(`Já existem ${existing.length} tarefas este mês.`); return; }
+      // Create tasks
+      const lastDay = format(endOfMonth(now), 'yyyy-MM-dd');
+      const tasksToInsert = templates.map((t: any) => ({
+        name: t.name,
+        notes: t.description || null,
+        project_id: id,
+        department: local?.department || null,
+        deadline: lastDay,
+        created_by: user?.id,
+        priority: 'media',
+      }));
+      const { error } = await supabase.from('tasks').insert(tasksToInsert);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project-tasks', id] });
+      toast.success('Tarefas do mês geradas com sucesso!');
+    },
+  });
 
   if (isLoading || !local) return <AppLayout><div className="space-y-6"><div className="h-8 w-48 animate-pulse rounded bg-muted" /><div className="grid gap-4 md:grid-cols-2"><div className="h-32 animate-pulse rounded-lg bg-muted" /><div className="h-32 animate-pulse rounded-lg bg-muted" /></div><div className="h-64 animate-pulse rounded-lg bg-muted" /></div></AppLayout>;
 
