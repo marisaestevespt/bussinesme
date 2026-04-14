@@ -56,6 +56,7 @@ interface ProjectFull {
   created_by: string | null; created_at: string; cover_url: string | null;
   total_time_minutes: number | null;
   project_mode: string | null;
+  task_mode: string | null;
   whatsapp_group_url: string | null;
   contract_documents: Array<{ name: string; url: string }> | null;
   payment_method: string | null;
@@ -614,6 +615,38 @@ export default function ProjetoDetailPage() {
     },
   });
 
+  const generateMonthlyTasksMutation = useMutation({
+    mutationFn: async () => {
+      if (!local?.product_id) { toast.error('Sem produto associado — não é possível gerar tarefas.'); throw new Error('no product'); }
+      const now = new Date();
+      const monthLabel = format(now, 'MMMM yyyy', { locale: pt });
+      // Get product deliverable templates
+      const { data: templates } = await (supabase as any).from('product_deliverables').select('name, description, sort_order').eq('product_id', local.product_id).order('sort_order');
+      if (!templates || templates.length === 0) { toast.error('Sem entregáveis configurados no produto.'); throw new Error('no templates'); }
+      // Check if already generated this month
+      const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
+      const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
+      const { data: existing } = await supabase.from('tasks').select('id').eq('project_id', id!).gte('deadline', monthStart).lte('deadline', monthEnd);
+      if (existing && existing.length > 0) { toast.info(`Já existem ${existing.length} tarefas este mês.`); return; }
+      // Create tasks
+      const lastDay = format(endOfMonth(now), 'yyyy-MM-dd');
+      const tasksToInsert = templates.map((t: any) => ({
+        name: t.name,
+        notes: t.description || null,
+        project_id: id,
+        department: local?.department || null,
+        deadline: lastDay,
+        created_by: user?.id,
+        priority: 'media',
+      }));
+      const { error } = await supabase.from('tasks').insert(tasksToInsert);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project-tasks', id] });
+      toast.success('Tarefas do mês geradas com sucesso!');
+    },
+  });
 
   if (isLoading || !local) return <AppLayout><div className="space-y-6"><div className="h-8 w-48 animate-pulse rounded bg-muted" /><div className="grid gap-4 md:grid-cols-2"><div className="h-32 animate-pulse rounded-lg bg-muted" /><div className="h-32 animate-pulse rounded-lg bg-muted" /></div><div className="h-64 animate-pulse rounded-lg bg-muted" /></div></AppLayout>;
 
@@ -809,6 +842,7 @@ export default function ProjetoDetailPage() {
   // ─── Client project (cliente_projeto_unico or cliente_servico_mensal) ──
   if (local.type === 'servico' || local.type === 'cliente_servico_mensal' || local.type === 'cliente_projeto_unico' || local.type === 'clientes') {
     const isRecorrente = (local as any).project_mode === 'recorrente';
+    const taskMode: string = (local as any).task_mode || 'fases';
     return (
       <AppLayout>
         <div className="space-y-6">
@@ -870,8 +904,20 @@ export default function ProjetoDetailPage() {
                 </SelectContent>
               </Select>
             </div>
+            {/* Modo Operacional */}
+            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
+              <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><CheckSquare className="h-4 w-4" /> Operação</span>
+              <Select value={taskMode} onValueChange={v => updateField('task_mode', v)}>
+                <SelectTrigger className="w-52 h-8"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fases">📊 Fases e Entregáveis</SelectItem>
+                  <SelectItem value="tarefas_fixas">📋 Tarefas Fixas Mensais</SelectItem>
+                  <SelectItem value="tarefas_livres">✏️ Tarefas Livres</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             {/* Progresso */}
-            {(!isRecorrente || isRecorrenteMensal) && (
+            {taskMode !== 'tarefas_livres' && (
               <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
                 <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> {isRecorrenteMensal ? `Progresso de ${format(now, 'MMMM', { locale: pt })}` : 'Progresso'}</span>
                 <div className="flex items-center gap-3 flex-1">
@@ -1053,8 +1099,8 @@ export default function ProjetoDetailPage() {
 
             {/* ─── TAB 1: PROJETO ──────────────────────────── */}
             <TabsContent value="projeto" className="space-y-8 mt-6">
-              {/* Deliverables (only for recorrente) */}
-              {isRecorrente && <ProjectDeliverables projectId={id!} profiles={profiles} />}
+              {/* Deliverables (only for fases recorrente) */}
+              {isRecorrente && taskMode === 'fases' && <ProjectDeliverables projectId={id!} profiles={profiles} />}
 
               {/* ── Section: Menu Inicial ─────────────────── */}
               <div className="space-y-4">
@@ -1113,15 +1159,18 @@ export default function ProjetoDetailPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-info/10 border border-info/20 flex-1">
                     <CheckSquare className="h-4.5 w-4.5 text-info" />
-                    <h3 className="text-sm font-bold text-info uppercase tracking-wide">{isRecorrente ? 'Tarefas do Ciclo' : 'Estado e Prioridades'}</h3>
+                    <h3 className="text-sm font-bold text-info uppercase tracking-wide">{taskMode === 'tarefas_fixas' ? 'Tarefas do Mês' : taskMode === 'tarefas_livres' ? 'Tarefas' : 'Estado e Prioridades'}</h3>
                     <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
                   </div>
-                  <Button size="sm" variant="outline" className="gap-1.5 h-9 ml-3" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
+                  <div className="flex gap-2 ml-3">
+                    {taskMode === 'tarefas_fixas' && <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => generateMonthlyTasksMutation.mutate()}>📋 Gerar tarefas do mês</Button>}
+                    <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
+                  </div>
                 </div>
                 {tasks.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl">
                     <CheckSquare className="h-10 w-10 text-muted-foreground/30 mb-3" />
-                    <p className="text-sm text-muted-foreground">{isRecorrente ? 'As tarefas serão geradas automaticamente a partir das entregas recorrentes.' : 'Nenhuma tarefa ligada a este projeto'}</p>
+                    <p className="text-sm text-muted-foreground">{taskMode === 'tarefas_fixas' ? 'Usa o botão "Gerar tarefas" para criar as tarefas deste mês.' : taskMode === 'tarefas_livres' ? 'Adiciona tarefas conforme necessário.' : 'Nenhuma tarefa ligada a este projeto'}</p>
                   </div>
                 ) : (
                   <div className="rounded-xl border overflow-hidden">
@@ -1201,7 +1250,7 @@ export default function ProjetoDetailPage() {
 
             {/* ─── TAB 2: PROCESSOS ────────────────────────── */}
             <TabsContent value="processos" className="mt-4 space-y-6">
-              <ProjectPhasesTimeline projectId={id!} projectStartDate={local.start_date} />
+              {taskMode === 'fases' && <ProjectPhasesTimeline projectId={id!} projectStartDate={local.start_date} />}
               <ProjectProcessosTab
                 projectId={id!}
                 clientId={resolvedClientId}
@@ -1306,6 +1355,7 @@ export default function ProjetoDetailPage() {
 
   // ─── Internal project ─────────────────────────────────────────
   const isRecorrente = (local as any).project_mode === 'recorrente';
+  const taskMode: string = (local as any).task_mode || 'fases';
 
   return (
     <AppLayout>
@@ -1350,13 +1400,13 @@ export default function ProjetoDetailPage() {
           </div>
           <div className="space-y-4">
             {local.department && <div><Label className="text-xs">Departamento</Label><p className="text-sm mt-1">{getDeptLabel(local.department)}</p></div>}
-            {!isRecorrente && (
+            {taskMode === 'fases' && (
               <div>
                 <Label className="text-xs">Prazo</Label>
                 <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal mt-1", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{local.deadline ? format(new Date(local.deadline), 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
               </div>
             )}
-            {!isRecorrente && (
+            {taskMode !== 'tarefas_livres' && (
               <div>
                 <Label className="text-xs">Progresso ({getProjectProgress()}%)</Label>
                 <Progress value={getProjectProgress()} className="h-2 mt-2" />
@@ -1392,7 +1442,7 @@ export default function ProjetoDetailPage() {
         <Separator />
 
         {/* Deliverables - only for recorrente projects */}
-        {isRecorrente && (
+        {isRecorrente && taskMode === 'fases' && (
           <>
             <ProjectDeliverables projectId={id!} profiles={profiles} />
             <Separator />
@@ -1452,10 +1502,11 @@ export default function ProjetoDetailPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-info/10 border border-info/20 flex-1">
               <CheckSquare className="h-4.5 w-4.5 text-info" />
-              <h3 className="text-sm font-bold text-info uppercase tracking-wide">{isRecorrente ? 'Tarefas do Ciclo' : 'Estado e Prioridades'}</h3>
+              <h3 className="text-sm font-bold text-info uppercase tracking-wide">{taskMode === 'tarefas_fixas' ? 'Tarefas do Mês' : taskMode === 'tarefas_livres' ? 'Tarefas' : 'Estado e Prioridades'}</h3>
               <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
             </div>
             <div className="flex gap-2 ml-3">
+              {taskMode === 'tarefas_fixas' && <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => generateMonthlyTasksMutation.mutate()}>📋 Gerar tarefas</Button>}
               <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
               <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => setMeetingDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Reunião</Button>
             </div>
@@ -1463,7 +1514,7 @@ export default function ProjetoDetailPage() {
           {tasks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl">
               <CheckSquare className="h-10 w-10 text-muted-foreground/30 mb-3" />
-              <p className="text-sm text-muted-foreground">{isRecorrente ? 'As tarefas serão geradas automaticamente a partir das entregas recorrentes.' : 'Nenhuma tarefa ligada a este projeto'}</p>
+              <p className="text-sm text-muted-foreground">{taskMode === 'tarefas_fixas' ? 'Usa o botão "Gerar tarefas" para criar as tarefas deste mês.' : taskMode === 'tarefas_livres' ? 'Adiciona tarefas conforme necessário.' : 'Nenhuma tarefa ligada a este projeto'}</p>
             </div>
           ) : (
             <div className="rounded-xl border overflow-hidden">
