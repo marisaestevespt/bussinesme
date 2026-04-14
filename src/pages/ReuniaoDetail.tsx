@@ -486,7 +486,7 @@ export default function ReuniaoDetailPage() {
 
   return (
     <AppLayout>
-      <div className="w-full px-4 sm:px-8 py-8 space-y-6">
+      <div className="w-full space-y-6">
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <BackNavigation parentRoute="/hub/reunioes" parentLabel="Reuniões" />
