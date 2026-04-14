@@ -18,7 +18,7 @@ import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import {
   Palette, Target, GitBranch, Package, Zap, Filter, TrendingUp, BarChart3, Users,
-  Plus, Pencil, Check, X, ExternalLink, Image as ImageIcon,
+  Plus, Pencil, Check, X, ExternalLink, Image as ImageIcon, Loader2,
 } from 'lucide-react';
 
 const CHANNEL_EMOJI: Record<string, string> = {
