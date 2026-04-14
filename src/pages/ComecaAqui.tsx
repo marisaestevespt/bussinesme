@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
+import { BackNavigation } from '@/components/BackNavigation';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -154,6 +155,7 @@ export default function ComecaAquiPage() {
     <AppLayout>
       <div className="flex flex-col min-h-screen">
         {/* Cover */}
+        <BackNavigation parentRoute="/hub-equipa" parentLabel="Hub de Equipa" />
         <PageHeader title="Começa Aqui" />
 
         <div className="w-full px-4 py-10 space-y-12">

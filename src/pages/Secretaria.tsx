@@ -2,6 +2,7 @@ import { useState, useMemo, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
+import { BackNavigation } from '@/components/BackNavigation';
 import { getDeptLabel } from '@/lib/departments';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -137,6 +138,7 @@ export default function SecretariaPage() {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
+        <BackNavigation parentRoute="/hub-equipa" parentLabel="Hub de Equipa" />
         <PageHeader title={`${greetingText()}, ${firstName}.`} subtitle={format(new Date(), "EEEE, d 'de' MMMM 'de' yyyy", { locale: pt })} />
 
         {/* Navigation cards */}
