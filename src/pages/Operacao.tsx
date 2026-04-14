@@ -1084,12 +1084,15 @@ export default function OperacaoPage() {
                                 <span className="text-xs text-muted-foreground">Sem checklist</span>
                               ) : (
                                 <ul className="space-y-0.5">
-                                  {pendingItems.map((item, i) => (
-                                    <li key={i} className="text-xs text-destructive flex items-center gap-1">
-                                      <span className="h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
-                                      {item.phase ? `${item.phase}: ` : ''}{item.activity}
-                                    </li>
-                                  ))}
+                                  {pendingItems.map((item) => {
+                                    const phaseName = onboardingPhases.find(ph => ph.id === item.phase_id)?.name;
+                                    return (
+                                      <li key={item.id} className="text-xs text-destructive flex items-center gap-1">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
+                                        {phaseName ? `${phaseName}: ` : ''}{item.name}
+                                      </li>
+                                    );
+                                  })}
                                 </ul>
                               )}
                             </TableCell>
