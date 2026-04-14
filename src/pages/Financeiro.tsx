@@ -23,18 +23,20 @@ const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2,
 const ML = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const PIE_COLORS = ['hsl(var(--primary))', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#6366f1'];
 
-const ALL_SECTIONS = [
+const ALL_SECTIONS_ROW1 = [
   { path: '/hub/financeiro/mensal', label: 'Mensal', icon: CalendarDays, iconColor: 'text-blue-600', color: 'from-blue-500/20 to-blue-600/10 border-blue-200/60 hover:from-blue-500/30 hover:to-blue-600/15 hover:border-blue-300/80', key: 'mensal' },
   { path: '/hub/financeiro/trimestral', label: 'Trimestral', icon: CalendarRange, iconColor: 'text-violet-600', color: 'from-violet-500/20 to-violet-600/10 border-violet-200/60 hover:from-violet-500/30 hover:to-violet-600/15 hover:border-violet-300/80', key: 'trimestral' },
   { path: '/hub/financeiro/documentos', label: 'Documentos', icon: FolderOpen, iconColor: 'text-orange-600', color: 'from-orange-500/20 to-orange-600/10 border-orange-200/60 hover:from-orange-500/30 hover:to-orange-600/15 hover:border-orange-300/80', key: 'documentos' },
   { path: '/hub/financeiro/iva', label: 'IVA', icon: Receipt, iconColor: 'text-amber-600', color: 'from-amber-500/20 to-amber-600/10 border-amber-200/60 hover:from-amber-500/30 hover:to-amber-600/15 hover:border-amber-300/80', key: 'iva' },
   { path: '/hub/financeiro/seguranca-social', label: 'Segurança Social', icon: Shield, iconColor: 'text-cyan-600', color: 'from-cyan-500/20 to-cyan-600/10 border-cyan-200/60 hover:from-cyan-500/30 hover:to-cyan-600/15 hover:border-cyan-300/80', key: 'ss' },
+];
+
+const ALL_SECTIONS_ROW2 = [
   { path: '/hub/financeiro/contabilidade', label: 'Contabilidade', icon: BookOpen, iconColor: 'text-emerald-600', color: 'from-emerald-500/20 to-emerald-600/10 border-emerald-200/60 hover:from-emerald-500/30 hover:to-emerald-600/15 hover:border-emerald-300/80', key: 'contabilidade' },
   { path: '/hub/financeiro/previsibilidade', label: 'Previsibilidade', icon: TrendingUp, iconColor: 'text-indigo-600', color: 'from-indigo-500/20 to-indigo-600/10 border-indigo-200/60 hover:from-indigo-500/30 hover:to-indigo-600/15 hover:border-indigo-300/80', key: 'previsibilidade' },
   { path: '/hub/financeiro/entradas', label: 'Entradas', icon: ArrowDownLeft, iconColor: 'text-emerald-600', color: 'from-emerald-500/20 to-emerald-600/10 border-emerald-200/60 hover:from-emerald-500/30 hover:to-emerald-600/15 hover:border-emerald-300/80', key: 'entradas' },
   { path: '/hub/financeiro/saidas', label: 'Saídas', icon: ArrowUpRight, iconColor: 'text-red-600', color: 'from-red-500/20 to-red-600/10 border-red-200/60 hover:from-red-500/30 hover:to-red-600/15 hover:border-red-300/80', key: 'saidas' },
   { path: '/hub/financeiro/setup-financeiro', label: 'Setup Financeiro', icon: Settings, iconColor: 'text-slate-600', color: 'from-slate-500/20 to-slate-600/10 border-slate-200/60 hover:from-slate-500/30 hover:to-slate-600/15 hover:border-slate-300/80', key: 'setup' },
-  { path: '/hub/financeiro/ordenados', label: 'Ordenados', icon: Users, iconColor: 'text-purple-600', color: 'from-purple-500/20 to-purple-600/10 border-purple-200/60 hover:from-purple-500/30 hover:to-purple-600/15 hover:border-purple-300/80', key: 'ordenados' },
 ];
 
 export default function FinanceiroPage() {
@@ -52,14 +54,15 @@ export default function FinanceiroPage() {
   const teamType = s?.team_type || 'externa';
   const hasInternalTeam = teamType === 'interna' || teamType === 'ambas';
 
-  const SECTIONS = useMemo(() => {
-    return ALL_SECTIONS.filter(sec => {
+  const SECTIONS_ROW1 = useMemo(() => {
+    return ALL_SECTIONS_ROW1.filter(sec => {
       if (sec.key === 'iva' && ivaExempt && !isContabOrganizada) return false;
       if (sec.key === 'ss' && ssExempt && !isContabOrganizada) return false;
-      if (sec.key === 'ordenados' && !hasInternalTeam) return false;
       return true;
     });
-  }, [ivaExempt, ssExempt, isContabOrganizada, hasInternalTeam]);
+  }, [ivaExempt, ssExempt, isContabOrganizada]);
+
+  const SECTIONS_ROW2 = ALL_SECTIONS_ROW2;
 
   const sales = excludeCancelled(com.sales.data || []);
   const expenses = excludeCancelled(fin.expenses.data || []);
@@ -217,21 +220,39 @@ export default function FinanceiroPage() {
         <PageHeader title="Contabilidade" subtitle="Gestão contabilística, entradas, saídas e obrigações fiscais." />
 
         {/* Navigation cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {SECTIONS.map(s => (
-            <Card
-              key={s.path}
-              className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
-              onClick={() => navigate(s.path)}
-            >
-              <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
-                <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
-                  <s.icon className="h-4 w-4" />
-                </div>
-                <span className="font-medium text-xs sm:text-sm text-foreground leading-tight">{s.label}</span>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {SECTIONS_ROW1.map(s => (
+              <Card
+                key={s.path}
+                className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
+                onClick={() => navigate(s.path)}
+              >
+                <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+                  <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
+                    <s.icon className="h-4 w-4" />
+                  </div>
+                  <span className="font-medium text-xs sm:text-sm text-foreground leading-tight">{s.label}</span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {SECTIONS_ROW2.map(s => (
+              <Card
+                key={s.path}
+                className={`group cursor-pointer border bg-gradient-to-br ${s.color} transition-all duration-200 hover:shadow-md hover:-translate-y-0.5`}
+                onClick={() => navigate(s.path)}
+              >
+                <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+                  <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-background/80 flex items-center justify-center shadow-sm shrink-0 ${s.iconColor}`}>
+                    <s.icon className="h-4 w-4" />
+                  </div>
+                  <span className="font-medium text-xs sm:text-sm text-foreground leading-tight">{s.label}</span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
 
 
