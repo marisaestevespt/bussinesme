@@ -103,7 +103,6 @@ export default function MarketingPublicoAlvo() {
               </p>
               <div className="border-t border-border pt-5 grid grid-cols-2 sm:grid-cols-4 gap-6">
                 {[
-                  { value: '7', label: 'Conversas realizadas' },
                   { value: '3', label: 'Personas identificadas' },
                   { value: '5', label: 'Níveis de consciência' },
                   { value: String(sections?.length || 0), label: 'Secções de análise' },
