@@ -230,6 +230,14 @@ export default function ProjetosPage() {
     },
   });
 
+  const { data: allClients = [] } = useQuery({
+    queryKey: ['clients-for-progress'],
+    queryFn: async () => {
+      const { data } = await supabase.from('clients' as any).select('id,full_name');
+      return (data || []) as unknown as { id: string; full_name: string }[];
+    },
+  });
+
   const profileMap = new Map(profiles.map(p => [p.id, p]));
 
   function getTaskProgress(projectId: string, projectType?: string) {
