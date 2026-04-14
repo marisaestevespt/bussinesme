@@ -1,0 +1,1 @@
+ALTER TABLE public.business_settings ADD COLUMN IF NOT EXISTS use_system_theme boolean NOT NULL DEFAULT true;
