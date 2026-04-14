@@ -23,7 +23,7 @@ import {
   Key, MessageSquare, Building2, Megaphone, DollarSign, ShoppingCart,
   UserCheck, UsersRound, Headphones, Target, CalendarCheck, Crown,
   LayoutDashboard, Settings, LogOut, Package, Heart, BookOpen, Star,
-  Clock, Lightbulb, MessageSquareHeart,
+  Clock, Lightbulb, MessageSquareHeart, ChevronRight,
 } from 'lucide-react';
 
 const ICON_MAP: Record<string, any> = {
@@ -39,7 +39,7 @@ interface NavItem {
   url: string;
   icon: string;
   moduleKey: string;
-  termKey?: string; // optional key for sector terminology
+  termKey?: string;
 }
 
 const pessoalItems: NavItem[] = [
@@ -104,15 +104,10 @@ function NavSection({
     <Collapsible defaultOpen className="group/collapsible">
       <SidebarGroup>
         <CollapsibleTrigger asChild>
-          <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold cursor-pointer hover:text-muted-foreground transition-colors select-none mb-1">
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/40 font-semibold cursor-pointer hover:text-sidebar-foreground/70 transition-colors select-none mb-0.5 px-3">
             {label}
             {!collapsed && (
-              <svg
-                className="ml-auto h-3 w-3 shrink-0 text-muted-foreground/40 transition-transform group-data-[state=open]/collapsible:rotate-90"
-                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              >
-                <path d="m9 18 6-6-6-6" />
-              </svg>
+              <ChevronRight className="ml-auto h-3 w-3 shrink-0 text-sidebar-foreground/30 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
             )}
           </SidebarGroupLabel>
         </CollapsibleTrigger>
@@ -130,14 +125,12 @@ function NavSection({
                       <NavLink
                         to={item.url}
                         end
-                        className="group/nav rounded-xl px-3 py-2 transition-all duration-200 hover:bg-primary/10 hover:translate-x-0.5"
-                        activeClassName="bg-accent text-accent-foreground font-medium shadow-sm hover:bg-accent/90 hover:translate-x-0"
+                        className="group/nav rounded-lg px-3 py-2 transition-all duration-200 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                        activeClassName="!bg-sidebar-primary/15 !text-sidebar-primary font-medium hover:!bg-sidebar-primary/20"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 group-[.bg-accent]/nav:bg-accent-foreground/15 transition-colors">
-                            <Icon className="h-3.5 w-3.5" strokeWidth={1.8} />
-                          </div>
-                          {!collapsed && <span className="text-[13px]">{displayTitle}</span>}
+                          <Icon className="h-4 w-4 shrink-0 transition-colors" strokeWidth={1.7} />
+                          {!collapsed && <span className="text-[13px] truncate">{displayTitle}</span>}
                         </div>
                       </NavLink>
                     </SidebarMenuButton>
@@ -163,33 +156,38 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4 pb-2">
+      <SidebarHeader className="p-4 pb-3">
         <div className="flex items-center gap-3">
           {settings?.logo_url ? (
-            <img src={settings.logo_url} alt="Logo" className="h-9 w-9 rounded-xl object-contain shadow-sm" />
+            <img src={settings.logo_url} alt="Logo" className="h-8 w-8 rounded-lg object-contain ring-1 ring-white/10" />
           ) : (
-            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
-              <span className="text-sm font-bold text-primary">
+            <div className="h-8 w-8 rounded-lg bg-sidebar-primary/20 flex items-center justify-center ring-1 ring-sidebar-primary/30">
+              <span className="text-xs font-bold text-sidebar-primary">
                 {(settings?.business_name || 'L').charAt(0)}
               </span>
             </div>
           )}
           {!collapsed && (
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold tracking-tight truncate">
-                {settings?.business_name || 'Business ME'}
+              <span className="text-sm font-semibold tracking-tight truncate text-sidebar-foreground/90">
+                {settings?.business_name || 'Lirah'}
               </span>
-              <span className="text-[10px] text-muted-foreground/60 font-medium">Sistema de Gestão</span>
+              <span className="text-[10px] text-sidebar-foreground/35 font-medium">Sistema de Gestão</span>
             </div>
           )}
         </div>
+
+        {/* Subtle separator */}
+        {!collapsed && (
+          <div className="mt-3 h-px bg-gradient-to-r from-transparent via-sidebar-border to-transparent" />
+        )}
       </SidebarHeader>
 
       <SidebarContent className="px-2">
         <NavSection label="Pessoal" items={pessoalItems} collapsed={collapsed} canAccess={() => true} sectorConfig={sectorConfig} />
         {favorites.length > 0 && (
           <SidebarGroup>
-            <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold mb-1">
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/40 font-semibold mb-0.5 px-3">
               Favoritos
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -202,14 +200,12 @@ export function AppSidebar() {
                         <NavLink
                           to={fav.page_path}
                           end
-                          className="group/nav rounded-xl px-3 py-2 transition-all duration-200 hover:bg-primary/10 hover:translate-x-0.5"
-                          activeClassName="bg-accent text-accent-foreground font-medium shadow-sm hover:bg-accent/90 hover:translate-x-0"
+                          className="group/nav rounded-lg px-3 py-2 transition-all duration-200 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                          activeClassName="!bg-sidebar-primary/15 !text-sidebar-primary font-medium hover:!bg-sidebar-primary/20"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 group-[.bg-accent]/nav:bg-accent-foreground/15 transition-colors">
-                              <Icon className="h-3.5 w-3.5" strokeWidth={1.8} />
-                            </div>
-                            {!collapsed && <span className="text-[13px]">{fav.page_title}</span>}
+                            <Icon className="h-4 w-4 shrink-0 transition-colors" strokeWidth={1.7} />
+                            {!collapsed && <span className="text-[13px] truncate">{fav.page_title}</span>}
                           </div>
                         </NavLink>
                       </SidebarMenuButton>
@@ -228,7 +224,9 @@ export function AppSidebar() {
         )}
       </SidebarContent>
 
-      <SidebarFooter className="p-3 space-y-0.5 border-t">
+      <SidebarFooter className="p-3 space-y-0.5">
+        {/* Separator */}
+        <div className="h-px mb-2 bg-gradient-to-r from-transparent via-sidebar-border to-transparent" />
         <SidebarMenu>
           {isOwner && (
             <SidebarMenuItem>
@@ -236,13 +234,11 @@ export function AppSidebar() {
                 <NavLink
                   to="/definicoes"
                   end
-                  className="group/nav rounded-xl px-3 py-2 transition-all duration-200 hover:bg-primary/10"
-                  activeClassName="bg-accent text-accent-foreground font-medium shadow-sm"
+                  className="group/nav rounded-lg px-3 py-2 transition-all duration-200 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                  activeClassName="!bg-sidebar-primary/15 !text-sidebar-primary font-medium"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 transition-colors">
-                      <Settings className="h-3.5 w-3.5" strokeWidth={1.8} />
-                    </div>
+                    <Settings className="h-4 w-4 shrink-0" strokeWidth={1.7} />
                     {!collapsed && <span className="text-[13px]">Definições</span>}
                   </div>
                 </NavLink>
@@ -252,12 +248,10 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={signOut}
-              className="rounded-lg px-3 py-2 transition-all duration-200 hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+              className="rounded-lg px-3 py-2 transition-all duration-200 text-sidebar-foreground/50 hover:text-red-400 hover:bg-red-500/10"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-destructive/8 transition-colors">
-                  <LogOut className="h-3.5 w-3.5" strokeWidth={1.8} />
-                </div>
+                <LogOut className="h-4 w-4 shrink-0" strokeWidth={1.7} />
                 {!collapsed && <span className="text-[13px]">Sair</span>}
               </div>
             </SidebarMenuButton>
