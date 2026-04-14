@@ -11,9 +11,28 @@ export function PageHeader({ title, subtitle, showAccessButton = true }: PageHea
   const location = useLocation();
 
   return (
-    <div className="relative -mx-4 sm:-mx-8 px-4 sm:px-8 py-8 overflow-hidden rounded-b-2xl" style={{ background: 'linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-end)))' }}>
-      {/* Decorative warm glow */}
-      <div className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full -translate-y-1/2 opacity-30 blur-3xl" style={{ background: 'hsl(var(--primary) / 0.15)' }} />
+    <div className="relative -mx-4 sm:-mx-8 px-4 sm:px-8 py-8 overflow-hidden">
+      {/* Subtle gradient background */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `linear-gradient(135deg, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 70%)`,
+        }}
+      />
+
+      {/* Decorative accent orb */}
+      <div
+        className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-[0.04] blur-3xl"
+        style={{ background: `hsl(var(--gradient-accent))` }}
+      />
+
+      {/* Bottom border with gradient */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-px"
+        style={{
+          background: `linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.15) 50%, transparent 100%)`,
+        }}
+      />
 
       <div className="relative flex items-start justify-between">
         <div>
