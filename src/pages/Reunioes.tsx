@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CalendarIcon, Plus, Users, Clock, Repeat, Video, FolderOpen, UserCheck, Handshake } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -202,6 +203,7 @@ function DateTimePickerField({ date, onSelect, placeholder }: { date?: Date; onS
 // ─── Member Picker ──────────────────────────────────────────────
 
 function MemberPicker({ selectedIds, onChange, profiles }: { selectedIds: string[]; onChange: (ids: string[]) => void; profiles: Profile[] }) {
+  const { getPhotoUrl } = useTeamPhotos();
   const toggle = (id: string) => {
     onChange(selectedIds.includes(id) ? selectedIds.filter(x => x !== id) : [...selectedIds, id]);
   };
@@ -214,7 +216,7 @@ function MemberPicker({ selectedIds, onChange, profiles }: { selectedIds: string
             <label key={p.id} className="flex items-center gap-2 cursor-pointer text-sm hover:bg-muted/50 rounded px-1 py-0.5">
               <Checkbox checked={selectedIds.includes(p.id)} onCheckedChange={() => toggle(p.id)} />
               <Avatar className="h-5 w-5">
-                <AvatarImage src={p.avatar_url ?? undefined} />
+                <AvatarImage src={getPhotoUrl(p)} />
                 <AvatarFallback className="text-[10px]">{initials(p.full_name)}</AvatarFallback>
               </Avatar>
               <span className="text-foreground">{p.full_name || 'Sem nome'}</span>

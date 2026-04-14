@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -100,6 +101,7 @@ interface ProjectMember {
 // ─── Member Picker ──────────────────────────────────────────────
 
 function MemberPicker({ selected, onChange, profiles }: { selected: string[]; onChange: (ids: string[]) => void; profiles: Profile[] }) {
+  const { getPhotoUrl } = useTeamPhotos();
   return (
     <div className="space-y-2">
       <Label className="text-xs">Membros/Responsáveis</Label>
@@ -108,7 +110,7 @@ function MemberPicker({ selected, onChange, profiles }: { selected: string[]; on
           {profiles.map(p => (
             <label key={p.id} className="flex items-center gap-2 cursor-pointer py-0.5 px-1 rounded hover:bg-muted/50">
               <Checkbox checked={selected.includes(p.id)} onCheckedChange={c => onChange(c ? [...selected, p.id] : selected.filter(id => id !== p.id))} />
-              <Avatar className="h-5 w-5"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar>
+              <Avatar className="h-5 w-5"><AvatarImage src={getPhotoUrl(p)} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar>
               <span className="text-sm">{p.full_name || 'Membro'}</span>
             </label>
           ))}
@@ -545,6 +547,7 @@ export default function ProjetosPage() {
 // ─── Table View ─────────────────────────────────────────────────
 
 function TableView({ projects, getMembersForProject, onOpen, onStatusChange, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; onStatusChange: (id: string, status: string) => void; getTaskProgress: (id: string, type?: string, mode?: string | null) => number }) {
+  const { getPhotoUrl } = useTeamPhotos();
   return (
     <div className="rounded-lg border overflow-x-auto">
       <Table>
@@ -589,7 +592,7 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
                 <TableCell className="text-sm whitespace-nowrap">{p.start_date ? format(new Date(p.start_date), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{p.deadline ? format(new Date(p.deadline), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
                 <TableCell><div className="flex items-center gap-2 min-w-[100px]"><Progress value={getTaskProgress(p.id, p.type, p.project_mode)} className="h-2 flex-1" /><span className="text-xs text-muted-foreground w-8">{getTaskProgress(p.id, p.type, p.project_mode)}%</span></div></TableCell>
-                <TableCell><div className="flex -space-x-1">{members.slice(0, 3).map(m => <Avatar key={m.id} className="h-6 w-6 border-2 border-background"><AvatarImage src={m.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(m.full_name)}</AvatarFallback></Avatar>)}{members.length > 3 && <span className="text-xs text-muted-foreground ml-1">+{members.length - 3}</span>}</div></TableCell>
+                <TableCell><div className="flex -space-x-1">{members.slice(0, 3).map(m => <Avatar key={m.id} className="h-6 w-6 border-2 border-background"><AvatarImage src={getPhotoUrl(m)} /><AvatarFallback className="text-[8px]">{getInitials(m.full_name)}</AvatarFallback></Avatar>)}{members.length > 3 && <span className="text-xs text-muted-foreground ml-1">+{members.length - 3}</span>}</div></TableCell>
               </TableRow>
             );
           })}
@@ -602,6 +605,7 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
 // ─── Gallery View ───────────────────────────────────────────────
 
 function GalleryView({ projects, getMembersForProject, onOpen, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; getTaskProgress: (id: string, type?: string, mode?: string | null) => number }) {
+  const { getPhotoUrl } = useTeamPhotos();
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {projects.map(p => {
@@ -633,7 +637,7 @@ function GalleryView({ projects, getMembersForProject, onOpen, getTaskProgress }
                 </div>
                 <div className="flex -space-x-1">
                   {members.slice(0, 4).map(m => (
-                    <Avatar key={m.id} className="h-6 w-6 border-2 border-background"><AvatarImage src={m.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(m.full_name)}</AvatarFallback></Avatar>
+                    <Avatar key={m.id} className="h-6 w-6 border-2 border-background"><AvatarImage src={getPhotoUrl(m)} /><AvatarFallback className="text-[8px]">{getInitials(m.full_name)}</AvatarFallback></Avatar>
                   ))}
                 </div>
               </div>

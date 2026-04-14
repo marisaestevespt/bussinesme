@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -101,6 +102,7 @@ interface LaunchDashboardProps {
 export function LaunchDashboard({ projectId, projectName, profiles }: LaunchDashboardProps) {
   const qc = useQueryClient();
   const { user } = useAuth();
+  const { getPhotoUrl } = useTeamPhotos();
   const [mainTab, setMainTab] = useState('visao');
   const [contentSection, setContentSection] = useState<string | null>(null);
   const tasks = useLaunchTasks(projectId);
@@ -425,6 +427,7 @@ function TaskStatusSelect({ task, qc, projectId, userId }: any) {
 // ─── Cronograma Geral (grouped by phase) ────────────────────────
 
 function CronogramaGeralView({ tasks, profileMap, qc, projectId, userId }: any) {
+  const { getPhotoUrl } = useTeamPhotos();
   return (
     <div className="space-y-4">
       {PHASES.map(phase => {
@@ -456,7 +459,7 @@ function CronogramaGeralView({ tasks, profileMap, qc, projectId, userId }: any) 
                         <TableCell>
                           {assignee ? (
                             <div className="flex items-center gap-1.5">
-                              <Avatar className="h-5 w-5"><AvatarImage src={assignee.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar>
+                              <Avatar className="h-5 w-5"><AvatarImage src={getPhotoUrl(assignee)} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar>
                               <span className="text-xs truncate">{assignee.full_name}</span>
                             </div>
                           ) : <span className="text-xs text-muted-foreground">—</span>}
@@ -480,6 +483,7 @@ function CronogramaGeralView({ tasks, profileMap, qc, projectId, userId }: any) 
 // ─── Fases Kanban ───────────────────────────────────────────────
 
 function FasesKanbanView({ tasks, profileMap, qc, projectId }: any) {
+  const { getPhotoUrl } = useTeamPhotos();
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
       {PHASES.map(phase => {
@@ -500,7 +504,7 @@ function FasesKanbanView({ tasks, profileMap, qc, projectId }: any) {
                     <p className="text-xs font-medium">{t.title}</p>
                     <div className="flex items-center justify-between">
                       <Badge className={cn(si.color, 'border-0 text-[9px]')}>{si.label}</Badge>
-                      {assignee && <Avatar className="h-4 w-4"><AvatarImage src={assignee.avatar_url || ''} /><AvatarFallback className="text-[7px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar>}
+                      {assignee && <Avatar className="h-4 w-4"><AvatarImage src={getPhotoUrl(assignee)} /><AvatarFallback className="text-[7px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar>}
                     </div>
                     {t.due_date && <p className="text-[9px] text-muted-foreground">{format(parseISO(t.due_date), 'd MMM', { locale: pt })}</p>}
                   </div>
@@ -517,6 +521,7 @@ function FasesKanbanView({ tasks, profileMap, qc, projectId }: any) {
 // ─── Tarefas por Data ───────────────────────────────────────────
 
 function TarefasPorDataView({ tasks, profileMap }: any) {
+  const { getPhotoUrl } = useTeamPhotos();
   const sorted = useMemo(() =>
     [...tasks].sort((a: any, b: any) => (a.due_date || '9999') > (b.due_date || '9999') ? 1 : -1),
     [tasks]
@@ -545,7 +550,7 @@ function TarefasPorDataView({ tasks, profileMap }: any) {
                 <TableCell>
                   {assignee ? (
                     <div className="flex items-center gap-1.5">
-                      <Avatar className="h-5 w-5"><AvatarImage src={assignee.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar>
+                      <Avatar className="h-5 w-5"><AvatarImage src={getPhotoUrl(assignee)} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar>
                       <span className="text-xs truncate">{assignee.full_name}</span>
                     </div>
                   ) : <span className="text-xs text-muted-foreground">—</span>}
@@ -610,6 +615,7 @@ function PlannerSemanalView({ tasks, weekOffset, setWeekOffset }: any) {
 // ─── Por Responsável Kanban ─────────────────────────────────────
 
 function PorResponsavelView({ tasks, profileMap, profiles }: any) {
+  const { getPhotoUrl } = useTeamPhotos();
   const assignedProfiles = useMemo(() => {
     const ids = [...new Set(tasks.filter((t: any) => t.responsible_id).map((t: any) => t.responsible_id))];
     return ids.map((id: string) => profileMap.get(id)).filter(Boolean);
@@ -640,7 +646,7 @@ function PorResponsavelView({ tasks, profileMap, profiles }: any) {
         return (
           <div key={p.id} className="rounded-lg border bg-muted/30 p-2 min-w-[220px] max-w-[260px] shrink-0">
             <div className="flex items-center gap-2 mb-2">
-              <Avatar className="h-5 w-5"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar>
+              <Avatar className="h-5 w-5"><AvatarImage src={getPhotoUrl(p)} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar>
               <p className="text-xs font-semibold truncate">{p.full_name}</p>
               <Badge variant="secondary" className="text-[9px] ml-auto">{pTasks.length}</Badge>
             </div>

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, KeyboardEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { cn } from '@/lib/utils';
 
 interface Profile {
@@ -41,6 +42,7 @@ export function MentionTextarea({
   const [mentionStart, setMentionStart] = useState<number>(0);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const { getPhotoUrl } = useTeamPhotos();
 
   const { data: profiles = [] } = useQuery({
     queryKey: ['profiles-mentions'],
@@ -225,7 +227,7 @@ export function MentionTextarea({
               onMouseEnter={() => setSelectedIndex(i)}
             >
               <Avatar className="h-5 w-5">
-                <AvatarImage src={p.avatar_url || ''} />
+                <AvatarImage src={getPhotoUrl(p)} />
                 <AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback>
               </Avatar>
               <span className="truncate">{p.full_name || 'Membro'}</span>

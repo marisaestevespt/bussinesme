@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Trash2, ArrowLeft, FileText, List, RotateCw, UserPlus } from 'lucide-react';
@@ -55,6 +56,7 @@ const PROCESSOS_DEFAULT_VIEWS: DefaultView[] = [
 
 export default function ProcessosPage() {
   const navigate = useNavigate();
+  const { getPhotoUrl } = useTeamPhotos();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const planningRoutines = usePlanningRoutines();
@@ -294,7 +296,7 @@ export default function ProcessosPage() {
                         {assignee && (
                           <div className="flex items-center gap-1.5 mt-2">
                             <Avatar className="h-5 w-5">
-                              <AvatarImage src={assignee.avatar_url || ''} />
+                              <AvatarImage src={getPhotoUrl(assignee)} />
                               <AvatarFallback className="text-[10px]">{(assignee.full_name || '?')[0]}</AvatarFallback>
                             </Avatar>
                             <span className="text-xs text-muted-foreground truncate">{assignee.full_name}</span>

@@ -26,6 +26,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { toast } from 'sonner';
 import { logAudit } from '@/lib/auditLog';
 import { BackNavigation } from '@/components/BackNavigation';
@@ -140,16 +141,6 @@ function useProfiles() {
   });
 }
 
-function useTeamPhotos() {
-  return useQuery({
-    queryKey: ['team_members_photos'],
-    staleTime: 5 * 60 * 1000,
-    queryFn: async () => {
-      const { data } = await supabase.from('team_members').select('id, full_name, photo_url, profile_id');
-      return (data || []) as { id: string; full_name: string; photo_url: string | null; profile_id: string | null }[];
-    },
-  });
-}
 
 function useProjectsList() {
   return useQuery({
@@ -329,7 +320,7 @@ export default function ReuniaoDetailPage() {
   });
   const { data: participants = [] } = useMeetingParticipants(id!);
   const { data: profiles = [] } = useProfiles();
-  const { data: teamMembers = [] } = useTeamPhotos();
+  const { getPhotoUrl } = useTeamPhotos();
   const { data: ownerName } = useOwnerProfile();
   const { data: projectsList = [] } = useProjectsList();
   const { data: productsList = [] } = useProductsList();
@@ -469,12 +460,6 @@ export default function ReuniaoDetailPage() {
   };
 
   const participantProfiles = profiles.filter(p => participants.some(pp => pp.profile_id === p.id));
-
-  const getPhotoUrl = (profile: Profile | undefined) => {
-    if (!profile) return '';
-    const tm = teamMembers.find(t => t.profile_id === profile.id || t.full_name === profile.full_name);
-    return tm?.photo_url || profile.avatar_url || '';
-  };
 
   if (isLoading || !m) {
     return (

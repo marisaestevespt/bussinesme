@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -113,6 +114,7 @@ function getInitials(name: string | null) {
 
 export function ProjectDeliverables({ projectId, profiles }: { projectId: string; profiles: Profile[] }) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { getPhotoUrl } = useTeamPhotos();
   const [importOpen, setImportOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState('');
   const [name, setName] = useState('');
@@ -359,7 +361,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
 
                     {assignee && (
                       <Avatar className="h-5 w-5 shrink-0">
-                        <AvatarImage src={assignee.avatar_url || ''} />
+                        <AvatarImage src={getPhotoUrl(assignee)} />
                         <AvatarFallback className="text-[7px]">{getInitials(assignee.full_name)}</AvatarFallback>
                       </Avatar>
                     )}

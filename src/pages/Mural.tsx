@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { MentionTextarea, RichText } from '@/components/MentionTextarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, MessageCircle, Paperclip, ImageIcon, ChevronDown, ChevronUp, Send, Download, Pencil, Trash2, MoreHorizontal } from 'lucide-react';
@@ -79,6 +80,7 @@ const MURAL_DEFAULT_VIEWS: DefaultView[] = [
 
 export default function MuralPage() {
   const queryClient = useQueryClient();
+  const { getPhotoUrl } = useTeamPhotos();
   const { user, isOwner } = useAuth();
   const { allViews, addView, renameView, deleteView } = useUserViews('mural', MURAL_DEFAULT_VIEWS);
   const [activeView, setActiveView] = useState('todas');
@@ -493,6 +495,7 @@ function PostCard({
   onDelete: () => void;
 }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const { getPhotoUrl } = useTeamPhotos();
   const [commentText, setCommentText] = useState('');
   const cat = getCategoryInfo(post.category);
 
@@ -535,7 +538,7 @@ function PostCard({
         <h2 className="text-lg font-semibold mb-2">{post.title}</h2>
         <div className="flex items-center gap-2 mb-4">
           <Avatar className="h-7 w-7">
-            <AvatarImage src={profile?.avatar_url || ''} />
+            <AvatarImage src={getPhotoUrl(profile)} />
             <AvatarFallback className="text-xs">{getInitials(profile?.full_name || null)}</AvatarFallback>
           </Avatar>
           <span className="text-sm text-muted-foreground">{profile?.full_name || 'Membro'}</span>
@@ -618,7 +621,7 @@ function PostCard({
               return (
                 <div key={comment.id} className="flex gap-2.5">
                   <Avatar className="h-6 w-6 mt-0.5">
-                    <AvatarImage src={cp?.avatar_url || ''} />
+                    <AvatarImage src={getPhotoUrl(cp)} />
                     <AvatarFallback className="text-[10px]">{getInitials(cp?.full_name || null)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">

@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { Package, CheckCircle2, Clock, AlertTriangle, ArrowRight } from 'lucide-react';
 import { format, isAfter, subDays, startOfMonth, endOfMonth, addMonths, addDays, getDay } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -66,6 +67,7 @@ interface ClientDeliverablesTabProps {
 
 export function ClientDeliverablesTab({ clientName, clientId }: ClientDeliverablesTabProps) {
   const navigate = useNavigate();
+  const { getPhotoUrl } = useTeamPhotos();
 
   // Find projects linked to this client
   const { data: projects = [] } = useQuery({
@@ -253,7 +255,7 @@ export function ClientDeliverablesTab({ clientName, clientId }: ClientDeliverabl
                     )}
                     {assignee && (
                       <Avatar className="h-5 w-5 shrink-0">
-                        <AvatarImage src={assignee.avatar_url || ''} />
+                        <AvatarImage src={getPhotoUrl(assignee)} />
                         <AvatarFallback className="text-[7px]">{getInitials(assignee.full_name)}</AvatarFallback>
                       </Avatar>
                     )}
@@ -302,7 +304,7 @@ export function ClientDeliverablesTab({ clientName, clientId }: ClientDeliverabl
                     )}
                     {assignee && (
                       <Avatar className="h-5 w-5 shrink-0">
-                        <AvatarImage src={assignee.avatar_url || ''} />
+                        <AvatarImage src={getPhotoUrl(assignee)} />
                         <AvatarFallback className="text-[7px]">{getInitials(assignee.full_name)}</AvatarFallback>
                       </Avatar>
                     )}

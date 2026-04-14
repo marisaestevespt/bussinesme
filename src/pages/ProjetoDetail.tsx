@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Calendar } from '@/components/ui/calendar';
@@ -261,6 +262,7 @@ export default function ProjetoDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { getPhotoUrl } = useTeamPhotos();
 
   const [subPage, setSubPage] = useState<SubPage>(null);
   const [dirty, setDirty] = useState(false);
@@ -762,7 +764,7 @@ export default function ProjetoDetailPage() {
                       <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap" style={{ backgroundColor: `${ms.color}20`, color: ms.color }}>{ms.label}</span>
                     </div>
                     <div className="col-span-3">
-                      <div className="flex -space-x-1">{projectMembers.slice(0, 5).map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-6 w-6 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}{projectMembers.length > 5 && <span className="text-xs text-muted-foreground ml-2">+{projectMembers.length - 5}</span>}</div>
+                      <div className="flex -space-x-1">{projectMembers.slice(0, 5).map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-6 w-6 border-2 border-background"><AvatarImage src={getPhotoUrl(p)} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}{projectMembers.length > 5 && <span className="text-xs text-muted-foreground ml-2">+{projectMembers.length - 5}</span>}</div>
                     </div>
                   </button>
                 );
@@ -821,7 +823,7 @@ export default function ProjetoDetailPage() {
                 <Label className="text-xs text-muted-foreground">Prazo:</Label>
                 <Popover><PopoverTrigger asChild><Button variant="outline" size="sm" className={cn("h-7 text-xs", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-1 h-3 w-3" />{local.deadline ? format(new Date(local.deadline), 'd MMM yyyy', { locale: pt }) : '—'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
               </div>
-              <div className="flex -space-x-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-6 w-6 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div>
+              <div className="flex -space-x-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-6 w-6 border-2 border-background"><AvatarImage src={getPhotoUrl(p)} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div>
             </div>
           </div>
 
@@ -995,7 +997,7 @@ export default function ProjetoDetailPage() {
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Users className="h-4 w-4" /> Membros</span>
               <button type="button" onClick={() => setMembersDialogOpen(true)} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
                 <div className="flex -space-x-1">
-                  {projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}
+                  {projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7 border-2 border-background"><AvatarImage src={getPhotoUrl(p)} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}
                 </div>
                 <div className="h-7 w-7 rounded-full border-2 border-dashed border-muted-foreground/40 flex items-center justify-center">
                   <Plus className="h-3.5 w-3.5 text-muted-foreground" />
@@ -1190,7 +1192,7 @@ export default function ProjetoDetailPage() {
                               <TableCell><Badge className={`${pi.color} border-0 text-[10px]`}>{pi.label}</Badge></TableCell>
                               <TableCell className="font-medium text-sm">{t.name}</TableCell>
                               <TableCell className="text-sm text-muted-foreground">{t.deadline ? format(new Date(t.deadline), 'd MMM', { locale: pt }) : '—'}</TableCell>
-                              <TableCell>{assignee ? <div className="flex items-center gap-1.5"><Avatar className="h-5 w-5"><AvatarImage src={assignee.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar><span className="text-xs">{assignee.full_name}</span></div> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
+                              <TableCell>{assignee ? <div className="flex items-center gap-1.5"><Avatar className="h-5 w-5"><AvatarImage src={getPhotoUrl(assignee)} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar><span className="text-xs">{assignee.full_name}</span></div> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
                             </TableRow>
                           );
                         })}
@@ -1339,7 +1341,7 @@ export default function ProjetoDetailPage() {
                     )}
                   >
                     <Avatar className="h-7 w-7">
-                      <AvatarImage src={resolvedProfile.avatar_url || ''} />
+                      <AvatarImage src={getPhotoUrl(resolvedProfile)} />
                       <AvatarFallback className="text-[9px]">{getInitials(resolvedProfile.full_name)}</AvatarFallback>
                     </Avatar>
                     <span className="flex-1 text-left">{resolvedProfile.full_name || 'Sem nome'}</span>
@@ -1417,7 +1419,7 @@ export default function ProjetoDetailPage() {
             <div>
               <Label className="text-xs">Equipa</Label>
               <div className="flex items-center gap-2 mt-1">
-                <div className="flex -space-x-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7 border-2 border-background"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div>
+                <div className="flex -space-x-1">{projectMembers.map(pid => { const p = profileMap.get(pid); return p ? <Avatar key={pid} className="h-7 w-7 border-2 border-background"><AvatarImage src={getPhotoUrl(p)} /><AvatarFallback className="text-[9px]">{getInitials(p.full_name)}</AvatarFallback></Avatar> : null; })}</div>
                 <button type="button" onClick={() => setMembersDialogOpen(true)} className="h-7 w-7 rounded-full border-2 border-dashed border-muted-foreground/40 flex items-center justify-center hover:opacity-80">
                   <Plus className="h-3.5 w-3.5 text-muted-foreground" />
                 </button>
@@ -1534,7 +1536,7 @@ export default function ProjetoDetailPage() {
                         <TableCell><Badge className={`${pi.color} border-0 text-[10px]`}>{pi.label}</Badge></TableCell>
                         <TableCell className="font-medium text-sm">{t.name}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{t.deadline ? format(new Date(t.deadline), 'd MMM', { locale: pt }) : '—'}</TableCell>
-                        <TableCell>{assignee ? <div className="flex items-center gap-1.5"><Avatar className="h-5 w-5"><AvatarImage src={assignee.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar><span className="text-xs">{assignee.full_name}</span></div> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
+                        <TableCell>{assignee ? <div className="flex items-center gap-1.5"><Avatar className="h-5 w-5"><AvatarImage src={getPhotoUrl(assignee)} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar><span className="text-xs">{assignee.full_name}</span></div> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
                       </TableRow>
                     );
                   })}
@@ -1636,7 +1638,7 @@ export default function ProjetoDetailPage() {
                   )}
                 >
                   <Avatar className="h-7 w-7">
-                    <AvatarImage src={resolvedProfile.avatar_url || ''} />
+                    <AvatarImage src={getPhotoUrl(resolvedProfile)} />
                     <AvatarFallback className="text-[9px]">{getInitials(resolvedProfile.full_name)}</AvatarFallback>
                   </Avatar>
                   <span className="flex-1 text-left">{resolvedProfile.full_name || 'Sem nome'}</span>

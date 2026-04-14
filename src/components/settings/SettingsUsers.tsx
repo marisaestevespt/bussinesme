@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,6 +27,7 @@ export function SettingsUsers() {
   const [emailDialog, setEmailDialog] = useState<{ open: boolean; profile: any | null }>({ open: false, profile: null });
   const [newEmail, setNewEmail] = useState('');
   const [saving, setSaving] = useState(false);
+  const { getPhotoUrl } = useTeamPhotos();
 
   const { data: profiles = [], isLoading } = useQuery({
     queryKey: ['settings-profiles'],
@@ -113,7 +115,7 @@ export function SettingsUsers() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src={p.avatar_url || undefined} />
+                              <AvatarImage src={getPhotoUrl(p)} />
                               <AvatarFallback className="text-xs bg-primary/10 text-primary">
                                 {(p.full_name || '?').slice(0, 2).toUpperCase()}
                               </AvatarFallback>
