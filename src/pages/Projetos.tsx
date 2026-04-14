@@ -214,17 +214,33 @@ export default function ProjetosPage() {
     },
   });
 
-  const { data: allClients = [] } = useQuery({
-    queryKey: ['clients-for-progress'],
+  const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd');
+  const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd');
+
+  const { data: monthlyTasksByProject = [] } = useQuery({
+    queryKey: ['projects-monthly-tasks', monthStart],
     queryFn: async () => {
-      const { data } = await supabase.from('clients' as any).select('id,full_name');
-      return (data || []) as unknown as { id: string; full_name: string }[];
+      const { data } = await supabase
+        .from('tasks')
+        .select('id, status, project_id')
+        .not('project_id', 'is', null)
+        .gte('deadline', monthStart)
+        .lte('deadline', monthEnd);
+      return (data || []) as { id: string; status: string; project_id: string }[];
     },
   });
 
   const profileMap = new Map(profiles.map(p => [p.id, p]));
 
-  function getTaskProgress(projectId: string) {
+  function getTaskProgress(projectId: string, projectType?: string) {
+    // For serviço mensal, use current month's tasks
+    if (projectType === 'cliente_servico_mensal') {
+      const tasks = monthlyTasksByProject.filter(t => t.project_id === projectId);
+      if (tasks.length === 0) return 0;
+      const completed = tasks.filter(t => t.status === 'done' || t.status === 'concluida').length;
+      return Math.round((completed / tasks.length) * 100);
+    }
+
     const projectDeliverables = allProjectDeliverables.filter(d => d.project_id === projectId);
     if (projectDeliverables.length > 0) {
       const completed = projectDeliverables.filter(d => d.status === 'concluido').length;
