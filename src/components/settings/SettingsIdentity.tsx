@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
@@ -136,6 +137,7 @@ export function SettingsIdentity() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bgFile, setBgFile] = useState<File | null>(null);
   const [bgPreview, setBgPreview] = useState<string | null>(null);
+  const [useSystemTheme, setUseSystemTheme] = useState(true);
   const [colors, setColors] = useState({
     primary: '#1a1f36',
     secondary: '#f0f4f8',
@@ -176,6 +178,7 @@ export function SettingsIdentity() {
     setSupportHours((settings as any).support_hours || '');
     setLogoPreview(settings.logo_url);
     setBgPreview((settings as any).login_bg_url || null);
+    setUseSystemTheme((settings as any).use_system_theme ?? true);
     setColors({
       primary: hslToHex(settings.primary_color),
       secondary: hslToHex(settings.secondary_color),
@@ -273,6 +276,7 @@ export function SettingsIdentity() {
           logo_url: logoUrl,
           login_bg_url: loginBgUrl,
           support_hours: supportHours.trim() || null,
+          use_system_theme: useSystemTheme,
           primary_color: hexToHsl(colors.primary),
           secondary_color: hexToHsl(colors.secondary),
           background_color: hexToHsl(colors.background),
@@ -356,13 +360,23 @@ export function SettingsIdentity() {
 
       {/* ── Cores da Marca (5) ── */}
       <Section icon={Palette} title="Cores da Marca">
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          <ColorField label="Cor primária" value={colors.primary} onChange={updateColor('primary')} />
-          <ColorField label="Cor secundária" value={colors.secondary} onChange={updateColor('secondary')} />
-          <ColorField label="Cor de destaque" value={colors.accent} onChange={updateColor('accent')} />
-          <ColorField label="Fundo" value={colors.background} onChange={updateColor('background')} />
-          <ColorField label="Texto" value={colors.text} onChange={updateColor('text')} />
+        <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border">
+          <div className="space-y-0.5">
+            <Label className="text-sm font-medium">Usar tema do sistema (Lirah)</Label>
+            <p className="text-xs text-muted-foreground">Usa a paleta predefinida do sistema. Desativa para personalizar as cores.</p>
+          </div>
+          <Switch checked={useSystemTheme} onCheckedChange={setUseSystemTheme} />
         </div>
+
+        {!useSystemTheme && (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <ColorField label="Cor primária" value={colors.primary} onChange={updateColor('primary')} />
+            <ColorField label="Cor secundária" value={colors.secondary} onChange={updateColor('secondary')} />
+            <ColorField label="Cor de destaque" value={colors.accent} onChange={updateColor('accent')} />
+            <ColorField label="Fundo" value={colors.background} onChange={updateColor('background')} />
+            <ColorField label="Texto" value={colors.text} onChange={updateColor('text')} />
+          </div>
+        )}
 
         {/* Login background */}
         <div className="space-y-2">
