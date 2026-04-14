@@ -235,7 +235,7 @@ export default function MarketingEstrategia() {
                       <Link to="/hub/marketing/gestao-marca">
                         <Badge variant="outline" className="cursor-pointer hover:bg-muted/50">Gestão de Marca</Badge>
                       </Link>
-                      <Link to="/hub/marketing/publico-alvo">
+                      <Link to="/hub/marketing/estrategia/publico-alvo">
                         <Badge variant="outline" className="cursor-pointer hover:bg-muted/50">Público Alvo e Persona</Badge>
                       </Link>
                       <Link to="/hub/marketing/banco-ideias">
