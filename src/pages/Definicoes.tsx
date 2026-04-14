@@ -80,9 +80,7 @@ export default function DefinicoesPage() {
         </div>
 
         {/* Tab content */}
-        <div className={cn(
-          tab === 'emails' ? 'max-w-6xl' : tab === 'utilizadores' || tab === 'auditoria' || tab === 'backups' ? 'max-w-4xl' : 'max-w-2xl'
-        )}>
+        <div className="w-full">
           {tab === 'identidade' && <SettingsIdentity />}
           {tab === 'fiscal' && <SettingsFiscal />}
           {tab === 'setup-negocio' && <FinSetupNegocio />}
