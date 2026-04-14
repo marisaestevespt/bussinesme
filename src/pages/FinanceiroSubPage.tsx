@@ -3,8 +3,8 @@ import { PageHeader } from '@/components/PageHeader';
 import { excludeCancelled } from '@/lib/utils';
 import { BackNavigation } from '@/components/BackNavigation';
 import { useParams } from 'react-router-dom';
-import { useState, lazy, Suspense } from 'react';
-import { useFinancialData } from '@/hooks/useFinancialData';
+import { useState, lazy, Suspense, useMemo } from 'react';
+import { useFinancialData, type FinancialDataOptions } from '@/hooks/useFinancialData';
 import { useCommercialData } from '@/hooks/useCommercialData';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 import { YearSelector } from '@/components/YearSelector';
@@ -40,9 +40,37 @@ const TITLES: Record<string, string> = {
 
 const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'saidas', 'ordenados', 'iva', 'seguranca-social', 'previsibilidade', 'metas-financeiras', 'contabilidade'];
 
-// Sections that need full financial + commercial data from the parent
-const NEEDS_FIN = ['mensal', 'trimestral', 'entradas', 'saidas', 'iva', 'seguranca-social', 'previsibilidade', 'metas-financeiras', 'setup-financeiro'];
-const NEEDS_COM = ['mensal', 'trimestral', 'entradas', 'iva', 'seguranca-social', 'previsibilidade', 'metas-financeiras'];
+/**
+ * Per-section query requirements — only fetch what's actually needed.
+ * Sections not listed here (contabilidade, ordenados, documentos) fetch their own data internally.
+ */
+function getFinancialOptions(section: string | undefined): FinancialDataOptions {
+  switch (section) {
+    case 'mensal':
+      return { expenses: true, recurring: true, documents: true, payroll: true, contractors: true };
+    case 'trimestral':
+    case 'metas-financeiras':
+      return { expenses: true, recurring: false, documents: false, payroll: false, contractors: false };
+    case 'saidas':
+      return { expenses: true, recurring: true, documents: false, payroll: false, contractors: false };
+    case 'iva':
+    case 'seguranca-social':
+      return { expenses: true, recurring: true, documents: false, payroll: false, contractors: false };
+    case 'previsibilidade':
+      return { expenses: true, recurring: true, documents: false, payroll: false, contractors: false };
+    case 'setup-financeiro':
+      return { expenses: true, recurring: true, documents: true, payroll: true, contractors: true };
+    case 'entradas':
+      return { expenses: false, recurring: false, documents: false, payroll: false, contractors: false };
+    // contabilidade, ordenados, documentos — fetch their own data internally
+    default:
+      return { expenses: false, recurring: false, documents: false, payroll: false, contractors: false };
+  }
+}
+
+function needsCommercialData(section: string | undefined): boolean {
+  return ['mensal', 'trimestral', 'entradas', 'iva', 'seguranca-social', 'previsibilidade', 'metas-financeiras', 'contabilidade'].includes(section || '');
+}
 
 function LoadingFallback() {
   return (
@@ -57,21 +85,19 @@ export default function FinanceiroSubPage() {
   const { section } = useParams<{ section: string }>();
   const [year, setYear] = useState(new Date().getFullYear());
 
-  const needsFin = NEEDS_FIN.includes(section || '');
-  const needsCom = NEEDS_COM.includes(section || '');
+  const finOptions = useMemo(() => getFinancialOptions(section), [section]);
+  const fin = useFinancialData(finOptions);
 
-  // Only fetch when the section actually needs parent-level data
-  // Sections like 'contabilidade', 'ordenados', 'documentos' fetch their own data internally
-  const fin = useFinancialData();
-  const com = useCommercialData(year);
+  // Only fetch commercial data when the section needs it
+  const comEnabled = needsCommercialData(section);
+  const com = useCommercialData(comEnabled ? year : -1);
 
   const title = TITLES[section || ''] || section || '';
   const showYearSelector = YEAR_SECTIONS.includes(section || '');
 
   const renderContent = () => {
-    // Derive data only when needed to avoid unnecessary computation
-    const sales = needsCom ? excludeCancelled(com.sales.data || []) : [];
-    const expenses = needsFin ? excludeCancelled(fin.expenses.data || []) : [];
+    const sales = comEnabled ? excludeCancelled(com.sales.data || []) : [];
+    const expenses = excludeCancelled(fin.expenses.data || []);
 
     switch (section) {
       case 'mensal': {
