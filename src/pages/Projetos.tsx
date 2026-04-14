@@ -166,6 +166,7 @@ export default function ProjetosPage() {
   const [fMembers, setFMembers] = useState<string[]>([]);
   const [fNotes, setFNotes] = useState('');
   const [fMode, setFMode] = useState('pontual');
+  const [fProduct, setFProduct] = useState<string>('');
 
   const projectsQuery = useInfiniteQuery<InfinitePageResult<Project>>({
     queryKey: ['projects'],
@@ -239,6 +240,14 @@ export default function ProjetosPage() {
     },
   });
 
+  const { data: allProducts = [] } = useQuery({
+    queryKey: ['products-for-project-create'],
+    queryFn: async () => {
+      const { data } = await supabase.from('products').select('id, name, default_project_mode, task_mode, product_type, sales_type, cycle_duration');
+      return (data || []) as any[];
+    },
+  });
+
   const profileMap = new Map(profiles.map(p => [p.id, p]));
 
   function getTaskProgress(projectId: string, projectType?: string, projectMode?: string) {
@@ -268,6 +277,7 @@ export default function ProjetosPage() {
   const createMutation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error('Não autenticado');
+      const selectedProduct = fProduct ? allProducts.find(p => p.id === fProduct) : null;
       const { data: proj, error } = await supabase.from('projects').insert({
         name: fName,
         type: fType,
@@ -279,6 +289,9 @@ export default function ProjetosPage() {
         notes: fNotes || null,
         created_by: user.id,
         project_mode: fMode,
+        product_id: selectedProduct?.id || null,
+        product_name: selectedProduct?.name || null,
+        task_mode: selectedProduct?.task_mode || 'fases',
       } as any).select().single();
       if (error) throw error;
 
@@ -322,7 +335,7 @@ export default function ProjetosPage() {
   });
 
   function resetForm() {
-    setFName(''); setFType('interno'); setFStatus('em_ideia'); setFDept(''); setFClient(''); setFStartDate(undefined); setFDeadline(undefined); setFMembers([]); setFNotes(''); setFMode('pontual');
+    setFName(''); setFType('interno'); setFStatus('em_ideia'); setFDept(''); setFClient(''); setFStartDate(undefined); setFDeadline(undefined); setFMembers([]); setFNotes(''); setFMode('pontual'); setFProduct('');
     setDialogOpen(false);
   }
 
@@ -414,6 +427,27 @@ export default function ProjetosPage() {
           <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Novo Projeto</DialogTitle></DialogHeader>
             <div className="grid gap-4 py-2">
+              <div className="space-y-1.5">
+                <Label>Produto associado</Label>
+                <Select value={fProduct || '_none_'} onValueChange={v => {
+                  const pid = v === '_none_' ? '' : v;
+                  setFProduct(pid);
+                  if (pid) {
+                    const prod = allProducts.find(p => p.id === pid);
+                    if (prod) {
+                      setFMode(prod.default_project_mode || 'pontual');
+                      const isRecurring = prod.default_project_mode === 'recorrente' || prod.sales_type === 'avenca_mensal' || prod.sales_type === 'subscricao';
+                      setFType(isRecurring ? 'cliente_servico_mensal' : 'cliente_projeto_unico');
+                    }
+                  }
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none_">Nenhum</SelectItem>
+                    {allProducts.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-1.5">
                 <Label>Nome do projeto *</Label>
                 <Input value={fName} onChange={e => setFName(e.target.value)} placeholder="Nome do projeto" />

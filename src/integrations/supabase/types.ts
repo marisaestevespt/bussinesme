@@ -6974,6 +6974,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           cycle_duration: number | null
+          default_project_mode: string
           description: string | null
           drive_url: string | null
           escada: string | null
@@ -6992,6 +6993,7 @@ export type Database = {
           sales_page_url: string | null
           sales_type: string | null
           status: string
+          task_mode: string
           ticket: string | null
           ticket_type: string
           updated_at: string
@@ -7008,6 +7010,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           cycle_duration?: number | null
+          default_project_mode?: string
           description?: string | null
           drive_url?: string | null
           escada?: string | null
@@ -7026,6 +7029,7 @@ export type Database = {
           sales_page_url?: string | null
           sales_type?: string | null
           status?: string
+          task_mode?: string
           ticket?: string | null
           ticket_type?: string
           updated_at?: string
@@ -7042,6 +7046,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           cycle_duration?: number | null
+          default_project_mode?: string
           description?: string | null
           drive_url?: string | null
           escada?: string | null
@@ -7060,6 +7065,7 @@ export type Database = {
           sales_page_url?: string | null
           sales_type?: string | null
           status?: string
+          task_mode?: string
           ticket?: string | null
           ticket_type?: string
           updated_at?: string
@@ -7385,6 +7391,7 @@ export type Database = {
           recursos: string | null
           start_date: string | null
           status: string
+          task_mode: string
           total_time_minutes: number | null
           type: string
           updated_at: string
@@ -7421,6 +7428,7 @@ export type Database = {
           recursos?: string | null
           start_date?: string | null
           status?: string
+          task_mode?: string
           total_time_minutes?: number | null
           type?: string
           updated_at?: string
@@ -7457,6 +7465,7 @@ export type Database = {
           recursos?: string | null
           start_date?: string | null
           status?: string
+          task_mode?: string
           total_time_minutes?: number | null
           type?: string
           updated_at?: string
