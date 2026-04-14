@@ -86,11 +86,18 @@ export function MonthlyReportSection() {
     try {
       const { data, error } = await supabase.storage
         .from('monthly-reports')
-        .createSignedUrl(filePath, 300);
+        .download(filePath);
       if (error) throw error;
-      window.open(data.signedUrl, '_blank');
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filePath.split('/').pop() || 'relatorio.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     } catch {
-      toast.error('Erro ao gerar link de download');
+      toast.error('Erro ao fazer download');
     }
   };
 
