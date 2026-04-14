@@ -7,11 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { DISPLAY_FONTS, BODY_FONTS } from '@/lib/modules';
-import { SECTOR_OPTIONS, type BusinessSector } from '@/lib/sector-config';
-import { SectorTemplateApplier } from './SectorTemplateApplier';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Upload, Palette, Type, Building2, Save, Trash2, ImageIcon, Briefcase } from 'lucide-react';
+import { Upload, Palette, Type, Building2, Save, Trash2, ImageIcon } from 'lucide-react';
 
 /* ── colour helpers ── */
 
@@ -309,27 +307,6 @@ export function SettingsIdentity() {
           <Input id="settingsBusinessName" value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="O nome do teu negócio" required className="h-11" />
         </div>
         <div className="space-y-2">
-          <Label className="text-sm font-medium flex items-center gap-1.5">
-            <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
-            Setor de atividade
-          </Label>
-          <Select value={businessSector} onValueChange={(v) => setBusinessSector(v as BusinessSector)}>
-            <SelectTrigger className="h-11">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SECTOR_OPTIONS.map(s => (
-                <SelectItem key={s.value} value={s.value}>
-                  <div>
-                    <span>{s.label}</span>
-                    <span className="text-xs text-muted-foreground ml-2">— {s.description}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-muted-foreground">Adapta a terminologia, módulos visíveis e campos do sistema ao teu tipo de negócio.</p>
-          <SectorTemplateApplier sector={businessSector} />
           <Label htmlFor="supportHours" className="text-sm font-medium">Horário de atendimento</Label>
           <Input id="supportHours" value={supportHours} onChange={(e) => setSupportHours(e.target.value)} placeholder="Ex: Seg a Sex, 10h – 18h" className="h-11" />
           <p className="text-xs text-muted-foreground">Será visível no portal do cliente.</p>
