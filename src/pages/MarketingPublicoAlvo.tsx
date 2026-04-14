@@ -1,76 +1,87 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { BackNavigation } from '@/components/BackNavigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-
-import { SectionDefinicao } from '@/components/publico-alvo/SectionDefinicao';
-import { SectionPersonas } from '@/components/publico-alvo/SectionPersonas';
-import { SectionMapaMental } from '@/components/publico-alvo/SectionMapaMental';
-import { SectionNiveisConsciencia, SectionNivelComprador } from '@/components/publico-alvo/SectionNiveis';
-import { SectionJornada } from '@/components/publico-alvo/SectionJornada';
-import { SectionDores } from '@/components/publico-alvo/SectionDores';
-import { SectionDesejos } from '@/components/publico-alvo/SectionDesejos';
-import { SectionTentativas } from '@/components/publico-alvo/SectionTentativas';
-import { SectionObjecoes } from '@/components/publico-alvo/SectionObjecoes';
-import { SectionTriggers } from '@/components/publico-alvo/SectionTriggers';
-import { SectionAntiPersona } from '@/components/publico-alvo/SectionAntiPersona';
-import { SectionLinguagem } from '@/components/publico-alvo/SectionLinguagem';
-import { SectionFrases } from '@/components/publico-alvo/SectionFrases';
-import { SectionInvestigar } from '@/components/publico-alvo/SectionInvestigar';
-
-const NAV_GROUPS = [
-  { label: 'Visão Geral', items: [
-    { id: 'definicao', label: 'Definição central' },
-    { id: 'personas', label: '3 Personas' },
-    { id: 'mapa-mental', label: 'Mapa mental' },
-  ]},
-  { label: 'Psicografia', items: [
-    { id: 'niveis-consciencia', label: 'Níveis de consciência' },
-    { id: 'nivel-comprador', label: 'Nível de comprador' },
-    { id: 'jornada-emocional', label: 'Jornada emocional' },
-  ]},
-  { label: 'Dores e Desejos', items: [
-    { id: 'dores', label: 'Dores e frustrações' },
-    { id: 'desejos', label: 'Desejos e sonhos' },
-    { id: 'tentaram', label: 'O que já tentaram' },
-  ]},
-  { label: 'Decisão de Compra', items: [
-    { id: 'objecoes', label: 'Objeções detalhadas' },
-    { id: 'triggers', label: 'Triggers de compra' },
-    { id: 'anti-persona', label: 'Anti-persona' },
-  ]},
-  { label: 'Comunicação', items: [
-    { id: 'linguagem', label: 'Linguagem do público' },
-    { id: 'frases', label: 'Frases para conteúdo' },
-    { id: 'investigar', label: 'O que falta investigar' },
-  ]},
-];
-
-const SECTION_COMPONENTS: Record<string, () => JSX.Element> = {
-  'definicao': SectionDefinicao,
-  'personas': SectionPersonas,
-  'mapa-mental': SectionMapaMental,
-  'niveis-consciencia': SectionNiveisConsciencia,
-  'nivel-comprador': SectionNivelComprador,
-  'jornada-emocional': SectionJornada,
-  'dores': SectionDores,
-  'desejos': SectionDesejos,
-  'tentaram': SectionTentativas,
-  'objecoes': SectionObjecoes,
-  'triggers': SectionTriggers,
-  'anti-persona': SectionAntiPersona,
-  'linguagem': SectionLinguagem,
-  'frases': SectionFrases,
-  'investigar': SectionInvestigar,
-};
+import { usePublicoAlvoSections, useUpdateSection, useDeleteSection, useAddSection, PASection } from '@/hooks/usePublicoAlvoData';
+import { SectionRenderer } from '@/components/publico-alvo/SectionRenderer';
+import { EditableText } from '@/components/publico-alvo/EditableText';
+import { Trash2, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
+import { Json } from '@/integrations/supabase/types';
 
 export default function MarketingPublicoAlvo() {
-  const [activeSection, setActiveSection] = useState('definicao');
+  const { data: sections, isLoading } = usePublicoAlvoSections();
+  const updateSection = useUpdateSection();
+  const deleteSection = useDeleteSection();
+  const addSection = useAddSection();
+  const [activeKey, setActiveKey] = useState<string | null>(null);
+  const debounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
-  const ActiveComponent = SECTION_COMPONENTS[activeSection];
+  // Group sections by nav_group preserving order
+  const navGroups = useMemo(() => {
+    if (!sections) return [];
+    const groups: { label: string; items: PASection[] }[] = [];
+    const seen = new Set<string>();
+    for (const s of sections) {
+      if (!seen.has(s.nav_group)) {
+        seen.add(s.nav_group);
+        groups.push({ label: s.nav_group, items: [] });
+      }
+      groups.find(g => g.label === s.nav_group)!.items.push(s);
+    }
+    return groups;
+  }, [sections]);
+
+  const activeSection = sections?.find(s => s.section_key === (activeKey || sections?.[0]?.section_key));
+
+  const debouncedUpdate = useCallback((id: string, patch: Partial<PASection>) => {
+    if (debounceRef.current[id]) clearTimeout(debounceRef.current[id]);
+    debounceRef.current[id] = setTimeout(() => {
+      updateSection.mutate({ id, ...patch } as any);
+    }, 800);
+  }, [updateSection]);
+
+  const handleContentChange = useCallback((sectionId: string, content: Json) => {
+    debouncedUpdate(sectionId, { content });
+  }, [debouncedUpdate]);
+
+  const handleDeleteSection = (id: string) => {
+    deleteSection.mutate(id, {
+      onSuccess: () => toast({ title: 'Secção eliminada' }),
+    });
+  };
+
+  const handleAddSection = () => {
+    const lastGroup = navGroups[navGroups.length - 1]?.label || 'Novo Grupo';
+    const maxOrder = sections?.reduce((max, s) => Math.max(max, s.sort_order), 0) || 0;
+    const key = `section-${Date.now()}`;
+    addSection.mutate({
+      section_key: key,
+      title: 'Nova secção',
+      nav_group: lastGroup,
+      sort_order: maxOrder + 1,
+      content: { blocks: [{ type: 'note', text: 'Conteúdo da nova secção...' }] } as unknown as Json,
+    }, {
+      onSuccess: () => {
+        setActiveKey(key);
+        toast({ title: 'Secção adicionada' });
+      },
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <p className="text-sm text-muted-foreground">A carregar...</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -95,7 +106,7 @@ export default function MarketingPublicoAlvo() {
                   { value: '7', label: 'Conversas realizadas' },
                   { value: '3', label: 'Personas identificadas' },
                   { value: '5', label: 'Níveis de consciência' },
-                  { value: '15', label: 'Secções de análise' },
+                  { value: String(sections?.length || 0), label: 'Secções de análise' },
                 ].map(stat => (
                   <div key={stat.label}>
                     <p className="text-2xl sm:text-3xl font-bold text-foreground">{stat.value}</p>
@@ -110,34 +121,73 @@ export default function MarketingPublicoAlvo() {
           <div className="sticky top-0 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur-sm border-b">
             <ScrollArea className="w-full">
               <div className="flex items-center gap-1">
-                {NAV_GROUPS.map((group, gi) => (
+                {navGroups.map((group, gi) => (
                   <div key={group.label} className="flex items-center gap-1">
                     {gi > 0 && <div className="w-px h-5 bg-border mx-1 shrink-0" />}
                     {group.items.map(item => (
                       <button
-                        key={item.id}
-                        onClick={() => setActiveSection(item.id)}
+                        key={item.section_key}
+                        onClick={() => setActiveKey(item.section_key)}
                         className={cn(
                           'whitespace-nowrap text-xs px-2.5 py-1.5 rounded-md transition-colors shrink-0',
-                          activeSection === item.id
+                          (activeKey || sections?.[0]?.section_key) === item.section_key
                             ? 'bg-primary/10 text-primary font-medium'
                             : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                         )}
                       >
-                        {item.label}
+                        {item.title}
                       </button>
                     ))}
                   </div>
                 ))}
+                <button
+                  onClick={handleAddSection}
+                  className="whitespace-nowrap text-xs px-2.5 py-1.5 rounded-md text-primary/60 hover:text-primary hover:bg-primary/5 transition-colors shrink-0 flex items-center gap-1"
+                >
+                  <Plus className="h-3 w-3" /> Secção
+                </button>
               </div>
               <ScrollBar orientation="horizontal" className="h-1" />
             </ScrollArea>
           </div>
 
           {/* ═══ ACTIVE SECTION CONTENT ═══ */}
-          <div className="min-h-[400px]">
-            {ActiveComponent && <ActiveComponent />}
-          </div>
+          {activeSection && (
+            <div className="min-h-[400px]">
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div className="flex-1">
+                  <EditableText
+                    value={activeSection.title}
+                    onSave={t => updateSection.mutate({ id: activeSection.id, title: t })}
+                    as="h3"
+                    className="text-xl sm:text-2xl font-semibold text-foreground leading-tight"
+                  />
+                  <div className="w-10 h-0.5 bg-primary mt-2 mb-2" />
+                  {activeSection.subtitle && (
+                    <EditableText
+                      value={activeSection.subtitle}
+                      onSave={t => updateSection.mutate({ id: activeSection.id, subtitle: t })}
+                      className="text-sm text-muted-foreground leading-relaxed max-w-[680px]"
+                      multiline
+                    />
+                  )}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-destructive/40 hover:text-destructive hover:bg-destructive/10 shrink-0"
+                  onClick={() => handleDeleteSection(activeSection.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <SectionRenderer
+                content={activeSection.content}
+                onContentChange={c => handleContentChange(activeSection.id, c)}
+              />
+            </div>
+          )}
         </div>
       </div>
     </AppLayout>
