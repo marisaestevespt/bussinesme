@@ -52,7 +52,7 @@
 
     /* Sidebar — deep bordô, almost black with warm undertone */
     --sidebar-background: 350 30% 11%;
-    --sidebar-foreground: 350 12% 65%;
+    --sidebar-foreground: 350 10% 78%;
     --sidebar-primary: 3 50% 72%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 350 20% 17%;
@@ -130,7 +130,7 @@
     --ring: 3 50% 65%;
 
     --sidebar-background: 350 25% 7%;
-    --sidebar-foreground: 350 10% 60%;
+    --sidebar-foreground: 350 8% 75%;
     --sidebar-primary: 3 50% 68%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 350 18% 12%;
