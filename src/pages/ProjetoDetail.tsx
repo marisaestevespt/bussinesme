@@ -872,6 +872,18 @@ export default function ProjetoDetailPage() {
                 </SelectContent>
               </Select>
             </div>
+            {/* Modo Operacional */}
+            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
+              <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><CheckSquare className="h-4 w-4" /> Operação</span>
+              <Select value={taskMode} onValueChange={v => updateField('task_mode', v)}>
+                <SelectTrigger className="w-52 h-8"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fases">📊 Fases e Entregáveis</SelectItem>
+                  <SelectItem value="tarefas_fixas">📋 Tarefas Fixas Mensais</SelectItem>
+                  <SelectItem value="tarefas_livres">✏️ Tarefas Livres</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             {/* Progresso */}
             {taskMode !== 'tarefas_livres' && (
               <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
