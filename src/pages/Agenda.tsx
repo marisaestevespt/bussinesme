@@ -886,6 +886,7 @@ function EventDetailDialog({
 }) {
   const { isOwner } = useAuth();
   const qc = useQueryClient();
+  const { getPhotoUrl } = useTeamPhotos();
   const { data: members = [] } = useEventMembers(event?.id);
 
   const assignedProfiles = profiles.filter(p => members.some(m => m.profile_id === p.id));

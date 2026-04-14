@@ -427,6 +427,7 @@ function TaskStatusSelect({ task, qc, projectId, userId }: any) {
 // ─── Cronograma Geral (grouped by phase) ────────────────────────
 
 function CronogramaGeralView({ tasks, profileMap, qc, projectId, userId }: any) {
+  const { getPhotoUrl } = useTeamPhotos();
   return (
     <div className="space-y-4">
       {PHASES.map(phase => {
@@ -482,6 +483,7 @@ function CronogramaGeralView({ tasks, profileMap, qc, projectId, userId }: any) 
 // ─── Fases Kanban ───────────────────────────────────────────────
 
 function FasesKanbanView({ tasks, profileMap, qc, projectId }: any) {
+  const { getPhotoUrl } = useTeamPhotos();
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
       {PHASES.map(phase => {
@@ -519,6 +521,7 @@ function FasesKanbanView({ tasks, profileMap, qc, projectId }: any) {
 // ─── Tarefas por Data ───────────────────────────────────────────
 
 function TarefasPorDataView({ tasks, profileMap }: any) {
+  const { getPhotoUrl } = useTeamPhotos();
   const sorted = useMemo(() =>
     [...tasks].sort((a: any, b: any) => (a.due_date || '9999') > (b.due_date || '9999') ? 1 : -1),
     [tasks]
@@ -612,6 +615,7 @@ function PlannerSemanalView({ tasks, weekOffset, setWeekOffset }: any) {
 // ─── Por Responsável Kanban ─────────────────────────────────────
 
 function PorResponsavelView({ tasks, profileMap, profiles }: any) {
+  const { getPhotoUrl } = useTeamPhotos();
   const assignedProfiles = useMemo(() => {
     const ids = [...new Set(tasks.filter((t: any) => t.responsible_id).map((t: any) => t.responsible_id))];
     return ids.map((id: string) => profileMap.get(id)).filter(Boolean);

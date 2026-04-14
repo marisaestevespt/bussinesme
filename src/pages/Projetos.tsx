@@ -101,6 +101,7 @@ interface ProjectMember {
 // ─── Member Picker ──────────────────────────────────────────────
 
 function MemberPicker({ selected, onChange, profiles }: { selected: string[]; onChange: (ids: string[]) => void; profiles: Profile[] }) {
+  const { getPhotoUrl } = useTeamPhotos();
   return (
     <div className="space-y-2">
       <Label className="text-xs">Membros/Responsáveis</Label>
