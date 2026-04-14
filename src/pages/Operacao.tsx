@@ -390,6 +390,8 @@ export default function OperacaoPage() {
   // ── Alerts data ─────────────────────────────────────────────
   const stalledProjects = useMemo(() => {
     return allActiveProjects.filter(p => {
+      // Projects in "tarefas_livres" mode don't track progress via deliverables
+      if ((p as any).task_mode === 'tarefas_livres') return false;
       const prog = projectProgress.get(p.id) ?? p.progress;
       return prog === 0;
     });
@@ -455,16 +457,20 @@ export default function OperacaoPage() {
   // ── Project health indicators ──────────────────────────────
   const projectHealth = useMemo(() => {
     return allActiveProjects.map(p => {
-      const prog = projectProgress.get(p.id) ?? p.progress;
+      const isTarefasLivres = (p as any).task_mode === 'tarefas_livres';
+      const prog = isTarefasLivres ? null : (projectProgress.get(p.id) ?? p.progress);
       let health: 'green' | 'yellow' | 'red' = 'green';
-      if (p.deadline) {
-        const daysLeft = differenceInDays(new Date(p.deadline), today);
-        const expectedProg = p.deadline ? Math.max(0, Math.min(100, ((differenceInDays(today, new Date(p.start_date || p.created_at))) / Math.max(1, differenceInDays(new Date(p.deadline), new Date(p.start_date || p.created_at)))) * 100)) : 0;
-        if (prog < expectedProg - 25 || (daysLeft <= 3 && prog < 80)) health = 'red';
-        else if (prog < expectedProg - 10 || (daysLeft <= 7 && prog < 60)) health = 'yellow';
+      // Skip progress-based health for "tarefas livres" projects
+      if (!isTarefasLivres && prog !== null) {
+        if (p.deadline) {
+          const daysLeft = differenceInDays(new Date(p.deadline), today);
+          const expectedProg = p.deadline ? Math.max(0, Math.min(100, ((differenceInDays(today, new Date(p.start_date || p.created_at))) / Math.max(1, differenceInDays(new Date(p.deadline), new Date(p.start_date || p.created_at)))) * 100)) : 0;
+          if (prog < expectedProg - 25 || (daysLeft <= 3 && prog < 80)) health = 'red';
+          else if (prog < expectedProg - 10 || (daysLeft <= 7 && prog < 60)) health = 'yellow';
+        }
+        if (prog === 0 && differenceInDays(today, new Date(p.start_date || p.created_at)) > 7) health = 'red';
       }
-      if (prog === 0 && differenceInDays(today, new Date(p.start_date || p.created_at)) > 7) health = 'red';
-      return { ...p, prog, health };
+      return { ...p, prog: prog ?? 0, health };
     }).sort((a, b) => {
       const order = { red: 0, yellow: 1, green: 2 };
       return order[a.health] - order[b.health];
