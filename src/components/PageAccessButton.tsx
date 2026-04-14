@@ -78,7 +78,7 @@ export function PageAccessButton({ pagePath, pageTitle }: PageAccessButtonProps)
       <Tooltip>
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10">
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-foreground/5">
               <UserPlus className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
