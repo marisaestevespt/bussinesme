@@ -1132,9 +1132,9 @@ export default function ProjetoDetailPage() {
 
               {/* ── Section: Desenvolvimento ──────────────── */}
               <div className="space-y-4">
-                <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-accent/15 border border-accent/25">
-                  <FileText className="h-4.5 w-4.5 text-accent" />
-                  <h3 className="text-sm font-bold text-accent uppercase tracking-wide">Desenvolvimento</h3>
+                <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-primary/10 border border-primary/20">
+                  <FileText className="h-4.5 w-4.5 text-primary" />
+                  <h3 className="text-sm font-bold text-primary uppercase tracking-wide">Desenvolvimento</h3>
                 </div>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   {[
@@ -1143,10 +1143,10 @@ export default function ProjetoDetailPage() {
                     { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos' },
                     { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
                   ].map(({ key, icon: Icon, label }) => (
-                    <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-border/60 overflow-hidden h-36 transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-accent/30 text-center bg-card">
-                      <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-accent/10 group-hover:from-accent/10 group-hover:to-accent/15 transition-all" />
-                      <div className="rounded-full bg-accent/15 p-3 relative z-10">
-                        <Icon className="h-5 w-5 text-accent" />
+                    <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-border/60 overflow-hidden h-36 transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/30 text-center bg-card">
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 group-hover:from-primary/10 group-hover:to-primary/15 transition-all" />
+                      <div className="rounded-full bg-primary/12 p-3 relative z-10">
+                        <Icon className="h-5 w-5 text-primary" />
                       </div>
                       <span className="text-sm font-semibold text-foreground relative z-10 px-3">{label}</span>
                     </button>
@@ -1475,9 +1475,9 @@ export default function ProjetoDetailPage() {
 
         {/* Section 2: Desenvolvimento */}
           <div className="space-y-4">
-            <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-accent/15 border border-accent/25">
-              <FileText className="h-4.5 w-4.5 text-accent" />
-              <h3 className="text-sm font-bold text-accent uppercase tracking-wide">Desenvolvimento</h3>
+            <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-primary/10 border border-primary/20">
+              <FileText className="h-4.5 w-4.5 text-primary" />
+              <h3 className="text-sm font-bold text-primary uppercase tracking-wide">Desenvolvimento</h3>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {[
@@ -1486,10 +1486,10 @@ export default function ProjetoDetailPage() {
                 { key: 'recursos' as SubPage, icon: Lightbulb, label: 'Recursos' },
                 { key: 'notas' as SubPage, icon: StickyNote, label: 'Notas' },
               ].map(({ key, icon: Icon, label }) => (
-                <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-border/60 overflow-hidden h-36 transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-accent/30 text-center bg-card">
-                  <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-accent/10 group-hover:from-accent/10 group-hover:to-accent/15 transition-all" />
-                  <div className="rounded-full bg-accent/15 p-3 relative z-10">
-                    <Icon className="h-5 w-5 text-accent" />
+                <button key={key} onClick={() => setSubPage(key)} className="group relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-border/60 overflow-hidden h-36 transition-all hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/30 text-center bg-card">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 group-hover:from-primary/10 group-hover:to-primary/15 transition-all" />
+                  <div className="rounded-full bg-primary/12 p-3 relative z-10">
+                    <Icon className="h-5 w-5 text-primary" />
                   </div>
                   <span className="text-sm font-semibold text-foreground relative z-10 px-3">{label}</span>
                 </button>
