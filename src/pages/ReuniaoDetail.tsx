@@ -140,6 +140,17 @@ function useProfiles() {
   });
 }
 
+function useTeamPhotos() {
+  return useQuery({
+    queryKey: ['team_members_photos'],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase.from('team_members').select('id, full_name, photo_url, profile_id');
+      return (data || []) as { id: string; full_name: string; photo_url: string | null; profile_id: string | null }[];
+    },
+  });
+}
+
 function useProjectsList() {
   return useQuery({
     queryKey: ['projects_list'],
@@ -318,6 +329,7 @@ export default function ReuniaoDetailPage() {
   });
   const { data: participants = [] } = useMeetingParticipants(id!);
   const { data: profiles = [] } = useProfiles();
+  const { data: teamMembers = [] } = useTeamPhotos();
   const { data: ownerName } = useOwnerProfile();
   const { data: projectsList = [] } = useProjectsList();
   const { data: productsList = [] } = useProductsList();
@@ -457,6 +469,12 @@ export default function ReuniaoDetailPage() {
   };
 
   const participantProfiles = profiles.filter(p => participants.some(pp => pp.profile_id === p.id));
+
+  const getPhotoUrl = (profile: Profile | undefined) => {
+    if (!profile) return '';
+    const tm = teamMembers.find(t => t.profile_id === profile.id || t.full_name === profile.full_name);
+    return tm?.photo_url || profile.avatar_url || '';
+  };
 
   if (isLoading || !m) {
     return (
@@ -749,7 +767,7 @@ export default function ReuniaoDetailPage() {
                   return (
                     <div key={p.id} className="flex items-center gap-1.5 rounded-full border bg-muted/30 pl-1 pr-2 py-0.5 text-sm group">
                       <Avatar className="h-5 w-5">
-                        <AvatarImage src={profile?.avatar_url || ''} />
+                        <AvatarImage src={getPhotoUrl(profile)} />
                         <AvatarFallback className="text-[8px]">{initials(profile?.full_name || null)}</AvatarFallback>
                       </Avatar>
                       <span className="text-xs">{profile?.full_name || '—'}</span>
@@ -788,7 +806,7 @@ export default function ReuniaoDetailPage() {
                               }}
                             >
                               <Avatar className="h-5 w-5">
-                                <AvatarImage src={p.avatar_url || ''} />
+                                <AvatarImage src={getPhotoUrl(p)} />
                                 <AvatarFallback className="text-[8px]">{initials(p.full_name)}</AvatarFallback>
                               </Avatar>
                               <span className="text-xs">{p.full_name}</span>
