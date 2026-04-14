@@ -113,11 +113,8 @@ export default function ClientesPage() {
                   <span className="font-medium text-xs sm:text-sm leading-tight">{s.label}</span>
                 </CardContent>
               </Card>
-            ))}
+          ))}
           </div>
-          <Button size="sm" className="w-full sm:w-auto" onClick={() => navigate('/hub/clientes/novo')}>
-            <Plus className="h-4 w-4 mr-1" /> Novo Cliente
-          </Button>
         </div>
 
         {/* Charts row */}
@@ -159,21 +156,26 @@ export default function ClientesPage() {
         {/* Client list with tabs */}
         <Card className="shadow-sm">
           <CardHeader className="pb-3 pt-5 px-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <CardTitle className="text-base font-semibold">Lista de Clientes & Alunos</CardTitle>
                 <p className="text-xs text-muted-foreground mt-0.5">Mostrando {items.length} de {clients.totalCount}</p>
               </div>
-              <Tabs value={tab} onValueChange={v => setTab(v as any)}>
-                <TabsList className="h-8">
-                  <TabsTrigger value="ativos" className="text-xs px-3">
-                    Ativos ({activeItems.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="arquivados" className="text-xs px-3">
-                    Arquivados ({archivedItems.length})
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+              <div className="flex items-center gap-2">
+                <Tabs value={tab} onValueChange={v => setTab(v as any)}>
+                  <TabsList className="h-8">
+                    <TabsTrigger value="ativos" className="text-xs px-3">
+                      Ativos ({activeItems.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="arquivados" className="text-xs px-3">
+                      Arquivados ({archivedItems.length})
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                <Button size="sm" onClick={() => navigate('/hub/clientes/novo')}>
+                  <Plus className="h-4 w-4 mr-1" /> Novo Cliente
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-0 pt-1">
