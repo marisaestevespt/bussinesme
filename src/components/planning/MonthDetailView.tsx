@@ -203,7 +203,11 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
     return isTerminado || endsCycle;
   });
 
-  const allEvents = (eventsQ.data || []).filter((e: any) => { if (!e.start_date) return false; const d = parseISO(e.start_date); return d.getMonth() === calMonth.getMonth() && d.getFullYear() === calMonth.getFullYear(); });
+  const allEvents = useMemo(() => {
+    const events = (eventsQ.data || []).filter((e: any) => { if (!e.start_date) return false; const d = parseISO(e.start_date); return d.getMonth() === calMonth.getMonth() && d.getFullYear() === calMonth.getFullYear(); }).map((e: any) => ({ ...e, _type: 'event' }));
+    const meetings = (meetingsQ.data || []).filter((m: any) => { if (!m.date_time) return false; const d = parseISO(m.date_time); return d.getMonth() === calMonth.getMonth() && d.getFullYear() === calMonth.getFullYear(); }).map((m: any) => ({ ...m, start_date: m.date_time, _type: 'meeting' }));
+    return [...events, ...meetings];
+  }, [eventsQ.data, meetingsQ.data, calMonth]);
 
   const allContent = (contentQ.data || []).filter((c: any) => { if (!c.scheduled_at) return false; const d = parseISO(c.scheduled_at); return d >= range.start && d <= range.end; });
   const channels = channelsQ.data || [];
