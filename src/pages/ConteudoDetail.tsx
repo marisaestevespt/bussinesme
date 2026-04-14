@@ -340,6 +340,20 @@ export default function ConteudoDetailPage() {
 
               <Separator />
 
+              {/* Format-based Template */}
+              {form.format && (
+                <>
+                  <ContentBodyTemplate
+                    format={form.format}
+                    value={form.body_template}
+                    onChange={val => setForm(f => ({ ...f, body_template: val }))}
+                    editable
+                  />
+                  <Separator />
+                </>
+              )}
+
+
               {/* Ficheiros */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
