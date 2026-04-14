@@ -67,6 +67,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const [convertForm, setConvertForm] = useState<Record<string, string>>({});
   const [selectedLead, setSelectedLead] = useState<any>(null);
   const [leadSheetOpen, setLeadSheetOpen] = useState(false);
+  const [generatingReport, setGeneratingReport] = useState(false);
   const { upsertLead, deleteLead } = useCrmData();
 
   // ── Data queries ──
