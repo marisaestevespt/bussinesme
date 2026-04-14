@@ -385,8 +385,9 @@ export default function ProjetoDetailPage() {
     enabled: !!id,
   });
 
-  // Monthly tasks for serviço mensal progress
+  // Monthly tasks for recorrente serviço mensal progress
   const isServicoMensal = local?.type === 'cliente_servico_mensal';
+  const isRecorrenteMensal = isServicoMensal && (local as any)?.project_mode === 'recorrente';
   const now = new Date();
   const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
   const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
@@ -402,16 +403,18 @@ export default function ProjetoDetailPage() {
         .lte('deadline', monthEnd);
       return (data || []) as { id: string; status: string; deadline: string }[];
     },
-    enabled: !!id && isServicoMensal,
+    enabled: !!id && isRecorrenteMensal,
   });
 
   function getProjectProgress() {
-    if (isServicoMensal) {
+    // Recorrente mensal: progress by current month tasks
+    if (isRecorrenteMensal) {
       if (monthlyTasks.length === 0) return 0;
       const completed = monthlyTasks.filter(t => t.status === 'done' || t.status === 'concluida').length;
       return Math.round((completed / monthlyTasks.length) * 100);
     }
 
+    // All other projects: deliverables > phases
     if (projectDeliverables.length > 0) {
       const completed = projectDeliverables.filter((d: any) => d.status === 'concluido').length;
       return Math.round((completed / projectDeliverables.length) * 100);
@@ -426,7 +429,7 @@ export default function ProjetoDetailPage() {
   }
 
   function getProjectProgressSummary() {
-    if (isServicoMensal) {
+    if (isRecorrenteMensal) {
       if (monthlyTasks.length === 0) return 'Sem tarefas este mês';
       const completed = monthlyTasks.filter(t => t.status === 'done' || t.status === 'concluida').length;
       return `${completed}/${monthlyTasks.length} tarefas do mês concluídas`;
@@ -825,9 +828,9 @@ export default function ProjetoDetailPage() {
               </div>
             </div>
             {/* Progresso */}
-            {(!isRecorrente || isServicoMensal) && (
+            {(!isRecorrente || isRecorrenteMensal) && (
               <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
-                <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> {isServicoMensal ? `Progresso de ${format(now, 'MMMM', { locale: pt })}` : 'Progresso'}</span>
+                <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> {isRecorrenteMensal ? `Progresso de ${format(now, 'MMMM', { locale: pt })}` : 'Progresso'}</span>
                 <div className="flex items-center gap-3 flex-1">
                   <Progress value={getProjectProgress()} className="h-2 max-w-xs" />
                   <span className="text-sm font-medium">{getProjectProgress()}%</span>
