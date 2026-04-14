@@ -16,7 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, ExternalLink, AlertTriangle, DollarSign } from 'lucide-react';
+import { ArrowLeft, Save, Target, BookOpen, CalendarIcon, Link2, FileText, Users, Lightbulb, StickyNote, Plus, ChevronDown, CheckSquare, Upload, Trash2, Download, File, ImageIcon, X, Clock, MessageSquare, ExternalLink, AlertTriangle, DollarSign, Check } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
 import { useTaskTimeTotals, formatDuration } from '@/components/TaskTimeTracker';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -872,29 +872,47 @@ export default function ProjetoDetailPage() {
             {/* Departamentos */}
             <div className="flex items-start gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0 pt-0.5"><BookOpen className="h-4 w-4" /> Departamentos</span>
-              <div className="flex flex-wrap gap-1.5">
-                {DEPARTMENTS.map(d => {
-                  const depts: string[] = (local.departments as string[]) || (local.department ? [local.department] : []);
-                  const active = depts.includes(d.value);
-                  return (
-                    <button
-                      key={d.value}
-                      type="button"
-                      onClick={() => {
-                        const current: string[] = (local.departments as string[]) || (local.department ? [local.department] : []);
-                        const next = active ? current.filter(v => v !== d.value) : [...current, d.value];
-                        updateField('departments', next);
-                        updateField('department', next[0] || null);
-                      }}
-                      className={cn(
-                        "px-2.5 py-1 rounded-full text-xs font-medium border transition-colors",
-                        active ? "bg-primary text-primary-foreground border-primary" : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
-                      )}
-                    >
-                      {d.label}
-                    </button>
-                  );
-                })}
+              <div className="flex-1">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-auto min-h-[32px] w-full justify-start text-left font-normal py-1.5">
+                      {(() => {
+                        const depts: string[] = (local.departments as string[]) || (local.department ? [local.department] : []);
+                        if (depts.length === 0) return <span className="text-muted-foreground text-xs">Selecionar departamentos…</span>;
+                        return <div className="flex flex-wrap gap-1">{depts.map(v => { const d = DEPARTMENTS.find(x => x.value === v); return d ? <Badge key={v} variant="secondary" className="text-xs">{d.label}</Badge> : null; })}</div>;
+                      })()}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-60 p-2" align="start">
+                    <div className="space-y-1">
+                      {DEPARTMENTS.map(d => {
+                        const depts: string[] = (local.departments as string[]) || (local.department ? [local.department] : []);
+                        const active = depts.includes(d.value);
+                        return (
+                          <button
+                            key={d.value}
+                            type="button"
+                            onClick={() => {
+                              const current: string[] = (local.departments as string[]) || (local.department ? [local.department] : []);
+                              const next = active ? current.filter(v => v !== d.value) : [...current, d.value];
+                              updateField('departments', next);
+                              updateField('department', next[0] || null);
+                            }}
+                            className={cn(
+                              "flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-sm transition-colors",
+                              active ? "bg-primary/10 text-foreground" : "hover:bg-muted text-muted-foreground"
+                            )}
+                          >
+                            <div className={cn("h-4 w-4 rounded border flex items-center justify-center", active ? "bg-primary border-primary" : "border-muted-foreground/40")}>
+                              {active && <Check className="h-3 w-3 text-primary-foreground" />}
+                            </div>
+                            {d.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
             {/* Membros */}
