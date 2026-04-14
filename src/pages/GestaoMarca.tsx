@@ -385,7 +385,7 @@ export default function GestaoMarcaPage() {
         {/* Header */}
         <PageHeader title="Gestão de Marca" subtitle="Marketing e Branding" />
 
-        <div className="max-w-6xl mx-auto w-full px-4 py-10 space-y-12">
+        <div className="w-full px-4 py-10 space-y-12">
           <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
 
           {/* ── Brand Card ── */}

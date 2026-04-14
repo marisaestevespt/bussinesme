@@ -88,7 +88,7 @@ export default function MarketingPublicoAlvo() {
       <div className="flex flex-col min-h-screen">
         <PageHeader title="Mapa de Público-Alvo" subtitle="Personas, dores, desejos e comunicação estratégica." />
 
-        <div className="max-w-6xl mx-auto w-full px-4 py-8 space-y-6">
+        <div className="w-full px-4 py-8 space-y-6">
           <BackNavigation parentRoute="/hub/marketing/estrategia" parentLabel="Estratégia" />
 
           {/* ═══ HERO CARD ═══ */}

@@ -138,7 +138,7 @@ export default function MarketingEstrategia() {
         {/* Header */}
         <PageHeader title="Estratégia" subtitle="Marketing 360" />
 
-        <div className="max-w-6xl mx-auto w-full px-4 py-8 space-y-10">
+        <div className="w-full px-4 py-8 space-y-10">
           <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
 
           {/* FOCO */}

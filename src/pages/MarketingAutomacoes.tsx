@@ -90,7 +90,7 @@ export default function MarketingAutomacoes() {
       <div className="flex flex-col min-h-screen">
         <PageHeader title="Automações" subtitle="Marketing 360" />
 
-        <div className="max-w-6xl mx-auto w-full px-4 py-8 space-y-6">
+        <div className="w-full px-4 py-8 space-y-6">
           <div className="flex items-center justify-between">
             <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
             <Button size="sm" onClick={() => setShowNew(true)}>

@@ -223,7 +223,7 @@ function MonthDetail({ month, year, onBack, onChangeMonth }: { month: number; ye
   });
 
   return (
-    <div className="max-w-5xl mx-auto w-full space-y-8">
+    <div className="w-full space-y-8">
       <MonthNavHeader monthIdx={month - 1} year={year} onBack={onBack} onChangeMonth={(m, y) => onChangeMonth(m + 1, y)} />
 
       {/* 1. Objectives */}
@@ -644,7 +644,7 @@ export default function MarketingAnalisePage() {
       <AppLayout>
         <div className="flex flex-col min-h-screen">
           <PageHeader title="Análise de Marketing" />
-          <div className="max-w-5xl mx-auto w-full px-4 py-8 space-y-6">
+          <div className="w-full px-4 py-8 space-y-6">
             <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
             <MonthDetail month={selectedMonth} year={year} onBack={() => setSelectedMonth(null)} onChangeMonth={(m, y) => { setSelectedMonth(m); setYear(y); }} />
           </div>
@@ -657,7 +657,7 @@ export default function MarketingAnalisePage() {
     <AppLayout>
       <div className="flex flex-col min-h-screen">
         <PageHeader title="Análise de Marketing" />
-        <div className="max-w-5xl mx-auto w-full px-4 py-8 space-y-6">
+        <div className="w-full px-4 py-8 space-y-6">
           <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
 
           <YearSelector year={year} onChange={setYear} />

@@ -124,7 +124,7 @@ export default function TrafegoReportDetail() {
           )}
         </div>
 
-        <div className="max-w-4xl mx-auto w-full px-4 py-8 space-y-6">
+        <div className="w-full px-4 py-8 space-y-6">
           <div className="flex items-center justify-between">
             <BackNavigation parentRoute="/hub/marketing/trafego-pago" parentLabel="Tráfego Pago" />
             {isOwner && title !== card.title && (
