@@ -13,7 +13,7 @@ export function useTeamByWorkArea(area: string) {
         .from('team_members')
         .select('id, full_name, profile_id, role_title, photo_url, email, work_areas')
         .eq('status', 'ativo')
-        .contains('work_areas', [area])
+        .filter('work_areas', 'cs', `["${area}"]`)
         .order('full_name');
       return data || [];
     },
