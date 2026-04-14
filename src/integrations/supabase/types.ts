@@ -4924,6 +4924,51 @@ export type Database = {
           },
         ]
       }
+      monthly_reports: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          file_path: string | null
+          file_size_bytes: number | null
+          id: string
+          month: number
+          report_data: Json | null
+          started_at: string
+          status: string
+          trigger_type: string
+          year: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_path?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          month: number
+          report_data?: Json | null
+          started_at?: string
+          status?: string
+          trigger_type?: string
+          year: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_path?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          month?: number
+          report_data?: Json | null
+          started_at?: string
+          status?: string
+          trigger_type?: string
+          year?: number
+        }
+        Relationships: []
+      }
       mural_comments: {
         Row: {
           author_id: string
