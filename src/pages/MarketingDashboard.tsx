@@ -128,22 +128,27 @@ export default function MarketingDashboard() {
 
 
   const createContent = async () => {
-    const { data, error } = await supabase.from('content_items').insert({
-      title: 'Novo Conteúdo', created_by: user?.id,
-    } as any).select('id').single() as { data: { id: string } | null; error: any };
-    if (error || !data) { toast.error('Erro ao criar'); return; }
-    // Auto-create production task linked to content
-    await supabase.from('tasks').insert({
-      name: '[Conteúdo] Novo Conteúdo — Em ideia',
-      content_id: data.id,
-      tag: 'Conteúdo',
-      department: 'marketing',
-      status: 'por_comecar',
-      priority: 'media',
-      created_by: user?.id,
-    } as any);
-    queryClient.invalidateQueries({ queryKey: ['content-items'] });
-    navigate(`/hub/marketing/conteudos/${data.id}`);
+    if (creatingContent) return;
+    setCreatingContent(true);
+    try {
+      const { data, error } = await supabase.from('content_items').insert({
+        title: 'Novo Conteúdo', created_by: user?.id,
+      } as any).select('id').single() as { data: { id: string } | null; error: any };
+      if (error || !data) { toast.error('Erro ao criar'); return; }
+      // Auto-create production task linked to content (fire-and-forget)
+      supabase.from('tasks').insert({
+        name: '[Conteúdo] Novo Conteúdo — Em ideia',
+        content_id: data.id,
+        tag: 'Conteúdo',
+        department: 'marketing',
+        status: 'por_comecar',
+        priority: 'media',
+        created_by: user?.id,
+      } as any).then(() => queryClient.invalidateQueries({ queryKey: ['content-items'] }));
+      navigate(`/hub/marketing/conteudos/${data.id}`);
+    } finally {
+      setCreatingContent(false);
+    }
   };
 
   return (
