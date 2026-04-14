@@ -132,6 +132,7 @@
     --shadow-elevated: 0 4px 16px rgba(0,0,0,0.3), 0 20px 48px rgba(0,0,0,0.2);
     --shadow-glow: 0 0 0 1px rgba(200, 130, 80, 0.15), 0 4px 24px rgba(200, 130, 80, 0.08);
   }
+}
 
 @layer base {
   * {
