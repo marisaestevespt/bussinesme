@@ -304,6 +304,21 @@ export default function MarketingEstrategia() {
 
           <Separator />
 
+          {/* MAPA DO PÚBLICO-ALVO */}
+          <section>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Público-Alvo</h2>
+            <Link to="/hub/marketing/estrategia/publico-alvo"
+              className="flex items-center gap-4 p-5 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 hover:shadow-sm hq-transition max-w-md">
+              <span className="text-2xl">🎯</span>
+              <div>
+                <span className="text-sm font-medium text-foreground">Mapa do Público-Alvo</span>
+                <p className="text-xs text-muted-foreground mt-0.5">Personas, dores, desejos e jornada de compra</p>
+              </div>
+            </Link>
+          </section>
+
+          <Separator />
+
           {/* ESTRATÉGIA POR CANAL */}
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-4">Estratégia por Canal</h2>
