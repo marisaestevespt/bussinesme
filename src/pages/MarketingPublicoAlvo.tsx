@@ -88,7 +88,7 @@ export default function MarketingPublicoAlvo() {
                 Quem é a pessoa que precisamos de servir
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed mb-8 max-w-[600px]">
-                Um documento vivo que concentra tudo o que sabemos sobre o nosso público — psicografia, jornada, linguagem, objeções e triggers. Atualizar sempre que chegar nova informação.
+                Um documento vivo que concentra tudo o que sabemos sobre o nosso público — psicografia, jornada, linguagem, objeções e triggers.
               </p>
               <div className="border-t border-border pt-5 grid grid-cols-2 sm:grid-cols-4 gap-6">
                 {[
