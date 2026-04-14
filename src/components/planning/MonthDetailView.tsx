@@ -76,6 +76,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const leadsQ = useQuery({ queryKey: ['md-leads', year, monthNum], queryFn: async () => { const { data } = await supabase.from('crm_leads').select('*'); return data || []; }});
   const clientsQ = useQuery({ queryKey: ['md-clients'], queryFn: async () => { const { data } = await supabase.from('clients').select('*'); return data || []; }});
   const eventsQ = useQuery({ queryKey: ['md-events', year, monthNum], queryFn: async () => { const { data } = await supabase.from('events').select('*'); return data || []; }});
+  const meetingsQ = useQuery({ queryKey: ['md-meetings', year, monthNum], queryFn: async () => { const mStart = format(new Date(year, monthIdx, 1), 'yyyy-MM-dd'); const mEnd = format(endOfMonth(new Date(year, monthIdx, 1)), 'yyyy-MM-dd'); const { data } = await supabase.from('meetings').select('id, title, date_time, status, meeting_url').gte('date_time', mStart + 'T00:00:00').lte('date_time', mEnd + 'T23:59:59'); return data || []; }});
   const contentQ = useQuery({ queryKey: ['md-content', year, monthNum], queryFn: async () => { const { data } = await supabase.from('content_items').select('*, content_channels(channel_id)'); return data || []; }});
   const channelsQ = useQuery({ queryKey: ['md-channels'], queryFn: async () => { const { data } = await supabase.from('marketing_channels').select('*').eq('is_active', true).order('sort_order'); return data || []; }});
   const productsQ = useQuery({ queryKey: ['md-products'], queryFn: async () => { const { data } = await supabase.from('products').select('id, name, monthly_hours_per_client, ticket, status'); return data || []; }});
@@ -202,7 +203,11 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
     return isTerminado || endsCycle;
   });
 
-  const allEvents = (eventsQ.data || []).filter((e: any) => { if (!e.start_date) return false; const d = parseISO(e.start_date); return d.getMonth() === calMonth.getMonth() && d.getFullYear() === calMonth.getFullYear(); });
+  const allEvents = useMemo(() => {
+    const events = (eventsQ.data || []).filter((e: any) => { if (!e.start_date) return false; const d = parseISO(e.start_date); return d.getMonth() === calMonth.getMonth() && d.getFullYear() === calMonth.getFullYear(); }).map((e: any) => ({ ...e, _type: 'event' }));
+    const meetings = (meetingsQ.data || []).filter((m: any) => { if (!m.date_time) return false; const d = parseISO(m.date_time); return d.getMonth() === calMonth.getMonth() && d.getFullYear() === calMonth.getFullYear(); }).map((m: any) => ({ ...m, start_date: m.date_time, _type: 'meeting' }));
+    return [...events, ...meetings];
+  }, [eventsQ.data, meetingsQ.data, calMonth]);
 
   const allContent = (contentQ.data || []).filter((c: any) => { if (!c.scheduled_at) return false; const d = parseISO(c.scheduled_at); return d >= range.start && d <= range.end; });
   const channels = channelsQ.data || [];
@@ -249,10 +254,22 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   // Product sales breakdown for "goal" tab — always show all active products
   const prodSalesData = useMemo(() => {
     const activeProducts = products.filter((p: any) => p.status !== 'off');
+    const normalize = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ');
     return activeProducts.map((prod: any) => {
-      const prodSales = sales.filter((s: any) => s.product === prod.name);
+      const prodName = normalize(prod.name);
+      const prodSales = sales.filter((s: any) => {
+        const saleName = normalize(s.product || '');
+        if (!saleName) return false;
+        return saleName === prodName
+          || saleName.includes(prodName)
+          || prodName.includes(saleName)
+          || saleName.replace(/\s*\[.*?\]\s*/g, '') === prodName.replace(/\s*\[.*?\]\s*/g, '');
+      });
       const totalFat = prodSales.reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0);
-      const pg = commProdGoals.find((g: any) => g.product_name === prod.name);
+      const pg = commProdGoals.find((g: any) => {
+        const goalName = normalize(g.product_name);
+        return goalName === prodName || goalName.includes(prodName) || prodName.includes(goalName);
+      });
       const goalAmt = Number(pg?.goal_amount || 0);
       const pct = goalAmt > 0 ? Math.round((totalFat / goalAmt) * 100) : 0;
       const ticketValue = prod.ticket ? parseFloat(prod.ticket.replace(/[^\d.,]/g, '').replace(',', '.')) || 0 : 0;
@@ -344,18 +361,31 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             monthGoals.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">Sem metas para {monthName}.</p> : (
               <Table>
                 <TableHeader><TableRow>
-                  <TableHead>Status</TableHead><TableHead>Área</TableHead><TableHead>Meta</TableHead><TableHead>Data meta</TableHead><TableHead>Data atingida</TableHead>
+                  <TableHead>Status</TableHead><TableHead>Área</TableHead><TableHead>Meta</TableHead><TableHead className="text-right">Alvo</TableHead><TableHead className="text-right">Atual</TableHead><TableHead>Progresso</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
                   {monthGoals.map((g: any) => {
                     const obj = objectives.find((o: any) => o.id === g.objective_id);
+                    const targetVal = Number(g.target_value || 0);
+                    const actualVal = Number(g.actual_value || 0);
+                    // For commercial objectives, calculate actual from sales
+                    const isCommercial = obj?.value_source === 'commercial' || obj?.area === 'comercial';
+                    const computedActual = isCommercial ? totalInvoiced : actualVal;
+                    const pct = targetVal > 0 ? Math.min(Math.round((computedActual / targetVal) * 100), 100) : 0;
+                    const unit = obj?.target_unit || '';
                     return (
                       <TableRow key={g.id} className="cursor-pointer hover:bg-muted/60" onClick={() => obj && setSelectedObjective(obj)}>
                         <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">{planStatusLabel(g.status)}</Badge></TableCell>
                         <TableCell className="text-xs">{obj ? planAreaLabel(obj.area) : '—'}</TableCell>
                         <TableCell className="text-sm">{obj?.title || '—'}</TableCell>
-                        <TableCell className="text-xs">{obj?.deadline || '—'}</TableCell>
-                        <TableCell className="text-xs">{g.status === 'atingido' ? g.updated_at ? format(parseISO(g.updated_at), 'dd/MM/yyyy') : '—' : '—'}</TableCell>
+                        <TableCell className="text-xs text-right font-medium">{targetVal > 0 ? `${targetVal.toLocaleString('pt-PT')}${unit}` : '—'}</TableCell>
+                        <TableCell className="text-xs text-right font-medium">{computedActual > 0 ? `${computedActual.toLocaleString('pt-PT', { minimumFractionDigits: unit === '€' ? 2 : 0 })}${unit}` : '0'}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Progress value={pct} className="h-1.5 w-16" />
+                            <span className="text-[10px] text-muted-foreground">{pct}%</span>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -398,7 +428,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
           {renderCalendarGrid(
             allEvents,
             (e: any) => e.start_date ? parseISO(e.start_date) : null,
-            (e: any) => <div key={e.id} className="text-[9px] bg-primary/10 text-primary rounded px-1 py-0.5 truncate cursor-pointer hover:bg-primary/20" onClick={() => navigate(`/reunioes/${e.id}`)}>{e.title}</div>
+            (e: any) => <div key={e.id} className={cn("text-[9px] rounded px-1 py-0.5 truncate cursor-pointer", e._type === 'meeting' ? 'bg-violet-500/10 text-violet-700 hover:bg-violet-500/20' : 'bg-primary/10 text-primary hover:bg-primary/20')} onClick={() => navigate(e._type === 'meeting' ? `/hub/reunioes/${e.id}` : `/reunioes/${e.id}`)}>{e.title}</div>
           )}
         </CardContent>
       </Card>
