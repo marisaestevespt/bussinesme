@@ -236,17 +236,14 @@ export default function OperacaoPage() {
     },
   });
 
-  // Fetch pending onboarding deliverables (from project_phases with is_onboarding + project_deliverables)
-  const { data: onboardingDeliverables = [] } = useQuery({
+  // Fetch all onboarding deliverables (pending AND completed, to distinguish "all done" from "no checklist")
+  const { data: allOnboardingDeliverables = [] } = useQuery({
     queryKey: ['op-onboarding-deliverables'],
     queryFn: async () => {
       const { data } = await supabase
         .from('project_deliverables')
-        .select('id, name, status, phase_id, project_id, sort_order')
-        .neq('status', 'concluido');
-      if (!data) return [];
-      // We'll filter by is_onboarding phase in the component using phases data
-      return data as { id: string; name: string; status: string; phase_id: string; project_id: string; sort_order: number }[];
+        .select('id, name, status, phase_id, project_id, sort_order');
+      return (data || []) as { id: string; name: string; status: string; phase_id: string; project_id: string; sort_order: number }[];
     },
   });
 
@@ -1070,9 +1067,11 @@ export default function OperacaoPage() {
                           .filter(ph => projects.find(p => p.id === ph.project_id && (p as any).client_id === c.id))
                           .map(ph => ph.id)
                       );
-                      const pendingItems = (expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding')
-                        ? onboardingDeliverables.filter(d => onboardingPhaseIds.has(d.phase_id))
+                      const allItems = (expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding')
+                        ? allOnboardingDeliverables.filter(d => onboardingPhaseIds.has(d.phase_id))
                         : [];
+                      const pendingItems = allItems.filter(d => d.status !== 'concluido');
+                      const allDone = allItems.length > 0 && pendingItems.length === 0;
                       return (
                         <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50 align-top" onClick={() => { setExpandedStatus(null); window.location.href = `/hub/clientes/${c.id}`; }}>
                           <TableCell className="text-xs font-mono">{c.client_id}</TableCell>
@@ -1080,7 +1079,9 @@ export default function OperacaoPage() {
                           <TableCell className="text-xs text-muted-foreground">{c.start_date ? format(new Date(c.start_date), 'dd/MM/yyyy') : '—'}</TableCell>
                           {(expandedStatus === 'em_onboarding' || expandedStatus === 'em_offboarding') && (
                             <TableCell>
-                              {pendingItems.length === 0 ? (
+                              {allDone ? (
+                                <span className="text-xs text-emerald-600 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Concluído</span>
+                              ) : pendingItems.length === 0 ? (
                                 <span className="text-xs text-muted-foreground">Sem checklist</span>
                               ) : (
                                 <ul className="space-y-0.5">
