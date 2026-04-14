@@ -138,13 +138,6 @@ export default function MarketingPublicoAlvo() {
           <div className="min-h-[400px]">
             {ActiveComponent && <ActiveComponent />}
           </div>
-
-          {/* Footer */}
-          <div className="text-center py-8">
-            <p className="text-xs text-muted-foreground">
-              Business ME · Mapa de Público-Alvo v1 · Abril 2026 · Documento vivo — atualizar a cada nova entrevista ou reunião relevante.
-            </p>
-          </div>
         </div>
       </div>
     </AppLayout>
