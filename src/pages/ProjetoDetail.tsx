@@ -56,6 +56,7 @@ interface ProjectFull {
   created_by: string | null; created_at: string; cover_url: string | null;
   total_time_minutes: number | null;
   project_mode: string | null;
+  task_mode: string | null;
   whatsapp_group_url: string | null;
   contract_documents: Array<{ name: string; url: string }> | null;
   payment_method: string | null;
@@ -809,6 +810,7 @@ export default function ProjetoDetailPage() {
   // ─── Client project (cliente_projeto_unico or cliente_servico_mensal) ──
   if (local.type === 'servico' || local.type === 'cliente_servico_mensal' || local.type === 'cliente_projeto_unico' || local.type === 'clientes') {
     const isRecorrente = (local as any).project_mode === 'recorrente';
+    const taskMode: string = (local as any).task_mode || 'fases';
     return (
       <AppLayout>
         <div className="space-y-6">
@@ -871,7 +873,7 @@ export default function ProjetoDetailPage() {
               </Select>
             </div>
             {/* Progresso */}
-            {(!isRecorrente || isRecorrenteMensal) && (
+            {taskMode !== 'tarefas_livres' && (
               <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
                 <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> {isRecorrenteMensal ? `Progresso de ${format(now, 'MMMM', { locale: pt })}` : 'Progresso'}</span>
                 <div className="flex items-center gap-3 flex-1">
@@ -1053,8 +1055,8 @@ export default function ProjetoDetailPage() {
 
             {/* ─── TAB 1: PROJETO ──────────────────────────── */}
             <TabsContent value="projeto" className="space-y-8 mt-6">
-              {/* Deliverables (only for recorrente) */}
-              {isRecorrente && <ProjectDeliverables projectId={id!} profiles={profiles} />}
+              {/* Deliverables (only for fases recorrente) */}
+              {isRecorrente && taskMode === 'fases' && <ProjectDeliverables projectId={id!} profiles={profiles} />}
 
               {/* ── Section: Menu Inicial ─────────────────── */}
               <div className="space-y-4">
@@ -1113,7 +1115,7 @@ export default function ProjetoDetailPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-info/10 border border-info/20 flex-1">
                     <CheckSquare className="h-4.5 w-4.5 text-info" />
-                    <h3 className="text-sm font-bold text-info uppercase tracking-wide">{isRecorrente ? 'Tarefas do Ciclo' : 'Estado e Prioridades'}</h3>
+                    <h3 className="text-sm font-bold text-info uppercase tracking-wide">{taskMode === 'tarefas_fixas' ? 'Tarefas do Mês' : taskMode === 'tarefas_livres' ? 'Tarefas' : 'Estado e Prioridades'}</h3>
                     <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
                   </div>
                   <Button size="sm" variant="outline" className="gap-1.5 h-9 ml-3" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
@@ -1121,7 +1123,7 @@ export default function ProjetoDetailPage() {
                 {tasks.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl">
                     <CheckSquare className="h-10 w-10 text-muted-foreground/30 mb-3" />
-                    <p className="text-sm text-muted-foreground">{isRecorrente ? 'As tarefas serão geradas automaticamente a partir das entregas recorrentes.' : 'Nenhuma tarefa ligada a este projeto'}</p>
+                    <p className="text-sm text-muted-foreground">{taskMode === 'tarefas_fixas' ? 'Usa o botão "Gerar tarefas" para criar as tarefas deste mês.' : taskMode === 'tarefas_livres' ? 'Adiciona tarefas conforme necessário.' : 'Nenhuma tarefa ligada a este projeto'}</p>
                   </div>
                 ) : (
                   <div className="rounded-xl border overflow-hidden">
@@ -1201,7 +1203,7 @@ export default function ProjetoDetailPage() {
 
             {/* ─── TAB 2: PROCESSOS ────────────────────────── */}
             <TabsContent value="processos" className="mt-4 space-y-6">
-              <ProjectPhasesTimeline projectId={id!} projectStartDate={local.start_date} />
+              {taskMode === 'fases' && <ProjectPhasesTimeline projectId={id!} projectStartDate={local.start_date} />}
               <ProjectProcessosTab
                 projectId={id!}
                 clientId={resolvedClientId}
