@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
         year,
         month,
         status: "running",
-        trigger_type: "manual",
+        trigger_type: userId ? "manual" : "cron",
       });
     }
 
@@ -267,14 +267,29 @@ Deno.serve(async (req) => {
       completed_at: new Date().toISOString(),
     }).eq("id", reportId);
 
-    // ──── Notify owner ────
-    await supabase.from("notifications").insert({
-      user_id: user.id,
-      type: "monthly_report",
-      title: "📊 Relatório mensal gerado",
-      message: `O relatório de ${MONTH_NAMES[month - 1]} ${year} está pronto para consulta.`,
-      link: "/executive",
-    });
+    // ──── Notify owner(s) ────
+    const notifyUserId = userId;
+    if (notifyUserId) {
+      await supabase.from("notifications").insert({
+        user_id: notifyUserId,
+        type: "monthly_report",
+        title: "📊 Relatório mensal gerado",
+        message: `O relatório de ${MONTH_NAMES[month - 1]} ${year} está pronto para consulta.`,
+        link: "/executive",
+      });
+    } else {
+      // Cron: notify all owners
+      const { data: owners } = await supabase.from("user_roles").select("user_id").eq("role", "owner");
+      for (const o of (owners || [])) {
+        await supabase.from("notifications").insert({
+          user_id: o.user_id,
+          type: "monthly_report",
+          title: "📊 Relatório mensal gerado",
+          message: `O relatório de ${MONTH_NAMES[month - 1]} ${year} foi gerado automaticamente.`,
+          link: "/executive",
+        });
+      }
+    }
 
     return new Response(
       JSON.stringify({ success: true, reportId, period: reportData.period }),
