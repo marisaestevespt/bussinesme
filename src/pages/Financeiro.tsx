@@ -233,7 +233,6 @@ export default function FinanceiroPage() {
             </Card>
           ))}
         </div>
-        </div>
 
 
 
