@@ -584,23 +584,7 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
                   </Select>
                 </TableCell>
                 <TableCell className="font-medium whitespace-nowrap">{p.name}</TableCell>
-                <TableCell className="whitespace-nowrap" onClick={e => e.stopPropagation()}>
-                  <Select value={p.status} onValueChange={s => onStatusChange(p.id, s)}>
-                    <SelectTrigger className="h-auto border-0 bg-transparent p-0 shadow-none w-auto">
-                      <StatusBadge status={p.status} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PROJECT_STATUSES.map(s => (
-                        <SelectItem key={s.value} value={s.value}>
-                          <span className="flex items-center gap-2">
-                            <span className={cn('h-2 w-2 rounded-full', s.dot)} />
-                            {s.label}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </TableCell>
+                <TableCell className="whitespace-nowrap"><Badge className={`${typeI.color} border font-medium`}>{typeI.label}</Badge></TableCell>
                 <TableCell>{p.department ? <DeptBadge dept={p.department} /> : <span className="text-muted-foreground">—</span>}</TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{p.start_date ? format(new Date(p.start_date), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{p.deadline ? format(new Date(p.deadline), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
