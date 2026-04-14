@@ -135,7 +135,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
   });
 
   const monthDays = useMemo(() => {
-    return eachDayOfInterval({ start: startOfMonth(escalaMonth), end: endOfMonth(escalaMonth) }).filter(d => d.getDay() >= 1 && d.getDay() <= 5);
+    return eachDayOfInterval({ start: startOfMonth(escalaMonth), end: endOfMonth(escalaMonth) });
   }, [escalaMonth]);
 
   const holidays = useMemo(() => getPortugueseHolidays(escalaMonth.getFullYear()), [escalaMonth]);
@@ -248,11 +248,21 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
                 <thead>
                   <tr>
                     <th className="text-left font-medium text-muted-foreground py-1 pr-3 w-[140px] sticky left-0 bg-card z-10">Membro</th>
-                    {monthDays.map(d => (
-                      <th key={d.toISOString()} className={cn("text-center font-medium py-1 px-1 min-w-[32px]", isSameDay(d, new Date()) && "text-primary")}>
-                        <div className="text-[10px]">{format(d, 'd')}</div>
-                      </th>
-                    ))}
+                    {monthDays.map(d => {
+                      const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+                      const isHoliday = holidays.some(h => isSameDay(h, d));
+                      return (
+                        <th key={d.toISOString()} className={cn(
+                          "text-center font-medium py-1 px-1 min-w-[32px]",
+                          isSameDay(d, new Date()) && "text-primary",
+                          isWeekend && "bg-muted/50 text-muted-foreground/60",
+                          isHoliday && "bg-amber-50 dark:bg-amber-950/20",
+                        )}>
+                          <div className="text-[9px]">{['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d.getDay()]}</div>
+                          <div className="text-[10px]">{format(d, 'd')}</div>
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody>
