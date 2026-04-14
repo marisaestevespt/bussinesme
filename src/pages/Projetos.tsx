@@ -214,6 +214,22 @@ export default function ProjetosPage() {
     },
   });
 
+  const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd');
+  const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd');
+
+  const { data: monthlyTasksByProject = [] } = useQuery({
+    queryKey: ['projects-monthly-tasks', monthStart],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tasks')
+        .select('id, status, project_id')
+        .not('project_id', 'is', null)
+        .gte('deadline', monthStart)
+        .lte('deadline', monthEnd);
+      return (data || []) as { id: string; status: string; project_id: string }[];
+    },
+  });
+
   const { data: allClients = [] } = useQuery({
     queryKey: ['clients-for-progress'],
     queryFn: async () => {
@@ -224,7 +240,15 @@ export default function ProjetosPage() {
 
   const profileMap = new Map(profiles.map(p => [p.id, p]));
 
-  function getTaskProgress(projectId: string) {
+  function getTaskProgress(projectId: string, projectType?: string) {
+    // For serviço mensal, use current month's tasks
+    if (projectType === 'cliente_servico_mensal') {
+      const tasks = monthlyTasksByProject.filter(t => t.project_id === projectId);
+      if (tasks.length === 0) return 0;
+      const completed = tasks.filter(t => t.status === 'done' || t.status === 'concluida').length;
+      return Math.round((completed / tasks.length) * 100);
+    }
+
     const projectDeliverables = allProjectDeliverables.filter(d => d.project_id === projectId);
     if (projectDeliverables.length > 0) {
       const completed = projectDeliverables.filter(d => d.status === 'concluido').length;
@@ -485,7 +509,7 @@ export default function ProjetosPage() {
 
 // ─── Table View ─────────────────────────────────────────────────
 
-function TableView({ projects, getMembersForProject, onOpen, onStatusChange, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; onStatusChange: (id: string, status: string) => void; getTaskProgress: (id: string) => number }) {
+function TableView({ projects, getMembersForProject, onOpen, onStatusChange, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; onStatusChange: (id: string, status: string) => void; getTaskProgress: (id: string, type?: string) => number }) {
   return (
     <div className="rounded-lg border">
       <Table>
@@ -529,7 +553,7 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
                 <TableCell>{p.department ? <DeptBadge dept={p.department} /> : <span className="text-muted-foreground">—</span>}</TableCell>
                 <TableCell className="text-sm">{p.start_date ? format(new Date(p.start_date), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
                 <TableCell className="text-sm">{p.deadline ? format(new Date(p.deadline), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
-                <TableCell><div className="flex items-center gap-2 min-w-[100px]"><Progress value={getTaskProgress(p.id)} className="h-2 flex-1" /><span className="text-xs text-muted-foreground w-8">{getTaskProgress(p.id)}%</span></div></TableCell>
+                <TableCell><div className="flex items-center gap-2 min-w-[100px]"><Progress value={getTaskProgress(p.id, p.type)} className="h-2 flex-1" /><span className="text-xs text-muted-foreground w-8">{getTaskProgress(p.id, p.type)}%</span></div></TableCell>
                 <TableCell><div className="flex -space-x-1">{members.slice(0, 3).map(m => <Avatar key={m.id} className="h-6 w-6 border-2 border-background"><AvatarImage src={m.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(m.full_name)}</AvatarFallback></Avatar>)}{members.length > 3 && <span className="text-xs text-muted-foreground ml-1">+{members.length - 3}</span>}</div></TableCell>
               </TableRow>
             );
@@ -542,7 +566,7 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
 
 // ─── Gallery View ───────────────────────────────────────────────
 
-function GalleryView({ projects, getMembersForProject, onOpen, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; getTaskProgress: (id: string) => number }) {
+function GalleryView({ projects, getMembersForProject, onOpen, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; getTaskProgress: (id: string, type?: string) => number }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {projects.map(p => {
@@ -563,8 +587,8 @@ function GalleryView({ projects, getMembersForProject, onOpen, getTaskProgress }
               <h3 className="font-semibold mb-1">{p.name}</h3>
               {p.department && <div className="mb-2"><DeptBadge dept={p.department} /></div>}
               <div className="flex items-center gap-2 mb-3">
-                <Progress value={getTaskProgress(p.id)} className="h-2 flex-1" />
-                <span className="text-xs text-muted-foreground">{getTaskProgress(p.id)}%</span>
+                <Progress value={getTaskProgress(p.id, p.type)} className="h-2 flex-1" />
+                <span className="text-xs text-muted-foreground">{getTaskProgress(p.id, p.type)}%</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="text-xs text-muted-foreground space-y-0.5">

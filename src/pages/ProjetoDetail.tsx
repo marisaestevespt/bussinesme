@@ -24,7 +24,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { MentionTextarea } from '@/components/MentionTextarea';
@@ -385,7 +385,33 @@ export default function ProjetoDetailPage() {
     enabled: !!id,
   });
 
+  // Monthly tasks for serviço mensal progress
+  const isServicoMensal = local?.type === 'cliente_servico_mensal';
+  const now = new Date();
+  const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
+  const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
+
+  const { data: monthlyTasks = [] } = useQuery({
+    queryKey: ['project-monthly-tasks', id, monthStart],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('tasks')
+        .select('id, status, deadline')
+        .eq('project_id', id!)
+        .gte('deadline', monthStart)
+        .lte('deadline', monthEnd);
+      return (data || []) as { id: string; status: string; deadline: string }[];
+    },
+    enabled: !!id && isServicoMensal,
+  });
+
   function getProjectProgress() {
+    if (isServicoMensal) {
+      if (monthlyTasks.length === 0) return 0;
+      const completed = monthlyTasks.filter(t => t.status === 'done' || t.status === 'concluida').length;
+      return Math.round((completed / monthlyTasks.length) * 100);
+    }
+
     if (projectDeliverables.length > 0) {
       const completed = projectDeliverables.filter((d: any) => d.status === 'concluido').length;
       return Math.round((completed / projectDeliverables.length) * 100);
@@ -400,6 +426,12 @@ export default function ProjetoDetailPage() {
   }
 
   function getProjectProgressSummary() {
+    if (isServicoMensal) {
+      if (monthlyTasks.length === 0) return 'Sem tarefas este mês';
+      const completed = monthlyTasks.filter(t => t.status === 'done' || t.status === 'concluida').length;
+      return `${completed}/${monthlyTasks.length} tarefas do mês concluídas`;
+    }
+
     if (projectDeliverables.length > 0) {
       const completed = projectDeliverables.filter((d: any) => d.status === 'concluido').length;
       return `${completed}/${projectDeliverables.length} points concluídos`;
@@ -793,9 +825,9 @@ export default function ProjetoDetailPage() {
               </div>
             </div>
             {/* Progresso */}
-            {!isRecorrente && (
+            {(!isRecorrente || isServicoMensal) && (
               <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
-                <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> Progresso</span>
+                <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><Target className="h-4 w-4" /> {isServicoMensal ? `Progresso de ${format(now, 'MMMM', { locale: pt })}` : 'Progresso'}</span>
                 <div className="flex items-center gap-3 flex-1">
                   <Progress value={getProjectProgress()} className="h-2 max-w-xs" />
                   <span className="text-sm font-medium">{getProjectProgress()}%</span>
