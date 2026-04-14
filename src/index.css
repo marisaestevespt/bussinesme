@@ -157,14 +157,14 @@
 
 @layer components {
   .hq-card {
-    @apply rounded-[var(--radius-lg)] bg-card border;
-    box-shadow: var(--shadow-card);
+    @apply rounded-2xl bg-card border border-border/60;
+    box-shadow: var(--shadow-subtle);
     transition: box-shadow var(--transition-base) var(--transition-ease),
                 transform var(--transition-base) var(--transition-ease);
   }
 
   .hq-card:hover {
-    box-shadow: var(--shadow-elevated);
+    box-shadow: var(--shadow-card);
   }
 
   .hq-surface {
