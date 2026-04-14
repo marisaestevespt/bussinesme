@@ -428,6 +428,27 @@ export default function ProjetosPage() {
             <DialogHeader><DialogTitle>Novo Projeto</DialogTitle></DialogHeader>
             <div className="grid gap-4 py-2">
               <div className="space-y-1.5">
+                <Label>Produto associado</Label>
+                <Select value={fProduct || '_none_'} onValueChange={v => {
+                  const pid = v === '_none_' ? '' : v;
+                  setFProduct(pid);
+                  if (pid) {
+                    const prod = allProducts.find(p => p.id === pid);
+                    if (prod) {
+                      setFMode(prod.default_project_mode || 'pontual');
+                      const isRecurring = prod.default_project_mode === 'recorrente' || prod.sales_type === 'avenca_mensal' || prod.sales_type === 'subscricao';
+                      setFType(isRecurring ? 'cliente_servico_mensal' : 'cliente_projeto_unico');
+                    }
+                  }
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none_">Nenhum</SelectItem>
+                    {allProducts.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
                 <Label>Nome do projeto *</Label>
                 <Input value={fName} onChange={e => setFName(e.target.value)} placeholder="Nome do projeto" />
               </div>
