@@ -769,10 +769,15 @@ export default function OperacaoPage() {
                       <p className="text-xs font-semibold truncate group-hover:text-primary transition-colors leading-tight">{p.name}</p>
                     </div>
                     {p.client_name && <p className="text-[10px] text-muted-foreground truncate mb-2 pl-4">{p.client_name}</p>}
-                    <div className="flex items-center gap-1.5 pl-4">
-                      <Progress value={p.prog} className="h-1.5 flex-1" />
-                      <span className={`text-[10px] font-bold ${healthColor.text}`}>{p.prog}%</span>
-                    </div>
+                    {!p.isTarefasLivres && (
+                      <div className="flex items-center gap-1.5 pl-4">
+                        <Progress value={p.prog} className="h-1.5 flex-1" />
+                        <span className={`text-[10px] font-bold ${healthColor.text}`}>{p.prog}%</span>
+                      </div>
+                    )}
+                    {p.isTarefasLivres && (
+                      <p className="text-[10px] text-muted-foreground pl-4">Tarefas livres</p>
+                    )}
                     {p.deadline && (
                       <p className="text-[10px] text-muted-foreground mt-1.5 pl-4">
                         {format(new Date(p.deadline), 'dd MMM', { locale: pt })}
