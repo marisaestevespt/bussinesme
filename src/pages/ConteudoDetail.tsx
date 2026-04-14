@@ -25,6 +25,7 @@ import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
+import { ContentBodyTemplate } from '@/components/marketing/ContentBodyTemplate';
 
 export default function ConteudoDetailPage() {
   const { id } = useParams<{ id: string }>();
