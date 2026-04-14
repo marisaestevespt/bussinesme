@@ -1,20 +1,19 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Section, Tag, NoteBox, AccentColor } from './shared';
+import { Section, Tag, AccentColor } from './shared';
 import { cn } from '@/lib/utils';
 
 const COLOR_MAP: Record<AccentColor, string> = {
-  coral: 'bg-primary', blue: 'bg-blue-500', green: 'bg-green-600',
-  amber: 'bg-amber-500', purple: 'bg-purple-500', teal: 'bg-teal-600',
-  red: 'bg-destructive', gray: 'bg-muted-foreground',
+  coral: 'bg-primary', info: 'bg-info', success: 'bg-success',
+  warning: 'bg-warning', accent: 'bg-accent', muted: 'bg-muted-foreground',
+  destructive: 'bg-destructive',
 };
 
-// ─── Consciousness levels ──────────────────────────────────────
 const LEVELS = [
-  { num: 1, color: 'gray' as const, title: 'Inconsciente do problema', desc: 'Sabe que está ocupada e cansada, mas não identificou a causa como um problema de estrutura operacional. Acha que é assim mesmo ter um negócio.', example: '"Trabalho muito, mas é o que é preciso para crescer."', tags: [{ color: 'gray' as const, text: 'Menos frequente no nosso público' }] },
-  { num: 2, color: 'amber' as const, title: 'Consciente do problema, não da solução', desc: 'Sente que algo não está a funcionar — dispersão, dependência dela, falta de visibilidade — mas não nomeou ainda o problema como falta de estrutura operacional.', example: '"Sinto que há coisas que me estão a falhar. Não sei bem o quê, mas está a tirar-me dinheiro."', tags: [{ color: 'amber' as const, text: 'Persona C principalmente' }] },
+  { num: 1, color: 'muted' as const, title: 'Inconsciente do problema', desc: 'Sabe que está ocupada e cansada, mas não identificou a causa como um problema de estrutura operacional. Acha que é assim mesmo ter um negócio.', example: '"Trabalho muito, mas é o que é preciso para crescer."', tags: [{ color: 'muted' as const, text: 'Menos frequente no nosso público' }] },
+  { num: 2, color: 'warning' as const, title: 'Consciente do problema, não da solução', desc: 'Sente que algo não está a funcionar — dispersão, dependência dela, falta de visibilidade — mas não nomeou ainda o problema como falta de estrutura operacional.', example: '"Sinto que há coisas que me estão a falhar. Não sei bem o quê, mas está a tirar-me dinheiro."', tags: [{ color: 'warning' as const, text: 'Persona C principalmente' }] },
   { num: 3, color: 'coral' as const, title: 'Consciente do problema e da solução em abstrato', desc: 'Sabe que precisa de processos, de documentar, de ter um sistema. Já tentou algumas coisas. Mas ainda não encontrou algo que realmente resulte ou que acompanhe com a implementação.', example: '"Sei que preciso de documentar os processos. Ando a arrastar isso há meses. Comprei templates no Notion mas não implementei."', tags: [{ color: 'coral' as const, text: 'Maioria do nosso público' }, { color: 'coral' as const, text: 'Personas A e B' }] },
-  { num: 4, color: 'blue' as const, title: 'Consciente do produto', desc: 'Já sabe que existe esta consultoria. Está a avaliar se é a certa para ela — comparando, avaliando prova social, verificando se o método faz sentido.', example: '"Já vi o perfil. Parece que percebe o que eu vivo. Quero perceber melhor como funciona antes de avançar."', tags: [{ color: 'blue' as const, text: 'Leads qualificadas em avaliação' }] },
-  { num: 5, color: 'teal' as const, title: 'Mais consciente — pronta para comprar', desc: 'Já decidiu que quer avançar. Está à procura de confirmação final, condições de pagamento, e da sensação de segurança de que isto vai funcionar para ela especificamente.', example: '"Quero avançar. Só preciso de perceber como funciona o processo e o que está incluído."', tags: [{ color: 'teal' as const, text: 'Sessão de diagnóstico / proposta' }] },
+  { num: 4, color: 'info' as const, title: 'Consciente do produto', desc: 'Já sabe que existe esta consultoria. Está a avaliar se é a certa para ela — comparando, avaliando prova social, verificando se o método faz sentido.', example: '"Já vi o perfil. Parece que percebe o que eu vivo. Quero perceber melhor como funciona antes de avançar."', tags: [{ color: 'info' as const, text: 'Leads qualificadas em avaliação' }] },
+  { num: 5, color: 'success' as const, title: 'Mais consciente — pronta para comprar', desc: 'Já decidiu que quer avançar. Está à procura de confirmação final, condições de pagamento, e da sensação de segurança de que isto vai funcionar para ela especificamente.', example: '"Quero avançar. Só preciso de perceber como funciona o processo e o que está incluído."', tags: [{ color: 'success' as const, text: 'Sessão de diagnóstico / proposta' }] },
 ];
 
 export function SectionNiveisConsciencia() {
@@ -42,7 +41,7 @@ export function SectionNiveisConsciencia() {
             <p className="text-xs text-muted-foreground leading-relaxed">Nomear a realidade que ela vive. Não falar do sistema nem da consultoria. Mostrar que o que ela sente tem nome e tem causa — e que não é inevitável.</p>
           </CardContent>
         </Card>
-        <Card className="border-l-[3px] border-blue-500 bg-blue-50/50 dark:bg-blue-950/20">
+        <Card className="border-l-[3px] border-info bg-info/5">
           <CardContent className="p-4">
             <p className="text-xs font-semibold text-foreground mb-2">Conteúdo de conversão (nível 3→5)</p>
             <p className="text-xs text-muted-foreground leading-relaxed">Provas sociais, processo claro, antes/depois concreto. Mostrar que há acompanhamento — não é mais uma ferramenta que ela vai configurar sozinha.</p>
@@ -55,8 +54,8 @@ export function SectionNiveisConsciencia() {
 
 // ─── Buyer level ───────────────────────────────────────────────
 const TEMPS = [
-  { border: 'border-t-muted-foreground/30', title: 'Fria', desc: 'Nunca ouviu falar / não identificou o problema', text: 'Não conhece a Business ME. Sente dificuldades mas não as nomeou como problema de operação. Está nas redes a consumir conteúdo de marketing/crescimento.', tag: 'Ativada por conteúdo orgânico', tagColor: 'gray' as const },
-  { border: 'border-t-amber-500', title: 'Morna', desc: 'Reconhece o problema, segue o conteúdo, ainda não avaliou', text: 'Segue o perfil, reconhece-se nas publicações, já tentou resolver por conta própria. Sabe que precisa de algo mas ainda não está em modo de decisão.', tag: 'Ativada por prova social e processo claro', tagColor: 'amber' as const },
+  { border: 'border-t-muted-foreground/30', title: 'Fria', desc: 'Nunca ouviu falar / não identificou o problema', text: 'Não conhece a Business ME. Sente dificuldades mas não as nomeou como problema de operação. Está nas redes a consumir conteúdo de marketing/crescimento.', tag: 'Ativada por conteúdo orgânico', tagColor: 'muted' as const },
+  { border: 'border-t-warning', title: 'Morna', desc: 'Reconhece o problema, segue o conteúdo, ainda não avaliou', text: 'Segue o perfil, reconhece-se nas publicações, já tentou resolver por conta própria. Sabe que precisa de algo mas ainda não está em modo de decisão.', tag: 'Ativada por prova social e processo claro', tagColor: 'warning' as const },
   { border: 'border-t-primary', title: 'Quente', desc: 'Já decidiu que precisa de ajuda, está a avaliar opções', text: 'Urgência real (um gatilho aconteceu). Está em modo de comparar e decidir. Precisa de sentir segurança no processo, clareza no preço e prova de que resulta.', tag: 'Ativada por sessão de diagnóstico', tagColor: 'coral' as const },
 ];
 

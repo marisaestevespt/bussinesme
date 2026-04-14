@@ -21,7 +21,7 @@ export function SectionDefinicao() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <AccentCard color="green" title="Precisa ter">
+          <AccentCard color="success" title="Precisa ter">
             <ul className="text-xs text-foreground space-y-1.5 list-disc pl-4">
               <li>Receita validada (já fatura de forma consistente)</li>
               <li>Serviço como produto principal</li>
@@ -30,7 +30,7 @@ export function SectionDefinicao() {
               <li>Abertura para investir em estrutura</li>
             </ul>
           </AccentCard>
-          <AccentCard color="red" title="Não encaixa se">
+          <AccentCard color="destructive" title="Não encaixa se">
             <ul className="text-xs text-foreground space-y-1.5 list-disc pl-4">
               <li>Ainda não validou a oferta / está no início</li>
               <li>Tem produto físico como core do negócio</li>

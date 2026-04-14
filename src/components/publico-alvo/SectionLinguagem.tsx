@@ -53,7 +53,7 @@ export function SectionLinguagem() {
             <p className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground mb-3">Para descrever o que quer</p>
             <div className="space-y-2">
               {DESIRE_QUOTES.map((q, i) => (
-                <p key={i} className="text-xs italic text-foreground pl-3 border-l-2 border-teal-500/30">"{q}"</p>
+                <p key={i} className="text-xs italic text-foreground pl-3 border-l-2 border-success/30">"{q}"</p>
               ))}
             </div>
           </CardContent>
