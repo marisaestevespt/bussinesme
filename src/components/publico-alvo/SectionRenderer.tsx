@@ -328,9 +328,9 @@ function BarChartBlock({ block, onUpdate }: BlockProps) {
 function HighlightCardBlock({ block, onUpdate }: BlockProps) {
   return (
     <Card className="bg-primary/5 border-primary/20">
-      <CardContent className="p-5 text-center">
+      <CardContent className="p-5">
         <EditableText value={block.title} onSave={t => onUpdate({ ...block, title: t })} className="text-sm font-semibold text-foreground" />
-        <EditableText value={block.text} onSave={t => onUpdate({ ...block, text: t })} className="text-xs text-muted-foreground mt-2 max-w-lg mx-auto leading-relaxed" multiline />
+        <EditableText value={block.text} onSave={t => onUpdate({ ...block, text: t })} className="text-xs text-muted-foreground mt-2 leading-relaxed" multiline />
       </CardContent>
     </Card>
   );
