@@ -25,6 +25,7 @@ import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Check, Upload, Trash2, FileText, Image as ImageIcon, CalendarIcon, AlertTriangle } from 'lucide-react';
 import { BackNavigation } from '@/components/BackNavigation';
+import { ContentBodyTemplate } from '@/components/marketing/ContentBodyTemplate';
 
 export default function ConteudoDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -36,6 +37,7 @@ export default function ConteudoDetailPage() {
     title: '', scheduled_at: null as string | null, status: 'por_planear',
     funnel_stage: '', content_type: '', format: '', objective: '',
     product_name: '', product_id: '', project_id: '', assigned_to: '', copy_content: '',
+    body_template: null as Record<string, any> | null,
   });
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -110,6 +112,7 @@ export default function ConteudoDetailPage() {
         product_name: item.product_name || '', product_id: (item as any).product_id || '',
         project_id: item.project_id || '',
         assigned_to: item.assigned_to || '', copy_content: item.copy_content || '',
+        body_template: (item as any).body_template || null,
       });
     }
   }, [item]);
@@ -170,6 +173,7 @@ export default function ConteudoDetailPage() {
         project_id: form.project_id || null,
         assigned_to: form.assigned_to || null, copy_content: form.copy_content || null,
         cover_url: autoCover,
+        body_template: form.body_template || null,
       } as any).eq('id', id);
       if (updateErr) throw updateErr;
       await supabase.from('content_channels').delete().eq('content_id', id);
@@ -335,6 +339,20 @@ export default function ConteudoDetailPage() {
               </div>
 
               <Separator />
+
+              {/* Format-based Template */}
+              {form.format && (
+                <>
+                  <ContentBodyTemplate
+                    format={form.format}
+                    value={form.body_template}
+                    onChange={val => setForm(f => ({ ...f, body_template: val }))}
+                    editable
+                  />
+                  <Separator />
+                </>
+              )}
+
 
               {/* Ficheiros */}
               <div className="space-y-4">
