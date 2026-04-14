@@ -547,6 +547,7 @@ export default function ProjetosPage() {
 // ─── Table View ─────────────────────────────────────────────────
 
 function TableView({ projects, getMembersForProject, onOpen, onStatusChange, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; onStatusChange: (id: string, status: string) => void; getTaskProgress: (id: string, type?: string, mode?: string | null) => number }) {
+  const { getPhotoUrl } = useTeamPhotos();
   return (
     <div className="rounded-lg border overflow-x-auto">
       <Table>
@@ -604,6 +605,7 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
 // ─── Gallery View ───────────────────────────────────────────────
 
 function GalleryView({ projects, getMembersForProject, onOpen, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; getTaskProgress: (id: string, type?: string, mode?: string | null) => number }) {
+  const { getPhotoUrl } = useTeamPhotos();
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {projects.map(p => {
