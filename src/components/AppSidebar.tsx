@@ -248,7 +248,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={signOut}
-              className="rounded-lg px-3 py-2 transition-all duration-200 text-sidebar-foreground/50 hover:text-red-400 hover:bg-red-500/10"
+              className="rounded-lg px-3 py-2 transition-all duration-200 text-sidebar-foreground/50 hover:text-destructive hover:bg-destructive/10"
             >
               <div className="flex items-center gap-3">
                 <LogOut className="h-4 w-4 shrink-0" strokeWidth={1.7} />
