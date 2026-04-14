@@ -471,8 +471,8 @@ export default function ProjetoDetailPage() {
     enabled: !!id,
   });
 
-  const teamPhotoMap = new Map(teamMembersPhotos.filter(t => t.profile_id).map(t => [t.profile_id, t.photo_url]));
-  const profileMap = new Map(profiles.map(p => [p.id, { ...p, avatar_url: p.avatar_url || teamPhotoMap.get(p.id) || null }]));
+  const teamPhotoByProfileId = new Map(teamMembersPhotos.filter(t => t.profile_id).map(t => [t.profile_id, t.photo_url]));
+  const profileMap = new Map(profiles.map(p => [p.id, { ...p, avatar_url: p.avatar_url || teamPhotoByProfileId.get(p.id) || teamPhotoByProfileId.get(p.user_id) || null }]));
 
   useEffect(() => { if (project && !local) setLocal(project); }, [project]);
 
