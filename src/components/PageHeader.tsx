@@ -11,27 +11,25 @@ export function PageHeader({ title, subtitle, showAccessButton = true }: PageHea
   const location = useLocation();
 
   return (
-    <div className="relative -mx-4 sm:-mx-8 px-4 sm:px-8 py-8 overflow-hidden">
-      {/* Subtle gradient background */}
+    <div className="relative -mx-4 sm:-mx-8 px-4 sm:px-8 py-8 overflow-hidden border-b border-border/60">
+      {/* Warm tinted background */}
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(135deg, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 70%)`,
+          background: `linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--gradient-end)) 80%)`,
         }}
       />
 
-      {/* Decorative accent orb */}
+      {/* Decorative accent orb — more visible */}
       <div
-        className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-[0.04] blur-3xl"
+        className="absolute -top-8 -right-8 w-56 h-56 rounded-full opacity-[0.07] blur-3xl"
         style={{ background: `hsl(var(--gradient-accent))` }}
       />
 
-      {/* Bottom border with gradient */}
+      {/* Left edge accent bar */}
       <div
-        className="absolute bottom-0 left-0 right-0 h-px"
-        style={{
-          background: `linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.15) 50%, transparent 100%)`,
-        }}
+        className="absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full"
+        style={{ background: `hsl(var(--primary) / 0.25)` }}
       />
 
       <div className="relative flex items-start justify-between">
