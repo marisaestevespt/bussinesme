@@ -129,7 +129,7 @@ export function SettingsIdentity() {
   const qc = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [businessName, setBusinessName] = useState('');
-  const [businessSector, setBusinessSector] = useState<BusinessSector>('servicos_digitais');
+  
   const [supportHours, setSupportHours] = useState('');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -172,7 +172,7 @@ export function SettingsIdentity() {
   useEffect(() => {
     if (!settings) return;
     setBusinessName(settings.business_name);
-    setBusinessSector(((settings as any).business_sector as BusinessSector) || 'servicos_digitais');
+    
     setSupportHours((settings as any).support_hours || '');
     setLogoPreview(settings.logo_url);
     setBgPreview((settings as any).login_bg_url || null);
@@ -270,7 +270,7 @@ export function SettingsIdentity() {
         .from('business_settings')
         .update({
           business_name: businessName.trim(),
-          business_sector: businessSector,
+          
           logo_url: logoUrl,
           login_bg_url: loginBgUrl,
           support_hours: supportHours.trim() || null,
