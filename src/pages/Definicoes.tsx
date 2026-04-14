@@ -82,4 +82,5 @@ export default function DefinicoesPage() {
         {/* Reset section moved to SettingsBackups */}
       </div>
     </AppLayout>
-  );
+}
+
