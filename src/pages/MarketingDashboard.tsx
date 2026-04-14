@@ -283,8 +283,9 @@ export default function MarketingDashboard() {
           <section className="space-y-4 pb-10">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-foreground">Calendário de Conteúdos</h2>
-              <Button size="sm" onClick={createContent}>
-                <Plus className="h-3.5 w-3.5 mr-1" />Novo Conteúdo
+              <Button size="sm" onClick={createContent} disabled={creatingContent}>
+                {creatingContent ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Plus className="h-3.5 w-3.5 mr-1" />}
+                {creatingContent ? 'A criar...' : 'Novo Conteúdo'}
               </Button>
             </div>
             <ContentCalendar items={contentItems} channels={channels} contentChannelLinks={contentChannelLinks} profiles={profiles} attachments={contentAttachments} />
