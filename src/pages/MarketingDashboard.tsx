@@ -17,7 +17,7 @@ import { startOfWeek, endOfWeek, isWithinInterval, format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import {
-  Palette, Target, GitBranch, Package, Zap, Filter, TrendingUp, BarChart3,
+  Palette, Target, GitBranch, Package, Zap, Filter, TrendingUp, BarChart3, Users,
   Plus, Pencil, Check, X, ExternalLink, Image as ImageIcon,
 } from 'lucide-react';
 
@@ -43,6 +43,7 @@ const CHANNEL_EMOJI: Record<string, string> = {
 const MARKETING_360 = [
   { title: 'Gestão de Marca', desc: 'Branding, identidade e posicionamento', icon: Palette, url: '/hub/marketing/gestao-marca' },
   { title: 'Estratégia', desc: 'Planeamento estratégico', icon: Target, url: '/hub/marketing/estrategia' },
+  { title: 'Público-Alvo', desc: 'Personas e mapa do público', icon: Users, url: '/hub/marketing/publico-alvo' },
   { title: 'Processos', desc: 'Workflows de marketing', icon: GitBranch, url: '/hub/marketing/processos-mkt' },
   { title: 'Recursos', desc: 'Materiais e recursos', icon: Package, url: '/hub/marketing/recursos-mkt' },
   { title: 'Automações', desc: 'Automatizações e integrações', icon: Zap, url: '/hub/marketing/automacoes' },
