@@ -34,11 +34,10 @@ const TITLES: Record<string, string> = {
   documentos: 'Documentos',
   'setup-financeiro': 'Setup Financeiro',
   previsibilidade: 'Previsibilidade Financeira',
-  'metas-financeiras': 'Metas Financeiras',
   contabilidade: 'Contabilidade',
 };
 
-const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'saidas', 'ordenados', 'iva', 'seguranca-social', 'previsibilidade', 'metas-financeiras', 'contabilidade'];
+const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'saidas', 'ordenados', 'iva', 'seguranca-social', 'previsibilidade', 'contabilidade'];
 
 /**
  * Per-section query requirements — only fetch what's actually needed.
