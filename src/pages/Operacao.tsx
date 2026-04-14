@@ -236,19 +236,28 @@ export default function OperacaoPage() {
     },
   });
 
-  const { data: allOnboarding = [] } = useQuery({
-    queryKey: ['op-all-onboarding'],
+  // Fetch pending onboarding deliverables (from project_phases with is_onboarding + project_deliverables)
+  const { data: onboardingDeliverables = [] } = useQuery({
+    queryKey: ['op-onboarding-deliverables'],
     queryFn: async () => {
-      const { data } = await (supabase.from('client_onboarding' as any) as any).select('client_id,activity,completed,phase').eq('completed', false);
-      return (data || []) as unknown as { client_id: string; activity: string; completed: boolean; phase: string | null }[];
+      const { data } = await supabase
+        .from('project_deliverables')
+        .select('id, name, status, phase_id, project_id, sort_order')
+        .neq('status', 'concluido');
+      if (!data) return [];
+      // We'll filter by is_onboarding phase in the component using phases data
+      return data as { id: string; name: string; status: string; phase_id: string; project_id: string; sort_order: number }[];
     },
   });
 
-  const { data: allOffboarding = [] } = useQuery({
-    queryKey: ['op-all-offboarding'],
+  const { data: onboardingPhases = [] } = useQuery({
+    queryKey: ['op-onboarding-phases'],
     queryFn: async () => {
-      const { data } = await (supabase.from('client_offboarding' as any) as any).select('client_id,activity,completed,phase').eq('completed', false);
-      return (data || []) as unknown as { client_id: string; activity: string; completed: boolean; phase: string | null }[];
+      const { data } = await supabase
+        .from('project_phases')
+        .select('id, project_id, name, is_onboarding')
+        .eq('is_onboarding', true);
+      return (data || []) as { id: string; project_id: string; name: string; is_onboarding: boolean }[];
     },
   });
 
