@@ -495,6 +495,7 @@ function PostCard({
   onDelete: () => void;
 }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const { getPhotoUrl } = useTeamPhotos();
   const [commentText, setCommentText] = useState('');
   const cat = getCategoryInfo(post.category);
 

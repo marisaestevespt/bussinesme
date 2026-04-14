@@ -102,6 +102,7 @@ interface LaunchDashboardProps {
 export function LaunchDashboard({ projectId, projectName, profiles }: LaunchDashboardProps) {
   const qc = useQueryClient();
   const { user } = useAuth();
+  const { getPhotoUrl } = useTeamPhotos();
   const [mainTab, setMainTab] = useState('visao');
   const [contentSection, setContentSection] = useState<string | null>(null);
   const tasks = useLaunchTasks(projectId);

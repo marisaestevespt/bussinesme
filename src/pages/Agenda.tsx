@@ -374,6 +374,7 @@ function EventTypeManager({ types }: { types: EventType[] }) {
 // ─── Member Picker ──────────────────────────────────────────────
 
 function MemberPicker({ selectedIds, onChange, profiles }: { selectedIds: string[]; onChange: (ids: string[]) => void; profiles: Profile[] }) {
+  const { getPhotoUrl } = useTeamPhotos();
   const toggle = (id: string) => {
     onChange(selectedIds.includes(id) ? selectedIds.filter(x => x !== id) : [...selectedIds, id]);
   };

@@ -261,6 +261,7 @@ export default function ProjetoDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { getPhotoUrl } = useTeamPhotos();
 
   const [subPage, setSubPage] = useState<SubPage>(null);
   const [dirty, setDirty] = useState(false);
