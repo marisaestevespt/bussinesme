@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CalendarIcon, Plus, Users, Clock, Repeat, Video, FolderOpen, UserCheck, Handshake } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -202,6 +203,7 @@ function DateTimePickerField({ date, onSelect, placeholder }: { date?: Date; onS
 // ─── Member Picker ──────────────────────────────────────────────
 
 function MemberPicker({ selectedIds, onChange, profiles }: { selectedIds: string[]; onChange: (ids: string[]) => void; profiles: Profile[] }) {
+  const { getPhotoUrl } = useTeamPhotos();
   const toggle = (id: string) => {
     onChange(selectedIds.includes(id) ? selectedIds.filter(x => x !== id) : [...selectedIds, id]);
   };
