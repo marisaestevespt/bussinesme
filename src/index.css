@@ -79,6 +79,13 @@
     --shadow-glow: 0 0 0 1px rgba(140, 50, 60, 0.1), 0 4px 16px rgba(140, 50, 60, 0.06);
     --shadow-premium: 0 8px 32px rgba(100, 40, 50, 0.08), 0 2px 8px rgba(100, 40, 50, 0.04);
 
+    /* Chart palette — Lirah brand derived */
+    --chart-1: 351 56% 28%;
+    --chart-2: 3 42% 64%;
+    --chart-3: 26 40% 45%;
+    --chart-4: 210 55% 50%;
+    --chart-5: 160 50% 42%;
+
     /* Transitions */
     --transition-ease: cubic-bezier(0.16, 1, 0.3, 1);
     --transition-fast: 150ms;
