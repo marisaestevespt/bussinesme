@@ -387,7 +387,7 @@ function MemberPicker({ selectedIds, onChange, profiles }: { selectedIds: string
             <label key={p.id} className="flex items-center gap-2 cursor-pointer text-sm hover:bg-muted/50 rounded px-1 py-0.5">
               <Checkbox checked={selectedIds.includes(p.id)} onCheckedChange={() => toggle(p.id)} />
               <Avatar className="h-5 w-5">
-                <AvatarImage src={p.avatar_url ?? undefined} />
+                <AvatarImage src={getPhotoUrl(p)} />
                 <AvatarFallback className="text-[10px]">{initials(p.full_name)}</AvatarFallback>
               </Avatar>
               <span className="text-foreground">{p.full_name || 'Sem nome'}</span>
@@ -957,7 +957,7 @@ function EventDetailDialog({
                 {assignedProfiles.map(p => (
                   <div key={p.id} className="flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1">
                     <Avatar className="h-5 w-5">
-                      <AvatarImage src={p.avatar_url ?? undefined} />
+                      <AvatarImage src={getPhotoUrl(p)} />
                       <AvatarFallback className="text-[10px]">{initials(p.full_name)}</AvatarFallback>
                     </Avatar>
                     <span className="text-xs text-foreground">{p.full_name || 'Sem nome'}</span>

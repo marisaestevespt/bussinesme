@@ -360,7 +360,7 @@ export function ProjectDeliverables({ projectId, profiles }: { projectId: string
 
                     {assignee && (
                       <Avatar className="h-5 w-5 shrink-0">
-                        <AvatarImage src={assignee.avatar_url || ''} />
+                        <AvatarImage src={getPhotoUrl(assignee)} />
                         <AvatarFallback className="text-[7px]">{getInitials(assignee.full_name)}</AvatarFallback>
                       </Avatar>
                     )}

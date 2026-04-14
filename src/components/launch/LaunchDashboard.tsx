@@ -457,7 +457,7 @@ function CronogramaGeralView({ tasks, profileMap, qc, projectId, userId }: any) 
                         <TableCell>
                           {assignee ? (
                             <div className="flex items-center gap-1.5">
-                              <Avatar className="h-5 w-5"><AvatarImage src={assignee.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar>
+                              <Avatar className="h-5 w-5"><AvatarImage src={getPhotoUrl(assignee)} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar>
                               <span className="text-xs truncate">{assignee.full_name}</span>
                             </div>
                           ) : <span className="text-xs text-muted-foreground">—</span>}
@@ -501,7 +501,7 @@ function FasesKanbanView({ tasks, profileMap, qc, projectId }: any) {
                     <p className="text-xs font-medium">{t.title}</p>
                     <div className="flex items-center justify-between">
                       <Badge className={cn(si.color, 'border-0 text-[9px]')}>{si.label}</Badge>
-                      {assignee && <Avatar className="h-4 w-4"><AvatarImage src={assignee.avatar_url || ''} /><AvatarFallback className="text-[7px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar>}
+                      {assignee && <Avatar className="h-4 w-4"><AvatarImage src={getPhotoUrl(assignee)} /><AvatarFallback className="text-[7px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar>}
                     </div>
                     {t.due_date && <p className="text-[9px] text-muted-foreground">{format(parseISO(t.due_date), 'd MMM', { locale: pt })}</p>}
                   </div>
@@ -546,7 +546,7 @@ function TarefasPorDataView({ tasks, profileMap }: any) {
                 <TableCell>
                   {assignee ? (
                     <div className="flex items-center gap-1.5">
-                      <Avatar className="h-5 w-5"><AvatarImage src={assignee.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar>
+                      <Avatar className="h-5 w-5"><AvatarImage src={getPhotoUrl(assignee)} /><AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback></Avatar>
                       <span className="text-xs truncate">{assignee.full_name}</span>
                     </div>
                   ) : <span className="text-xs text-muted-foreground">—</span>}
@@ -641,7 +641,7 @@ function PorResponsavelView({ tasks, profileMap, profiles }: any) {
         return (
           <div key={p.id} className="rounded-lg border bg-muted/30 p-2 min-w-[220px] max-w-[260px] shrink-0">
             <div className="flex items-center gap-2 mb-2">
-              <Avatar className="h-5 w-5"><AvatarImage src={p.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar>
+              <Avatar className="h-5 w-5"><AvatarImage src={getPhotoUrl(p)} /><AvatarFallback className="text-[8px]">{getInitials(p.full_name)}</AvatarFallback></Avatar>
               <p className="text-xs font-semibold truncate">{p.full_name}</p>
               <Badge variant="secondary" className="text-[9px] ml-auto">{pTasks.length}</Badge>
             </div>

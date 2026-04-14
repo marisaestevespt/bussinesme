@@ -517,7 +517,7 @@ export default function OperacaoPage() {
         {t.deadline && <span className="text-[10px] text-muted-foreground shrink-0">{format(new Date(t.deadline), 'dd/MM')}</span>}
         {assignee && (
           <Avatar className="h-5 w-5 shrink-0">
-            <AvatarImage src={assignee.avatar_url || ''} />
+            <AvatarImage src={getPhotoUrl(assignee)} />
             <AvatarFallback className="text-[8px]">{getInitials(assignee.full_name)}</AvatarFallback>
           </Avatar>
         )}
@@ -861,7 +861,7 @@ export default function OperacaoPage() {
                                     <div className="flex -space-x-1">
                                       {members.slice(0, 2).map(m => (
                                         <Avatar key={m.id} className="h-5 w-5 border-2 border-background">
-                                          <AvatarImage src={m.avatar_url || ''} />
+                                          <AvatarImage src={getPhotoUrl(m)} />
                                           <AvatarFallback className="text-[7px]">{getInitials(m.full_name)}</AvatarFallback>
                                         </Avatar>
                                       ))}
@@ -895,7 +895,7 @@ export default function OperacaoPage() {
                                     <div className="flex -space-x-1">
                                       {members.slice(0, 2).map(m => (
                                         <Avatar key={m.id} className="h-5 w-5 border-2 border-background">
-                                          <AvatarImage src={m.avatar_url || ''} />
+                                          <AvatarImage src={getPhotoUrl(m)} />
                                           <AvatarFallback className="text-[7px]">{getInitials(m.full_name)}</AvatarFallback>
                                         </Avatar>
                                       ))}
@@ -978,7 +978,7 @@ export default function OperacaoPage() {
                   ) : internoMembers.map(m => (
                     <div key={m.profile!.id} className="flex items-center gap-2.5 py-2 px-2 rounded-lg hover:bg-muted/40">
                       <Avatar className="h-7 w-7">
-                        <AvatarImage src={m.profile!.avatar_url || ''} />
+                        <AvatarImage src={getPhotoUrl(m.profile!)} />
                         <AvatarFallback className="text-[10px]">{getInitials(m.profile!.full_name)}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
