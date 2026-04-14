@@ -1506,6 +1506,7 @@ export default function ProjetoDetailPage() {
               <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
             </div>
             <div className="flex gap-2 ml-3">
+              {taskMode === 'tarefas_fixas' && <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => generateMonthlyTasksMutation.mutate()}>📋 Gerar tarefas</Button>}
               <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => setTaskDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Tarefa</Button>
               <Button size="sm" variant="outline" className="gap-1.5 h-9" onClick={() => setMeetingDialogOpen(true)}><Plus className="h-3.5 w-3.5" /> Reunião</Button>
             </div>
