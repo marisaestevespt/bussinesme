@@ -50,6 +50,7 @@ import MarketingAutomacaoDetail from "./pages/MarketingAutomacaoDetail";
 import ConteudoDetailPage from "./pages/ConteudoDetail";
 import ChannelPage from "./pages/ChannelPage";
 import MarketingEstrategia from "./pages/MarketingEstrategia";
+import MarketingPublicoAlvo from "./pages/MarketingPublicoAlvo";
 import MarketingChannelStrategy from "./pages/MarketingChannelStrategy";
 import MarketingFunis from "./pages/MarketingFunis";
 import MarketingFunilDetail from "./pages/MarketingFunilDetail";
@@ -159,6 +160,7 @@ function AppRoutes() {
       <Route path="/hub/marketing/conteudos/:id" element={<ConteudoDetailPage />} />
       <Route path="/hub/marketing/canal/:channelId" element={<ChannelPage />} />
       <Route path="/hub/marketing/estrategia" element={<MarketingEstrategia />} />
+      <Route path="/hub/marketing/publico-alvo" element={<MarketingPublicoAlvo />} />
       <Route path="/hub/marketing/estrategia/canal/:channelId" element={<MarketingChannelStrategy />} />
       <Route path="/hub/marketing/processos-mkt" element={<MarketingProcessos />} />
       <Route path="/hub/marketing/recursos-mkt" element={<MarketingRecursos />} />
