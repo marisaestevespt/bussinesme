@@ -382,39 +382,52 @@ export function SettingsIdentity() {
 
       {/* ── Tipografia ── */}
       <Section icon={Type} title="Tipografia">
-        <div className="grid grid-cols-2 gap-6">
-          <FontSelector label="Fonte para títulos" value={fontDisplay} onChange={setFontDisplay} fonts={DISPLAY_FONTS} customFonts={customFonts} />
-          <FontSelector label="Fonte para corpo" value={fontBody} onChange={setFontBody} fonts={BODY_FONTS} customFonts={customFonts} />
-        </div>
-
-        {/* Custom font upload */}
-        <div className="pt-2 border-t space-y-3">
-          <div className="flex items-center justify-between">
-            <Label className="text-xs font-medium text-muted-foreground">Fontes personalizadas</Label>
-            <label className="cursor-pointer">
-              <Button variant="outline" size="sm" asChild disabled={uploadingFont}>
-                <span>
-                  <Upload className="h-3.5 w-3.5 mr-1" />
-                  {uploadingFont ? 'A carregar...' : 'Carregar fonte'}
-                </span>
-              </Button>
-              <input type="file" accept=".ttf,.otf,.woff,.woff2" onChange={handleFontUpload} className="hidden" />
-            </label>
+        {useSystemTheme && (
+          <div className="p-3 rounded-xl bg-muted/50 border">
+            <p className="text-sm text-muted-foreground">
+              O tema do sistema usa <strong>Sora</strong> para títulos e <strong>Inter</strong> para corpo de texto.
+              Desativa o tema do sistema nas cores para personalizar as fontes.
+            </p>
           </div>
-          <p className="text-[11px] text-muted-foreground">Formatos suportados: TTF, OTF, WOFF, WOFF2</p>
-          {customFonts.length > 0 && (
-            <div className="space-y-1">
-              {customFonts.map((f: any) => (
-                <div key={f.id} className="flex items-center justify-between py-1.5 px-2 rounded-md hover:bg-muted/40 transition-colors">
-                  <span className="text-sm" style={{ fontFamily: `'${f.font_name}', sans-serif` }}>{f.font_name}</span>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteFont(f.id)}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              ))}
+        )}
+
+        {!useSystemTheme && (
+          <>
+            <div className="grid grid-cols-2 gap-6">
+              <FontSelector label="Fonte para títulos" value={fontDisplay} onChange={setFontDisplay} fonts={DISPLAY_FONTS} customFonts={customFonts} />
+              <FontSelector label="Fonte para corpo" value={fontBody} onChange={setFontBody} fonts={BODY_FONTS} customFonts={customFonts} />
             </div>
-          )}
-        </div>
+
+            {/* Custom font upload */}
+            <div className="pt-2 border-t space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium text-muted-foreground">Fontes personalizadas</Label>
+                <label className="cursor-pointer">
+                  <Button variant="outline" size="sm" asChild disabled={uploadingFont}>
+                    <span>
+                      <Upload className="h-3.5 w-3.5 mr-1" />
+                      {uploadingFont ? 'A carregar...' : 'Carregar fonte'}
+                    </span>
+                  </Button>
+                  <input type="file" accept=".ttf,.otf,.woff,.woff2" onChange={handleFontUpload} className="hidden" />
+                </label>
+              </div>
+              <p className="text-[11px] text-muted-foreground">Formatos suportados: TTF, OTF, WOFF, WOFF2</p>
+              {customFonts.length > 0 && (
+                <div className="space-y-1">
+                  {customFonts.map((f: any) => (
+                    <div key={f.id} className="flex items-center justify-between py-1.5 px-2 rounded-md hover:bg-muted/40 transition-colors">
+                      <span className="text-sm" style={{ fontFamily: `'${f.font_name}', sans-serif` }}>{f.font_name}</span>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteFont(f.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </Section>
 
       {/* ── Preview ── */}
