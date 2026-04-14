@@ -140,16 +140,6 @@ function useProfiles() {
   });
 }
 
-function useTeamPhotos() {
-  return useQuery({
-    queryKey: ['team_members_photos'],
-    staleTime: 5 * 60 * 1000,
-    queryFn: async () => {
-      const { data } = await supabase.from('team_members').select('id, full_name, photo_url, profile_id');
-      return (data || []) as { id: string; full_name: string; photo_url: string | null; profile_id: string | null }[];
-    },
-  });
-}
 
 function useProjectsList() {
   return useQuery({
