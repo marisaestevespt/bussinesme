@@ -268,6 +268,16 @@ export default function OperacaoPage() {
     },
   });
 
+  // Fetch which projects have phases (i.e. use the deliverables system)
+  const { data: projectsWithPhases = [] } = useQuery({
+    queryKey: ['op-projects-with-phases'],
+    queryFn: async () => {
+      const { data } = await supabase.from('project_phases').select('project_id');
+      const ids = new Set((data || []).map((r: any) => r.project_id));
+      return [...ids];
+    },
+  });
+
   // ── Derived data ────────────────────────────────────────────
   const profileMap = useMemo(() => new Map(profiles.map(p => [p.id, p])), [profiles]);
 
