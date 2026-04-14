@@ -82,16 +82,13 @@ export function MonthlyReportSection() {
     }
   };
 
-  const handleDownload = async (filePath: string) => {
+  const handleDownload = (reportData: any, year: number, month: number) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('monthly-reports')
-        .download(filePath);
-      if (error) throw error;
-      const url = URL.createObjectURL(data);
+      const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = filePath.split('/').pop() || 'relatorio.json';
+      a.download = `relatorio-${year}-${String(month).padStart(2, '0')}.json`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -303,8 +300,8 @@ export function MonthlyReportSection() {
                         Ver relatório
                       </Button>
                     )}
-                    {r.status === 'completed' && r.file_path && (
-                      <Button variant="ghost" size="icon" onClick={() => handleDownload(r.file_path)}>
+                    {r.status === 'completed' && r.report_data && (
+                      <Button variant="ghost" size="icon" onClick={() => handleDownload(r.report_data, r.year, r.month)}>
                         <Download className="h-4 w-4" />
                       </Button>
                     )}
