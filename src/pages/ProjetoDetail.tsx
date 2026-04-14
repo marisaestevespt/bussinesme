@@ -822,10 +822,18 @@ export default function ProjetoDetailPage() {
             {/* Tipo */}
             <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
               <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><FileText className="h-4 w-4" /> Tipo</span>
-              <div className="flex items-center gap-2">
-                <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
-                {isRecorrente && <Badge variant="outline" className="text-xs">🔄 Recorrente</Badge>}
-              </div>
+              <Badge className={`${typeI.color} border-0`}>{typeI.label}</Badge>
+            </div>
+            {/* Modo */}
+            <div className="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-muted/60 border border-border/50">
+              <span className="flex items-center gap-2 text-sm text-muted-foreground w-40 shrink-0"><FileText className="h-4 w-4" /> Modo</span>
+              <Select value={(local as any).project_mode || 'pontual'} onValueChange={v => updateField('project_mode', v)}>
+                <SelectTrigger className="w-40 h-8"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pontual">Pontual</SelectItem>
+                  <SelectItem value="recorrente">🔄 Recorrente</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             {/* Progresso */}
             {(!isRecorrente || isRecorrenteMensal) && (
