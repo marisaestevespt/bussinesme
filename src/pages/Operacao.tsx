@@ -657,7 +657,7 @@ export default function OperacaoPage() {
 
           {/* Countdown — next delivery */}
           {nextDelivery && (
-            <Card className="lg:col-span-3 border-0 bg-primary/10 animate-fade-in overflow-hidden">
+            <Card className="lg:col-span-3 border-0 bg-accent animate-fade-in overflow-hidden">
               <CardContent className="p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Rocket className="h-4 w-4 text-primary" />
