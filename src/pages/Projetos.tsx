@@ -510,7 +510,7 @@ export default function ProjetosPage() {
 
 // ─── Table View ─────────────────────────────────────────────────
 
-function TableView({ projects, getMembersForProject, onOpen, onStatusChange, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; onStatusChange: (id: string, status: string) => void; getTaskProgress: (id: string, type?: string) => number }) {
+function TableView({ projects, getMembersForProject, onOpen, onStatusChange, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; onStatusChange: (id: string, status: string) => void; getTaskProgress: (id: string, type?: string, mode?: string | null) => number }) {
   return (
     <div className="rounded-lg border">
       <Table>
@@ -554,7 +554,7 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
                 <TableCell>{p.department ? <DeptBadge dept={p.department} /> : <span className="text-muted-foreground">—</span>}</TableCell>
                 <TableCell className="text-sm">{p.start_date ? format(new Date(p.start_date), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
                 <TableCell className="text-sm">{p.deadline ? format(new Date(p.deadline), 'd MMM yyyy', { locale: pt }) : '—'}</TableCell>
-                <TableCell><div className="flex items-center gap-2 min-w-[100px]"><Progress value={getTaskProgress(p.id, p.type)} className="h-2 flex-1" /><span className="text-xs text-muted-foreground w-8">{getTaskProgress(p.id, p.type)}%</span></div></TableCell>
+                <TableCell><div className="flex items-center gap-2 min-w-[100px]"><Progress value={getTaskProgress(p.id, p.type, p.project_mode)} className="h-2 flex-1" /><span className="text-xs text-muted-foreground w-8">{getTaskProgress(p.id, p.type, p.project_mode)}%</span></div></TableCell>
                 <TableCell><div className="flex -space-x-1">{members.slice(0, 3).map(m => <Avatar key={m.id} className="h-6 w-6 border-2 border-background"><AvatarImage src={m.avatar_url || ''} /><AvatarFallback className="text-[8px]">{getInitials(m.full_name)}</AvatarFallback></Avatar>)}{members.length > 3 && <span className="text-xs text-muted-foreground ml-1">+{members.length - 3}</span>}</div></TableCell>
               </TableRow>
             );
@@ -567,7 +567,7 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
 
 // ─── Gallery View ───────────────────────────────────────────────
 
-function GalleryView({ projects, getMembersForProject, onOpen, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; getTaskProgress: (id: string, type?: string) => number }) {
+function GalleryView({ projects, getMembersForProject, onOpen, getTaskProgress }: { projects: Project[]; getMembersForProject: (id: string) => Profile[]; onOpen: (id: string) => void; getTaskProgress: (id: string, type?: string, mode?: string | null) => number }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {projects.map(p => {
@@ -588,8 +588,8 @@ function GalleryView({ projects, getMembersForProject, onOpen, getTaskProgress }
               <h3 className="font-semibold mb-1">{p.name}</h3>
               {p.department && <div className="mb-2"><DeptBadge dept={p.department} /></div>}
               <div className="flex items-center gap-2 mb-3">
-                <Progress value={getTaskProgress(p.id, p.type)} className="h-2 flex-1" />
-                <span className="text-xs text-muted-foreground">{getTaskProgress(p.id, p.type)}%</span>
+                <Progress value={getTaskProgress(p.id, p.type, p.project_mode)} className="h-2 flex-1" />
+                <span className="text-xs text-muted-foreground">{getTaskProgress(p.id, p.type, p.project_mode)}%</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="text-xs text-muted-foreground space-y-0.5">
