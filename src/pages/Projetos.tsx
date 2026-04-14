@@ -277,6 +277,7 @@ export default function ProjetosPage() {
   const createMutation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error('Não autenticado');
+      const selectedProduct = fProduct ? allProducts.find(p => p.id === fProduct) : null;
       const { data: proj, error } = await supabase.from('projects').insert({
         name: fName,
         type: fType,
@@ -288,6 +289,9 @@ export default function ProjetosPage() {
         notes: fNotes || null,
         created_by: user.id,
         project_mode: fMode,
+        product_id: selectedProduct?.id || null,
+        product_name: selectedProduct?.name || null,
+        task_mode: selectedProduct?.task_mode || 'fases',
       } as any).select().single();
       if (error) throw error;
 
@@ -331,7 +335,7 @@ export default function ProjetosPage() {
   });
 
   function resetForm() {
-    setFName(''); setFType('interno'); setFStatus('em_ideia'); setFDept(''); setFClient(''); setFStartDate(undefined); setFDeadline(undefined); setFMembers([]); setFNotes(''); setFMode('pontual');
+    setFName(''); setFType('interno'); setFStatus('em_ideia'); setFDept(''); setFClient(''); setFStartDate(undefined); setFDeadline(undefined); setFMembers([]); setFNotes(''); setFMode('pontual'); setFProduct('');
     setDialogOpen(false);
   }
 
