@@ -23,13 +23,12 @@ export function Quote({ children }: { children: ReactNode }) {
 // ─── Accent card with left border ──────────────────────────────
 const ACCENT_STYLES = {
   coral: 'border-l-[3px] border-primary bg-primary/5',
-  blue: 'border-l-[3px] border-blue-500 bg-blue-50/50 dark:bg-blue-950/20',
-  green: 'border-l-[3px] border-green-600 bg-green-50/50 dark:bg-green-950/20',
-  amber: 'border-l-[3px] border-amber-500 bg-amber-50/50 dark:bg-amber-950/20',
-  purple: 'border-l-[3px] border-purple-500 bg-purple-50/50 dark:bg-purple-950/20',
-  teal: 'border-l-[3px] border-teal-600 bg-teal-50/50 dark:bg-teal-950/20',
-  red: 'border-l-[3px] border-destructive bg-destructive/5',
-  gray: 'border-l-[3px] border-muted-foreground/30 bg-muted/30',
+  info: 'border-l-[3px] border-info bg-info/5',
+  success: 'border-l-[3px] border-success bg-success/5',
+  warning: 'border-l-[3px] border-warning bg-warning/5',
+  accent: 'border-l-[3px] border-accent bg-accent/5',
+  muted: 'border-l-[3px] border-muted-foreground/30 bg-muted/30',
+  destructive: 'border-l-[3px] border-destructive bg-destructive/5',
 } as const;
 
 export type AccentColor = keyof typeof ACCENT_STYLES;
@@ -70,13 +69,12 @@ export function InfoCard({ title, text }: { title: string; text: string }) {
 // ─── Tag / Badge ───────────────────────────────────────────────
 const TAG_STYLES = {
   coral: 'bg-primary/10 text-primary',
-  blue: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  green: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-  amber: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-  purple: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-  teal: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300',
-  gray: 'bg-muted text-muted-foreground',
-  red: 'bg-destructive/10 text-destructive',
+  info: 'bg-info/10 text-info',
+  success: 'bg-success/10 text-success',
+  warning: 'bg-warning/10 text-warning',
+  accent: 'bg-accent/10 text-accent',
+  muted: 'bg-muted text-muted-foreground',
+  destructive: 'bg-destructive/10 text-destructive',
 } as const;
 
 export function Tag({ color, children }: { color: AccentColor; children: ReactNode }) {
@@ -104,7 +102,7 @@ export function Section({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-24">
+    <section id={id}>
       <p className="text-[10px] uppercase tracking-[2.5px] font-medium text-primary mb-1.5">
         {num} · {label}
       </p>

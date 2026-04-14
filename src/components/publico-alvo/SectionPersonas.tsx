@@ -17,7 +17,7 @@ const PERSONAS = [
   },
   {
     letter: 'B',
-    color: 'blue' as AccentColor,
+    color: 'info' as AccentColor,
     name: 'Beatriz — A Gestora com Equipa Pequena',
     role: '3 a 7 pessoas · Tem processos mas dispersos · Quer parar de ser o centro de tudo',
     quem: 'Agência de redes sociais, consultora com equipa, mentora com prestadores. Já delegou com resultados mistos. A comunicação ainda passa toda por ela e o negócio não funciona sem ela presente.',
@@ -28,7 +28,7 @@ const PERSONAS = [
   },
   {
     letter: 'C',
-    color: 'green' as AccentColor,
+    color: 'success' as AccentColor,
     name: 'Carla — A Prestadora Presencial / Clínica',
     role: 'Saúde, bem-estar, consultoria especializada · Modelo de sessões/consultas · Digitalizando-se',
     quem: 'Psicóloga, nutricionista, instrutora, esteticista, fisioterapeuta. Núcleo presencial consolidado, a construir vertente digital. Não tem projetos — tem clientes com sessões/consultas. Lógica muito diferente de agência.',
@@ -39,26 +39,24 @@ const PERSONAS = [
   },
 ];
 
-const COLOR_MAP: Record<AccentColor, string> = {
+const COLOR_BG_MAP: Record<AccentColor, string> = {
   coral: 'bg-primary',
-  blue: 'bg-blue-500',
-  green: 'bg-green-600',
-  amber: 'bg-amber-500',
-  purple: 'bg-purple-500',
-  teal: 'bg-teal-600',
-  red: 'bg-destructive',
-  gray: 'bg-muted-foreground',
+  info: 'bg-info',
+  success: 'bg-success',
+  warning: 'bg-warning',
+  accent: 'bg-accent',
+  muted: 'bg-muted-foreground',
+  destructive: 'bg-destructive',
 };
 
-const BG_MAP: Record<AccentColor, string> = {
+const COLOR_BG_LIGHT_MAP: Record<AccentColor, string> = {
   coral: 'bg-primary/5',
-  blue: 'bg-blue-50/50 dark:bg-blue-950/20',
-  green: 'bg-green-50/50 dark:bg-green-950/20',
-  amber: 'bg-amber-50/50 dark:bg-amber-950/20',
-  purple: 'bg-purple-50/50 dark:bg-purple-950/20',
-  teal: 'bg-teal-50/50 dark:bg-teal-950/20',
-  red: 'bg-destructive/5',
-  gray: 'bg-muted/30',
+  info: 'bg-info/5',
+  success: 'bg-success/5',
+  warning: 'bg-warning/5',
+  accent: 'bg-accent/5',
+  muted: 'bg-muted/30',
+  destructive: 'bg-destructive/5',
 };
 
 export function SectionPersonas() {
@@ -68,8 +66,8 @@ export function SectionPersonas() {
       <div className="space-y-4 mt-4">
         {PERSONAS.map(p => (
           <Card key={p.letter} className="overflow-hidden">
-            <div className={cn('p-5 flex items-center gap-4', BG_MAP[p.color])}>
-              <div className={cn('h-12 w-12 rounded-full flex items-center justify-center text-lg font-semibold text-white shrink-0', COLOR_MAP[p.color])}>
+            <div className={cn('p-5 flex items-center gap-4', COLOR_BG_LIGHT_MAP[p.color])}>
+              <div className={cn('h-12 w-12 rounded-full flex items-center justify-center text-lg font-semibold text-white shrink-0', COLOR_BG_MAP[p.color])}>
                 {p.letter}
               </div>
               <div className="min-w-0">
