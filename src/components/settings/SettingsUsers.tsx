@@ -114,7 +114,7 @@ export function SettingsUsers() {
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src={p.avatar_url || undefined} />
+                              <AvatarImage src={getPhotoUrl(p)} />
                               <AvatarFallback className="text-xs bg-primary/10 text-primary">
                                 {(p.full_name || '?').slice(0, 2).toUpperCase()}
                               </AvatarFallback>
