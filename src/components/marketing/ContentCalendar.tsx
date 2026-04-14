@@ -15,6 +15,7 @@ import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react'
 import { STATUS_OPTIONS, FORMAT_OPTIONS, CONTENT_TYPE_OPTIONS, type ContentItem, type MarketingChannel, type ContentChannelLink } from '@/lib/marketing-constants';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTeamPhotos } from '@/hooks/useTeamPhotos';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 export interface ProfileInfo { id: string; full_name: string | null; avatar_url: string | null; }
@@ -66,6 +67,7 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
   const time = item.scheduled_at ? format(new Date(item.scheduled_at), 'HH:mm') : null;
   const assignee = profiles?.find(p => p.id === item.assigned_to);
   const coverImage = item.cover_url;
+  const { getPhotoUrl } = useTeamPhotos();
 
   return (
     <Link to={`/hub/marketing/conteudos/${item.id}`}
@@ -97,7 +99,7 @@ function CalendarDayItem({ item, channels, links, profiles, attachments }: { ite
         {assignee && (
           <div className="flex items-center gap-1 mt-px">
             <Avatar className="h-4 w-4">
-              <AvatarImage src={assignee.avatar_url || undefined} />
+              <AvatarImage src={getPhotoUrl(assignee)} />
               <AvatarFallback className="text-[7px]">{assignee.full_name?.charAt(0) || '?'}</AvatarFallback>
             </Avatar>
             <span className="text-[10px] text-muted-foreground truncate">{assignee.full_name}</span>
