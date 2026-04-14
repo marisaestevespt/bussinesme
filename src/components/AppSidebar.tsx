@@ -125,7 +125,7 @@ function NavSection({
                       <NavLink
                         to={item.url}
                         end
-                        className="group/nav rounded-lg px-3 py-2 transition-all duration-200 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                        className="group/nav rounded-lg px-3 py-2 transition-all duration-200 text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
                         activeClassName="!bg-sidebar-primary/15 !text-sidebar-primary font-medium hover:!bg-sidebar-primary/20"
                       >
                         <div className="flex items-center gap-3">
@@ -200,7 +200,7 @@ export function AppSidebar() {
                         <NavLink
                           to={fav.page_path}
                           end
-                          className="group/nav rounded-lg px-3 py-2 transition-all duration-200 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                          className="group/nav rounded-lg px-3 py-2 transition-all duration-200 text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
                           activeClassName="!bg-sidebar-primary/15 !text-sidebar-primary font-medium hover:!bg-sidebar-primary/20"
                         >
                           <div className="flex items-center gap-3">
@@ -234,7 +234,7 @@ export function AppSidebar() {
                 <NavLink
                   to="/definicoes"
                   end
-                  className="group/nav rounded-lg px-3 py-2 transition-all duration-200 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                  className="group/nav rounded-lg px-3 py-2 transition-all duration-200 text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
                   activeClassName="!bg-sidebar-primary/15 !text-sidebar-primary font-medium"
                 >
                   <div className="flex items-center gap-3">
