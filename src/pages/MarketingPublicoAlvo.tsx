@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { BackNavigation } from '@/components/BackNavigation';
@@ -21,7 +21,6 @@ import { SectionLinguagem } from '@/components/publico-alvo/SectionLinguagem';
 import { SectionFrases } from '@/components/publico-alvo/SectionFrases';
 import { SectionInvestigar } from '@/components/publico-alvo/SectionInvestigar';
 
-// ─── NAV STRUCTURE ─────────────────────────────────────────────
 const NAV_GROUPS = [
   { label: 'Visão Geral', items: [
     { id: 'definicao', label: 'Definição central' },
@@ -50,31 +49,28 @@ const NAV_GROUPS = [
   ]},
 ];
 
-const ALL_SECTION_IDS = NAV_GROUPS.flatMap(g => g.items.map(i => i.id));
+const SECTION_COMPONENTS: Record<string, () => JSX.Element> = {
+  'definicao': SectionDefinicao,
+  'personas': SectionPersonas,
+  'mapa-mental': SectionMapaMental,
+  'niveis-consciencia': SectionNiveisConsciencia,
+  'nivel-comprador': SectionNivelComprador,
+  'jornada-emocional': SectionJornada,
+  'dores': SectionDores,
+  'desejos': SectionDesejos,
+  'tentaram': SectionTentativas,
+  'objecoes': SectionObjecoes,
+  'triggers': SectionTriggers,
+  'anti-persona': SectionAntiPersona,
+  'linguagem': SectionLinguagem,
+  'frases': SectionFrases,
+  'investigar': SectionInvestigar,
+};
 
 export default function MarketingPublicoAlvo() {
   const [activeSection, setActiveSection] = useState('definicao');
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) setActiveSection(entry.target.id);
-        }
-      },
-      { rootMargin: '-120px 0px -60% 0px', threshold: 0.1 }
-    );
-    ALL_SECTION_IDS.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
-  }, []);
-
-  const scrollTo = useCallback((id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-    setActiveSection(id);
-  }, []);
+  const ActiveComponent = SECTION_COMPONENTS[activeSection];
 
   return (
     <AppLayout>
@@ -83,34 +79,6 @@ export default function MarketingPublicoAlvo() {
 
         <div className="max-w-6xl mx-auto w-full px-4 py-8 space-y-6">
           <BackNavigation parentRoute="/hub/marketing/estrategia" parentLabel="Estratégia" />
-
-          {/* ═══ STICKY ANCHOR NAV ═══ */}
-          <div className="sticky top-0 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur-sm border-b">
-            <ScrollArea className="w-full">
-              <div className="flex items-center gap-1">
-                {NAV_GROUPS.map((group, gi) => (
-                  <div key={group.label} className="flex items-center gap-1">
-                    {gi > 0 && <div className="w-px h-5 bg-border mx-1 shrink-0" />}
-                    {group.items.map(item => (
-                      <button
-                        key={item.id}
-                        onClick={() => scrollTo(item.id)}
-                        className={cn(
-                          'whitespace-nowrap text-xs px-2.5 py-1.5 rounded-md transition-colors shrink-0',
-                          activeSection === item.id
-                            ? 'bg-primary/10 text-primary font-medium'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                        )}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-                ))}
-              </div>
-              <ScrollBar orientation="horizontal" className="h-1" />
-            </ScrollArea>
-          </div>
 
           {/* ═══ HERO CARD ═══ */}
           <Card className="overflow-hidden border-none shadow-md">
@@ -138,23 +106,37 @@ export default function MarketingPublicoAlvo() {
             </CardContent>
           </Card>
 
-          {/* ═══ ALL SECTIONS ═══ */}
-          <div className="space-y-12">
-            <SectionDefinicao />
-            <SectionPersonas />
-            <SectionMapaMental />
-            <SectionNiveisConsciencia />
-            <SectionNivelComprador />
-            <SectionJornada />
-            <SectionDores />
-            <SectionDesejos />
-            <SectionTentativas />
-            <SectionObjecoes />
-            <SectionTriggers />
-            <SectionAntiPersona />
-            <SectionLinguagem />
-            <SectionFrases />
-            <SectionInvestigar />
+          {/* ═══ TAB NAV ═══ */}
+          <div className="sticky top-0 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur-sm border-b">
+            <ScrollArea className="w-full">
+              <div className="flex items-center gap-1">
+                {NAV_GROUPS.map((group, gi) => (
+                  <div key={group.label} className="flex items-center gap-1">
+                    {gi > 0 && <div className="w-px h-5 bg-border mx-1 shrink-0" />}
+                    {group.items.map(item => (
+                      <button
+                        key={item.id}
+                        onClick={() => setActiveSection(item.id)}
+                        className={cn(
+                          'whitespace-nowrap text-xs px-2.5 py-1.5 rounded-md transition-colors shrink-0',
+                          activeSection === item.id
+                            ? 'bg-primary/10 text-primary font-medium'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                        )}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <ScrollBar orientation="horizontal" className="h-1" />
+            </ScrollArea>
+          </div>
+
+          {/* ═══ ACTIVE SECTION CONTENT ═══ */}
+          <div className="min-h-[400px]">
+            {ActiveComponent && <ActiveComponent />}
           </div>
 
           {/* Footer */}
