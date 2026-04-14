@@ -123,7 +123,7 @@ function MemberPicker({ selected, onChange, profiles }: { selected: string[]; on
 function StatusBadge({ status, className }: { status: string; className?: string }) {
   const info = getStatusInfo(status);
   return (
-    <Badge className={cn(`${info.color} border font-medium gap-1.5`, className)}>
+    <Badge className={cn(`${info.color} border font-medium gap-1.5 whitespace-nowrap`, className)}>
       <span className={cn('h-2 w-2 rounded-full', info.dot)} />
       {info.label}
     </Badge>
