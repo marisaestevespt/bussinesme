@@ -134,7 +134,7 @@ function NavSection({
                         activeClassName="bg-accent text-accent-foreground font-medium shadow-sm hover:bg-accent/90 hover:translate-x-0"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/8 group-[.bg-primary]/nav:bg-primary-foreground/15 transition-colors">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 group-[.bg-accent]/nav:bg-accent-foreground/15 transition-colors">
                             <Icon className="h-3.5 w-3.5" strokeWidth={1.8} />
                           </div>
                           {!collapsed && <span className="text-[13px]">{displayTitle}</span>}
@@ -206,7 +206,7 @@ export function AppSidebar() {
                           activeClassName="bg-accent text-accent-foreground font-medium shadow-sm hover:bg-accent/90 hover:translate-x-0"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/8 group-[.bg-primary]/nav:bg-primary-foreground/15 transition-colors">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 group-[.bg-accent]/nav:bg-accent-foreground/15 transition-colors">
                               <Icon className="h-3.5 w-3.5" strokeWidth={1.8} />
                             </div>
                             {!collapsed && <span className="text-[13px]">{fav.page_title}</span>}
@@ -240,7 +240,7 @@ export function AppSidebar() {
                   activeClassName="bg-accent text-accent-foreground font-medium shadow-sm"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/8 transition-colors">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 transition-colors">
                       <Settings className="h-3.5 w-3.5" strokeWidth={1.8} />
                     </div>
                     {!collapsed && <span className="text-[13px]">Definições</span>}
