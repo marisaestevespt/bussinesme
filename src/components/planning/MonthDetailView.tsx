@@ -84,6 +84,7 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   const npsQ = useQuery({ queryKey: ['md-nps', year, monthNum], queryFn: async () => { const { data } = await supabase.from('client_nps_records').select('*'); return data || []; }});
   const teamQ = useQuery({ queryKey: ['md-team'], queryFn: async () => { const { data } = await supabase.from('team_members').select('*').eq('status', 'ativo'); return data || []; }});
   const tasksQ = useQuery({ queryKey: ['md-tasks', year, monthNum], queryFn: async () => { const { data } = await supabase.from('tasks').select('*'); return data || []; }});
+  const reportQ = useQuery({ queryKey: ['md-report', year, monthNum], queryFn: async () => { const { data } = await supabase.from('monthly_reports').select('*').eq('year', year).eq('month', monthNum).eq('status', 'completed').maybeSingle(); return data; }});
 
   // Routine tasks for this month
   const routineTasksQ = useQuery({
