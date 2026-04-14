@@ -14,7 +14,7 @@ import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { YearSelector } from '@/components/YearSelector';
-import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Settings, TrendingUp, TrendingDown, Users, Package, UserCheck, Download, BarChart3, Target, BookOpen } from 'lucide-react';
+import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Settings, TrendingUp, TrendingDown, Users, Package, UserCheck, Download, BarChart3, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { exportPdf } from '@/lib/exportPdf';
 
