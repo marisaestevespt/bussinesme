@@ -875,7 +875,7 @@ export default function ProjetoDetailPage() {
               <div className="flex-1">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-auto min-h-[32px] w-full justify-start text-left font-normal py-1.5">
+                    <Button variant="ghost" size="sm" className="h-auto min-h-[32px] w-full justify-start text-left font-normal py-1.5 border-0 bg-transparent hover:bg-muted/40">
                       {(() => {
                         const depts: string[] = (local.departments as string[]) || (local.department ? [local.department] : []);
                         if (depts.length === 0) return <span className="text-muted-foreground text-xs">Selecionar departamentos…</span>;
