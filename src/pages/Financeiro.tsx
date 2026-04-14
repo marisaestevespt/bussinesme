@@ -223,7 +223,7 @@ export default function FinanceiroPage() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-8">
+      <div className="space-y-6">
         <PageHeader title="Contabilidade" subtitle="Gestão contabilística, entradas, saídas e obrigações fiscais." />
 
         {/* Navigation cards */}

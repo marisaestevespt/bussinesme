@@ -92,7 +92,7 @@ export default function ClientesPage() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6">
+      <div className="space-y-6">
         <PageHeader title="Clientes" subtitle="Gestão de clientes, acompanhamento e satisfação." />
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1">
