@@ -300,7 +300,10 @@ export default function ProjetoDetailPage() {
 
   const { data: teamMembersPhotos = [] } = useQuery({
     queryKey: ['team-members-photos'],
-    queryFn: async () => { const { data } = await supabase.from('team_members').select('profile_id, photo_url').not('profile_id', 'is', null); return (data || []) as { profile_id: string; photo_url: string | null }[]; },
+    queryFn: async () => {
+      const { data } = await supabase.from('team_members').select('profile_id, full_name, photo_url');
+      return (data || []) as { profile_id: string | null; full_name: string; photo_url: string | null }[];
+    },
   });
 
   const { data: projectMembers = [] } = useQuery({
@@ -471,8 +474,30 @@ export default function ProjetoDetailPage() {
     enabled: !!id,
   });
 
-  const teamPhotoByProfileId = new Map(teamMembersPhotos.filter(t => t.profile_id).map(t => [t.profile_id, t.photo_url]));
-  const profileMap = new Map(profiles.map(p => [p.id, { ...p, avatar_url: p.avatar_url || teamPhotoByProfileId.get(p.id) || teamPhotoByProfileId.get(p.user_id) || null }]));
+  const teamPhotoByProfileId = new Map(
+    teamMembersPhotos
+      .filter((t) => t.profile_id && t.photo_url)
+      .map((t) => [t.profile_id as string, t.photo_url as string])
+  );
+  const teamPhotoByName = new Map(
+    teamMembersPhotos
+      .filter((t) => t.full_name && t.photo_url)
+      .map((t) => [t.full_name.trim().toLowerCase(), t.photo_url as string])
+  );
+  const profileMap = new Map(
+    profiles.map((p) => [
+      p.id,
+      {
+        ...p,
+        avatar_url:
+          p.avatar_url ||
+          teamPhotoByProfileId.get(p.id) ||
+          teamPhotoByProfileId.get(p.user_id) ||
+          teamPhotoByName.get((p.full_name || '').trim().toLowerCase()) ||
+          null,
+      },
+    ])
+  );
 
   useEffect(() => { if (project && !local) setLocal(project); }, [project]);
 
