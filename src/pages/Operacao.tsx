@@ -785,10 +785,10 @@ export default function OperacaoPage() {
                   red: { bg: 'bg-red-500/10', ring: 'ring-red-500/30', text: 'text-red-700 dark:text-red-400', dot: 'bg-red-500 animate-pulse' },
                 }[p.health];
                 return (
-                  <Link
+                  <div
                     key={p.id}
-                    to={`/hub/projetos/${p.id}`}
-                    className={`group rounded-xl p-4 ring-1 ${healthColor.ring} ${healthColor.bg} hover:shadow-md transition-all hover-scale`}
+                    onClick={() => setHealthDetailProjectId(p.id)}
+                    className={`group rounded-xl p-4 ring-1 cursor-pointer ${healthColor.ring} ${healthColor.bg} hover:shadow-md transition-all hover-scale`}
                   >
                     <div className="flex items-start gap-2 mb-2">
                       <span className={`h-2 w-2 rounded-full mt-1 shrink-0 ${healthColor.dot}`} />
@@ -809,7 +809,7 @@ export default function OperacaoPage() {
                         {format(new Date(p.deadline), 'dd MMM', { locale: pt })}
                       </p>
                     )}
-                  </Link>
+                  </div>
                 );
               })}
             </div>
