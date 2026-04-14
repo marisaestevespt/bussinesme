@@ -135,7 +135,7 @@ function TabDashboard({ team }: { team: ReturnType<typeof useTeamData> }) {
   });
 
   const monthDays = useMemo(() => {
-    return eachDayOfInterval({ start: startOfMonth(escalaMonth), end: endOfMonth(escalaMonth) }).filter(d => d.getDay() >= 1 && d.getDay() <= 5);
+    return eachDayOfInterval({ start: startOfMonth(escalaMonth), end: endOfMonth(escalaMonth) });
   }, [escalaMonth]);
 
   const holidays = useMemo(() => getPortugueseHolidays(escalaMonth.getFullYear()), [escalaMonth]);
