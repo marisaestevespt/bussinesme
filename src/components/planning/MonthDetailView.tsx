@@ -945,6 +945,110 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
         );
       })()}
 
+      {/* ═══ MONTHLY REPORT BANNER ═══ */}
+      {(() => {
+        const report = reportQ.data;
+        const rd = report?.report_data as any;
+        const fmtV = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        const handleGenerateReport = async () => {
+          setGeneratingReport(true);
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error('Sessão expirada');
+            const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+            const res = await fetch(`https://${projectId}.supabase.co/functions/v1/generate-monthly-report`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+              body: JSON.stringify({ year, month: monthNum }),
+            });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || 'Erro');
+            toast.success(`Relatório de ${monthName} gerado`);
+            qc.invalidateQueries({ queryKey: ['md-report', year, monthNum] });
+            qc.invalidateQueries({ queryKey: ['monthly-reports'] });
+          } catch (err: any) { toast.error(err.message || 'Erro ao gerar'); }
+          finally { setGeneratingReport(false); }
+        };
+
+        const handleDownloadPdf = () => {
+          if (!rd) return;
+          const label = rd.period?.label || `${monthName} ${year}`;
+          const f = fmtV;
+          const fin = rd.financial || {};
+          const com = rd.commercial || {};
+          const cli = rd.clients || {};
+          const ops = rd.operations || {};
+          const tm = rd.team || {};
+          const crm = rd.crm || {};
+          const topHtml = (com.topProducts || []).map(([n, v]: [string, number]) => `<tr><td>${n}</td><td style="text-align:right;font-weight:600">€${f(v)}</td></tr>`).join('');
+
+          const pw = window.open('', '_blank', 'width=900,height=700');
+          if (!pw) { toast.error('Popup bloqueado'); return; }
+          pw.document.write(`<!DOCTYPE html><html><head><title>Relatório ${label}</title>
+<style>@page{size:A4;margin:18mm 15mm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:11px;color:#1a1a1a;line-height:1.5}.header{border-bottom:2px solid #1a1a1a;padding-bottom:8px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end}.header h1{font-size:18px;font-weight:700}.header .date{font-size:10px;color:#6b7280}h2{font-size:13px;font-weight:700;margin:18px 0 8px;text-transform:uppercase;letter-spacing:.5px;color:#374151}.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}.kpi{border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px}.kpi .label{font-size:9px;text-transform:uppercase;color:#6b7280;letter-spacing:.3px}.kpi .value{font-size:16px;font-weight:700;margin-top:2px}.kpi .sub{font-size:9px;color:#6b7280;margin-top:1px}.section-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}.card{border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px}.card h3{font-size:11px;font-weight:600;margin-bottom:6px}.row{display:flex;justify-content:space-between;font-size:10px;padding:3px 0}.row .lbl{color:#6b7280}.row .val{font-weight:600}.green{color:#059669}.red{color:#dc2626}.progress-bar{height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;margin:4px 0}.progress-fill{height:100%;background:#3b82f6;border-radius:4px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{padding:5px 8px;border-bottom:1px solid #e5e7eb;text-align:left}th{font-weight:600;background:#f9fafb}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>
+<div class="header"><h1>Relatório Mensal — ${label}</h1><span class="date">Gerado em ${new Date(rd.generatedAt || Date.now()).toLocaleDateString('pt-PT')}</span></div>
+<h2>Financeiro</h2><div class="kpi-grid"><div class="kpi"><div class="label">Receita</div><div class="value">€${f(fin.revenue||0)}</div></div><div class="kpi"><div class="label">Despesas</div><div class="value">€${f(fin.expenses||0)}</div></div><div class="kpi"><div class="label">Margem</div><div class="value">€${f(fin.margin||0)}</div><div class="sub">${(fin.marginPct||0).toFixed(1)}%</div></div></div>
+<h2>Comercial</h2><div class="kpi-grid"><div class="kpi"><div class="label">Vendas</div><div class="value">${com.salesCount||0}</div><div class="sub">€${f(com.totalSales||0)}</div></div><div class="kpi"><div class="label">Total YTD</div><div class="value">€${f(com.totalYtd||0)}</div></div><div class="kpi"><div class="label">Meta Anual</div><div class="value">${(com.progressPct||0).toFixed(1)}%</div><div class="progress-bar"><div class="progress-fill" style="width:${Math.min(com.progressPct||0,100)}%"></div></div><div class="sub">€${f(com.totalYtd||0)} / €${f(com.annualGoal||0)}</div></div></div>
+${topHtml?`<h2>Top Produtos</h2><table><thead><tr><th>Produto</th><th style="text-align:right">Valor</th></tr></thead><tbody>${topHtml}</tbody></table>`:''}
+<h2>Clientes & CRM</h2><div class="section-grid"><div class="card"><h3>Clientes</h3><div class="row"><span class="lbl">Ativos</span><span class="val">${cli.activeCount||0}</span></div><div class="row"><span class="lbl">Novos</span><span class="val">${cli.newCount||0}</span></div>${cli.avgNps!=null?`<div class="row"><span class="lbl">NPS</span><span class="val">${cli.avgNps.toFixed(1)}</span></div>`:''}</div><div class="card"><h3>CRM</h3><div class="row"><span class="lbl">Convertidas</span><span class="val green">${crm.leadsConverted||0}</span></div><div class="row"><span class="lbl">Perdidas</span><span class="val red">${crm.leadsLost||0}</span></div></div><div class="card"><h3>Equipa</h3><div class="row"><span class="lbl">Horas</span><span class="val">${tm.totalHours||0}h</span></div><div class="row"><span class="lbl">Membros</span><span class="val">${tm.activeMembers||0}</span></div><div class="row"><span class="lbl">Média</span><span class="val">${tm.avgHoursPerMember||0}h</span></div></div></div>
+<h2>Operações</h2><div class="kpi-grid"><div class="kpi"><div class="label">Tarefas Concluídas</div><div class="value">${ops.tasksCompleted||0}</div><div class="sub">${ops.tasksPending||0} pendentes</div></div><div class="kpi"><div class="label">Reuniões</div><div class="value">${ops.meetingsHeld||0}</div></div><div class="kpi"><div class="label">Entregáveis</div><div class="value">${ops.deliverablesCompleted||0}</div></div></div>
+</body></html>`);
+          pw.document.close();
+          setTimeout(() => { pw.print(); pw.onafterprint = () => pw.close(); setTimeout(() => { try { pw.close(); } catch {} }, 5000); }, 400);
+        };
+
+        return (
+          <div className="rounded-xl border-2 border-primary/30 bg-gradient-to-r from-primary/5 via-primary/10 to-accent/5 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="rounded-lg bg-primary/15 p-2">
+                  <FileBarChart className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold">Relatório Mensal</h3>
+                  <p className="text-xs text-muted-foreground">Snapshot operacional consolidado de {monthName}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {rd && (
+                  <Button variant="outline" size="sm" onClick={handleDownloadPdf} className="h-8">
+                    <Download className="h-3.5 w-3.5 mr-1.5" /> PDF
+                  </Button>
+                )}
+                <Button size="sm" onClick={handleGenerateReport} disabled={generatingReport} className="h-8">
+                  <Play className="h-3.5 w-3.5 mr-1.5" />
+                  {generatingReport ? 'A gerar...' : report ? 'Regerar' : 'Gerar Relatório'}
+                </Button>
+              </div>
+            </div>
+
+            {rd && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                {[
+                  { label: 'Receita', value: `€${fmtV(rd.financial?.revenue || 0)}` },
+                  { label: 'Margem', value: `€${fmtV(rd.financial?.margin || 0)}`, sub: `${(rd.financial?.marginPct || 0).toFixed(1)}%` },
+                  { label: 'Vendas', value: `${rd.commercial?.salesCount || 0}`, sub: `€${fmtV(rd.commercial?.totalSales || 0)}` },
+                  { label: 'Clientes', value: `${rd.clients?.activeCount || 0}`, sub: `+${rd.clients?.newCount || 0} novos` },
+                  { label: 'Tarefas', value: `${rd.operations?.tasksCompleted || 0}`, sub: `${rd.operations?.tasksPending || 0} pend.` },
+                  { label: 'Horas', value: `${rd.team?.totalHours || 0}h`, sub: `${rd.team?.activeMembers || 0} membros` },
+                ].map(k => (
+                  <div key={k.label} className="bg-background/80 rounded-lg p-2.5 border border-border/50">
+                    <p className="text-[9px] uppercase text-muted-foreground tracking-wider">{k.label}</p>
+                    <p className="text-sm font-bold mt-0.5">{k.value}</p>
+                    {k.sub && <p className="text-[10px] text-muted-foreground">{k.sub}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!rd && !reportQ.isLoading && (
+              <p className="text-xs text-muted-foreground">Nenhum relatório gerado para este mês. Clica em "Gerar Relatório" para compilar os dados.</p>
+            )}
+          </div>
+        );
+      })()}
+
       {/* ═══ DETAIL SHEETS ═══ */}
       <ObjectiveDetailSheet
         open={!!selectedObjective}
