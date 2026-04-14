@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { BackNavigation } from '@/components/BackNavigation';
@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { usePublicoAlvoSections, useUpdateSection, useDeleteSection, useAddSection, PASection } from '@/hooks/usePublicoAlvoData';
 import { SectionRenderer } from '@/components/publico-alvo/SectionRenderer';
 import { EditableText } from '@/components/publico-alvo/EditableText';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { Json } from '@/integrations/supabase/types';
@@ -36,7 +36,18 @@ export default function MarketingPublicoAlvo() {
     return groups;
   }, [sections]);
 
-  const activeSection = sections?.find(s => s.section_key === (activeKey || sections?.[0]?.section_key));
+  const allItems = useMemo(() => navGroups.flatMap(g => g.items), [navGroups]);
+  const currentKey = activeKey || sections?.[0]?.section_key;
+  const currentIndex = allItems.findIndex(i => i.section_key === currentKey);
+  const activeSection = sections?.find(s => s.section_key === currentKey);
+
+  const goToPrev = useCallback(() => {
+    if (currentIndex > 0) setActiveKey(allItems[currentIndex - 1].section_key);
+  }, [currentIndex, allItems]);
+
+  const goToNext = useCallback(() => {
+    if (currentIndex < allItems.length - 1) setActiveKey(allItems[currentIndex + 1].section_key);
+  }, [currentIndex, allItems]);
 
   const debouncedUpdate = useCallback((id: string, patch: Partial<PASection>) => {
     if (debounceRef.current[id]) clearTimeout(debounceRef.current[id]);
@@ -117,36 +128,52 @@ export default function MarketingPublicoAlvo() {
 
           {/* ═══ TAB NAV ═══ */}
           <div className="sticky top-14 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur-sm border-b">
-            <ScrollArea className="w-full">
-              <div className="flex items-center gap-1">
-                {navGroups.map((group, gi) => (
-                  <div key={group.label} className="flex items-center gap-1">
-                    {gi > 0 && <div className="w-px h-5 bg-border mx-1 shrink-0" />}
-                    {group.items.map(item => (
-                      <button
-                        key={item.section_key}
-                        onClick={() => setActiveKey(item.section_key)}
-                        className={cn(
-                          'whitespace-nowrap text-xs px-2.5 py-1.5 rounded-md transition-colors shrink-0',
-                          (activeKey || sections?.[0]?.section_key) === item.section_key
-                            ? 'bg-primary/10 text-primary font-medium'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                        )}
-                      >
-                        {item.title}
-                      </button>
-                    ))}
-                  </div>
-                ))}
-                <button
-                  onClick={handleAddSection}
-                  className="whitespace-nowrap text-xs px-2.5 py-1.5 rounded-md text-primary/60 hover:text-primary hover:bg-primary/5 transition-colors shrink-0 flex items-center gap-1"
-                >
-                  <Plus className="h-3 w-3" /> Secção
-                </button>
-              </div>
-              <ScrollBar orientation="horizontal" className="h-1" />
-            </ScrollArea>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={goToPrev}
+                disabled={currentIndex <= 0}
+                className="shrink-0 h-7 w-7 flex items-center justify-center rounded-md border bg-background hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <ScrollArea className="flex-1">
+                <div className="flex items-center gap-1">
+                  {navGroups.map((group, gi) => (
+                    <div key={group.label} className="flex items-center gap-1">
+                      {gi > 0 && <div className="w-px h-5 bg-border mx-1 shrink-0" />}
+                      {group.items.map(item => (
+                        <button
+                          key={item.section_key}
+                          onClick={() => setActiveKey(item.section_key)}
+                          className={cn(
+                            'whitespace-nowrap text-xs px-2.5 py-1.5 rounded-md transition-colors shrink-0',
+                            currentKey === item.section_key
+                              ? 'bg-primary/10 text-primary font-medium'
+                              : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                          )}
+                        >
+                          {item.title}
+                        </button>
+                      ))}
+                    </div>
+                  ))}
+                  <button
+                    onClick={handleAddSection}
+                    className="whitespace-nowrap text-xs px-2.5 py-1.5 rounded-md text-primary/60 hover:text-primary hover:bg-primary/5 transition-colors shrink-0 flex items-center gap-1"
+                  >
+                    <Plus className="h-3 w-3" /> Secção
+                  </button>
+                </div>
+                <ScrollBar orientation="horizontal" className="h-1" />
+              </ScrollArea>
+              <button
+                onClick={goToNext}
+                disabled={currentIndex >= allItems.length - 1}
+                className="shrink-0 h-7 w-7 flex items-center justify-center rounded-md border bg-background hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
           {/* ═══ ACTIVE SECTION CONTENT ═══ */}
