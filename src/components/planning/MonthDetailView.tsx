@@ -361,18 +361,31 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
             monthGoals.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">Sem metas para {monthName}.</p> : (
               <Table>
                 <TableHeader><TableRow>
-                  <TableHead>Status</TableHead><TableHead>Área</TableHead><TableHead>Meta</TableHead><TableHead>Data meta</TableHead><TableHead>Data atingida</TableHead>
+                  <TableHead>Status</TableHead><TableHead>Área</TableHead><TableHead>Meta</TableHead><TableHead className="text-right">Alvo</TableHead><TableHead className="text-right">Atual</TableHead><TableHead>Progresso</TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
                   {monthGoals.map((g: any) => {
                     const obj = objectives.find((o: any) => o.id === g.objective_id);
+                    const targetVal = Number(g.target_value || 0);
+                    const actualVal = Number(g.actual_value || 0);
+                    // For commercial objectives, calculate actual from sales
+                    const isCommercial = obj?.value_source === 'commercial' || obj?.area === 'comercial';
+                    const computedActual = isCommercial ? totalInvoiced : actualVal;
+                    const pct = targetVal > 0 ? Math.min(Math.round((computedActual / targetVal) * 100), 100) : 0;
+                    const unit = obj?.target_unit || '';
                     return (
                       <TableRow key={g.id} className="cursor-pointer hover:bg-muted/60" onClick={() => obj && setSelectedObjective(obj)}>
                         <TableCell><Badge variant={g.status === 'atingido' ? 'default' : 'secondary'} className="text-xs">{planStatusLabel(g.status)}</Badge></TableCell>
                         <TableCell className="text-xs">{obj ? planAreaLabel(obj.area) : '—'}</TableCell>
                         <TableCell className="text-sm">{obj?.title || '—'}</TableCell>
-                        <TableCell className="text-xs">{obj?.deadline || '—'}</TableCell>
-                        <TableCell className="text-xs">{g.status === 'atingido' ? g.updated_at ? format(parseISO(g.updated_at), 'dd/MM/yyyy') : '—' : '—'}</TableCell>
+                        <TableCell className="text-xs text-right font-medium">{targetVal > 0 ? `${targetVal.toLocaleString('pt-PT')}${unit}` : '—'}</TableCell>
+                        <TableCell className="text-xs text-right font-medium">{computedActual > 0 ? `${computedActual.toLocaleString('pt-PT', { minimumFractionDigits: unit === '€' ? 2 : 0 })}${unit}` : '0'}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Progress value={pct} className="h-1.5 w-16" />
+                            <span className="text-[10px] text-muted-foreground">{pct}%</span>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     );
                   })}
