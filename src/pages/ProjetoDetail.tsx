@@ -666,7 +666,10 @@ export default function ProjetoDetailPage() {
     const MEETING_STATUSES = [
       { value: 'por_organizar', label: 'Por organizar', color: '#3b82f6' },
       { value: 'por_confirmar', label: 'Por confirmar', color: '#f59e0b' },
+      { value: 'confirmada', label: 'Confirmada', color: '#22c55e' },
+      { value: 'realizada', label: 'Realizada', color: '#8b5cf6' },
       { value: 'terminada', label: 'Terminada', color: '#6b7280' },
+      { value: 'cancelada', label: 'Cancelada', color: '#ef4444' },
     ];
     const getMeetingStatusInfo = (s: string) => MEETING_STATUSES.find(x => x.value === s) || MEETING_STATUSES[0];
 
