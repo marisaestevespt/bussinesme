@@ -5,7 +5,7 @@ import { Json } from '@/integrations/supabase/types';
 import { cn } from '@/lib/utils';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 
 // ── helpers ──────────────────────────────────────────────────────
 
@@ -43,13 +43,14 @@ function EditableListItem({ value, onSave, onDelete }: { value: string; onSave: 
   );
 }
 
-function AddItemButton({ onClick, label = 'Adicionar item' }: { onClick: () => void; label?: string }) {
-  return (
-    <button onClick={onClick} className="flex items-center gap-1 text-[10px] text-primary/60 hover:text-primary mt-1.5 transition-colors">
+const AddItemButton = forwardRef<HTMLButtonElement, { onClick: () => void; label?: string }>(
+  ({ onClick, label = 'Adicionar item' }, ref) => (
+    <button ref={ref} onClick={onClick} className="flex items-center gap-1 text-[10px] text-primary/60 hover:text-primary mt-1.5 transition-colors">
       <Plus className="h-3 w-3" /> {label}
     </button>
-  );
-}
+  )
+);
+AddItemButton.displayName = 'AddItemButton';
 
 // ── Block renderers ──────────────────────────────────────────────
 
