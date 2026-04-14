@@ -56,6 +56,7 @@ const PROCESSOS_DEFAULT_VIEWS: DefaultView[] = [
 
 export default function ProcessosPage() {
   const navigate = useNavigate();
+  const { getPhotoUrl } = useTeamPhotos();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const planningRoutines = usePlanningRoutines();

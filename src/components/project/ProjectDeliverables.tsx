@@ -114,6 +114,7 @@ function getInitials(name: string | null) {
 
 export function ProjectDeliverables({ projectId, profiles }: { projectId: string; profiles: Profile[] }) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { getPhotoUrl } = useTeamPhotos();
   const [importOpen, setImportOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState('');
   const [name, setName] = useState('');

@@ -80,6 +80,7 @@ const MURAL_DEFAULT_VIEWS: DefaultView[] = [
 
 export default function MuralPage() {
   const queryClient = useQueryClient();
+  const { getPhotoUrl } = useTeamPhotos();
   const { user, isOwner } = useAuth();
   const { allViews, addView, renameView, deleteView } = useUserViews('mural', MURAL_DEFAULT_VIEWS);
   const [activeView, setActiveView] = useState('todas');

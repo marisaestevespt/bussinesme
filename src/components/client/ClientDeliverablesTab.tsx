@@ -67,6 +67,7 @@ interface ClientDeliverablesTabProps {
 
 export function ClientDeliverablesTab({ clientName, clientId }: ClientDeliverablesTabProps) {
   const navigate = useNavigate();
+  const { getPhotoUrl } = useTeamPhotos();
 
   // Find projects linked to this client
   const { data: projects = [] } = useQuery({

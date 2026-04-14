@@ -200,6 +200,7 @@ function applyTaskFilters(tasks: Task[], filters: TaskFilters): Task[] {
 
 export default function OperacaoPage() {
   const [clientFilters, setClientFilters] = useState<TaskFilters>(EMPTY_FILTERS);
+  const { getPhotoUrl } = useTeamPhotos();
   const [internoFilters, setInternoFilters] = useState<TaskFilters>(EMPTY_FILTERS);
   const [expandedStatus, setExpandedStatus] = useState<string | null>(null);
   const [healthDetailProjectId, setHealthDetailProjectId] = useState<string | null>(null);
