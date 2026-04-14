@@ -11,7 +11,7 @@ export function PageHeader({ title, subtitle, showAccessButton = true }: PageHea
   const location = useLocation();
 
   return (
-    <div className="relative rounded-2xl bg-primary px-7 py-6 overflow-hidden">
+    <div className="relative rounded-2xl bg-primary px-6 py-6 overflow-hidden">
       {/* Decorative shapes */}
       <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-primary-foreground/5 -translate-y-1/2 translate-x-1/4" />
       <div className="absolute bottom-0 left-1/3 w-32 h-32 rounded-full bg-primary-foreground/5 translate-y-1/2" />
