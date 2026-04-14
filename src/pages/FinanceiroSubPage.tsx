@@ -2,26 +2,26 @@ import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { excludeCancelled } from '@/lib/utils';
 import { BackNavigation } from '@/components/BackNavigation';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useState } from 'react';
-import { useFinancialData } from '@/hooks/useFinancialData';
+import { useParams } from 'react-router-dom';
+import { useState, lazy, Suspense, useMemo } from 'react';
+import { useFinancialData, type FinancialDataOptions } from '@/hooks/useFinancialData';
 import { useCommercialData } from '@/hooks/useCommercialData';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { FinEntradas } from '@/components/financial/FinEntradas';
-import { FinSaidas } from '@/components/financial/FinSaidas';
-import { FinIVA } from '@/components/financial/FinIVA';
-import { FinPayroll } from '@/components/financial/FinPayroll';
-import { FinMensal } from '@/components/financial/FinMensal';
-import { FinTrimestral } from '@/components/financial/FinTrimestral';
-import { FinSegurancaSocial } from '@/components/financial/FinSegurancaSocial';
-import { FinAllDocuments } from '@/components/financial/FinAllDocuments';
-import { FinSetupFinanceiro } from '@/components/financial/FinSetupFinanceiro';
-import { FinPrevisibilidade } from '@/components/financial/FinPrevisibilidade';
-import { FinGoals } from '@/components/financial/FinGoals';
-import { FinContabilidade } from '@/components/financial/FinContabilidade';
 import { EmptyModulePage } from '@/components/EmptyModulePage';
 import { YearSelector } from '@/components/YearSelector';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const FinEntradas = lazy(() => import('@/components/financial/FinEntradas').then(m => ({ default: m.FinEntradas })));
+const FinSaidas = lazy(() => import('@/components/financial/FinSaidas').then(m => ({ default: m.FinSaidas })));
+const FinIVA = lazy(() => import('@/components/financial/FinIVA').then(m => ({ default: m.FinIVA })));
+const FinPayroll = lazy(() => import('@/components/financial/FinPayroll').then(m => ({ default: m.FinPayroll })));
+const FinMensal = lazy(() => import('@/components/financial/FinMensal').then(m => ({ default: m.FinMensal })));
+const FinTrimestral = lazy(() => import('@/components/financial/FinTrimestral').then(m => ({ default: m.FinTrimestral })));
+const FinSegurancaSocial = lazy(() => import('@/components/financial/FinSegurancaSocial').then(m => ({ default: m.FinSegurancaSocial })));
+const FinAllDocuments = lazy(() => import('@/components/financial/FinAllDocuments').then(m => ({ default: m.FinAllDocuments })));
+const FinSetupFinanceiro = lazy(() => import('@/components/financial/FinSetupFinanceiro').then(m => ({ default: m.FinSetupFinanceiro })));
+const FinPrevisibilidade = lazy(() => import('@/components/financial/FinPrevisibilidade').then(m => ({ default: m.FinPrevisibilidade })));
+const FinGoals = lazy(() => import('@/components/financial/FinGoals').then(m => ({ default: m.FinGoals })));
+const FinContabilidade = lazy(() => import('@/components/financial/FinContabilidade').then(m => ({ default: m.FinContabilidade })));
 
 const TITLES: Record<string, string> = {
   mensal: 'Mensal',
@@ -40,37 +40,72 @@ const TITLES: Record<string, string> = {
 
 const YEAR_SECTIONS = ['mensal', 'trimestral', 'entradas', 'saidas', 'ordenados', 'iva', 'seguranca-social', 'previsibilidade', 'metas-financeiras', 'contabilidade'];
 
+/**
+ * Per-section query requirements — only fetch what's actually needed.
+ * Sections not listed here (contabilidade, ordenados, documentos) fetch their own data internally.
+ */
+function getFinancialOptions(section: string | undefined): FinancialDataOptions {
+  switch (section) {
+    case 'mensal':
+      return { expenses: true, recurring: true, documents: true, payroll: true, contractors: true };
+    case 'trimestral':
+    case 'metas-financeiras':
+      return { expenses: true, recurring: false, documents: false, payroll: false, contractors: false };
+    case 'saidas':
+      return { expenses: true, recurring: true, documents: false, payroll: false, contractors: false };
+    case 'iva':
+    case 'seguranca-social':
+      return { expenses: true, recurring: true, documents: false, payroll: false, contractors: false };
+    case 'previsibilidade':
+      return { expenses: true, recurring: true, documents: false, payroll: false, contractors: false };
+    case 'setup-financeiro':
+      return { expenses: true, recurring: true, documents: true, payroll: true, contractors: true };
+    case 'entradas':
+      return { expenses: false, recurring: false, documents: false, payroll: false, contractors: false };
+    // contabilidade, ordenados, documentos — fetch their own data internally
+    default:
+      return { expenses: false, recurring: false, documents: false, payroll: false, contractors: false };
+  }
+}
+
+function needsCommercialData(section: string | undefined): boolean {
+  return ['mensal', 'trimestral', 'entradas', 'iva', 'seguranca-social', 'previsibilidade', 'metas-financeiras', 'contabilidade'].includes(section || '');
+}
+
+function LoadingFallback() {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-64 w-full" />
+    </div>
+  );
+}
+
 export default function FinanceiroSubPage() {
   const { section } = useParams<{ section: string }>();
-  const navigate = useNavigate();
   const [year, setYear] = useState(new Date().getFullYear());
-  const fin = useFinancialData();
-  const com = useCommercialData(year);
-  const sales = excludeCancelled(com.sales.data || []);
-  const expenses = excludeCancelled(fin.expenses.data || []);
-  const recurringExpenses = fin.recurringExpenses.data || [];
-  const payrollData = fin.payroll.data || [];
-  const contractorsData = fin.contractors.data || [];
-  const documents = fin.documents.data || [];
 
-  const profiles = useQuery({
-    queryKey: ['profiles-list'],
-    queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id, full_name');
-      return data || [];
-    },
-  });
+  const finOptions = useMemo(() => getFinancialOptions(section), [section]);
+  const fin = useFinancialData(finOptions);
+
+  // Only fetch commercial data when the section needs it
+  const comEnabled = needsCommercialData(section);
+  const com = useCommercialData(comEnabled ? year : -1);
 
   const title = TITLES[section || ''] || section || '';
   const showYearSelector = YEAR_SECTIONS.includes(section || '');
 
-  const yearSales = sales.filter(s => s.sale_year === year);
-  const yearExpenses = expenses.filter(e => e.expense_year === year);
-
   const renderContent = () => {
+    const sales = comEnabled ? excludeCancelled(com.sales.data || []) : [];
+    const expenses = excludeCancelled(fin.expenses.data || []);
+
     switch (section) {
-      case 'mensal':
+      case 'mensal': {
+        const payrollData = fin.payroll.data || [];
+        const contractorsData = fin.contractors.data || [];
+        const documents = fin.documents.data || [];
         return <FinMensal sales={sales} expenses={expenses} payrollData={payrollData} contractorsData={contractorsData} documents={documents} currentYear={year} fin={fin} />;
+      }
       case 'trimestral':
         return <FinTrimestral sales={sales} expenses={expenses} currentYear={year} />;
       case 'entradas':
@@ -89,8 +124,11 @@ export default function FinanceiroSubPage() {
         return <FinSetupFinanceiro fin={fin} />;
       case 'previsibilidade':
         return <FinPrevisibilidade fin={fin} currentYear={year} sales={sales} />;
-      case 'metas-financeiras':
+      case 'metas-financeiras': {
+        const yearSales = sales.filter(s => s.sale_year === year);
+        const yearExpenses = expenses.filter(e => e.expense_year === year);
         return <FinGoals currentYear={year} yearSales={yearSales} yearExpenses={yearExpenses} />;
+      }
       case 'contabilidade':
         return <FinContabilidade currentYear={year} />;
       default:
@@ -104,7 +142,9 @@ export default function FinanceiroSubPage() {
         <BackNavigation />
         <PageHeader title={title} />
         {showYearSelector && <YearSelector year={year} onChange={setYear} />}
-        {renderContent()}
+        <Suspense fallback={<LoadingFallback />}>
+          {renderContent()}
+        </Suspense>
       </div>
     </AppLayout>
   );
