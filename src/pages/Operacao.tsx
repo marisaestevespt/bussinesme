@@ -236,17 +236,14 @@ export default function OperacaoPage() {
     },
   });
 
-  // Fetch pending onboarding deliverables (from project_phases with is_onboarding + project_deliverables)
-  const { data: onboardingDeliverables = [] } = useQuery({
+  // Fetch all onboarding deliverables (pending AND completed, to distinguish "all done" from "no checklist")
+  const { data: allOnboardingDeliverables = [] } = useQuery({
     queryKey: ['op-onboarding-deliverables'],
     queryFn: async () => {
       const { data } = await supabase
         .from('project_deliverables')
-        .select('id, name, status, phase_id, project_id, sort_order')
-        .neq('status', 'concluido');
-      if (!data) return [];
-      // We'll filter by is_onboarding phase in the component using phases data
-      return data as { id: string; name: string; status: string; phase_id: string; project_id: string; sort_order: number }[];
+        .select('id, name, status, phase_id, project_id, sort_order');
+      return (data || []) as { id: string; name: string; status: string; phase_id: string; project_id: string; sort_order: number }[];
     },
   });
 
