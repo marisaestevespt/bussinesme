@@ -254,10 +254,22 @@ export function MonthDetailView({ monthIdx, year, planning, onBack }: Props) {
   // Product sales breakdown for "goal" tab — always show all active products
   const prodSalesData = useMemo(() => {
     const activeProducts = products.filter((p: any) => p.status !== 'off');
+    const normalize = (s: string) => s.toLowerCase().trim().replace(/\s+/g, ' ');
     return activeProducts.map((prod: any) => {
-      const prodSales = sales.filter((s: any) => s.product === prod.name);
+      const prodName = normalize(prod.name);
+      const prodSales = sales.filter((s: any) => {
+        const saleName = normalize(s.product || '');
+        if (!saleName) return false;
+        return saleName === prodName
+          || saleName.includes(prodName)
+          || prodName.includes(saleName)
+          || saleName.replace(/\s*\[.*?\]\s*/g, '') === prodName.replace(/\s*\[.*?\]\s*/g, '');
+      });
       const totalFat = prodSales.reduce((s: number, v: any) => s + Number(v.invoice_total || 0), 0);
-      const pg = commProdGoals.find((g: any) => g.product_name === prod.name);
+      const pg = commProdGoals.find((g: any) => {
+        const goalName = normalize(g.product_name);
+        return goalName === prodName || goalName.includes(prodName) || prodName.includes(goalName);
+      });
       const goalAmt = Number(pg?.goal_amount || 0);
       const pct = goalAmt > 0 ? Math.round((totalFat / goalAmt) * 100) : 0;
       const ticketValue = prod.ticket ? parseFloat(prod.ticket.replace(/[^\d.,]/g, '').replace(',', '.')) || 0 : 0;
