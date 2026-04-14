@@ -254,7 +254,7 @@ export default function ProdutoDetailPage() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6 w-full">
+      <div className="space-y-6 w-full">
         {/* Header */}
         <div className="flex items-center gap-3 flex-wrap">
           <BackNavigation parentRoute="/hub/produtos" parentLabel="Produtos" />

@@ -381,11 +381,11 @@ export default function GestaoMarcaPage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col min-h-screen">
+      <div className="space-y-6">
         {/* Header */}
         <PageHeader title="Gestão de Marca" subtitle="Marketing e Branding" />
 
-        <div className="w-full px-4 py-10 space-y-12">
+        <div className="space-y-6">
           <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
 
           {/* ── Brand Card ── */}

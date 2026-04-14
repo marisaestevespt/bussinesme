@@ -111,10 +111,10 @@ export default function MarketingTrafegoPago() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col min-h-screen">
+      <div className="space-y-6">
         <PageHeader title="Tráfego Pago" subtitle="Marketing 360" />
 
-        <div className="w-full px-4 py-8 space-y-8">
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
             <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
           </div>

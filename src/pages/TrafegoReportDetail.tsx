@@ -112,7 +112,7 @@ export default function TrafegoReportDetail() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col min-h-screen">
+      <div className="space-y-6">
         <div className="w-full py-10 px-6 flex flex-col items-center gap-2" style={{ background: 'hsl(var(--primary))' }}>
           <p className="text-xs uppercase tracking-widest font-medium" style={{ color: 'hsl(var(--primary-foreground) / 0.7)' }}>Tráfego Pago</p>
           {isOwner ? (
@@ -124,7 +124,7 @@ export default function TrafegoReportDetail() {
           )}
         </div>
 
-        <div className="w-full px-4 py-8 space-y-6">
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
             <BackNavigation parentRoute="/hub/marketing/trafego-pago" parentLabel="Tráfego Pago" />
             {isOwner && title !== card.title && (

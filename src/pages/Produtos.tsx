@@ -69,7 +69,7 @@ export default function ProdutosPage() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6">
+      <div className="space-y-6">
         <PageHeader title="Produtos" subtitle="Catálogo de produtos, escada de valor e entregas." />
 
         {/* Summary Cards */}

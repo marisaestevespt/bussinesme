@@ -100,7 +100,7 @@ export default function FinanceiroSubPage() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-4">
+      <div className="space-y-6">
         <BackNavigation />
         <PageHeader title={title} />
         {showYearSelector && <YearSelector year={year} onChange={setYear} />}

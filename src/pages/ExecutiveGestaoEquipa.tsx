@@ -855,7 +855,7 @@ export default function ExecutiveGestaoEquipa() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-8">
+      <div className="space-y-6">
         <PageHeader title="Gestão de Equipa" subtitle="Pessoas, contratos, horários e feedback — tudo sobre a tua equipa" />
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
