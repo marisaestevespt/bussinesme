@@ -235,7 +235,7 @@ export default function MarketingEstrategia() {
                       <Link to="/hub/marketing/gestao-marca">
                         <Badge variant="outline" className="cursor-pointer hover:bg-muted/50">Gestão de Marca</Badge>
                       </Link>
-                      <Link to="/hub/marketing/publico-alvo">
+                      <Link to="/hub/marketing/estrategia/publico-alvo">
                         <Badge variant="outline" className="cursor-pointer hover:bg-muted/50">Público Alvo e Persona</Badge>
                       </Link>
                       <Link to="/hub/marketing/banco-ideias">
@@ -300,6 +300,21 @@ export default function MarketingEstrategia() {
                 );
               })}
             </div>
+          </section>
+
+          <Separator />
+
+          {/* MAPA DO PÚBLICO-ALVO */}
+          <section>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Público-Alvo</h2>
+            <Link to="/hub/marketing/estrategia/publico-alvo"
+              className="flex items-center gap-4 p-5 rounded-xl border bg-card hover:bg-muted/50 hover:border-primary/30 hover:shadow-sm hq-transition max-w-md">
+              <span className="text-2xl">🎯</span>
+              <div>
+                <span className="text-sm font-medium text-foreground">Mapa do Público-Alvo</span>
+                <p className="text-xs text-muted-foreground mt-0.5">Personas, dores, desejos e jornada de compra</p>
+              </div>
+            </Link>
           </section>
 
           <Separator />
