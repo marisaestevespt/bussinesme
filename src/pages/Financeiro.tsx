@@ -52,20 +52,14 @@ export default function FinanceiroPage() {
   const teamType = s?.team_type || 'externa';
   const hasInternalTeam = teamType === 'interna' || teamType === 'ambas';
 
-  const SECTIONS_ROW1 = useMemo(() => {
-    return ALL_SECTIONS_ROW1.filter(sec => {
+  const SECTIONS = useMemo(() => {
+    return ALL_SECTIONS.filter(sec => {
       if (sec.key === 'iva' && ivaExempt && !isContabOrganizada) return false;
       if (sec.key === 'ss' && ssExempt && !isContabOrganizada) return false;
-      return true;
-    });
-  }, [ivaExempt, ssExempt, isContabOrganizada]);
-
-  const SECTIONS_ROW2 = useMemo(() => {
-    return ALL_SECTIONS_ROW2.filter(sec => {
       if (sec.key === 'ordenados' && !hasInternalTeam) return false;
       return true;
     });
-  }, [hasInternalTeam]);
+  }, [ivaExempt, ssExempt, isContabOrganizada, hasInternalTeam]);
 
   const sales = excludeCancelled(com.sales.data || []);
   const expenses = excludeCancelled(fin.expenses.data || []);
