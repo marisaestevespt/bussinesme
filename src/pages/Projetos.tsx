@@ -534,7 +534,7 @@ function TableView({ projects, getMembersForProject, onOpen, onStatusChange, get
               <TableRow key={p.id} className="cursor-pointer" onClick={() => onOpen(p.id)}>
                 <TableCell className="font-medium whitespace-nowrap">{p.name}</TableCell>
                 <TableCell className="whitespace-nowrap"><Badge className={`${typeI.color} border font-medium`}>{typeI.label}</Badge></TableCell>
-                <TableCell onClick={e => e.stopPropagation()}>
+                <TableCell className="whitespace-nowrap" onClick={e => e.stopPropagation()}>
                   <Select value={p.status} onValueChange={s => onStatusChange(p.id, s)}>
                     <SelectTrigger className="h-auto border-0 bg-transparent p-0 shadow-none w-auto">
                       <StatusBadge status={p.status} />
