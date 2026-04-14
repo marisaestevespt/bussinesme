@@ -156,7 +156,7 @@ export default function ComecaAquiPage() {
         {/* Cover */}
         <PageHeader title="Começa Aqui" />
 
-        <div className="max-w-4xl mx-auto w-full px-4 py-10 space-y-12">
+        <div className="w-full px-4 py-10 space-y-12">
           {/* Welcome text */}
           <section className="space-y-3">
             <div className="flex items-center gap-2">

@@ -655,7 +655,7 @@ export default function SopDetailPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="w-full space-y-8">
         {/* Header */}
         <div className="flex items-center gap-3">
           <BackNavigation parentRoute="/hub/processos" parentLabel="Processos" />

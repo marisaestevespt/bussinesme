@@ -282,7 +282,7 @@ export default function CrmPipelines() {
     const projectName = getProjectName(activePipeline.project_id);
     return (
       <AppLayout>
-        <div className="p-6 space-y-4 max-w-[1600px] mx-auto">
+        <div className="p-6 space-y-4 w-full">
           {/* Header with X to close */}
           <div className="flex items-center justify-between">
             <div className="min-w-0">
@@ -377,7 +377,7 @@ export default function CrmPipelines() {
   // ── LIST VIEW: search & select ──
   return (
     <AppLayout>
-      <div className="p-6 space-y-6 max-w-[1400px] mx-auto">
+      <div className="p-6 space-y-6 w-full">
         <BackNavigation parentRoute="/hub/comercial/crm" parentLabel="Voltar ao CRM" />
 
         <div className="flex items-center justify-between">

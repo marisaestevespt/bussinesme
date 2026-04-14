@@ -221,7 +221,7 @@ export default function VendaDetailPage() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6 max-w-4xl mx-auto">
+      <div className="p-6 space-y-6 w-full">
         {/* Header */}
         <div className="flex items-center gap-3 flex-wrap">
           <BackNavigation parentRoute="/hub/comercial/vendas" parentLabel="Vendas" />

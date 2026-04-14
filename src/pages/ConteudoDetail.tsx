@@ -271,7 +271,7 @@ export default function ConteudoDetailPage() {
           {statusOpt && <Badge className={cn("text-xs", statusOpt.color)}>{statusOpt.label}</Badge>}
         </div>
 
-        <div className="max-w-6xl mx-auto w-full px-4 py-6">
+        <div className="w-full px-4 py-6">
           <div className="flex items-center justify-between mb-2">
             <BackNavigation parentRoute="/hub/marketing" parentLabel="Marketing" />
             <Button

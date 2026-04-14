@@ -116,7 +116,7 @@ export default function TrafegoCriativoDetail() {
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto w-full px-4 py-8 space-y-8">
+        <div className="w-full px-4 py-8 space-y-8">
           <BackNavigation parentRoute="/hub/marketing/trafego-pago" parentLabel="Tráfego Pago" />
 
           {/* Meta fields */}
