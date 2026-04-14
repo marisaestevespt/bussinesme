@@ -240,9 +240,9 @@ export default function ProjetosPage() {
 
   const profileMap = new Map(profiles.map(p => [p.id, p]));
 
-  function getTaskProgress(projectId: string, projectType?: string) {
-    // For serviço mensal, use current month's tasks
-    if (projectType === 'cliente_servico_mensal') {
+  function getTaskProgress(projectId: string, projectType?: string, projectMode?: string) {
+    // Only recorrente serviço mensal uses monthly tasks
+    if (projectType === 'cliente_servico_mensal' && projectMode === 'recorrente') {
       const tasks = monthlyTasksByProject.filter(t => t.project_id === projectId);
       if (tasks.length === 0) return 0;
       const completed = tasks.filter(t => t.status === 'done' || t.status === 'concluida').length;
