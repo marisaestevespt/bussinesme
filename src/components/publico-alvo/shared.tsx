@@ -103,9 +103,6 @@ export function Section({
 }) {
   return (
     <section id={id}>
-      <p className="text-[10px] uppercase tracking-[2.5px] font-medium text-primary mb-1.5">
-        {num} · {label}
-      </p>
       <h3 className="text-xl sm:text-2xl font-semibold text-foreground leading-tight mb-2">{title}</h3>
       <div className="w-10 h-0.5 bg-primary mb-4" />
       {subtitle && (
