@@ -63,8 +63,33 @@ export function getSubscriptionOccurrences(
   }
 }
 
-export function useFinancialData() {
+export interface FinancialDataOptions {
+  /** Enable expenses query (default true) */
+  expenses?: boolean;
+  /** Enable recurring expenses query (default true) */
+  recurring?: boolean;
+  /** Enable documents query (default true) */
+  documents?: boolean;
+  /** Enable payroll query (default true) */
+  payroll?: boolean;
+  /** Enable contractors query (default true) */
+  contractors?: boolean;
+}
+
+const EMPTY_EXPENSES: Expense[] = [];
+const EMPTY_RECURRING: RecurringExpense[] = [];
+const EMPTY_DOCUMENTS: FinancialDocument[] = [];
+const EMPTY_PAYROLL: PayrollEntry[] = [];
+const EMPTY_CONTRACTORS: ContractorEntry[] = [];
+
+export function useFinancialData(options?: FinancialDataOptions) {
   const qc = useQueryClient();
+
+  const enableExpenses = options?.expenses !== false;
+  const enableRecurring = options?.recurring !== false;
+  const enableDocuments = options?.documents !== false;
+  const enablePayroll = options?.payroll !== false;
+  const enableContractors = options?.contractors !== false;
 
   const expensesQuery = useInfiniteQuery<InfinitePageResult<Expense>>({
     queryKey: ['financial-expenses'],
@@ -84,12 +109,13 @@ export function useFinancialData() {
     },
     getNextPageParam: (last) => last.nextPage,
     staleTime: 2 * 60 * 1000,
+    enabled: enableExpenses,
   });
 
   const expenses = {
     ...expensesQuery,
-    data: flattenInfiniteData(expensesQuery.data?.pages),
-    totalCount: getInfiniteCount(expensesQuery.data?.pages),
+    data: enableExpenses ? flattenInfiniteData(expensesQuery.data?.pages) : EMPTY_EXPENSES,
+    totalCount: enableExpenses ? getInfiniteCount(expensesQuery.data?.pages) : 0,
   };
 
   const recurringExpensesQuery = useQuery({
@@ -103,9 +129,13 @@ export function useFinancialData() {
       return ((data || []) as RecurringExpense[]).map(normalizeExpenseRecord);
     },
     staleTime: 2 * 60 * 1000,
+    enabled: enableRecurring,
   });
 
-  const recurringExpenses = recurringExpensesQuery;
+  const recurringExpenses = {
+    ...recurringExpensesQuery,
+    data: enableRecurring ? recurringExpensesQuery.data : EMPTY_RECURRING,
+  };
 
   const documents = useQuery({
     queryKey: ['financial-documents'],
@@ -117,6 +147,7 @@ export function useFinancialData() {
       return (data || []) as FinancialDocument[];
     },
     staleTime: 2 * 60 * 1000,
+    enabled: enableDocuments,
   });
 
   const payroll = useQuery({
@@ -129,6 +160,7 @@ export function useFinancialData() {
       return (data || []) as PayrollEntry[];
     },
     staleTime: 2 * 60 * 1000,
+    enabled: enablePayroll,
   });
 
   const contractors = useQuery({
@@ -141,6 +173,7 @@ export function useFinancialData() {
       return (data || []) as ContractorEntry[];
     },
     staleTime: 2 * 60 * 1000,
+    enabled: enableContractors,
   });
 
   const upsertExpense = useMutation({
@@ -182,7 +215,6 @@ export function useFinancialData() {
 
   const deleteExpense = useMutation({
     mutationFn: async (id: string) => {
-      // Delete children first (if this is a parent/recurring rule)
       await supabase.from('financial_expenses').delete().eq('parent_expense_id', id);
       const { error } = await supabase.from('financial_expenses').delete().eq('id', id);
       if (error) throw error;
@@ -211,7 +243,6 @@ export function useFinancialData() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['financial-documents'] }),
   });
-
 
   const upsertPayroll = useMutation({
     mutationFn: async (entry: Partial<PayrollEntry> & { collaborator_name: string; month: number; year: number }) => {
@@ -325,7 +356,6 @@ export function useFinancialData() {
     },
   });
 
-  // Add upsert/delete for recurring expenses
   const upsertRecurringExpense = useMutation({
     mutationFn: async (rec: Partial<Expense> & { expense_name: string; periodicity: string; base_value: number }) => {
       const monthly = calcMonthlyEquivalent(rec.base_value, rec.periodicity);
@@ -347,7 +377,6 @@ export function useFinancialData() {
 
   const deleteRecurringExpense = useMutation({
     mutationFn: async (id: string) => {
-      // Delete children first, then the parent rule
       await supabase.from('financial_expenses').delete().eq('parent_expense_id', id);
       const { error } = await supabase.from('financial_expenses').delete().eq('id', id);
       if (error) throw error;
