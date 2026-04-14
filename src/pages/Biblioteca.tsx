@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '@/components/PageHeader';
+import { BackNavigation } from '@/components/BackNavigation';
 import { AppLayout } from '@/components/AppLayout';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
@@ -223,6 +224,7 @@ export default function BibliotecaPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <BackNavigation parentRoute="/hub-equipa" parentLabel="Hub de Equipa" />
         <PageHeader title="Biblioteca de Documentos Internos" />
         <div className="flex items-center justify-between">
           <div className="relative w-64">

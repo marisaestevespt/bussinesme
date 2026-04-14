@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { notifyMentions } from '@/hooks/useNotifications';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
+import { BackNavigation } from '@/components/BackNavigation';
 import { ViewTabs } from '@/components/ViewTabs';
 import { useUserViews, type DefaultView } from '@/hooks/useUserViews';
 import { Button } from '@/components/ui/button';
@@ -308,6 +309,7 @@ export default function MuralPage() {
   return (
     <AppLayout>
       <div className="w-full space-y-6">
+        <BackNavigation parentRoute="/hub-equipa" parentLabel="Hub de Equipa" />
         <PageHeader title="Mural" />
         <div className="flex items-center justify-between">
           <div />

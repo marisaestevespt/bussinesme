@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
+import { BackNavigation } from '@/components/BackNavigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -176,6 +177,7 @@ export default function HubEquipaPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        <BackNavigation parentRoute="/secretaria" parentLabel="Secretaria" />
         {/* Header */}
         <div className="rounded-xl bg-primary px-6 py-5 flex items-start justify-between">
           <div>
