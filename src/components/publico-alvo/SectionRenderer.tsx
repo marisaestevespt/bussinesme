@@ -305,7 +305,7 @@ function BarChartBlock({ block, onUpdate }: BlockProps) {
   return (
     <div className="space-y-0 mb-6">
       {items.map((b: any, i: number) => {
-        const pct = Math.round((b.count / b.total) * 100);
+        const pct = b.total > 0 ? Math.round((b.count / b.total) * 100) : 0;
         return (
           <div key={i} className="flex items-center gap-4 py-2.5 border-b group">
             <EditableText value={b.label} onSave={l => updateItem(i, { label: l })} className="text-xs font-medium w-[200px] truncate text-foreground" />
