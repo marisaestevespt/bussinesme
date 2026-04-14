@@ -406,11 +406,10 @@ export function FloatingAiChat() {
               <p className="text-[11px] text-muted-foreground">Assistente inteligente</p>
             </div>
             <div className="flex items-center gap-0.5">
-              {messages.length > 0 && (
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setMessages([]); sessionStorage.removeItem(STORAGE_KEY_MESSAGES); }} title="Nova conversa">
-                  <RotateCcw className="h-3.5 w-3.5" />
-                </Button>
-              )}
+              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground" onClick={() => { setMessages([]); sessionStorage.removeItem(STORAGE_KEY_MESSAGES); }} title="Nova conversa">
+                <RotateCcw className="h-3 w-3" />
+                Nova
+              </Button>
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setOpen(false)} title="Minimizar">
                 <Minus className="h-4 w-4" />
               </Button>
