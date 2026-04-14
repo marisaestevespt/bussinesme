@@ -298,6 +298,11 @@ export default function ProjetoDetailPage() {
     queryFn: async () => { const { data } = await supabase.from('profiles').select('id, user_id, full_name, avatar_url'); return (data || []) as Profile[]; },
   });
 
+  const { data: teamMembersPhotos = [] } = useQuery({
+    queryKey: ['team-members-photos'],
+    queryFn: async () => { const { data } = await supabase.from('team_members').select('profile_id, photo_url').not('profile_id', 'is', null); return (data || []) as { profile_id: string; photo_url: string | null }[]; },
+  });
+
   const { data: projectMembers = [] } = useQuery({
     queryKey: ['project-members', id],
     queryFn: async () => { const { data } = await supabase.from('project_members').select('profile_id').eq('project_id', id!); return (data || []).map((d: any) => d.profile_id as string); },
@@ -466,7 +471,8 @@ export default function ProjetoDetailPage() {
     enabled: !!id,
   });
 
-  const profileMap = new Map(profiles.map(p => [p.id, p]));
+  const teamPhotoMap = new Map(teamMembersPhotos.filter(t => t.profile_id).map(t => [t.profile_id, t.photo_url]));
+  const profileMap = new Map(profiles.map(p => [p.id, { ...p, avatar_url: p.avatar_url || teamPhotoMap.get(p.id) || null }]));
 
   useEffect(() => { if (project && !local) setLocal(project); }, [project]);
 
