@@ -1308,6 +1308,7 @@ export default function ProjetoDetailPage() {
 
   // ─── Internal project ─────────────────────────────────────────
   const isRecorrente = (local as any).project_mode === 'recorrente';
+  const taskMode: string = (local as any).task_mode || 'fases';
 
   return (
     <AppLayout>
@@ -1352,13 +1353,13 @@ export default function ProjetoDetailPage() {
           </div>
           <div className="space-y-4">
             {local.department && <div><Label className="text-xs">Departamento</Label><p className="text-sm mt-1">{getDeptLabel(local.department)}</p></div>}
-            {!isRecorrente && (
+            {taskMode === 'fases' && (
               <div>
                 <Label className="text-xs">Prazo</Label>
                 <Popover><PopoverTrigger asChild><Button variant="outline" className={cn("w-full justify-start text-left font-normal mt-1", !local.deadline && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{local.deadline ? format(new Date(local.deadline), 'PPP', { locale: pt }) : 'Selecionar'}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={local.deadline ? new Date(local.deadline) : undefined} onSelect={d => updateField('deadline', d ? format(d, 'yyyy-MM-dd') : null)} className="p-3 pointer-events-auto" /></PopoverContent></Popover>
               </div>
             )}
-            {!isRecorrente && (
+            {taskMode !== 'tarefas_livres' && (
               <div>
                 <Label className="text-xs">Progresso ({getProjectProgress()}%)</Label>
                 <Progress value={getProjectProgress()} className="h-2 mt-2" />
@@ -1394,7 +1395,7 @@ export default function ProjetoDetailPage() {
         <Separator />
 
         {/* Deliverables - only for recorrente projects */}
-        {isRecorrente && (
+        {isRecorrente && taskMode === 'fases' && (
           <>
             <ProjectDeliverables projectId={id!} profiles={profiles} />
             <Separator />
@@ -1454,7 +1455,7 @@ export default function ProjetoDetailPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-info/10 border border-info/20 flex-1">
               <CheckSquare className="h-4.5 w-4.5 text-info" />
-              <h3 className="text-sm font-bold text-info uppercase tracking-wide">{isRecorrente ? 'Tarefas do Ciclo' : 'Estado e Prioridades'}</h3>
+              <h3 className="text-sm font-bold text-info uppercase tracking-wide">{taskMode === 'tarefas_fixas' ? 'Tarefas do Mês' : taskMode === 'tarefas_livres' ? 'Tarefas' : 'Estado e Prioridades'}</h3>
               <ProjectTimeDisplay taskIds={tasks.map(t => t.id)} />
             </div>
             <div className="flex gap-2 ml-3">
@@ -1465,7 +1466,7 @@ export default function ProjetoDetailPage() {
           {tasks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-xl">
               <CheckSquare className="h-10 w-10 text-muted-foreground/30 mb-3" />
-              <p className="text-sm text-muted-foreground">{isRecorrente ? 'As tarefas serão geradas automaticamente a partir das entregas recorrentes.' : 'Nenhuma tarefa ligada a este projeto'}</p>
+              <p className="text-sm text-muted-foreground">{taskMode === 'tarefas_fixas' ? 'Usa o botão "Gerar tarefas" para criar as tarefas deste mês.' : taskMode === 'tarefas_livres' ? 'Adiciona tarefas conforme necessário.' : 'Nenhuma tarefa ligada a este projeto'}</p>
             </div>
           ) : (
             <div className="rounded-xl border overflow-hidden">
