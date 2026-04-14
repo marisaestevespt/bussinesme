@@ -17,7 +17,7 @@ import { YearSelector } from '@/components/YearSelector';
 import { CalendarDays, CalendarRange, ArrowDownLeft, ArrowUpRight, Receipt, Shield, FolderOpen, Settings, TrendingUp, TrendingDown, Users, Package, UserCheck, Download, BarChart3, Target, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { exportPdf } from '@/lib/exportPdf';
-import { AiInsightsPanel } from '@/components/AiInsightsPanel';
+
 
 const fmt = (v: number) => v.toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 const ML = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -262,12 +262,8 @@ export default function FinanceiroPage() {
           </div>
         </div>
 
-        {/* AI Financial Analysis */}
-        <AiInsightsPanel
-          type="financial"
-          title="Análise Financeira AI"
-          buttonLabel="Analisar com AI"
-        />
+
+
 
         <div className="flex items-center justify-between">
           <YearSelector year={year} onChange={setYear} />
