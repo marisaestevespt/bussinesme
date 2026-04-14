@@ -268,6 +268,16 @@ export default function OperacaoPage() {
     },
   });
 
+  // Fetch which projects have phases (i.e. use the deliverables system)
+  const { data: projectsWithPhases = [] } = useQuery({
+    queryKey: ['op-projects-with-phases'],
+    queryFn: async () => {
+      const { data } = await supabase.from('project_phases').select('project_id');
+      const ids = new Set((data || []).map((r: any) => r.project_id));
+      return [...ids];
+    },
+  });
+
   // ── Derived data ────────────────────────────────────────────
   const profileMap = useMemo(() => new Map(profiles.map(p => [p.id, p])), [profiles]);
 
@@ -417,8 +427,10 @@ export default function OperacaoPage() {
 
   const recurrentesWithoutDeliverables = useMemo(() => {
     const projectIdsWithDeliverables = new Set(deliverables.map(d => d.project_id));
-    return [...activeClientRecorrentes, ...activeInternoRecorrentes].filter(p => !projectIdsWithDeliverables.has(p.id));
-  }, [activeClientRecorrentes, activeInternoRecorrentes, deliverables]);
+    const phasesSet = new Set(projectsWithPhases);
+    // Only alert recurrentes that have phases (use deliverables system) but no deliverables defined
+    return [...activeClientRecorrentes, ...activeInternoRecorrentes].filter(p => phasesSet.has(p.id) && !projectIdsWithDeliverables.has(p.id));
+  }, [activeClientRecorrentes, activeInternoRecorrentes, deliverables, projectsWithPhases]);
 
   const totalAlerts = stalledProjects.length + clientsNearEndOfCycle.length + unassignedTasks.length + overdueDeliverables.length + recurrentesWithoutDeliverables.length;
 
