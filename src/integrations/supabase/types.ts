@@ -2042,6 +2042,7 @@ export type Database = {
       content_items: {
         Row: {
           assigned_to: string | null
+          body_template: Json | null
           content_type: string | null
           copy_content: string | null
           cover_url: string | null
@@ -2062,6 +2063,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          body_template?: Json | null
           content_type?: string | null
           copy_content?: string | null
           cover_url?: string | null
@@ -2082,6 +2084,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          body_template?: Json | null
           content_type?: string | null
           copy_content?: string | null
           cover_url?: string | null
